@@ -76,7 +76,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2">
               <span className="font-display font-bold text-xl tracking-tight">
-                finança
+                pé de meia
               </span>
             </Link>
 

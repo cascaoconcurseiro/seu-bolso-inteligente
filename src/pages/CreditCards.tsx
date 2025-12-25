@@ -51,7 +51,7 @@ export function CreditCards() {
   // Form state
   const [newBankId, setNewBankId] = useState("");
   const [newBrand, setNewBrand] = useState("");
-  const [newLastDigits, setNewLastDigits] = useState("");
+  const [newCardName, setNewCardName] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("");
   const [newDueDay, setNewDueDay] = useState("");
   const [newLimit, setNewLimit] = useState("");
@@ -117,8 +117,9 @@ export function CreditCards() {
 
   const handleCreateCard = async () => {
     const bank = getBankById(newBankId);
+    const cardName = newCardName.trim() || bank.name;
     await createAccount.mutateAsync({
-      name: `${bank.name} •••• ${newLastDigits}`,
+      name: cardName,
       type: "CREDIT_CARD",
       bank_id: newBankId,
       credit_limit: parseFloat(newLimit) || 0,
@@ -128,7 +129,7 @@ export function CreditCards() {
     setShowNewCardDialog(false);
     setNewBankId("");
     setNewBrand("");
-    setNewLastDigits("");
+    setNewCardName("");
     setNewClosingDay("");
     setNewDueDay("");
     setNewLimit("");
@@ -315,8 +316,8 @@ export function CreditCards() {
           setBankId={setNewBankId}
           brand={newBrand}
           setBrand={setNewBrand}
-          lastDigits={newLastDigits}
-          setLastDigits={setNewLastDigits}
+          cardName={newCardName}
+          setCardName={setNewCardName}
           closingDay={newClosingDay}
           setClosingDay={setNewClosingDay}
           dueDay={newDueDay}
@@ -423,8 +424,8 @@ export function CreditCards() {
         setBankId={setNewBankId}
         brand={newBrand}
         setBrand={setNewBrand}
-        lastDigits={newLastDigits}
-        setLastDigits={setNewLastDigits}
+        cardName={newCardName}
+        setCardName={setNewCardName}
         closingDay={newClosingDay}
         setClosingDay={setNewClosingDay}
         dueDay={newDueDay}
@@ -446,8 +447,8 @@ interface NewCardDialogProps {
   setBankId: (v: string) => void;
   brand: string;
   setBrand: (v: string) => void;
-  lastDigits: string;
-  setLastDigits: (v: string) => void;
+  cardName: string;
+  setCardName: (v: string) => void;
   closingDay: string;
   setClosingDay: (v: string) => void;
   dueDay: string;
@@ -465,8 +466,8 @@ function NewCardDialog({
   setBankId,
   brand,
   setBrand,
-  lastDigits,
-  setLastDigits,
+  cardName,
+  setCardName,
   closingDay,
   setClosingDay,
   dueDay,
@@ -525,12 +526,11 @@ function NewCardDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Últimos 4 dígitos</Label>
+            <Label>Nome do cartão (opcional)</Label>
             <Input 
-              placeholder="0000" 
-              maxLength={4} 
-              value={lastDigits}
-              onChange={(e) => setLastDigits(e.target.value.replace(/\D/g, ""))}
+              placeholder="Ex: Cartão Principal"
+              value={cardName}
+              onChange={(e) => setCardName(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
