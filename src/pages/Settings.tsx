@@ -28,15 +28,17 @@ import {
   Pencil,
   Moon,
   Sun,
-  CreditCard,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { banks, getBankByName } from "@/lib/banks";
 
 // Mock data
 const mockAccounts = [
   { id: "1", name: "Nubank", type: "checking", balance: 5420.50 },
   { id: "2", name: "Inter", type: "checking", balance: 2180.30 },
-  { id: "3", name: "Carteira", type: "cash", balance: 350.00 },
+  { id: "3", name: "Itaú", type: "savings", balance: 15000.00 },
+  { id: "4", name: "Carteira", type: "cash", balance: 350.00 },
 ];
 
 const mockCategories = [
@@ -103,10 +105,10 @@ export function Settings() {
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               className={cn(
-                "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left",
+                "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 text-left",
                 activeSection === section.id
                   ? "bg-foreground text-background"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted hover:translate-x-1"
               )}
             >
               <div className="flex items-center gap-3">
@@ -115,7 +117,7 @@ export function Settings() {
               </div>
               {section.count !== undefined && (
                 <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full",
+                  "text-xs px-2 py-0.5 rounded-full transition-all",
                   activeSection === section.id ? "bg-background/20" : "bg-muted"
                 )}>
                   {section.count}
@@ -129,58 +131,86 @@ export function Settings() {
         <div className="lg:col-span-3 p-6 rounded-xl border border-border">
           {/* Accounts */}
           {activeSection === "accounts" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-display font-semibold text-lg">Contas</h2>
                   <p className="text-sm text-muted-foreground">Suas contas bancárias e carteiras</p>
                 </div>
-                <Button onClick={() => setShowAddAccountDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => setShowAddAccountDialog(true)}
+                  className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
                   Nova
                 </Button>
               </div>
               <div className="space-y-2">
-                {mockAccounts.map((account) => (
-                  <div
-                    key={account.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center">
-                        {account.type === "cash" ? (
-                          <Wallet className="h-5 w-5" />
-                        ) : (
-                          <CreditCard className="h-5 w-5" />
-                        )}
+                {mockAccounts.map((account) => {
+                  const bankConfig = getBankByName(account.name);
+                  
+                  return (
+                    <div
+                      key={account.id}
+                      className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                                 hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden
+                                     transition-transform duration-200 group-hover:scale-110"
+                          style={{ backgroundColor: account.type === "cash" ? "hsl(var(--muted))" : bankConfig.color }}
+                        >
+                          {account.type === "cash" ? (
+                            <Wallet className="h-5 w-5 text-muted-foreground" />
+                          ) : bankConfig.logoUrl ? (
+                            <img 
+                              src={bankConfig.logoUrl} 
+                              alt={bankConfig.name} 
+                              className="w-6 h-6 object-contain"
+                            />
+                          ) : (
+                            <Building2 className="h-5 w-5 text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{account.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {account.type === "checking" ? "Conta Corrente" : 
+                             account.type === "savings" ? "Poupança" : "Dinheiro"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{account.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {account.type === "checking" ? "Conta Corrente" : "Dinheiro"}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono font-medium">{formatCurrency(account.balance)}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-mono font-medium">{formatCurrency(account.balance)}</span>
-                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Categories */}
           {activeSection === "categories" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-display font-semibold text-lg">Categorias</h2>
                   <p className="text-sm text-muted-foreground">Organize suas transações</p>
                 </div>
-                <Button onClick={() => setShowAddCategoryDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => setShowAddCategoryDialog(true)}
+                  className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
                   Nova
                 </Button>
               </div>
@@ -191,13 +221,20 @@ export function Settings() {
                     {mockCategories.filter(c => c.type === "expense").map((cat) => (
                       <div
                         key={cat.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border 
+                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{cat.icon}</span>
+                          <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
                           <span className="font-medium">{cat.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3 w-3" /></Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -208,13 +245,20 @@ export function Settings() {
                     {mockCategories.filter(c => c.type === "income").map((cat) => (
                       <div
                         key={cat.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border 
+                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{cat.icon}</span>
+                          <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
                           <span className="font-medium">{cat.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3 w-3" /></Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -225,14 +269,17 @@ export function Settings() {
 
           {/* People */}
           {activeSection === "people" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-display font-semibold text-lg">Pessoas</h2>
                   <p className="text-sm text-muted-foreground">Membros para dividir despesas</p>
                 </div>
-                <Button onClick={() => setShowAddPersonDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button 
+                  onClick={() => setShowAddPersonDialog(true)}
+                  className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
                   Adicionar
                 </Button>
               </div>
@@ -240,10 +287,13 @@ export function Settings() {
                 {mockPeople.map((person) => (
                   <div
                     key={person.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                    className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                               hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
+                                      text-background flex items-center justify-center font-medium
+                                      transition-transform duration-200 group-hover:scale-110">
                         {person.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
@@ -253,12 +303,18 @@ export function Settings() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full",
+                        "text-xs px-2 py-0.5 rounded-full transition-all",
                         person.role === "admin" ? "bg-foreground text-background" : "bg-muted"
                       )}>
                         {person.role === "admin" ? "Admin" : "Membro"}
                       </span>
-                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -268,15 +324,18 @@ export function Settings() {
 
           {/* Appearance */}
           {activeSection === "appearance" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="font-display font-semibold text-lg">Aparência</h2>
                 <p className="text-sm text-muted-foreground">Personalize a interface</p>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl border border-border">
+                <div className="flex items-center justify-between p-4 rounded-xl border border-border 
+                               hover:border-foreground/20 transition-all duration-200">
                   <div className="flex items-center gap-4">
-                    {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                      {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                    </div>
                     <div>
                       <p className="font-medium">Modo Escuro</p>
                       <p className="text-sm text-muted-foreground">Tema claro ou escuro</p>
@@ -290,7 +349,7 @@ export function Settings() {
 
           {/* Notifications */}
           {activeSection === "notifications" && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="font-display font-semibold text-lg">Notificações</h2>
                 <p className="text-sm text-muted-foreground">Alertas e lembretes</p>
@@ -304,7 +363,8 @@ export function Settings() {
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border"
+                    className="flex items-center justify-between p-4 rounded-xl border border-border
+                               hover:border-foreground/20 transition-all duration-200"
                   >
                     <div>
                       <p className="font-medium">{item.title}</p>
@@ -328,8 +388,33 @@ export function Settings() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input placeholder="Ex: Nubank" />
+              <Label>Banco</Label>
+              <Select>
+                <SelectTrigger><SelectValue placeholder="Selecione o banco" /></SelectTrigger>
+                <SelectContent>
+                  {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-5 h-5 rounded flex items-center justify-center"
+                          style={{ backgroundColor: bank.color }}
+                        >
+                          {bank.logoUrl && (
+                            <img src={bank.logoUrl} alt={bank.name} className="w-4 h-4 object-contain" />
+                          )}
+                        </div>
+                        {bank.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="cash">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-5 h-5 text-muted-foreground" />
+                      Dinheiro / Carteira
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>

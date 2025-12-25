@@ -12,6 +12,7 @@ import { Trips } from "./pages/Trips";
 import { CreditCards } from "./pages/CreditCards";
 import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
+import { Family } from "./pages/Family";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/compartilhados" element={<SharedExpenses />} />
             <Route path="/viagens" element={<Trips />} />
             <Route path="/relatorios" element={<Reports />} />
+            <Route path="/familia" element={<Family />} />
             <Route path="/configuracoes" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
