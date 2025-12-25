@@ -316,12 +316,12 @@ export function NewTransaction() {
         {trips && trips.length > 0 && activeTab === "EXPENSE" && (
           <div className="space-y-2">
             <Label>Viagem (opcional)</Label>
-            <Select value={tripId} onValueChange={setTripId}>
+            <Select value={tripId || "none"} onValueChange={(v) => setTripId(v === "none" ? "" : v)}>
               <SelectTrigger className="h-12">
                 <SelectValue placeholder="Vincular a uma viagem" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="none">Nenhuma</SelectItem>
                 {trips.map((trip) => (
                   <SelectItem key={trip.id} value={trip.id}>
                     {trip.name}
