@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -15,18 +16,29 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   ArrowLeft,
   CalendarIcon,
   Loader2,
   RefreshCw,
+  Users,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories, useCreateDefaultCategories } from "@/hooks/useCategories";
-import { useCreateTransaction, TransactionType } from "@/hooks/useTransactions";
+import { useCreateTransaction, TransactionType, TransactionSplit } from "@/hooks/useTransactions";
 import { useTrips } from "@/hooks/useTrips";
+import { useFamilyMembers } from "@/hooks/useFamily";
 import { toast } from "sonner";
 
 type TabType = "EXPENSE" | "INCOME" | "TRANSFER";
@@ -36,6 +48,7 @@ export function NewTransaction() {
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: trips } = useTrips();
+  const { data: familyMembers = [] } = useFamilyMembers();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
@@ -52,6 +65,11 @@ export function NewTransaction() {
   // Parcelamento
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(2);
+  
+  // Divisão com membros da família
+  const [showSplitDialog, setShowSplitDialog] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [splitPercentage, setSplitPercentage] = useState(50);
 
   // Criar categorias padrão se não existirem
   useEffect(() => {
@@ -79,6 +97,26 @@ export function NewTransaction() {
     return parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
   };
 
+  const toggleMember = (memberId: string) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId) 
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const buildSplits = (): TransactionSplit[] => {
+    if (selectedMembers.length === 0) return [];
+    const numericAmount = getNumericAmount();
+    const memberShare = (numericAmount * splitPercentage) / 100 / selectedMembers.length;
+    
+    return selectedMembers.map(memberId => ({
+      member_id: memberId,
+      percentage: splitPercentage / selectedMembers.length,
+      amount: memberShare,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -103,6 +141,9 @@ export function NewTransaction() {
       return;
     }
 
+    const splits = buildSplits();
+    const isShared = splits.length > 0;
+
     await createTransaction.mutateAsync({
       amount: numericAmount,
       description: description.trim(),
@@ -112,10 +153,12 @@ export function NewTransaction() {
       destination_account_id: activeTab === "TRANSFER" ? destinationAccountId : undefined,
       category_id: categoryId || undefined,
       trip_id: tripId || undefined,
-      domain: tripId ? "TRAVEL" : "PERSONAL",
+      domain: tripId ? "TRAVEL" : isShared ? "SHARED" : "PERSONAL",
+      is_shared: isShared,
       is_installment: isInstallment,
       total_installments: isInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
+      splits: splits,
     });
 
     navigate("/transacoes");
@@ -332,6 +375,33 @@ export function NewTransaction() {
           </div>
         )}
 
+        {/* Split with Family Members */}
+        {activeTab === "EXPENSE" && familyMembers.length > 0 && (
+          <div className="p-4 rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Dividir despesa</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedMembers.length > 0 
+                      ? `${selectedMembers.length} pessoa(s) selecionada(s)` 
+                      : "Compartilhar com família"}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setShowSplitDialog(true)}>
+                {selectedMembers.length > 0 ? "Editar" : "Dividir"}
+              </Button>
+            </div>
+            {selectedMembers.length > 0 && (
+              <p className="text-sm text-primary">
+                Cada pessoa paga: R$ {((getNumericAmount() * splitPercentage / 100) / selectedMembers.length).toFixed(2).replace(".", ",")}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Installments (credit card only) */}
         {activeTab === "EXPENSE" && accountId && creditCards.some((c) => c.id === accountId) && (
           <div className="p-4 rounded-xl border border-border space-y-4">
@@ -394,6 +464,75 @@ export function NewTransaction() {
           )}
         </Button>
       </form>
+
+      {/* Split Dialog */}
+      <Dialog open={showSplitDialog} onOpenChange={setShowSplitDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dividir despesa</DialogTitle>
+            <DialogDescription>
+              Selecione com quem dividir esta despesa
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              {familyMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className={cn(
+                    "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all",
+                    selectedMembers.includes(member.id)
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                  onClick={() => toggleMember(member.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                      {member.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-medium">{member.name}</p>
+                      {member.linked_user_id && (
+                        <p className="text-xs text-primary">Usuário vinculado ✓</p>
+                      )}
+                    </div>
+                  </div>
+                  {selectedMembers.includes(member.id) && (
+                    <Check className="h-5 w-5 text-primary" />
+                  )}
+                </div>
+              ))}
+            </div>
+            {selectedMembers.length > 0 && (
+              <div className="space-y-2">
+                <Label>Percentual que eles pagam</Label>
+                <div className="flex gap-2">
+                  {[50, 33, 25, 20].map((pct) => (
+                    <Button
+                      key={pct}
+                      type="button"
+                      variant={splitPercentage === pct ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSplitPercentage(pct)}
+                    >
+                      {pct}%
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSplitDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setShowSplitDialog(false)}>
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

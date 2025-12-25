@@ -36,6 +36,12 @@ export interface Transaction {
   category?: { name: string; icon: string | null };
 }
 
+export interface TransactionSplit {
+  member_id: string;
+  percentage: number;
+  amount: number;
+}
+
 export interface CreateTransactionInput {
   account_id?: string;
   destination_account_id?: string;
@@ -54,6 +60,7 @@ export interface CreateTransactionInput {
   series_id?: string;
   notes?: string;
   related_member_id?: string;
+  splits?: TransactionSplit[];
 }
 
 export interface TransactionFilters {
@@ -152,17 +159,47 @@ export function useCreateTransaction() {
         return data;
       }
 
+      // Remove splits from input before inserting transaction
+      const { splits, ...transactionInput } = input;
+      
       // Transação única
       const { data, error } = await supabase
         .from("transactions")
         .insert({
           user_id: user.id,
-          ...input,
+          creator_user_id: user.id,
+          ...transactionInput,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Se tem splits (divisão com membros da família), criar transaction_splits
+      // Isso vai disparar o trigger de espelhamento automático
+      if (splits && splits.length > 0) {
+        const splitsToInsert = splits.map(split => ({
+          transaction_id: data.id,
+          member_id: split.member_id,
+          percentage: split.percentage,
+          amount: split.amount,
+          name: "", // Será preenchido pelo nome do membro
+        }));
+
+        const { error: splitsError } = await supabase
+          .from("transaction_splits")
+          .insert(splitsToInsert);
+
+        if (splitsError) {
+          console.error("Erro ao criar splits:", splitsError);
+        } else {
+          // Atualizar transação para is_shared = true
+          await supabase
+            .from("transactions")
+            .update({ is_shared: true, domain: input.trip_id ? "TRAVEL" : "SHARED" })
+            .eq("id", data.id);
+        }
+      }
 
       // Se é transferência, criar transação espelho
       if (input.type === "TRANSFER" && input.destination_account_id) {
