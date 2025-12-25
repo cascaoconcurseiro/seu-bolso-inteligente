@@ -1,22 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Users,
   Crown,
@@ -44,6 +27,7 @@ import {
   FamilyRole 
 } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
+import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
 
 const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
   admin: {
@@ -69,9 +53,6 @@ export function Family() {
   const removeMember = useRemoveFamilyMember();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [inviteName, setInviteName] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<FamilyRole>("editor");
 
   const isLoading = familyLoading || membersLoading;
   const isOwner = family?.owner_id === user?.id;
@@ -99,16 +80,9 @@ export function Family() {
     }
   };
 
-  const handleInvite = async () => {
-    await inviteMember.mutateAsync({
-      name: inviteName,
-      email: inviteEmail,
-      role: inviteRole,
-    });
+  const handleInvite = async (data: { name: string; email: string; role: FamilyRole }) => {
+    await inviteMember.mutateAsync(data);
     setShowInviteDialog(false);
-    setInviteName("");
-    setInviteEmail("");
-    setInviteRole("editor");
   };
 
   const handleUpdateRole = async (memberId: string, role: FamilyRole) => {
@@ -363,87 +337,12 @@ export function Family() {
       </div>
 
       {/* Invite Dialog */}
-      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Convidar membro</DialogTitle>
-            <DialogDescription>
-              Envie um convite para alguém acessar suas finanças
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input
-                placeholder="Nome do membro"
-                value={inviteName}
-                onChange={(e) => setInviteName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
-                type="email"
-                placeholder="email@exemplo.com"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Permissão</Label>
-              <Select
-                value={inviteRole}
-                onValueChange={(v) => setInviteRole(v as FamilyRole)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">
-                    <div className="flex flex-col items-start">
-                      <span>Administrador</span>
-                      <span className="text-xs text-muted-foreground">
-                        Acesso total
-                      </span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="editor">
-                    <div className="flex flex-col items-start">
-                      <span>Editor</span>
-                      <span className="text-xs text-muted-foreground">
-                        Pode criar e editar transações
-                      </span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="viewer">
-                    <div className="flex flex-col items-start">
-                      <span>Visualizador</span>
-                      <span className="text-xs text-muted-foreground">
-                        Apenas visualização
-                      </span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowInviteDialog(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleInvite}
-              disabled={!inviteName || !inviteEmail || inviteMember.isPending}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              {inviteMember.isPending ? "Enviando..." : "Enviar convite"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <InviteMemberDialog
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
+        onInvite={handleInvite}
+        isPending={inviteMember.isPending}
+      />
     </div>
   );
 }
