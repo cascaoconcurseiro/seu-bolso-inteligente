@@ -153,6 +153,7 @@ export type Database = {
           family_id: string
           id: string
           invited_by: string | null
+          linked_user_id: string | null
           name: string
           role: Database["public"]["Enums"]["family_role"]
           status: string
@@ -165,6 +166,7 @@ export type Database = {
           family_id: string
           id?: string
           invited_by?: string | null
+          linked_user_id?: string | null
           name: string
           role?: Database["public"]["Enums"]["family_role"]
           status?: string
@@ -177,6 +179,7 @@ export type Database = {
           family_id?: string
           id?: string
           invited_by?: string | null
+          linked_user_id?: string | null
           name?: string
           role?: Database["public"]["Enums"]["family_role"]
           status?: string
@@ -233,6 +236,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      shared_transaction_mirrors: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_sync_at: string | null
+          mirror_transaction_id: string
+          mirror_user_id: string
+          original_transaction_id: string
+          sync_error: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          mirror_transaction_id: string
+          mirror_user_id: string
+          original_transaction_id: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          mirror_transaction_id?: string
+          mirror_user_id?: string
+          original_transaction_id?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_transaction_mirrors_mirror_transaction_id_fkey"
+            columns: ["mirror_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_transaction_mirrors_original_transaction_id_fkey"
+            columns: ["original_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transaction_splits: {
         Row: {
@@ -671,6 +725,10 @@ export type Database = {
       is_trip_participant: {
         Args: { _trip_id: string; _user_id: string }
         Returns: boolean
+      }
+      sync_shared_transaction: {
+        Args: { p_transaction_id: string }
+        Returns: undefined
       }
     }
     Enums: {

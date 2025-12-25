@@ -25,6 +25,9 @@ import {
   Plus,
   Plane,
   History,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -33,6 +36,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -48,7 +52,7 @@ export function SharedExpenses() {
   const { data: accounts = [] } = useAccounts();
   const createTransaction = useCreateTransaction();
   
-  const { getFilteredInvoice, getTotals } = useSharedFinances({
+  const { getFilteredInvoice, getTotals, getSummary, isLoading: sharedLoading, refetch } = useSharedFinances({
     currentDate: new Date(),
     activeTab,
   });
@@ -71,25 +75,47 @@ export function SharedExpenses() {
   const handleSettle = async () => {
     if (!selectedMember || !settleAccountId) return;
 
-    const member = members.find(m => m.id === selectedMember);
-    const desc = settleType === "PAY"
-      ? `Pagamento Acerto - ${member?.name}`
-      : `Recebimento Acerto - ${member?.name}`;
+    try {
+      const member = members.find(m => m.id === selectedMember);
+      const desc = settleType === "PAY"
+        ? `Pagamento Acerto - ${member?.name}`
+        : `Recebimento Acerto - ${member?.name}`;
 
-    await createTransaction.mutateAsync({
-      amount: parseFloat(settleAmount),
-      description: desc,
-      date: new Date().toISOString().split("T")[0],
-      type: settleType === "PAY" ? "EXPENSE" : "INCOME",
-      account_id: settleAccountId,
-      domain: "SHARED",
-      is_shared: false,
-    });
+      await createTransaction.mutateAsync({
+        amount: parseFloat(settleAmount),
+        description: desc,
+        date: new Date().toISOString().split("T")[0],
+        type: settleType === "PAY" ? "EXPENSE" : "INCOME",
+        account_id: settleAccountId,
+        domain: "SHARED",
+        is_shared: false,
+        related_member_id: selectedMember,
+      });
 
-    setShowSettleDialog(false);
-    setSelectedMember(null);
-    setSettleAmount("");
-    setSettleAccountId("");
+      // Mark splits/transactions as settled
+      const items = getFilteredInvoice(selectedMember);
+      for (const item of items.filter(i => !i.isPaid)) {
+        if (item.type === 'CREDIT' && item.splitId) {
+          await supabase
+            .from('transaction_splits')
+            .update({ is_settled: true, settled_at: new Date().toISOString() })
+            .eq('id', item.splitId);
+        } else if (item.type === 'DEBIT') {
+          await supabase
+            .from('transactions')
+            .update({ is_settled: true, settled_at: new Date().toISOString() })
+            .eq('id', item.originalTxId);
+        }
+      }
+
+      setShowSettleDialog(false);
+      setSelectedMember(null);
+      setSettleAmount("");
+      setSettleAccountId("");
+      refetch();
+    } catch (error) {
+      console.error('Settlement error:', error);
+    }
   };
 
   // Calculate totals

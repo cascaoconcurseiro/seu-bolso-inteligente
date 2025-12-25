@@ -53,6 +53,7 @@ export interface CreateTransactionInput {
   total_installments?: number;
   series_id?: string;
   notes?: string;
+  related_member_id?: string;
 }
 
 export interface TransactionFilters {
