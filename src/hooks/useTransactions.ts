@@ -135,19 +135,29 @@ export function useCreateTransaction() {
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
         const seriesId = crypto.randomUUID();
         const installmentAmount = Number((input.amount / input.total_installments).toFixed(2));
-        const baseDate = new Date(input.date);
+        const baseDate = new Date(input.date + 'T12:00:00'); // Fix timezone
+        const baseDay = baseDate.getDate();
         
         const transactions = [];
         for (let i = 0; i < input.total_installments; i++) {
-          const installmentDate = new Date(baseDate);
-          installmentDate.setMonth(installmentDate.getMonth() + i);
+          // Calcula o mês e ano corretamente
+          const targetMonth = baseDate.getMonth() + i;
+          const targetYear = baseDate.getFullYear() + Math.floor(targetMonth / 12);
+          const finalMonth = targetMonth % 12;
+          
+          // Ajusta o dia para não ultrapassar o último dia do mês
+          const daysInTargetMonth = new Date(targetYear, finalMonth + 1, 0).getDate();
+          const targetDay = Math.min(baseDay, daysInTargetMonth);
+          
+          const installmentDate = new Date(targetYear, finalMonth, targetDay);
+          const formattedDate = `${installmentDate.getFullYear()}-${String(installmentDate.getMonth() + 1).padStart(2, '0')}-${String(installmentDate.getDate()).padStart(2, '0')}`;
           
           transactions.push({
             user_id: user.id,
             creator_user_id: user.id,
             ...transactionData,
             amount: installmentAmount,
-            date: installmentDate.toISOString().split("T")[0],
+            date: formattedDate,
             description: `${input.description} (${i + 1}/${input.total_installments})`,
             current_installment: i + 1,
             series_id: seriesId,
