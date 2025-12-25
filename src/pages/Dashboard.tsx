@@ -194,8 +194,12 @@ export function Dashboard() {
               Acesso rápido
             </h2>
             {[
+              { to: "/contas", label: "Contas", icon: CreditCard },
               { to: "/cartoes", label: "Cartões", icon: CreditCard },
               { to: "/compartilhados", label: "Compartilhados", icon: Users },
+              { to: "/familia", label: "Família", icon: Users },
+              { to: "/viagens", label: "Viagens", icon: TrendingUp },
+              { to: "/configuracoes", label: "Configurações", icon: TrendingUp },
             ].map((item) => (
               <Link
                 key={item.to}

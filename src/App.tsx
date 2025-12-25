@@ -15,6 +15,7 @@ import { CreditCards } from "./pages/CreditCards";
 import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
 import { Family } from "./pages/Family";
+import { Accounts } from "./pages/Accounts";
 import { Auth } from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -58,6 +59,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <NewTransaction />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contas"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Accounts />
                   </AppLayout>
                 </ProtectedRoute>
               }

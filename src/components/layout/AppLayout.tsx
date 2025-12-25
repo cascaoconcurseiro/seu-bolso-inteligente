@@ -16,6 +16,7 @@ import {
   Sun,
   LogOut,
   UsersRound,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +26,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationButton } from "./NotificationButton";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
   { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
+  { path: "/contas", label: "Contas", icon: Wallet },
   { path: "/cartoes", label: "Cartões", icon: CreditCard },
   { path: "/compartilhados", label: "Compartilhados", icon: Users },
   { path: "/viagens", label: "Viagens", icon: Plane },
@@ -103,6 +106,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Right Section */}
             <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <NotificationButton />
+
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
