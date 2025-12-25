@@ -12,45 +12,34 @@ import {
   Plus,
   Search,
   Filter,
-  Calendar,
-  Download,
   X,
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-// Mock data
-const mockTransactions = [
-  { id: "1", description: "Supermercado Extra", value: -342.50, category: "Alimentação", date: new Date(2025, 11, 23) },
-  { id: "2", description: "Salário", value: 8500, category: "Renda", date: new Date(2025, 11, 20) },
-  { id: "3", description: "Parcela TV Samsung", value: -299.90, category: "Compras", date: new Date(2025, 11, 18), installment: "3/12" },
-  { id: "4", description: "Conta de Luz", value: -187.30, category: "Moradia", date: new Date(2025, 11, 15), shared: true },
-  { id: "5", description: "Freelance Design", value: 2500, category: "Renda", date: new Date(2025, 11, 12) },
-  { id: "6", description: "Uber", value: -45.80, category: "Transporte", date: new Date(2025, 11, 10) },
-  { id: "7", description: "Farmácia", value: -89.90, category: "Saúde", date: new Date(2025, 11, 8) },
-  { id: "8", description: "Netflix", value: -55.90, category: "Assinaturas", date: new Date(2025, 11, 5) },
-];
-
-const categories = [
-  { value: "all", label: "Todas" },
-  { value: "alimentacao", label: "Alimentação" },
-  { value: "moradia", label: "Moradia" },
-  { value: "transporte", label: "Transporte" },
-  { value: "lazer", label: "Lazer" },
-  { value: "saude", label: "Saúde" },
-];
-
-const transactionTypes = [
-  { value: "all", label: "Todos" },
-  { value: "income", label: "Entradas" },
-  { value: "expense", label: "Saídas" },
-];
+import { useTransactions, useDeleteTransaction, TransactionType } from "@/hooks/useTransactions";
+import { useCategories } from "@/hooks/useCategories";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const { data: transactions, isLoading } = useTransactions();
+  const { data: categories } = useCategories();
+  const deleteTransaction = useDeleteTransaction();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -59,22 +48,39 @@ export function Transactions() {
     }).format(Math.abs(value));
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(date);
+  const formatDate = (date: string) => {
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(date));
   };
 
-  const filteredTransactions = mockTransactions.filter((t) => {
+  const filteredTransactions = (transactions || []).filter((t) => {
     const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === "all" || 
-      (selectedType === "income" && t.value > 0) || 
-      (selectedType === "expense" && t.value < 0);
+    const matchesType = selectedType === "all" || t.type === selectedType;
     return matchesSearch && matchesType;
   });
 
-  const totalIncome = filteredTransactions.filter((t) => t.value > 0).reduce((sum, t) => sum + t.value, 0);
-  const totalExpense = filteredTransactions.filter((t) => t.value < 0).reduce((sum, t) => sum + Math.abs(t.value), 0);
+  const totalIncome = filteredTransactions
+    .filter((t) => t.type === "INCOME")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalExpense = filteredTransactions
+    .filter((t) => t.type === "EXPENSE")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  const hasFilters = selectedCategory !== "all" || selectedType !== "all";
+  const hasFilters = selectedType !== "all";
+
+  const handleDelete = async () => {
+    if (deleteId) {
+      await deleteTransaction.mutateAsync(deleteId);
+      setDeleteId(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -85,8 +91,8 @@ export function Transactions() {
           <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
         </div>
         <Link to="/transacoes/nova">
-          <Button size="lg">
-            <Plus className="h-5 w-5 mr-2" />
+          <Button size="lg" className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
             Nova transação
           </Button>
         </Link>
@@ -133,12 +139,8 @@ export function Transactions() {
             <Filter className="h-4 w-4" />
             Filtros
             {hasFilters && (
-              <span className="w-2 h-2 rounded-full bg-foreground" />
+              <span className="w-2 h-2 rounded-full bg-background" />
             )}
-          </Button>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar</span>
           </Button>
         </div>
 
@@ -151,38 +153,19 @@ export function Transactions() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {transactionTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                  ))}
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="INCOME">Receitas</SelectItem>
+                  <SelectItem value="EXPENSE">Despesas</SelectItem>
+                  <SelectItem value="TRANSFER">Transferências</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoria</label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-36">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Período</label>
-              <Button variant="outline" className="w-36 justify-start gap-2">
-                <Calendar className="h-4 w-4" />
-                Este mês
-              </Button>
             </div>
             {hasFilters && (
               <div className="flex items-end">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setSelectedCategory("all"); setSelectedType("all"); }}
+                  onClick={() => setSelectedType("all")}
                   className="gap-1 text-muted-foreground"
                 >
                   <X className="h-3 w-3" />
@@ -207,30 +190,31 @@ export function Transactions() {
             </Link>
           </div>
         ) : (
-          filteredTransactions.map((transaction, index) => (
+          filteredTransactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="group flex items-center justify-between py-4 border-b border-border last:border-0 hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors cursor-pointer"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="group flex items-center justify-between py-4 border-b border-border last:border-0 
+                         hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors"
             >
               <div className="flex items-center gap-4">
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  transaction.value > 0 ? "bg-positive" : "bg-muted-foreground/30"
-                )} />
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg">
+                  {transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : transaction.type === "TRANSFER" ? "↔️" : "💸")}
+                </div>
                 <div>
                   <p className="font-medium">{transaction.description}</p>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{transaction.category}</span>
+                    <span>{transaction.category?.name || (transaction.type === "TRANSFER" ? "Transferência" : "Sem categoria")}</span>
                     <span>·</span>
                     <span>{formatDate(transaction.date)}</span>
-                    {transaction.installment && (
+                    {transaction.is_installment && transaction.current_installment && transaction.total_installments && (
                       <>
                         <span>·</span>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted">{transaction.installment}</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted">
+                          {transaction.current_installment}/{transaction.total_installments}
+                        </span>
                       </>
                     )}
-                    {transaction.shared && (
+                    {transaction.is_shared && (
                       <>
                         <span>·</span>
                         <span className="text-xs px-1.5 py-0.5 rounded bg-muted">Dividido</span>
@@ -239,16 +223,45 @@ export function Transactions() {
                   </div>
                 </div>
               </div>
-              <span className={cn(
-                "font-mono font-medium text-right",
-                transaction.value > 0 ? "text-positive" : "text-foreground"
-              )}>
-                {transaction.value > 0 ? "+" : ""}{formatCurrency(transaction.value)}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className={cn(
+                  "font-mono font-medium text-right",
+                  transaction.type === "INCOME" ? "text-positive" : "text-foreground"
+                )}>
+                  {transaction.type === "INCOME" ? "+" : transaction.type === "EXPENSE" ? "-" : ""}
+                  {formatCurrency(Number(transaction.amount))}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                  onClick={() => setDeleteId(transaction.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir transação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
