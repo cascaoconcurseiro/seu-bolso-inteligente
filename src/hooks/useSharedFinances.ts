@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyMembers } from './useFamily';
-import { useTransactions } from './useTransactions';
 
 export interface InvoiceItem {
   id: string;
   originalTxId: string;
+  splitId?: string;
   description: string;
   date: string;
   category?: string;
@@ -13,6 +16,7 @@ export interface InvoiceItem {
   isPaid: boolean;
   tripId?: string;
   memberId: string;
+  memberName?: string;
   currency: string;
   installmentNumber?: number | null;
   totalInstallments?: number | null;
@@ -20,83 +24,196 @@ export interface InvoiceItem {
 }
 
 interface UseSharedFinancesProps {
-  currentDate: Date;
+  currentDate?: Date;
   activeTab: 'REGULAR' | 'TRAVEL' | 'HISTORY';
 }
 
-export const useSharedFinances = ({ currentDate, activeTab }: UseSharedFinancesProps) => {
-  const { data: transactions = [] } = useTransactions({ domain: 'SHARED' });
+export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSharedFinancesProps) => {
+  const { user } = useAuth();
   const { data: members = [] } = useFamilyMembers();
+
+  // Fetch shared transactions with their splits
+  const { data: transactionsWithSplits = [], isLoading, refetch } = useQuery({
+    queryKey: ['shared-transactions-with-splits', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          transaction_splits (
+            id,
+            member_id,
+            user_id,
+            name,
+            amount,
+            percentage,
+            is_settled,
+            settled_at
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('is_shared', true)
+        .is('source_transaction_id', null)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch mirror transactions (where I owe others)
+  const { data: mirrorTransactions = [] } = useQuery({
+    queryKey: ['mirror-transactions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_shared', true)
+        .not('source_transaction_id', 'is', null)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   const invoices = useMemo(() => {
     const invoiceMap: Record<string, InvoiceItem[]> = {};
-    members.forEach(m => invoiceMap[m.id] = []);
+    
+    // Initialize map for each member
+    members.forEach(m => {
+      invoiceMap[m.id] = [];
+    });
 
-    transactions.forEach(t => {
-      const isSharedExpense = t.type === 'EXPENSE' && (t.is_shared || t.payer_id);
-      if (!isSharedExpense) return;
-
+    // CASE 1: I PAID - Process transaction splits (CREDITS)
+    transactionsWithSplits.forEach(tx => {
+      if (tx.type !== 'EXPENSE') return;
+      
+      const splits = tx.transaction_splits || [];
       const txCurrency = 'BRL';
 
-      // CREDIT LOGIC: User Paid, Others Owe (via transaction_splits)
-      if (!t.payer_id) {
-        // We would need to fetch splits here - for now skip
-      }
-      // DEBIT LOGIC: Other Paid, User Owes
-      else if (t.payer_id) {
-        const payerMember = members.find(m => m.user_id === t.payer_id);
-        const targetMemberId = payerMember ? payerMember.id : t.payer_id;
-
-        if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
-
-        invoiceMap[targetMemberId].push({
-          id: `${t.id}-debit-${targetMemberId}`,
-          originalTxId: t.id,
-          description: t.description,
-          date: t.date,
-          category: t.category?.name,
-          amount: t.amount,
-          type: 'DEBIT',
-          isPaid: false,
-          tripId: t.trip_id || undefined,
-          memberId: targetMemberId,
+      // For each split, create a CREDIT item (someone owes me)
+      splits.forEach((split: any) => {
+        const memberId = split.member_id;
+        if (!memberId) return;
+        
+        // Find member info
+        const member = members.find(m => m.id === memberId);
+        
+        if (!invoiceMap[memberId]) {
+          invoiceMap[memberId] = [];
+        }
+        
+        invoiceMap[memberId].push({
+          id: `${tx.id}-credit-${memberId}`,
+          originalTxId: tx.id,
+          splitId: split.id,
+          description: tx.description,
+          date: tx.date,
+          amount: split.amount,
+          type: 'CREDIT',
+          isPaid: split.is_settled || false,
+          tripId: tx.trip_id || undefined,
+          memberId: memberId,
+          memberName: member?.name || split.name,
           currency: txCurrency,
-          installmentNumber: t.current_installment,
-          totalInstallments: t.total_installments,
-          creatorUserId: t.user_id
+          installmentNumber: tx.current_installment,
+          totalInstallments: tx.total_installments,
+          creatorUserId: tx.user_id
         });
+      });
+    });
+
+    // CASE 2: SOMEONE ELSE PAID - Process mirror transactions (DEBITS)
+    mirrorTransactions.forEach(tx => {
+      if (tx.type !== 'EXPENSE') return;
+      if (!tx.payer_id) return;
+      
+      const txCurrency = 'BRL';
+      
+      // Find the member who paid (by user_id match)
+      const payerMember = members.find(m => m.user_id === tx.payer_id);
+      const targetMemberId = payerMember?.id || tx.payer_id;
+      
+      if (!invoiceMap[targetMemberId]) {
+        invoiceMap[targetMemberId] = [];
       }
+      
+      invoiceMap[targetMemberId].push({
+        id: `${tx.id}-debit-${targetMemberId}`,
+        originalTxId: tx.id,
+        description: tx.description,
+        date: tx.date,
+        amount: tx.amount,
+        type: 'DEBIT',
+        isPaid: tx.is_settled || false,
+        tripId: tx.trip_id || undefined,
+        memberId: targetMemberId,
+        memberName: payerMember?.name,
+        currency: txCurrency,
+        installmentNumber: tx.current_installment,
+        totalInstallments: tx.total_installments,
+        creatorUserId: tx.payer_id
+      });
     });
 
     return invoiceMap;
-  }, [transactions, members]);
+  }, [transactionsWithSplits, mirrorTransactions, members]);
 
-  const getFilteredInvoice = (memberId: string) => {
+  const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
 
     if (activeTab === 'TRAVEL') {
-      return allItems.filter(i => !!i.tripId).sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      return allItems
+        .filter(i => !!i.tripId)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else if (activeTab === 'HISTORY') {
-      return allItems.filter(i => i.isPaid).sort((a, b) => b.date.localeCompare(a.date));
+      return allItems
+        .filter(i => i.isPaid)
+        .sort((a, b) => b.date.localeCompare(a.date));
     } else {
-      return allItems.filter(i => !i.tripId && !i.isPaid).sort((a, b) => 
-        b.date.localeCompare(a.date)
-      );
+      // REGULAR: Show unpaid items not related to trips
+      return allItems
+        .filter(i => {
+          if (i.tripId) return false;
+          if (i.isPaid) return false;
+          
+          // For installments, check if it's current month
+          const isInstallment = (i.totalInstallments || 0) > 1;
+          if (isInstallment) {
+            const itemDate = new Date(i.date);
+            return itemDate.getMonth() === currentDate.getMonth() && 
+                   itemDate.getFullYear() === currentDate.getFullYear();
+          }
+          
+          return true;
+        })
+        .sort((a, b) => b.date.localeCompare(a.date));
     }
   };
 
   const getTotals = (items: InvoiceItem[]) => {
-    const totalsByCurrency: Record<string, { credits: number, debits: number, net: number }> = {};
+    const totalsByCurrency: Record<string, { credits: number; debits: number; net: number }> = {};
 
     items.forEach(i => {
       const curr = i.currency || 'BRL';
-      if (!totalsByCurrency[curr]) totalsByCurrency[curr] = { credits: 0, debits: 0, net: 0 };
+      if (!totalsByCurrency[curr]) {
+        totalsByCurrency[curr] = { credits: 0, debits: 0, net: 0 };
+      }
 
       if (!i.isPaid) {
-        if (i.type === 'CREDIT') totalsByCurrency[curr].credits += i.amount;
-        else totalsByCurrency[curr].debits += i.amount;
+        if (i.type === 'CREDIT') {
+          totalsByCurrency[curr].credits += i.amount;
+        } else {
+          totalsByCurrency[curr].debits += i.amount;
+        }
       }
     });
 
@@ -107,5 +224,38 @@ export const useSharedFinances = ({ currentDate, activeTab }: UseSharedFinancesP
     return totalsByCurrency;
   };
 
-  return { invoices, getFilteredInvoice, getTotals, members, transactions };
+  // Calculate global summary
+  const getSummary = () => {
+    let totalCredits = 0;
+    let totalDebits = 0;
+    
+    Object.values(invoices).forEach(items => {
+      items.forEach(item => {
+        if (!item.isPaid) {
+          if (item.type === 'CREDIT') {
+            totalCredits += item.amount;
+          } else {
+            totalDebits += item.amount;
+          }
+        }
+      });
+    });
+    
+    return {
+      totalCredits,
+      totalDebits,
+      net: totalCredits - totalDebits
+    };
+  };
+
+  return { 
+    invoices, 
+    getFilteredInvoice, 
+    getTotals, 
+    getSummary,
+    members, 
+    transactions: transactionsWithSplits,
+    isLoading,
+    refetch
+  };
 };
