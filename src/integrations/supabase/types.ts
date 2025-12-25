@@ -14,16 +14,662 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      accounts: {
+        Row: {
+          balance: number
+          bank_color: string | null
+          bank_id: string | null
+          bank_logo: string | null
+          closing_day: number | null
+          created_at: string
+          credit_limit: number | null
+          currency: string
+          due_day: number | null
+          id: string
+          is_active: boolean
+          name: string
+          type: Database["public"]["Enums"]["account_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          bank_color?: string | null
+          bank_id?: string | null
+          bank_logo?: string | null
+          closing_day?: number | null
+          created_at?: string
+          credit_limit?: number | null
+          currency?: string
+          due_day?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          type?: Database["public"]["Enums"]["account_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          bank_color?: string | null
+          bank_id?: string | null
+          bank_logo?: string | null
+          closing_day?: number | null
+          created_at?: string
+          credit_limit?: number | null
+          currency?: string
+          due_day?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: Database["public"]["Enums"]["account_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      families: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "families_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          family_id: string
+          id: string
+          invited_by: string | null
+          name: string
+          role: Database["public"]["Enums"]["family_role"]
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          family_id: string
+          id?: string
+          invited_by?: string | null
+          name: string
+          role?: Database["public"]["Enums"]["family_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          family_id?: string
+          id?: string
+          invited_by?: string | null
+          name?: string
+          role?: Database["public"]["Enums"]["family_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transaction_splits: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          is_settled: boolean
+          member_id: string | null
+          name: string
+          percentage: number
+          settled_at: string | null
+          settled_transaction_id: string | null
+          transaction_id: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          is_settled?: boolean
+          member_id?: string | null
+          name: string
+          percentage: number
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_settled?: boolean
+          member_id?: string | null
+          name?: string
+          percentage?: number
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_splits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_settled_transaction_id_fkey"
+            columns: ["settled_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          account_id: string | null
+          amount: number
+          category_id: string | null
+          created_at: string
+          current_installment: number | null
+          date: string
+          description: string
+          destination_account_id: string | null
+          domain: Database["public"]["Enums"]["transaction_domain"]
+          external_id: string | null
+          id: string
+          is_installment: boolean
+          is_recurring: boolean
+          is_shared: boolean
+          notes: string | null
+          payer_id: string | null
+          recurrence_pattern: string | null
+          series_id: string | null
+          source_transaction_id: string | null
+          sync_status: Database["public"]["Enums"]["sync_status"]
+          total_installments: number | null
+          trip_id: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          current_installment?: number | null
+          date: string
+          description: string
+          destination_account_id?: string | null
+          domain?: Database["public"]["Enums"]["transaction_domain"]
+          external_id?: string | null
+          id?: string
+          is_installment?: boolean
+          is_recurring?: boolean
+          is_shared?: boolean
+          notes?: string | null
+          payer_id?: string | null
+          recurrence_pattern?: string | null
+          series_id?: string | null
+          source_transaction_id?: string | null
+          sync_status?: Database["public"]["Enums"]["sync_status"]
+          total_installments?: number | null
+          trip_id?: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          current_installment?: number | null
+          date?: string
+          description?: string
+          destination_account_id?: string | null
+          domain?: Database["public"]["Enums"]["transaction_domain"]
+          external_id?: string | null
+          id?: string
+          is_installment?: boolean
+          is_recurring?: boolean
+          is_shared?: boolean
+          notes?: string | null
+          payer_id?: string | null
+          recurrence_pattern?: string | null
+          series_id?: string | null
+          source_transaction_id?: string | null
+          sync_status?: Database["public"]["Enums"]["sync_status"]
+          total_installments?: number | null
+          trip_id?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_destination_account_id_fkey"
+            columns: ["destination_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_source_transaction_id_fkey"
+            columns: ["source_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_checklist: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          item: string
+          order_index: number
+          trip_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item: string
+          order_index?: number
+          trip_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          item?: string
+          order_index?: number
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_checklist_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "trip_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_checklist_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_itinerary: {
+        Row: {
+          created_at: string
+          date: string
+          description: string | null
+          end_time: string | null
+          id: string
+          location: string | null
+          order_index: number
+          start_time: string | null
+          title: string
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          location?: string | null
+          order_index?: number
+          start_time?: string | null
+          title: string
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          location?: string | null
+          order_index?: number
+          start_time?: string | null
+          title?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_itinerary_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_participants: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string | null
+          name: string
+          personal_budget: number | null
+          trip_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id?: string | null
+          name: string
+          personal_budget?: number | null
+          trip_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string | null
+          name?: string
+          personal_budget?: number | null
+          trip_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_participants_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_participants_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          budget: number | null
+          cover_image: string | null
+          created_at: string
+          currency: string
+          destination: string | null
+          end_date: string
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["trip_status"]
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          cover_image?: string | null
+          created_at?: string
+          currency?: string
+          destination?: string | null
+          end_date: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          start_date: string
+          status?: Database["public"]["Enums"]["trip_status"]
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          cover_image?: string | null
+          created_at?: string
+          currency?: string
+          destination?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["trip_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_family_id: { Args: { _user_id: string }; Returns: string }
+      is_family_member: {
+        Args: { _family_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_trip_participant: {
+        Args: { _trip_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      account_type:
+        | "CHECKING"
+        | "SAVINGS"
+        | "CREDIT_CARD"
+        | "INVESTMENT"
+        | "CASH"
+      family_role: "admin" | "editor" | "viewer"
+      split_method: "EQUAL" | "PERCENTAGE" | "CUSTOM"
+      sync_status: "SYNCED" | "PENDING" | "ERROR"
+      transaction_domain: "PERSONAL" | "SHARED" | "TRAVEL"
+      transaction_type: "EXPENSE" | "INCOME" | "TRANSFER"
+      trip_status: "PLANNING" | "ACTIVE" | "COMPLETED" | "CANCELLED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +796,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: [
+        "CHECKING",
+        "SAVINGS",
+        "CREDIT_CARD",
+        "INVESTMENT",
+        "CASH",
+      ],
+      family_role: ["admin", "editor", "viewer"],
+      split_method: ["EQUAL", "PERCENTAGE", "CUSTOM"],
+      sync_status: ["SYNCED", "PENDING", "ERROR"],
+      transaction_domain: ["PERSONAL", "SHARED", "TRAVEL"],
+      transaction_type: ["EXPENSE", "INCOME", "TRANSFER"],
+      trip_status: ["PLANNING", "ACTIVE", "COMPLETED", "CANCELLED"],
+    },
   },
 } as const

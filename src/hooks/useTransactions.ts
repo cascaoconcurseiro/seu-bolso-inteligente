@@ -1,0 +1,270 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+export type TransactionType = "EXPENSE" | "INCOME" | "TRANSFER";
+export type TransactionDomain = "PERSONAL" | "SHARED" | "TRAVEL";
+
+export interface Transaction {
+  id: string;
+  user_id: string;
+  account_id: string | null;
+  destination_account_id: string | null;
+  category_id: string | null;
+  trip_id: string | null;
+  amount: number;
+  description: string;
+  date: string;
+  type: TransactionType;
+  domain: TransactionDomain;
+  is_shared: boolean;
+  payer_id: string | null;
+  is_installment: boolean;
+  current_installment: number | null;
+  total_installments: number | null;
+  series_id: string | null;
+  is_recurring: boolean;
+  recurrence_pattern: string | null;
+  source_transaction_id: string | null;
+  external_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  account?: { name: string; bank_color: string | null };
+  category?: { name: string; icon: string | null };
+}
+
+export interface CreateTransactionInput {
+  account_id?: string;
+  destination_account_id?: string;
+  category_id?: string;
+  trip_id?: string;
+  amount: number;
+  description: string;
+  date: string;
+  type: TransactionType;
+  domain?: TransactionDomain;
+  is_shared?: boolean;
+  payer_id?: string;
+  is_installment?: boolean;
+  current_installment?: number;
+  total_installments?: number;
+  series_id?: string;
+  notes?: string;
+}
+
+export interface TransactionFilters {
+  startDate?: string;
+  endDate?: string;
+  type?: TransactionType;
+  accountId?: string;
+  categoryId?: string;
+  tripId?: string;
+  domain?: TransactionDomain;
+}
+
+export function useTransactions(filters?: TransactionFilters) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["transactions", user?.id, filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("transactions")
+        .select(`
+          *,
+          account:accounts!account_id(name, bank_color),
+          category:categories(name, icon)
+        `)
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (filters?.startDate) {
+        query = query.gte("date", filters.startDate);
+      }
+      if (filters?.endDate) {
+        query = query.lte("date", filters.endDate);
+      }
+      if (filters?.type) {
+        query = query.eq("type", filters.type);
+      }
+      if (filters?.accountId) {
+        query = query.eq("account_id", filters.accountId);
+      }
+      if (filters?.categoryId) {
+        query = query.eq("category_id", filters.categoryId);
+      }
+      if (filters?.tripId) {
+        query = query.eq("trip_id", filters.tripId);
+      }
+      if (filters?.domain) {
+        query = query.eq("domain", filters.domain);
+      }
+
+      const { data, error } = await query.limit(100);
+
+      if (error) throw error;
+      return data as Transaction[];
+    },
+    enabled: !!user,
+  });
+}
+
+export function useCreateTransaction() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateTransactionInput) => {
+      if (!user) throw new Error("User not authenticated");
+
+      // Se é parcelamento, criar múltiplas transações
+      if (input.is_installment && input.total_installments && input.total_installments > 1) {
+        const seriesId = crypto.randomUUID();
+        const installmentAmount = Number((input.amount / input.total_installments).toFixed(2));
+        const baseDate = new Date(input.date);
+        
+        const transactions = [];
+        for (let i = 0; i < input.total_installments; i++) {
+          const installmentDate = new Date(baseDate);
+          installmentDate.setMonth(installmentDate.getMonth() + i);
+          
+          transactions.push({
+            user_id: user.id,
+            ...input,
+            amount: installmentAmount,
+            date: installmentDate.toISOString().split("T")[0],
+            description: `${input.description} (${i + 1}/${input.total_installments})`,
+            current_installment: i + 1,
+            series_id: seriesId,
+          });
+        }
+
+        const { data, error } = await supabase
+          .from("transactions")
+          .insert(transactions)
+          .select();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Transação única
+      const { data, error } = await supabase
+        .from("transactions")
+        .insert({
+          user_id: user.id,
+          ...input,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Se é transferência, criar transação espelho
+      if (input.type === "TRANSFER" && input.destination_account_id) {
+        await supabase.from("transactions").insert({
+          user_id: user.id,
+          account_id: input.destination_account_id,
+          amount: input.amount,
+          description: input.description,
+          date: input.date,
+          type: "TRANSFER",
+          domain: input.domain || "PERSONAL",
+          source_transaction_id: data.id,
+        });
+      }
+
+      return data as Transaction;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      toast.success("Transação criada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar transação: " + error.message);
+    },
+  });
+}
+
+export function useDeleteTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      toast.success("Transação removida!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover transação: " + error.message);
+    },
+  });
+}
+
+// Hook para resumo financeiro
+export function useFinancialSummary() {
+  const { user } = useAuth();
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  return useQuery({
+    queryKey: ["financial-summary", user?.id, currentMonth],
+    queryFn: async () => {
+      // Buscar contas para saldo total
+      const { data: accounts } = await supabase
+        .from("accounts")
+        .select("balance, type")
+        .eq("is_active", true);
+
+      // Buscar transações do mês
+      const startOfMonth = `${currentMonth}-01`;
+      const endOfMonth = new Date(
+        new Date(startOfMonth).getFullYear(),
+        new Date(startOfMonth).getMonth() + 1,
+        0
+      ).toISOString().split("T")[0];
+
+      const { data: transactions } = await supabase
+        .from("transactions")
+        .select("amount, type")
+        .gte("date", startOfMonth)
+        .lte("date", endOfMonth);
+
+      const balance = accounts?.reduce((sum, acc) => {
+        if (acc.type !== "CREDIT_CARD") {
+          return sum + Number(acc.balance);
+        }
+        return sum;
+      }, 0) || 0;
+
+      const income = transactions?.reduce((sum, tx) => {
+        if (tx.type === "INCOME") return sum + Number(tx.amount);
+        return sum;
+      }, 0) || 0;
+
+      const expenses = transactions?.reduce((sum, tx) => {
+        if (tx.type === "EXPENSE") return sum + Number(tx.amount);
+        return sum;
+      }, 0) || 0;
+
+      return {
+        balance,
+        income,
+        expenses,
+        savings: income - expenses,
+      };
+    },
+    enabled: !!user,
+  });
+}

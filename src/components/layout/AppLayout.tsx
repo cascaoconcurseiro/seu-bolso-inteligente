@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -13,8 +14,17 @@ import {
   X,
   Moon,
   Sun,
+  LogOut,
+  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -22,7 +32,7 @@ const navigationItems = [
   { path: "/cartoes", label: "Cartões", icon: CreditCard },
   { path: "/compartilhados", label: "Compartilhados", icon: Users },
   { path: "/viagens", label: "Viagens", icon: Plane },
-  { path: "/familia", label: "Família", icon: Users },
+  { path: "/familia", label: "Família", icon: UsersRound },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
@@ -39,11 +49,22 @@ export function AppLayout({ children }: AppLayoutProps) {
     return false;
   });
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
     document.documentElement.classList.toggle("dark", newIsDark);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const getInitials = (email: string) => {
+    return email.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -102,6 +123,30 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Settings className="h-5 w-5" />
                 </Button>
               </Link>
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-9 w-9 rounded-full bg-foreground text-background font-medium text-sm"
+                  >
+                    {getInitials(user?.email || "U")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium text-sm truncate">{user?.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Mobile Menu Toggle */}
               <Button
