@@ -1,268 +1,275 @@
-import { BalanceCard, CurrencyDisplay, TransactionItem } from "@/components/financial";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { 
   Plus, 
   ArrowUpRight, 
-  ArrowDownLeft, 
-  Calendar,
-  AlertCircle,
-  TrendingUp,
-  CreditCard
+  ArrowDownRight,
+  ChevronRight,
+  CreditCard,
+  Users,
+  AlertCircle
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-// Dados mock para demonstração
-const mockTransactions = [
-  {
-    id: "1",
-    description: "Supermercado Extra",
-    value: 342.50,
-    type: "expense" as const,
-    category: "alimentacao" as const,
-    date: new Date(2025, 11, 23),
-  },
-  {
-    id: "2",
-    description: "Salário",
-    value: 8500,
-    type: "income" as const,
-    category: "outros" as const,
-    date: new Date(2025, 11, 20),
-  },
-  {
-    id: "3",
-    description: "Parcela TV Samsung",
-    value: 299.90,
-    type: "expense" as const,
-    category: "lazer" as const,
-    date: new Date(2025, 11, 18),
-    installment: { current: 3, total: 12 },
-  },
-  {
-    id: "4",
-    description: "Conta de Luz",
-    value: 187.30,
-    type: "expense" as const,
-    category: "moradia" as const,
-    date: new Date(2025, 11, 15),
-    isShared: true,
-    sharedWith: ["Ana", "Carlos"],
-  },
+// Mock data
+const financialState = {
+  balance: 12847.50,
+  monthlyIncome: 8500.00,
+  monthlyExpenses: 6234.80,
+  projection: 15112.70,
+  trend: "positive" as const,
+};
+
+const urgentItems = [
+  { id: 1, type: "invoice", label: "Fatura Nubank", value: -2340.00, dueDate: "28 dez", daysLeft: 3 },
+  { id: 2, type: "shared", label: "Ana te deve", value: 156.00, person: "Ana" },
 ];
 
-const alerts = [
-  {
-    id: "1",
-    type: "warning" as const,
-    message: "Fatura do Nubank vence em 3 dias",
-    value: 2340.50,
-  },
-  {
-    id: "2",
-    type: "danger" as const,
-    message: "Despesas acima do planejado este mês",
-    value: 450.00,
-  },
+const recentActivity = [
+  { id: 1, description: "Supermercado Extra", value: -234.50, category: "Alimentação", date: "Hoje" },
+  { id: 2, description: "Salário", value: 8500.00, category: "Renda", date: "Ontem" },
+  { id: 3, description: "Uber", value: -32.90, category: "Transporte", date: "22 dez" },
 ];
 
 export function Dashboard() {
-  const currentMonth = new Intl.DateTimeFormat("pt-BR", {
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+  const isPositive = financialState.trend === "positive";
+  const balanceColor = isPositive ? "text-positive" : "text-negative";
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="font-display font-semibold text-2xl md:text-3xl text-foreground">
-            Visão Geral
-          </h1>
-          <p className="text-muted-foreground mt-1 capitalize">{currentMonth}</p>
-        </div>
-        <Link to="/transacoes/nova">
-          <Button size="lg" className="gap-2">
-            <Plus className="h-5 w-5" />
-            Nova Movimentação
-          </Button>
-        </Link>
-      </header>
+    <div className="min-h-screen">
+      {/* Hero Section - O Número que Importa */}
+      <section className="relative pb-12 lg:pb-20">
+        {/* Greeting - sutil, não compete */}
+        <p className="text-muted-foreground text-sm mb-8">
+          Dezembro 2024
+        </p>
 
-      {/* Cards de Resumo */}
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <BalanceCard
-          title="Saldo Atual"
-          value={12450.80}
-          trend={5.2}
-          trendLabel="vs mês passado"
-          variant="primary"
-        />
-        <BalanceCard
-          title="Entradas"
-          value={15800.00}
-          className="card-status-success"
-        />
-        <BalanceCard
-          title="Saídas"
-          value={3349.20}
-          className="card-status-danger"
-        />
-        <BalanceCard
-          title="Previsto (restante)"
-          value={-1200.00}
-          className="card-status-warning"
-        />
+        {/* Main Balance - Dominante */}
+        <div className="max-w-2xl">
+          <p className="text-muted-foreground text-sm font-medium mb-2 tracking-wide uppercase">
+            Saldo atual
+          </p>
+          
+          <h1 className={cn(
+            "font-display text-5xl sm:text-6xl lg:text-8xl font-bold tracking-tight leading-none",
+            balanceColor
+          )}>
+            {formatCurrency(financialState.balance)}
+          </h1>
+
+          {/* Context Line - Uma frase, não cards */}
+          <p className="mt-6 text-base sm:text-lg text-muted-foreground">
+            <span className="text-positive font-medium">
+              +{formatCurrency(financialState.monthlyIncome)}
+            </span>
+            {" entrou, "}
+            <span className="text-negative font-medium">
+              -{formatCurrency(financialState.monthlyExpenses)}
+            </span>
+            {" saiu este mês."}
+          </p>
+
+          {/* Projection - Subtle */}
+          <p className="mt-2 text-sm text-muted-foreground/70">
+            Projeção para 31 dez: {formatCurrency(financialState.projection)}
+          </p>
+        </div>
+
+        {/* Quick Action - Floating, não grid */}
+        <div className="mt-8 sm:mt-0 sm:absolute sm:top-0 sm:right-0">
+          <Button asChild size="lg" className="rounded-full shadow-lg">
+            <Link to="/transacoes/nova">
+              <Plus className="h-5 w-5 mr-2" />
+              Nova transação
+            </Link>
+          </Button>
+        </div>
       </section>
 
-      {/* Alertas */}
-      {alerts.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-warning" />
-            Atenção
-          </h2>
-          <div className="space-y-2">
-            {alerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`flex items-center justify-between p-4 rounded-lg border-l-4 bg-card ${
-                  alert.type === "warning" ? "border-l-warning" : "border-l-destructive"
-                }`}
-              >
-                <p className="text-sm text-foreground">{alert.message}</p>
-                <CurrencyDisplay value={alert.value} size="sm" />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Divider visual com breathing room */}
+      <div className="h-px bg-border" />
 
-      {/* Grid de Conteúdo */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Últimas Movimentações */}
-        <section className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-medium text-lg text-foreground">
-              Últimas Movimentações
+      {/* Content Section - Assimétrico */}
+      <section className="py-12 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          
+          {/* Left Column - Atenção Necessária (peso visual maior) */}
+          <div className="lg:col-span-7">
+            {urgentItems.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center gap-2 mb-6">
+                  <AlertCircle className="h-4 w-4 text-warning" />
+                  <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                    Precisa de atenção
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  {urgentItems.map((item) => (
+                    <Link
+                      key={item.id}
+                      to={item.type === "invoice" ? "/cartoes" : "/compartilhados"}
+                      className="group block"
+                    >
+                      <div className="flex items-center justify-between py-4 border-b border-border/50 transition-colors hover:border-primary/30">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center",
+                            item.type === "invoice" ? "bg-negative/10" : "bg-positive/10"
+                          )}>
+                            {item.type === "invoice" ? (
+                              <CreditCard className="h-5 w-5 text-negative" />
+                            ) : (
+                              <Users className="h-5 w-5 text-positive" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                              {item.label}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {item.type === "invoice" 
+                                ? `Vence em ${item.daysLeft} dias` 
+                                : "Divisão pendente"
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={cn(
+                            "font-mono text-lg font-semibold",
+                            item.value > 0 ? "text-positive" : "text-negative"
+                          )}>
+                            {item.value > 0 ? "+" : ""}{formatCurrency(item.value)}
+                          </span>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Activity - Minimal */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                  Atividade recente
+                </h2>
+                <Link 
+                  to="/transacoes" 
+                  className="text-sm text-primary hover:underline"
+                >
+                  Ver todas
+                </Link>
+              </div>
+
+              <div className="space-y-1">
+                {recentActivity.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between py-3 group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        item.value > 0 ? "bg-positive" : "bg-muted-foreground/30"
+                      )} />
+                      <div>
+                        <p className="text-foreground">{item.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.category} · {item.date}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={cn(
+                      "font-mono text-sm",
+                      item.value > 0 ? "text-positive" : "text-foreground"
+                    )}>
+                      {item.value > 0 ? "+" : ""}{formatCurrency(item.value)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Respiro + Navegação Contextual */}
+          <div className="lg:col-span-5 lg:pl-8 lg:border-l border-border/30">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-6">
+              Explorar
             </h2>
-            <Link to="/transacoes">
-              <Button variant="ghost" size="sm">
-                Ver todas
-              </Button>
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {mockTransactions.map((transaction) => (
-              <TransactionItem
-                key={transaction.id}
-                {...transaction}
-                onClick={() => {}}
-              />
-            ))}
-          </div>
-        </section>
 
-        {/* Sidebar direita */}
-        <aside className="space-y-6">
-          {/* Fluxo do Mês */}
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <h3 className="font-display font-medium text-foreground mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Fluxo do Mês
-            </h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ArrowDownLeft className="h-4 w-4 text-positive" />
-                  <span className="text-sm text-muted-foreground">Entradas</span>
-                </div>
-                <CurrencyDisplay value={15800} size="sm" className="text-positive" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-negative" />
-                  <span className="text-sm text-muted-foreground">Saídas</span>
-                </div>
-                <CurrencyDisplay value={3349.20} size="sm" className="text-negative" />
-              </div>
-              <div className="h-px bg-border" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Resultado</span>
-                <CurrencyDisplay value={12450.80} size="sm" showSign className="font-semibold" />
-              </div>
-            </div>
-          </div>
-
-          {/* Próximas Faturas */}
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <h3 className="font-display font-medium text-foreground mb-4 flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" />
-              Próximas Faturas
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Nubank</p>
-                  <p className="text-xs text-muted-foreground">Vence 28/12</p>
-                </div>
-                <div className="text-right">
-                  <CurrencyDisplay value={2340.50} size="sm" />
-                  <Badge variant="warning" className="mt-1">3 dias</Badge>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div>
-                  <p className="text-sm font-medium text-foreground">Inter</p>
-                  <p className="text-xs text-muted-foreground">Vence 05/01</p>
-                </div>
-                <div className="text-right">
-                  <CurrencyDisplay value={890.00} size="sm" />
-                  <Badge variant="muted" className="mt-1">11 dias</Badge>
-                </div>
-              </div>
-            </div>
-            <Link to="/cartoes">
-              <Button variant="ghost" size="sm" className="w-full mt-4">
-                Ver todos os cartões
-              </Button>
-            </Link>
-          </div>
-
-          {/* Compartilhados */}
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <h3 className="font-display font-medium text-foreground mb-4">
-              Divisões Pendentes
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-xs font-medium text-primary">AN</span>
+            <nav className="space-y-2">
+              {[
+                { 
+                  to: "/cartoes", 
+                  label: "Cartões", 
+                  sublabel: "2 faturas abertas",
+                  icon: CreditCard,
+                  value: "-4.2k"
+                },
+                { 
+                  to: "/compartilhados", 
+                  label: "Compartilhados", 
+                  sublabel: "3 pendências",
+                  icon: Users,
+                  value: "+312"
+                },
+              ].map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="group flex items-center justify-between p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div>
+                      <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                        {item.label}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.sublabel}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-sm text-foreground">Ana</span>
-                </div>
-                <CurrencyDisplay value={-125.50} size="sm" showSign />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                    <span className="text-xs font-medium text-accent">CA</span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "font-mono text-sm",
+                      item.value.startsWith("+") ? "text-positive" : "text-negative"
+                    )}>
+                      {item.value}
+                    </span>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
                   </div>
-                  <span className="text-sm text-foreground">Carlos</span>
-                </div>
-                <CurrencyDisplay value={87.30} size="sm" showSign />
+                </Link>
+              ))}
+            </nav>
+
+            {/* Monthly Insight - Single, não múltiplos */}
+            <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
+              <p className="text-sm text-muted-foreground mb-2">Este mês você</p>
+              <p className="text-xl font-display font-semibold text-foreground">
+                Gastou 12% menos em alimentação
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <ArrowDownRight className="h-4 w-4 text-positive" />
+                <span className="text-sm text-positive font-medium">
+                  -R$ 340 vs. novembro
+                </span>
               </div>
             </div>
-            <Link to="/compartilhados">
-              <Button variant="ghost" size="sm" className="w-full mt-4">
-                Ver compartilhados
-              </Button>
-            </Link>
           </div>
-        </aside>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
