@@ -84,12 +84,12 @@ export function Dashboard() {
 
         {/* Quick Action - Floating, não grid */}
         <div className="mt-8 sm:mt-0 sm:absolute sm:top-0 sm:right-0">
-          <Button asChild size="lg" className="rounded-full shadow-lg">
-            <Link to="/transacoes/nova">
+          <Link to="/transacoes/nova">
+            <Button size="lg" className="rounded-full shadow-lg">
               <Plus className="h-5 w-5 mr-2" />
               Nova transação
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </section>
 
