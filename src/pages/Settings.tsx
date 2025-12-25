@@ -506,7 +506,7 @@ export function Settings() {
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
-              <Select value={newCategoryType} onValueChange={setNewCategoryType}>
+              <Select value={newCategoryType} onValueChange={(value) => setNewCategoryType(value as "expense" | "income")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">Despesa</SelectItem>
