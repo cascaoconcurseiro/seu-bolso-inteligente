@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,14 +22,23 @@ import {
   Plus,
   ArrowLeft,
   ChevronRight,
+  ChevronLeft,
+  Download,
+  Wallet,
+  Calendar,
+  DollarSign,
+  X,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, cardBrands, getBankById } from "@/lib/banks";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount } from "@/hooks/useAccounts";
-import { useTransactions } from "@/hooks/useTransactions";
-import { format, addMonths } from "date-fns";
+import { useTransactions, useCreateTransaction } from "@/hooks/useTransactions";
+import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getInvoiceData, getTargetDate, formatCycleRange, formatLocalDate } from "@/lib/invoiceUtils";
+import { useToast } from "@/hooks/use-toast";
 
 type CardView = "list" | "detail";
 
@@ -47,6 +56,11 @@ export function CreditCards() {
   const [view, setView] = useState<CardView>("list");
   const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
   const [showNewCardDialog, setShowNewCardDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showPayDialog, setShowPayDialog] = useState(false);
+  
+  // Invoice navigation
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
   
   // Form state
   const [newBankId, setNewBankId] = useState("");
@@ -59,28 +73,35 @@ export function CreditCards() {
   const { data: accounts = [], isLoading } = useAccounts();
   const { data: transactions = [] } = useTransactions();
   const createAccount = useCreateAccount();
+  const createTransaction = useCreateTransaction();
+  const { toast } = useToast();
 
   // Filter credit cards
   const creditCards = accounts.filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[];
 
-  // Get transactions for a specific card
+  // Update selected date when card changes
+  useEffect(() => {
+    if (selectedCard) {
+      setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
+    }
+  }, [selectedCard]);
+
+  // Get invoice data for selected card
+  const invoiceData = useMemo(() => {
+    if (!selectedCard) return null;
+    return getInvoiceData(selectedCard, transactions, selectedDate);
+  }, [selectedCard, transactions, selectedDate]);
+
+  // Get transactions for a specific card (for list view summary)
   const getCardTransactions = (cardId: string) => {
     return transactions.filter(t => t.account_id === cardId && t.type === "EXPENSE");
   };
 
-  // Calculate current invoice
+  // Calculate current invoice for list view
   const getCardInvoice = (card: CreditCardAccount) => {
-    const cardTransactions = getCardTransactions(card.id);
-    const total = cardTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const dueDate = card.due_day 
-      ? new Date(new Date().getFullYear(), new Date().getMonth(), card.due_day)
-      : new Date();
-    
-    if (dueDate < new Date()) {
-      dueDate.setMonth(dueDate.getMonth() + 1);
-    }
-    
-    return { value: total, dueDate };
+    const targetDate = getTargetDate(new Date(), card.closing_day || 1);
+    const data = getInvoiceData(card, transactions, targetDate);
+    return { value: data.invoiceTotal, dueDate: data.dueDate };
   };
 
   // Get installments for a card
@@ -113,6 +134,12 @@ export function CreditCards() {
   const goBack = () => {
     setView("list");
     setSelectedCard(null);
+  };
+
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() + offset);
+    setSelectedDate(newDate);
   };
 
   const handleCreateCard = async () => {
@@ -156,14 +183,15 @@ export function CreditCards() {
   }
 
   // Detail View
-  if (view === "detail" && selectedCard) {
-    const invoice = getCardInvoice(selectedCard);
-    const daysUntilDue = getDaysUntilDue(invoice.dueDate);
+  if (view === "detail" && selectedCard && invoiceData) {
+    const daysUntilDue = getDaysUntilDue(invoiceData.dueDate);
     const usagePercent = selectedCard.credit_limit 
-      ? (invoice.value / selectedCard.credit_limit) * 100 
+      ? (invoiceData.invoiceTotal / selectedCard.credit_limit) * 100 
       : 0;
     const bank = getBankById(selectedCard.bank_id);
     const installments = getCardInstallments(selectedCard.id);
+    const monthName = format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR });
+    const cycleRange = formatCycleRange(invoiceData.startDate, invoiceData.closingDate);
 
     return (
       <div className="space-y-8 animate-fade-in">
@@ -186,27 +214,96 @@ export function CreditCards() {
           </div>
         </div>
 
-        {/* Current Invoice */}
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => changeMonth(-1)}
+            className="rounded-full"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div className="text-center">
+            <h3 className="font-display font-semibold text-lg capitalize">
+              Fatura de {monthName}
+            </h3>
+            <p className="text-sm text-muted-foreground">Ciclo: {cycleRange}</p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => changeMonth(1)}
+            className="rounded-full"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Current Invoice Card */}
         <div 
-          className="p-6 rounded-2xl text-white transition-all hover:shadow-lg hover:scale-[1.01]"
+          className="p-6 rounded-2xl text-white transition-all hover:shadow-lg relative overflow-hidden"
           style={{ backgroundColor: bank.color }}
         >
-          <p className="text-sm opacity-80 mb-1">Fatura Atual</p>
+          {/* Status Bar */}
+          <div className={cn(
+            "absolute top-0 left-0 right-0 h-1",
+            invoiceData.status === 'CLOSED' ? "bg-red-500" : "bg-blue-400"
+          )} />
+          
+          <div className="flex items-start justify-between mb-4">
+            <span className={cn(
+              "text-xs px-2 py-1 rounded-full font-medium",
+              invoiceData.status === 'CLOSED' 
+                ? "bg-red-500/30 text-red-100" 
+                : "bg-blue-400/30 text-blue-100"
+            )}>
+              {invoiceData.status === 'CLOSED' ? '🔴 FECHADA' : '🔵 ABERTA'}
+            </span>
+          </div>
+          
+          <p className="text-sm opacity-80 mb-1">Valor da Fatura</p>
           <p className="font-display font-bold text-4xl tracking-tight">
-            {formatCurrency(invoice.value)}
+            {formatCurrency(invoiceData.invoiceTotal)}
           </p>
+          
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm opacity-80">
-              Vence em {format(invoice.dueDate, "dd 'de' MMMM", { locale: ptBR })}
+              {invoiceData.status === 'OPEN' 
+                ? `Fecha em ${invoiceData.daysToClose} dias`
+                : `Vence ${format(invoiceData.dueDate, "dd 'de' MMMM", { locale: ptBR })}`
+              }
             </p>
             <span className="text-xs px-2 py-1 rounded-full bg-white/20">
               {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
             </span>
           </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-3 mt-6">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1 bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => setShowPayDialog(true)}
+            >
+              <Wallet className="h-4 w-4 mr-2" />
+              Pagar Fatura
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1 bg-white/20 hover:bg-white/30 text-white border-0"
+              onClick={() => setShowImportDialog(true)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
+          </div>
         </div>
 
         {/* Limit Usage */}
-        {selectedCard.credit_limit && (
+        {selectedCard.credit_limit && selectedCard.credit_limit > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Limite utilizado</span>
@@ -226,9 +323,53 @@ export function CreditCards() {
               />
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{formatCurrency(invoice.value)} usado</span>
+              <span>{formatCurrency(invoiceData.invoiceTotal)} usado</span>
               <span>{formatCurrency(selectedCard.credit_limit)} limite</span>
             </div>
+          </div>
+        )}
+
+        {/* Transactions List */}
+        {invoiceData.transactions.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+              Lançamentos ({invoiceData.transactions.length})
+            </h2>
+            <div className="space-y-2">
+              {invoiceData.transactions.map((tx) => (
+                <div 
+                  key={tx.id} 
+                  className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{tx.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}
+                        {tx.is_installment && tx.current_installment && tx.total_installments && (
+                          <span className="ml-2 text-xs">
+                            ({tx.current_installment}/{tx.total_installments})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <span className={cn(
+                      "font-mono font-semibold",
+                      tx.type === 'INCOME' ? "text-positive" : ""
+                    )}>
+                      {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {invoiceData.transactions.length === 0 && (
+          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+            <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">Nenhum lançamento nesta fatura</p>
           </div>
         )}
 
@@ -242,7 +383,7 @@ export function CreditCards() {
               {installments.map((inst) => (
                 <div 
                   key={inst.id} 
-                  className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20 hover:shadow-sm"
+                  className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-medium">{inst.description}</p>
@@ -269,8 +410,10 @@ export function CreditCards() {
         )}
 
         {/* Card Info */}
-        <div className="p-4 rounded-xl border border-border transition-all hover:border-foreground/20">
-          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Informações</h3>
+        <div className="p-4 rounded-xl border border-border">
+          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">
+            Informações
+          </h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Fechamento</p>
@@ -282,6 +425,42 @@ export function CreditCards() {
             </div>
           </div>
         </div>
+
+        {/* Import Dialog */}
+        <ImportBillsDialog
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          account={selectedCard}
+          onImport={async (txs) => {
+            for (const tx of txs) {
+              await createTransaction.mutateAsync(tx as any);
+            }
+            toast({ title: "Faturas importadas com sucesso!" });
+            setShowImportDialog(false);
+          }}
+        />
+
+        {/* Pay Invoice Dialog */}
+        <PayInvoiceDialog
+          isOpen={showPayDialog}
+          onClose={() => setShowPayDialog(false)}
+          card={selectedCard}
+          invoiceTotal={invoiceData.invoiceTotal}
+          accounts={accounts.filter(a => a.type !== 'CREDIT_CARD')}
+          onPay={async (fromAccountId) => {
+            await createTransaction.mutateAsync({
+              amount: invoiceData.invoiceTotal,
+              description: `Pagamento Fatura - ${format(selectedDate, "MMMM yyyy", { locale: ptBR })}`,
+              date: formatLocalDate(new Date()),
+              type: "TRANSFER",
+              account_id: fromAccountId,
+              destination_account_id: selectedCard.id,
+              domain: "PERSONAL",
+            });
+            toast({ title: "Fatura paga com sucesso!" });
+            setShowPayDialog(false);
+          }}
+        />
       </div>
     );
   }
@@ -368,6 +547,7 @@ export function CreditCards() {
           const invoice = getCardInvoice(card);
           const daysUntilDue = getDaysUntilDue(invoice.dueDate);
           const installments = getCardInstallments(card.id);
+          const bank = getBankById(card.bank_id);
           
           return (
             <div
@@ -386,7 +566,7 @@ export function CreditCards() {
                   <div>
                     <p className="font-display font-semibold text-lg">{card.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {getBankById(card.bank_id).name}
+                      {bank.name}
                     </p>
                   </div>
                 </div>
@@ -570,6 +750,216 @@ function NewCardDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={onSubmit} disabled={isLoading || !bankId}>
             {isLoading ? "Adicionando..." : "Adicionar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Import Bills Dialog
+interface ImportBillsDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  account: CreditCardAccount;
+  onImport: (transactions: any[]) => void;
+}
+
+function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDialogProps) {
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [months, setMonths] = useState<{ date: string; label: string; amount: string; isPast: boolean }[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const nextMonths = [];
+      const today = new Date();
+      const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      for (let i = 0; i < 12; i++) {
+        const targetDate = new Date(year, i, 1);
+        const isPast = targetDate < currentMonthStart;
+        const monthName = targetDate.toLocaleDateString('pt-BR', { month: 'long' });
+        const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+        
+        nextMonths.push({
+          date: formatLocalDate(targetDate),
+          label,
+          amount: '',
+          isPast
+        });
+      }
+      setMonths(nextMonths);
+    }
+  }, [isOpen, year]);
+
+  const handleAmountChange = (index: number, value: string) => {
+    if (months[index].isPast) return;
+    const newMonths = [...months];
+    newMonths[index].amount = value;
+    setMonths(newMonths);
+  };
+
+  const handleSave = () => {
+    const transactionsToCreate = months
+      .filter(m => m.amount && parseFloat(m.amount) > 0)
+      .map(m => {
+        const [y, month] = m.date.split('-').map(Number);
+        const closingDay = account.closing_day || 1;
+        const transactionDate = new Date(y, month - 1, closingDay);
+        
+        return {
+          date: formatLocalDate(transactionDate),
+          amount: parseFloat(m.amount),
+          type: "EXPENSE",
+          description: `Fatura Importada - ${m.label}`,
+          account_id: account.id,
+          domain: "PERSONAL",
+        };
+      });
+
+    if (transactionsToCreate.length > 0) {
+      onImport(transactionsToCreate);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Importar Faturas</DialogTitle>
+          <DialogDescription>
+            Preencha os valores das faturas para {account.name}
+          </DialogDescription>
+        </DialogHeader>
+        
+        {/* Year Selector */}
+        <div className="flex items-center justify-center gap-4 py-2">
+          <Button variant="ghost" size="icon" onClick={() => setYear(y => y - 1)}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <span className="text-lg font-bold font-mono">{year}</span>
+          <Button variant="ghost" size="icon" onClick={() => setYear(y => y + 1)}>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Info Banner */}
+        <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+          💡 Após importar, navegue até o mês da fatura usando as setas no detalhe do cartão.
+        </div>
+
+        {/* Months List */}
+        <div className="flex-1 overflow-y-auto space-y-2 py-2">
+          {months.map((month, index) => (
+            <div 
+              key={month.date} 
+              className="flex items-center gap-4 p-3 rounded-lg border border-border"
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-sm">{month.label}</span>
+              </div>
+              <div className="w-32">
+                {month.isPast ? (
+                  <span className="text-xs text-muted-foreground">Encerrado</span>
+                ) : (
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      placeholder="0,00"
+                      value={month.amount}
+                      onChange={(e) => handleAmountChange(index, e.target.value)}
+                      className="pl-7 h-8 text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button 
+            onClick={handleSave}
+            disabled={!months.some(m => m.amount && parseFloat(m.amount) > 0)}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Salvar Faturas
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Pay Invoice Dialog
+interface PayInvoiceDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  card: CreditCardAccount;
+  invoiceTotal: number;
+  accounts: any[];
+  onPay: (fromAccountId: string) => void;
+}
+
+function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts, onPay }: PayInvoiceDialogProps) {
+  const [selectedAccountId, setSelectedAccountId] = useState("");
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Pagar Fatura</DialogTitle>
+          <DialogDescription>
+            Selecione a conta de origem para pagar {formatCurrency(invoiceTotal)}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="py-4">
+          <div className="p-4 rounded-lg bg-muted mb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Valor da fatura</span>
+              <span className="font-mono font-bold text-xl">{formatCurrency(invoiceTotal)}</span>
+            </div>
+          </div>
+          
+          <Label className="mb-2 block">Conta de origem</Label>
+          <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a conta" />
+            </SelectTrigger>
+            <SelectContent>
+              {accounts.map(acc => (
+                <SelectItem key={acc.id} value={acc.id}>
+                  <div className="flex items-center gap-2">
+                    <BankIcon bankId={acc.bank_id} size="sm" />
+                    <span>{acc.name}</span>
+                    <span className="text-muted-foreground ml-auto font-mono">
+                      {formatCurrency(acc.balance)}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button 
+            onClick={() => onPay(selectedAccountId)}
+            disabled={!selectedAccountId || invoiceTotal <= 0}
+          >
+            <Wallet className="h-4 w-4 mr-2" />
+            Pagar Fatura
           </Button>
         </DialogFooter>
       </DialogContent>
