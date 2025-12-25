@@ -548,6 +548,10 @@ export function CreditCards() {
           const daysUntilDue = getDaysUntilDue(invoice.dueDate);
           const installments = getCardInstallments(card.id);
           const bank = getBankById(card.bank_id);
+          // Simulated last 4 digits - in production would come from database
+          const last4Digits = "4532";
+          // Simulated brand - in production would come from database
+          const cardBrand = card.bank_id === "nubank" || card.bank_id === "inter" ? "mastercard" : "visa";
           
           return (
             <div
@@ -565,9 +569,10 @@ export function CreditCards() {
                   />
                   <div>
                     <p className="font-display font-semibold text-lg">{card.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {bank.name}
-                    </p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>•••• {last4Digits}</span>
+                      <CardBrandIcon brand={cardBrand} size="sm" />
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -584,8 +589,8 @@ export function CreditCards() {
               
               {installments.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{installments.length} parcelas ativas</span>
-                  <span className="font-mono">
+                  <span className="text-primary">{installments.length} parcelas ativas</span>
+                  <span className="font-mono text-primary">
                     {formatCurrency(installments.reduce((sum, i) => sum + i.value, 0))}/mês
                   </span>
                 </div>

@@ -31,7 +31,6 @@ import {
   Wallet, 
   Plus, 
   Trash2, 
-  CreditCard, 
   Landmark,
   PiggyBank,
   TrendingUp,
@@ -46,7 +45,6 @@ import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAcco
 const accountTypeIcons = {
   CHECKING: Landmark,
   SAVINGS: PiggyBank,
-  CREDIT_CARD: CreditCard,
   INVESTMENT: TrendingUp,
   CASH: Banknote,
 };
@@ -54,7 +52,6 @@ const accountTypeIcons = {
 const accountTypeLabels = {
   CHECKING: "Conta Corrente",
   SAVINGS: "Poupança",
-  CREDIT_CARD: "Cartão de Crédito",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
 };
@@ -72,9 +69,9 @@ export function Accounts() {
   const [type, setType] = useState<string>("CHECKING");
   const [bankId, setBankId] = useState("");
   const [balance, setBalance] = useState("");
-  const [creditLimit, setCreditLimit] = useState("");
-  const [closingDay, setClosingDay] = useState("");
-  const [dueDay, setDueDay] = useState("");
+
+  // Filter only non-credit card accounts
+  const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -85,9 +82,6 @@ export function Accounts() {
     setType("CHECKING");
     setBankId("");
     setBalance("");
-    setCreditLimit("");
-    setClosingDay("");
-    setDueDay("");
   };
 
   const handleCreate = async () => {
@@ -100,9 +94,6 @@ export function Accounts() {
       bank_logo: null,
       bank_color: bank?.color || null,
       balance: parseFloat(balance) || 0,
-      credit_limit: type === "CREDIT_CARD" ? (parseFloat(creditLimit) || null) : null,
-      closing_day: type === "CREDIT_CARD" ? (parseInt(closingDay) || null) : null,
-      due_day: type === "CREDIT_CARD" ? (parseInt(dueDay) || null) : null,
     });
 
     setShowAddDialog(false);
@@ -116,13 +107,7 @@ export function Accounts() {
     }
   };
 
-  const totalBalance = accounts
-    .filter(a => a.type !== "CREDIT_CARD")
-    .reduce((sum, a) => sum + Number(a.balance), 0);
-
-  const totalCreditUsed = accounts
-    .filter(a => a.type === "CREDIT_CARD")
-    .reduce((sum, a) => sum + Math.abs(Number(a.balance)), 0);
+  const totalBalance = regularAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   if (isLoading) {
     return (
@@ -138,7 +123,7 @@ export function Accounts() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl tracking-tight">Contas</h1>
-          <p className="text-muted-foreground mt-1">Gerencie suas contas e cartões</p>
+          <p className="text-muted-foreground mt-1">Gerencie suas contas bancárias</p>
         </div>
         <Button
           size="lg"
@@ -151,26 +136,18 @@ export function Accounts() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-6 rounded-2xl border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Saldo disponível</p>
-          <p className={cn(
-            "font-mono text-3xl font-bold",
-            totalBalance >= 0 ? "text-positive" : "text-negative"
-          )}>
-            {formatCurrency(totalBalance)}
-          </p>
-        </div>
-        <div className="p-6 rounded-2xl border border-border">
-          <p className="text-sm text-muted-foreground mb-1">Crédito utilizado</p>
-          <p className="font-mono text-3xl font-bold text-warning">
-            {formatCurrency(totalCreditUsed)}
-          </p>
-        </div>
+      <div className="p-6 rounded-2xl border border-border">
+        <p className="text-sm text-muted-foreground mb-1">Saldo total</p>
+        <p className={cn(
+          "font-mono text-3xl font-bold",
+          totalBalance >= 0 ? "text-positive" : "text-negative"
+        )}>
+          {formatCurrency(totalBalance)}
+        </p>
       </div>
 
       {/* Accounts List */}
-      {accounts.length === 0 ? (
+      {regularAccounts.length === 0 ? (
         <div className="py-16 text-center border border-dashed border-border rounded-xl">
           <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h2 className="font-display font-semibold text-xl mb-2">Nenhuma conta cadastrada</h2>
@@ -181,156 +158,49 @@ export function Accounts() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Regular Accounts */}
-          {accounts.filter(a => a.type !== "CREDIT_CARD").length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                Contas ({accounts.filter(a => a.type !== "CREDIT_CARD").length})
-              </h2>
-              <div className="space-y-2">
-                {accounts
-                  .filter(a => a.type !== "CREDIT_CARD")
-                  .map((account) => {
-                    const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
-                    
-                    return (
-                      <div
-                        key={account.id}
-                        className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
-                      >
-                        <div className="flex items-center gap-4">
-                          <BankIcon 
-                            bankId={account.bank_id} 
-                            size="lg"
-                            className="transition-transform duration-200 group-hover:scale-110" 
-                          />
-                          <div>
-                            <p className="font-display font-semibold text-lg">{account.name}</p>
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Icon className="h-3 w-3" />
-                              {accountTypeLabels[account.type as keyof typeof accountTypeLabels]}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <p className={cn(
-                            "font-mono text-xl font-bold",
-                            Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
-                          )}>
-                            {formatCurrency(Number(account.balance))}
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                            onClick={() => setDeleteId(account.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+        <div className="space-y-2">
+          {regularAccounts.map((account) => {
+            const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
+            
+            return (
+              <div
+                key={account.id}
+                className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                           hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
+              >
+                <div className="flex items-center gap-4">
+                  <BankIcon 
+                    bankId={account.bank_id} 
+                    size="lg"
+                    className="transition-transform duration-200 group-hover:scale-110" 
+                  />
+                  <div>
+                    <p className="font-display font-semibold text-lg">{account.name}</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Icon className="h-3 w-3" />
+                      {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <p className={cn(
+                    "font-mono text-xl font-bold",
+                    Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
+                  )}>
+                    {formatCurrency(Number(account.balance))}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                    onClick={() => setDeleteId(account.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Credit Cards */}
-          {accounts.filter(a => a.type === "CREDIT_CARD").length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                Cartões de Crédito ({accounts.filter(a => a.type === "CREDIT_CARD").length})
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {accounts
-                  .filter(a => a.type === "CREDIT_CARD")
-                  .map((card) => {
-                    const usedPercent = card.credit_limit 
-                      ? (Math.abs(Number(card.balance)) / Number(card.credit_limit)) * 100 
-                      : 0;
-                    
-                    return (
-                      <div
-                        key={card.id}
-                        className="group relative p-6 rounded-2xl border border-border 
-                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-md
-                                   overflow-hidden"
-                        style={{ 
-                          background: card.bank_color 
-                            ? `linear-gradient(135deg, ${card.bank_color}15, ${card.bank_color}05)` 
-                            : undefined 
-                        }}
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <BankIcon 
-                            bankId={card.bank_id} 
-                            size="lg"
-                            className="transition-transform duration-200 group-hover:scale-110" 
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
-                            onClick={() => setDeleteId(card.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        
-                        <p className="font-display font-semibold text-lg mb-1">{card.name}</p>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Fatura atual</p>
-                            <p className="font-mono text-2xl font-bold text-warning">
-                              {formatCurrency(Math.abs(Number(card.balance)))}
-                            </p>
-                          </div>
-                          
-                          {card.credit_limit && (
-                            <div>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="text-muted-foreground">Limite usado</span>
-                                <span className="font-medium">{usedPercent.toFixed(0)}%</span>
-                              </div>
-                              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                <div 
-                                  className={cn(
-                                    "h-full transition-all duration-500 rounded-full",
-                                    usedPercent > 80 ? "bg-negative" : usedPercent > 50 ? "bg-warning" : "bg-positive"
-                                  )}
-                                  style={{ width: `${Math.min(usedPercent, 100)}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Limite: {formatCurrency(Number(card.credit_limit))}
-                              </p>
-                            </div>
-                          )}
-                          
-                          {(card.closing_day || card.due_day) && (
-                            <div className="flex gap-4 text-xs">
-                              {card.closing_day && (
-                                <span className="text-muted-foreground">
-                                  Fecha dia <span className="font-medium text-foreground">{card.closing_day}</span>
-                                </span>
-                              )}
-                              {card.due_day && (
-                                <span className="text-muted-foreground">
-                                  Vence dia <span className="font-medium text-foreground">{card.due_day}</span>
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       )}
 
@@ -339,7 +209,7 @@ export function Accounts() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova conta</DialogTitle>
-            <DialogDescription>Adicione uma conta bancária ou cartão</DialogDescription>
+            <DialogDescription>Adicione uma conta bancária</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
@@ -361,7 +231,6 @@ export function Accounts() {
                 <SelectContent>
                   <SelectItem value="CHECKING">Conta Corrente</SelectItem>
                   <SelectItem value="SAVINGS">Poupança</SelectItem>
-                  <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
                   <SelectItem value="INVESTMENT">Investimento</SelectItem>
                   <SelectItem value="CASH">Dinheiro</SelectItem>
                 </SelectContent>
@@ -392,7 +261,7 @@ export function Accounts() {
             </div>
 
             <div className="space-y-2">
-              <Label>{type === "CREDIT_CARD" ? "Fatura atual" : "Saldo inicial"}</Label>
+              <Label>Saldo inicial</Label>
               <Input
                 type="number"
                 placeholder="0,00"
@@ -400,45 +269,6 @@ export function Accounts() {
                 onChange={(e) => setBalance(e.target.value)}
               />
             </div>
-
-            {type === "CREDIT_CARD" && (
-              <>
-                <div className="space-y-2">
-                  <Label>Limite de crédito</Label>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 5000"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Dia de fechamento</Label>
-                    <Input
-                      type="number"
-                      placeholder="Ex: 15"
-                      min="1"
-                      max="31"
-                      value={closingDay}
-                      onChange={(e) => setClosingDay(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Dia de vencimento</Label>
-                    <Input
-                      type="number"
-                      placeholder="Ex: 25"
-                      min="1"
-                      max="31"
-                      value={dueDay}
-                      onChange={(e) => setDueDay(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
           <DialogFooter>
