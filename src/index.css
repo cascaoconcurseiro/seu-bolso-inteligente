@@ -2,95 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* 
+ * Pé de Meia — Design System
+ * Paleta Terrosa Brasileira
+ * Tipografia: Fraunces (display), Inter (body), JetBrains Mono (valores)
+ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Paleta Principal - Terrosa Brasileira */
+    --background: 30 25% 96%;           /* Palha claro #F5EDE4 */
+    --foreground: 20 23% 18%;           /* Café #3D2C24 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 30 20% 98%;                 /* Branco quente */
+    --card-foreground: 20 23% 18%;      /* Café */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 30 20% 98%;
+    --popover-foreground: 20 23% 18%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 22 55% 50%;              /* Terracota #C4683C */
+    --primary-foreground: 30 25% 96%;   /* Palha */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 30 15% 90%;            /* Palha médio */
+    --secondary-foreground: 20 23% 18%; /* Café */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 30 12% 88%;                /* Palha escuro */
+    --muted-foreground: 20 15% 40%;     /* Café suave */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 140 20% 42%;              /* Verde Sálvia #5A7A60 */
+    --accent-foreground: 30 25% 96%;    /* Palha */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 12 55% 43%;          /* Ferrugem #A14D3A */
+    --destructive-foreground: 30 25% 96%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 140 20% 42%;             /* Verde Sálvia */
+    --success-foreground: 30 25% 96%;
+
+    --warning: 35 80% 55%;              /* Âmbar */
+    --warning-foreground: 20 23% 18%;
+
+    --border: 30 15% 82%;               /* Borda sutil */
+    --input: 30 15% 85%;
+    --ring: 22 55% 50%;                 /* Terracota */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar */
+    --sidebar-background: 20 23% 18%;   /* Café */
+    --sidebar-foreground: 30 25% 92%;   /* Palha claro */
+    --sidebar-primary: 22 55% 50%;      /* Terracota */
+    --sidebar-primary-foreground: 30 25% 96%;
+    --sidebar-accent: 20 20% 25%;       /* Café claro */
+    --sidebar-accent-foreground: 30 25% 92%;
+    --sidebar-border: 20 18% 25%;
+    --sidebar-ring: 22 55% 50%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Extras financeiros */
+    --positive: 140 20% 42%;            /* Verde Sálvia */
+    --negative: 12 55% 43%;             /* Ferrugem */
+    --neutral: 20 15% 40%;              /* Café suave */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 20 25% 10%;           /* Café escuro */
+    --foreground: 30 20% 92%;           /* Palha claro */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 20 22% 14%;
+    --card-foreground: 30 20% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 20 22% 14%;
+    --popover-foreground: 30 20% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 22 55% 55%;              /* Terracota mais vivo */
+    --primary-foreground: 20 25% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 20 18% 20%;
+    --secondary-foreground: 30 20% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 20 15% 22%;
+    --muted-foreground: 30 15% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 140 22% 48%;              /* Verde Sálvia mais vivo */
+    --accent-foreground: 20 25% 10%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 12 50% 50%;
+    --destructive-foreground: 30 20% 92%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 140 22% 48%;
+    --success-foreground: 20 25% 10%;
+
+    --warning: 35 75% 50%;
+    --warning-foreground: 20 25% 10%;
+
+    --border: 20 15% 25%;
+    --input: 20 15% 22%;
+    --ring: 22 55% 55%;
+
+    --sidebar-background: 20 28% 8%;
+    --sidebar-foreground: 30 20% 90%;
+    --sidebar-primary: 22 55% 55%;
+    --sidebar-primary-foreground: 20 28% 8%;
+    --sidebar-accent: 20 22% 15%;
+    --sidebar-accent-foreground: 30 20% 90%;
+    --sidebar-border: 20 18% 18%;
+    --sidebar-ring: 22 55% 55%;
+
+    --positive: 140 22% 48%;
+    --negative: 12 50% 50%;
+    --neutral: 30 15% 60%;
   }
 }
 
@@ -100,6 +119,74 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Tipografia hierárquica */
+  h1, .h1 {
+    @apply font-display font-semibold text-3xl md:text-4xl tracking-tight;
+  }
+
+  h2, .h2 {
+    @apply font-display font-semibold text-2xl md:text-3xl tracking-tight;
+  }
+
+  h3, .h3 {
+    @apply font-display font-medium text-xl md:text-2xl;
+  }
+
+  h4, .h4 {
+    @apply font-sans font-semibold text-lg;
+  }
+
+  /* Valores financeiros */
+  .value-display {
+    @apply font-mono font-medium tabular-nums;
+  }
+
+  .value-positive {
+    @apply text-positive;
+  }
+
+  .value-negative {
+    @apply text-negative;
+  }
+
+  .value-neutral {
+    @apply text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  /* Animações suaves */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Cards com borda colorida à esquerda (status) */
+  .card-status-success {
+    @apply border-l-4 border-l-positive;
+  }
+
+  .card-status-warning {
+    @apply border-l-4 border-l-warning;
+  }
+
+  .card-status-danger {
+    @apply border-l-4 border-l-negative;
+  }
+
+  /* Container de saldo principal */
+  .balance-container {
+    @apply bg-card rounded-xl p-6 shadow-sm;
+  }
+
+  /* Progress bar para parcelas */
+  .installment-progress {
+    @apply h-2 rounded-full bg-muted overflow-hidden;
+  }
+
+  .installment-progress-fill {
+    @apply h-full bg-primary rounded-full transition-all duration-500;
   }
 }
