@@ -128,6 +128,9 @@ export function useCreateTransaction() {
     mutationFn: async (input: CreateTransactionInput) => {
       if (!user) throw new Error("User not authenticated");
 
+      // Remove splits from input (não existe na tabela transactions)
+      const { splits, ...transactionData } = input;
+
       // Se é parcelamento, criar múltiplas transações
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
         const seriesId = crypto.randomUUID();
@@ -141,7 +144,8 @@ export function useCreateTransaction() {
           
           transactions.push({
             user_id: user.id,
-            ...input,
+            creator_user_id: user.id,
+            ...transactionData,
             amount: installmentAmount,
             date: installmentDate.toISOString().split("T")[0],
             description: `${input.description} (${i + 1}/${input.total_installments})`,
@@ -156,19 +160,48 @@ export function useCreateTransaction() {
           .select();
 
         if (error) throw error;
+
+        // Se tem splits, criar para cada parcela
+        if (splits && splits.length > 0) {
+          const { data: membersData } = await supabase
+            .from("family_members")
+            .select("id, name")
+            .in("id", splits.map(s => s.member_id));
+          
+          const memberNames: Record<string, string> = {};
+          membersData?.forEach(m => {
+            memberNames[m.id] = m.name;
+          });
+
+          for (const transaction of data) {
+            const splitsToInsert = splits.map(split => ({
+              transaction_id: transaction.id,
+              member_id: split.member_id,
+              percentage: split.percentage,
+              amount: Number(((transaction.amount * split.percentage) / 100).toFixed(2)),
+              name: memberNames[split.member_id] || "Membro",
+            }));
+
+            await supabase.from("transaction_splits").insert(splitsToInsert);
+            
+            // Marcar transação como compartilhada
+            await supabase
+              .from("transactions")
+              .update({ is_shared: true, domain: input.trip_id ? "TRAVEL" : "SHARED" })
+              .eq("id", transaction.id);
+          }
+        }
+
         return data;
       }
 
-      // Remove splits from input before inserting transaction
-      const { splits, ...transactionInput } = input;
-      
-      // Transação única
+      // Transação única (splits já foi extraído acima)
       const { data, error } = await supabase
         .from("transactions")
         .insert({
           user_id: user.id,
           creator_user_id: user.id,
-          ...transactionInput,
+          ...transactionData,
         })
         .select()
         .single();
