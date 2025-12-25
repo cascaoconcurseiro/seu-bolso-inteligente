@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ArrowDownRight, Plus, TrendingUp, Loader2, CreditCard, Users } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useFamilyMembers } from "@/hooks/useFamily";
 import { cn } from "@/lib/utils";
+import { getBankById } from "@/lib/banks";
 
 export function Dashboard() {
   const { data: summary, isLoading: summaryLoading } = useFinancialSummary();
   const { data: transactions, isLoading: txLoading } = useTransactions();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const { data: familyMembers = [] } = useFamilyMembers();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -16,6 +19,24 @@ export function Dashboard() {
 
   const recentTransactions = transactions?.slice(0, 5) || [];
   const isLoading = summaryLoading || txLoading || accountsLoading;
+
+  // Cálculos
+  const balance = summary?.balance || 0;
+  const income = summary?.income || 0;
+  const expenses = summary?.expenses || 0;
+  const savings = income - expenses;
+  const projectedBalance = balance + savings;
+
+  // Cartões de crédito com faturas
+  const creditCards = accounts?.filter(a => a.type === "CREDIT_CARD") || [];
+  const creditCardsWithBalance = creditCards.filter(c => Number(c.balance) !== 0);
+  
+  // Transações compartilhadas pendentes
+  const pendingShared = transactions?.filter(t => t.is_shared) || [];
+
+  // Contadores para acesso rápido
+  const cardInvoicesCount = creditCardsWithBalance.length;
+  const sharedPendingCount = pendingShared.length;
 
   if (isLoading) {
     return (
@@ -25,9 +46,6 @@ export function Dashboard() {
     );
   }
 
-  const balance = summary?.balance || 0;
-  const income = summary?.income || 0;
-  const expenses = summary?.expenses || 0;
   const hasAccounts = accounts && accounts.length > 0;
   const hasTransactions = transactions && transactions.length > 0;
 
@@ -63,22 +81,32 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Hero Balance */}
-      <div className="space-y-2">
-        <p className="text-sm text-muted-foreground uppercase tracking-widest">Saldo total</p>
-        <h1 className={cn(
-          "font-display font-bold text-5xl md:text-6xl tracking-tight",
-          balance >= 0 ? "text-foreground" : "text-negative"
-        )}>
-          {formatCurrency(balance)}
-        </h1>
-        <p className="text-muted-foreground">
-          em {accounts?.length || 0} conta{accounts?.length !== 1 ? "s" : ""}
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex gap-3">
+      {/* Hero Section */}
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+            Saldo atual
+          </p>
+          <h1 className={cn(
+            "font-display font-bold text-5xl md:text-6xl tracking-tight",
+            balance >= 0 ? "text-foreground" : "text-negative"
+          )}>
+            {formatCurrency(balance)}
+          </h1>
+          <div className="flex items-center gap-6 text-sm">
+            <span className="flex items-center gap-1.5">
+              <ArrowUpRight className="h-4 w-4 text-positive" />
+              <span className="text-muted-foreground">Entradas</span>
+              <span className="text-positive font-medium">{formatCurrency(income)}</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ArrowDownRight className="h-4 w-4 text-negative" />
+              <span className="text-muted-foreground">Saídas</span>
+              <span className="text-negative font-medium">{formatCurrency(expenses)}</span>
+            </span>
+          </div>
+        </div>
+        
         <Link to="/transacoes/nova">
           <Button size="lg" className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
             <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
@@ -87,177 +115,216 @@ export function Dashboard() {
         </Link>
       </div>
 
-      {/* Month Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-6 rounded-2xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-positive/10 flex items-center justify-center">
-              <ArrowUpRight className="h-5 w-5 text-positive" />
-            </div>
-            <span className="text-sm text-muted-foreground">Receitas</span>
-          </div>
-          <p className="font-mono text-2xl font-bold text-positive">
-            {formatCurrency(income)}
-          </p>
-        </div>
-
-        <div className="p-6 rounded-2xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-negative/10 flex items-center justify-center">
-              <ArrowDownRight className="h-5 w-5 text-negative" />
-            </div>
-            <span className="text-sm text-muted-foreground">Despesas</span>
-          </div>
-          <p className="font-mono text-2xl font-bold text-negative">
-            {formatCurrency(expenses)}
-          </p>
-        </div>
-
-        <div className="p-6 rounded-2xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-foreground/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5" />
-            </div>
-            <span className="text-sm text-muted-foreground">Economia</span>
-          </div>
-          <p className={cn(
-            "font-mono text-2xl font-bold",
-            income - expenses >= 0 ? "text-positive" : "text-negative"
-          )}>
-            {formatCurrency(income - expenses)}
-          </p>
-        </div>
-      </div>
-
-      {/* Content Grid */}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Recent Transactions */}
-        <div className="lg:col-span-8 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-              Últimas transações
-            </h2>
-            <Link 
-              to="/transacoes" 
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Ver todas →
-            </Link>
-          </div>
+        {/* Left Column */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Precisa de Atenção */}
+          {(creditCardsWithBalance.length > 0 || pendingShared.length > 0) && (
+            <div className="space-y-3">
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                Precisa de atenção
+              </h2>
+              <div className="space-y-2">
+                {/* Faturas de cartão */}
+                {creditCardsWithBalance.map((card) => {
+                  const bank = getBankById(card.bank_id);
+                  const dueDay = card.due_day || 10;
+                  const today = new Date().getDate();
+                  const daysUntilDue = dueDay >= today ? dueDay - today : 30 - today + dueDay;
+                  
+                  return (
+                    <Link
+                      key={card.id}
+                      to="/cartoes"
+                      className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                                 hover:border-foreground/20 transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: bank.color }}
+                        >
+                          <CreditCard className="h-5 w-5" style={{ color: bank.textColor }} />
+                        </div>
+                        <div>
+                          <p className="font-medium">Fatura {card.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Vence em {daysUntilDue} dia{daysUntilDue !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-negative font-mono font-semibold">
+                          -{formatCurrency(Math.abs(Number(card.balance)))}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </Link>
+                  );
+                })}
 
-          {recentTransactions.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-border rounded-xl">
-              <p className="text-muted-foreground">Nenhuma transação ainda</p>
-              <Link to="/transacoes/nova">
-                <Button variant="outline" size="sm" className="mt-4">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar primeira
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recentTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                             hover:border-foreground/20 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg">
-                      {tx.category?.icon || (tx.type === "INCOME" ? "💰" : "💸")}
-                    </div>
-                    <div>
-                      <p className="font-medium">{tx.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tx.category?.name || "Sem categoria"} • {new Date(tx.date).toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
-                  </div>
-                  <p className={cn(
-                    "font-mono font-semibold",
-                    tx.type === "INCOME" ? "text-positive" : "text-negative"
-                  )}>
-                    {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(Number(tx.amount))}
-                  </p>
-                </div>
-              ))}
+                {/* Divisões pendentes */}
+                {familyMembers.filter(m => m.status === 'active').slice(0, 2).map((member) => {
+                  // TODO: Calcular saldo real com cada membro
+                  const pendingAmount = 156; // Placeholder
+                  if (pendingAmount <= 0) return null;
+                  
+                  return (
+                    <Link
+                      key={member.id}
+                      to="/compartilhados"
+                      className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                                 hover:border-foreground/20 transition-all"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{member.name} te deve</p>
+                          <p className="text-sm text-muted-foreground">Divisão pendente</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-positive font-mono font-semibold">
+                          +{formatCurrency(pendingAmount)}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           )}
+
+          {/* Atividade Recente */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                Atividade recente
+              </h2>
+              <Link 
+                to="/transacoes" 
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Ver todas
+              </Link>
+            </div>
+
+            {recentTransactions.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-border rounded-xl">
+                <p className="text-muted-foreground">Nenhuma transação ainda</p>
+                <Link to="/transacoes/nova">
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar primeira
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {recentTransactions.map((tx) => {
+                  const txDate = new Date(tx.date);
+                  const today = new Date();
+                  const yesterday = new Date(today);
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  
+                  let dateLabel = txDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+                  if (txDate.toDateString() === today.toDateString()) dateLabel = "Hoje";
+                  else if (txDate.toDateString() === yesterday.toDateString()) dateLabel = "Ontem";
+                  
+                  return (
+                    <div
+                      key={tx.id}
+                      className="flex items-center justify-between py-3 border-b border-border last:border-0"
+                    >
+                      <div>
+                        <p className="font-medium">{tx.description}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {tx.category?.name || "Sem categoria"} • {dateLabel}
+                        </p>
+                      </div>
+                      <p className={cn(
+                        "font-mono font-semibold",
+                        tx.type === "INCOME" ? "text-positive" : "text-negative"
+                      )}>
+                        {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(Number(tx.amount))}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Right Column - Sidebar */}
         <aside className="lg:col-span-4 space-y-6">
-          {/* Quick Links */}
+          {/* Acesso Rápido */}
           <div className="space-y-2">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
               Acesso rápido
             </h2>
-            {[
-              { to: "/contas", label: "Contas", icon: CreditCard },
-              { to: "/cartoes", label: "Cartões", icon: CreditCard },
-              { to: "/compartilhados", label: "Compartilhados", icon: Users },
-              { to: "/familia", label: "Família", icon: Users },
-              { to: "/viagens", label: "Viagens", icon: TrendingUp },
-              { to: "/configuracoes", label: "Configurações", icon: TrendingUp },
-            ].map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="group flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">{item.label}</span>
+            
+            <Link
+              to="/cartoes"
+              className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                         hover:border-foreground/20 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Cartões</p>
+                  {cardInvoicesCount > 0 && (
+                    <p className="text-xs text-muted-foreground">{cardInvoicesCount} fatura{cardInvoicesCount !== 1 ? 's' : ''}</p>
+                  )}
                 </div>
-                <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Link>
-            ))}
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </Link>
+
+            <Link
+              to="/compartilhados"
+              className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                         hover:border-foreground/20 transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Compartilhados</p>
+                  {sharedPendingCount > 0 && (
+                    <p className="text-xs text-muted-foreground">{sharedPendingCount} pendência{sharedPendingCount !== 1 ? 's' : ''}</p>
+                  )}
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </Link>
           </div>
 
-          {/* Accounts Overview */}
-          {accounts && accounts.length > 0 && (
-            <div className="space-y-2">
-              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                Contas
-              </h2>
-              {accounts.slice(0, 4).map((account) => (
-                <div
-                  key={account.id}
-                  className="p-3 rounded-xl border border-border hover:border-foreground/20 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: account.bank_color || "hsl(var(--muted))" }}
-                    >
-                      {account.bank_logo ? (
-                        <img src={account.bank_logo} alt={account.name} className="w-5 h-5 object-contain" />
-                      ) : (
-                        <span className="text-xs font-bold text-white">
-                          {account.name.substring(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{account.name}</p>
-                    </div>
-                    <p className={cn(
-                      "font-mono text-sm font-medium",
-                      account.type === "CREDIT_CARD" 
-                        ? "text-muted-foreground" 
-                        : Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
-                    )}>
-                      {account.type === "CREDIT_CARD" 
-                        ? `Limite`
-                        : formatCurrency(Number(account.balance))
-                      }
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Insight Card */}
+          <div className="p-4 rounded-xl border border-border bg-muted/30">
+            <p className="text-xs text-muted-foreground mb-1">Este mês você</p>
+            <p className="font-semibold">
+              {savings >= 0 ? "Economizou" : "Gastou a mais"}
+            </p>
+            <p className={cn(
+              "text-sm flex items-center gap-1",
+              savings >= 0 ? "text-positive" : "text-negative"
+            )}>
+              {savings >= 0 ? <ArrowDownRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+              {formatCurrency(Math.abs(savings))}
+            </p>
+          </div>
+
+          {/* Projeção do Mês */}
+          <div className="p-4 rounded-xl bg-foreground text-background">
+            <p className="text-xs opacity-70 mb-1">Projeção fim do mês</p>
+            <p className="font-mono text-2xl font-bold">
+              {formatCurrency(projectedBalance)}
+            </p>
+          </div>
         </aside>
       </div>
     </div>
