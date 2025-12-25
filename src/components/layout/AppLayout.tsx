@@ -17,6 +17,9 @@ import {
   LogOut,
   UsersRound,
   Wallet,
+  PiggyBank,
+  Target,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +37,9 @@ const navigationItems = [
   { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
   { path: "/contas", label: "Contas", icon: Wallet },
   { path: "/cartoes", label: "Cartões", icon: CreditCard },
+  { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
+  { path: "/metas", label: "Metas", icon: Target },
+  { path: "/investimentos", label: "Investimentos", icon: TrendingUp },
   { path: "/compartilhados", label: "Compartilhados", icon: Users },
   { path: "/viagens", label: "Viagens", icon: Plane },
   { path: "/familia", label: "Família", icon: UsersRound },

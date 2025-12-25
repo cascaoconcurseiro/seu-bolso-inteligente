@@ -1,73 +1,122 @@
-# Welcome to your Lovable project
+# 💰 Seu Bolso Inteligente
 
-## Project info
+Sistema completo de gestão financeira pessoal com orçamentos, metas e investimentos.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Início Rápido
 
-## How can I edit this code?
+```bash
+# Instalar dependências
+npm install
 
-There are several ways of editing your application.
+# Configurar variáveis de ambiente
+cp .env.example .env
+# Edite o .env com suas credenciais do Supabase
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Executar em desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Acesse: http://localhost:5173
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## ✨ Funcionalidades
 
-**Use GitHub Codespaces**
+- 📊 **Dashboard** - Visão geral das finanças
+- 💰 **Transações** - Receitas, despesas e transferências
+- 🏦 **Contas** - Gestão de contas bancárias
+- 💳 **Cartões** - Controle de cartões de crédito
+- 🐷 **Orçamentos** - Controle de gastos por categoria
+- 🎯 **Metas** - Objetivos financeiros
+- 📈 **Investimentos** - Gestão de carteira
+- 👥 **Compartilhados** - Despesas compartilhadas
+- ✈️ **Viagens** - Controle de gastos em viagens
+- 👨‍👩‍👧 **Família** - Gestão familiar
+- 📊 **Relatórios** - Análises e gráficos
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🛠️ Tecnologias
 
-## What technologies are used for this project?
+- **Frontend:** React 18 + TypeScript + Vite
+- **UI:** shadcn/ui + Tailwind CSS
+- **Backend:** Supabase (PostgreSQL)
+- **Estado:** React Query
+- **Formulários:** React Hook Form + Zod
+- **Gráficos:** Recharts
 
-This project is built with:
+## 📚 Documentação
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Toda a documentação está na pasta [`docs/`](./docs/):
 
-## How can I deploy this project?
+### 🚀 Começar
+- [**Guia Rápido**](./docs/GUIA_RAPIDO.md) - Início em 3 passos
+- [**Configuração Supabase**](./docs/CONFIGURACAO_SUPABASE.md) - Usar o mesmo do PE
+- [**Deploy Vercel**](./docs/DEPLOY_VERCEL.md) - Colocar no ar
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### 📖 Referência
+- [**Implementação Completa**](./docs/IMPLEMENTACAO_COMPLETA.md) - Documentação técnica
+- [**Plano de Migração**](./docs/PLANO_MIGRACAO_PE_PARA_NOVO.md) - Plano detalhado
+- [**Status da Migração**](./docs/MIGRACAO_APLICADA.md) - O que foi feito
 
-## Can I connect a custom domain to my Lovable project?
+### ✅ Verificação
+- [**Checklist**](./docs/CHECKLIST_VERIFICACAO.md) - Verificar implementação
+- [**Resumo Executivo**](./docs/RESUMO_EXECUTIVO.md) - Visão geral
 
-Yes, you can!
+## 🎯 Estrutura do Projeto
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+seu-bolso-inteligente/
+├── docs/                    # 📚 Documentação
+├── public/                  # Arquivos públicos
+├── src/
+│   ├── components/         # Componentes React
+│   │   ├── budgets/       # 🐷 Orçamentos
+│   │   ├── goals/         # 🎯 Metas
+│   │   ├── investments/   # 📈 Investimentos
+│   │   ├── layout/        # Layout
+│   │   └── ui/            # Componentes base
+│   ├── contexts/          # Contextos React
+│   ├── hooks/             # Hooks personalizados
+│   ├── pages/             # Páginas
+│   ├── types/             # Tipos TypeScript
+│   └── integrations/      # Integrações (Supabase)
+├── supabase/
+│   └── migrations/        # Migrations SQL
+└── ...
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 🔐 Segurança
+
+- ✅ Autenticação obrigatória
+- ✅ Row Level Security (RLS)
+- ✅ Validações no banco e frontend
+- ✅ Auditoria de mudanças
+- ✅ HTTPS (em produção)
+
+## 🚀 Deploy
+
+### Vercel (Recomendado)
+
+1. Conecte o repositório no GitHub
+2. Importe na Vercel
+3. Configure as variáveis de ambiente
+4. Deploy automático!
+
+[Ver guia completo](./docs/DEPLOY_VERCEL.md)
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'feat: adicionar nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto é privado.
+
+## 🆘 Suporte
+
+Consulte a [documentação](./docs/) ou abra uma issue.
+
+---
+
+**Desenvolvido com ❤️ usando React + Supabase**
