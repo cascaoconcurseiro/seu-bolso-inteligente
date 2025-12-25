@@ -38,11 +38,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryFn: async () => {
       if (!user) return [];
       
+      // Specify the FK relationship explicitly to avoid ambiguity
       const { data, error } = await supabase
         .from('transactions')
         .select(`
           *,
-          transaction_splits (
+          transaction_splits!transaction_splits_transaction_id_fkey (
             id,
             member_id,
             user_id,

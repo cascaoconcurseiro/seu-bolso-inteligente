@@ -178,12 +178,23 @@ export function useCreateTransaction() {
       // Se tem splits (divisão com membros da família), criar transaction_splits
       // Isso vai disparar o trigger de espelhamento automático
       if (splits && splits.length > 0) {
+        // Buscar nomes dos membros para popular o campo name
+        const { data: membersData } = await supabase
+          .from("family_members")
+          .select("id, name")
+          .in("id", splits.map(s => s.member_id));
+        
+        const memberNames: Record<string, string> = {};
+        membersData?.forEach(m => {
+          memberNames[m.id] = m.name;
+        });
+
         const splitsToInsert = splits.map(split => ({
           transaction_id: data.id,
           member_id: split.member_id,
           percentage: split.percentage,
           amount: split.amount,
-          name: "", // Será preenchido pelo nome do membro
+          name: memberNames[split.member_id] || "Membro",
         }));
 
         const { error: splitsError } = await supabase
@@ -193,7 +204,7 @@ export function useCreateTransaction() {
         if (splitsError) {
           console.error("Erro ao criar splits:", splitsError);
         } else {
-          // Atualizar transação para is_shared = true
+          // Atualizar transação para is_shared = true e disparar sync
           await supabase
             .from("transactions")
             .update({ is_shared: true, domain: input.trip_id ? "TRAVEL" : "SHARED" })
