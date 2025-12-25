@@ -28,48 +28,48 @@ import {
   Pencil,
   Moon,
   Sun,
-  Building2,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { banks, getBankByName } from "@/lib/banks";
-
-// Mock data
-const mockAccounts = [
-  { id: "1", name: "Nubank", type: "checking", balance: 5420.50 },
-  { id: "2", name: "Inter", type: "checking", balance: 2180.30 },
-  { id: "3", name: "Itaú", type: "savings", balance: 15000.00 },
-  { id: "4", name: "Carteira", type: "cash", balance: 350.00 },
-];
-
-const mockCategories = [
-  { id: "1", name: "Alimentação", icon: "🍕", type: "expense" },
-  { id: "2", name: "Moradia", icon: "🏠", type: "expense" },
-  { id: "3", name: "Transporte", icon: "🚗", type: "expense" },
-  { id: "4", name: "Lazer", icon: "🎮", type: "expense" },
-  { id: "5", name: "Saúde", icon: "💊", type: "expense" },
-  { id: "6", name: "Salário", icon: "💰", type: "income" },
-  { id: "7", name: "Freelance", icon: "💻", type: "income" },
-];
-
-const mockPeople = [
-  { id: "1", name: "Eu", email: "eu@email.com", role: "admin" },
-  { id: "2", name: "Ana", email: "ana@email.com", role: "member" },
-  { id: "3", name: "Carlos", email: "carlos@email.com", role: "member" },
-];
+import { banks, getBankById } from "@/lib/banks";
+import { BankIcon } from "@/components/financial/BankIcon";
+import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useAuth } from "@/contexts/AuthContext";
 
 type SettingsSection = "accounts" | "categories" | "people" | "appearance" | "notifications";
 
 export function Settings() {
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<SettingsSection>("accounts");
   const [showAddAccountDialog, setShowAddAccountDialog] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
-  const [showAddPersonDialog, setShowAddPersonDialog] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
     }
     return false;
   });
+
+  // Form state
+  const [newAccountName, setNewAccountName] = useState("");
+  const [newAccountType, setNewAccountType] = useState<string>("CHECKING");
+  const [newAccountBankId, setNewAccountBankId] = useState("");
+  const [newAccountBalance, setNewAccountBalance] = useState("");
+
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryType, setNewCategoryType] = useState<"expense" | "income">("expense");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("📦");
+
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+
+  const createAccount = useCreateAccount();
+  const deleteAccount = useDeleteAccount();
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -81,13 +81,43 @@ export function Settings() {
     document.documentElement.classList.toggle("dark", newIsDark);
   };
 
+  const handleCreateAccount = async () => {
+    await createAccount.mutateAsync({
+      name: newAccountName,
+      type: newAccountType as any,
+      bank_id: newAccountBankId || null,
+      balance: parseFloat(newAccountBalance) || 0,
+    });
+    setShowAddAccountDialog(false);
+    setNewAccountName("");
+    setNewAccountType("CHECKING");
+    setNewAccountBankId("");
+    setNewAccountBalance("");
+  };
+
+  const handleCreateCategory = async () => {
+    await createCategory.mutateAsync({
+      name: newCategoryName,
+      type: newCategoryType,
+      icon: newCategoryIcon,
+    });
+    setShowAddCategoryDialog(false);
+    setNewCategoryName("");
+    setNewCategoryType("expense");
+    setNewCategoryIcon("📦");
+  };
+
   const sections = [
-    { id: "accounts" as const, label: "Contas", icon: Wallet, count: mockAccounts.length },
-    { id: "categories" as const, label: "Categorias", icon: Tag, count: mockCategories.length },
-    { id: "people" as const, label: "Pessoas", icon: Users, count: mockPeople.length },
+    { id: "accounts" as const, label: "Contas", icon: Wallet, count: accounts.length },
+    { id: "categories" as const, label: "Categorias", icon: Tag, count: categories.length },
+    { id: "people" as const, label: "Pessoas", icon: Users, count: members.length },
     { id: "appearance" as const, label: "Aparência", icon: Palette },
     { id: "notifications" as const, label: "Notificações", icon: Bell },
   ];
+
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -145,39 +175,39 @@ export function Settings() {
                   Nova
                 </Button>
               </div>
-              <div className="space-y-2">
-                {mockAccounts.map((account) => {
-                  const bankConfig = getBankByName(account.name);
-                  
-                  return (
+              {accountsLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : accounts.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                  <Wallet className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="font-medium">Nenhuma conta cadastrada</p>
+                  <p className="text-sm text-muted-foreground">Adicione sua primeira conta</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {accounts.map((account) => (
                     <div
                       key={account.id}
                       className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                                 hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
+                                 hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
                     >
                       <div className="flex items-center gap-4">
-                        <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden
-                                     transition-transform duration-200 group-hover:scale-110"
-                          style={{ backgroundColor: account.type === "cash" ? "hsl(var(--muted))" : bankConfig.color }}
-                        >
-                          {account.type === "cash" ? (
-                            <Wallet className="h-5 w-5 text-muted-foreground" />
-                          ) : bankConfig.logoUrl ? (
-                            <img 
-                              src={bankConfig.logoUrl} 
-                              alt={bankConfig.name} 
-                              className="w-6 h-6 object-contain"
-                            />
-                          ) : (
-                            <Building2 className="h-5 w-5 text-white" />
-                          )}
-                        </div>
+                        <BankIcon 
+                          bankId={account.bank_id} 
+                          size="md"
+                          className="transition-transform duration-200 group-hover:scale-110" 
+                        />
                         <div>
                           <p className="font-medium">{account.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {account.type === "checking" ? "Conta Corrente" : 
-                             account.type === "savings" ? "Poupança" : "Dinheiro"}
+                            {account.type === "CHECKING" ? "Conta Corrente" : 
+                             account.type === "SAVINGS" ? "Poupança" :
+                             account.type === "CREDIT_CARD" ? "Cartão de Crédito" :
+                             account.type === "INVESTMENT" ? "Investimento" : "Dinheiro"}
                           </p>
                         </div>
                       </div>
@@ -186,15 +216,16 @@ export function Settings() {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                          onClick={() => deleteAccount.mutate(account.id)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -214,56 +245,66 @@ export function Settings() {
                   Nova
                 </Button>
               </div>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Despesas</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {mockCategories.filter(c => c.type === "expense").map((cat) => (
-                      <div
-                        key={cat.id}
-                        className="group flex items-center justify-between p-3 rounded-xl border border-border 
-                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
-                          <span className="font-medium">{cat.name}</span>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              {categoriesLoading ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="h-12 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Despesas</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {categories.filter(c => c.type === "expense").map((cat) => (
+                        <div
+                          key={cat.id}
+                          className="group flex items-center justify-between p-3 rounded-xl border border-border 
+                                     hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
                         >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
+                            <span className="font-medium">{cat.name}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                            onClick={() => deleteCategory.mutate(cat.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Receitas</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {categories.filter(c => c.type === "income").map((cat) => (
+                        <div
+                          key={cat.id}
+                          className="group flex items-center justify-between p-3 rounded-xl border border-border 
+                                     hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
+                            <span className="font-medium">{cat.name}</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
+                            onClick={() => deleteCategory.mutate(cat.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Receitas</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {mockCategories.filter(c => c.type === "income").map((cat) => (
-                      <div
-                        key={cat.id}
-                        className="group flex items-center justify-between p-3 rounded-xl border border-border 
-                                   hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl transition-transform group-hover:scale-125">{cat.icon}</span>
-                          <span className="font-medium">{cat.name}</span>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -275,50 +316,48 @@ export function Settings() {
                   <h2 className="font-display font-semibold text-lg">Pessoas</h2>
                   <p className="text-sm text-muted-foreground">Membros para dividir despesas</p>
                 </div>
-                <Button 
-                  onClick={() => setShowAddPersonDialog(true)}
-                  className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
-                  Adicionar
-                </Button>
               </div>
-              <div className="space-y-2">
-                {mockPeople.map((person) => (
-                  <div
-                    key={person.id}
-                    className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                               hover:border-foreground/20 transition-all duration-200 hover:shadow-sm cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
-                                      text-background flex items-center justify-center font-medium
-                                      transition-transform duration-200 group-hover:scale-110">
-                        {person.name.substring(0, 2).toUpperCase()}
+              {membersLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : members.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="font-medium">Nenhum membro</p>
+                  <p className="text-sm text-muted-foreground">Adicione membros na página Família</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {members.map((person) => (
+                    <div
+                      key={person.id}
+                      className="group flex items-center justify-between p-4 rounded-xl border border-border 
+                                 hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
+                                        text-background flex items-center justify-center font-medium
+                                        transition-transform duration-200 group-hover:scale-110">
+                          {getInitials(person.name)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{person.name}</p>
+                          <p className="text-sm text-muted-foreground">{person.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{person.name}</p>
-                        <p className="text-sm text-muted-foreground">{person.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
                       <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full transition-all",
+                        "text-xs px-2 py-0.5 rounded-full",
                         person.role === "admin" ? "bg-foreground text-background" : "bg-muted"
                       )}>
-                        {person.role === "admin" ? "Admin" : "Membro"}
+                        {person.role === "admin" ? "Admin" : person.role === "editor" ? "Editor" : "Visualizador"}
                       </span>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -379,7 +418,7 @@ export function Settings() {
         </div>
       </div>
 
-      {/* Dialogs */}
+      {/* Add Account Dialog */}
       <Dialog open={showAddAccountDialog} onOpenChange={setShowAddAccountDialog}>
         <DialogContent>
           <DialogHeader>
@@ -388,71 +427,86 @@ export function Settings() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Banco</Label>
-              <Select>
+              <Label>Nome</Label>
+              <Input 
+                placeholder="Ex: Conta Principal"
+                value={newAccountName}
+                onChange={(e) => setNewAccountName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select value={newAccountType} onValueChange={setNewAccountType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CHECKING">Conta Corrente</SelectItem>
+                  <SelectItem value="SAVINGS">Poupança</SelectItem>
+                  <SelectItem value="INVESTMENT">Investimento</SelectItem>
+                  <SelectItem value="CASH">Dinheiro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Banco (opcional)</Label>
+              <Select value={newAccountBankId} onValueChange={setNewAccountBankId}>
                 <SelectTrigger><SelectValue placeholder="Selecione o banco" /></SelectTrigger>
                 <SelectContent>
                   {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
                     <SelectItem key={bank.id} value={bank.id}>
                       <div className="flex items-center gap-2">
                         <div 
-                          className="w-5 h-5 rounded flex items-center justify-center"
-                          style={{ backgroundColor: bank.color }}
+                          className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
+                          style={{ backgroundColor: bank.color, color: bank.textColor }}
                         >
-                          {bank.logoUrl && (
-                            <img src={bank.logoUrl} alt={bank.name} className="w-4 h-4 object-contain" />
-                          )}
+                          {bank.icon}
                         </div>
                         {bank.name}
                       </div>
                     </SelectItem>
                   ))}
-                  <SelectItem value="cash">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="w-5 h-5 text-muted-foreground" />
-                      Dinheiro / Carteira
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select defaultValue="checking">
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="checking">Conta Corrente</SelectItem>
-                  <SelectItem value="savings">Poupança</SelectItem>
-                  <SelectItem value="cash">Dinheiro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Saldo Inicial</Label>
-              <Input placeholder="R$ 0,00" />
+              <Label>Saldo inicial</Label>
+              <Input 
+                placeholder="0"
+                value={newAccountBalance}
+                onChange={(e) => setNewAccountBalance(e.target.value.replace(/[^\d.-]/g, ""))}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddAccountDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowAddAccountDialog(false)}>Adicionar</Button>
+            <Button 
+              onClick={handleCreateAccount}
+              disabled={createAccount.isPending || !newAccountName}
+            >
+              {createAccount.isPending ? "Adicionando..." : "Adicionar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Add Category Dialog */}
       <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Categoria</DialogTitle>
-            <DialogDescription>Crie uma categoria</DialogDescription>
+            <DialogDescription>Crie uma categoria para suas transações</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input placeholder="Ex: Academia" />
+              <Input 
+                placeholder="Ex: Alimentação"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
-              <Select defaultValue="expense">
+              <Select value={newCategoryType} onValueChange={setNewCategoryType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">Despesa</SelectItem>
@@ -460,33 +514,24 @@ export function Settings() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>Ícone (emoji)</Label>
+              <Input 
+                placeholder="📦"
+                value={newCategoryIcon}
+                onChange={(e) => setNewCategoryIcon(e.target.value)}
+                maxLength={2}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowAddCategoryDialog(false)}>Criar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showAddPersonDialog} onOpenChange={setShowAddPersonDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adicionar Pessoa</DialogTitle>
-            <DialogDescription>Adicione um membro</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input placeholder="Ex: Maria" />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" placeholder="email@exemplo.com" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddPersonDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowAddPersonDialog(false)}>Adicionar</Button>
+            <Button 
+              onClick={handleCreateCategory}
+              disabled={createCategory.isPending || !newCategoryName}
+            >
+              {createCategory.isPending ? "Adicionando..." : "Adicionar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

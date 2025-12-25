@@ -320,11 +320,14 @@ export type Database = {
           id: string
           is_installment: boolean
           is_recurring: boolean
+          is_settled: boolean
           is_shared: boolean
           notes: string | null
           payer_id: string | null
           recurrence_pattern: string | null
+          related_member_id: string | null
           series_id: string | null
+          settled_at: string | null
           source_transaction_id: string | null
           sync_status: Database["public"]["Enums"]["sync_status"]
           total_installments: number | null
@@ -347,11 +350,14 @@ export type Database = {
           id?: string
           is_installment?: boolean
           is_recurring?: boolean
+          is_settled?: boolean
           is_shared?: boolean
           notes?: string | null
           payer_id?: string | null
           recurrence_pattern?: string | null
+          related_member_id?: string | null
           series_id?: string | null
+          settled_at?: string | null
           source_transaction_id?: string | null
           sync_status?: Database["public"]["Enums"]["sync_status"]
           total_installments?: number | null
@@ -374,11 +380,14 @@ export type Database = {
           id?: string
           is_installment?: boolean
           is_recurring?: boolean
+          is_settled?: boolean
           is_shared?: boolean
           notes?: string | null
           payer_id?: string | null
           recurrence_pattern?: string | null
+          related_member_id?: string | null
           series_id?: string | null
+          settled_at?: string | null
           source_transaction_id?: string | null
           sync_status?: Database["public"]["Enums"]["sync_status"]
           total_installments?: number | null
@@ -412,6 +421,13 @@ export type Database = {
           {
             foreignKeyName: "transactions_payer_id_fkey"
             columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_related_member_id_fkey"
+            columns: ["related_member_id"]
             isOneToOne: false
             referencedRelation: "family_members"
             referencedColumns: ["id"]

@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import {
   Users,
-  Plus,
   Crown,
   Mail,
   MoreHorizontal,
@@ -36,54 +35,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { 
+  useFamily, 
+  useFamilyMembers, 
+  useInviteFamilyMember, 
+  useUpdateFamilyMember,
+  useRemoveFamilyMember,
+  FamilyRole 
+} from "@/hooks/useFamily";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface FamilyMember {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "editor" | "viewer";
-  avatar?: string;
-  status: "active" | "pending";
-  joinedAt: Date;
-}
-
-// Mock data
-const mockMembers: FamilyMember[] = [
-  {
-    id: "1",
-    name: "Você",
-    email: "eu@email.com",
-    role: "admin",
-    status: "active",
-    joinedAt: new Date(2024, 0, 1),
-  },
-  {
-    id: "2",
-    name: "Ana Silva",
-    email: "ana@email.com",
-    role: "editor",
-    status: "active",
-    joinedAt: new Date(2024, 3, 15),
-  },
-  {
-    id: "3",
-    name: "Carlos Santos",
-    email: "carlos@email.com",
-    role: "viewer",
-    status: "active",
-    joinedAt: new Date(2024, 6, 20),
-  },
-  {
-    id: "4",
-    name: "Maria Oliveira",
-    email: "maria@email.com",
-    role: "editor",
-    status: "pending",
-    joinedAt: new Date(2024, 11, 1),
-  },
-];
-
-const roleLabels: Record<string, { label: string; description: string }> = {
+const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
   admin: {
     label: "Administrador",
     description: "Acesso total, pode gerenciar membros",
@@ -99,10 +61,20 @@ const roleLabels: Record<string, { label: string; description: string }> = {
 };
 
 export function Family() {
-  const [members] = useState<FamilyMember[]>(mockMembers);
+  const { user } = useAuth();
+  const { data: family, isLoading: familyLoading } = useFamily();
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const inviteMember = useInviteFamilyMember();
+  const updateMember = useUpdateFamilyMember();
+  const removeMember = useRemoveFamilyMember();
+
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor");
+  const [inviteRole, setInviteRole] = useState<FamilyRole>("editor");
+
+  const isLoading = familyLoading || membersLoading;
+  const isOwner = family?.owner_id === user?.id;
 
   const activeMembers = members.filter((m) => m.status === "active");
   const pendingMembers = members.filter((m) => m.status === "pending");
@@ -116,7 +88,7 @@ export function Family() {
       .slice(0, 2);
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = (role: FamilyRole) => {
     switch (role) {
       case "admin":
         return "bg-foreground text-background";
@@ -127,26 +99,62 @@ export function Family() {
     }
   };
 
+  const handleInvite = async () => {
+    await inviteMember.mutateAsync({
+      name: inviteName,
+      email: inviteEmail,
+      role: inviteRole,
+    });
+    setShowInviteDialog(false);
+    setInviteName("");
+    setInviteEmail("");
+    setInviteRole("editor");
+  };
+
+  const handleUpdateRole = async (memberId: string, role: FamilyRole) => {
+    await updateMember.mutateAsync({ id: memberId, role });
+  };
+
+  const handleRemove = async (memberId: string) => {
+    await removeMember.mutateAsync(memberId);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="h-12 w-48 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-20 bg-muted rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl tracking-tight">
-            Família
+            {family?.name || "Família"}
           </h1>
           <p className="text-muted-foreground mt-1">
             Gerencie quem tem acesso às suas finanças
           </p>
         </div>
-        <Button
-          size="lg"
-          onClick={() => setShowInviteDialog(true)}
-          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <UserPlus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
-          Convidar
-        </Button>
+        {isOwner && (
+          <Button
+            size="lg"
+            onClick={() => setShowInviteDialog(true)}
+            className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <UserPlus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+            Convidar
+          </Button>
+        )}
       </div>
 
       {/* Summary */}
@@ -174,72 +182,98 @@ export function Family() {
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           Membros ({activeMembers.length})
         </h2>
-        <div className="space-y-2">
-          {activeMembers.map((member) => (
-            <div
-              key={member.id}
-              className="group p-4 rounded-xl border border-border hover:border-foreground/20 
-                         transition-all duration-200 hover:shadow-sm cursor-default"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
-                               text-background flex items-center justify-center font-medium text-sm
-                               transition-transform group-hover:scale-105"
-                  >
-                    {getInitials(member.name)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-display font-semibold">
-                        {member.name}
-                      </p>
-                      {member.role === "admin" && (
-                        <Crown className="h-4 w-4 text-warning" />
+        {activeMembers.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+            <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="font-medium">Nenhum membro ativo</p>
+            <p className="text-sm text-muted-foreground">Convide pessoas para compartilhar</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {activeMembers.map((member) => {
+              const isSelf = member.user_id === user?.id;
+              const memberIsOwner = family?.owner_id === member.user_id;
+              
+              return (
+                <div
+                  key={member.id}
+                  className="group p-4 rounded-xl border border-border hover:border-foreground/20 
+                             transition-all duration-200 hover:shadow-sm cursor-default"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
+                                   text-background flex items-center justify-center font-medium text-sm
+                                   transition-transform group-hover:scale-105"
+                      >
+                        {getInitials(member.name)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-display font-semibold">
+                            {member.name} {isSelf && "(você)"}
+                          </p>
+                          {memberIsOwner && (
+                            <Crown className="h-4 w-4 text-warning" />
+                          )}
+                        </div>
+                        {member.email && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {member.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={cn(
+                          "text-xs px-3 py-1 rounded-full font-medium transition-all",
+                          getRoleColor(member.role)
+                        )}
+                      >
+                        {roleLabels[member.role].label}
+                      </span>
+                      {isOwner && !memberIsOwner && !isSelf && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleUpdateRole(member.id, "admin")}>
+                              Tornar Admin
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateRole(member.id, "editor")}>
+                              Tornar Editor
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateRole(member.id, "viewer")}>
+                              Tornar Visualizador
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleRemove(member.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remover
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Mail className="h-3 w-3" />
-                      {member.email}
-                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={cn(
-                      "text-xs px-3 py-1 rounded-full font-medium transition-all",
-                      getRoleColor(member.role)
-                    )}
-                  >
-                    {roleLabels[member.role].label}
-                  </span>
-                  {member.role !== "admin" && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Alterar permissão</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Pending Invites */}
@@ -267,23 +301,28 @@ export function Family() {
                       <p className="font-display font-semibold text-muted-foreground">
                         {member.name}
                       </p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {member.email}
-                      </p>
+                      {member.email && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-warning px-2 py-1 rounded-full bg-warning/10">
                       Aguardando aceite
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleRemove(member.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -303,7 +342,7 @@ export function Family() {
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                  getRoleColor(key)
+                  getRoleColor(key as FamilyRole)
                 )}
               >
                 {key === "admin" ? (
@@ -334,6 +373,14 @@ export function Family() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                placeholder="Nome do membro"
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Email</Label>
               <Input
                 type="email"
@@ -346,12 +393,20 @@ export function Family() {
               <Label>Permissão</Label>
               <Select
                 value={inviteRole}
-                onValueChange={(v) => setInviteRole(v as "editor" | "viewer")}
+                onValueChange={(v) => setInviteRole(v as FamilyRole)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="admin">
+                    <div className="flex flex-col items-start">
+                      <span>Administrador</span>
+                      <span className="text-xs text-muted-foreground">
+                        Acesso total
+                      </span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="editor">
                     <div className="flex flex-col items-start">
                       <span>Editor</span>
@@ -380,11 +435,11 @@ export function Family() {
               Cancelar
             </Button>
             <Button
-              onClick={() => setShowInviteDialog(false)}
-              disabled={!inviteEmail}
+              onClick={handleInvite}
+              disabled={!inviteName || !inviteEmail || inviteMember.isPending}
             >
               <Mail className="h-4 w-4 mr-2" />
-              Enviar convite
+              {inviteMember.isPending ? "Enviando..." : "Enviar convite"}
             </Button>
           </DialogFooter>
         </DialogContent>

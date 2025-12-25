@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -18,88 +20,152 @@ import {
   Users,
   ArrowLeft,
   ChevronRight,
+  DollarSign,
+  ListChecks,
+  Route,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Mock data
-const mockPeople = [
-  { id: "eu", name: "Eu", initials: "EU" },
-  { id: "ana", name: "Ana", initials: "AN" },
-  { id: "carlos", name: "Carlos", initials: "CA" },
-];
-
-const mockTrips = [
-  {
-    id: "1",
-    name: "Férias em Floripa",
-    destination: "Florianópolis, SC",
-    startDate: new Date(2025, 11, 20),
-    endDate: new Date(2025, 11, 27),
-    participants: ["eu", "ana", "carlos"],
-    totalExpenses: 4850.00,
-    status: "active",
-    expenses: [
-      { id: "e1", description: "Hospedagem Airbnb", value: 2100, paidBy: "eu", date: new Date(2025, 11, 20) },
-      { id: "e2", description: "Restaurante Ostradamus", value: 450, paidBy: "ana", date: new Date(2025, 11, 21) },
-      { id: "e3", description: "Passeio de barco", value: 600, paidBy: "carlos", date: new Date(2025, 11, 22) },
-      { id: "e4", description: "Supermercado", value: 320, paidBy: "eu", date: new Date(2025, 11, 23) },
-    ],
-  },
-  {
-    id: "2",
-    name: "Final de Semana em Campos",
-    destination: "Campos do Jordão, SP",
-    startDate: new Date(2025, 10, 15),
-    endDate: new Date(2025, 10, 17),
-    participants: ["eu", "ana"],
-    totalExpenses: 1580.00,
-    status: "completed",
-    expenses: [],
-  },
-];
+import { 
+  useTrips, 
+  useTrip, 
+  useTripParticipants, 
+  useTripTransactions,
+  useCreateTrip,
+  useUpdateTrip,
+  useDeleteTrip,
+  useAddTripParticipant,
+  useRemoveTripParticipant,
+} from "@/hooks/useTrips";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type TripView = "list" | "detail";
+type TripTab = "expenses" | "itinerary" | "checklist";
 
 export function Trips() {
   const [view, setView] = useState<TripView>("list");
-  const [selectedTrip, setSelectedTrip] = useState<typeof mockTrips[0] | null>(null);
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TripTab>("expenses");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
+  const [showAddParticipantDialog, setShowAddParticipantDialog] = useState(false);
+  
+  // Form state
+  const [tripName, setTripName] = useState("");
+  const [tripDestination, setTripDestination] = useState("");
+  const [tripStartDate, setTripStartDate] = useState("");
+  const [tripEndDate, setTripEndDate] = useState("");
+  const [tripBudget, setTripBudget] = useState("");
+
+  const { data: trips = [], isLoading } = useTrips();
+  const { data: selectedTrip } = useTrip(selectedTripId);
+  const { data: participants = [] } = useTripParticipants(selectedTripId);
+  const { data: tripTransactions = [] } = useTripTransactions(selectedTripId);
+  const { data: familyMembers = [] } = useFamilyMembers();
+  
+  const createTrip = useCreateTrip();
+  const updateTrip = useUpdateTrip();
+  const deleteTrip = useDeleteTrip();
+  const addParticipant = useAddTripParticipant();
+  const removeParticipant = useRemoveTripParticipant();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
 
-  const getPersonById = (id: string) => mockPeople.find((p) => p.id === id);
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
-  const openTripDetail = (trip: typeof mockTrips[0]) => {
-    setSelectedTrip(trip);
+  const openTripDetail = (tripId: string) => {
+    setSelectedTripId(tripId);
     setView("detail");
+    setActiveTab("expenses");
   };
 
   const goBack = () => {
     setView("list");
-    setSelectedTrip(null);
+    setSelectedTripId(null);
   };
 
-  const calculateBalances = (trip: typeof mockTrips[0]) => {
-    const perPerson = trip.totalExpenses / trip.participants.length;
+  const handleCreateTrip = async () => {
+    await createTrip.mutateAsync({
+      name: tripName,
+      destination: tripDestination || null,
+      start_date: tripStartDate,
+      end_date: tripEndDate,
+      budget: tripBudget ? parseFloat(tripBudget) : null,
+    });
+    setShowNewTripDialog(false);
+    setTripName("");
+    setTripDestination("");
+    setTripStartDate("");
+    setTripEndDate("");
+    setTripBudget("");
+  };
+
+  const handleAddParticipant = async (memberId: string, name: string) => {
+    if (!selectedTripId) return;
+    await addParticipant.mutateAsync({
+      tripId: selectedTripId,
+      memberId: memberId,
+      name,
+    });
+  };
+
+  const calculateBalances = () => {
+    if (!participants.length) return [];
+    
+    const totalExpenses = tripTransactions.reduce((sum, t) => 
+      t.type === "EXPENSE" ? sum + t.amount : sum, 0
+    );
+    const perPerson = totalExpenses / participants.length;
+    
     const paid: Record<string, number> = {};
-    trip.participants.forEach((p) => { paid[p] = 0; });
-    trip.expenses.forEach((e) => { paid[e.paidBy] = (paid[e.paidBy] || 0) + e.value; });
-    return trip.participants.map((p) => ({
-      personId: p,
-      paid: paid[p] || 0,
+    participants.forEach((p) => { paid[p.id] = 0; });
+    
+    tripTransactions.forEach((t) => {
+      if (t.type === "EXPENSE" && t.payer_id) {
+        const participant = participants.find(p => p.user_id === t.payer_id || p.member_id === t.payer_id);
+        if (participant) {
+          paid[participant.id] = (paid[participant.id] || 0) + t.amount;
+        }
+      }
+    });
+
+    return participants.map((p) => ({
+      participantId: p.id,
+      name: p.name,
+      paid: paid[p.id] || 0,
       owes: perPerson,
-      balance: (paid[p] || 0) - perPerson,
+      balance: (paid[p.id] || 0) - perPerson,
     }));
   };
 
-  // Detail View
-  if (view === "detail" && selectedTrip) {
-    const balances = calculateBalances(selectedTrip);
-
+  // Loading state
+  if (isLoading) {
     return (
       <div className="space-y-8 animate-fade-in">
+        <div className="h-12 w-48 bg-muted rounded animate-pulse" />
+        <div className="space-y-3">
+          {[1, 2].map(i => (
+            <div key={i} className="h-32 bg-muted rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Detail View
+  if (view === "detail" && selectedTrip) {
+    const balances = calculateBalances();
+    const totalExpenses = tripTransactions.reduce((sum, t) => 
+      t.type === "EXPENSE" ? sum + t.amount : sum, 0
+    );
+
+    return (
+      <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={goBack} className="rounded-full">
@@ -110,102 +176,266 @@ export function Trips() {
               <h1 className="font-display font-bold text-2xl tracking-tight">{selectedTrip.name}</h1>
               <span className={cn(
                 "text-xs px-2 py-0.5 rounded-full",
-                selectedTrip.status === "active" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                selectedTrip.status === "ACTIVE" || selectedTrip.status === "PLANNING" 
+                  ? "bg-foreground text-background" 
+                  : "bg-muted text-muted-foreground"
               )}>
-                {selectedTrip.status === "active" ? "Em andamento" : "Finalizada"}
+                {selectedTrip.status === "PLANNING" ? "Planejando" :
+                 selectedTrip.status === "ACTIVE" ? "Em andamento" :
+                 selectedTrip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
               </span>
             </div>
-            <p className="text-muted-foreground flex items-center gap-1 mt-1">
-              <MapPin className="h-4 w-4" />
-              {selectedTrip.destination}
-            </p>
+            {selectedTrip.destination && (
+              <p className="text-muted-foreground flex items-center gap-1 mt-1">
+                <MapPin className="h-4 w-4" />
+                {selectedTrip.destination}
+              </p>
+            )}
           </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Despesa
-          </Button>
         </div>
 
         {/* Summary */}
         <div className="flex items-center gap-8 py-4 border-y border-border">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Total</p>
-            <p className="font-mono text-2xl font-bold">{formatCurrency(selectedTrip.totalExpenses)}</p>
+            <p className="font-mono text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por pessoa</p>
-            <p className="font-mono text-lg font-medium">
-              {formatCurrency(selectedTrip.totalExpenses / selectedTrip.participants.length)}
-            </p>
-          </div>
+          {participants.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por pessoa</p>
+              <p className="font-mono text-lg font-medium">
+                {formatCurrency(totalExpenses / participants.length)}
+              </p>
+            </div>
+          )}
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Período</p>
             <p className="text-sm">
-              {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(selectedTrip.startDate)}
+              {format(new Date(selectedTrip.start_date), "dd MMM", { locale: ptBR })}
               {" - "}
-              {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(selectedTrip.endDate)}
+              {format(new Date(selectedTrip.end_date), "dd MMM", { locale: ptBR })}
             </p>
+          </div>
+          {selectedTrip.budget && (
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Orçamento</p>
+              <p className="font-mono text-sm">{formatCurrency(selectedTrip.budget)}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TripTab)}>
+          <TabsList className="w-full">
+            <TabsTrigger value="expenses" className="flex-1 gap-2">
+              <DollarSign className="h-4 w-4" />
+              Gastos
+            </TabsTrigger>
+            <TabsTrigger value="itinerary" className="flex-1 gap-2">
+              <Route className="h-4 w-4" />
+              Roteiro
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="flex-1 gap-2">
+              <ListChecks className="h-4 w-4" />
+              Checklist
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Expenses Tab */}
+          <TabsContent value="expenses" className="space-y-6 mt-6">
+            {/* Participants & Balances */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                  Participantes ({participants.length})
+                </h2>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowAddParticipantDialog(true)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Adicionar
+                </Button>
+              </div>
+              {balances.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {balances.map((balance) => (
+                    <div key={balance.participantId} className="p-4 rounded-xl border border-border">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                          {getInitials(balance.name)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{balance.name}</p>
+                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-border flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Saldo</span>
+                        <span className={cn(
+                          "font-mono font-semibold",
+                          balance.balance >= 0 ? "text-positive" : "text-negative"
+                        )}>
+                          {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center border border-dashed border-border rounded-xl">
+                  <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Nenhum participante</p>
+                </div>
+              )}
+            </section>
+
+            {/* Expenses List */}
+            <section className="space-y-4">
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                Despesas ({tripTransactions.filter(t => t.type === "EXPENSE").length})
+              </h2>
+              {tripTransactions.filter(t => t.type === "EXPENSE").length > 0 ? (
+                <div className="space-y-2">
+                  {tripTransactions.filter(t => t.type === "EXPENSE").map((expense) => {
+                    const payer = participants.find(p => 
+                      p.user_id === expense.payer_id || p.member_id === expense.payer_id
+                    );
+                    return (
+                      <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                            {payer ? getInitials(payer.name) : "?"}
+                          </div>
+                          <div>
+                            <p className="font-medium">{expense.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {payer?.name || "Desconhecido"} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono font-medium">{formatCurrency(expense.amount)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-8 text-center border border-dashed border-border rounded-xl">
+                  <DollarSign className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Nenhuma despesa registrada</p>
+                </div>
+              )}
+            </section>
+          </TabsContent>
+
+          {/* Itinerary Tab */}
+          <TabsContent value="itinerary" className="space-y-6 mt-6">
+            <div className="py-12 text-center border border-dashed border-border rounded-xl">
+              <Route className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-display font-semibold text-lg mb-2">Roteiro da viagem</h3>
+              <p className="text-muted-foreground mb-6">Adicione atividades e passeios</p>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar atividade
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Checklist Tab */}
+          <TabsContent value="checklist" className="space-y-6 mt-6">
+            <div className="py-12 text-center border border-dashed border-border rounded-xl">
+              <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-display font-semibold text-lg mb-2">Checklist</h3>
+              <p className="text-muted-foreground mb-6">Organize o que levar na viagem</p>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar item
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Add Participant Dialog */}
+        <Dialog open={showAddParticipantDialog} onOpenChange={setShowAddParticipantDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Adicionar Participante</DialogTitle>
+              <DialogDescription>Selecione um membro da família</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-2">
+              {familyMembers.map((member) => {
+                const isAdded = participants.some(p => p.member_id === member.id);
+                return (
+                  <div
+                    key={member.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border transition-colors",
+                      isAdded 
+                        ? "border-foreground/20 bg-muted/50 opacity-50" 
+                        : "border-border hover:border-foreground/20 cursor-pointer"
+                    )}
+                    onClick={() => !isAdded && handleAddParticipant(member.id, member.name)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                        {getInitials(member.name)}
+                      </div>
+                      <span className="font-medium">{member.name}</span>
+                    </div>
+                    {isAdded && <span className="text-xs text-muted-foreground">Adicionado</span>}
+                  </div>
+                );
+              })}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddParticipantDialog(false)}>
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Empty State
+  if (trips.length === 0) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display font-bold text-3xl tracking-tight">Viagens</h1>
+            <p className="text-muted-foreground mt-1">Organize despesas de viagem</p>
           </div>
         </div>
 
-        {/* Balances */}
-        <section className="space-y-4">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Saldo por pessoa</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {balances.map((balance) => {
-              const person = getPersonById(balance.personId);
-              if (!person) return null;
-              return (
-                <div key={balance.personId} className="p-4 rounded-xl border border-border">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
-                      {person.initials}
-                    </div>
-                    <div>
-                      <p className="font-medium">{person.name}</p>
-                      <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
-                    </div>
-                  </div>
-                  <div className="pt-3 border-t border-border flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Saldo</span>
-                    <span className={cn(
-                      "font-mono font-semibold",
-                      balance.balance >= 0 ? "text-positive" : "text-negative"
-                    )}>
-                      {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        <div className="py-16 text-center border border-dashed border-border rounded-xl">
+          <Plane className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem cadastrada</h3>
+          <p className="text-muted-foreground mb-6">Crie sua primeira viagem para organizar gastos</p>
+          <Button onClick={() => setShowNewTripDialog(true)}>
+            <Plus className="h-5 w-5 mr-2" />
+            Nova viagem
+          </Button>
+        </div>
 
-        {/* Expenses */}
-        <section className="space-y-4">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Despesas</h2>
-          <div className="space-y-2">
-            {selectedTrip.expenses.map((expense) => {
-              const paidBy = getPersonById(expense.paidBy);
-              return (
-                <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                      {paidBy?.initials}
-                    </div>
-                    <div>
-                      <p className="font-medium">{expense.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {paidBy?.name} · {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-mono font-medium">{formatCurrency(expense.value)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        <NewTripDialog
+          open={showNewTripDialog}
+          onOpenChange={setShowNewTripDialog}
+          onSubmit={handleCreateTrip}
+          isLoading={createTrip.isPending}
+          name={tripName}
+          setName={setTripName}
+          destination={tripDestination}
+          setDestination={setTripDestination}
+          startDate={tripStartDate}
+          setStartDate={setTripStartDate}
+          endDate={tripEndDate}
+          setEndDate={setTripEndDate}
+          budget={tripBudget}
+          setBudget={setTripBudget}
+        />
       </div>
     );
   }
@@ -227,10 +457,10 @@ export function Trips() {
 
       {/* Trips List */}
       <div className="space-y-3">
-        {mockTrips.map((trip) => (
+        {trips.map((trip) => (
           <div
             key={trip.id}
-            onClick={() => openTripDetail(trip)}
+            onClick={() => openTripDetail(trip.id)}
             className="group p-5 rounded-xl border border-border hover:border-foreground/20 transition-all cursor-pointer"
           >
             <div className="flex items-start justify-between">
@@ -240,45 +470,37 @@ export function Trips() {
                   <h3 className="font-display font-semibold text-lg">{trip.name}</h3>
                   <span className={cn(
                     "text-xs px-2 py-0.5 rounded-full",
-                    trip.status === "active" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                    trip.status === "ACTIVE" || trip.status === "PLANNING" 
+                      ? "bg-foreground text-background" 
+                      : "bg-muted text-muted-foreground"
                   )}>
-                    {trip.status === "active" ? "Em andamento" : "Finalizada"}
+                    {trip.status === "PLANNING" ? "Planejando" :
+                     trip.status === "ACTIVE" ? "Em andamento" :
+                     trip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {trip.destination}
-                </p>
+                {trip.destination && (
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {trip.destination}
+                  </p>
+                )}
                 <div className="flex items-center gap-4 mt-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(trip.startDate)}
+                    {format(new Date(trip.start_date), "dd MMM", { locale: ptBR })}
                     {" - "}
-                    {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(trip.endDate)}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex -space-x-1">
-                      {trip.participants.map((personId) => {
-                        const person = getPersonById(personId);
-                        return (
-                          <div
-                            key={personId}
-                            className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[10px] font-medium"
-                          >
-                            {person?.initials}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {format(new Date(trip.end_date), "dd MMM", { locale: ptBR })}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="font-mono font-semibold">{formatCurrency(trip.totalExpenses)}</p>
-                  <p className="text-xs text-muted-foreground">Total</p>
-                </div>
+                {trip.budget && (
+                  <div className="text-right">
+                    <p className="font-mono font-semibold">{formatCurrency(trip.budget)}</p>
+                    <p className="text-xs text-muted-foreground">Orçamento</p>
+                  </div>
+                )}
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </div>
             </div>
@@ -286,39 +508,121 @@ export function Trips() {
         ))}
       </div>
 
-      {/* New Trip Dialog */}
-      <Dialog open={showNewTripDialog} onOpenChange={setShowNewTripDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Viagem</DialogTitle>
-            <DialogDescription>Crie uma viagem para organizar despesas</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+      <NewTripDialog
+        open={showNewTripDialog}
+        onOpenChange={setShowNewTripDialog}
+        onSubmit={handleCreateTrip}
+        isLoading={createTrip.isPending}
+        name={tripName}
+        setName={setTripName}
+        destination={tripDestination}
+        setDestination={setTripDestination}
+        startDate={tripStartDate}
+        setStartDate={setTripStartDate}
+        endDate={tripEndDate}
+        setEndDate={setTripEndDate}
+        budget={tripBudget}
+        setBudget={setTripBudget}
+      />
+    </div>
+  );
+}
+
+// New Trip Dialog Component
+interface NewTripDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: () => void;
+  isLoading: boolean;
+  name: string;
+  setName: (v: string) => void;
+  destination: string;
+  setDestination: (v: string) => void;
+  startDate: string;
+  setStartDate: (v: string) => void;
+  endDate: string;
+  setEndDate: (v: string) => void;
+  budget: string;
+  setBudget: (v: string) => void;
+}
+
+function NewTripDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+  name,
+  setName,
+  destination,
+  setDestination,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  budget,
+  setBudget,
+}: NewTripDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nova Viagem</DialogTitle>
+          <DialogDescription>Crie uma viagem para organizar despesas</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input 
+              placeholder="Ex: Férias de Verão" 
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Destino</Label>
+            <Input 
+              placeholder="Ex: Rio de Janeiro, RJ" 
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input placeholder="Ex: Férias de Verão" />
+              <Label>Início</Label>
+              <Input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Destino</Label>
-              <Input placeholder="Ex: Rio de Janeiro, RJ" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Início</Label>
-                <Input type="date" />
-              </div>
-              <div className="space-y-2">
-                <Label>Fim</Label>
-                <Input type="date" />
-              </div>
+              <Label>Fim</Label>
+              <Input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewTripDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowNewTripDialog(false)}>Criar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="space-y-2">
+            <Label>Orçamento (opcional)</Label>
+            <Input 
+              placeholder="5000" 
+              value={budget}
+              onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button 
+            onClick={onSubmit} 
+            disabled={isLoading || !name || !startDate || !endDate}
+          >
+            {isLoading ? "Criando..." : "Criar"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
