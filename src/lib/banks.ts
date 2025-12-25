@@ -1,190 +1,230 @@
 // Cores e logos reais de bancos brasileiros e bandeiras de cartão
+// Using SVG-based logos for reliability
 
 export interface BankConfig {
   id: string;
   name: string;
   color: string;
-  logoUrl: string;
+  textColor: string;
+  icon: string; // Emoji or letter fallback
 }
 
 export interface CardBrandConfig {
   id: string;
   name: string;
-  logoUrl: string;
+  icon: string;
+  color: string;
 }
 
-// Bancos brasileiros com cores e logos reais (via CDN clearbit/logo.dev)
+// Bancos brasileiros com cores reais
 export const banks: Record<string, BankConfig> = {
   nubank: {
     id: "nubank",
     name: "Nubank",
     color: "#820AD1",
-    logoUrl: "https://logo.clearbit.com/nubank.com.br",
+    textColor: "#FFFFFF",
+    icon: "N",
   },
   inter: {
     id: "inter",
     name: "Inter",
     color: "#FF7A00",
-    logoUrl: "https://logo.clearbit.com/bancointer.com.br",
+    textColor: "#FFFFFF",
+    icon: "I",
   },
   itau: {
     id: "itau",
     name: "Itaú",
     color: "#003A70",
-    logoUrl: "https://logo.clearbit.com/itau.com.br",
+    textColor: "#FFFFFF",
+    icon: "I",
   },
   bradesco: {
     id: "bradesco",
     name: "Bradesco",
     color: "#CC092F",
-    logoUrl: "https://logo.clearbit.com/bradesco.com.br",
+    textColor: "#FFFFFF",
+    icon: "B",
   },
   santander: {
     id: "santander",
     name: "Santander",
     color: "#EC0000",
-    logoUrl: "https://logo.clearbit.com/santander.com.br",
+    textColor: "#FFFFFF",
+    icon: "S",
   },
   bb: {
     id: "bb",
     name: "Banco do Brasil",
     color: "#FFCC00",
-    logoUrl: "https://logo.clearbit.com/bb.com.br",
+    textColor: "#003882",
+    icon: "BB",
   },
   caixa: {
     id: "caixa",
     name: "Caixa",
     color: "#005CA9",
-    logoUrl: "https://logo.clearbit.com/caixa.gov.br",
+    textColor: "#FFFFFF",
+    icon: "C",
   },
   c6: {
     id: "c6",
     name: "C6 Bank",
     color: "#1A1A1A",
-    logoUrl: "https://logo.clearbit.com/c6bank.com.br",
+    textColor: "#FFFFFF",
+    icon: "C6",
   },
   original: {
     id: "original",
     name: "Banco Original",
     color: "#00A651",
-    logoUrl: "https://logo.clearbit.com/original.com.br",
+    textColor: "#FFFFFF",
+    icon: "O",
   },
   next: {
     id: "next",
     name: "Next",
     color: "#00E676",
-    logoUrl: "https://logo.clearbit.com/next.me",
+    textColor: "#000000",
+    icon: "N",
   },
   picpay: {
     id: "picpay",
     name: "PicPay",
     color: "#21C25E",
-    logoUrl: "https://logo.clearbit.com/picpay.com",
+    textColor: "#FFFFFF",
+    icon: "P",
   },
   neon: {
     id: "neon",
     name: "Neon",
     color: "#00D6A3",
-    logoUrl: "https://logo.clearbit.com/neon.com.br",
+    textColor: "#FFFFFF",
+    icon: "N",
   },
   pan: {
     id: "pan",
     name: "Banco Pan",
     color: "#00529B",
-    logoUrl: "https://logo.clearbit.com/bancopan.com.br",
+    textColor: "#FFFFFF",
+    icon: "P",
   },
   sicredi: {
     id: "sicredi",
     name: "Sicredi",
     color: "#00573D",
-    logoUrl: "https://logo.clearbit.com/sicredi.com.br",
+    textColor: "#FFFFFF",
+    icon: "S",
   },
   sicoob: {
     id: "sicoob",
     name: "Sicoob",
     color: "#003E1E",
-    logoUrl: "https://logo.clearbit.com/sicoob.com.br",
+    textColor: "#FFFFFF",
+    icon: "S",
   },
   btg: {
     id: "btg",
     name: "BTG Pactual",
     color: "#001E50",
-    logoUrl: "https://logo.clearbit.com/btgpactual.com",
+    textColor: "#FFFFFF",
+    icon: "B",
   },
   xp: {
     id: "xp",
     name: "XP",
-    color: "#FFD100",
-    logoUrl: "https://logo.clearbit.com/xpi.com.br",
+    color: "#000000",
+    textColor: "#FFD100",
+    icon: "XP",
   },
   mercadopago: {
     id: "mercadopago",
     name: "Mercado Pago",
     color: "#009EE3",
-    logoUrl: "https://logo.clearbit.com/mercadopago.com.br",
+    textColor: "#FFFFFF",
+    icon: "MP",
   },
   default: {
     id: "default",
     name: "Outro",
     color: "#6B7280",
-    logoUrl: "",
+    textColor: "#FFFFFF",
+    icon: "$",
   },
 };
 
-// Bandeiras de cartão com logos reais
+// Bandeiras de cartão
 export const cardBrands: Record<string, CardBrandConfig> = {
   visa: {
     id: "visa",
     name: "Visa",
-    logoUrl: "https://logo.clearbit.com/visa.com",
+    icon: "V",
+    color: "#1A1F71",
   },
   mastercard: {
     id: "mastercard",
     name: "Mastercard",
-    logoUrl: "https://logo.clearbit.com/mastercard.com",
+    icon: "M",
+    color: "#EB001B",
   },
   elo: {
     id: "elo",
     name: "Elo",
-    logoUrl: "https://logo.clearbit.com/elo.com.br",
+    icon: "E",
+    color: "#FFCB05",
   },
   amex: {
     id: "amex",
     name: "American Express",
-    logoUrl: "https://logo.clearbit.com/americanexpress.com",
+    icon: "A",
+    color: "#006FCF",
   },
   hipercard: {
     id: "hipercard",
     name: "Hipercard",
-    logoUrl: "https://logo.clearbit.com/hipercard.com.br",
+    icon: "H",
+    color: "#B3131B",
   },
   diners: {
     id: "diners",
     name: "Diners Club",
-    logoUrl: "https://logo.clearbit.com/dinersclub.com",
+    icon: "D",
+    color: "#0079BE",
   },
 };
 
-// Função para obter config do banco pelo nome
+// Função para obter config do banco pelo nome ou ID
 export function getBankByName(name: string): BankConfig {
+  if (!name) return banks.default;
+  
   const normalizedName = name.toLowerCase().replace(/\s+/g, "");
   
-  // Busca direta
+  // Busca direta pelo ID
   if (banks[normalizedName]) {
     return banks[normalizedName];
   }
   
-  // Busca parcial
+  // Busca parcial pelo nome
   const found = Object.values(banks).find(
-    (bank) => bank.name.toLowerCase().includes(normalizedName) ||
-              normalizedName.includes(bank.id)
+    (bank) => 
+      bank.name.toLowerCase().includes(normalizedName) ||
+      normalizedName.includes(bank.id) ||
+      bank.name.toLowerCase().replace(/\s+/g, "") === normalizedName
   );
   
   return found || banks.default;
 }
 
+// Função para obter config do banco pelo ID
+export function getBankById(id: string | null): BankConfig {
+  if (!id) return banks.default;
+  return banks[id] || banks.default;
+}
+
 // Função para obter bandeira pelo nome
 export function getCardBrand(name: string): CardBrandConfig | null {
+  if (!name) return null;
+  
   const normalizedName = name.toLowerCase().replace(/\s+/g, "");
   
   if (cardBrands[normalizedName]) {
@@ -192,9 +232,20 @@ export function getCardBrand(name: string): CardBrandConfig | null {
   }
   
   const found = Object.values(cardBrands).find(
-    (brand) => brand.name.toLowerCase().includes(normalizedName) ||
-               normalizedName.includes(brand.id)
+    (brand) => 
+      brand.name.toLowerCase().includes(normalizedName) ||
+      normalizedName.includes(brand.id)
   );
   
   return found || null;
+}
+
+// Componente de ícone do banco (para usar em JSX)
+export function getBankIconStyles(bankId: string | null) {
+  const bank = getBankById(bankId);
+  return {
+    backgroundColor: bank.color,
+    color: bank.textColor,
+    text: bank.icon,
+  };
 }

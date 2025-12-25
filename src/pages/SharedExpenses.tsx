@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -11,49 +12,113 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Users,
   ArrowRight,
   Check,
   Plus,
+  Plane,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useTransactions, useCreateTransaction } from "@/hooks/useTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
+import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-// Mock data
-const mockPeople = [
-  { id: "eu", name: "Eu", initials: "EU" },
-  { id: "ana", name: "Ana", initials: "AN" },
-  { id: "carlos", name: "Carlos", initials: "CA" },
-];
-
-const mockBalances = [
-  { from: "ana", to: "eu", amount: 125.50 },
-  { from: "eu", to: "carlos", amount: 87.30 },
-];
-
-const mockSharedExpenses = [
-  { id: "1", description: "Conta de Luz", totalValue: 187.30, date: new Date(2025, 11, 15), paidBy: "eu", splitWith: ["ana", "carlos"], settled: false },
-  { id: "2", description: "Supermercado", totalValue: 342.50, date: new Date(2025, 11, 20), paidBy: "ana", splitWith: ["eu", "carlos"], settled: false },
-  { id: "3", description: "Internet", totalValue: 120.00, date: new Date(2025, 11, 10), paidBy: "carlos", splitWith: ["eu", "ana"], settled: true },
-];
+type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
+  const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
   const [showSettleDialog, setShowSettleDialog] = useState(false);
-  const [selectedBalance, setSelectedBalance] = useState<typeof mockBalances[0] | null>(null);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
+  const [settleAmount, setSettleAmount] = useState("");
+  const [settleAccountId, setSettleAccountId] = useState("");
+
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: accounts = [] } = useAccounts();
+  const createTransaction = useCreateTransaction();
+  
+  const { getFilteredInvoice, getTotals } = useSharedFinances({
+    currentDate: new Date(),
+    activeTab,
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
 
-  const getPersonById = (id: string) => mockPeople.find((p) => p.id === id);
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
 
-  const openSettleDialog = (balance: typeof mockBalances[0]) => {
-    setSelectedBalance(balance);
+  const openSettleDialog = (memberId: string, type: "PAY" | "RECEIVE", amount: number) => {
+    setSelectedMember(memberId);
+    setSettleType(type);
+    setSettleAmount(amount.toFixed(2));
     setShowSettleDialog(true);
   };
 
-  const totalOwedToMe = mockBalances.filter((b) => b.to === "eu").reduce((sum, b) => sum + b.amount, 0);
-  const totalIOwe = mockBalances.filter((b) => b.from === "eu").reduce((sum, b) => sum + b.amount, 0);
+  const handleSettle = async () => {
+    if (!selectedMember || !settleAccountId) return;
+
+    const member = members.find(m => m.id === selectedMember);
+    const desc = settleType === "PAY"
+      ? `Pagamento Acerto - ${member?.name}`
+      : `Recebimento Acerto - ${member?.name}`;
+
+    await createTransaction.mutateAsync({
+      amount: parseFloat(settleAmount),
+      description: desc,
+      date: new Date().toISOString().split("T")[0],
+      type: settleType === "PAY" ? "EXPENSE" : "INCOME",
+      account_id: settleAccountId,
+      domain: "SHARED",
+      is_shared: false,
+    });
+
+    setShowSettleDialog(false);
+    setSelectedMember(null);
+    setSettleAmount("");
+    setSettleAccountId("");
+  };
+
+  // Calculate totals
+  let totalOwedToMe = 0;
+  let totalIOwe = 0;
+
+  members.forEach(member => {
+    const items = getFilteredInvoice(member.id);
+    const totals = getTotals(items);
+    const net = totals["BRL"]?.net || 0;
+    if (net > 0) totalOwedToMe += net;
+    else totalIOwe += Math.abs(net);
+  });
+
   const myBalance = totalOwedToMe - totalIOwe;
+
+  if (membersLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="h-12 w-48 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-muted rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -90,121 +155,133 @@ export function SharedExpenses() {
         </div>
       </div>
 
-      {/* Balances */}
-      <section className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Quem deve pra quem</h2>
-        
-        {mockBalances.length === 0 ? (
-          <div className="py-12 text-center border border-dashed border-border rounded-xl">
-            <Check className="h-8 w-8 text-positive mx-auto mb-2" />
-            <p className="font-medium">Tudo acertado!</p>
-            <p className="text-sm text-muted-foreground">Sem pendências</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {mockBalances.map((balance, index) => {
-              const fromPerson = getPersonById(balance.from);
-              const toPerson = getPersonById(balance.to);
-              if (!fromPerson || !toPerson) return null;
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
+        <TabsList className="w-full">
+          <TabsTrigger value="REGULAR" className="flex-1 gap-2">
+            <Users className="h-4 w-4" />
+            Regular
+          </TabsTrigger>
+          <TabsTrigger value="TRAVEL" className="flex-1 gap-2">
+            <Plane className="h-4 w-4" />
+            Viagens
+          </TabsTrigger>
+          <TabsTrigger value="HISTORY" className="flex-1 gap-2">
+            <History className="h-4 w-4" />
+            Histórico
+          </TabsTrigger>
+        </TabsList>
 
-              return (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
-                        {fromPerson.initials}
+        <TabsContent value={activeTab} className="mt-6">
+          {members.length === 0 ? (
+            <div className="py-16 text-center border border-dashed border-border rounded-xl">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
+              <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {members.map(member => {
+                const items = getFilteredInvoice(member.id);
+                const totals = getTotals(items);
+                const net = totals["BRL"]?.net || 0;
+                const credits = totals["BRL"]?.credits || 0;
+                const debits = totals["BRL"]?.debits || 0;
+
+                if (items.length === 0 && activeTab !== "HISTORY") {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={member.id}
+                    className="p-5 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground text-background flex items-center justify-center font-medium">
+                          {getInitials(member.name)}
+                        </div>
+                        <div>
+                          <p className="font-display font-semibold text-lg">{member.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {items.length} {items.length === 1 ? "item" : "itens"} pendentes
+                          </p>
+                        </div>
                       </div>
-                      <span className="font-medium">{fromPerson.name}</span>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center font-medium text-sm">
-                        {toPerson.initials}
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className={cn(
+                            "font-mono font-semibold text-lg",
+                            net >= 0 ? "text-positive" : "text-negative"
+                          )}>
+                            {net >= 0 ? "+" : ""}{formatCurrency(net)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {net >= 0 ? "a receber" : "a pagar"}
+                          </p>
+                        </div>
+                        {net !== 0 && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openSettleDialog(
+                              member.id, 
+                              net > 0 ? "RECEIVE" : "PAY",
+                              Math.abs(net)
+                            )}
+                          >
+                            Acertar
+                          </Button>
+                        )}
                       </div>
-                      <span className="font-medium">{toPerson.name}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-mono font-semibold text-lg">{formatCurrency(balance.amount)}</span>
-                    <Button variant="outline" size="sm" onClick={() => openSettleDialog(balance)}>
-                      Acertar
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
 
-      {/* Recent Shared Expenses */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Despesas recentes</h2>
-          <Button variant="ghost" size="sm">Ver todas</Button>
-        </div>
-
-        <div className="space-y-2">
-          {mockSharedExpenses.map((expense) => {
-            const paidBy = getPersonById(expense.paidBy);
-            const splitCount = expense.splitWith.length + 1;
-            const perPerson = expense.totalValue / splitCount;
-
-            return (
-              <div
-                key={expense.id}
-                className={cn(
-                  "p-4 rounded-xl border border-border transition-all",
-                  expense.settled && "opacity-50"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{expense.description}</p>
-                      {expense.settled && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-positive/10 text-positive flex items-center gap-1">
-                          <Check className="h-3 w-3" />
-                          Acertado
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Pago por {paidBy?.name} · {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex -space-x-1">
-                        {[expense.paidBy, ...expense.splitWith].map((personId) => {
-                          const person = getPersonById(personId);
-                          return (
-                            <div
-                              key={personId}
-                              className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[10px] font-medium"
-                            >
-                              {person?.initials}
+                    {/* Items list */}
+                    {items.length > 0 && (
+                      <div className="space-y-2 pt-4 border-t border-border">
+                        {items.slice(0, 5).map(item => (
+                          <div 
+                            key={item.id} 
+                            className="flex items-center justify-between py-2"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={cn(
+                                "w-2 h-2 rounded-full",
+                                item.type === "CREDIT" ? "bg-positive" : "bg-negative"
+                              )} />
+                              <div>
+                                <p className="text-sm font-medium">{item.description}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(item.date), "dd MMM", { locale: ptBR })}
+                                  {item.totalInstallments && item.totalInstallments > 1 && (
+                                    <> · {item.installmentNumber}/{item.totalInstallments}</>
+                                  )}
+                                </p>
+                              </div>
                             </div>
-                          );
-                        })}
+                            <span className={cn(
+                              "font-mono text-sm",
+                              item.type === "CREDIT" ? "text-positive" : "text-negative"
+                            )}>
+                              {item.type === "CREDIT" ? "+" : "-"}{formatCurrency(item.amount)}
+                            </span>
+                          </div>
+                        ))}
+                        {items.length > 5 && (
+                          <p className="text-xs text-muted-foreground text-center pt-2">
+                            + {items.length - 5} itens
+                          </p>
+                        )}
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {splitCount} pessoas · {formatCurrency(perPerson)} cada
-                      </span>
-                    </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono font-semibold">{formatCurrency(expense.totalValue)}</p>
-                    <p className="text-xs text-muted-foreground">Total</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Settle Dialog */}
       <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
@@ -213,39 +290,60 @@ export function SharedExpenses() {
             <DialogTitle>Acertar Conta</DialogTitle>
             <DialogDescription>Registre o pagamento</DialogDescription>
           </DialogHeader>
-          {selectedBalance && (
+          {selectedMember && (
             <div className="py-6">
               <div className="flex items-center justify-center gap-6 p-4 bg-muted/50 rounded-xl">
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-medium mx-auto">
-                    {getPersonById(selectedBalance.from)?.initials}
+                    {settleType === "PAY" ? "EU" : getInitials(members.find(m => m.id === selectedMember)?.name || "")}
                   </div>
-                  <p className="text-sm mt-2">{getPersonById(selectedBalance.from)?.name}</p>
+                  <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : members.find(m => m.id === selectedMember)?.name}</p>
                 </div>
                 <div className="text-center">
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                  <p className="font-mono font-semibold mt-1">{formatCurrency(selectedBalance.amount)}</p>
+                  <p className="font-mono font-semibold mt-1">{formatCurrency(parseFloat(settleAmount) || 0)}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center font-medium mx-auto">
-                    {getPersonById(selectedBalance.to)?.initials}
+                    {settleType === "RECEIVE" ? "EU" : getInitials(members.find(m => m.id === selectedMember)?.name || "")}
                   </div>
-                  <p className="text-sm mt-2">{getPersonById(selectedBalance.to)?.name}</p>
+                  <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : members.find(m => m.id === selectedMember)?.name}</p>
                 </div>
               </div>
-              <div className="mt-4 space-y-2">
-                <Label>Valor</Label>
-                <Input 
-                  type="text" 
-                  defaultValue={selectedBalance.amount.toFixed(2).replace(".", ",")} 
-                  className="font-mono"
-                />
+              <div className="mt-4 space-y-4">
+                <div className="space-y-2">
+                  <Label>Valor</Label>
+                  <Input 
+                    type="text" 
+                    value={settleAmount}
+                    onChange={(e) => setSettleAmount(e.target.value)}
+                    className="font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Conta</Label>
+                  <Select value={settleAccountId} onValueChange={setSettleAccountId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a conta" /></SelectTrigger>
+                    <SelectContent>
+                      {accounts.filter(a => a.type !== "CREDIT_CARD").map((account) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSettleDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowSettleDialog(false)}>Confirmar</Button>
+            <Button 
+              onClick={handleSettle}
+              disabled={createTransaction.isPending || !settleAccountId}
+            >
+              {createTransaction.isPending ? "Confirmando..." : "Confirmar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
