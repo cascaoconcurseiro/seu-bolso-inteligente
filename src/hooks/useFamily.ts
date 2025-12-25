@@ -9,6 +9,7 @@ export interface FamilyMember {
   id: string;
   family_id: string;
   user_id: string | null;
+  linked_user_id: string | null;
   name: string;
   email: string | null;
   role: FamilyRole;

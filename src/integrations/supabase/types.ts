@@ -717,6 +717,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_dynamic_balance: {
+        Args: { p_other_user_id: string; p_user_id: string }
+        Returns: number
+      }
       get_user_family_id: { Args: { _user_id: string }; Returns: string }
       is_family_member: {
         Args: { _family_id: string; _user_id: string }

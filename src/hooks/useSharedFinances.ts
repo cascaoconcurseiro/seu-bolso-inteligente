@@ -138,8 +138,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       const txCurrency = 'BRL';
       
-      // Find the member who paid (by user_id match)
-      const payerMember = members.find(m => m.user_id === tx.payer_id);
+      // Find the member who paid (by linked_user_id match)
+      const payerMember = members.find(m => m.linked_user_id === tx.payer_id);
       const targetMemberId = payerMember?.id || tx.payer_id;
       
       if (!invoiceMap[targetMemberId]) {
