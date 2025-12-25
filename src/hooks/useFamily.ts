@@ -76,11 +76,11 @@ export function useInviteFamilyMember() {
     mutationFn: async ({ name, email, role }: { name: string; email: string; role: FamilyRole }) => {
       if (!user || !family) throw new Error("Not authenticated or no family");
 
-      // Verificar se o email já está cadastrado no app
+      // Verificar se o email já está cadastrado no app (busca case-insensitive)
       const { data: existingProfile } = await supabase
         .from("profiles")
-        .select("id")
-        .eq("email", email)
+        .select("id, email")
+        .ilike("email", email)
         .maybeSingle();
 
       const { data, error } = await supabase
@@ -88,8 +88,9 @@ export function useInviteFamilyMember() {
         .insert({
           family_id: family.id,
           user_id: existingProfile?.id || null,
+          linked_user_id: existingProfile?.id || null, // CRÍTICO: Vincula automaticamente se usuário existe
           name,
-          email,
+          email: email.toLowerCase(),
           role,
           status: existingProfile ? "active" : "pending",
           invited_by: user.id,
