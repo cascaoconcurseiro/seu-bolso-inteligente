@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -20,28 +19,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Settings as SettingsIcon,
   Wallet,
   Tag,
   Users,
   Palette,
   Bell,
-  Shield,
   Plus,
   Pencil,
-  Trash2,
-  ChevronRight,
   Moon,
   Sun,
   CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados mock
+// Mock data
 const mockAccounts = [
-  { id: "1", name: "Nubank", type: "checking", balance: 5420.50, color: "bg-purple-600" },
-  { id: "2", name: "Inter", type: "checking", balance: 2180.30, color: "bg-orange-500" },
-  { id: "3", name: "Carteira", type: "cash", balance: 350.00, color: "bg-green-600" },
+  { id: "1", name: "Nubank", type: "checking", balance: 5420.50 },
+  { id: "2", name: "Inter", type: "checking", balance: 2180.30 },
+  { id: "3", name: "Carteira", type: "cash", balance: 350.00 },
 ];
 
 const mockCategories = [
@@ -67,7 +62,22 @@ export function Settings() {
   const [showAddAccountDialog, setShowAddAccountDialog] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [showAddPersonDialog, setShowAddPersonDialog] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    document.documentElement.classList.toggle("dark", newIsDark);
+  };
 
   const sections = [
     { id: "accounts" as const, label: "Contas", icon: Wallet, count: mockAccounts.length },
@@ -78,28 +88,24 @@ export function Settings() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <header>
-        <h1 className="font-display font-semibold text-2xl md:text-3xl text-foreground">
-          Configurações
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Personalize o Pé de Meia do seu jeito
-        </p>
-      </header>
+      <div>
+        <h1 className="font-display font-bold text-3xl tracking-tight">Configurações</h1>
+        <p className="text-muted-foreground mt-1">Personalize o app</p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Menu Lateral */}
+        {/* Menu */}
         <nav className="lg:col-span-1 space-y-1">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               className={cn(
-                "w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all",
+                "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left",
                 activeSection === section.id
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-foreground text-background"
                   : "hover:bg-muted"
               )}
             >
@@ -108,61 +114,56 @@ export function Settings() {
                 <span className="font-medium">{section.label}</span>
               </div>
               {section.count !== undefined && (
-                <Badge 
-                  variant={activeSection === section.id ? "secondary" : "muted"}
-                  className={activeSection === section.id ? "bg-primary-foreground/20 text-primary-foreground" : ""}
-                >
+                <span className={cn(
+                  "text-xs px-2 py-0.5 rounded-full",
+                  activeSection === section.id ? "bg-background/20" : "bg-muted"
+                )}>
                   {section.count}
-                </Badge>
+                </span>
               )}
             </button>
           ))}
         </nav>
 
-        {/* Conteúdo */}
-        <div className="lg:col-span-3 bg-card rounded-xl p-6 shadow-sm">
-          {/* Contas */}
+        {/* Content */}
+        <div className="lg:col-span-3 p-6 rounded-xl border border-border">
+          {/* Accounts */}
           {activeSection === "accounts" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display font-medium text-lg text-foreground">Contas</h2>
-                  <p className="text-sm text-muted-foreground">Gerencie suas contas bancárias e carteiras</p>
+                  <h2 className="font-display font-semibold text-lg">Contas</h2>
+                  <p className="text-sm text-muted-foreground">Suas contas bancárias e carteiras</p>
                 </div>
-                <Button onClick={() => setShowAddAccountDialog(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Nova Conta
+                <Button onClick={() => setShowAddAccountDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova
                 </Button>
               </div>
-
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {mockAccounts.map((account) => (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", account.color)}>
+                      <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center">
                         {account.type === "cash" ? (
-                          <Wallet className="h-5 w-5 text-white" />
+                          <Wallet className="h-5 w-5" />
                         ) : (
-                          <CreditCard className="h-5 w-5 text-white" />
+                          <CreditCard className="h-5 w-5" />
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{account.name}</p>
+                        <p className="font-medium">{account.name}</p>
                         <p className="text-sm text-muted-foreground">
                           {account.type === "checking" ? "Conta Corrente" : "Dinheiro"}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <p className="font-mono font-medium text-foreground">
-                        R$ {account.balance.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </p>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <span className="font-mono font-medium">{formatCurrency(account.balance)}</span>
+                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 ))}
@@ -170,56 +171,50 @@ export function Settings() {
             </div>
           )}
 
-          {/* Categorias */}
+          {/* Categories */}
           {activeSection === "categories" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display font-medium text-lg text-foreground">Categorias</h2>
-                  <p className="text-sm text-muted-foreground">Organize suas transações por categoria</p>
+                  <h2 className="font-display font-semibold text-lg">Categorias</h2>
+                  <p className="text-sm text-muted-foreground">Organize suas transações</p>
                 </div>
-                <Button onClick={() => setShowAddCategoryDialog(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Nova Categoria
+                <Button onClick={() => setShowAddCategoryDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova
                 </Button>
               </div>
-
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Despesas</h3>
+                  <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Despesas</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {mockCategories.filter(c => c.type === "expense").map((category) => (
+                    {mockCategories.filter(c => c.type === "expense").map((cat) => (
                       <div
-                        key={category.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                        key={cat.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-foreground/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{category.icon}</span>
-                          <span className="font-medium text-foreground">{category.name}</span>
+                          <span className="text-xl">{cat.icon}</span>
+                          <span className="font-medium">{cat.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Pencil className="h-3 w-3" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3 w-3" /></Button>
                       </div>
                     ))}
                   </div>
                 </div>
-
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Receitas</h3>
+                  <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Receitas</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {mockCategories.filter(c => c.type === "income").map((category) => (
+                    {mockCategories.filter(c => c.type === "income").map((cat) => (
                       <div
-                        key={category.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                        key={cat.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-foreground/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-xl">{category.icon}</span>
-                          <span className="font-medium text-foreground">{category.name}</span>
+                          <span className="text-xl">{cat.icon}</span>
+                          <span className="font-medium">{cat.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Pencil className="h-3 w-3" />
-                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-3 w-3" /></Button>
                       </div>
                     ))}
                   </div>
@@ -228,44 +223,42 @@ export function Settings() {
             </div>
           )}
 
-          {/* Pessoas */}
+          {/* People */}
           {activeSection === "people" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display font-medium text-lg text-foreground">Pessoas</h2>
-                  <p className="text-sm text-muted-foreground">Membros da família para dividir despesas</p>
+                  <h2 className="font-display font-semibold text-lg">Pessoas</h2>
+                  <p className="text-sm text-muted-foreground">Membros para dividir despesas</p>
                 </div>
-                <Button onClick={() => setShowAddPersonDialog(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Adicionar Pessoa
+                <Button onClick={() => setShowAddPersonDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar
                 </Button>
               </div>
-
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {mockPeople.map((person) => (
                   <div
                     key={person.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="font-medium text-primary">
-                          {person.name.substring(0, 2).toUpperCase()}
-                        </span>
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                        {person.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-medium text-foreground">{person.name}</p>
+                        <p className="font-medium">{person.name}</p>
                         <p className="text-sm text-muted-foreground">{person.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={person.role === "admin" ? "default" : "muted"}>
+                      <span className={cn(
+                        "text-xs px-2 py-0.5 rounded-full",
+                        person.role === "admin" ? "bg-foreground text-background" : "bg-muted"
+                      )}>
                         {person.role === "admin" ? "Admin" : "Membro"}
-                      </Badge>
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      </span>
+                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 ))}
@@ -273,75 +266,51 @@ export function Settings() {
             </div>
           )}
 
-          {/* Aparência */}
+          {/* Appearance */}
           {activeSection === "appearance" && (
             <div className="space-y-6">
               <div>
-                <h2 className="font-display font-medium text-lg text-foreground">Aparência</h2>
-                <p className="text-sm text-muted-foreground">Personalize a interface do aplicativo</p>
+                <h2 className="font-display font-semibold text-lg">Aparência</h2>
+                <p className="text-sm text-muted-foreground">Personalize a interface</p>
               </div>
-
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg border border-border">
+                <div className="flex items-center justify-between p-4 rounded-xl border border-border">
                   <div className="flex items-center gap-4">
-                    {darkMode ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
+                    {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
                     <div>
-                      <p className="font-medium text-foreground">Modo Escuro</p>
-                      <p className="text-sm text-muted-foreground">Alterne entre tema claro e escuro</p>
+                      <p className="font-medium">Modo Escuro</p>
+                      <p className="text-sm text-muted-foreground">Tema claro ou escuro</p>
                     </div>
                   </div>
-                  <Switch checked={darkMode} onCheckedChange={setDarkMode} />
-                </div>
-
-                <div className="p-4 rounded-lg border border-border">
-                  <p className="font-medium text-foreground mb-3">Cor Principal</p>
-                  <div className="flex gap-3">
-                    {[
-                      "bg-[#C4683C]",
-                      "bg-[#5A7A60]",
-                      "bg-purple-600",
-                      "bg-blue-600",
-                      "bg-pink-600",
-                    ].map((color, index) => (
-                      <button
-                        key={index}
-                        className={cn(
-                          "w-10 h-10 rounded-full transition-all",
-                          color,
-                          index === 0 && "ring-2 ring-offset-2 ring-primary"
-                        )}
-                      />
-                    ))}
-                  </div>
+                  <Switch checked={isDark} onCheckedChange={toggleTheme} />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Notificações */}
+          {/* Notifications */}
           {activeSection === "notifications" && (
             <div className="space-y-6">
               <div>
-                <h2 className="font-display font-medium text-lg text-foreground">Notificações</h2>
-                <p className="text-sm text-muted-foreground">Configure seus alertas e lembretes</p>
+                <h2 className="font-display font-semibold text-lg">Notificações</h2>
+                <p className="text-sm text-muted-foreground">Alertas e lembretes</p>
               </div>
-
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[
-                  { title: "Vencimento de Faturas", description: "Receba alertas antes do vencimento", enabled: true },
-                  { title: "Metas de Economia", description: "Acompanhe o progresso das suas metas", enabled: true },
-                  { title: "Despesas Compartilhadas", description: "Notificações sobre divisões pendentes", enabled: false },
-                  { title: "Resumo Semanal", description: "Relatório semanal por email", enabled: false },
-                ].map((notification, index) => (
+                  { title: "Vencimento de Faturas", description: "Alertas antes do vencimento", enabled: true },
+                  { title: "Metas de Economia", description: "Progresso das metas", enabled: true },
+                  { title: "Despesas Compartilhadas", description: "Divisões pendentes", enabled: false },
+                  { title: "Resumo Semanal", description: "Relatório por email", enabled: false },
+                ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border"
+                    className="flex items-center justify-between p-4 rounded-xl border border-border"
                   >
                     <div>
-                      <p className="font-medium text-foreground">{notification.title}</p>
-                      <p className="text-sm text-muted-foreground">{notification.description}</p>
+                      <p className="font-medium">{item.title}</p>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
-                    <Switch defaultChecked={notification.enabled} />
+                    <Switch defaultChecked={item.enabled} />
                   </div>
                 ))}
               </div>
@@ -355,23 +324,21 @@ export function Settings() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Conta</DialogTitle>
-            <DialogDescription>Adicione uma conta bancária ou carteira</DialogDescription>
+            <DialogDescription>Adicione uma conta bancária</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nome da Conta</Label>
-              <Input placeholder="Ex: Nubank, Bradesco..." />
+              <Label>Nome</Label>
+              <Input placeholder="Ex: Nubank" />
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
               <Select defaultValue="checking">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="checking">Conta Corrente</SelectItem>
                   <SelectItem value="savings">Poupança</SelectItem>
-                  <SelectItem value="cash">Dinheiro/Carteira</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -391,42 +358,27 @@ export function Settings() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Categoria</DialogTitle>
-            <DialogDescription>Crie uma categoria para organizar transações</DialogDescription>
+            <DialogDescription>Crie uma categoria</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input placeholder="Ex: Academia, Streaming..." />
+              <Input placeholder="Ex: Academia" />
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
               <Select defaultValue="expense">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">Despesa</SelectItem>
                   <SelectItem value="income">Receita</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Ícone</Label>
-              <div className="flex gap-2 flex-wrap">
-                {["🍕", "🏠", "🚗", "🎮", "💊", "✈️", "📱", "🛒", "💡", "📚"].map((emoji) => (
-                  <button
-                    key={emoji}
-                    className="w-10 h-10 rounded-lg border border-border hover:bg-muted flex items-center justify-center text-xl"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancelar</Button>
-            <Button onClick={() => setShowAddCategoryDialog(false)}>Adicionar</Button>
+            <Button onClick={() => setShowAddCategoryDialog(false)}>Criar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -435,15 +387,15 @@ export function Settings() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Adicionar Pessoa</DialogTitle>
-            <DialogDescription>Adicione um membro da família</DialogDescription>
+            <DialogDescription>Adicione um membro</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input placeholder="Nome da pessoa" />
+              <Input placeholder="Ex: Maria" />
             </div>
             <div className="space-y-2">
-              <Label>Email (opcional)</Label>
+              <Label>Email</Label>
               <Input type="email" placeholder="email@exemplo.com" />
             </div>
           </div>

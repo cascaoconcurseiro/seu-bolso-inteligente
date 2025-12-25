@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -20,8 +19,6 @@ import {
   CreditCard,
   Users,
   Calendar,
-  Tag,
-  DollarSign,
   Repeat,
   Check,
 } from "lucide-react";
@@ -31,9 +28,9 @@ import { cn } from "@/lib/utils";
 type TransactionFormType = "income" | "expense" | "transfer";
 
 const transactionTypes = [
-  { id: "income", label: "Entrada", icon: ArrowDownLeft, color: "text-positive" },
-  { id: "expense", label: "Saída", icon: ArrowUpRight, color: "text-negative" },
-  { id: "transfer", label: "Transferência", icon: ArrowLeftRight, color: "text-muted-foreground" },
+  { id: "income", label: "Entrada", icon: ArrowDownLeft },
+  { id: "expense", label: "Saída", icon: ArrowUpRight },
+  { id: "transfer", label: "Transferência", icon: ArrowLeftRight },
 ];
 
 const categories = [
@@ -42,8 +39,6 @@ const categories = [
   { value: "transporte", label: "Transporte" },
   { value: "lazer", label: "Lazer" },
   { value: "saude", label: "Saúde" },
-  { value: "viagem", label: "Viagem" },
-  { value: "cartao", label: "Cartão" },
   { value: "outros", label: "Outros" },
 ];
 
@@ -70,193 +65,164 @@ export function NewTransaction() {
 
   const togglePerson = (personId: string) => {
     setSelectedPeople((prev) =>
-      prev.includes(personId)
-        ? prev.filter((id) => id !== personId)
-        : [...prev, personId]
+      prev.includes(personId) ? prev.filter((id) => id !== personId) : [...prev, personId]
     );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementar salvamento
     navigate("/transacoes");
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+    <div className="max-w-xl mx-auto animate-fade-in">
       {/* Header */}
-      <header className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-8">
         <Link to="/transacoes">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
         <div>
-          <h1 className="font-display font-semibold text-2xl text-foreground">
-            Nova Movimentação
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Registre uma entrada, saída ou transferência
-          </p>
+          <h1 className="font-display font-bold text-2xl tracking-tight">Nova Transação</h1>
+          <p className="text-muted-foreground text-sm">Registre entrada, saída ou transferência</p>
         </div>
-      </header>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Tipo de Transação */}
-        <section className="space-y-3">
-          <Label className="text-sm font-medium">Tipo</Label>
-          <div className="grid grid-cols-3 gap-3">
+        {/* Type Selection */}
+        <div className="space-y-3">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Tipo</Label>
+          <div className="grid grid-cols-3 gap-2">
             {transactionTypes.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setType(t.id as TransactionFormType)}
                 className={cn(
-                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
+                  "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all",
                   type === t.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border hover:border-foreground/30"
                 )}
               >
-                <t.icon className={cn("h-6 w-6", type === t.id ? t.color : "text-muted-foreground")} />
-                <span className={cn("text-sm font-medium", type === t.id ? "text-foreground" : "text-muted-foreground")}>
-                  {t.label}
-                </span>
+                <t.icon className="h-5 w-5" />
+                <span className="text-sm font-medium">{t.label}</span>
               </button>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* Valor */}
-        <section className="space-y-3">
-          <Label htmlFor="value">Valor</Label>
+        {/* Value */}
+        <div className="space-y-3">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Valor</Label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono text-lg">
               R$
             </span>
             <Input
-              id="value"
               type="text"
               inputMode="decimal"
               placeholder="0,00"
-              className="pl-12 text-2xl font-mono h-14"
+              className="pl-12 text-3xl font-mono h-16 border-2 focus:border-foreground"
               required
             />
           </div>
-        </section>
+        </div>
 
-        {/* Descrição */}
-        <section className="space-y-3">
-          <Label htmlFor="description">Descrição</Label>
-          <Input
-            id="description"
-            placeholder="Ex: Supermercado, Salário, Aluguel..."
-            required
-          />
-        </section>
+        {/* Description */}
+        <div className="space-y-3">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Descrição</Label>
+          <Input placeholder="Ex: Supermercado, Salário, Aluguel..." required />
+        </div>
 
-        {/* Data e Categoria */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <section className="space-y-3">
-            <Label htmlFor="date">Data</Label>
+        {/* Date & Category */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Data</Label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="date"
                 type="date"
                 defaultValue={new Date().toISOString().split("T")[0]}
                 className="pl-10"
                 required
               />
             </div>
-          </section>
-          <section className="space-y-3">
-            <Label>Categoria</Label>
+          </div>
+          <div className="space-y-3">
+            <Label className="text-xs uppercase tracking-widest text-muted-foreground">Categoria</Label>
             <Select defaultValue="outros">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
+                  <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </section>
+          </div>
         </div>
 
-        {/* Conta */}
-        <section className="space-y-3">
-          <Label>Conta</Label>
+        {/* Account */}
+        <div className="space-y-3">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Conta</Label>
           <Select defaultValue="nubank">
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               {accounts.map((acc) => (
-                <SelectItem key={acc.value} value={acc.value}>
-                  {acc.label}
-                </SelectItem>
+                <SelectItem key={acc.value} value={acc.value}>{acc.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </section>
+        </div>
 
-        {/* Opções Especiais */}
-        <section className="space-y-4 bg-card rounded-xl p-5">
-          <h3 className="font-medium text-foreground">Opções</h3>
+        {/* Options */}
+        <div className="space-y-4 p-5 rounded-xl border border-border">
+          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Opções</h3>
 
-          {/* Parcelado */}
-          <div className="flex items-center justify-between">
+          {/* Installment */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
             <div className="flex items-center gap-3">
               <Repeat className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Parcelado</p>
-                <p className="text-xs text-muted-foreground">Dividir em várias parcelas</p>
+                <p className="font-medium">Parcelado</p>
+                <p className="text-sm text-muted-foreground">Dividir em parcelas</p>
               </div>
             </div>
             <Switch checked={isInstallment} onCheckedChange={setIsInstallment} />
           </div>
 
           {isInstallment && (
-            <div className="ml-8 space-y-3 animate-fade-in">
-              <Label>Número de parcelas</Label>
+            <div className="pl-8 pb-3 animate-fade-in">
+              <Label className="text-xs text-muted-foreground">Parcelas</Label>
               <Select value={installments} onValueChange={setInstallments}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-24 mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
-                    <SelectItem key={n} value={n.toString()}>
-                      {n}x
-                    </SelectItem>
+                    <SelectItem key={n} value={n.toString()}>{n}x</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
 
-          {/* Cartão de Crédito */}
-          <div className="flex items-center justify-between pt-2 border-t border-border">
+          {/* Credit Card */}
+          <div className="flex items-center justify-between py-3 border-b border-border">
             <div className="flex items-center gap-3">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Cartão de Crédito</p>
-                <p className="text-xs text-muted-foreground">Vincular à fatura do cartão</p>
+                <p className="font-medium">Cartão de Crédito</p>
+                <p className="text-sm text-muted-foreground">Vincular à fatura</p>
               </div>
             </div>
             <Switch checked={isCreditCard} onCheckedChange={setIsCreditCard} />
           </div>
 
           {isCreditCard && (
-            <div className="ml-8 space-y-3 animate-fade-in">
-              <Label>Cartão</Label>
+            <div className="pl-8 pb-3 animate-fade-in">
+              <Label className="text-xs text-muted-foreground">Cartão</Label>
               <Select defaultValue="nubank">
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-40 mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="nubank">Nubank</SelectItem>
                   <SelectItem value="inter">Inter</SelectItem>
@@ -265,21 +231,21 @@ export function NewTransaction() {
             </div>
           )}
 
-          {/* Compartilhado */}
-          <div className="flex items-center justify-between pt-2 border-t border-border">
+          {/* Shared */}
+          <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Compartilhado</p>
-                <p className="text-xs text-muted-foreground">Dividir com outras pessoas</p>
+                <p className="font-medium">Compartilhado</p>
+                <p className="text-sm text-muted-foreground">Dividir com pessoas</p>
               </div>
             </div>
             <Switch checked={isShared} onCheckedChange={setIsShared} />
           </div>
 
           {isShared && (
-            <div className="ml-8 space-y-3 animate-fade-in">
-              <Label>Dividir com</Label>
+            <div className="pl-8 animate-fade-in">
+              <Label className="text-xs text-muted-foreground mb-2 block">Dividir com</Label>
               <div className="flex flex-wrap gap-2">
                 {people.map((person) => (
                   <button
@@ -289,50 +255,37 @@ export function NewTransaction() {
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-full border transition-all",
                       selectedPeople.includes(person.id)
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:border-primary/50"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border hover:border-foreground/30"
                     )}
                   >
-                    <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
-                      {selectedPeople.includes(person.id) ? (
-                        <Check className="h-3 w-3" />
-                      ) : (
-                        <span className="text-xs">{person.initials}</span>
-                      )}
-                    </div>
-                    <span className="text-sm">{person.name}</span>
+                    {selectedPeople.includes(person.id) ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full bg-muted text-[10px] flex items-center justify-center font-medium">
+                        {person.initials}
+                      </span>
+                    )}
+                    <span className="text-sm font-medium">{person.name}</span>
                   </button>
                 ))}
               </div>
-              {selectedPeople.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Valor por pessoa: R$ {(100 / (selectedPeople.length + 1)).toFixed(2)} (exemplo com R$ 100)
-                </p>
-              )}
             </div>
           )}
-        </section>
+        </div>
 
-        {/* Observações */}
-        <section className="space-y-3">
-          <Label htmlFor="notes">Observações (opcional)</Label>
-          <Textarea
-            id="notes"
-            placeholder="Adicione notas ou detalhes..."
-            className="min-h-20"
-          />
-        </section>
+        {/* Notes */}
+        <div className="space-y-3">
+          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Observações (opcional)</Label>
+          <Textarea placeholder="Adicione notas..." className="min-h-20 resize-none" />
+        </div>
 
-        {/* Botões */}
+        {/* Actions */}
         <div className="flex gap-3 pt-4">
           <Link to="/transacoes" className="flex-1">
-            <Button type="button" variant="outline" className="w-full">
-              Cancelar
-            </Button>
+            <Button type="button" variant="outline" className="w-full">Cancelar</Button>
           </Link>
-          <Button type="submit" className="flex-1">
-            Salvar Movimentação
-          </Button>
+          <Button type="submit" className="flex-1">Salvar</Button>
         </div>
       </form>
     </div>

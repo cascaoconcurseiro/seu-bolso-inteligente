@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { CurrencyDisplay } from "@/components/financial";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,17 +17,15 @@ import {
   MapPin,
   Users,
   ArrowLeft,
-  Receipt,
-  Wallet,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados mock
+// Mock data
 const mockPeople = [
-  { id: "eu", name: "Eu", initials: "EU", color: "bg-primary" },
-  { id: "ana", name: "Ana", initials: "AN", color: "bg-accent" },
-  { id: "carlos", name: "Carlos", initials: "CA", color: "bg-warning" },
+  { id: "eu", name: "Eu", initials: "EU" },
+  { id: "ana", name: "Ana", initials: "AN" },
+  { id: "carlos", name: "Carlos", initials: "CA" },
 ];
 
 const mockTrips = [
@@ -47,8 +43,6 @@ const mockTrips = [
       { id: "e2", description: "Restaurante Ostradamus", value: 450, paidBy: "ana", date: new Date(2025, 11, 21) },
       { id: "e3", description: "Passeio de barco", value: 600, paidBy: "carlos", date: new Date(2025, 11, 22) },
       { id: "e4", description: "Supermercado", value: 320, paidBy: "eu", date: new Date(2025, 11, 23) },
-      { id: "e5", description: "Gasolina", value: 280, paidBy: "ana", date: new Date(2025, 11, 24) },
-      { id: "e6", description: "Praia Mole - Almoço", value: 180, paidBy: "carlos", date: new Date(2025, 11, 25) },
     ],
   },
   {
@@ -71,6 +65,10 @@ export function Trips() {
   const [selectedTrip, setSelectedTrip] = useState<typeof mockTrips[0] | null>(null);
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
   const getPersonById = (id: string) => mockPeople.find((p) => p.id === id);
 
   const openTripDetail = (trip: typeof mockTrips[0]) => {
@@ -86,15 +84,8 @@ export function Trips() {
   const calculateBalances = (trip: typeof mockTrips[0]) => {
     const perPerson = trip.totalExpenses / trip.participants.length;
     const paid: Record<string, number> = {};
-    
-    trip.participants.forEach((p) => {
-      paid[p] = 0;
-    });
-    
-    trip.expenses.forEach((e) => {
-      paid[e.paidBy] = (paid[e.paidBy] || 0) + e.value;
-    });
-
+    trip.participants.forEach((p) => { paid[p] = 0; });
+    trip.expenses.forEach((e) => { paid[e.paidBy] = (paid[e.paidBy] || 0) + e.value; });
     return trip.participants.map((p) => ({
       personId: p,
       paid: paid[p] || 0,
@@ -103,55 +94,53 @@ export function Trips() {
     }));
   };
 
+  // Detail View
   if (view === "detail" && selectedTrip) {
     const balances = calculateBalances(selectedTrip);
 
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-8 animate-fade-in">
         {/* Header */}
-        <header className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={goBack} className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="font-display font-semibold text-2xl text-foreground">
-                {selectedTrip.name}
-              </h1>
-              <Badge variant={selectedTrip.status === "active" ? "default" : "muted"}>
+            <div className="flex items-center gap-3">
+              <h1 className="font-display font-bold text-2xl tracking-tight">{selectedTrip.name}</h1>
+              <span className={cn(
+                "text-xs px-2 py-0.5 rounded-full",
+                selectedTrip.status === "active" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+              )}>
                 {selectedTrip.status === "active" ? "Em andamento" : "Finalizada"}
-              </Badge>
+              </span>
             </div>
-            <p className="text-muted-foreground mt-1 flex items-center gap-2">
+            <p className="text-muted-foreground flex items-center gap-1 mt-1">
               <MapPin className="h-4 w-4" />
               {selectedTrip.destination}
             </p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
             Nova Despesa
           </Button>
-        </header>
+        </div>
 
-        {/* Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground mb-1">Total de Gastos</p>
-            <CurrencyDisplay value={selectedTrip.totalExpenses} size="xl" />
+        {/* Summary */}
+        <div className="flex items-center gap-8 py-4 border-y border-border">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Total</p>
+            <p className="font-mono text-2xl font-bold">{formatCurrency(selectedTrip.totalExpenses)}</p>
           </div>
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground mb-1">Por Pessoa</p>
-            <CurrencyDisplay 
-              value={selectedTrip.totalExpenses / selectedTrip.participants.length} 
-              size="xl" 
-            />
-          </div>
-          <div className="bg-card rounded-xl p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground mb-1">Período</p>
-            <p className="text-xl font-display font-semibold text-foreground">
-              {selectedTrip.participants.length} dias
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por pessoa</p>
+            <p className="font-mono text-lg font-medium">
+              {formatCurrency(selectedTrip.totalExpenses / selectedTrip.participants.length)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Período</p>
+            <p className="text-sm">
               {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(selectedTrip.startDate)}
               {" - "}
               {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(selectedTrip.endDate)}
@@ -159,36 +148,32 @@ export function Trips() {
           </div>
         </div>
 
-        {/* Saldo por Participante */}
+        {/* Balances */}
         <section className="space-y-4">
-          <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            Saldo por Participante
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Saldo por pessoa</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {balances.map((balance) => {
               const person = getPersonById(balance.personId);
               if (!person) return null;
-
               return (
-                <div key={balance.personId} className="bg-card rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-white font-medium",
-                      person.color
-                    )}>
+                <div key={balance.personId} className="p-4 rounded-xl border border-border">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
                       {person.initials}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{person.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Pagou: <CurrencyDisplay value={balance.paid} size="sm" />
-                      </p>
+                      <p className="font-medium">{person.name}</p>
+                      <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                  <div className="pt-3 border-t border-border flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Saldo</span>
-                    <CurrencyDisplay value={balance.balance} size="md" showSign showIcon />
+                    <span className={cn(
+                      "font-mono font-semibold",
+                      balance.balance >= 0 ? "text-positive" : "text-negative"
+                    )}>
+                      {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
+                    </span>
                   </div>
                 </div>
               );
@@ -196,35 +181,26 @@ export function Trips() {
           </div>
         </section>
 
-        {/* Despesas */}
+        {/* Expenses */}
         <section className="space-y-4">
-          <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-primary" />
-            Despesas da Viagem
-          </h2>
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Despesas</h2>
           <div className="space-y-2">
             {selectedTrip.expenses.map((expense) => {
               const paidBy = getPersonById(expense.paidBy);
               return (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-4 bg-card rounded-lg shadow-sm"
-                >
+                <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium",
-                      paidBy?.color
-                    )}>
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                       {paidBy?.initials}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{expense.description}</p>
+                      <p className="font-medium">{expense.description}</p>
                       <p className="text-xs text-muted-foreground">
-                        {paidBy?.name} • {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
+                        {paidBy?.name} · {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
                       </p>
                     </div>
                   </div>
-                  <CurrencyDisplay value={expense.value} size="md" />
+                  <span className="font-mono font-medium">{formatCurrency(expense.value)}</span>
                 </div>
               );
             })}
@@ -234,44 +210,42 @@ export function Trips() {
     );
   }
 
+  // List View
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-semibold text-2xl md:text-3xl text-foreground">
-            Viagens
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Organize despesas de viagens em família
-          </p>
+          <h1 className="font-display font-bold text-3xl tracking-tight">Viagens</h1>
+          <p className="text-muted-foreground mt-1">Organize despesas de viagem</p>
         </div>
-        <Button size="lg" className="gap-2" onClick={() => setShowNewTripDialog(true)}>
-          <Plus className="h-5 w-5" />
-          Nova Viagem
+        <Button size="lg" onClick={() => setShowNewTripDialog(true)}>
+          <Plus className="h-5 w-5 mr-2" />
+          Nova viagem
         </Button>
-      </header>
+      </div>
 
-      {/* Lista de Viagens */}
-      <section className="space-y-4">
+      {/* Trips List */}
+      <div className="space-y-3">
         {mockTrips.map((trip) => (
           <div
             key={trip.id}
             onClick={() => openTripDetail(trip)}
-            className="bg-card rounded-xl p-5 shadow-sm cursor-pointer transition-all hover:shadow-md group"
+            className="group p-5 rounded-xl border border-border hover:border-foreground/20 transition-all cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Plane className="h-5 w-5 text-primary" />
-                  <h3 className="font-display font-semibold text-lg text-foreground">
-                    {trip.name}
-                  </h3>
-                  <Badge variant={trip.status === "active" ? "default" : "muted"}>
+                <div className="flex items-center gap-3">
+                  <Plane className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="font-display font-semibold text-lg">{trip.name}</h3>
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full",
+                    trip.status === "active" ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                  )}>
                     {trip.status === "active" ? "Em andamento" : "Finalizada"}
-                  </Badge>
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
                   {trip.destination}
                 </p>
@@ -284,16 +258,13 @@ export function Trips() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex -space-x-2">
+                    <div className="flex -space-x-1">
                       {trip.participants.map((personId) => {
                         const person = getPersonById(personId);
                         return (
                           <div
                             key={personId}
-                            className={cn(
-                              "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-card",
-                              person?.color
-                            )}
+                            className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[10px] font-medium"
                           >
                             {person?.initials}
                           </div>
@@ -303,30 +274,28 @@ export function Trips() {
                   </div>
                 </div>
               </div>
-              <div className="text-right flex items-center gap-3">
-                <div>
-                  <CurrencyDisplay value={trip.totalExpenses} size="lg" />
-                  <p className="text-xs text-muted-foreground mt-1">Total</p>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-mono font-semibold">{formatCurrency(trip.totalExpenses)}</p>
+                  <p className="text-xs text-muted-foreground">Total</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </div>
             </div>
           </div>
         ))}
-      </section>
+      </div>
 
-      {/* Dialog Nova Viagem */}
+      {/* New Trip Dialog */}
       <Dialog open={showNewTripDialog} onOpenChange={setShowNewTripDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Viagem</DialogTitle>
-            <DialogDescription>
-              Crie uma viagem para organizar as despesas
-            </DialogDescription>
+            <DialogDescription>Crie uma viagem para organizar despesas</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nome da Viagem</Label>
+              <Label>Nome</Label>
               <Input placeholder="Ex: Férias de Verão" />
             </div>
             <div className="space-y-2">
@@ -335,42 +304,18 @@ export function Trips() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Data de Início</Label>
+                <Label>Início</Label>
                 <Input type="date" />
               </div>
               <div className="space-y-2">
-                <Label>Data de Fim</Label>
+                <Label>Fim</Label>
                 <Input type="date" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Participantes</Label>
-              <div className="flex flex-wrap gap-2">
-                {mockPeople.map((person) => (
-                  <Badge 
-                    key={person.id} 
-                    variant="secondary" 
-                    className="gap-1 cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <div className={cn(
-                      "w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px]",
-                      person.color
-                    )}>
-                      {person.initials}
-                    </div>
-                    {person.name}
-                  </Badge>
-                ))}
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewTripDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => setShowNewTripDialog(false)}>
-              Criar Viagem
-            </Button>
+            <Button variant="outline" onClick={() => setShowNewTripDialog(false)}>Cancelar</Button>
+            <Button onClick={() => setShowNewTripDialog(false)}>Criar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
