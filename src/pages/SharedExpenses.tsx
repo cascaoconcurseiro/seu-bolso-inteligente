@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,20 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -20,6 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Users,
   ArrowRight,
@@ -29,16 +45,23 @@ import {
   Wallet,
   CheckCircle2,
   Loader2,
+  MoreHorizontal,
+  Undo2,
+  Layers,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -46,17 +69,26 @@ export function SharedExpenses() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
   const [showSettleDialog, setShowSettleDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
   const [settleAmount, setSettleAmount] = useState("");
   const [settleAccountId, setSettleAccountId] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSettling, setIsSettling] = useState(false);
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+
+  // Undo settlement state
+  const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
+    isOpen: false,
+    item: null,
+  });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
   const { data: accounts = [] } = useAccounts();
+  const { data: trips = [] } = useTrips();
   const createTransaction = useCreateTransaction();
-  
+
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch } = useSharedFinances({
     currentDate: new Date(),
     activeTab,
@@ -70,6 +102,18 @@ export function SharedExpenses() {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  const toggleMemberExpand = (memberId: string) => {
+    setExpandedMembers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId);
+      } else {
+        newSet.add(memberId);
+      }
+      return newSet;
+    });
+  };
+
   const openSettleDialog = (memberId: string, type: "PAY" | "RECEIVE", amount: number) => {
     setSelectedMember(memberId);
     setSettleType(type);
@@ -79,8 +123,8 @@ export function SharedExpenses() {
   };
 
   const toggleItem = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
+    setSelectedItems(prev =>
+      prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     );
@@ -117,7 +161,7 @@ export function SharedExpenses() {
     try {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
-      const itemsToSettle = selectedItems.length > 0 
+      const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
 
@@ -134,9 +178,16 @@ export function SharedExpenses() {
         return;
       }
 
+      // Calculate total of selected items
+      const itemsTotal = itemsToSettle.reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+      const isPartialSettlement = amount < Math.abs(itemsTotal);
+
       const desc = settleType === "PAY"
-        ? `Pagamento Acerto - ${member?.name}`
-        : `Recebimento Acerto - ${member?.name}`;
+        ? `Pagamento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`
+        : `Recebimento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`;
 
       // Create settlement transaction
       const result = await createTransaction.mutateAsync({
@@ -152,25 +203,27 @@ export function SharedExpenses() {
 
       const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
 
-      // Mark items as settled
-      for (const item of itemsToSettle) {
-        if (item.type === 'CREDIT' && item.splitId) {
-          await supabase
-            .from('transaction_splits')
-            .update({ 
-              is_settled: true, 
-              settled_at: new Date().toISOString(),
-              settled_transaction_id: settlementTxId
-            })
-            .eq('id', item.splitId);
-        } else if (item.type === 'DEBIT') {
-          await supabase
-            .from('transactions')
-            .update({ 
-              is_settled: true, 
-              settled_at: new Date().toISOString()
-            })
-            .eq('id', item.originalTxId);
+      // Mark items as settled (only if full settlement)
+      if (!isPartialSettlement) {
+        for (const item of itemsToSettle) {
+          if (item.type === 'CREDIT' && item.splitId) {
+            await supabase
+              .from('transaction_splits')
+              .update({
+                is_settled: true,
+                settled_at: new Date().toISOString(),
+                settled_transaction_id: settlementTxId
+              })
+              .eq('id', item.splitId);
+          } else if (item.type === 'DEBIT') {
+            await supabase
+              .from('transactions')
+              .update({
+                is_settled: true,
+                settled_at: new Date().toISOString()
+              })
+              .eq('id', item.originalTxId);
+          }
         }
       }
 
@@ -187,6 +240,59 @@ export function SharedExpenses() {
     } finally {
       setIsSettling(false);
     }
+  };
+
+  const handleUndoSettlement = async () => {
+    const item = undoConfirm.item;
+    if (!item) return;
+
+    try {
+      if (item.type === 'CREDIT' && item.splitId) {
+        await supabase
+          .from('transaction_splits')
+          .update({
+            is_settled: false,
+            settled_at: null,
+            settled_transaction_id: null
+          })
+          .eq('id', item.splitId);
+      } else if (item.type === 'DEBIT') {
+        await supabase
+          .from('transactions')
+          .update({
+            is_settled: false,
+            settled_at: null
+          })
+          .eq('id', item.originalTxId);
+      }
+
+      toast.success("Acerto desfeito com sucesso!");
+      setUndoConfirm({ isOpen: false, item: null });
+      refetch();
+    } catch (error) {
+      console.error('Undo error:', error);
+      toast.error("Erro ao desfazer acerto");
+    }
+  };
+
+  // Group items by trip
+  const getGroupedItems = (memberId: string) => {
+    const items = getFilteredInvoice(memberId);
+    const groups: Record<string, { tripName?: string; items: InvoiceItem[] }> = {};
+
+    items.forEach(item => {
+      const tripKey = item.tripId || 'no-trip';
+      if (!groups[tripKey]) {
+        const trip = trips.find(t => t.id === item.tripId);
+        groups[tripKey] = {
+          tripName: trip?.name,
+          items: []
+        };
+      }
+      groups[tripKey].items.push(item);
+    });
+
+    return groups;
   };
 
   // Calculate totals
@@ -217,7 +323,7 @@ export function SharedExpenses() {
     );
   }
 
-  const pendingMemberItems = selectedMember 
+  const pendingMemberItems = selectedMember
     ? getFilteredInvoice(selectedMember).filter(i => !i.isPaid)
     : [];
 
@@ -229,10 +335,16 @@ export function SharedExpenses() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
           <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
         </div>
-        <Button size="lg" onClick={() => navigate("/transacoes/nova")}>
-          <Plus className="h-5 w-5 mr-2" />
-          Nova despesa
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowImportDialog(true)}>
+            <Layers className="h-4 w-4 mr-2" />
+            Importar Parcelas
+          </Button>
+          <Button onClick={() => navigate("/transacoes/nova")}>
+            <Plus className="h-5 w-5 mr-2" />
+            Nova despesa
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
@@ -289,8 +401,9 @@ export function SharedExpenses() {
                 const items = getFilteredInvoice(member.id);
                 const totals = getTotals(items);
                 const net = totals["BRL"]?.net || 0;
+                const isExpanded = expandedMembers.has(member.id);
+                const groupedItems = getGroupedItems(member.id);
 
-                // Hide members with no items in Regular/Travel tabs
                 if (items.length === 0 && activeTab !== "HISTORY") {
                   return null;
                 }
@@ -298,96 +411,141 @@ export function SharedExpenses() {
                 return (
                   <div
                     key={member.id}
-                    className="p-5 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                    className="rounded-xl border border-border overflow-hidden"
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground text-background flex items-center justify-center font-medium">
-                          {getInitials(member.name)}
+                    {/* Member Header */}
+                    <div
+                      className="p-5 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => toggleMemberExpand(member.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground text-background flex items-center justify-center font-medium">
+                            {getInitials(member.name)}
+                          </div>
+                          <div>
+                            <p className="font-display font-semibold text-lg">{member.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {items.filter(i => !i.isPaid).length} {items.filter(i => !i.isPaid).length === 1 ? "item" : "itens"} pendentes
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-display font-semibold text-lg">{member.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {items.filter(i => !i.isPaid).length} {items.filter(i => !i.isPaid).length === 1 ? "item" : "itens"} pendentes
-                          </p>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className={cn(
+                              "font-mono font-semibold text-lg",
+                              net === 0 ? "text-muted-foreground" : net > 0 ? "text-positive" : "text-negative"
+                            )}>
+                              {net >= 0 ? "+" : ""}{formatCurrency(net)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {net === 0 ? "em dia" : net > 0 ? "a receber" : "a pagar"}
+                            </p>
+                          </div>
+                          {net !== 0 && activeTab !== "HISTORY" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openSettleDialog(
+                                  member.id,
+                                  net > 0 ? "RECEIVE" : "PAY",
+                                  Math.abs(net)
+                                );
+                              }}
+                            >
+                              <Wallet className="h-4 w-4 mr-2" />
+                              Acertar
+                            </Button>
+                          )}
+                          {isExpanded ? (
+                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          )}
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className={cn(
-                            "font-mono font-semibold text-lg",
-                            net === 0 ? "text-muted-foreground" : net > 0 ? "text-positive" : "text-negative"
-                          )}>
-                            {net >= 0 ? "+" : ""}{formatCurrency(net)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {net === 0 ? "em dia" : net > 0 ? "a receber" : "a pagar"}
-                          </p>
-                        </div>
-                        {net !== 0 && activeTab !== "HISTORY" && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openSettleDialog(
-                              member.id, 
-                              net > 0 ? "RECEIVE" : "PAY",
-                              Math.abs(net)
-                            )}
-                          >
-                            <Wallet className="h-4 w-4 mr-2" />
-                            Acertar
-                          </Button>
-                        )}
                       </div>
                     </div>
 
-                    {/* Items list */}
-                    {items.length > 0 && (
-                      <div className="space-y-2 pt-4 border-t border-border">
-                        {items.slice(0, 5).map(item => (
-                          <div 
-                            key={item.id} 
-                            className="flex items-center justify-between py-2"
-                          >
-                            <div className="flex items-center gap-3">
-                              {item.isPaid ? (
-                                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <div className={cn(
-                                  "w-2 h-2 rounded-full",
-                                  item.type === "CREDIT" ? "bg-positive" : "bg-negative"
-                                )} />
-                              )}
-                              <div>
-                                <p className={cn(
-                                  "text-sm font-medium",
-                                  item.isPaid && "text-muted-foreground line-through"
-                                )}>
-                                  {item.description}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(new Date(item.date), "dd MMM", { locale: ptBR })}
-                                  {item.totalInstallments && item.totalInstallments > 1 && (
-                                    <> · {item.installmentNumber}/{item.totalInstallments}</>
-                                  )}
-                                </p>
+                    {/* Expanded Items */}
+                    {isExpanded && items.length > 0 && (
+                      <div className="border-t border-border">
+                        {Object.entries(groupedItems).map(([tripKey, group]) => (
+                          <div key={tripKey}>
+                            {/* Trip Header (if applicable) */}
+                            {group.tripName && (
+                              <div className="px-5 py-2 bg-muted/50 border-b border-border">
+                                <div className="flex items-center gap-2">
+                                  <Plane className="h-4 w-4 text-primary" />
+                                  <span className="text-sm font-medium">{group.tripName}</span>
+                                </div>
                               </div>
+                            )}
+
+                            {/* Items */}
+                            <div className="divide-y divide-border">
+                              {group.items.map(item => (
+                                <div
+                                  key={item.id}
+                                  className="px-5 py-3 flex items-center justify-between hover:bg-muted/20"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {item.isPaid ? (
+                                      <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                      <div className={cn(
+                                        "w-2 h-2 rounded-full",
+                                        item.type === "CREDIT" ? "bg-positive" : "bg-negative"
+                                      )} />
+                                    )}
+                                    <div>
+                                      <p className={cn(
+                                        "text-sm font-medium",
+                                        item.isPaid && "text-muted-foreground line-through"
+                                      )}>
+                                        {item.description}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {format(new Date(item.date), "dd MMM yyyy", { locale: ptBR })}
+                                        {item.totalInstallments && item.totalInstallments > 1 && (
+                                          <> · {item.installmentNumber}/{item.totalInstallments}</>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className={cn(
+                                      "font-mono text-sm",
+                                      item.isPaid
+                                        ? "text-muted-foreground"
+                                        : item.type === "CREDIT" ? "text-positive" : "text-negative"
+                                    )}>
+                                      {item.type === "CREDIT" ? "+" : "-"}{formatCurrency(item.amount)}
+                                    </span>
+                                    {item.isPaid && activeTab === "HISTORY" && (
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem
+                                            onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                          >
+                                            <Undo2 className="h-4 w-4 mr-2" />
+                                            Desfazer acerto
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                            <span className={cn(
-                              "font-mono text-sm",
-                              item.isPaid 
-                                ? "text-muted-foreground" 
-                                : item.type === "CREDIT" ? "text-positive" : "text-negative"
-                            )}>
-                              {item.type === "CREDIT" ? "+" : "-"}{formatCurrency(item.amount)}
-                            </span>
                           </div>
                         ))}
-                        {items.length > 5 && (
-                          <p className="text-xs text-muted-foreground text-center pt-2">
-                            + {items.length - 5} itens
-                          </p>
-                        )}
                       </div>
                     )}
                   </div>
@@ -435,10 +593,10 @@ export function SharedExpenses() {
               {pendingMemberItems.length > 0 && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Selecionar itens</Label>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Label className="text-sm">Selecionar itens para acertar</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={handleSelectAll}
                       className="text-xs h-7"
                     >
@@ -447,7 +605,7 @@ export function SharedExpenses() {
                   </div>
                   <div className="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-2">
                     {pendingMemberItems.map(item => (
-                      <label 
+                      <label
                         key={item.id}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
                       >
@@ -477,8 +635,8 @@ export function SharedExpenses() {
               <div className="grid gap-4">
                 <div className="space-y-2">
                   <Label>Valor do acerto</Label>
-                  <Input 
-                    type="text" 
+                  <Input
+                    type="text"
                     value={settleAmount}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, "");
@@ -491,6 +649,9 @@ export function SharedExpenses() {
                     className="font-mono text-lg"
                     placeholder="0,00"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Você pode alterar o valor para fazer um acerto parcial
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label>Conta</Label>
@@ -514,7 +675,7 @@ export function SharedExpenses() {
             <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleSettle}
               disabled={isSettling || !settleAccountId}
             >
@@ -533,6 +694,32 @@ export function SharedExpenses() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Undo Settlement Confirm */}
+      <AlertDialog open={undoConfirm.isOpen} onOpenChange={(open) => !open && setUndoConfirm({ isOpen: false, item: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desfazer Acerto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja desfazer o acerto de "{undoConfirm.item?.description}"? Ele voltará a aparecer como pendente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUndoSettlement}>
+              Desfazer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Import Dialog */}
+      <SharedInstallmentImport
+        isOpen={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        members={members}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }
