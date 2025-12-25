@@ -22,6 +22,7 @@ const navigationItems = [
   { path: "/cartoes", label: "Cartões", icon: CreditCard },
   { path: "/compartilhados", label: "Compartilhados", icon: Users },
   { path: "/viagens", label: "Viagens", icon: Plane },
+  { path: "/familia", label: "Família", icon: Users },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
