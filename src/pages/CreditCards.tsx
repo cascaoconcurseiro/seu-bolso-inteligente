@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { CurrencyDisplay, InstallmentProgress } from "@/components/financial";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -10,59 +10,41 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   CreditCard,
   Plus,
-  Calendar,
   ArrowLeft,
   ChevronRight,
-  AlertCircle,
-  Check,
-  Clock,
-  Receipt,
-  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados mock
+// Mock data
 const mockCards = [
   {
     id: "1",
     name: "Nubank",
     lastDigits: "4532",
-    color: "bg-purple-600",
     limit: 15000,
     used: 3240.50,
     dueDay: 28,
     closingDay: 20,
-    currentInvoice: {
-      value: 2340.50,
-      dueDate: new Date(2025, 11, 28),
-      status: "open" as const,
-    },
+    currentInvoice: { value: 2340.50, dueDate: new Date(2025, 11, 28) },
     installments: [
-      { id: "i1", description: "TV Samsung 55\"", current: 3, total: 12, value: 299.90, totalValue: 3598.80 },
-      { id: "i2", description: "iPhone 15", current: 5, total: 10, value: 899.90, totalValue: 8999.00 },
+      { id: "i1", description: "TV Samsung 55\"", current: 3, total: 12, value: 299.90 },
+      { id: "i2", description: "iPhone 15", current: 5, total: 10, value: 899.90 },
     ],
   },
   {
     id: "2",
     name: "Inter",
     lastDigits: "7821",
-    color: "bg-orange-500",
     limit: 8000,
     used: 890.00,
     dueDay: 5,
     closingDay: 28,
-    currentInvoice: {
-      value: 890.00,
-      dueDate: new Date(2026, 0, 5),
-      status: "open" as const,
-    },
+    currentInvoice: { value: 890.00, dueDate: new Date(2026, 0, 5) },
     installments: [
-      { id: "i3", description: "Notebook Dell", current: 2, total: 6, value: 450.00, totalValue: 2700.00 },
+      { id: "i3", description: "Notebook Dell", current: 2, total: 6, value: 450.00 },
     ],
   },
 ];
@@ -74,6 +56,15 @@ export function CreditCards() {
   const [selectedCard, setSelectedCard] = useState<typeof mockCards[0] | null>(null);
   const [showNewCardDialog, setShowNewCardDialog] = useState(false);
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
+  const getDaysUntilDue = (dueDate: Date) => {
+    const today = new Date();
+    return Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
   const openCardDetail = (card: typeof mockCards[0]) => {
     setSelectedCard(card);
     setView("detail");
@@ -84,270 +75,196 @@ export function CreditCards() {
     setSelectedCard(null);
   };
 
-  const getDaysUntilDue = (dueDate: Date) => {
-    const today = new Date();
-    const diff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diff;
-  };
-
   const totalInvoices = mockCards.reduce((sum, card) => sum + card.currentInvoice.value, 0);
-  const totalInstallments = mockCards.reduce(
-    (sum, card) => sum + card.installments.reduce((s, i) => s + (i.total - i.current) * i.value, 0),
-    0
-  );
 
+  // Detail View
   if (view === "detail" && selectedCard) {
     const daysUntilDue = getDaysUntilDue(selectedCard.currentInvoice.dueDate);
     const usagePercent = (selectedCard.used / selectedCard.limit) * 100;
 
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-8 animate-fade-in">
         {/* Header */}
-        <header className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack}>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={goBack} className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
-                selectedCard.color
-              )}>
-                <CreditCard className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="font-display font-semibold text-2xl text-foreground">
-                  {selectedCard.name}
-                </h1>
-                <p className="text-muted-foreground">•••• {selectedCard.lastDigits}</p>
-              </div>
-            </div>
+          <div>
+            <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
+            <p className="text-muted-foreground">•••• {selectedCard.lastDigits}</p>
           </div>
-        </header>
+        </div>
 
-        {/* Fatura Atual */}
-        <section className={cn(
-          "rounded-xl p-6 shadow-sm",
-          selectedCard.color,
-          "text-white"
-        )}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-white/80 text-sm">Fatura Atual</p>
-              <CurrencyDisplay 
-                value={selectedCard.currentInvoice.value} 
-                size="xl" 
-                className="text-white mt-1" 
-              />
-              <p className="text-white/80 text-sm mt-2">
-                Vence em {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" }).format(selectedCard.currentInvoice.dueDate)}
-              </p>
-            </div>
-            <div className="text-right">
-              <Badge className="bg-white/20 text-white border-0">
-                {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
-              </Badge>
-              <div className="mt-4">
-                <Button variant="secondary" size="sm" className="bg-white/20 text-white hover:bg-white/30 border-0">
-                  Pagar Fatura
-                </Button>
-              </div>
-            </div>
+        {/* Current Invoice */}
+        <div className="p-6 rounded-2xl bg-foreground text-background">
+          <p className="text-sm opacity-70 mb-1">Fatura Atual</p>
+          <p className="font-display font-bold text-4xl tracking-tight">
+            {formatCurrency(selectedCard.currentInvoice.value)}
+          </p>
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm opacity-70">
+              Vence em {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "long" }).format(selectedCard.currentInvoice.dueDate)}
+            </p>
+            <span className="text-xs px-2 py-1 rounded-full bg-background/20">
+              {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
+            </span>
           </div>
-        </section>
+        </div>
 
-        {/* Limite */}
-        <section className="bg-card rounded-xl p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-foreground">Limite Disponível</h3>
-            <span className="text-sm text-muted-foreground">{usagePercent.toFixed(0)}% usado</span>
+        {/* Limit Usage */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Limite utilizado</span>
+            <span className="font-mono">{usagePercent.toFixed(0)}%</span>
           </div>
-          <div className="h-3 rounded-full bg-muted overflow-hidden">
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
             <div 
               className={cn(
                 "h-full rounded-full transition-all",
-                usagePercent > 80 ? "bg-destructive" : usagePercent > 50 ? "bg-warning" : "bg-success"
+                usagePercent > 80 ? "bg-negative" : usagePercent > 50 ? "bg-warning" : "bg-positive"
               )}
               style={{ width: `${usagePercent}%` }}
             />
           </div>
-          <div className="flex justify-between mt-3 text-sm">
-            <span className="text-muted-foreground">
-              Usado: <CurrencyDisplay value={selectedCard.used} size="sm" />
-            </span>
-            <span className="text-muted-foreground">
-              Limite: <CurrencyDisplay value={selectedCard.limit} size="sm" />
-            </span>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{formatCurrency(selectedCard.used)} usado</span>
+            <span>{formatCurrency(selectedCard.limit)} limite</span>
           </div>
-        </section>
+        </div>
 
-        {/* Parcelas Ativas */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Parcelas Ativas
-            </h2>
-            <Badge variant="muted">{selectedCard.installments.length} parcelas</Badge>
-          </div>
+        {/* Installments */}
+        {selectedCard.installments.length > 0 && (
           <div className="space-y-4">
-            {selectedCard.installments.map((installment) => (
-              <div key={installment.id} className="bg-card rounded-xl p-5 shadow-sm">
-                <InstallmentProgress
-                  current={installment.current}
-                  total={installment.total}
-                  paidAmount={installment.current * installment.value}
-                  totalAmount={installment.totalValue}
-                  description={installment.description}
-                />
-              </div>
-            ))}
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+              Parcelas ativas ({selectedCard.installments.length})
+            </h2>
+            <div className="space-y-3">
+              {selectedCard.installments.map((inst) => (
+                <div key={inst.id} className="p-4 rounded-xl border border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-medium">{inst.description}</p>
+                    <span className="font-mono text-sm">{formatCurrency(inst.value)}/mês</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div 
+                        className="h-full rounded-full bg-foreground transition-all"
+                        style={{ width: `${(inst.current / inst.total) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {inst.current}/{inst.total}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </section>
+        )}
 
-        {/* Informações do Cartão */}
-        <section className="bg-card rounded-xl p-5 shadow-sm">
-          <h3 className="font-medium text-foreground mb-4">Informações</h3>
+        {/* Card Info */}
+        <div className="p-4 rounded-xl border border-border">
+          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">Informações</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Fechamento</p>
-              <p className="font-medium text-foreground">Dia {selectedCard.closingDay}</p>
+              <p className="font-medium">Dia {selectedCard.closingDay}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Vencimento</p>
-              <p className="font-medium text-foreground">Dia {selectedCard.dueDay}</p>
+              <p className="font-medium">Dia {selectedCard.dueDay}</p>
             </div>
           </div>
-        </section>
+        </div>
       </div>
     );
   }
 
+  // List View
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-semibold text-2xl md:text-3xl text-foreground">
-            Cartões de Crédito
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie suas faturas e parcelas
-          </p>
+          <h1 className="font-display font-bold text-3xl tracking-tight">Cartões</h1>
+          <p className="text-muted-foreground mt-1">Gerencie faturas e parcelas</p>
         </div>
-        <Button size="lg" className="gap-2" onClick={() => setShowNewCardDialog(true)}>
-          <Plus className="h-5 w-5" />
-          Novo Cartão
+        <Button size="lg" onClick={() => setShowNewCardDialog(true)}>
+          <Plus className="h-5 w-5 mr-2" />
+          Novo cartão
         </Button>
-      </header>
+      </div>
 
-      {/* Resumo */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card rounded-xl p-5 shadow-sm card-status-warning">
-          <p className="text-sm text-muted-foreground mb-1">Faturas Abertas</p>
-          <CurrencyDisplay value={totalInvoices} size="xl" />
-          <p className="text-xs text-muted-foreground mt-2">{mockCards.length} cartões</p>
+      {/* Summary */}
+      <div className="flex items-center gap-8 py-4 border-y border-border">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Faturas abertas</p>
+          <p className="font-mono text-2xl font-bold">{formatCurrency(totalInvoices)}</p>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-muted-foreground mb-1">Parcelas Restantes</p>
-          <CurrencyDisplay value={totalInstallments} size="xl" />
-          <p className="text-xs text-muted-foreground mt-2">
-            {mockCards.reduce((sum, c) => sum + c.installments.length, 0)} compras parceladas
-          </p>
-        </div>
-        <div className="bg-card rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-muted-foreground mb-1">Próximo Vencimento</p>
-          <p className="text-xl font-display font-semibold text-foreground">
-            {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(
-              mockCards.reduce((min, c) => 
-                c.currentInvoice.dueDate < min ? c.currentInvoice.dueDate : min,
-                mockCards[0].currentInvoice.dueDate
-              )
-            )}
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Próximo venc.</p>
+          <p className="font-display text-lg font-semibold">
             {getDaysUntilDue(mockCards[0].currentInvoice.dueDate)} dias
           </p>
         </div>
-      </section>
+      </div>
 
-      {/* Lista de Cartões */}
-      <section className="space-y-4">
-        <h2 className="font-display font-medium text-lg text-foreground">Meus Cartões</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {mockCards.map((card) => {
-            const daysUntilDue = getDaysUntilDue(card.currentInvoice.dueDate);
-            
-            return (
-              <div
-                key={card.id}
-                onClick={() => openCardDetail(card)}
-                className="bg-card rounded-xl shadow-sm cursor-pointer transition-all hover:shadow-md group overflow-hidden"
-              >
-                {/* Card Header */}
-                <div className={cn("p-5 text-white", card.color)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="h-8 w-8" />
-                      <div>
-                        <h3 className="font-display font-semibold text-lg">{card.name}</h3>
-                        <p className="text-white/70 text-sm">•••• {card.lastDigits}</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
+      {/* Cards List */}
+      <div className="space-y-3">
+        {mockCards.map((card) => {
+          const daysUntilDue = getDaysUntilDue(card.currentInvoice.dueDate);
+          
+          return (
+            <div
+              key={card.id}
+              onClick={() => openCardDetail(card)}
+              className="group p-5 rounded-xl border border-border hover:border-foreground/20 transition-all cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-foreground text-background flex items-center justify-center">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-display font-semibold text-lg">{card.name}</p>
+                    <p className="text-sm text-muted-foreground">•••• {card.lastDigits}</p>
                   </div>
                 </div>
-                
-                {/* Card Body */}
-                <div className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Fatura Atual</p>
-                      <CurrencyDisplay value={card.currentInvoice.value} size="lg" />
-                    </div>
-                    <Badge 
-                      variant={daysUntilDue <= 3 ? "warning" : daysUntilDue <= 7 ? "muted" : "success"}
-                    >
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="font-mono font-semibold">{formatCurrency(card.currentInvoice.value)}</p>
+                    <p className="text-xs text-muted-foreground">
                       {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
-                    </Badge>
+                    </p>
                   </div>
-                  
-                  {card.installments.length > 0 && (
-                    <div className="pt-3 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-2">Parcelas Ativas</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-foreground">
-                          {card.installments.length} compra{card.installments.length > 1 ? "s" : ""}
-                        </span>
-                        <CurrencyDisplay 
-                          value={card.installments.reduce((sum, i) => sum + i.value, 0)} 
-                          size="sm" 
-                          className="text-muted-foreground"
-                        />
-                        <span className="text-xs text-muted-foreground">/mês</span>
-                      </div>
-                    </div>
-                  )}
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </section>
+              
+              {card.installments.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{card.installments.length} parcelas ativas</span>
+                  <span className="font-mono">
+                    {formatCurrency(card.installments.reduce((sum, i) => sum + i.value, 0))}/mês
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-      {/* Dialog Novo Cartão */}
+      {/* New Card Dialog */}
       <Dialog open={showNewCardDialog} onOpenChange={setShowNewCardDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Novo Cartão</DialogTitle>
-            <DialogDescription>
-              Adicione um cartão de crédito para acompanhar
-            </DialogDescription>
+            <DialogDescription>Adicione um cartão para acompanhar</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Nome do Cartão</Label>
-              <Input placeholder="Ex: Nubank, Inter, C6..." />
+              <Input placeholder="Ex: Nubank, Inter..." />
             </div>
             <div className="space-y-2">
               <Label>Últimos 4 dígitos</Label>
@@ -355,11 +272,11 @@ export function CreditCards() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Dia de Fechamento</Label>
+                <Label>Fechamento</Label>
                 <Input type="number" min={1} max={31} placeholder="20" />
               </div>
               <div className="space-y-2">
-                <Label>Dia de Vencimento</Label>
+                <Label>Vencimento</Label>
                 <Input type="number" min={1} max={31} placeholder="28" />
               </div>
             </div>
@@ -369,12 +286,8 @@ export function CreditCards() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewCardDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => setShowNewCardDialog(false)}>
-              Adicionar Cartão
-            </Button>
+            <Button variant="outline" onClick={() => setShowNewCardDialog(false)}>Cancelar</Button>
+            <Button onClick={() => setShowNewCardDialog(false)}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

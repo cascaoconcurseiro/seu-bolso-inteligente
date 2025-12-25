@@ -1,33 +1,28 @@
 import { useState } from "react";
-import { CurrencyDisplay } from "@/components/financial";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Users,
   ArrowRight,
   Check,
   Plus,
-  History,
-  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Dados mock
+// Mock data
 const mockPeople = [
-  { id: "eu", name: "Eu", initials: "EU", color: "bg-primary" },
-  { id: "ana", name: "Ana", initials: "AN", color: "bg-accent" },
-  { id: "carlos", name: "Carlos", initials: "CA", color: "bg-warning" },
+  { id: "eu", name: "Eu", initials: "EU" },
+  { id: "ana", name: "Ana", initials: "AN" },
+  { id: "carlos", name: "Carlos", initials: "CA" },
 ];
 
 const mockBalances = [
@@ -36,38 +31,18 @@ const mockBalances = [
 ];
 
 const mockSharedExpenses = [
-  {
-    id: "1",
-    description: "Conta de Luz",
-    totalValue: 187.30,
-    date: new Date(2025, 11, 15),
-    paidBy: "eu",
-    splitWith: ["ana", "carlos"],
-    settled: false,
-  },
-  {
-    id: "2",
-    description: "Supermercado",
-    totalValue: 342.50,
-    date: new Date(2025, 11, 20),
-    paidBy: "ana",
-    splitWith: ["eu", "carlos"],
-    settled: false,
-  },
-  {
-    id: "3",
-    description: "Internet",
-    totalValue: 120.00,
-    date: new Date(2025, 11, 10),
-    paidBy: "carlos",
-    splitWith: ["eu", "ana"],
-    settled: true,
-  },
+  { id: "1", description: "Conta de Luz", totalValue: 187.30, date: new Date(2025, 11, 15), paidBy: "eu", splitWith: ["ana", "carlos"], settled: false },
+  { id: "2", description: "Supermercado", totalValue: 342.50, date: new Date(2025, 11, 20), paidBy: "ana", splitWith: ["eu", "carlos"], settled: false },
+  { id: "3", description: "Internet", totalValue: 120.00, date: new Date(2025, 11, 10), paidBy: "carlos", splitWith: ["eu", "ana"], settled: true },
 ];
 
 export function SharedExpenses() {
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [selectedBalance, setSelectedBalance] = useState<typeof mockBalances[0] | null>(null);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
 
   const getPersonById = (id: string) => mockPeople.find((p) => p.id === id);
 
@@ -76,75 +51,57 @@ export function SharedExpenses() {
     setShowSettleDialog(true);
   };
 
-  const totalOwedToMe = mockBalances
-    .filter((b) => b.to === "eu")
-    .reduce((sum, b) => sum + b.amount, 0);
-
-  const totalIOwe = mockBalances
-    .filter((b) => b.from === "eu")
-    .reduce((sum, b) => sum + b.amount, 0);
-
+  const totalOwedToMe = mockBalances.filter((b) => b.to === "eu").reduce((sum, b) => sum + b.amount, 0);
+  const totalIOwe = mockBalances.filter((b) => b.from === "eu").reduce((sum, b) => sum + b.amount, 0);
   const myBalance = totalOwedToMe - totalIOwe;
 
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-semibold text-2xl md:text-3xl text-foreground">
-            Compartilhados
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie despesas divididas com a família
-          </p>
+          <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
+          <p className="text-muted-foreground mt-1">Despesas divididas</p>
         </div>
-        <Button size="lg" className="gap-2">
-          <Plus className="h-5 w-5" />
-          Nova Despesa Compartilhada
+        <Button size="lg">
+          <Plus className="h-5 w-5 mr-2" />
+          Nova despesa
         </Button>
-      </header>
+      </div>
 
-      {/* Resumo */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-muted-foreground mb-1">Meu Saldo</p>
-          <CurrencyDisplay 
-            value={myBalance} 
-            size="xl" 
-            showSign 
-            className={myBalance >= 0 ? "text-positive" : "text-negative"} 
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            {myBalance >= 0 ? "A receber" : "A pagar"}
+      {/* Summary */}
+      <div className="flex items-center gap-8 py-4 border-y border-border">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu saldo</p>
+          <p className={cn(
+            "font-mono text-2xl font-bold",
+            myBalance >= 0 ? "text-positive" : "text-negative"
+          )}>
+            {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance)}
           </p>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-sm card-status-success">
-          <p className="text-sm text-muted-foreground mb-1">Me Devem</p>
-          <CurrencyDisplay value={totalOwedToMe} size="lg" className="text-positive" />
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Me devem</p>
+          <p className="font-mono text-lg font-medium text-positive">{formatCurrency(totalOwedToMe)}</p>
         </div>
-        <div className="bg-card rounded-xl p-5 shadow-sm card-status-danger">
-          <p className="text-sm text-muted-foreground mb-1">Eu Devo</p>
-          <CurrencyDisplay value={totalIOwe} size="lg" className="text-negative" />
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Eu devo</p>
+          <p className="font-mono text-lg font-medium text-negative">{formatCurrency(totalIOwe)}</p>
         </div>
-      </section>
+      </div>
 
-      {/* Quem deve pra quem */}
+      {/* Balances */}
       <section className="space-y-4">
-        <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-primary" />
-          Quem Deve Pra Quem
-        </h2>
-
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Quem deve pra quem</h2>
+        
         {mockBalances.length === 0 ? (
-          <div className="bg-card rounded-xl p-8 text-center">
-            <Check className="h-12 w-12 text-positive mx-auto mb-3" />
-            <p className="text-foreground font-medium">Tudo acertado!</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Não há pendências entre os membros da família
-            </p>
+          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+            <Check className="h-8 w-8 text-positive mx-auto mb-2" />
+            <p className="font-medium">Tudo acertado!</p>
+            <p className="text-sm text-muted-foreground">Sem pendências</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {mockBalances.map((balance, index) => {
               const fromPerson = getPersonById(balance.from);
               const toPerson = getPersonById(balance.to);
@@ -153,41 +110,26 @@ export function SharedExpenses() {
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 bg-card rounded-xl shadow-sm"
+                  className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    {/* From */}
                     <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center text-white font-medium",
-                        fromPerson.color
-                      )}>
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
                         {fromPerson.initials}
                       </div>
-                      <span className="font-medium text-foreground">{fromPerson.name}</span>
+                      <span className="font-medium">{fromPerson.name}</span>
                     </div>
-
-                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
-
-                    {/* To */}
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center text-white font-medium",
-                        toPerson.color
-                      )}>
+                      <div className="w-10 h-10 rounded-full bg-foreground text-background flex items-center justify-center font-medium text-sm">
                         {toPerson.initials}
                       </div>
-                      <span className="font-medium text-foreground">{toPerson.name}</span>
+                      <span className="font-medium">{toPerson.name}</span>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-4">
-                    <CurrencyDisplay value={balance.amount} size="lg" />
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openSettleDialog(balance)}
-                    >
+                    <span className="font-mono font-semibold text-lg">{formatCurrency(balance.amount)}</span>
+                    <Button variant="outline" size="sm" onClick={() => openSettleDialog(balance)}>
                       Acertar
                     </Button>
                   </div>
@@ -198,19 +140,16 @@ export function SharedExpenses() {
         )}
       </section>
 
-      {/* Despesas Compartilhadas Recentes */}
+      {/* Recent Shared Expenses */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-            <History className="h-5 w-5 text-primary" />
-            Despesas Compartilhadas
-          </h2>
+          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Despesas recentes</h2>
           <Button variant="ghost" size="sm">Ver todas</Button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {mockSharedExpenses.map((expense) => {
-            const paidByPerson = getPersonById(expense.paidBy);
+            const paidBy = getPersonById(expense.paidBy);
             const splitCount = expense.splitWith.length + 1;
             const perPerson = expense.totalValue / splitCount;
 
@@ -218,39 +157,33 @@ export function SharedExpenses() {
               <div
                 key={expense.id}
                 className={cn(
-                  "p-4 bg-card rounded-xl shadow-sm transition-all",
-                  expense.settled && "opacity-60"
+                  "p-4 rounded-xl border border-border transition-all",
+                  expense.settled && "opacity-50"
                 )}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div>
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">{expense.description}</p>
+                      <p className="font-medium">{expense.description}</p>
                       {expense.settled && (
-                        <Badge variant="success" className="gap-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-positive/10 text-positive flex items-center gap-1">
                           <Check className="h-3 w-3" />
                           Acertado
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Pago por <span className="font-medium">{paidByPerson?.name}</span>
-                      {" • "}
-                      {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
+                      Pago por {paidBy?.name} · {new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(expense.date)}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Users className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex -space-x-2">
+                      <div className="flex -space-x-1">
                         {[expense.paidBy, ...expense.splitWith].map((personId) => {
                           const person = getPersonById(personId);
                           return (
                             <div
                               key={personId}
-                              className={cn(
-                                "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-card",
-                                person?.color
-                              )}
-                              title={person?.name}
+                              className="w-5 h-5 rounded-full bg-muted border border-background flex items-center justify-center text-[10px] font-medium"
                             >
                               {person?.initials}
                             </div>
@@ -258,13 +191,13 @@ export function SharedExpenses() {
                         })}
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {splitCount} pessoas • <CurrencyDisplay value={perPerson} size="sm" /> cada
+                        {splitCount} pessoas · {formatCurrency(perPerson)} cada
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <CurrencyDisplay value={expense.totalValue} size="md" />
-                    <p className="text-xs text-muted-foreground mt-1">Total</p>
+                    <p className="font-mono font-semibold">{formatCurrency(expense.totalValue)}</p>
+                    <p className="text-xs text-muted-foreground">Total</p>
                   </div>
                 </div>
               </div>
@@ -273,43 +206,35 @@ export function SharedExpenses() {
         </div>
       </section>
 
-      {/* Dialog de Acerto */}
+      {/* Settle Dialog */}
       <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Acertar Conta</DialogTitle>
-            <DialogDescription>
-              Registre o pagamento entre os membros
-            </DialogDescription>
+            <DialogDescription>Registre o pagamento</DialogDescription>
           </DialogHeader>
           {selectedBalance && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center justify-center gap-4 p-4 bg-muted rounded-lg">
+            <div className="py-6">
+              <div className="flex items-center justify-center gap-6 p-4 bg-muted/50 rounded-xl">
                 <div className="text-center">
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-white font-medium mx-auto",
-                    getPersonById(selectedBalance.from)?.color
-                  )}>
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-medium mx-auto">
                     {getPersonById(selectedBalance.from)?.initials}
                   </div>
-                  <p className="text-sm font-medium mt-2">{getPersonById(selectedBalance.from)?.name}</p>
+                  <p className="text-sm mt-2">{getPersonById(selectedBalance.from)?.name}</p>
                 </div>
                 <div className="text-center">
-                  <ArrowRight className="h-6 w-6 text-muted-foreground" />
-                  <CurrencyDisplay value={selectedBalance.amount} size="lg" className="mt-1" />
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                  <p className="font-mono font-semibold mt-1">{formatCurrency(selectedBalance.amount)}</p>
                 </div>
                 <div className="text-center">
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center text-white font-medium mx-auto",
-                    getPersonById(selectedBalance.to)?.color
-                  )}>
+                  <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center font-medium mx-auto">
                     {getPersonById(selectedBalance.to)?.initials}
                   </div>
-                  <p className="text-sm font-medium mt-2">{getPersonById(selectedBalance.to)?.name}</p>
+                  <p className="text-sm mt-2">{getPersonById(selectedBalance.to)?.name}</p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Valor a acertar</Label>
+              <div className="mt-4 space-y-2">
+                <Label>Valor</Label>
                 <Input 
                   type="text" 
                   defaultValue={selectedBalance.amount.toFixed(2).replace(".", ",")} 
@@ -319,12 +244,8 @@ export function SharedExpenses() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => setShowSettleDialog(false)}>
-              Confirmar Acerto
-            </Button>
+            <Button variant="outline" onClick={() => setShowSettleDialog(false)}>Cancelar</Button>
+            <Button onClick={() => setShowSettleDialog(false)}>Confirmar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
