@@ -76,6 +76,11 @@ export function useInviteFamilyMember() {
     mutationFn: async ({ name, email, role }: { name: string; email: string; role: FamilyRole }) => {
       if (!user || !family) throw new Error("Not authenticated or no family");
 
+      // Impedir que o usuário se adicione a si mesmo
+      if (email.toLowerCase() === user.email?.toLowerCase()) {
+        throw new Error("Você não pode se adicionar como membro da família");
+      }
+
       // Verificar se o email já está cadastrado no app (busca case-insensitive)
       const { data: existingProfile } = await supabase
         .from("profiles")
@@ -83,12 +88,17 @@ export function useInviteFamilyMember() {
         .ilike("email", email)
         .maybeSingle();
 
+      // Verificar se é o próprio usuário pelo ID
+      if (existingProfile?.id === user.id) {
+        throw new Error("Você não pode se adicionar como membro da família");
+      }
+
       const { data, error } = await supabase
         .from("family_members")
         .insert({
           family_id: family.id,
           user_id: existingProfile?.id || null,
-          linked_user_id: existingProfile?.id || null, // CRÍTICO: Vincula automaticamente se usuário existe
+          linked_user_id: existingProfile?.id || null,
           name,
           email: email.toLowerCase(),
           role,
@@ -108,6 +118,8 @@ export function useInviteFamilyMember() {
     onError: (error) => {
       if (error.message.includes("duplicate")) {
         toast.error("Este email já foi convidado");
+      } else if (error.message.includes("não pode se adicionar")) {
+        toast.error(error.message);
       } else {
         toast.error("Erro ao convidar: " + error.message);
       }
