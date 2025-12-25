@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationButton } from "./NotificationButton";
+import { MonthSelector } from "./MonthSelector";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -82,6 +83,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                 pé de meia
               </span>
             </Link>
+
+            {/* Month Selector - Center */}
+            <div className="hidden sm:flex">
+              <MonthSelector />
+            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1">

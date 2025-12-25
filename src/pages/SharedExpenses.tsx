@@ -38,21 +38,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Users,
-  ArrowRight,
   Plus,
   Plane,
   History,
   Wallet,
-  CheckCircle2,
   Loader2,
   MoreHorizontal,
   Undo2,
   Layers,
   ChevronDown,
   ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
+  TrendingUp,
+  CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -60,18 +58,20 @@ import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
-import { format, addMonths, subMonths, startOfMonth } from "date-fns";
+import { useMonth } from "@/contexts/MonthContext";
+import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
+import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
-  const [currentDate, setCurrentDate] = useState(() => startOfMonth(new Date()));
+  const { currentDate } = useMonth();
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -93,14 +93,10 @@ export function SharedExpenses() {
   const { data: trips = [] } = useTrips();
   const createTransaction = useCreateTransaction();
 
-  const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch } = useSharedFinances({
+  const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
     currentDate,
     activeTab,
   });
-
-  const goToPrevMonth = () => setCurrentDate(prev => subMonths(prev, 1));
-  const goToNextMonth = () => setCurrentDate(prev => addMonths(prev, 1));
-  const goToCurrentMonth = () => setCurrentDate(startOfMonth(new Date()));
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -355,34 +351,12 @@ export function SharedExpenses() {
         </div>
       </div>
 
-      {/* Month Selector */}
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goToPrevMonth}
-          className="h-9 w-9"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <button
-          onClick={goToCurrentMonth}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors"
-        >
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium capitalize min-w-[140px] text-center">
-            {format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })}
-          </span>
-        </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={goToNextMonth}
-          className="h-9 w-9"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
+      {/* Balance Evolution Chart */}
+      <SharedBalanceChart 
+        transactions={transactions} 
+        invoices={invoices} 
+        currentDate={currentDate} 
+      />
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4 py-4 px-6 rounded-xl bg-muted/50 border border-border">
