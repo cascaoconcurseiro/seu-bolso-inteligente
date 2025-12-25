@@ -280,10 +280,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shared_transaction_mirrors_mirror_transaction_id_fkey"
+            columns: ["mirror_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "shared_transaction_mirrors_original_transaction_id_fkey"
             columns: ["original_transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_transaction_mirrors_original_transaction_id_fkey"
+            columns: ["original_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
             referencedColumns: ["id"]
           },
         ]
@@ -344,10 +358,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transaction_splits_settled_transaction_id_fkey"
+            columns: ["settled_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transaction_splits_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
             referencedColumns: ["id"]
           },
           {
@@ -365,6 +393,7 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          creator_user_id: string | null
           current_installment: number | null
           date: string
           description: string
@@ -395,6 +424,7 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          creator_user_id?: string | null
           current_installment?: number | null
           date: string
           description: string
@@ -425,6 +455,7 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          creator_user_id?: string | null
           current_installment?: number | null
           date?: string
           description?: string
@@ -491,6 +522,13 @@ export type Database = {
             columns: ["source_transaction_id"]
             isOneToOne: false
             referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_source_transaction_id_fkey"
+            columns: ["source_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
             referencedColumns: ["id"]
           },
           {
@@ -714,14 +752,131 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_shared_expenses: {
+        Row: {
+          amount: number | null
+          category_id: string | null
+          created_at: string | null
+          creditor_user_id: string | null
+          current_installment: number | null
+          date: string | null
+          description: string | null
+          id: string | null
+          is_installment: boolean | null
+          is_settled: boolean | null
+          is_shared: boolean | null
+          original_creator_id: string | null
+          series_id: string | null
+          source_transaction_id: string | null
+          total_installments: number | null
+          transaction_origin: string | null
+          trip_id: string | null
+          type: Database["public"]["Enums"]["transaction_type"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          creditor_user_id?: never
+          current_installment?: number | null
+          date?: string | null
+          description?: string | null
+          id?: string | null
+          is_installment?: boolean | null
+          is_settled?: boolean | null
+          is_shared?: boolean | null
+          original_creator_id?: never
+          series_id?: string | null
+          source_transaction_id?: string | null
+          total_installments?: number | null
+          transaction_origin?: never
+          trip_id?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          creditor_user_id?: never
+          current_installment?: number | null
+          date?: string | null
+          description?: string | null
+          id?: string | null
+          is_installment?: boolean | null
+          is_settled?: boolean | null
+          is_shared?: boolean | null
+          original_creator_id?: never
+          series_id?: string | null
+          source_transaction_id?: string | null
+          total_installments?: number | null
+          transaction_origin?: never
+          trip_id?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_source_transaction_id_fkey"
+            columns: ["source_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_source_transaction_id_fkey"
+            columns: ["source_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "v_shared_expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      calculate_balance_with_member: {
+        Args: { p_member_id: string; p_user_id: string }
+        Returns: {
+          credits: number
+          debits: number
+          net: number
+          pending_items: number
+        }[]
+      }
       calculate_dynamic_balance: {
         Args: { p_other_user_id: string; p_user_id: string }
         Returns: number
       }
       get_user_family_id: { Args: { _user_id: string }; Returns: string }
+      has_family_link: {
+        Args: { p_other_user_id: string; p_user_id: string }
+        Returns: boolean
+      }
       is_family_member: {
         Args: { _family_id: string; _user_id: string }
         Returns: boolean
