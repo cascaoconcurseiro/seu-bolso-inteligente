@@ -66,10 +66,13 @@ export function InviteMemberDialog({
 
         if (data) {
           setUserExists(true);
-          setFoundUser({ id: data.id, full_name: data.full_name });
-          // Auto-fill name if found
-          if (data.full_name && !name) {
-            setName(data.full_name);
+          setFoundUser({ 
+            id: data.id, 
+            full_name: data.full_name || data.email.split('@')[0] // Fallback para parte do email
+          });
+          // Auto-fill name if found and not already filled
+          if (!name) {
+            setName(data.full_name || data.email.split('@')[0]);
           }
         } else {
           setUserExists(false);
