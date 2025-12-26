@@ -44,6 +44,7 @@ import { useFamilyMembers } from '@/hooks/useFamily';
 import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
+import { validateTransaction, ValidationResult } from '@/services/validationService';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -79,6 +80,10 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
   // Duplicate detection
   const [duplicateWarning, setDuplicateWarning] = useState(false);
+  
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 
   // Criar categorias padrão se não existirem
   useEffect(() => {
