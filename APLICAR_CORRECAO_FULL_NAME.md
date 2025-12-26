@@ -7,6 +7,8 @@ Corrige o problema de `full_name = NULL` nos profiles, que estava causando:
 - ❌ Nome não aparecendo na interface
 - ❌ Problemas ao adicionar membros da família
 
+**IMPORTANTE**: O sistema usa **EMAIL** como identificador único. O nome é apenas para exibição e será puxado automaticamente do que está cadastrado no profile. Se não houver nome, usa a parte do email antes do @.
+
 ## 📋 Passo a Passo
 
 ### 1. Abrir SQL Editor do Supabase
@@ -45,7 +47,9 @@ Se aparecer `sem_nome: 0`, está tudo certo! ✅
 3. Clique em **"Adicionar Membro"**
 4. Digite: `francy.von@gmail.com`
 5. Aguarde 1.5 segundos
-6. Deve aparecer: ✅ **"Usuário cadastrado: Fran"**
+6. Deve aparecer: ✅ **"Usuário cadastrado: [nome do profile]"**
+
+**Nota**: O nome exibido será o que está cadastrado no profile. O importante é que o email seja reconhecido.
 
 ### Teste 2: Criar Transação Compartilhada
 
@@ -57,7 +61,7 @@ Se aparecer `sem_nome: 0`, está tudo certo! ✅
    - Ir em "Família"
    - Adicionar membro: `francy.von@gmail.com`
    - Permissão: Editor
-   - Deve aparecer o nome "Fran" ✅
+   - Deve reconhecer o email e mostrar o nome do profile ✅
 
 3. **Criar transação compartilhada**:
    - Ir em "Nova Transação"
@@ -180,14 +184,14 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
 
 **Solução**: Execute manualmente:
 ```sql
+-- Atualiza TODOS os profiles com full_name NULL
+-- Usa a parte do email antes do @ como nome
 UPDATE profiles 
-SET full_name = 'Wesley'
-WHERE email = 'wesley.diaslima@gmail.com';
-
-UPDATE profiles 
-SET full_name = 'Fran'
-WHERE email = 'francy.von@gmail.com';
+SET full_name = INITCAP(SPLIT_PART(email, '@', 1))
+WHERE full_name IS NULL OR full_name = '';
 ```
+
+**Nota**: O sistema usa EMAIL como identificador. O nome é apenas para exibição.
 
 ### Transação não aparece para Fran
 

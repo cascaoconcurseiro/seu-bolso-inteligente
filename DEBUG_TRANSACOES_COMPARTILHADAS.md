@@ -53,12 +53,14 @@ VITE_SUPABASE_PUBLISHABLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 **Impacto**:
 - Validação de email mostra "usuário não cadastrado" mesmo quando existe
 - Nome não aparece na interface
-- Fallback usa parte do email, mas não é ideal
+- Sistema usa fallback (parte do email), mas precisa garantir que sempre tenha valor
 
 **Solução**:
-1. ✅ Atualizar profiles existentes com nomes corretos
+1. ✅ Atualizar profiles existentes com `full_name` (usa parte do email como fallback)
 2. ✅ Corrigir trigger `handle_new_user()` para sempre preencher `full_name`
 3. ✅ Melhorar validação em `InviteMemberDialog.tsx` (delay 1.5s + regex)
+
+**IMPORTANTE**: Sistema usa **EMAIL** como identificador único. Nome é apenas para exibição.
 
 ---
 
@@ -100,10 +102,12 @@ INSERT INTO categories (user_id, name, type, icon) VALUES ...
 **Arquivo**: `scripts/fix-profile-full-name.sql`
 
 **O que faz**:
-1. Atualiza profiles existentes com `full_name` correto
+1. Atualiza profiles existentes com `full_name` (usa parte do email como fallback)
 2. Corrige trigger `handle_new_user()` para sempre preencher `full_name`
-3. Adiciona fallback para usar parte do email se metadata não tiver nome
+3. Adiciona fallback: metadata → parte do email
 4. Adiciona verificações de status
+
+**IMPORTANTE**: Sistema usa EMAIL como identificador único. Nome é apenas para exibição.
 
 **Status**: 🔄 **AGUARDANDO APLICAÇÃO**
 

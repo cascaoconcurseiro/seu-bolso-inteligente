@@ -8,23 +8,14 @@
 
 -- 1. Atualizar profiles existentes com full_name NULL
 -- =====================================================
+-- IMPORTANTE: O sistema usa EMAIL como identificador único
+-- O nome é apenas para exibição e será puxado do que está cadastrado
 
--- Atualizar Wesley
-UPDATE profiles 
-SET full_name = 'Wesley'
-WHERE email = 'wesley.diaslima@gmail.com' 
-AND full_name IS NULL;
-
--- Atualizar Fran
-UPDATE profiles 
-SET full_name = 'Fran'
-WHERE email = 'francy.von@gmail.com' 
-AND full_name IS NULL;
-
--- Atualizar outros profiles com full_name NULL (usa parte do email como fallback)
+-- Atualizar profiles com full_name NULL (usa parte do email como fallback)
+-- Isso garante que sempre haverá um nome para exibir
 UPDATE profiles
 SET full_name = INITCAP(SPLIT_PART(email, '@', 1))
-WHERE full_name IS NULL;
+WHERE full_name IS NULL OR full_name = '';
 
 -- 2. Verificar profiles atualizados
 -- =====================================================
