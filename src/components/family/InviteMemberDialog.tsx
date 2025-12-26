@@ -57,14 +57,19 @@ export function InviteMemberDialog({
 
     const timer = setTimeout(async () => {
       setIsChecking(true);
+      console.log('🔍 DEBUG InviteMemberDialog - Buscando email:', email.trim().toLowerCase());
+      
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("id, full_name, email")
           .eq("email", email.trim().toLowerCase())
           .maybeSingle();
 
+        console.log('🔍 DEBUG InviteMemberDialog - Resultado da busca:', { data, error });
+
         if (data) {
+          console.log('✅ Usuário encontrado:', data);
           setUserExists(true);
           setFoundUser({ 
             id: data.id, 
@@ -75,11 +80,12 @@ export function InviteMemberDialog({
             setName(data.full_name || data.email.split('@')[0]);
           }
         } else {
+          console.log('❌ Usuário NÃO encontrado para email:', email.trim().toLowerCase());
           setUserExists(false);
           setFoundUser(null);
         }
       } catch (error) {
-        console.error("Error checking email:", error);
+        console.error("❌ Erro ao buscar email:", error);
         setUserExists(null);
         setFoundUser(null);
       } finally {
