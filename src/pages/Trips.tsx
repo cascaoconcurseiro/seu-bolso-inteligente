@@ -24,6 +24,7 @@ import {
   ListChecks,
   Route,
   Trash2,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -42,7 +43,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type TripView = "list" | "detail";
-type TripTab = "expenses" | "itinerary" | "checklist";
+type TripTab = "summary" | "expenses" | "itinerary" | "checklist";
 
 export function Trips() {
   const [view, setView] = useState<TripView>("list");
@@ -81,7 +82,7 @@ export function Trips() {
   const openTripDetail = (tripId: string) => {
     setSelectedTripId(tripId);
     setView("detail");
-    setActiveTab("expenses");
+    setActiveTab("summary");
   };
 
   const goBack = () => {
@@ -227,6 +228,10 @@ export function Trips() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TripTab)}>
           <TabsList className="w-full">
+            <TabsTrigger value="summary" className="flex-1 gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Resumo
+            </TabsTrigger>
             <TabsTrigger value="expenses" className="flex-1 gap-2">
               <DollarSign className="h-4 w-4" />
               Gastos
@@ -240,6 +245,113 @@ export function Trips() {
               Checklist
             </TabsTrigger>
           </TabsList>
+
+          {/* Summary Tab */}
+          <TabsContent value="summary" className="space-y-6 mt-6">
+            {/* Budget Progress */}
+            {selectedTrip.budget && (
+              <section className="space-y-4">
+                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                  Orçamento
+                </h2>
+                <div className="p-6 rounded-xl border border-border bg-muted/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Gasto Total</p>
+                      <p className="font-mono text-3xl font-bold">{formatCurrency(totalExpenses)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Orçamento</p>
+                      <p className="font-mono text-2xl font-medium">{formatCurrency(selectedTrip.budget)}</p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full transition-all rounded-full",
+                        totalExpenses > selectedTrip.budget
+                          ? "bg-destructive"
+                          : totalExpenses > selectedTrip.budget * 0.8
+                          ? "bg-amber-500"
+                          : "bg-positive"
+                      )}
+                      style={{ width: `${Math.min((totalExpenses / selectedTrip.budget) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      {((totalExpenses / selectedTrip.budget) * 100).toFixed(1)}% utilizado
+                    </p>
+                    <p className={cn(
+                      "text-xs font-medium",
+                      totalExpenses > selectedTrip.budget ? "text-destructive" : "text-positive"
+                    )}>
+                      {totalExpenses > selectedTrip.budget ? "Acima" : "Restam"} {formatCurrency(Math.abs(selectedTrip.budget - totalExpenses))}
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Participants Summary */}
+            {participants.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                  Participantes
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {balances.map((balance) => (
+                    <div key={balance.participantId} className="p-4 rounded-xl border border-border">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                          {getInitials(balance.name)}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium">{balance.name}</p>
+                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-border">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Saldo</span>
+                          <span className={cn(
+                            "font-mono font-semibold",
+                            balance.balance >= 0 ? "text-positive" : "text-negative"
+                          )}>
+                            {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Quick Stats */}
+            <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl border border-border text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Despesas</p>
+                <p className="font-mono text-2xl font-bold">{tripTransactions.filter(t => t.type === "EXPENSE").length}</p>
+              </div>
+              <div className="p-4 rounded-xl border border-border text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Média/Dia</p>
+                <p className="font-mono text-lg font-medium">
+                  {formatCurrency(totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))))}
+                </p>
+              </div>
+              <div className="p-4 rounded-xl border border-border text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Participantes</p>
+                <p className="font-mono text-2xl font-bold">{participants.length}</p>
+              </div>
+              <div className="p-4 rounded-xl border border-border text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por Pessoa</p>
+                <p className="font-mono text-lg font-medium">
+                  {participants.length > 0 ? formatCurrency(totalExpenses / participants.length) : formatCurrency(0)}
+                </p>
+              </div>
+            </section>
+          </TabsContent>
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-6 mt-6">

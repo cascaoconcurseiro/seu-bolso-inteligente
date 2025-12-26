@@ -56,16 +56,6 @@ const App = () => (
               }
             />
             <Route
-              path="/transacoes/nova"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <NewTransaction />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/contas"
               element={
                 <ProtectedRoute>

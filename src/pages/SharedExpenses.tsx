@@ -65,6 +65,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -74,6 +75,7 @@ export function SharedExpenses() {
   const { currentDate } = useMonth();
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
   const [settleAmount, setSettleAmount] = useState("");
@@ -344,7 +346,7 @@ export function SharedExpenses() {
             <Layers className="h-4 w-4 mr-2" />
             Importar Parcelas
           </Button>
-          <Button onClick={() => navigate("/transacoes/nova")}>
+          <Button onClick={() => setShowTransactionModal(true)}>
             <Plus className="h-5 w-5 mr-2" />
             Nova despesa
           </Button>
@@ -730,6 +732,12 @@ export function SharedExpenses() {
         onClose={() => setShowImportDialog(false)}
         members={members}
         onSuccess={() => refetch()}
+      />
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
       />
     </div>
   );

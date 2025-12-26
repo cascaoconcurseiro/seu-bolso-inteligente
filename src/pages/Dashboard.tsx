@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useFamilyMembers } from "@/hooks/useFamily";
+import { useSharedFinances } from "@/hooks/useSharedFinances";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -12,6 +15,9 @@ export function Dashboard() {
   const { data: transactions, isLoading: txLoading } = useTransactions();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: familyMembers = [] } = useFamilyMembers();
+  const { getSummary, getFilteredInvoice } = useSharedFinances({ activeTab: 'REGULAR' });
+  
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -31,12 +37,20 @@ export function Dashboard() {
   const creditCards = accounts?.filter(a => a.type === "CREDIT_CARD") || [];
   const creditCardsWithBalance = creditCards.filter(c => Number(c.balance) !== 0);
   
-  // Transações compartilhadas pendentes
-  const pendingShared = transactions?.filter(t => t.is_shared) || [];
+  // Transações compartilhadas pendentes - DADOS REAIS
+  const sharedSummary = getSummary();
+  const membersWithPendingBalance = familyMembers.filter(m => {
+    const items = getFilteredInvoice(m.id);
+    const unpaidItems = items.filter(i => !i.isPaid);
+    const balance = unpaidItems.reduce((sum, i) => {
+      return sum + (i.type === 'CREDIT' ? i.amount : -i.amount);
+    }, 0);
+    return balance > 0; // Apenas membros que me devem
+  });
 
   // Contadores para acesso rápido
   const cardInvoicesCount = creditCardsWithBalance.length;
-  const sharedPendingCount = pendingShared.length;
+  const sharedPendingCount = membersWithPendingBalance.length;
 
   if (isLoading) {
     return (
@@ -67,12 +81,14 @@ export function Dashboard() {
                 Adicionar conta
               </Button>
             </Link>
-            <Link to="/transacoes/nova">
-              <Button size="lg" className="gap-2">
-                <Plus className="h-5 w-5" />
-                Nova transação
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="gap-2"
+              onClick={() => setShowTransactionModal(true)}
+            >
+              <Plus className="h-5 w-5" />
+              Nova transação
+            </Button>
           </div>
         </div>
       </div>
@@ -107,12 +123,14 @@ export function Dashboard() {
           </div>
         </div>
         
-        <Link to="/transacoes/nova">
-          <Button size="lg" className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
-            <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
-            Nova transação
-          </Button>
-        </Link>
+        <Button 
+          size="lg" 
+          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => setShowTransactionModal(true)}
+        >
+          <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+          Nova transação
+        </Button>
       </div>
 
       {/* Main Grid */}
@@ -120,7 +138,7 @@ export function Dashboard() {
         {/* Left Column */}
         <div className="lg:col-span-8 space-y-8">
           {/* Precisa de Atenção */}
-          {(creditCardsWithBalance.length > 0 || pendingShared.length > 0) && (
+          {(creditCardsWithBalance.length > 0 || membersWithPendingBalance.length > 0) && (
             <div className="space-y-3">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Precisa de atenção
@@ -164,10 +182,14 @@ export function Dashboard() {
                   );
                 })}
 
-                {/* Divisões pendentes */}
-                {familyMembers.filter(m => m.status === 'active').slice(0, 2).map((member) => {
-                  // TODO: Calcular saldo real com cada membro
-                  const pendingAmount = 156; // Placeholder
+                {/* Divisões pendentes - DADOS REAIS */}
+                {membersWithPendingBalance.slice(0, 2).map((member) => {
+                  const items = getFilteredInvoice(member.id);
+                  const unpaidItems = items.filter(i => !i.isPaid);
+                  const pendingAmount = unpaidItems.reduce((sum, i) => {
+                    return sum + (i.type === 'CREDIT' ? i.amount : -i.amount);
+                  }, 0);
+                  
                   if (pendingAmount <= 0) return null;
                   
                   return (
@@ -183,7 +205,9 @@ export function Dashboard() {
                         </div>
                         <div>
                           <p className="font-medium">{member.name} te deve</p>
-                          <p className="text-sm text-muted-foreground">Divisão pendente</p>
+                          <p className="text-sm text-muted-foreground">
+                            {unpaidItems.length} {unpaidItems.length === 1 ? 'item' : 'itens'}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -216,12 +240,15 @@ export function Dashboard() {
             {recentTransactions.length === 0 ? (
               <div className="p-8 text-center border border-dashed border-border rounded-xl">
                 <p className="text-muted-foreground">Nenhuma transação ainda</p>
-                <Link to="/transacoes/nova">
-                  <Button variant="outline" size="sm" className="mt-4">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar primeira
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                  onClick={() => setShowTransactionModal(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar primeira
+                </Button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -327,6 +354,12 @@ export function Dashboard() {
           </div>
         </aside>
       </div>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
+      />
     </div>
   );
 }

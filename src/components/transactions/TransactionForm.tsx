@@ -11,12 +11,14 @@ import {
   Repeat,
   Plane,
   ChevronDown,
+  BellRing,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -33,6 +35,7 @@ import { useAccounts, Account } from '@/hooks/useAccounts';
 import { useCategories, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
+  useTransactions,
   TransactionType,
   TransactionSplit,
 } from '@/hooks/useTransactions';
@@ -40,6 +43,7 @@ import { useTrips } from '@/hooks/useTrips';
 import { useFamilyMembers } from '@/hooks/useFamily';
 import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
+import { differenceInDays, parseISO } from 'date-fns';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -49,6 +53,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: trips } = useTrips();
   const { data: familyMembers = [] } = useFamilyMembers();
+  const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
@@ -72,12 +77,41 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [payerId, setPayerId] = useState<string>('me');
   const [splits, setSplits] = useState<TransactionSplitData[]>([]);
 
+  // Duplicate detection
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
+
   // Criar categorias padrão se não existirem
   useEffect(() => {
     if (!categoriesLoading && categories?.length === 0) {
       createDefaultCategories.mutate();
     }
   }, [categoriesLoading, categories]);
+
+  // Detect duplicates
+  useEffect(() => {
+    const numericAmount = getNumericAmount();
+    if (!description || numericAmount === 0 || !date) {
+      setDuplicateWarning(false);
+      return;
+    }
+
+    const hasDuplicate = allTransactions.some((tx) => {
+      if (tx.type !== activeTab) return false;
+      
+      const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
+      const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
+                        description.toLowerCase().trim().includes(tx.description.toLowerCase());
+      
+      const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
+      const formDate = typeof date === 'string' ? parseISO(date) : date;
+      const daysDiff = Math.abs(differenceInDays(txDate, formDate));
+      const dateMatch = daysDiff <= 3;
+
+      return amountMatch && descMatch && dateMatch;
+    });
+
+    setDuplicateWarning(hasDuplicate);
+  }, [amount, description, date, activeTab, allTransactions]);
 
   const filteredCategories =
     categories?.filter((c) =>
@@ -254,6 +288,16 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
           </button>
         ))}
       </div>
+
+      {/* Duplicate Warning */}
+      {duplicateWarning && (
+        <Alert className="border-destructive/50 bg-destructive/10 animate-pulse">
+          <BellRing className="h-4 w-4 text-destructive" />
+          <AlertDescription className="text-destructive font-medium">
+            ⚠️ Possível transação duplicada detectada! Verifique se já não registrou esta despesa.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -521,8 +565,8 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
           </div>
         )}
 
-        {/* Installments (credit card only) */}
-        {isExpense && isCreditCard && (
+        {/* Installments (any expense) */}
+        {isExpense && (
           <div className="p-4 rounded-xl border border-border space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -550,12 +594,17 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                   <SelectContent>
                     {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
-                        {n}x de R${' '}
+                        {n}x de {selectedTrip ? selectedTrip.currency : 'R$'}{' '}
                         {(getNumericAmount() / n).toFixed(2).replace('.', ',')}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {!isCreditCard && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    ⚠️ Parcelamento em conta corrente: as parcelas serão debitadas mensalmente
+                  </p>
+                )}
               </div>
             )}
           </div>
