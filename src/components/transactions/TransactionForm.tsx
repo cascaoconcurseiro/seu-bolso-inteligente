@@ -11,6 +11,8 @@ import {
   Repeat,
   Plane,
   BellRing,
+  RotateCcw,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +78,19 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [payerId, setPayerId] = useState<string>('me');
   const [splits, setSplits] = useState<TransactionSplitData[]>([]);
+
+  // Reembolso
+  const [isRefund, setIsRefund] = useState(false);
+  const [refundOfTransactionId, setRefundOfTransactionId] = useState<string>('');
+
+  // Recorrência
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const [recurrenceDay, setRecurrenceDay] = useState(1);
+
+  // Notificações
+  const [enableNotification, setEnableNotification] = useState(false);
+  const [notificationDate, setNotificationDate] = useState<Date | undefined>();
 
   // Duplicate detection
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -207,7 +222,14 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         member_id: s.member_id,
         percentage: s.percentage,
         amount: s.amount
-      }))
+      })),
+      // Novos campos
+      is_refund: isRefund,
+      is_recurring: isRecurring,
+      frequency: isRecurring ? frequency : undefined,
+      recurrence_day: isRecurring && frequency === 'MONTHLY' ? recurrenceDay : undefined,
+      enable_notification: enableNotification,
+      notification_date: enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
     };
 
     // Buscar contas selecionadas
@@ -663,6 +685,120 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
             )}
           </div>
         )}
+
+        {/* Refund (any expense) */}
+        {isExpense && (
+          <div className="p-4 rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <RotateCcw className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">Reembolso</p>
+                  <p className="text-sm text-muted-foreground">
+                    Devolução de uma despesa anterior
+                  </p>
+                </div>
+              </div>
+              <Switch checked={isRefund} onCheckedChange={setIsRefund} />
+            </div>
+          </div>
+        )}
+
+        {/* Recurring (any type) */}
+        <div className="p-4 rounded-xl border border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Repeat className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">Recorrente</p>
+                <p className="text-sm text-muted-foreground">
+                  Repetir automaticamente
+                </p>
+              </div>
+            </div>
+            <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Frequência</Label>
+                <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY">Diariamente</SelectItem>
+                    <SelectItem value="WEEKLY">Semanalmente</SelectItem>
+                    <SelectItem value="MONTHLY">Mensalmente</SelectItem>
+                    <SelectItem value="YEARLY">Anualmente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {frequency === 'MONTHLY' && (
+                <div className="space-y-2">
+                  <Label>Dia do mês</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={recurrenceDay}
+                    onChange={(e) => setRecurrenceDay(parseInt(e.target.value) || 1)}
+                    placeholder="1-31"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dia em que a transação será repetida todo mês
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <div className="p-4 rounded-xl border border-border space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">Notificação</p>
+                <p className="text-sm text-muted-foreground">
+                  Lembrete antes do vencimento
+                </p>
+              </div>
+            </div>
+            <Switch checked={enableNotification} onCheckedChange={setEnableNotification} />
+          </div>
+
+          {enableNotification && (
+            <div className="space-y-2">
+              <Label>Data da notificação</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={notificationDate}
+                    onSelect={setNotificationDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-xs text-muted-foreground">
+                Você receberá um lembrete nesta data
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Notes */}
         <div className="space-y-2">

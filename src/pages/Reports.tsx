@@ -90,6 +90,49 @@ export function Reports() {
       .slice(0, 10); // Top 10 categorias
   }, [periodTransactions]);
 
+  // Gastos por pessoa
+  const personData = useMemo(() => {
+    const personMap: Record<string, { 
+      name: string;
+      spent: number; 
+      received: number;
+      balance: number;
+      count: number;
+    }> = {};
+    
+    // Processar transações compartilhadas
+    periodTransactions.forEach(tx => {
+      if (tx.is_shared && tx.transaction_splits) {
+        tx.transaction_splits.forEach(split => {
+          const member = familyMembers.find(m => m.id === split.member_id);
+          const memberName = member?.name || 'Desconhecido';
+          
+          if (!personMap[memberName]) {
+            personMap[memberName] = { name: memberName, spent: 0, received: 0, balance: 0, count: 0 };
+          }
+          
+          // Se a pessoa pagou
+          if (tx.payer_id === split.member_id) {
+            personMap[memberName].spent += Number(tx.amount);
+          } else {
+            // Se a pessoa deve
+            personMap[memberName].received += Number(split.amount);
+          }
+          
+          personMap[memberName].count += 1;
+        });
+      }
+    });
+    
+    // Calcular balanço
+    Object.values(personMap).forEach(person => {
+      person.balance = person.spent - person.received;
+    });
+    
+    return Object.values(personMap)
+      .sort((a, b) => b.spent - a.spent);
+  }, [periodTransactions, familyMembers]);
+
   // Evolução mensal (últimos 6 meses)
   const monthlyData = useMemo(() => {
     const months = [];
@@ -178,6 +221,30 @@ export function Reports() {
           <p className="text-muted-foreground mt-1">Análise das suas finanças</p>
         </div>
         <div className="flex gap-2">
+          {/* Month Selector */}
+          <div className="flex items-center gap-2 p-1 rounded-lg border border-border bg-muted/30">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+              className="h-8 px-2"
+            >
+              ←
+            </Button>
+            <div className="px-3 text-sm font-medium min-w-[120px] text-center">
+              {formatDate(selectedMonth, "MMMM yyyy", { locale: ptBR })}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedMonth(subMonths(selectedMonth, -1))}
+              className="h-8 px-2"
+              disabled={selectedMonth >= new Date()}
+            >
+              →
+            </Button>
+          </div>
+          
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-36">
               <Calendar className="h-4 w-4 mr-2" />
@@ -335,22 +402,48 @@ export function Reports() {
         </section>
 
         {/* By Person */}
-        {peopleData.length > 0 && (
+        {personData.length > 0 && (
           <section className="p-6 rounded-xl border border-border lg:col-span-2">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">
-              Resumo por Pessoa
+              Gastos por Pessoa
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Pessoa</th>
-                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Entradas</th>
-                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Saídas</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Pagou</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Deve</th>
                     <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Saldo</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Transações</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {personData.map((person) => (
+                    <tr key={person.name} className="border-b border-border last:border-0">
+                      <td className="py-3 px-4 font-medium">{person.name}</td>
+                      <td className="py-3 px-4 text-right font-mono text-positive">
+                        {formatCurrency(person.spent)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-negative">
+                        {formatCurrency(person.received)}
+                      </td>
+                      <td className={cn(
+                        "py-3 px-4 text-right font-mono font-semibold",
+                        person.balance >= 0 ? "text-positive" : "text-negative"
+                      )}>
+                        {person.balance >= 0 ? "+" : ""}{formatCurrency(person.balance)}
+                      </td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">
+                        {person.count}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
                   {peopleData.map((person) => (
                     <tr key={person.name} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                       <td className="py-4 px-4">

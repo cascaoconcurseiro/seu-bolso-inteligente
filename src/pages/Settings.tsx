@@ -57,6 +57,9 @@ export function Settings() {
   const [newAccountType, setNewAccountType] = useState<string>("CHECKING");
   const [newAccountBankId, setNewAccountBankId] = useState("");
   const [newAccountBalance, setNewAccountBalance] = useState("");
+  const [newAccountCreditLimit, setNewAccountCreditLimit] = useState("");
+  const [newAccountCurrency, setNewAccountCurrency] = useState("BRL");
+  const [newAccountIsInternational, setNewAccountIsInternational] = useState(false);
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryType, setNewCategoryType] = useState<"expense" | "income">("expense");
@@ -87,12 +90,18 @@ export function Settings() {
       type: newAccountType as any,
       bank_id: newAccountBankId || null,
       balance: parseFloat(newAccountBalance) || 0,
+      credit_limit: newAccountType === 'CREDIT_CARD' ? parseFloat(newAccountCreditLimit) || null : null,
+      currency: newAccountIsInternational ? newAccountCurrency : 'BRL',
+      is_international: newAccountIsInternational,
     });
     setShowAddAccountDialog(false);
     setNewAccountName("");
     setNewAccountType("CHECKING");
     setNewAccountBankId("");
     setNewAccountBalance("");
+    setNewAccountCreditLimit("");
+    setNewAccountCurrency("BRL");
+    setNewAccountIsInternational(false);
   };
 
   const handleCreateCategory = async () => {
@@ -441,11 +450,28 @@ export function Settings() {
                 <SelectContent>
                   <SelectItem value="CHECKING">Conta Corrente</SelectItem>
                   <SelectItem value="SAVINGS">Poupança</SelectItem>
+                  <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
                   <SelectItem value="INVESTMENT">Investimento</SelectItem>
                   <SelectItem value="CASH">Dinheiro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Limite de Crédito (apenas para cartões) */}
+            {newAccountType === 'CREDIT_CARD' && (
+              <div className="space-y-2">
+                <Label>Limite de Crédito</Label>
+                <Input 
+                  placeholder="5000"
+                  value={newAccountCreditLimit}
+                  onChange={(e) => setNewAccountCreditLimit(e.target.value.replace(/[^\d.-]/g, ""))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Obrigatório para cartões de crédito
+                </p>
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label>Banco (opcional)</Label>
               <Select value={newAccountBankId} onValueChange={setNewAccountBankId}>
@@ -467,6 +493,42 @@ export function Settings() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Conta Internacional */}
+            <div className="p-4 rounded-xl border border-border space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Conta Internacional</p>
+                  <p className="text-sm text-muted-foreground">Moeda diferente de BRL</p>
+                </div>
+                <Switch 
+                  checked={newAccountIsInternational} 
+                  onCheckedChange={setNewAccountIsInternational} 
+                />
+              </div>
+              
+              {newAccountIsInternational && (
+                <div className="space-y-2">
+                  <Label>Moeda</Label>
+                  <Select value={newAccountCurrency} onValueChange={setNewAccountCurrency}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                      <SelectItem value="EUR">EUR - Euro</SelectItem>
+                      <SelectItem value="GBP">GBP - Libra Esterlina</SelectItem>
+                      <SelectItem value="JPY">JPY - Iene Japonês</SelectItem>
+                      <SelectItem value="CAD">CAD - Dólar Canadense</SelectItem>
+                      <SelectItem value="AUD">AUD - Dólar Australiano</SelectItem>
+                      <SelectItem value="CHF">CHF - Franco Suíço</SelectItem>
+                      <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
+                      <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                      <SelectItem value="CLP">CLP - Peso Chileno</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
             <div className="space-y-2">
               <Label>Saldo inicial</Label>
               <Input 
@@ -480,7 +542,11 @@ export function Settings() {
             <Button variant="outline" onClick={() => setShowAddAccountDialog(false)}>Cancelar</Button>
             <Button 
               onClick={handleCreateAccount}
-              disabled={createAccount.isPending || !newAccountName}
+              disabled={
+                createAccount.isPending || 
+                !newAccountName ||
+                (newAccountType === 'CREDIT_CARD' && !newAccountCreditLimit)
+              }
             >
               {createAccount.isPending ? "Adicionando..." : "Adicionar"}
             </Button>
