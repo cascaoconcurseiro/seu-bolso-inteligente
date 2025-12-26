@@ -186,6 +186,15 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
     const transactionSplits = buildSplitsForSubmit();
     const isShared = transactionSplits.length > 0 || payerId !== 'me';
 
+    // DEBUG: Verificar splits antes de enviar
+    console.log('🔍 DEBUG TransactionForm - Splits:', {
+      splits: splits,
+      transactionSplits: transactionSplits,
+      payerId: payerId,
+      isShared: isShared,
+      amount: numericAmount
+    });
+
     await createTransaction.mutateAsync({
       amount: numericAmount,
       description: description.trim(),
