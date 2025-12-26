@@ -13,6 +13,7 @@ export interface FamilyMember {
   name: string;
   email: string | null;
   role: FamilyRole;
+  avatar_url: string | null;
   status: "pending" | "active";
   invited_by: string | null;
   created_at: string;

@@ -159,7 +159,7 @@ export function useCreateTransaction() {
           
           transactions.push({
             user_id: user.id,
-            creator_user_id: user.id,
+            creator_user_id: user.id, // Rastrear quem criou
             ...transactionData,
             amount: installmentAmount,
             date: formattedDate,
@@ -229,7 +229,7 @@ export function useCreateTransaction() {
         .from("transactions")
         .insert({
           user_id: user.id,
-          creator_user_id: user.id,
+          creator_user_id: user.id, // Rastrear quem criou
           ...transactionData,
         })
         .select()
