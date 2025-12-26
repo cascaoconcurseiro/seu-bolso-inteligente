@@ -73,7 +73,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       const { data, error } = await supabase
         .from('transactions')
-        .select('*')
+        .select(`
+          *,
+          source_transaction:source_transaction_id (
+            user_id
+          )
+        `)
         .eq('user_id', user.id)
         .eq('is_shared', true)
         .not('source_transaction_id', 'is', null)
@@ -133,15 +138,30 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     // CASE 2: SOMEONE ELSE PAID - Process mirror transactions (DEBITS)
-    mirrorTransactions.forEach(tx => {
+    mirrorTransactions.forEach((tx: any) => {
       if (tx.type !== 'EXPENSE') return;
-      if (!tx.payer_id) return;
       
       const txCurrency = 'BRL';
       
-      // Find the member who paid (by linked_user_id match)
-      const payerMember = members.find(m => m.linked_user_id === tx.payer_id);
-      const targetMemberId = payerMember?.id || tx.payer_id;
+      // Get payer user_id from source transaction
+      const payerUserId = tx.source_transaction?.user_id;
+      
+      if (!payerUserId) {
+        console.warn('Payer user_id not found for mirror transaction:', tx.id);
+        return;
+      }
+      
+      // Find the member who paid (by user_id or linked_user_id match)
+      const payerMember = members.find(m => 
+        m.user_id === payerUserId || m.linked_user_id === payerUserId
+      );
+      
+      if (!payerMember) {
+        console.warn('Payer member not found for user_id:', payerUserId);
+        return;
+      }
+      
+      const targetMemberId = payerMember.id;
       
       if (!invoiceMap[targetMemberId]) {
         invoiceMap[targetMemberId] = [];
@@ -149,7 +169,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       invoiceMap[targetMemberId].push({
         id: `${tx.id}-debit-${targetMemberId}`,
-        originalTxId: tx.id,
+        originalTxId: tx.source_transaction_id || tx.id,
         description: tx.description,
         date: tx.date,
         amount: tx.amount,
@@ -161,7 +181,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         currency: txCurrency,
         installmentNumber: tx.current_installment,
         totalInstallments: tx.total_installments,
-        creatorUserId: tx.payer_id
+        creatorUserId: payerUserId
       });
     });
 
