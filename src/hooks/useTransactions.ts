@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 export type TransactionType = "EXPENSE" | "INCOME" | "TRANSFER";
 export type TransactionDomain = "PERSONAL" | "SHARED" | "TRAVEL";
@@ -134,7 +135,11 @@ export function useCreateTransaction() {
       // Se é parcelamento, criar múltiplas transações
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
         const seriesId = crypto.randomUUID();
-        const installmentAmount = Number((input.amount / input.total_installments).toFixed(2));
+        // Usar calculadora segura para parcelamento
+        const installmentAmount = SafeFinancialCalculator.calculateInstallment(
+          input.amount,
+          input.total_installments
+        );
         const baseDate = new Date(input.date + 'T12:00:00'); // Fix timezone
         const baseDay = baseDate.getDate();
         
@@ -171,7 +176,7 @@ export function useCreateTransaction() {
 
         if (error) throw error;
 
-        // Se tem splits, criar para cada parcela
+        // CORREÇÃO: Se tem splits, criar para cada parcela com valor correto
         if (splits && splits.length > 0) {
           const { data: membersData } = await supabase
             .from("family_members")
@@ -184,20 +189,34 @@ export function useCreateTransaction() {
           });
 
           for (const transaction of data) {
-            const splitsToInsert = splits.map(split => ({
-              transaction_id: transaction.id,
-              member_id: split.member_id,
-              percentage: split.percentage,
-              amount: Number(((transaction.amount * split.percentage) / 100).toFixed(2)),
-              name: memberNames[split.member_id] || "Membro",
-            }));
+            // IMPORTANTE: Calcular splits sobre o valor DA PARCELA, não do total
+            // Usar SafeFinancialCalculator para garantir precisão
+            const splitsToInsert = splits.map(split => {
+              const splitAmount = SafeFinancialCalculator.percentage(
+                transaction.amount,
+                split.percentage
+              );
+              
+              return {
+                transaction_id: transaction.id,
+                member_id: split.member_id,
+                percentage: split.percentage,
+                amount: splitAmount,
+                name: memberNames[split.member_id] || "Membro",
+                is_settled: false,
+              };
+            });
 
             await supabase.from("transaction_splits").insert(splitsToInsert);
             
             // Marcar transação como compartilhada
             await supabase
               .from("transactions")
-              .update({ is_shared: true, domain: input.trip_id ? "TRAVEL" : "SHARED" })
+              .update({ 
+                is_shared: true, 
+                domain: input.trip_id ? "TRAVEL" : "SHARED",
+                payer_id: input.payer_id || null
+              })
               .eq("id", transaction.id);
           }
         }
@@ -238,6 +257,7 @@ export function useCreateTransaction() {
           percentage: split.percentage,
           amount: split.amount,
           name: memberNames[split.member_id] || "Membro",
+          is_settled: false,
         }));
 
         const { error: splitsError } = await supabase
@@ -250,7 +270,11 @@ export function useCreateTransaction() {
           // Atualizar transação para is_shared = true e disparar sync
           await supabase
             .from("transactions")
-            .update({ is_shared: true, domain: input.trip_id ? "TRAVEL" : "SHARED" })
+            .update({ 
+              is_shared: true, 
+              domain: input.trip_id ? "TRAVEL" : "SHARED",
+              payer_id: input.payer_id || null
+            })
             .eq("id", data.id);
         }
       }
