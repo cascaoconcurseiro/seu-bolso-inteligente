@@ -10,7 +10,6 @@ import {
   ArrowUpRight,
   Repeat,
   Plane,
-  ChevronDown,
   BellRing,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAccounts, Account } from '@/hooks/useAccounts';
+import { useAccounts } from '@/hooks/useAccounts';
 import { useCategories, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
@@ -44,7 +43,7 @@ import { useFamilyMembers } from '@/hooks/useFamily';
 import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
-import { validateTransaction, ValidationResult } from '@/services/validationService';
+import { validateTransaction } from '@/services/validationService';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -84,6 +83,8 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
 
   // Criar categorias padrão se não existirem
   useEffect(() => {
@@ -164,43 +165,29 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
     }));
   };
 
+  const performSubmit = async (transactionData: any) => {
+    await createTransaction.mutateAsync(transactionData);
+
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      navigate('/transacoes');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Limpar erros anteriores
+    setValidationErrors([]);
+    setValidationWarnings([]);
+
     const numericAmount = getNumericAmount();
-    if (numericAmount <= 0) {
-      toast.error('Insira um valor válido');
-      return;
-    }
-
-    if (!description.trim()) {
-      toast.error('Insira uma descrição');
-      return;
-    }
-
-    if (activeTab !== 'TRANSFER' && !accountId && payerId === 'me') {
-      toast.error('Selecione uma conta');
-      return;
-    }
-
-    if (activeTab === 'TRANSFER' && (!accountId || !destinationAccountId)) {
-      toast.error('Selecione as contas de origem e destino');
-      return;
-    }
-
     const transactionSplits = buildSplitsForSubmit();
     const isShared = transactionSplits.length > 0 || payerId !== 'me';
 
-    // DEBUG: Verificar splits antes de enviar
-    console.log('🔍 DEBUG TransactionForm - Splits:', {
-      splits: splits,
-      transactionSplits: transactionSplits,
-      payerId: payerId,
-      isShared: isShared,
-      amount: numericAmount
-    });
-
-    await createTransaction.mutateAsync({
+    // Preparar dados da transação
+    const transactionData = {
       amount: numericAmount,
       description: description.trim(),
       date: format(date, 'yyyy-MM-dd'),
@@ -216,12 +203,50 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
       total_installments: isInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
       splits: transactionSplits,
-    });
+      transaction_splits: transactionSplits.map(s => ({
+        member_id: s.member_id,
+        percentage: s.percentage,
+        amount: s.amount
+      }))
+    };
 
-    if (onSuccess) {
-      onSuccess();
-    } else {
-      navigate('/transacoes');
+    // Buscar contas selecionadas
+    const selectedAccount = accounts?.find(a => a.id === accountId);
+    const destinationAccount = accounts?.find(a => a.id === destinationAccountId);
+
+    // VALIDAÇÃO COMPLETA
+    const validation = validateTransaction(
+      transactionData,
+      selectedAccount,
+      destinationAccount,
+      selectedTrip,
+      allTransactions
+    );
+
+    // Se houver erros, mostrar e parar
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      toast.error('Corrija os erros antes de continuar');
+      return;
+    }
+
+    // Se houver warnings, pedir confirmação
+    if (validation.warnings.length > 0) {
+      setValidationWarnings(validation.warnings);
+      setPendingSubmit(transactionData);
+      setShowWarningModal(true);
+      return;
+    }
+
+    // Se passou todas validações, submeter
+    await performSubmit(transactionData);
+  };
+
+  const handleConfirmWarnings = async () => {
+    setShowWarningModal(false);
+    if (pendingSubmit) {
+      await performSubmit(pendingSubmit);
+      setPendingSubmit(null);
     }
   };
 
@@ -309,6 +334,21 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
           <BellRing className="h-4 w-4 text-destructive" />
           <AlertDescription className="text-destructive font-medium">
             ⚠️ Possível transação duplicada detectada! Verifique se já não registrou esta despesa.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Validation Errors */}
+      {validationErrors.length > 0 && (
+        <Alert className="border-destructive bg-destructive/10">
+          <BellRing className="h-4 w-4 text-destructive" />
+          <AlertDescription>
+            <p className="font-semibold text-destructive mb-2">Corrija os seguintes erros:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm text-destructive">
+              {validationErrors.map((error, idx) => (
+                <li key={idx}>{error}</li>
+              ))}
+            </ul>
           </AlertDescription>
         </Alert>
       )}
@@ -667,6 +707,54 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         totalInstallments={totalInstallments}
         setTotalInstallments={setTotalInstallments}
       />
+
+      {/* Warning Confirmation Modal */}
+      {showWarningModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-xl max-w-md w-full p-6 space-y-4 animate-fade-in">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                <BellRing className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2">Atenção</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Detectamos alguns avisos. Deseja continuar mesmo assim?
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-amber-600 dark:text-amber-400">
+                  {validationWarnings.map((warning, idx) => (
+                    <li key={idx}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowWarningModal(false);
+                  setPendingSubmit(null);
+                  setValidationWarnings([]);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleConfirmWarnings}
+                disabled={createTransaction.isPending}
+              >
+                {createTransaction.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Continuar'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

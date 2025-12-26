@@ -25,6 +25,7 @@ import {
   Route,
   Trash2,
   TrendingUp,
+  ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -41,9 +42,10 @@ import {
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { TripShopping } from "@/components/trips/TripShopping";
 
 type TripView = "list" | "detail";
-type TripTab = "summary" | "expenses" | "itinerary" | "checklist";
+type TripTab = "summary" | "expenses" | "shopping" | "itinerary" | "checklist";
 
 export function Trips() {
   const [view, setView] = useState<TripView>("list");
@@ -235,6 +237,10 @@ export function Trips() {
             <TabsTrigger value="expenses" className="flex-1 gap-2">
               <DollarSign className="h-4 w-4" />
               Gastos
+            </TabsTrigger>
+            <TabsTrigger value="shopping" className="flex-1 gap-2">
+              <ShoppingCart className="h-4 w-4" />
+              Compras
             </TabsTrigger>
             <TabsTrigger value="itinerary" className="flex-1 gap-2">
               <Route className="h-4 w-4" />
@@ -439,6 +445,20 @@ export function Trips() {
                 </div>
               )}
             </section>
+          </TabsContent>
+
+          {/* Shopping Tab */}
+          <TabsContent value="shopping" className="mt-6">
+            <TripShopping
+              trip={selectedTrip}
+              onUpdateTrip={async (updates) => {
+                await updateTrip.mutateAsync({
+                  id: selectedTrip.id,
+                  ...updates,
+                });
+              }}
+              isUpdating={updateTrip.isPending}
+            />
           </TabsContent>
 
           {/* Itinerary Tab */}

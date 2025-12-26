@@ -27,7 +27,12 @@ export interface Transaction {
   total_installments?: number;
   is_recurring?: boolean;
   frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  recurrence_day?: number;
   is_refund?: boolean;
+  refund_of_transaction_id?: string;
+  exchange_rate?: number;
+  destination_amount?: number;
+  destination_currency?: string;
   transaction_splits?: Array<{
     member_id: string;
     percentage: number;
