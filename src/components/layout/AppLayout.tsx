@@ -17,9 +17,6 @@ import {
   LogOut,
   UsersRound,
   Wallet,
-  PiggyBank,
-  Target,
-  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,9 +34,6 @@ const navigationItems = [
   { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
   { path: "/contas", label: "Contas", icon: Wallet },
   { path: "/cartoes", label: "Cartões", icon: CreditCard },
-  { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
-  { path: "/metas", label: "Metas", icon: Target },
-  { path: "/investimentos", label: "Investimentos", icon: TrendingUp },
   { path: "/compartilhados", label: "Compartilhados", icon: Users },
   { path: "/viagens", label: "Viagens", icon: Plane },
   { path: "/familia", label: "Família", icon: UsersRound },
@@ -89,11 +83,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                 pé de meia
               </span>
             </Link>
-
-            {/* Month Selector - Center */}
-            <div className="hidden sm:flex">
-              <MonthSelector />
-            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1">
@@ -205,6 +194,13 @@ export function AppLayout({ children }: AppLayoutProps) {
             </nav>
           </div>
         )}
+
+        {/* Month Selector - Below TopBar */}
+        <div className="border-t border-border bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-center">
+            <MonthSelector />
+          </div>
+        </div>
       </header>
 
       {/* Main Content */}
