@@ -16,7 +16,6 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTransactions, useDeleteTransaction, TransactionType } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
@@ -30,12 +29,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { FAB } from "@/components/ui/fab";
 
 export function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   const { data: transactions, isLoading } = useTransactions();
   const { data: categories } = useCategories();
@@ -90,12 +92,14 @@ export function Transactions() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Transações</h1>
           <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
         </div>
-        <Link to="/transacoes/nova">
-          <Button size="lg" className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
-            <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
-            Nova transação
-          </Button>
-        </Link>
+        <Button 
+          size="lg" 
+          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => setShowTransactionModal(true)}
+        >
+          <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+          Nova transação
+        </Button>
       </div>
 
       {/* Summary */}
@@ -182,12 +186,14 @@ export function Transactions() {
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border rounded-xl">
             <p className="text-muted-foreground">Nenhuma transação encontrada</p>
-            <Link to="/transacoes/nova">
-              <Button variant="ghost" className="mt-4 gap-2">
-                <Plus className="h-4 w-4" />
-                Adicionar primeira
-              </Button>
-            </Link>
+            <Button 
+              variant="ghost" 
+              className="mt-4 gap-2"
+              onClick={() => setShowTransactionModal(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Adicionar primeira
+            </Button>
           </div>
         ) : (
           filteredTransactions.map((transaction) => (
@@ -262,6 +268,15 @@ export function Transactions() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
+      />
+
+      {/* FAB for mobile */}
+      <FAB onClick={() => setShowTransactionModal(true)} className="sm:hidden" />
     </div>
   );
 }

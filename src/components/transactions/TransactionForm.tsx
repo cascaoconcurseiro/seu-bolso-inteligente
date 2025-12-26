@@ -43,7 +43,7 @@ import { SplitModal, TransactionSplitData } from './SplitModal';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
-export function TransactionForm() {
+export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
   const navigate = useNavigate();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -170,7 +170,11 @@ export function TransactionForm() {
       splits: transactionSplits,
     });
 
-    navigate('/transacoes');
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      navigate('/transacoes');
+    }
   };
 
   if (isLoading) {
@@ -203,7 +207,7 @@ export function TransactionForm() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={() => onCancel ? onCancel() : navigate(-1)}
           className="rounded-full"
         >
           <ArrowLeft className="h-5 w-5" />
