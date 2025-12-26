@@ -46,7 +46,10 @@ export function InviteMemberDialog({
 
   // Debounced email check
   useEffect(() => {
-    if (!email || !email.includes("@")) {
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email || !emailRegex.test(email.trim())) {
       setUserExists(null);
       setFoundUser(null);
       return;
@@ -58,7 +61,7 @@ export function InviteMemberDialog({
         const { data } = await supabase
           .from("profiles")
           .select("id, full_name, email")
-          .ilike("email", email.trim())
+          .eq("email", email.trim().toLowerCase())
           .maybeSingle();
 
         if (data) {
@@ -79,7 +82,7 @@ export function InviteMemberDialog({
       } finally {
         setIsChecking(false);
       }
-    }, 500);
+    }, 1500); // Aumentado para 1.5 segundos
 
     return () => clearTimeout(timer);
   }, [email]);
