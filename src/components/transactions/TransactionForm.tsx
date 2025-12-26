@@ -262,7 +262,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
           <Label>Valor</Label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-              R$
+              {selectedTrip ? selectedTrip.currency : 'R$'}
             </span>
             <Input
               type="text"
@@ -279,6 +279,12 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
               autoFocus
             />
           </div>
+          {selectedTrip && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Plane className="h-3 w-3" />
+              Moeda da viagem: {selectedTrip.currency}
+            </p>
+          )}
         </div>
 
         {/* Description */}
@@ -302,7 +308,10 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                   variant="outline"
                   className={cn(
                     "w-full h-12 justify-start text-left font-normal",
-                    selectedTrip && (date < selectedTrip.start_date || date > selectedTrip.end_date) && "border-amber-400"
+                    selectedTrip && (
+                      format(date, 'yyyy-MM-dd') < selectedTrip.start_date || 
+                      format(date, 'yyyy-MM-dd') > selectedTrip.end_date
+                    ) && "border-amber-400 dark:border-amber-600"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -318,9 +327,12 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                 />
               </PopoverContent>
             </Popover>
-            {selectedTrip && (date < selectedTrip.start_date || date > selectedTrip.end_date) && (
-              <p className="text-[10px] font-bold text-amber-600 leading-tight">
-                ⚠️ Fora do período da viagem
+            {selectedTrip && (
+              format(date, 'yyyy-MM-dd') < selectedTrip.start_date || 
+              format(date, 'yyyy-MM-dd') > selectedTrip.end_date
+            ) && (
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
+                ⚠️ Data fora do período da viagem ({format(new Date(selectedTrip.start_date), 'dd/MM/yy')} - {format(new Date(selectedTrip.end_date), 'dd/MM/yy')})
               </p>
             )}
           </div>
@@ -356,31 +368,46 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         </div>
 
         {/* Trip (optional - expenses only) */}
-        {isExpense && trips && trips.length > 0 && (
+        {isExpense && (
           <div className="space-y-2">
             <Label>Viagem (opcional)</Label>
-            <Select
-              value={tripId || 'none'}
-              onValueChange={(v) => setTripId(v === 'none' ? '' : v)}
-            >
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Vincular a uma viagem" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
-                {trips.map((trip) => (
-                  <SelectItem key={trip.id} value={trip.id}>
-                    <div className="flex items-center gap-2">
-                      <Plane className="h-4 w-4" />
-                      {trip.name}
-                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        {trip.currency}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {trips && trips.length > 0 ? (
+              <Select
+                value={tripId || 'none'}
+                onValueChange={(v) => setTripId(v === 'none' ? '' : v)}
+              >
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Vincular a uma viagem" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {trips.map((trip) => (
+                    <SelectItem key={trip.id} value={trip.id}>
+                      <div className="flex items-center gap-2">
+                        <Plane className="h-4 w-4" />
+                        {trip.name}
+                        <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          {trip.currency}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="h-12 flex items-center justify-between px-4 border border-dashed border-border rounded-lg">
+                <span className="text-sm text-muted-foreground">Nenhuma viagem cadastrada</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/viagens')}
+                  className="text-xs"
+                >
+                  Criar viagem
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
