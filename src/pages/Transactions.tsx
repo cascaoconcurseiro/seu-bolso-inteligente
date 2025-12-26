@@ -15,10 +15,16 @@ import {
   X,
   Loader2,
   Trash2,
+  Edit,
+  Lock,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTransactions, useDeleteTransaction, TransactionType } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
+import { useTransactionPermissions } from "@/hooks/usePermissions";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +44,12 @@ export function Transactions() {
   const [showFilters, setShowFilters] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
 
+  const { user } = useAuth();
   const { data: transactions, isLoading } = useTransactions();
   const { data: categories } = useCategories();
+  const { data: familyMembers = [] } = useFamilyMembers();
   const deleteTransaction = useDeleteTransaction();
 
   const formatCurrency = (value: number) => {
@@ -74,6 +83,21 @@ export function Transactions() {
       await deleteTransaction.mutateAsync(deleteId);
       setDeleteId(null);
     }
+  };
+
+  const handleEdit = (transaction: any) => {
+    setEditingTransaction(transaction);
+    setShowTransactionModal(true);
+  };
+
+  const getCreatorName = (creatorUserId: string | null) => {
+    if (!creatorUserId) return null;
+    if (creatorUserId === user?.id) return null; // É o próprio usuário
+    
+    const member = familyMembers.find(
+      m => m.user_id === creatorUserId || m.linked_user_id === creatorUserId
+    );
+    return member?.name || 'Outro membro';
   };
 
   if (isLoading) {
@@ -196,20 +220,41 @@ export function Transactions() {
             </Button>
           </div>
         ) : (
-          filteredTransactions.map((transaction) => (
+          filteredTransactions.map((transaction) => {
+            const creatorName = getCreatorName(transaction.creator_user_id);
+            const isCreator = transaction.creator_user_id === user?.id;
+            const isMirror = !!transaction.source_transaction_id;
+            const canEdit = isCreator || !isMirror;
+            const canDelete = isCreator;
+            
+            return (
             <div
               key={transaction.id}
               className="group flex items-center justify-between py-4 border-b border-border last:border-0 
                          hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg shrink-0">
                   {transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : transaction.type === "TRANSFER" ? "↔️" : "💸")}
                 </div>
-                <div>
-                  <p className="font-medium">{transaction.description}</p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{transaction.category?.name || (transaction.type === "TRANSFER" ? "Transferência" : "Sem categoria")}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium truncate">{transaction.description}</p>
+                    {isMirror && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                        <Lock className="h-3 w-3" />
+                        Espelhada
+                      </span>
+                    )}
+                    {creatorName && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">
+                        <User className="h-3 w-3" />
+                        {creatorName}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                    <span className="truncate">{transaction.category?.name || (transaction.type === "TRANSFER" ? "Transferência" : "Sem categoria")}</span>
                     <span>·</span>
                     <span>{formatDate(transaction.date)}</span>
                     {transaction.is_installment && transaction.current_installment && transaction.total_installments && (
@@ -229,7 +274,7 @@ export function Transactions() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <span className={cn(
                   "font-mono font-medium text-right",
                   transaction.type === "INCOME" ? "text-positive" : "text-foreground"
@@ -237,17 +282,38 @@ export function Transactions() {
                   {transaction.type === "INCOME" ? "+" : transaction.type === "EXPENSE" ? "-" : ""}
                   {formatCurrency(Number(transaction.amount))}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                  onClick={() => setDeleteId(transaction.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {canEdit && !isMirror && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-primary hover:text-primary"
+                      onClick={() => handleEdit(transaction)}
+                      title="Editar"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteId(transaction.id)}
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {!canEdit && !canDelete && (
+                    <div className="h-8 w-8 flex items-center justify-center text-muted-foreground" title="Somente leitura">
+                      <Lock className="h-4 w-4" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          ))
+          )})
         )}
       </div>
 
@@ -272,7 +338,11 @@ export function Transactions() {
       {/* Transaction Modal */}
       <TransactionModal
         isOpen={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
+        onClose={() => {
+          setShowTransactionModal(false);
+          setEditingTransaction(null);
+        }}
+        initialData={editingTransaction}
       />
 
       {/* FAB for mobile */}
