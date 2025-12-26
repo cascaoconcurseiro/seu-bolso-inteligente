@@ -1,329 +1,119 @@
-# ✅ Formulários Completos - Comparação PE vs Novo
+# 📋 ORDEM DOS CAMPOS - FORMULÁRIOS
 
-## 📋 Status Geral
+## 🎯 ORDEM CORRETA (PE COPY)
 
-Todos os formulários do PE foram migrados e adaptados ao design moderno do projeto novo!
+### 1. **HEADER**
+- Tabs: Despesa | Receita | Transferência
+- Botão Fechar (X)
 
-## 🎨 Seletor de Mês
+### 2. **ALERTAS** (se aplicável)
+- Badge "Editando" (se modo edição)
+- Alerta de Duplicata (se detectado)
 
-### ✅ Atualizado para Ficar Igual ao PE
+### 3. **VALOR** (destaque no topo)
+- Input grande centralizado
+- Moeda dinâmica (R$ / USD / etc)
+- Indicador de moeda da viagem (se vinculado)
 
-O seletor de mês agora tem:
-- ✅ Design compacto e arredondado
-- ✅ Transições suaves
-- ✅ Feedback visual imediato
-- ✅ Debounce para evitar múltiplas chamadas
-- ✅ Formato: "JAN/25" (igual ao PE)
-- ✅ Input invisível para seleção de mês
-- ✅ Botões de navegação prev/next
+### 4. **DESCRIÇÃO**
+- Input de texto simples
+- Placeholder: "Ex: Almoço, Uber, Salário"
 
-## 📝 Formulários por Página
+### 5. **DATA E CATEGORIA** (lado a lado)
+- **Coluna 1**: Data (com calendário)
+- **Coluna 2**: Categoria (dropdown)
+  - Alerta se data fora do período da viagem
 
-### 1. 🏦 Contas (Accounts)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Conta | ✅ | ✅ | Adaptado |
-| Editar Conta | ✅ | ✅ | Adaptado |
-| Deletar Conta | ✅ | ✅ | Adaptado |
+### 6. **VIAGEM** (apenas para Despesas)
+- Seletor de viagem (opcional)
+- Mostra moeda da viagem selecionada
+- Botão "Criar Viagem" se não houver nenhuma
 
-**Campos:**
-- Nome da conta
-- Tipo (Corrente, Poupança, Cartão, etc)
-- Saldo inicial
-- Cor/Ícone
-- Moeda
+### 7. **CONTA**
+- **Se payerId === 'me'**: Seletor de conta
+- **Se payerId !== 'me'**: Badge "Pago por [Nome]"
+- Para Transferências: Origem + Destino
 
-### 2. 💰 Transações (Transactions)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Nova Transação | ✅ | ✅ | Adaptado |
-| Editar Transação | ✅ | ✅ | Adaptado |
-| Deletar Transação | ✅ | ✅ | Adaptado |
-| Parcelar | ✅ | ✅ | Adaptado |
-| Antecipar Parcelas | ✅ | ✅ | Adaptado |
+### 8. **DIVISÃO/COMPARTILHAMENTO** (apenas para Despesas)
+- Card com ícone de Users
+- Botão "Dividir" ou "Editar"
+- Mostra resumo: "X pessoa(s) · Eu paguei/Outro pagou"
+- Mostra valor por pessoa
 
-**Campos:**
-- Tipo (Receita/Despesa/Transferência)
-- Valor
-- Descrição
-- Categoria
-- Conta
-- Data
-- Parcelas (se aplicável)
-- Compartilhado (sim/não)
-- Viagem (opcional)
+### 9. **PARCELAMENTO** (apenas para Despesas com Cartão de Crédito)
+- Switch "Parcelado"
+- Seletor de número de parcelas (2x a 12x)
+- Mostra valor de cada parcela
 
-### 3. 💳 Cartões de Crédito (Credit Cards)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Cartão | ✅ | ✅ | Adaptado |
-| Editar Cartão | ✅ | ✅ | Adaptado |
-| Deletar Cartão | ✅ | ✅ | Adaptado |
-| Importar Fatura | ✅ | ⏳ | Planejado |
+### 10. **RECORRÊNCIA** (opcional)
+- Switch "Recorrente"
+- Seletor de frequência
+- Dia da recorrência
 
-**Campos:**
-- Nome do cartão
-- Limite
-- Dia de fechamento
-- Dia de vencimento
-- Bandeira
-- Cor
+### 11. **LEMBRETE** (opcional)
+- Switch "Lembrete"
+- Data do lembrete
+- Opções de antecedência
 
-### 4. 🐷 Orçamentos (Budgets) - NOVO
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Orçamento | ✅ | ✅ | ✅ Implementado |
-| Editar Orçamento | ✅ | ✅ | ✅ Implementado |
-| Deletar Orçamento | ✅ | ✅ | ✅ Implementado |
+### 12. **OBSERVAÇÕES**
+- Textarea (opcional)
+- Placeholder: "Alguma anotação..."
 
-**Campos:**
-- Categoria
-- Valor do orçamento
-- Período (Mensal/Anual)
-- Data inicial
-- Data final (opcional)
-- Alerta em % (opcional)
-- Ativo (sim/não)
-
-**Componentes:**
-- ✅ `BudgetForm.tsx` - Formulário completo com validação
-- ✅ `BudgetCard.tsx` - Card com progresso visual
-
-### 5. 🎯 Metas (Goals) - NOVO
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Meta | ✅ | ✅ | ✅ Implementado |
-| Editar Meta | ✅ | ✅ | ✅ Implementado |
-| Deletar Meta | ✅ | ✅ | ✅ Implementado |
-| Adicionar Contribuição | ✅ | ✅ | ✅ Implementado |
-
-**Campos:**
-- Nome da meta
-- Descrição (opcional)
-- Valor alvo
-- Valor atual
-- Data alvo (opcional)
-- Categoria (opcional)
-- Prioridade (Baixa/Média/Alta)
-- Status (Em progresso/Concluída/Cancelada)
-- Conta vinculada (opcional)
-
-**Componentes:**
-- ✅ `GoalForm.tsx` - Formulário completo com validação
-- ✅ `GoalCard.tsx` - Card com progresso e contribuições
-
-### 6. 📈 Investimentos (Assets) - NOVO
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Investimento | ✅ | ✅ | ✅ Implementado |
-| Editar Investimento | ✅ | ✅ | ✅ Implementado |
-| Deletar Investimento | ✅ | ✅ | ✅ Implementado |
-| Atualizar Preço | ✅ | ✅ | ✅ Implementado |
-
-**Campos:**
-- Nome do investimento
-- Tipo (Ação/Título/Fundo/Cripto/Imóvel/Outro)
-- Ticker (opcional)
-- Quantidade
-- Preço de compra
-- Preço atual
-- Data de compra (opcional)
-- Conta vinculada (opcional)
-- Observações (opcional)
-
-**Componentes:**
-- ✅ `AssetForm.tsx` - Formulário completo com validação
-- ✅ `AssetCard.tsx` - Card com rentabilidade
-- ✅ `PortfolioChart.tsx` - Gráfico de alocação
-
-### 7. 👥 Compartilhados (Shared Expenses)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Despesa Compartilhada | ✅ | ✅ | Adaptado |
-| Editar Divisão | ✅ | ✅ | Adaptado |
-| Liquidar | ✅ | ✅ | Adaptado |
-
-**Campos:**
-- Transação base
-- Membros participantes
-- Divisão (igual/personalizada)
-- Valores por membro
-- Status de pagamento
-
-### 8. ✈️ Viagens (Trips)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Criar Viagem | ✅ | ✅ | Adaptado |
-| Editar Viagem | ✅ | ✅ | Adaptado |
-| Deletar Viagem | ✅ | ✅ | Adaptado |
-| Adicionar Despesa | ✅ | ✅ | Adaptado |
-
-**Campos:**
-- Nome da viagem
-- Destino
-- Data início
-- Data fim
-- Orçamento
-- Moeda
-- Participantes
-
-### 9. 👨‍👩‍👧 Família (Family)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Adicionar Membro | ✅ | ✅ | Adaptado |
-| Editar Membro | ✅ | ✅ | Adaptado |
-| Remover Membro | ✅ | ✅ | Adaptado |
-| Convidar por Email | ✅ | ✅ | Adaptado |
-
-**Campos:**
-- Nome do membro
-- Email (para convite)
-- Papel (Admin/Editor/Visualizador)
-- Cor/Avatar
-
-### 10. ⚙️ Configurações (Settings)
-| Formulário | PE | Novo | Status |
-|------------|----|----|--------|
-| Categorias Personalizadas | ✅ | ✅ | Adaptado |
-| Preferências | ✅ | ✅ | Adaptado |
-| Exportar Dados | ✅ | ⏳ | Planejado |
-| Factory Reset | ✅ | ⏳ | Planejado |
-
-**Campos:**
-- Nome da categoria
-- Tipo (Receita/Despesa)
-- Cor/Ícone
-- Moeda padrão
-- Tema (Claro/Escuro)
-
-## 🎨 Padrões de Design
-
-Todos os formulários seguem o mesmo padrão:
-
-### Estrutura
-```typescript
-<Form {...form}>
-  <form onSubmit={form.handleSubmit(handleSubmit)}>
-    {/* Campos do formulário */}
-    <FormField ... />
-    
-    {/* Botões de ação */}
-    <div className="flex gap-2 justify-end">
-      <Button variant="outline" onClick={onCancel}>
-        Cancelar
-      </Button>
-      <Button type="submit">
-        {isEdit ? 'Atualizar' : 'Criar'}
-      </Button>
-    </div>
-  </form>
-</Form>
-```
-
-### Validação
-- ✅ React Hook Form
-- ✅ Zod para schema
-- ✅ Mensagens de erro em português
-- ✅ Validação em tempo real
-
-### Feedback
-- ✅ Toasts de sucesso
-- ✅ Toasts de erro
-- ✅ Loading states
-- ✅ Disabled states
-
-## 📊 Comparação Completa
-
-| Funcionalidade | PE | Novo | Diferença |
-|----------------|----|----|-----------|
-| Contas | ✅ | ✅ | Design moderno |
-| Transações | ✅ | ✅ | Design moderno |
-| Cartões | ✅ | ✅ | Design moderno |
-| **Orçamentos** | ✅ | ✅ | **Implementado** |
-| **Metas** | ✅ | ✅ | **Implementado** |
-| **Investimentos** | ✅ | ✅ | **Implementado** |
-| Compartilhados | ✅ | ✅ | Design moderno |
-| Viagens | ✅ | ✅ | Design moderno |
-| Família | ✅ | ✅ | Design moderno |
-| Configurações | ✅ | ✅ | Design moderno |
-| **Seletor de Mês** | ✅ | ✅ | **Igual ao PE** |
-
-## ✅ Checklist de Formulários
-
-### Implementados
-- [x] Formulário de Conta
-- [x] Formulário de Transação
-- [x] Formulário de Cartão
-- [x] Formulário de Orçamento (NOVO)
-- [x] Formulário de Meta (NOVO)
-- [x] Formulário de Investimento (NOVO)
-- [x] Formulário de Despesa Compartilhada
-- [x] Formulário de Viagem
-- [x] Formulário de Membro da Família
-- [x] Formulário de Categoria Personalizada
-- [x] Seletor de Mês (Igual ao PE)
-
-### Planejados (Opcionais)
-- [ ] Importação de Fatura de Cartão
-- [ ] Exportação de Dados
-- [ ] Factory Reset
-- [ ] AI Advisor
-- [ ] Busca Global
-
-## 🎯 Diferenças de Design
-
-### PE (Antigo)
-- Design mais simples
-- Cores mais neutras
-- Menos animações
-
-### Novo (Atual)
-- Design moderno com shadcn/ui
-- Cores vibrantes
-- Animações suaves
-- Responsivo mobile-first
-- Dark mode completo
-- Acessibilidade melhorada
-
-## 🔍 Validações Implementadas
-
-Todos os formulários têm:
-
-### Validações de Campo
-- ✅ Campos obrigatórios
-- ✅ Tipos de dados corretos
-- ✅ Valores mínimos/máximos
-- ✅ Formatos específicos (email, data, etc)
-
-### Validações de Negócio
-- ✅ Valores positivos
-- ✅ Datas válidas
-- ✅ Relacionamentos corretos
-- ✅ Limites respeitados
-
-### Validações de UX
-- ✅ Feedback imediato
-- ✅ Mensagens claras
-- ✅ Prevenção de erros
-- ✅ Confirmações quando necessário
-
-## 🎉 Conclusão
-
-**Status:** ✅ TODOS OS FORMULÁRIOS IMPLEMENTADOS
-
-- ✅ 100% dos formulários do PE estão no projeto novo
-- ✅ Todos adaptados ao design moderno
-- ✅ Seletor de mês igual ao PE
-- ✅ Validações completas
-- ✅ Feedback visual
-- ✅ Responsivo
-- ✅ Dark mode
-
-**Resultado:** O projeto novo tem TODOS os formulários do PE, mas com design e UX superiores!
+### 13. **BOTÕES DE AÇÃO**
+- Botão "Salvar" (principal)
+- Botão "Atualizar Futuras" (se recorrente em edição)
 
 ---
 
-**Última Atualização:** 25 de Dezembro de 2025
+## ❌ ORDEM ATUAL (INCORRETA)
 
-**Total de Formulários:** 10+
-**Status:** ✅ Completo
+1. Header (Tabs + Fechar) ✅
+2. Valor ✅
+3. Descrição ✅
+4. Data ✅
+5. Conta ❌ **ERRADO - Deveria vir DEPOIS de Categoria e Viagem**
+6. Categoria ❌ **ERRADO - Deveria vir ANTES de Conta**
+7. Viagem ❌ **ERRADO - Deveria vir ANTES de Conta**
+8. Divisão/Compartilhamento ✅
+9. Parcelamento ✅
+10. Observações ✅
+11. Botão Salvar ✅
+
+---
+
+## 🔧 CORREÇÕES NECESSÁRIAS
+
+### Reordenar campos:
+1. ✅ Valor (já está correto)
+2. ✅ Descrição (já está correto)
+3. ✅ Data (já está correto)
+4. ❌ **MOVER**: Categoria (deve vir junto com Data, lado a lado)
+5. ❌ **MOVER**: Viagem (deve vir ANTES de Conta)
+6. ❌ **MOVER**: Conta (deve vir DEPOIS de Viagem)
+7. ✅ Divisão (já está correto)
+8. ✅ Parcelamento (já está correto)
+9. ✅ Observações (já está correto)
+
+### Adicionar campos faltantes:
+- ❌ **FALTA**: Recorrência (switch + frequência + dia)
+- ❌ **FALTA**: Lembrete (switch + data + opções)
+- ❌ **FALTA**: Botão "Atualizar Futuras" (para recorrentes)
+
+### Ajustar lógica:
+- ❌ **FALTA**: Parcelamento deve funcionar para QUALQUER despesa (não só cartão de crédito)
+- ❌ **FALTA**: Parcelamento deve estar no SplitModal (junto com divisão)
+- ❌ **FALTA**: Validação de data dentro do período da viagem
+- ❌ **FALTA**: Conversão de moeda para transferências internacionais
+
+---
+
+## 📝 PRÓXIMOS PASSOS
+
+1. Reordenar campos no TransactionForm.tsx
+2. Adicionar campos de Recorrência
+3. Adicionar campos de Lembrete
+4. Mover Parcelamento para SplitModal
+5. Adicionar validações de data da viagem
+6. Adicionar suporte a conversão de moeda
+7. Testar todos os fluxos
+

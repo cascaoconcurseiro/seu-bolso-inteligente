@@ -281,42 +281,110 @@ export function TransactionForm() {
         <div className="space-y-2">
           <Label>Descrição</Label>
           <Input
-            placeholder="Ex: Almoço, Salário, etc."
+            placeholder="Ex: Almoço, Uber, Salário"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="h-12"
           />
         </div>
 
-        {/* Date */}
-        <div className="space-y-2">
-          <Label>Data</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full h-12 justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && setDate(d)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+        {/* Date & Category (side by side) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Data</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full h-12 justify-start text-left font-normal",
+                    selectedTrip && (date < selectedTrip.start_date || date > selectedTrip.end_date) && "border-amber-400"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(date, "dd/MM/yy", { locale: ptBR })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {selectedTrip && (date < selectedTrip.start_date || date > selectedTrip.end_date) && (
+              <p className="text-[10px] font-bold text-amber-600 leading-tight">
+                ⚠️ Fora do período da viagem
+              </p>
+            )}
+          </div>
+
+          {/* Category */}
+          {!isTransfer ? (
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{cat.icon}</span>
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <div className="h-12 flex items-center justify-center bg-muted rounded-md">
+                <span className="text-xs font-bold text-muted-foreground">Automático</span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Trip (optional - expenses only) */}
+        {isExpense && trips && trips.length > 0 && (
+          <div className="space-y-2">
+            <Label>Viagem (opcional)</Label>
+            <Select
+              value={tripId || 'none'}
+              onValueChange={(v) => setTripId(v === 'none' ? '' : v)}
+            >
+              <SelectTrigger className="h-12">
+                <SelectValue placeholder="Vincular a uma viagem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhuma</SelectItem>
+                {trips.map((trip) => (
+                  <SelectItem key={trip.id} value={trip.id}>
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4" />
+                      {trip.name}
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                        {trip.currency}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Account */}
         {!isTransfer ? (
           payerId === 'me' && (
             <div className="space-y-2">
-              <Label>Conta</Label>
+              <Label>{isExpense ? 'Pagar com' : 'Receber em'}</Label>
               <Select value={accountId} onValueChange={setAccountId}>
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Selecione a conta" />
@@ -347,7 +415,7 @@ export function TransactionForm() {
         ) : (
           <>
             <div className="space-y-2">
-              <Label>Conta de Origem</Label>
+              <Label>Sai de (Origem)</Label>
               <Select value={accountId} onValueChange={setAccountId}>
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="De onde sai" />
@@ -362,7 +430,7 @@ export function TransactionForm() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Conta de Destino</Label>
+              <Label>Vai para (Destino)</Label>
               <Select
                 value={destinationAccountId}
                 onValueChange={setDestinationAccountId}
@@ -382,54 +450,6 @@ export function TransactionForm() {
               </Select>
             </div>
           </>
-        )}
-
-        {/* Category (not for transfers) */}
-        {!isTransfer && (
-          <div className="space-y-2">
-            <Label>Categoria</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    <div className="flex items-center gap-2">
-                      <span>{cat.icon}</span>
-                      {cat.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Trip (optional - expenses only) */}
-        {isExpense && trips && trips.length > 0 && (
-          <div className="space-y-2">
-            <Label>Viagem (opcional)</Label>
-            <Select
-              value={tripId || 'none'}
-              onValueChange={(v) => setTripId(v === 'none' ? '' : v)}
-            >
-              <SelectTrigger className="h-12">
-                <SelectValue placeholder="Vincular a uma viagem" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
-                {trips.map((trip) => (
-                  <SelectItem key={trip.id} value={trip.id}>
-                    <div className="flex items-center gap-2">
-                      <Plane className="h-4 w-4" />
-                      {trip.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         )}
 
         {/* Split / Share (expenses only) */}
@@ -477,9 +497,9 @@ export function TransactionForm() {
               <div className="flex items-center gap-3">
                 <RefreshCw className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">Parcelado</p>
+                  <p className="font-medium">Parcelar</p>
                   <p className="text-sm text-muted-foreground">
-                    Dividir em parcelas
+                    Dividir em parcelas mensais
                   </p>
                 </div>
               </div>
