@@ -27,6 +27,7 @@ export type Database = {
           due_day: number | null
           id: string
           is_active: boolean
+          is_international: boolean | null
           name: string
           type: Database["public"]["Enums"]["account_type"]
           updated_at: string
@@ -44,6 +45,7 @@ export type Database = {
           due_day?: number | null
           id?: string
           is_active?: boolean
+          is_international?: boolean | null
           name: string
           type?: Database["public"]["Enums"]["account_type"]
           updated_at?: string
@@ -61,6 +63,7 @@ export type Database = {
           due_day?: number | null
           id?: string
           is_active?: boolean
+          is_international?: boolean | null
           name?: string
           type?: Database["public"]["Enums"]["account_type"]
           updated_at?: string
@@ -148,6 +151,7 @@ export type Database = {
       }
       family_members: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string | null
           family_id: string
@@ -161,6 +165,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           family_id: string
@@ -174,6 +179,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           family_id?: string
@@ -365,21 +371,32 @@ export type Database = {
           amount: number
           category_id: string | null
           created_at: string
+          creator_user_id: string | null
           current_installment: number | null
           date: string
           description: string
           destination_account_id: string | null
+          destination_amount: number | null
+          destination_currency: string | null
           domain: Database["public"]["Enums"]["transaction_domain"]
+          enable_notification: boolean | null
+          exchange_rate: number | null
           external_id: string | null
+          frequency: string | null
           id: string
           is_installment: boolean
           is_recurring: boolean
+          is_refund: boolean | null
           is_settled: boolean
           is_shared: boolean
           notes: string | null
+          notification_date: string | null
           payer_id: string | null
+          recurrence_day: number | null
           recurrence_pattern: string | null
+          refund_of_transaction_id: string | null
           related_member_id: string | null
+          reminder_option: string | null
           series_id: string | null
           settled_at: string | null
           source_transaction_id: string | null
@@ -395,21 +412,32 @@ export type Database = {
           amount: number
           category_id?: string | null
           created_at?: string
+          creator_user_id?: string | null
           current_installment?: number | null
           date: string
           description: string
           destination_account_id?: string | null
+          destination_amount?: number | null
+          destination_currency?: string | null
           domain?: Database["public"]["Enums"]["transaction_domain"]
+          enable_notification?: boolean | null
+          exchange_rate?: number | null
           external_id?: string | null
+          frequency?: string | null
           id?: string
           is_installment?: boolean
           is_recurring?: boolean
+          is_refund?: boolean | null
           is_settled?: boolean
           is_shared?: boolean
           notes?: string | null
+          notification_date?: string | null
           payer_id?: string | null
+          recurrence_day?: number | null
           recurrence_pattern?: string | null
+          refund_of_transaction_id?: string | null
           related_member_id?: string | null
+          reminder_option?: string | null
           series_id?: string | null
           settled_at?: string | null
           source_transaction_id?: string | null
@@ -425,21 +453,32 @@ export type Database = {
           amount?: number
           category_id?: string | null
           created_at?: string
+          creator_user_id?: string | null
           current_installment?: number | null
           date?: string
           description?: string
           destination_account_id?: string | null
+          destination_amount?: number | null
+          destination_currency?: string | null
           domain?: Database["public"]["Enums"]["transaction_domain"]
+          enable_notification?: boolean | null
+          exchange_rate?: number | null
           external_id?: string | null
+          frequency?: string | null
           id?: string
           is_installment?: boolean
           is_recurring?: boolean
+          is_refund?: boolean | null
           is_settled?: boolean
           is_shared?: boolean
           notes?: string | null
+          notification_date?: string | null
           payer_id?: string | null
+          recurrence_day?: number | null
           recurrence_pattern?: string | null
+          refund_of_transaction_id?: string | null
           related_member_id?: string | null
+          reminder_option?: string | null
           series_id?: string | null
           settled_at?: string | null
           source_transaction_id?: string | null
@@ -466,6 +505,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transactions_creator_user_id_fkey"
+            columns: ["creator_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transactions_destination_account_id_fkey"
             columns: ["destination_account_id"]
             isOneToOne: false
@@ -477,6 +523,13 @@ export type Database = {
             columns: ["payer_id"]
             isOneToOne: false
             referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_refund_of_transaction_id_fkey"
+            columns: ["refund_of_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
           {
