@@ -14,38 +14,18 @@ export function PendingTripInvitationsAlert() {
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
-  console.log("🔍 PendingTripInvitationsAlert - RENDER");
-  console.log("📊 isLoading:", isLoading);
-  console.log("📋 invitations:", invitations);
-  console.log("❌ error:", error);
-  console.log("📏 invitations.length:", invitations?.length);
-
   if (isLoading) {
-    console.log("⏳ Ainda carregando convites...");
-    return (
-      <div className="text-sm text-muted-foreground">
-        Carregando convites...
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error("❌ Erro ao carregar convites:", error);
-    return (
-      <Alert className="border-red-200 bg-red-50">
-        <AlertDescription className="text-red-800">
-          Erro ao carregar convites: {error.message}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-  
-  if (!invitations || invitations.length === 0) {
-    console.log("📭 Nenhum convite encontrado");
     return null;
   }
 
-  console.log("✅ Renderizando", invitations.length, "convites");
+  if (error) {
+    console.error("Erro ao carregar convites:", error);
+    return null;
+  }
+  
+  if (!invitations || invitations.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-3">

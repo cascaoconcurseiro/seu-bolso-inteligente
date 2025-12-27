@@ -117,30 +117,35 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
     }
   }, [categoriesLoading, categoriesChecked, categories?.length, createDefaultCategories]);
 
-  // Detect duplicates
+  // Detect duplicates (com debounce para performance)
   useEffect(() => {
-    const numericAmount = getNumericAmount();
-    if (!description || numericAmount === 0 || !date) {
-      setDuplicateWarning(false);
-      return;
-    }
+    const handler = setTimeout(() => {
+      const numericAmount = getNumericAmount();
+      if (!description || numericAmount === 0 || !date) {
+        setDuplicateWarning(false);
+        return;
+      }
 
-    const hasDuplicate = allTransactions.some((tx) => {
-      if (tx.type !== activeTab) return false;
+      console.log("🔍 Verificando duplicatas...");
+      const hasDuplicate = allTransactions.some((tx) => {
+        if (tx.type !== activeTab) return false;
 
-      const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
-      const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
-        description.toLowerCase().trim().includes(tx.description.toLowerCase());
+        const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
+        const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
+          description.toLowerCase().trim().includes(tx.description.toLowerCase());
 
-      const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
-      const formDate = typeof date === 'string' ? parseISO(date) : date;
-      const daysDiff = Math.abs(differenceInDays(txDate, formDate));
-      const dateMatch = daysDiff <= 3;
+        const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
+        const formDate = typeof date === 'string' ? parseISO(date) : date;
+        const daysDiff = Math.abs(differenceInDays(txDate, formDate));
+        const dateMatch = daysDiff <= 3;
 
-      return amountMatch && descMatch && dateMatch;
-    });
+        return amountMatch && descMatch && dateMatch;
+      });
 
-    setDuplicateWarning(hasDuplicate);
+      setDuplicateWarning(hasDuplicate);
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(handler);
   }, [amount, description, date, activeTab, allTransactions]);
 
   const filteredCategories =
