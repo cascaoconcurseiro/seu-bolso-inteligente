@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -175,10 +176,11 @@ export function Accounts() {
             const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
             
             return (
-              <div
+              <Link
                 key={account.id}
+                to={`/contas/${account.id}`}
                 className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                           hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
+                           hover:border-foreground/20 transition-all duration-200 hover:shadow-sm block"
               >
                 <div className="flex items-center gap-4">
                   <BankIcon 
@@ -205,12 +207,15 @@ export function Accounts() {
                     variant="ghost"
                     size="icon"
                     className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                    onClick={() => setDeleteId(account.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDeleteId(account.id);
+                    }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

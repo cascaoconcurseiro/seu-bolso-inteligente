@@ -17,6 +17,7 @@ import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
 import { Family } from "./pages/Family";
 import { Accounts } from "./pages/Accounts";
+import { AccountDetail } from "./pages/AccountDetail";
 import { Auth } from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -61,6 +62,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Accounts />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contas/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <AccountDetail />
                   </AppLayout>
                 </ProtectedRoute>
               }
