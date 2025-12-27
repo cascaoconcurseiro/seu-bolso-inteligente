@@ -136,6 +136,7 @@ export function useCreateTrip() {
       if (memberIds && memberIds.length > 0) {
         const invitations = memberIds.map(userId => ({
           trip_id: data.id,
+          inviter_id: user.id, // ADICIONAR inviter_id
           invitee_id: userId,
           message: `Você foi convidado para participar da viagem "${data.name}"!`,
         }));

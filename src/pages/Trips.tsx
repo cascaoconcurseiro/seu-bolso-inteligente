@@ -61,6 +61,7 @@ export function Trips() {
   const [tripStartDate, setTripStartDate] = useState("");
   const [tripEndDate, setTripEndDate] = useState("");
   const [tripBudget, setTripBudget] = useState("");
+  const [tripCurrency, setTripCurrency] = useState("BRL");
 
   const { data: trips = [], isLoading } = useTrips();
   const { data: selectedTrip } = useTrip(selectedTripId);
@@ -100,6 +101,7 @@ export function Trips() {
       start_date: tripStartDate,
       end_date: tripEndDate,
       budget: tripBudget ? parseFloat(tripBudget) : null,
+      currency: tripCurrency,
       memberIds: selectedMemberIds,
     });
     setShowNewTripDialog(false);
@@ -108,6 +110,7 @@ export function Trips() {
     setTripStartDate("");
     setTripEndDate("");
     setTripBudget("");
+    setTripCurrency("BRL");
   };
 
   const handleAddParticipant = async (memberId: string, name: string) => {
@@ -569,6 +572,8 @@ export function Trips() {
           setEndDate={setTripEndDate}
           budget={tripBudget}
           setBudget={setTripBudget}
+          currency={tripCurrency}
+          setCurrency={setTripCurrency}
         />
       </div>
     );
@@ -657,6 +662,8 @@ export function Trips() {
         setEndDate={setTripEndDate}
         budget={tripBudget}
         setBudget={setTripBudget}
+        currency={tripCurrency}
+        setCurrency={setTripCurrency}
       />
     </div>
   );

@@ -159,13 +159,30 @@ export function NewTripDialog({
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label>Orçamento (opcional)</Label>
-            <Input 
-              placeholder="5000" 
-              value={budget}
-              onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Moeda</Label>
+              <Select value={localCurrency} onValueChange={handleCurrencyChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.symbol} {curr.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Orçamento</Label>
+              <Input 
+                placeholder="5000" 
+                value={budget}
+                onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
           </div>
 
           {/* Seleção de membros da família */}
@@ -211,7 +228,7 @@ export function NewTripDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={isLoading || !name || !startDate || !endDate}
+            disabled={isLoading || !name || !startDate || !endDate || !budget}
           >
             {isLoading ? "Criando..." : "Criar"}
           </Button>
