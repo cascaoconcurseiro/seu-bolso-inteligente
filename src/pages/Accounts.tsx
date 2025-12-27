@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 import { banks, getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 
 const accountTypeIcons = {
   CHECKING: Landmark,
@@ -60,6 +62,7 @@ export function Accounts() {
   const { data: accounts = [], isLoading } = useAccounts();
   const createAccount = useCreateAccount();
   const deleteAccount = useDeleteAccount();
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -298,6 +301,12 @@ export function Accounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
+      />
     </div>
   );
 }

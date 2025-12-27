@@ -87,7 +87,8 @@ export function useTransactions(filters?: TransactionFilters) {
         .select(`
           *,
           account:accounts!account_id(name, bank_color),
-          category:categories(name, icon)
+          category:categories(name, icon),
+          transaction_splits(*)
         `)
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal

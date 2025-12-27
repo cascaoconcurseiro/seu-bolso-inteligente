@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 import {
   CreditCard,
   Plus,
@@ -58,6 +60,7 @@ export function CreditCards() {
   const [showNewCardDialog, setShowNewCardDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showPayDialog, setShowPayDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   
   // Invoice navigation
   const [selectedDate, setSelectedDate] = useState(() => new Date());
