@@ -119,16 +119,14 @@ export function Family() {
             Gerencie quem tem acesso às suas finanças
           </p>
         </div>
-        {isOwner && (
-          <Button
-            size="lg"
-            onClick={() => setShowInviteDialog(true)}
-            className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <UserPlus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
-            Convidar
-          </Button>
-        )}
+        <Button
+          size="lg"
+          onClick={() => setShowInviteDialog(true)}
+          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <UserPlus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" />
+          Convidar
+        </Button>
       </div>
 
       {/* Summary */}
