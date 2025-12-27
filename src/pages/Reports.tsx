@@ -444,44 +444,6 @@ export function Reports() {
             </div>
           </section>
         )}
-                  {peopleData.map((person) => (
-                    <tr key={person.name} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                            {person.name.substring(0, 2).toUpperCase()}
-                          </div>
-                          <span className="font-medium">{person.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-right font-mono text-positive">{formatCurrency(person.income)}</td>
-                      <td className="py-4 px-4 text-right font-mono text-negative">{formatCurrency(person.expense)}</td>
-                      <td className={cn(
-                        "py-4 px-4 text-right font-mono font-semibold",
-                        person.balance >= 0 ? "text-positive" : "text-negative"
-                      )}>
-                        {person.balance >= 0 ? "+" : ""}{formatCurrency(person.balance)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-muted/30">
-                    <td className="py-4 px-4 font-semibold">Total</td>
-                    <td className="py-4 px-4 text-right font-mono font-semibold text-positive">{formatCurrency(totalIncome)}</td>
-                    <td className="py-4 px-4 text-right font-mono font-semibold text-negative">{formatCurrency(totalExpense)}</td>
-                    <td className={cn(
-                      "py-4 px-4 text-right font-mono font-bold",
-                      balance >= 0 ? "text-positive" : "text-negative"
-                    )}>
-                      {balance >= 0 ? "+" : ""}{formatCurrency(balance)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );
