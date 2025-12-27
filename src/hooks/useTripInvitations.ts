@@ -34,6 +34,8 @@ export function usePendingTripInvitations() {
     queryFn: async () => {
       if (!user) return [];
 
+      console.log("Buscando convites para user:", user.id);
+
       const { data, error } = await supabase
         .from("trip_invitations")
         .select(`
@@ -53,10 +55,19 @@ export function usePendingTripInvitations() {
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar convites:", error);
+        throw error;
+      }
+      
+      console.log("Convites encontrados:", data);
       return data as TripInvitation[];
     },
     enabled: !!user,
+    retry: false,
+    staleTime: 0, // Sempre buscar dados frescos
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
 

@@ -260,15 +260,31 @@ export function Trips() {
             
             {/* Botão de editar (apenas owner) */}
             {permissions?.isOwner && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowEditTripDialog(true)}
-                className="gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Editar Viagem
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEditTripDialog(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar Viagem
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm("Tem certeza que deseja excluir esta viagem?")) {
+                      deleteTrip.mutate(selectedTripId!);
+                      goBack();
+                    }
+                  }}
+                  className="gap-2 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </>
             )}
           </div>
         </div>
