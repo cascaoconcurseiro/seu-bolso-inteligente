@@ -9,6 +9,7 @@ import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
+import { TripInvitationsDebug } from "@/components/trips/TripInvitationsDebug";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -98,6 +99,9 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Debug Info */}
+      <TripInvitationsDebug />
+      
       {/* Pending Invitations Alert */}
       <PendingInvitationsAlert />
       
