@@ -39,6 +39,7 @@ export interface CreateTripInput {
   currency?: string;
   budget?: number;
   notes?: string;
+  memberIds?: string[]; // IDs dos membros da família para adicionar
 }
 
 export function useTrips() {
@@ -109,11 +110,13 @@ export function useCreateTrip() {
     mutationFn: async (input: CreateTripInput) => {
       if (!user) throw new Error("User not authenticated");
 
+      const { memberIds, ...tripData } = input;
+
       const { data, error } = await supabase
         .from("trips")
         .insert({
           owner_id: user.id,
-          ...input,
+          ...tripData,
         })
         .select()
         .single();
@@ -126,6 +129,26 @@ export function useCreateTrip() {
         user_id: user.id,
         name: "Eu",
       });
+
+      // Adicionar membros selecionados
+      if (memberIds && memberIds.length > 0) {
+        const membersToAdd = memberIds.map(userId => ({
+          trip_id: data.id,
+          user_id: userId,
+          role: 'member',
+          can_edit_details: false,
+          can_manage_expenses: true,
+        }));
+
+        const { error: membersError } = await supabase
+          .from("trip_members")
+          .insert(membersToAdd);
+
+        if (membersError) {
+          console.error("Erro ao adicionar membros:", membersError);
+          // Não falhar a criação da viagem se houver erro ao adicionar membros
+        }
+      }
 
       return data as Trip;
     },

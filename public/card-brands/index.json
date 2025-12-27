@@ -1,26 +1,47 @@
 [
   {
     "name": "visa",
-    "filename": "visa.svg"
+    "filename": "visa.png",
+    "displayName": "Visa"
   },
   {
     "name": "mastercard",
-    "filename": "mastercard.svg"
+    "filename": "mastercard.png",
+    "displayName": "Mastercard"
   },
   {
     "name": "elo",
-    "filename": "elo.svg"
+    "filename": "elo.png",
+    "displayName": "Elo"
   },
   {
-    "name": "amex",
-    "filename": "amex.svg"
-  },
-  {
-    "name": "hipercard",
-    "filename": "hipercard.svg"
+    "name": "american-express",
+    "filename": "american-express.png",
+    "displayName": "American Express"
   },
   {
     "name": "diners",
-    "filename": "diners.svg"
+    "filename": "diners.png",
+    "displayName": "Diners"
+  },
+  {
+    "name": "hipercard",
+    "filename": "hipercard.png",
+    "displayName": "Hipercard"
+  },
+  {
+    "name": "discover",
+    "filename": "discover.png",
+    "displayName": "Discover"
+  },
+  {
+    "name": "jcb",
+    "filename": "jcb.png",
+    "displayName": "Jcb"
+  },
+  {
+    "name": "aura",
+    "filename": "aura.png",
+    "displayName": "Aura"
   }
 ]

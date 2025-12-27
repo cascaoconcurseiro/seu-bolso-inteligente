@@ -43,6 +43,7 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TripShopping } from "@/components/trips/TripShopping";
+import { NewTripDialog } from "@/components/trips/NewTripDialog";
 
 type TripView = "list" | "detail";
 type TripTab = "summary" | "expenses" | "shopping" | "itinerary" | "checklist";
@@ -92,13 +93,14 @@ export function Trips() {
     setSelectedTripId(null);
   };
 
-  const handleCreateTrip = async () => {
+  const handleCreateTrip = async (selectedMemberIds: string[]) => {
     await createTrip.mutateAsync({
       name: tripName,
       destination: tripDestination || null,
       start_date: tripStartDate,
       end_date: tripEndDate,
       budget: tripBudget ? parseFloat(tripBudget) : null,
+      memberIds: selectedMemberIds,
     });
     setShowNewTripDialog(false);
     setTripName("");
@@ -657,104 +659,5 @@ export function Trips() {
         setBudget={setTripBudget}
       />
     </div>
-  );
-}
-
-// New Trip Dialog Component
-interface NewTripDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: () => void;
-  isLoading: boolean;
-  name: string;
-  setName: (v: string) => void;
-  destination: string;
-  setDestination: (v: string) => void;
-  startDate: string;
-  setStartDate: (v: string) => void;
-  endDate: string;
-  setEndDate: (v: string) => void;
-  budget: string;
-  setBudget: (v: string) => void;
-}
-
-function NewTripDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-  isLoading,
-  name,
-  setName,
-  destination,
-  setDestination,
-  startDate,
-  setStartDate,
-  endDate,
-  setEndDate,
-  budget,
-  setBudget,
-}: NewTripDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Nova Viagem</DialogTitle>
-          <DialogDescription>Crie uma viagem para organizar despesas</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input 
-              placeholder="Ex: Férias de Verão" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Destino</Label>
-            <Input 
-              placeholder="Ex: Rio de Janeiro, RJ" 
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Início</Label>
-              <Input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Fim</Label>
-              <Input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Orçamento (opcional)</Label>
-            <Input 
-              placeholder="5000" 
-              value={budget}
-              onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button 
-            onClick={onSubmit} 
-            disabled={isLoading || !name || !startDate || !endDate}
-          >
-            {isLoading ? "Criando..." : "Criar"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
