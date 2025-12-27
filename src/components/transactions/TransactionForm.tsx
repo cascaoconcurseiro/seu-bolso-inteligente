@@ -105,12 +105,17 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<any>(null);
 
-  // Criar categorias padrão se não existirem
+  // Criar categorias padrão se não existirem (apenas uma vez)
+  const [categoriesChecked, setCategoriesChecked] = useState(false);
+  
   useEffect(() => {
-    if (!categoriesLoading && categories?.length === 0) {
-      createDefaultCategories.mutate();
+    if (!categoriesLoading && !categoriesChecked) {
+      setCategoriesChecked(true);
+      if (categories?.length === 0) {
+        createDefaultCategories.mutate();
+      }
     }
-  }, [categoriesLoading, categories]);
+  }, [categoriesLoading, categoriesChecked, categories?.length, createDefaultCategories]);
 
   // Detect duplicates
   useEffect(() => {
