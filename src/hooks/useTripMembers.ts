@@ -10,6 +10,7 @@ export interface TripMember {
   role: 'owner' | 'member';
   can_edit_details: boolean;
   can_manage_expenses: boolean;
+  personal_budget: number | null;
   created_at: string;
   updated_at: string;
   profiles?: {
