@@ -28,6 +28,8 @@ import {
 } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
   admin: {
@@ -51,6 +53,7 @@ export function Family() {
   const inviteMember = useInviteFamilyMember();
   const updateMember = useUpdateFamilyMember();
   const removeMember = useRemoveFamilyMember();
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
@@ -340,6 +343,12 @@ export function Family() {
         onOpenChange={setShowInviteDialog}
         onInvite={handleInvite}
         isPending={inviteMember.isPending}
+      />
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
       />
     </div>
   );

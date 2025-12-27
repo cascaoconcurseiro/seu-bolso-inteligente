@@ -37,6 +37,8 @@ import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAcco
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 type SettingsSection = "accounts" | "categories" | "people" | "appearance" | "notifications";
 
@@ -45,6 +47,7 @@ export function Settings() {
   const [activeSection, setActiveSection] = useState<SettingsSection>("accounts");
   const [showAddAccountDialog, setShowAddAccountDialog] = useState(false);
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
@@ -598,6 +601,12 @@ export function Settings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
+      />
     </div>
   );
 }

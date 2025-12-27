@@ -197,24 +197,26 @@ export function NewTripDialog({
                 Eles receberão uma notificação e poderão aceitar ou recusar o convite.
               </p>
               <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
-                {familyMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center space-x-3 p-2 hover:bg-accent rounded-md cursor-pointer"
-                    onClick={() => toggleMember(member.linked_user_id!)}
-                  >
-                    <Checkbox
-                      checked={selectedMembers.includes(member.linked_user_id!)}
-                      onCheckedChange={() => toggleMember(member.linked_user_id!)}
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{member.name}</p>
-                      {member.email && (
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
-                      )}
+                {familyMembers
+                  .filter(member => member.linked_user_id) // Apenas membros cadastrados
+                  .map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center space-x-3 p-2 hover:bg-accent rounded-md cursor-pointer"
+                      onClick={() => toggleMember(member.linked_user_id!)}
+                    >
+                      <Checkbox
+                        checked={selectedMembers.includes(member.linked_user_id!)}
+                        onCheckedChange={() => toggleMember(member.linked_user_id!)}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{member.name}</p>
+                        {member.email && (
+                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
               {selectedMembers.length > 0 && (
                 <p className="text-sm text-muted-foreground">

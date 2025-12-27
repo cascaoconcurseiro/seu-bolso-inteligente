@@ -44,6 +44,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TripShopping } from "@/components/trips/TripShopping";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 type TripView = "list" | "detail";
 type TripTab = "summary" | "expenses" | "shopping" | "itinerary" | "checklist";
@@ -54,6 +56,7 @@ export function Trips() {
   const [activeTab, setActiveTab] = useState<TripTab>("expenses");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showAddParticipantDialog, setShowAddParticipantDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   
   // Form state
   const [tripName, setTripName] = useState("");
@@ -664,6 +667,12 @@ export function Trips() {
         setBudget={setTripBudget}
         currency={tripCurrency}
         setCurrency={setTripCurrency}
+      />
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
       />
     </div>
   );

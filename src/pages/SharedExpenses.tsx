@@ -66,6 +66,7 @@ import { toast } from "sonner";
 import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -75,7 +76,7 @@ export function SharedExpenses() {
   const { currentDate } = useMonth();
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
   const [settleAmount, setSettleAmount] = useState("");

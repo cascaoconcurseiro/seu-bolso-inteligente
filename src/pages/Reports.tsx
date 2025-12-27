@@ -21,10 +21,13 @@ import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { startOfMonth, endOfMonth, subMonths, format as formatDate } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 export function Reports() {
   const [period, setPeriod] = useState("month");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   
   const { data: allTransactions = [], isLoading } = useTransactions();
   const { data: familyMembers = [] } = useFamilyMembers();
@@ -445,6 +448,12 @@ export function Reports() {
           </section>
         )}
       </div>
+
+      {/* Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
+      />
     </div>
   );
 }
