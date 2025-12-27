@@ -199,6 +199,14 @@ export function Family() {
                             {member.email}
                           </p>
                         )}
+                        {/* Badge de escopo */}
+                        {member.sharing_scope && member.sharing_scope !== 'all' && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary mt-1">
+                            {member.sharing_scope === 'trips_only' && '🧳 Apenas Viagens'}
+                            {member.sharing_scope === 'date_range' && `📅 ${member.scope_start_date || '...'} - ${member.scope_end_date || '...'}`}
+                            {member.sharing_scope === 'specific_trip' && '🎯 Viagem Específica'}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

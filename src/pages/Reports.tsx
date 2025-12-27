@@ -1,16 +1,8 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   TrendingUp,
   TrendingDown,
-  Calendar,
   Download,
   Loader2,
 } from "lucide-react";
@@ -19,19 +11,18 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
-import { startOfMonth, endOfMonth, subMonths, format as formatDate } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useMonth } from "@/contexts/MonthContext";
+import { startOfMonth, endOfMonth } from "date-fns";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 
 export function Reports() {
-  const [period, setPeriod] = useState("month");
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { currentDate } = useMonth();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   
   const { data: allTransactions = [], isLoading } = useTransactions();
   const { data: familyMembers = [] } = useFamilyMembers();
-  const { invoices } = useSharedFinances({ activeTab: 'REGULAR', currentDate: selectedMonth });
+  const { invoices } = useSharedFinances({ activeTab: 'REGULAR', currentDate });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -39,14 +30,14 @@ export function Reports() {
 
   // Filtrar transações do período selecionado
   const periodTransactions = useMemo(() => {
-    const start = startOfMonth(selectedMonth);
-    const end = endOfMonth(selectedMonth);
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
     
     return allTransactions.filter(tx => {
       const txDate = new Date(tx.date);
       return txDate >= start && txDate <= end;
     });
-  }, [allTransactions, selectedMonth]);
+  }, [allTransactions, currentDate]);
 
   // Calcular totais do período
   const { totalIncome, totalExpense, balance } = useMemo(() => {

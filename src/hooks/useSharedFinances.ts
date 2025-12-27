@@ -211,18 +211,51 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
+    
+    // Buscar configuração de escopo do membro
+    const member = members.find(m => m.id === memberId);
+    
+    // Aplicar filtro de escopo
+    let scopeFilteredItems = allItems;
+    if (member && member.sharing_scope !== 'all') {
+      scopeFilteredItems = allItems.filter(item => {
+        switch (member.sharing_scope) {
+          case 'trips_only':
+            // Apenas transações de viagens
+            return !!item.tripId;
+          
+          case 'date_range':
+            // Apenas transações no período
+            if (!member.scope_start_date && !member.scope_end_date) return true;
+            const itemDate = new Date(item.date);
+            const startDate = member.scope_start_date ? new Date(member.scope_start_date) : null;
+            const endDate = member.scope_end_date ? new Date(member.scope_end_date) : null;
+            
+            if (startDate && itemDate < startDate) return false;
+            if (endDate && itemDate > endDate) return false;
+            return true;
+          
+          case 'specific_trip':
+            // Apenas transações de uma viagem específica
+            return item.tripId === member.scope_trip_id;
+          
+          default:
+            return true;
+        }
+      });
+    }
 
     if (activeTab === 'TRAVEL') {
-      return allItems
+      return scopeFilteredItems
         .filter(i => !!i.tripId)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else if (activeTab === 'HISTORY') {
-      return allItems
+      return scopeFilteredItems
         .filter(i => i.isPaid)
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
       // REGULAR: Show unpaid items not related to trips
-      return allItems
+      return scopeFilteredItems
         .filter(i => {
           if (i.tripId) return false;
           if (i.isPaid) return false;
