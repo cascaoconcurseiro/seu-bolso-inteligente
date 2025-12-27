@@ -73,8 +73,9 @@ export function useTrips() {
       return data as Trip[];
     },
     enabled: !!user,
-    retry: false,
-    staleTime: 30000,
+    retry: false, // Não retentar em caso de erro para evitar loops
+    staleTime: 30000, // Cache por 30 segundos
+    refetchOnWindowFocus: false, // Não re-buscar ao focar janela
   });
 }
 

@@ -176,44 +176,53 @@ export function useAcceptTripInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      // Primeiro, atualizar o status
-      const { data: updateData, error: updateError } = await supabase
+      // 1. Buscar dados do convite
+      const { data: invitation, error: invError } = await supabase
         .from("trip_invitations")
-        .update({ status: 'accepted' })
+        .select("id, trip_id, inviter_id, invitee_id")
         .eq("id", invitationId)
-        .select("id, trip_id, inviter_id, invitee_id, status")
         .single();
+
+      if (invError) throw invError;
+      if (!invitation) throw new Error("Convite não encontrado");
+
+      // 2. Atualizar status do convite
+      // O trigger do banco automaticamente adiciona o usuário em trip_members
+      const { error: updateError } = await supabase
+        .from("trip_invitations")
+        .update({ 
+          status: 'accepted',
+          responded_at: new Date().toISOString()
+        })
+        .eq("id", invitationId);
 
       if (updateError) throw updateError;
 
-      // Depois, buscar dados complementares separadamente para evitar ambiguidade
-      if (updateData) {
-        const [tripResult, inviterResult] = await Promise.all([
-          supabase
-            .from("trips")
-            .select("name, destination")
-            .eq("id", updateData.trip_id)
-            .single(),
-          supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", updateData.inviter_id)
-            .single()
-        ]);
+      // 3. Buscar dados para notificação
+      const [tripResult, inviterResult] = await Promise.all([
+        supabase
+          .from("trips")
+          .select("name, destination")
+          .eq("id", invitation.trip_id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", invitation.inviter_id)
+          .single()
+      ]);
 
-        return {
-          ...updateData,
-          trips: tripResult.data,
-          inviter: inviterResult.data
-        };
-      }
-
-      return updateData;
+      return {
+        ...invitation,
+        trips: tripResult.data,
+        inviter: inviterResult.data
+      };
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
+      // Invalidar queries em batch
       queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["trips"] });
-      queryClient.invalidateQueries({ queryKey: ["trip-members"] });
+      queryClient.invalidateQueries({ queryKey: ["trip-members", data.trip_id] });
 
       const tripName = data.trips?.name || "viagem";
       const inviterName = data.inviter?.full_name || "alguém";
@@ -239,19 +248,60 @@ export function useRejectTripInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { data, error } = await supabase
+      // 1. Buscar dados do convite antes de atualizar
+      const { data: invitation, error: invError } = await supabase
         .from("trip_invitations")
-        .update({ status: 'rejected' })
+        .select("id, trip_id, inviter_id, invitee_id")
         .eq("id", invitationId)
-        .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (invError) throw invError;
+      if (!invitation) throw new Error("Convite não encontrado");
+
+      // 2. Atualizar status
+      const { error: updateError } = await supabase
+        .from("trip_invitations")
+        .update({ 
+          status: 'rejected',
+          responded_at: new Date().toISOString()
+        })
+        .eq("id", invitationId);
+
+      if (updateError) throw updateError;
+
+      // 3. Buscar dados para notificação detalhada
+      const [tripResult, inviterResult] = await Promise.all([
+        supabase
+          .from("trips")
+          .select("name, destination")
+          .eq("id", invitation.trip_id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", invitation.inviter_id)
+          .single()
+      ]);
+
+      return {
+        ...invitation,
+        trips: tripResult.data,
+        inviter: inviterResult.data
+      };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations"] });
-      toast.success("Convite recusado");
+      
+      const tripName = data.trips?.name || "viagem";
+      const inviterName = data.inviter?.full_name || "alguém";
+
+      toast.info(
+        `Convite recusado`,
+        {
+          description: `Você recusou o convite de ${inviterName} para "${tripName}"`,
+          duration: 5000,
+        }
+      );
     },
     onError: (error: any) => {
       console.error("Erro ao rejeitar convite:", error);

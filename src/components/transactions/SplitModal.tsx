@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
@@ -106,6 +107,9 @@ export function SplitModal({
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Divisão e Pagamento</DialogTitle>
+          <DialogDescription>
+            Configure como a despesa será dividida entre os participantes
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
