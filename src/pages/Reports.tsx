@@ -12,7 +12,8 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { useMonth } from "@/contexts/MonthContext";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth, subMonths, format as formatDate } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 
@@ -212,44 +213,11 @@ export function Reports() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl tracking-tight">Relatórios</h1>
-          <p className="text-muted-foreground mt-1">Análise das suas finanças</p>
+          <p className="text-muted-foreground mt-1">
+            Análise das suas finanças - {formatDate(currentDate, "MMMM yyyy", { locale: ptBR })}
+          </p>
         </div>
         <div className="flex gap-2">
-          {/* Month Selector */}
-          <div className="flex items-center gap-2 p-1 rounded-lg border border-border bg-muted/30">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
-              className="h-8 px-2"
-            >
-              ←
-            </Button>
-            <div className="px-3 text-sm font-medium min-w-[120px] text-center">
-              {formatDate(selectedMonth, "MMMM yyyy", { locale: ptBR })}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedMonth(subMonths(selectedMonth, -1))}
-              className="h-8 px-2"
-              disabled={selectedMonth >= new Date()}
-            >
-              →
-            </Button>
-          </div>
-          
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-36">
-              <Calendar className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="month">Mês</SelectItem>
-              <SelectItem value="quarter">Trimestre</SelectItem>
-              <SelectItem value="year">Ano</SelectItem>
-            </SelectContent>
-          </Select>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Exportar</span>
@@ -290,7 +258,7 @@ export function Reports() {
         </div>
       </div>
 
-      {/* Gráfico de Evolução de Saldo (igual aos Compartilhados) */}
+      {/* Gráfico de Evolução de Saldo */}
       <section className="p-6 rounded-xl border border-border">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">
           Evolução do Saldo
@@ -298,7 +266,7 @@ export function Reports() {
         <SharedBalanceChart 
           transactions={allTransactions} 
           invoices={invoices} 
-          currentDate={selectedMonth} 
+          currentDate={currentDate} 
         />
       </section>
 
