@@ -96,10 +96,6 @@ export function Accounts() {
       .slice(0, limit);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-  };
-
   const resetForm = () => {
     setName("");
     setType("CHECKING");
