@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMonth } from "@/contexts/MonthContext";
 import { toast } from "sonner";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { startOfMonth, endOfMonth, format } from "date-fns";
 
 export type TransactionType = "EXPENSE" | "INCOME" | "TRANSFER";
 export type TransactionDomain = "PERSONAL" | "SHARED" | "TRAVEL";
