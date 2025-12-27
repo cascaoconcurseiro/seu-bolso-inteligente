@@ -87,7 +87,7 @@ export function useTransactions(filters?: TransactionFilters) {
           account:accounts!account_id(name, bank_color),
           category:categories(name, icon)
         `)
-        .is("source_transaction_id", null) // Excluir transações espelhadas
+        .eq("user_id", user!.id) // Apenas transações do usuário (inclui espelhos recebidos)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -347,10 +347,13 @@ export function useFinancialSummary() {
   return useQuery({
     queryKey: ["financial-summary", user?.id, currentMonth],
     queryFn: async () => {
+      if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
+
       // Buscar contas para saldo total
       const { data: accounts } = await supabase
         .from("accounts")
         .select("balance, type")
+        .eq("user_id", user.id)
         .eq("is_active", true);
 
       // Buscar transações do mês
@@ -363,7 +366,9 @@ export function useFinancialSummary() {
 
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount, type")
+        .select("amount, type, source_transaction_id")
+        .eq("user_id", user.id)
+        .is("source_transaction_id", null) // Excluir espelhos do cálculo
         .gte("date", startOfMonth)
         .lte("date", endOfMonth);
 

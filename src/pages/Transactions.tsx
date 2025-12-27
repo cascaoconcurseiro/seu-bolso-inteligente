@@ -111,19 +111,9 @@ export function Transactions() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display font-bold text-3xl tracking-tight">Transações</h1>
-          <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
-        </div>
-        <Button 
-          size="lg" 
-          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-          onClick={() => setShowTransactionModal(true)}
-        >
-          <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
-          Nova transação
-        </Button>
+      <div>
+        <h1 className="font-display font-bold text-3xl tracking-tight">Transações</h1>
+        <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
       </div>
 
       {/* Summary */}
@@ -345,8 +335,8 @@ export function Transactions() {
         initialData={editingTransaction}
       />
 
-      {/* FAB for mobile */}
-      <FAB onClick={() => setShowTransactionModal(true)} className="sm:hidden" />
+      {/* FAB */}
+      <FAB onClick={() => setShowTransactionModal(true)} />
     </div>
   );
 }
