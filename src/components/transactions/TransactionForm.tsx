@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  CalendarIcon,
+  Calendar,
   Loader2,
   RefreshCw,
   Users,
@@ -70,7 +70,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [categoryId, setCategoryId] = useState('');
   const [tripId, setTripId] = useState('');
   const [notes, setNotes] = useState('');
-  
+
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
 
@@ -98,7 +98,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
   // Duplicate detection
   const [duplicateWarning, setDuplicateWarning] = useState(false);
-  
+
   // Validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
@@ -107,7 +107,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
   // Criar categorias padrão se não existirem (apenas uma vez)
   const [categoriesChecked, setCategoriesChecked] = useState(false);
-  
+
   useEffect(() => {
     if (!categoriesLoading && !categoriesChecked) {
       setCategoriesChecked(true);
@@ -127,11 +127,11 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
     const hasDuplicate = allTransactions.some((tx) => {
       if (tx.type !== activeTab) return false;
-      
+
       const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
       const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
-                        description.toLowerCase().trim().includes(tx.description.toLowerCase());
-      
+        description.toLowerCase().trim().includes(tx.description.toLowerCase());
+
       const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
       const formDate = typeof date === 'string' ? parseISO(date) : date;
       const daysDiff = Math.abs(differenceInDays(txDate, formDate));
@@ -150,9 +150,9 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
   // Filtrar membros da família: se tem viagem selecionada, mostrar apenas membros dessa viagem
   const availableMembers = tripId && tripMembers.length > 0
-    ? familyMembers.filter(member => 
-        tripMembers.some(tm => tm.user_id === member.linked_user_id)
-      )
+    ? familyMembers.filter(member =>
+      tripMembers.some(tm => tm.user_id === member.linked_user_id)
+    )
     : familyMembers;
 
   const formatCurrency = (value: string) => {
@@ -336,8 +336,8 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                 ? tab === 'EXPENSE'
                   ? 'bg-background text-destructive shadow-sm'
                   : tab === 'INCOME'
-                  ? 'bg-background text-positive shadow-sm'
-                  : 'bg-background text-primary shadow-sm'
+                    ? 'bg-background text-positive shadow-sm'
+                    : 'bg-background text-primary shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
@@ -440,12 +440,12 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                   className={cn(
                     "w-full h-12 justify-start text-left font-normal",
                     selectedTrip && (
-                      format(date, 'yyyy-MM-dd') < selectedTrip.start_date || 
+                      format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
                       format(date, 'yyyy-MM-dd') > selectedTrip.end_date
                     ) && "border-amber-400 dark:border-amber-600"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <Calendar className="mr-2 h-4 w-4" />
                   {format(date, "dd/MM/yy", { locale: ptBR })}
                 </Button>
               </PopoverTrigger>
@@ -459,13 +459,13 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
               </PopoverContent>
             </Popover>
             {selectedTrip && (
-              format(date, 'yyyy-MM-dd') < selectedTrip.start_date || 
+              format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
               format(date, 'yyyy-MM-dd') > selectedTrip.end_date
             ) && (
-              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
-                ⚠️ Data fora do período da viagem ({format(new Date(selectedTrip.start_date), 'dd/MM/yy')} - {format(new Date(selectedTrip.end_date), 'dd/MM/yy')})
-              </p>
-            )}
+                <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
+                  ⚠️ Data fora do período da viagem ({format(new Date(selectedTrip.start_date), 'dd/MM/yy')} - {format(new Date(selectedTrip.end_date), 'dd/MM/yy')})
+                </p>
+              )}
           </div>
 
           {/* Category */}
@@ -624,10 +624,9 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                   <p className="font-medium">Dividir despesa</p>
                   <p className="text-sm text-muted-foreground">
                     {hasSharing
-                      ? `${splits.length} pessoa(s) · ${
-                          payerId !== 'me' ? 'Outro pagou' : 'Eu paguei'
-                        }`
-                      : tripId 
+                      ? `${splits.length} pessoa(s) · ${payerId !== 'me' ? 'Outro pagou' : 'Eu paguei'
+                      }`
+                      : tripId
                         ? 'Compartilhar com membros da viagem'
                         : 'Compartilhar com família'}
                   </p>
@@ -803,7 +802,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                     variant="outline"
                     className="w-full justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <Calendar className="mr-2 h-4 w-4" />
                     {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
                   </Button>
                 </PopoverTrigger>

@@ -39,15 +39,7 @@ export function usePendingTripInvitations() {
       const { data, error } = await supabase
         .from("trip_invitations")
         .select(`
-          id,
-          trip_id,
-          inviter_id,
-          invitee_id,
-          status,
-          message,
-          created_at,
-          updated_at,
-          responded_at,
+          *,
           trips (
             name,
             destination,
