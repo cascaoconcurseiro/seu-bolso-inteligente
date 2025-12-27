@@ -239,12 +239,11 @@ export function Accounts() {
 
             <div className="space-y-2">
               <Label>Banco (opcional)</Label>
-              <Select value={bankId} onValueChange={setBankId}>
+              <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || null)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o banco" />
+                  <SelectValue placeholder="Nenhum" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">Nenhum</SelectItem>
                   {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
                     <SelectItem key={bank.id} value={bank.id}>
                       <div className="flex items-center gap-3">
