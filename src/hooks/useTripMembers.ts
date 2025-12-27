@@ -29,13 +29,7 @@ export function useTripMembers(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_members")
-        .select(`
-          *,
-          profiles!trip_members_user_id_fkey (
-            full_name,
-            email
-          )
-        `)
+        .select("*")
         .eq("trip_id", tripId)
         .order("created_at");
 
@@ -44,7 +38,27 @@ export function useTripMembers(tripId: string | null) {
         throw error;
       }
       
-      console.log("Membros da viagem:", data);
+      console.log("Membros da viagem (sem profiles):", data);
+      
+      // Buscar dados dos profiles separadamente
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map(m => m.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds);
+        
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        
+        const enrichedData = data.map(member => ({
+          ...member,
+          profiles: profilesMap.get(member.user_id)
+        }));
+        
+        console.log("Membros enriquecidos:", enrichedData);
+        return enrichedData as TripMember[];
+      }
+      
       return data as TripMember[];
     },
     enabled: !!tripId && !!user,

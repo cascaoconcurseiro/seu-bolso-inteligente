@@ -40,15 +40,11 @@ export function usePendingTripInvitations() {
         .from("trip_invitations")
         .select(`
           *,
-          trips:trip_id (
+          trips (
             name,
             destination,
             start_date,
             end_date
-          ),
-          inviter:inviter_id (
-            full_name,
-            email
           )
         `)
         .eq("invitee_id", user.id)
@@ -60,7 +56,27 @@ export function usePendingTripInvitations() {
         throw error;
       }
       
-      console.log("Convites encontrados:", data);
+      console.log("Convites encontrados (sem inviter):", data);
+      
+      // Buscar dados do inviter separadamente
+      if (data && data.length > 0) {
+        const inviterIds = [...new Set(data.map(inv => inv.inviter_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", inviterIds);
+        
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        
+        const enrichedData = data.map(inv => ({
+          ...inv,
+          inviter: profilesMap.get(inv.inviter_id)
+        }));
+        
+        console.log("Convites enriquecidos:", enrichedData);
+        return enrichedData as TripInvitation[];
+      }
+      
       return data as TripInvitation[];
     },
     enabled: !!user,
@@ -82,17 +98,28 @@ export function useSentTripInvitations(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_invitations")
-        .select(`
-          *,
-          invitee:invitee_id (
-            full_name,
-            email
-          )
-        `)
+        .select("*")
         .eq("trip_id", tripId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      // Buscar dados dos invitees separadamente
+      if (data && data.length > 0) {
+        const inviteeIds = [...new Set(data.map(inv => inv.invitee_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", inviteeIds);
+        
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        
+        return data.map(inv => ({
+          ...inv,
+          invitee: profilesMap.get(inv.invitee_id)
+        }));
+      }
+      
       return data;
     },
     enabled: !!user && !!tripId,
@@ -148,19 +175,25 @@ export function useAcceptTripInvitation() {
         .from("trip_invitations")
         .update({ status: 'accepted' })
         .eq("id", invitationId)
-        .select(`
-          *,
-          trips:trip_id (
-            name,
-            destination
-          ),
-          inviter:inviter_id (
-            full_name
-          )
-        `)
+        .select("*, trips(name, destination)")
         .single();
 
       if (error) throw error;
+      
+      // Buscar dados do inviter separadamente
+      if (data) {
+        const { data: inviter } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", data.inviter_id)
+          .single();
+        
+        return {
+          ...data,
+          inviter
+        };
+      }
+      
       return data;
     },
     onSuccess: (data: any) => {

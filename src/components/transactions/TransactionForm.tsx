@@ -56,7 +56,6 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: trips } = useTrips();
   const { data: familyMembers = [] } = useFamilyMembers();
-  const { data: tripMembers = [] } = useTripMembers(tripId || null);
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
@@ -71,6 +70,9 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [categoryId, setCategoryId] = useState('');
   const [tripId, setTripId] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // Now we can use tripId
+  const { data: tripMembers = [] } = useTripMembers(tripId || null);
 
   // Parcelamento
   const [isInstallment, setIsInstallment] = useState(false);
