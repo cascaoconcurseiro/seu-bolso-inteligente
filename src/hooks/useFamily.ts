@@ -79,6 +79,8 @@ export function useFamilyMembers() {
       return data as FamilyMember[];
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 60000, // Cache por 1 minuto
   });
 }
 

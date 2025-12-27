@@ -35,6 +35,8 @@ export function useCategories() {
       return data as Category[];
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 300000, // Cache por 5 minutos (categorias mudam pouco)
   });
 }
 

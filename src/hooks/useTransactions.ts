@@ -78,9 +78,17 @@ export interface TransactionFilters {
 
 export function useTransactions(filters?: TransactionFilters) {
   const { user } = useAuth();
+  const { currentDate } = useMonth();
+
+  // Se não há filtros de data, usar o mês atual do contexto
+  const effectiveFilters = filters || {};
+  if (!effectiveFilters.startDate && !effectiveFilters.endDate) {
+    effectiveFilters.startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+    effectiveFilters.endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+  }
 
   return useQuery({
-    queryKey: ["transactions", user?.id, filters],
+    queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
       let query = supabase
         .from("transactions")
@@ -95,26 +103,26 @@ export function useTransactions(filters?: TransactionFilters) {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      if (filters?.startDate) {
-        query = query.gte("date", filters.startDate);
+      if (effectiveFilters?.startDate) {
+        query = query.gte("date", effectiveFilters.startDate);
       }
-      if (filters?.endDate) {
-        query = query.lte("date", filters.endDate);
+      if (effectiveFilters?.endDate) {
+        query = query.lte("date", effectiveFilters.endDate);
       }
-      if (filters?.type) {
-        query = query.eq("type", filters.type);
+      if (effectiveFilters?.type) {
+        query = query.eq("type", effectiveFilters.type);
       }
-      if (filters?.accountId) {
-        query = query.eq("account_id", filters.accountId);
+      if (effectiveFilters?.accountId) {
+        query = query.eq("account_id", effectiveFilters.accountId);
       }
-      if (filters?.categoryId) {
-        query = query.eq("category_id", filters.categoryId);
+      if (effectiveFilters?.categoryId) {
+        query = query.eq("category_id", effectiveFilters.categoryId);
       }
-      if (filters?.tripId) {
-        query = query.eq("trip_id", filters.tripId);
+      if (effectiveFilters?.tripId) {
+        query = query.eq("trip_id", effectiveFilters.tripId);
       }
-      if (filters?.domain) {
-        query = query.eq("domain", filters.domain);
+      if (effectiveFilters?.domain) {
+        query = query.eq("domain", effectiveFilters.domain);
       }
 
       const { data, error } = await query.limit(100);
@@ -123,6 +131,8 @@ export function useTransactions(filters?: TransactionFilters) {
       return data as Transaction[];
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 30000, // Cache por 30 segundos
   });
 }
 
@@ -346,7 +356,8 @@ export function useDeleteTransaction() {
 // Hook para resumo financeiro
 export function useFinancialSummary() {
   const { user } = useAuth();
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { currentDate } = useMonth();
+  const currentMonth = format(currentDate, 'yyyy-MM');
 
   return useQuery({
     queryKey: ["financial-summary", user?.id, currentMonth],
@@ -361,20 +372,16 @@ export function useFinancialSummary() {
         .eq("is_active", true);
 
       // Buscar transações do mês
-      const startOfMonth = `${currentMonth}-01`;
-      const endOfMonth = new Date(
-        new Date(startOfMonth).getFullYear(),
-        new Date(startOfMonth).getMonth() + 1,
-        0
-      ).toISOString().split("T")[0];
+      const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+      const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
       const { data: transactions } = await supabase
         .from("transactions")
         .select("amount, type, source_transaction_id")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos do cálculo
-        .gte("date", startOfMonth)
-        .lte("date", endOfMonth);
+        .gte("date", startDate)
+        .lte("date", endDate);
 
       const balance = accounts?.reduce((sum, acc) => {
         if (acc.type !== "CREDIT_CARD") {
@@ -401,5 +408,7 @@ export function useFinancialSummary() {
       };
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 30000, // Cache por 30 segundos
   });
 }
