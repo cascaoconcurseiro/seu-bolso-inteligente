@@ -101,6 +101,13 @@ export function Trips() {
     }
   }, [view, selectedTripId, myMembership, myPersonalBudget]);
 
+  // Fechar modal quando orçamento for salvo com sucesso
+  useEffect(() => {
+    if (myPersonalBudget && showPersonalBudgetDialog && !updatePersonalBudget.isPending) {
+      setShowPersonalBudgetDialog(false);
+    }
+  }, [myPersonalBudget, showPersonalBudgetDialog, updatePersonalBudget.isPending]);
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
@@ -171,7 +178,7 @@ export function Trips() {
       userId: user.id,
       personalBudget: budget,
     });
-    setShowPersonalBudgetDialog(false);
+    // Modal será fechado automaticamente após sucesso
   };
 
   const calculateBalances = () => {
