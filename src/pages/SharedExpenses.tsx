@@ -515,6 +515,11 @@ export function SharedExpenses() {
                                         item.isPaid && "text-muted-foreground line-through"
                                       )}>
                                         {item.description}
+                                        {item.tripId && trips.find(t => t.id === item.tripId) && (
+                                          <span className="text-xs text-muted-foreground ml-2">
+                                            · {trips.find(t => t.id === item.tripId)?.name}
+                                          </span>
+                                        )}
                                       </p>
                                       <p className="text-xs text-muted-foreground">
                                         {format(new Date(item.date), "dd MMM yyyy", { locale: ptBR })}

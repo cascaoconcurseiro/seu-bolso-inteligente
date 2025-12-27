@@ -88,7 +88,8 @@ export function SharedInstallmentImport({
     return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
   };
 
-  const totalAmount = parseAmount(amount) * (parseInt(installments) || 0);
+  const installmentAmount = parseAmount(amount);
+  const totalAmount = installmentAmount * (parseInt(installments) || 1);
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
@@ -124,9 +125,14 @@ export function SharedInstallmentImport({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Permitir digitar valores normalmente (ex: 95 = R$ 95,00)
     const value = e.target.value.replace(/\D/g, '');
-    const cents = parseInt(value) / 100;
-    setAmount(cents.toLocaleString('pt-BR', {
+    if (!value) {
+      setAmount('');
+      return;
+    }
+    const numValue = parseInt(value);
+    setAmount((numValue / 100).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }));
@@ -337,8 +343,8 @@ export function SharedInstallmentImport({
                 Importando...
               </>
             ) : (
-              totalAmount > 0
-                ? `Confirmar ${installments}x de ${formatCurrency(parseAmount(amount))}`
+              installmentAmount > 0
+                ? `Confirmar ${installments}x de ${formatCurrency(installmentAmount)}`
                 : 'Confirmar'
             )}
           </Button>
