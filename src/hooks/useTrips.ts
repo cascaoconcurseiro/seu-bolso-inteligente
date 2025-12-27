@@ -48,17 +48,33 @@ export function useTrips() {
   return useQuery({
     queryKey: ["trips", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+
+      // Buscar IDs das viagens onde o usuário é membro
+      const { data: memberTrips, error: memberError } = await supabase
+        .from("trip_members")
+        .select("trip_id")
+        .eq("user_id", user.id);
+
+      if (memberError) throw memberError;
+      
+      if (!memberTrips || memberTrips.length === 0) return [];
+
+      const tripIds = memberTrips.map(m => m.trip_id);
+
+      // Buscar as viagens completas
       const { data, error } = await supabase
         .from("trips")
         .select("*")
+        .in("id", tripIds)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
       return data as Trip[];
     },
     enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
-    staleTime: 30000, // Cache por 30 segundos
+    retry: false,
+    staleTime: 30000,
   });
 }
 

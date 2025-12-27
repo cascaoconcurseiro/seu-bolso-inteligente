@@ -46,15 +46,23 @@ import { TripShopping } from "@/components/trips/TripShopping";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { useTripMembers, useTripPermissions, useUpdatePersonalBudget } from "@/hooks/useTripMembers";
+import { EditTripDialog } from "@/components/trips/EditTripDialog";
+import { PersonalBudgetDialog } from "@/components/trips/PersonalBudgetDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { Pencil, Wallet } from "lucide-react";
 
 type TripView = "list" | "detail";
 type TripTab = "summary" | "expenses" | "shopping" | "itinerary" | "checklist";
 
 export function Trips() {
+  const { user } = useAuth();
   const [view, setView] = useState<TripView>("list");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TripTab>("expenses");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
+  const [showEditTripDialog, setShowEditTripDialog] = useState(false);
+  const [showPersonalBudgetDialog, setShowPersonalBudgetDialog] = useState(false);
   const [showAddParticipantDialog, setShowAddParticipantDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   
@@ -71,12 +79,19 @@ export function Trips() {
   const { data: participants = [] } = useTripParticipants(selectedTripId);
   const { data: tripTransactions = [] } = useTripTransactions(selectedTripId);
   const { data: familyMembers = [] } = useFamilyMembers();
+  const { data: tripMembers = [] } = useTripMembers(selectedTripId);
+  const { data: permissions } = useTripPermissions(selectedTripId);
   
   const createTrip = useCreateTrip();
   const updateTrip = useUpdateTrip();
   const deleteTrip = useDeleteTrip();
   const addParticipant = useAddTripParticipant();
   const removeParticipant = useRemoveTripParticipant();
+  const updatePersonalBudget = useUpdatePersonalBudget();
+
+  // Buscar orçamento pessoal do usuário atual
+  const myMembership = tripMembers.find(m => m.user_id === user?.id);
+  const myPersonalBudget = myMembership?.personal_budget || null;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -123,6 +138,32 @@ export function Trips() {
       memberId: memberId,
       name,
     });
+  };
+
+  const handleEditTrip = async (data: {
+    name: string;
+    destination: string;
+    start_date: string;
+    end_date: string;
+    currency: string;
+    budget: number;
+  }) => {
+    if (!selectedTripId) return;
+    await updateTrip.mutateAsync({
+      id: selectedTripId,
+      ...data,
+    });
+    setShowEditTripDialog(false);
+  };
+
+  const handleUpdatePersonalBudget = async (budget: number) => {
+    if (!selectedTripId || !user) return;
+    await updatePersonalBudget.mutateAsync({
+      tripId: selectedTripId,
+      userId: user.id,
+      personalBudget: budget,
+    });
+    setShowPersonalBudgetDialog(false);
   };
 
   const calculateBalances = () => {
@@ -201,6 +242,33 @@ export function Trips() {
                 <MapPin className="h-4 w-4" />
                 {selectedTrip.destination}
               </p>
+            )}
+          </div>
+          
+          {/* Botões de ação baseados em permissões */}
+          <div className="flex items-center gap-2">
+            {/* Botão de orçamento pessoal (todos os membros) */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPersonalBudgetDialog(true)}
+              className="gap-2"
+            >
+              <Wallet className="h-4 w-4" />
+              {myPersonalBudget ? "Meu Orçamento" : "Adicionar Orçamento"}
+            </Button>
+            
+            {/* Botão de editar (apenas owner) */}
+            {permissions?.isOwner && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditTripDialog(true)}
+                className="gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Editar Viagem
+              </Button>
             )}
           </div>
         </div>
@@ -667,6 +735,25 @@ export function Trips() {
         setBudget={setTripBudget}
         currency={tripCurrency}
         setCurrency={setTripCurrency}
+      />
+
+      {/* Edit Trip Dialog */}
+      <EditTripDialog
+        open={showEditTripDialog}
+        onOpenChange={setShowEditTripDialog}
+        trip={selectedTrip}
+        onSubmit={handleEditTrip}
+        isLoading={updateTrip.isPending}
+      />
+
+      {/* Personal Budget Dialog */}
+      <PersonalBudgetDialog
+        open={showPersonalBudgetDialog}
+        onOpenChange={setShowPersonalBudgetDialog}
+        currentBudget={myPersonalBudget}
+        tripName={selectedTrip?.name || ""}
+        onSubmit={handleUpdatePersonalBudget}
+        isLoading={updatePersonalBudget.isPending}
       />
 
       {/* Transaction Modal */}

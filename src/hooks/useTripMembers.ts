@@ -144,3 +144,40 @@ export function useTripPermissions(tripId: string | null) {
     enabled: !!tripId && !!user,
   });
 }
+
+// Hook para atualizar orçamento pessoal do membro
+export function useUpdatePersonalBudget() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      tripId,
+      userId,
+      personalBudget,
+    }: {
+      tripId: string;
+      userId: string;
+      personalBudget: number;
+    }) => {
+      const { data, error } = await supabase
+        .from("trip_members")
+        .update({ personal_budget: personalBudget })
+        .eq("trip_id", tripId)
+        .eq("user_id", userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
+      toast.success("Orçamento pessoal atualizado!");
+    },
+    onError: (error: any) => {
+      console.error("Erro ao atualizar orçamento:", error);
+      toast.error("Erro ao atualizar orçamento: " + error.message);
+    },
+  });
+}
+
