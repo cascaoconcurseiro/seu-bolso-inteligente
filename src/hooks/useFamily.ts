@@ -96,35 +96,66 @@ export function useInviteFamilyMember() {
         throw new Error("Você não pode se adicionar como membro da família");
       }
 
+      // Se usuário existe, criar solicitação
+      if (existingProfile) {
+        const { data, error } = await supabase
+          .from("family_invitations")
+          .insert({
+            from_user_id: user.id,
+            to_user_id: existingProfile.id,
+            family_id: family.id,
+            member_name: name,
+            role,
+            status: "pending",
+          })
+          .select()
+          .single();
+
+        if (error) {
+          if (error.code === '23505') { // duplicate key
+            throw new Error("Solicitação já enviada para este usuário");
+          }
+          throw error;
+        }
+        return { type: 'invitation', data };
+      }
+
+      // Se usuário não existe, criar membro local
       const { data, error } = await supabase
         .from("family_members")
         .insert({
           family_id: family.id,
           user_id: user.id,
-          linked_user_id: existingProfile?.id || null,
+          linked_user_id: null,
           name,
           email: email.toLowerCase(),
           role,
-          status: existingProfile ? "active" : "pending",
+          status: "pending",
           invited_by: user.id,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data as FamilyMember;
+      return { type: 'local', data };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      toast.success("Convite enviado!");
+      queryClient.invalidateQueries({ queryKey: ["family-invitations"] });
+      
+      if (result.type === 'invitation') {
+        toast.success("Solicitação enviada! Aguardando aceitação.");
+      } else {
+        toast.success("Membro adicionado localmente!");
+      }
     },
     onError: (error) => {
-      if (error.message.includes("duplicate")) {
-        toast.error("Este email já foi convidado");
+      if (error.message.includes("duplicate") || error.message.includes("já enviada")) {
+        toast.error("Solicitação já enviada para este usuário");
       } else if (error.message.includes("não pode se adicionar")) {
         toast.error(error.message);
       } else {
-        toast.error("Erro ao convidar: " + error.message);
+        toast.error("Erro ao adicionar: " + error.message);
       }
     },
   });
