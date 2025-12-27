@@ -111,7 +111,7 @@ export function Transactions() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-3xl tracking-tight">Transações</h1>
           <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>

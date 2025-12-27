@@ -218,11 +218,6 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
       total_installments: isInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
       splits: transactionSplits,
-      transaction_splits: transactionSplits.map(s => ({
-        member_id: s.member_id,
-        percentage: s.percentage,
-        amount: s.amount
-      })),
       // Novos campos
       is_refund: isRefund,
       is_recurring: isRecurring,

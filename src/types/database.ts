@@ -7,13 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
@@ -29,8 +22,10 @@ export type Database = {
           created_at: string
           credit_limit: number | null
           currency: string
+          deleted: boolean | null
           due_day: number | null
           id: string
+          initial_balance: number | null
           is_active: boolean
           is_international: boolean | null
           name: string
@@ -47,8 +42,10 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           currency?: string
+          deleted?: boolean | null
           due_day?: number | null
           id?: string
+          initial_balance?: number | null
           is_active?: boolean
           is_international?: boolean | null
           name: string
@@ -65,8 +62,10 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           currency?: string
+          deleted?: boolean | null
           due_day?: number | null
           id?: string
+          initial_balance?: number | null
           is_active?: boolean
           is_international?: boolean | null
           name?: string
@@ -390,13 +389,20 @@ export type Database = {
           frequency: string | null
           id: string
           is_installment: boolean
+          is_mirror: boolean | null
           is_recurring: boolean
           is_refund: boolean | null
           is_settled: boolean
           is_shared: boolean
+          last_generated: string | null
+          linked_transaction_id: string | null
+          mirror_transaction_id: string | null
           notes: string | null
           notification_date: string | null
           payer_id: string | null
+          reconciled: boolean | null
+          reconciled_at: string | null
+          reconciled_by: string | null
           recurrence_day: number | null
           recurrence_pattern: string | null
           refund_of_transaction_id: string | null
@@ -431,13 +437,20 @@ export type Database = {
           frequency?: string | null
           id?: string
           is_installment?: boolean
+          is_mirror?: boolean | null
           is_recurring?: boolean
           is_refund?: boolean | null
           is_settled?: boolean
           is_shared?: boolean
+          last_generated?: string | null
+          linked_transaction_id?: string | null
+          mirror_transaction_id?: string | null
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
+          reconciled?: boolean | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -472,13 +485,20 @@ export type Database = {
           frequency?: string | null
           id?: string
           is_installment?: boolean
+          is_mirror?: boolean | null
           is_recurring?: boolean
           is_refund?: boolean | null
           is_settled?: boolean
           is_shared?: boolean
+          last_generated?: string | null
+          linked_transaction_id?: string | null
+          mirror_transaction_id?: string | null
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
+          reconciled?: boolean | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -528,6 +548,13 @@ export type Database = {
             columns: ["payer_id"]
             isOneToOne: false
             referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -722,10 +749,13 @@ export type Database = {
           currency: string
           destination: string | null
           end_date: string
+          exchange_entries: Json | null
           id: string
           name: string
           notes: string | null
           owner_id: string
+          shopping_list: Json | null
+          source_trip_id: string | null
           start_date: string
           status: Database["public"]["Enums"]["trip_status"]
           updated_at: string
@@ -737,10 +767,13 @@ export type Database = {
           currency?: string
           destination?: string | null
           end_date: string
+          exchange_entries?: Json | null
           id?: string
           name: string
           notes?: string | null
           owner_id: string
+          shopping_list?: Json | null
+          source_trip_id?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["trip_status"]
           updated_at?: string
@@ -752,10 +785,13 @@ export type Database = {
           currency?: string
           destination?: string | null
           end_date?: string
+          exchange_entries?: Json | null
           id?: string
           name?: string
           notes?: string | null
           owner_id?: string
+          shopping_list?: Json | null
+          source_trip_id?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["trip_status"]
           updated_at?: string
@@ -766,6 +802,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_source_trip_id_fkey"
+            columns: ["source_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
             referencedColumns: ["id"]
           },
         ]
@@ -783,6 +826,18 @@ export type Database = {
       is_trip_participant: {
         Args: { _trip_id: string; _user_id: string }
         Returns: boolean
+      }
+      resync_all_shared_transactions: {
+        Args: never
+        Returns: {
+          mirrors_created: number
+          tx_description: string
+          tx_id: string
+        }[]
+      }
+      sync_shared_transaction: {
+        Args: { p_transaction_id: string }
+        Returns: undefined
       }
     }
     Enums: {
@@ -941,3 +996,4 @@ export const Constants = {
     },
   },
 } as const
+

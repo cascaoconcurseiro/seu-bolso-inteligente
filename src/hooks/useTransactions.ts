@@ -130,7 +130,7 @@ export function useCreateTransaction() {
       if (!user) throw new Error("User not authenticated");
 
       // Remove splits from input (não existe na tabela transactions)
-      const { splits, ...transactionData } = input;
+      const { splits, transaction_splits, ...transactionData } = input;
 
       // Se é parcelamento, criar múltiplas transações
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
