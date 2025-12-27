@@ -25,6 +25,7 @@ import {
 import { Mail, Check, X, Loader2, ChevronDown, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { FamilyRole, SharingScope } from "@/hooks/useFamily";
 
 interface InviteMemberDialogProps {
@@ -48,18 +49,40 @@ export function InviteMemberDialog({
   onInvite, 
   isPending 
 }: InviteMemberDialogProps) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<FamilyRole>("editor");
+  
+  // Advanced options
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [sharingScope, setSharingScope] = useState<SharingScope>("all");
+  const [scopeStartDate, setScopeStartDate] = useState("");
+  const [scopeEndDate, setScopeEndDate] = useState("");
+  const [scopeTripId, setScopeTripId] = useState("");
+  const [trips, setTrips] = useState<any[]>([]);
   
   // Email verification state
   const [isChecking, setIsChecking] = useState(false);
   const [userExists, setUserExists] = useState<boolean | null>(null);
   const [foundUser, setFoundUser] = useState<{ id: string; full_name: string | null } | null>(null);
 
+  // Load trips for specific_trip option
+  useEffect(() => {
+    if (user && sharingScope === "specific_trip") {
+      supabase
+        .from("trips")
+        .select("id, name, start_date, end_date")
+        .eq("user_id", user.id)
+        .order("start_date", { ascending: false })
+        .then(({ data }) => {
+          setTrips(data || []);
+        });
+    }
+  }, [user, sharingScope]);
+
   // Debounced email check
   useEffect(() => {
-    // Validação básica de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if (!email || !emailRegex.test(email.trim())) {
@@ -70,53 +93,49 @@ export function InviteMemberDialog({
 
     const timer = setTimeout(async () => {
       setIsChecking(true);
-      console.log('🔍 DEBUG InviteMemberDialog - Buscando email:', email.trim().toLowerCase());
       
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
           .select("id, full_name, email")
           .ilike("email", email.trim())
           .maybeSingle();
 
-        console.log('🔍 DEBUG InviteMemberDialog - Resultado da busca:', { data, error });
-
         if (data) {
-          console.log('✅ Usuário encontrado:', data);
           setUserExists(true);
           setFoundUser({ 
             id: data.id, 
-            full_name: data.full_name || data.email.split('@')[0] // Fallback para parte do email
+            full_name: data.full_name || data.email.split('@')[0]
           });
-          // Auto-fill name if found and not already filled
           if (!name) {
             setName(data.full_name || data.email.split('@')[0]);
           }
         } else {
-          console.log('❌ Usuário NÃO encontrado para email:', email.trim().toLowerCase());
           setUserExists(false);
           setFoundUser(null);
         }
       } catch (error) {
-        console.error("❌ Erro ao buscar email:", error);
         setUserExists(null);
         setFoundUser(null);
       } finally {
         setIsChecking(false);
       }
-    }, 1500); // Aumentado para 1.5 segundos
+    }, 1500);
 
     return () => clearTimeout(timer);
-  }, [email]);
+  }, [email, name]);
 
   const handleSubmit = async () => {
-    await onInvite({ name, email, role });
-    // Reset form
-    setName("");
-    setEmail("");
-    setRole("editor");
-    setUserExists(null);
-    setFoundUser(null);
+    await onInvite({ 
+      name, 
+      email, 
+      role,
+      sharingScope: showAdvanced ? sharingScope : "all",
+      scopeStartDate: sharingScope === "date_range" ? scopeStartDate : undefined,
+      scopeEndDate: sharingScope === "date_range" ? scopeEndDate : undefined,
+      scopeTripId: sharingScope === "specific_trip" ? scopeTripId : undefined,
+    });
+    handleClose(false);
   };
 
   const handleClose = (isOpen: boolean) => {
@@ -124,6 +143,11 @@ export function InviteMemberDialog({
       setName("");
       setEmail("");
       setRole("editor");
+      setSharingScope("all");
+      setScopeStartDate("");
+      setScopeEndDate("");
+      setScopeTripId("");
+      setShowAdvanced(false);
       setUserExists(null);
       setFoundUser(null);
     }
@@ -132,12 +156,12 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Convidar membro</DialogTitle>
           <DialogDescription>
             {userExists 
-              ? "Usuário encontrado! Será adicionado automaticamente." 
+              ? "Usuário encontrado! Será enviada uma solicitação." 
               : "Adicione alguém para compartilhar finanças"}
           </DialogDescription>
         </DialogHeader>
@@ -158,17 +182,9 @@ export function InviteMemberDialog({
                 )}
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {isChecking && (
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                )}
-                {!isChecking && userExists === true && (
-                  <div className="flex items-center gap-1">
-                    <Check className="h-4 w-4 text-positive" />
-                  </div>
-                )}
-                {!isChecking && userExists === false && (
-                  <X className="h-4 w-4 text-warning" />
-                )}
+                {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                {!isChecking && userExists === true && <Check className="h-4 w-4 text-positive" />}
+                {!isChecking && userExists === false && <X className="h-4 w-4 text-warning" />}
               </div>
             </div>
             {userExists === true && foundUser?.full_name && (
@@ -222,11 +238,110 @@ export function InviteMemberDialog({
             </Select>
           </div>
 
-          {/* Info about auto-accept */}
+          {/* Advanced Options */}
+          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2 w-full justify-start">
+                <Settings className="h-4 w-4" />
+                Opções Avançadas
+                <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label>Escopo de Compartilhamento</Label>
+                <Select value={sharingScope} onValueChange={(v) => setSharingScope(v as SharingScope)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex flex-col items-start">
+                        <span>Tudo</span>
+                        <span className="text-xs text-muted-foreground">Compartilhar todas as transações</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="trips_only">
+                      <div className="flex flex-col items-start">
+                        <span>🧳 Apenas Viagens</span>
+                        <span className="text-xs text-muted-foreground">Apenas transações de viagens</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="date_range">
+                      <div className="flex flex-col items-start">
+                        <span>📅 Período Específico</span>
+                        <span className="text-xs text-muted-foreground">Transações em um período</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="specific_trip">
+                      <div className="flex flex-col items-start">
+                        <span>🎯 Viagem Específica</span>
+                        <span className="text-xs text-muted-foreground">Apenas uma viagem</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {sharingScope === "date_range" && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Data Início</Label>
+                    <Input
+                      type="date"
+                      value={scopeStartDate}
+                      onChange={(e) => setScopeStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data Fim</Label>
+                    <Input
+                      type="date"
+                      value={scopeEndDate}
+                      onChange={(e) => setScopeEndDate(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    💡 Transações antigas do período permanecerão visíveis. Novas transações fora do período não aparecerão.
+                  </p>
+                </>
+              )}
+
+              {sharingScope === "specific_trip" && (
+                <div className="space-y-2">
+                  <Label>Viagem</Label>
+                  <Select value={scopeTripId} onValueChange={setScopeTripId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma viagem" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {trips.map((trip) => (
+                        <SelectItem key={trip.id} value={trip.id}>
+                          {trip.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {trips.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Nenhuma viagem encontrada. Crie uma viagem primeiro.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {sharingScope === "trips_only" && (
+                <p className="text-xs text-muted-foreground">
+                  💡 Apenas transações vinculadas a viagens serão compartilhadas.
+                </p>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+
           {userExists === true && (
             <div className="p-3 rounded-lg bg-positive/10 border border-positive/20">
               <p className="text-sm text-positive">
-                ✓ Este usuário já está no sistema e será adicionado automaticamente sem precisar aceitar convite.
+                ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
               </p>
             </div>
           )}

@@ -88,7 +88,23 @@ export function useInviteFamilyMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, email, role }: { name: string; email: string; role: FamilyRole }) => {
+    mutationFn: async ({ 
+      name, 
+      email, 
+      role,
+      sharingScope,
+      scopeStartDate,
+      scopeEndDate,
+      scopeTripId
+    }: { 
+      name: string; 
+      email: string; 
+      role: FamilyRole;
+      sharingScope?: SharingScope;
+      scopeStartDate?: string;
+      scopeEndDate?: string;
+      scopeTripId?: string;
+    }) => {
       if (!user) throw new Error("Not authenticated");
 
       // Criar família se não existir
@@ -138,6 +154,10 @@ export function useInviteFamilyMember() {
             member_name: name,
             role,
             status: "pending",
+            sharing_scope: sharingScope || 'all',
+            scope_start_date: scopeStartDate || null,
+            scope_end_date: scopeEndDate || null,
+            scope_trip_id: scopeTripId || null,
           })
           .select()
           .single();
@@ -163,6 +183,10 @@ export function useInviteFamilyMember() {
           role,
           status: "pending",
           invited_by: user.id,
+          sharing_scope: sharingScope || 'all',
+          scope_start_date: scopeStartDate || null,
+          scope_end_date: scopeEndDate || null,
+          scope_trip_id: scopeTripId || null,
         })
         .select()
         .single();
