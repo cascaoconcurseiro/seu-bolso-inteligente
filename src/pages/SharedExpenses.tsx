@@ -346,10 +346,6 @@ export function SharedExpenses() {
             <Layers className="h-4 w-4 mr-2" />
             Importar Parcelas
           </Button>
-          <Button onClick={() => setShowTransactionModal(true)}>
-            <Plus className="h-5 w-5 mr-2" />
-            Nova despesa
-          </Button>
         </div>
       </div>
 

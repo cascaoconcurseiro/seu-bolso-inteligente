@@ -207,14 +207,7 @@ export function Transactions() {
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-16 border border-dashed border-border rounded-xl">
             <p className="text-muted-foreground">Nenhuma transação encontrada</p>
-            <Button 
-              variant="ghost" 
-              className="mt-4 gap-2"
-              onClick={() => setShowTransactionModal(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Adicionar primeira
-            </Button>
+            <p className="text-sm text-muted-foreground mt-2">Use o botão "Nova transação" acima para começar</p>
           </div>
         ) : (
           filteredTransactions.map((transaction) => {

@@ -81,21 +81,13 @@ export function Dashboard() {
           <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
             Comece adicionando uma conta bancária ou criando sua primeira transação.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link to="/configuracoes">
               <Button size="lg" variant="outline" className="gap-2">
                 <CreditCard className="h-5 w-5" />
                 Adicionar conta
               </Button>
             </Link>
-            <Button 
-              size="lg" 
-              className="gap-2"
-              onClick={() => setShowTransactionModal(true)}
-            >
-              <Plus className="h-5 w-5" />
-              Nova transação
-            </Button>
           </div>
         </div>
       </div>
@@ -129,15 +121,6 @@ export function Dashboard() {
             </span>
           </div>
         </div>
-        
-        <Button 
-          size="lg" 
-          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-          onClick={() => setShowTransactionModal(true)}
-        >
-          <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
-          Nova transação
-        </Button>
       </div>
 
       {/* Main Grid */}
@@ -247,15 +230,7 @@ export function Dashboard() {
             {recentTransactions.length === 0 ? (
               <div className="p-8 text-center border border-dashed border-border rounded-xl">
                 <p className="text-muted-foreground">Nenhuma transação ainda</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-4"
-                  onClick={() => setShowTransactionModal(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar primeira
-                </Button>
+                <p className="text-sm text-muted-foreground mt-2">Use o botão "Nova transação" acima para começar</p>
               </div>
             ) : (
               <div className="space-y-1">
