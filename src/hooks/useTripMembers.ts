@@ -37,9 +37,9 @@ export function useTripMembers(tripId: string | null) {
         console.error("Erro ao buscar membros da viagem:", error);
         throw error;
       }
-      
+
       console.log("Membros da viagem (sem profiles):", data);
-      
+
       // Buscar dados dos profiles separadamente
       if (data && data.length > 0) {
         const userIds = [...new Set(data.map(m => m.user_id))];
@@ -47,20 +47,23 @@ export function useTripMembers(tripId: string | null) {
           .from("profiles")
           .select("id, full_name, email")
           .in("id", userIds);
-        
+
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        
+
         const enrichedData = data.map(member => ({
           ...member,
           profiles: profilesMap.get(member.user_id)
         }));
-        
+
         console.log("Membros enriquecidos:", enrichedData);
         return enrichedData as TripMember[];
       }
-      
+
       return data as TripMember[];
     },
+    retry: 1, // Não tentar infinitamente em caso de erro 500
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache para evitar requests desnecessários
+    refetchOnWindowFocus: false,
     enabled: !!tripId && !!user,
   });
 }

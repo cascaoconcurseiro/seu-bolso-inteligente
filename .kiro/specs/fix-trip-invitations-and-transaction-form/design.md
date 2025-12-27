@@ -2,12 +2,13 @@
 
 ## Overview
 
-Este documento descreve o design técnico para corrigir três bugs críticos no sistema:
+Este documento descreve o design técnico para corrigir quatro bugs críticos no sistema:
 1. Viagens que desaparecem após aceitar convite
 2. Ausência de notificação quando convite é rejeitado
 3. Loop infinito ao abrir formulário de transação
+4. Erro de chave duplicada ao criar viagem
 
-A solução envolve correções nos hooks de React Query, otimização de cache, e melhorias na lógica de gerenciamento de membros de viagem.
+A solução envolve correções nos hooks de React Query, otimização de cache, melhorias na lógica de gerenciamento de membros de viagem, e tratamento adequado de erros de duplicata.
 
 ## Architecture
 
@@ -48,6 +49,20 @@ App
 
 3. Abrir Formulário:
    User navega para /nova-transacao
+   → TransactionForm monta
+   → useQuery hooks executam (LOOP)
+   → useEffect de duplicatas executa (LOOP)
+   → DialogContent warnings (ACESSIBILIDADE)
+
+4. Criar Viagem:
+   User preenche formulário de nova viagem
+   → useCreateTrip.mutate()
+   → Insert into trips table
+   → Trigger do banco adiciona criador em trip_members (AUTOMÁTICO)
+   → Código tenta adicionar criador em trip_members (DUPLICATA)
+   → Erro: duplicate key violation (PROBLEMA)
+   → Solução: Ignorar erro de duplicata
+```
    → TransactionForm monta
    → useQuery hooks executam (LOOP)
    → useEffect de duplicatas executa (LOOP)
@@ -412,6 +427,92 @@ const { data: allTransactions = [] } = useTransactions({
 </DialogContent>
 ```
 
+### 6. Hook: useCreateTrip
+
+**Localização:** `src/hooks/useTrips.ts`
+
+**Problema Atual:**
+- Código tenta adicionar criador manualmente em `trip_members`
+- Trigger do banco de dados já adiciona automaticamente
+- Resulta em erro de constraint violation: `duplicate key value violates unique constraint "trip_members_trip_id_user_id_key"`
+
+**Solução:**
+
+```typescript
+export function useCreateTrip() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateTripInput) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { memberIds, ...tripData } = input;
+
+      const { data, error } = await supabase
+        .from("trips")
+        .insert({
+          owner_id: user.id,
+          ...tripData,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Adicionar o criador como membro em trip_members
+      // CORREÇÃO: Ignorar erro de duplicata caso trigger já tenha adicionado
+      const { error: memberError } = await supabase
+        .from("trip_members")
+        .insert({
+          trip_id: data.id,
+          user_id: user.id,
+          role: 'owner',
+          can_edit_details: true,
+          can_manage_expenses: true,
+        });
+
+      if (memberError) {
+        // Ignorar erro de duplicata (trigger do banco pode já ter adicionado)
+        if (!memberError.message.includes('duplicate key') && 
+            !memberError.message.includes('trip_members_trip_id_user_id_key')) {
+          console.error("Erro ao adicionar criador como membro:", memberError);
+          // Não falhar a criação da viagem mesmo com erro
+        }
+      }
+
+      // Criar convites para membros selecionados
+      if (memberIds && memberIds.length > 0) {
+        const invitations = memberIds.map(userId => ({
+          trip_id: data.id,
+          inviter_id: user.id,
+          invitee_id: userId,
+          message: `Você foi convidado para participar da viagem "${data.name}"!`,
+        }));
+
+        const { error: invitationsError } = await supabase
+          .from("trip_invitations")
+          .insert(invitations);
+
+        if (invitationsError) {
+          console.error("Erro ao criar convites:", invitationsError);
+          // Não falhar a criação da viagem se houver erro ao criar convites
+        }
+      }
+
+      return data as Trip;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      toast.success("Viagem criada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao criar viagem: " + error.message);
+    },
+  });
+}
+```
+
 ## Data Models
 
 ### trip_members Table
@@ -447,6 +548,197 @@ CREATE TABLE trip_invitations (
   UNIQUE(trip_id, invitee_id)
 );
 ```
+
+## RLS Policies Consolidation
+
+### Problema Atual
+
+A tabela `trip_members` possui políticas RLS duplicadas que podem causar conflitos e confusão:
+
+**Políticas INSERT Duplicadas:**
+1. "Trip owners and invited users can add members"
+2. "Trip owners and system can add members"
+
+**Políticas SELECT Duplicadas:**
+1. "Users can view trip members"
+2. "Users can view trip members of their trips"
+
+### Análise das Políticas Existentes
+
+#### INSERT Policy 1: "Trip owners and invited users can add members"
+```sql
+WITH CHECK (
+  (EXISTS (
+    SELECT 1 FROM trips
+    WHERE trips.id = trip_members.trip_id 
+    AND trips.owner_id = auth.uid()
+  ))
+  OR
+  (
+    user_id = auth.uid() 
+    AND EXISTS (
+      SELECT 1 FROM trip_invitations
+      WHERE trip_invitations.trip_id = trip_members.trip_id
+      AND trip_invitations.invitee_id = auth.uid()
+      AND trip_invitations.status = 'accepted'
+    )
+  )
+)
+```
+
+#### INSERT Policy 2: "Trip owners and system can add members"
+```sql
+WITH CHECK (
+  (EXISTS (
+    SELECT 1 FROM trips t
+    WHERE t.id = trip_members.trip_id 
+    AND t.owner_id = auth.uid()
+  ))
+  OR
+  (user_id = auth.uid())
+)
+```
+
+#### SELECT Policy 1: "Users can view trip members"
+```sql
+USING (
+  EXISTS (
+    SELECT 1 FROM trip_members tm
+    WHERE tm.trip_id = trip_members.trip_id
+    AND tm.user_id = auth.uid()
+  )
+)
+```
+
+#### SELECT Policy 2: "Users can view trip members of their trips"
+```sql
+USING (
+  (user_id = auth.uid())
+  OR
+  (trip_id IN (
+    SELECT trips.id FROM trips
+    WHERE trips.owner_id = auth.uid()
+  ))
+  OR
+  (trip_id IN (
+    SELECT trip_invitations.trip_id FROM trip_invitations
+    WHERE trip_invitations.invitee_id = auth.uid()
+    AND trip_invitations.status = 'accepted'
+  ))
+)
+```
+
+### Solução: Políticas Consolidadas
+
+#### Nova INSERT Policy: "Users can add trip members"
+```sql
+CREATE POLICY "Users can add trip members"
+ON trip_members
+FOR INSERT
+WITH CHECK (
+  -- Donos da viagem podem adicionar qualquer membro
+  (EXISTS (
+    SELECT 1 FROM trips
+    WHERE trips.id = trip_members.trip_id 
+    AND trips.owner_id = auth.uid()
+  ))
+  OR
+  -- Usuários podem se adicionar se tiverem convite aceito
+  (
+    user_id = auth.uid() 
+    AND EXISTS (
+      SELECT 1 FROM trip_invitations
+      WHERE trip_invitations.trip_id = trip_members.trip_id
+      AND trip_invitations.invitee_id = auth.uid()
+      AND trip_invitations.status = 'accepted'
+    )
+  )
+);
+```
+
+**Justificativa:**
+- Combina as duas políticas INSERT existentes
+- Mantém permissão para donos adicionarem membros
+- Mantém permissão para usuários com convite aceito se adicionarem
+- Remove a condição genérica `user_id = auth.uid()` da Policy 2 que era muito permissiva
+
+#### Nova SELECT Policy: "Users can view members of their trips"
+```sql
+CREATE POLICY "Users can view members of their trips"
+ON trip_members
+FOR SELECT
+USING (
+  -- Usuários podem ver membros de viagens onde são participantes
+  trip_id IN (
+    SELECT tm.trip_id FROM trip_members tm
+    WHERE tm.user_id = auth.uid()
+  )
+);
+```
+
+**Justificativa:**
+- Mais simples e clara que as duas políticas anteriores
+- Usa a própria tabela trip_members como fonte de verdade
+- Automaticamente cobre todos os casos: donos, membros, e convidados aceitos
+- Remove redundância das verificações em trips e trip_invitations
+
+### Script de Migração
+
+```sql
+-- Backup das políticas antigas (para rollback se necessário)
+-- Não executar, apenas documentação
+
+-- Remover políticas duplicadas
+DROP POLICY IF EXISTS "Trip owners and invited users can add members" ON trip_members;
+DROP POLICY IF EXISTS "Trip owners and system can add members" ON trip_members;
+DROP POLICY IF EXISTS "Users can view trip members" ON trip_members;
+DROP POLICY IF EXISTS "Users can view trip members of their trips" ON trip_members;
+
+-- Criar políticas consolidadas
+CREATE POLICY "Users can add trip members"
+ON trip_members
+FOR INSERT
+WITH CHECK (
+  (EXISTS (
+    SELECT 1 FROM trips
+    WHERE trips.id = trip_members.trip_id 
+    AND trips.owner_id = auth.uid()
+  ))
+  OR
+  (
+    user_id = auth.uid() 
+    AND EXISTS (
+      SELECT 1 FROM trip_invitations
+      WHERE trip_invitations.trip_id = trip_members.trip_id
+      AND trip_invitations.invitee_id = auth.uid()
+      AND trip_invitations.status = 'accepted'
+    )
+  )
+);
+
+CREATE POLICY "Users can view members of their trips"
+ON trip_members
+FOR SELECT
+USING (
+  trip_id IN (
+    SELECT tm.trip_id FROM trip_members tm
+    WHERE tm.user_id = auth.uid()
+  )
+);
+
+-- Manter política DELETE existente (não duplicada)
+-- "Trip owners can remove members" - já está correta
+```
+
+### Testes de Validação
+
+Após aplicar as políticas consolidadas, validar:
+
+1. **Dono pode adicionar membros:** Criar viagem e adicionar membro
+2. **Convidado aceito pode se adicionar:** Aceitar convite e verificar inserção em trip_members
+3. **Usuário sem convite não pode se adicionar:** Tentar inserir sem convite deve falhar
+4. **Membros podem ver outros membros:** Query trip_members deve retornar todos membros
+5. **Não-membros não podem ver membros:** Query de viagem alheia deve retornar vazio
 
 ## Correctness Properties
 
@@ -494,6 +786,18 @@ Após análise dos critérios de aceitação, identifiquei as seguintes redundâ
 **Property 8: Duplicate Detection with Empty Transactions**
 *For any* transaction form state where allTransactions is empty or undefined, the duplicate warning should be false and no errors should occur.
 **Validates: Requirements 3.4**
+
+**Property 9: Trip Creation Without Duplicate Error**
+*For any* trip creation request, the system should successfully create the trip and add the creator as owner in trip_members without throwing a duplicate key error, even if a database trigger also attempts to add the creator.
+**Validates: Requirements 8.1, 8.2, 8.5**
+
+**Property 10: RLS Policy Uniqueness**
+*For any* operation type (INSERT, SELECT, DELETE) on trip_members table, there should be exactly one RLS policy governing that operation.
+**Validates: Requirements 9.1, 9.5**
+
+**Property 11: RLS Policy Permissions Preservation**
+*For any* user action that was permitted under the old duplicate policies, the same action should be permitted under the new consolidated policies.
+**Validates: Requirements 9.4**
 
 
 
@@ -807,11 +1111,12 @@ Integration tests verificam fluxos completos:
 
 ### Ordem de Implementação
 
-1. **Primeiro:** Corrigir useAcceptTripInvitation (adicionar trip_member)
-2. **Segundo:** Corrigir useRejectTripInvitation (buscar dados e notificar)
-3. **Terceiro:** Otimizar useTrips (já está correto, apenas adicionar configs)
-4. **Quarto:** Corrigir TransactionForm useEffect (verificação de array vazio)
-5. **Quinto:** Adicionar DialogDescription ao SplitModal
+1. **Primeiro:** Consolidar políticas RLS duplicadas (crítico para segurança)
+2. **Segundo:** Corrigir useAcceptTripInvitation (adicionar trip_member)
+3. **Terceiro:** Corrigir useRejectTripInvitation (buscar dados e notificar)
+4. **Quarto:** Otimizar useTrips (já está correto, apenas adicionar configs)
+5. **Quinto:** Corrigir TransactionForm useEffect (verificação de array vazio)
+6. **Sexto:** Adicionar DialogDescription ao SplitModal
 
 ### Pontos de Atenção
 
@@ -820,6 +1125,7 @@ Integration tests verificam fluxos completos:
 - **Cache:** Configurar staleTime e refetchOnWindowFocus em todas queries críticas
 - **Debounce:** Manter 500ms para detecção de duplicatas
 - **Acessibilidade:** Sempre incluir DialogDescription em DialogContent
+- **RLS Policies:** Testar cuidadosamente após consolidação para garantir que permissões estão corretas
 
 ### Rollback Plan
 
@@ -829,3 +1135,4 @@ Se houver problemas após deploy:
 2. **Loop infinito persiste:** Aumentar staleTime para 120 segundos
 3. **Notificações não aparecem:** Verificar logs do Supabase para erros de query
 4. **Performance degradada:** Desabilitar detecção de duplicatas temporariamente
+5. **Erros de permissão RLS:** Reverter para políticas antigas usando backup SQL

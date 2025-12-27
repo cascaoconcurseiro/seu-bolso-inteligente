@@ -57,7 +57,7 @@ export function useTrips() {
         .eq("user_id", user.id);
 
       if (memberError) throw memberError;
-      
+
       if (!memberTrips || memberTrips.length === 0) return [];
 
       const tripIds = memberTrips.map(m => m.trip_id);
@@ -142,21 +142,8 @@ export function useCreateTrip() {
 
       if (error) throw error;
 
-      // Adicionar o criador como membro em trip_members (não trip_participants)
-      const { error: memberError } = await supabase
-        .from("trip_members")
-        .insert({
-          trip_id: data.id,
-          user_id: user.id,
-          role: 'owner',
-          can_edit_details: true,
-          can_manage_expenses: true,
-        });
-
-      if (memberError) {
-        console.error("Erro ao adicionar criador como membro:", memberError);
-        // Não falhar a criação da viagem, o trigger deve cuidar disso
-      }
+      // Trigger 'trg_add_trip_owner' no banco já adiciona o criador como owner automaticamente.
+      // Não precisamos inserir manualmente em trip_members aqui.
 
       // Criar convites para membros selecionados
       if (memberIds && memberIds.length > 0) {

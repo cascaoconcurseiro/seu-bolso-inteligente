@@ -187,7 +187,6 @@ export function useAcceptTripInvitation() {
       if (!invitation) throw new Error("Convite não encontrado");
 
       // 2. Atualizar status do convite
-      // O trigger do banco automaticamente adiciona o usuário em trip_members
       const { error: updateError } = await supabase
         .from("trip_invitations")
         .update({ 
@@ -198,7 +197,25 @@ export function useAcceptTripInvitation() {
 
       if (updateError) throw updateError;
 
-      // 3. Buscar dados para notificação
+      // 3. ADICIONAR USUÁRIO EM TRIP_MEMBERS (CORREÇÃO PRINCIPAL)
+      const { error: memberError } = await supabase
+        .from("trip_members")
+        .insert({
+          trip_id: invitation.trip_id,
+          user_id: invitation.invitee_id,
+          role: 'member',
+          can_edit_details: false,
+          can_manage_expenses: true,
+        });
+
+      if (memberError) {
+        // Se já existe, ignorar erro de duplicata
+        if (!memberError.message.includes('duplicate')) {
+          throw memberError;
+        }
+      }
+
+      // 4. Buscar dados para notificação
       const [tripResult, inviterResult] = await Promise.all([
         supabase
           .from("trips")

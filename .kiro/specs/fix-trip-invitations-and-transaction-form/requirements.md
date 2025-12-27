@@ -2,10 +2,12 @@
 
 ## Introduction
 
-Este documento especifica os requisitos para corrigir três bugs críticos no sistema de gerenciamento financeiro:
+Este documento especifica os requisitos para corrigir cinco bugs críticos no sistema de gerenciamento financeiro:
 1. Viagens desaparecem após aceitar convite
 2. Ausência de notificação quando convite de viagem é rejeitado
 3. Loop infinito ao abrir formulário de nova transação
+4. Erro de chave duplicada ao criar viagem (trip_members_trip_id_user_id_key)
+5. Políticas RLS duplicadas na tabela trip_members causando conflitos
 
 ## Glossary
 
@@ -16,6 +18,8 @@ Este documento especifica os requisitos para corrigir três bugs críticos no si
 - **Transaction_Form**: Formulário para criar nova transação financeira
 - **Query_Client**: Cliente de cache do React Query para gerenciar estado de dados
 - **Dialog_Content**: Componente de interface para exibir conteúdo em modal
+- **RLS_Policy**: Row Level Security Policy do PostgreSQL que controla acesso a dados em nível de linha
+- **Supabase**: Plataforma de backend que gerencia banco de dados PostgreSQL e autenticação
 
 ## Requirements
 
@@ -103,3 +107,27 @@ Este documento especifica os requisitos para corrigir três bugs críticos no si
 3. WHEN queries são configuradas, THE System SHALL limitar retry a 1 ou false em queries críticas
 4. WHEN múltiplas invalidações ocorrem, THE System SHALL usar batch updates do React Query
 5. WHEN useEffect depende de arrays, THE System SHALL incluir verificação de length antes de processar
+
+### Requirement 8: Prevenção de Duplicata ao Criar Viagem
+
+**User Story:** Como um usuário que cria uma nova viagem, eu quero que o sistema adicione automaticamente o criador como membro sem erros de duplicata, para que eu possa começar a usar a viagem imediatamente.
+
+#### Acceptance Criteria
+
+1. WHEN uma viagem é criada, THE System SHALL verificar se o criador já existe em trip_members antes de inserir
+2. WHEN o criador já existe em trip_members, THE System SHALL ignorar a inserção e continuar sem erro
+3. WHEN o criador não existe em trip_members, THE System SHALL inserir registro com role 'owner'
+4. WHEN o registro é criado, THE System SHALL definir can_edit_details como true e can_manage_expenses como true
+5. WHEN ocorre erro de constraint violation de chave duplicada, THE System SHALL capturar o erro e continuar normalmente
+
+### Requirement 9: Consolidação de Políticas RLS Duplicadas
+
+**User Story:** Como administrador do sistema, eu quero que as políticas RLS da tabela trip_members sejam consolidadas e não duplicadas, para que o sistema tenha regras de segurança claras e sem conflitos.
+
+#### Acceptance Criteria
+
+1. WHEN políticas RLS são auditadas, THE System SHALL identificar todas as políticas duplicadas na tabela trip_members
+2. WHEN políticas INSERT duplicadas são encontradas, THE System SHALL consolidar em uma única política que permita donos de viagem e usuários convidados aceitos adicionarem membros
+3. WHEN políticas SELECT duplicadas são encontradas, THE System SHALL consolidar em uma única política que permita usuários visualizarem membros de viagens onde são participantes
+4. WHEN políticas antigas são removidas, THE System SHALL garantir que a nova política consolidada mantém todas as permissões necessárias
+5. WHEN a consolidação é concluída, THE System SHALL ter exatamente uma política INSERT e uma política SELECT para trip_members
