@@ -17,15 +17,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Check, X, Loader2 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Mail, Check, X, Loader2, ChevronDown, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { FamilyRole } from "@/hooks/useFamily";
+import { FamilyRole, SharingScope } from "@/hooks/useFamily";
 
 interface InviteMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onInvite: (data: { name: string; email: string; role: FamilyRole }) => Promise<void>;
+  onInvite: (data: { 
+    name: string; 
+    email: string; 
+    role: FamilyRole;
+    sharingScope?: SharingScope;
+    scopeStartDate?: string;
+    scopeEndDate?: string;
+    scopeTripId?: string;
+  }) => Promise<void>;
   isPending: boolean;
 }
 

@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 export type FamilyRole = "admin" | "editor" | "viewer";
 
+export type SharingScope = "all" | "trips_only" | "date_range" | "specific_trip";
+
 export interface FamilyMember {
   id: string;
   family_id: string;
@@ -16,6 +18,10 @@ export interface FamilyMember {
   avatar_url: string | null;
   status: "pending" | "active";
   invited_by: string | null;
+  sharing_scope: SharingScope;
+  scope_start_date: string | null;
+  scope_end_date: string | null;
+  scope_trip_id: string | null;
   created_at: string;
   updated_at: string;
 }
