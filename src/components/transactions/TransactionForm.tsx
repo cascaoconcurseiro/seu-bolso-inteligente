@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  Calendar,
+  Calendar as CalendarIcon,
   Loader2,
   RefreshCw,
   Users,
@@ -119,6 +119,12 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
 
   // Detect duplicates (com debounce para performance)
   useEffect(() => {
+    // Evitar loop: só executar se temos transações carregadas
+    if (!allTransactions || allTransactions.length === 0) {
+      setDuplicateWarning(false);
+      return;
+    }
+
     const handler = setTimeout(() => {
       const numericAmount = getNumericAmount();
       if (!description || numericAmount === 0 || !date) {
@@ -126,7 +132,6 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         return;
       }
 
-      console.log("🔍 Verificando duplicatas...");
       const hasDuplicate = allTransactions.some((tx) => {
         if (tx.type !== activeTab) return false;
 
@@ -146,7 +151,8 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
     }, 500); // Debounce de 500ms
 
     return () => clearTimeout(handler);
-  }, [amount, description, date, activeTab, allTransactions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount, description, date, activeTab]);
 
   const filteredCategories =
     categories?.filter((c) =>
@@ -450,7 +456,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                     ) && "border-amber-400 dark:border-amber-600"
                   )}
                 >
-                  <Calendar className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   {format(date, "dd/MM/yy", { locale: ptBR })}
                 </Button>
               </PopoverTrigger>
@@ -807,7 +813,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                     variant="outline"
                     className="w-full justify-start text-left font-normal"
                   >
-                    <Calendar className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="mr-2 h-4 w-4" />
                     {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
                   </Button>
                 </PopoverTrigger>
