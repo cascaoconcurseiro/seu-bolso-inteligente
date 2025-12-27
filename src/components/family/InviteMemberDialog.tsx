@@ -63,7 +63,7 @@ export function InviteMemberDialog({
         const { data, error } = await supabase
           .from("profiles")
           .select("id, full_name, email")
-          .eq("email", email.trim().toLowerCase())
+          .ilike("email", email.trim())
           .maybeSingle();
 
         console.log('🔍 DEBUG InviteMemberDialog - Resultado da busca:', { data, error });
@@ -165,8 +165,8 @@ export function InviteMemberDialog({
               </p>
             )}
             {userExists === false && (
-              <p className="text-sm text-warning">
-                Usuário não cadastrado. Será convidado por email.
+              <p className="text-sm text-muted-foreground">
+                Usuário não cadastrado. Os dados ficarão salvos localmente.
               </p>
             )}
           </div>
@@ -228,7 +228,7 @@ export function InviteMemberDialog({
             disabled={!name || !email || isPending}
           >
             <Mail className="h-4 w-4 mr-2" />
-            {isPending ? "Adicionando..." : userExists ? "Adicionar" : "Enviar convite"}
+            {isPending ? "Adicionando..." : "Adicionar membro"}
           </Button>
         </DialogFooter>
       </DialogContent>

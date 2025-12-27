@@ -87,7 +87,7 @@ export function useInviteFamilyMember() {
       // Verificar se o email já está cadastrado no app (busca case-insensitive)
       const { data: existingProfile } = await supabase
         .from("profiles")
-        .select("id, email")
+        .select("id, email, full_name")
         .ilike("email", email)
         .maybeSingle();
 
@@ -100,7 +100,7 @@ export function useInviteFamilyMember() {
         .from("family_members")
         .insert({
           family_id: family.id,
-          user_id: existingProfile?.id || null,
+          user_id: user.id,
           linked_user_id: existingProfile?.id || null,
           name,
           email: email.toLowerCase(),
