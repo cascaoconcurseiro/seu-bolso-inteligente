@@ -176,30 +176,39 @@ export function useAcceptTripInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { data, error } = await supabase
+      // Primeiro, atualizar o status
+      const { data: updateData, error: updateError } = await supabase
         .from("trip_invitations")
         .update({ status: 'accepted' })
         .eq("id", invitationId)
-        .select("id, trip_id, inviter_id, invitee_id, status, trips(name, destination)")
+        .select("id, trip_id, inviter_id, invitee_id, status")
         .single();
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // Buscar dados do inviter separadamente
-      if (data) {
-        const { data: inviter } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", data.inviter_id)
-          .single();
+      // Depois, buscar dados complementares separadamente para evitar ambiguidade
+      if (updateData) {
+        const [tripResult, inviterResult] = await Promise.all([
+          supabase
+            .from("trips")
+            .select("name, destination")
+            .eq("id", updateData.trip_id)
+            .single(),
+          supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", updateData.inviter_id)
+            .single()
+        ]);
 
         return {
-          ...data,
-          inviter
+          ...updateData,
+          trips: tripResult.data,
+          inviter: inviterResult.data
         };
       }
 
-      return data;
+      return updateData;
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations"] });
