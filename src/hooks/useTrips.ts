@@ -130,23 +130,21 @@ export function useCreateTrip() {
         name: "Eu",
       });
 
-      // Adicionar membros selecionados
+      // Criar convites para membros selecionados
       if (memberIds && memberIds.length > 0) {
-        const membersToAdd = memberIds.map(userId => ({
+        const invitations = memberIds.map(userId => ({
           trip_id: data.id,
-          user_id: userId,
-          role: 'member',
-          can_edit_details: false,
-          can_manage_expenses: true,
+          invitee_id: userId,
+          message: `Você foi convidado para participar da viagem "${data.name}"!`,
         }));
 
-        const { error: membersError } = await supabase
-          .from("trip_members")
-          .insert(membersToAdd);
+        const { error: invitationsError } = await supabase
+          .from("trip_invitations")
+          .insert(invitations);
 
-        if (membersError) {
-          console.error("Erro ao adicionar membros:", membersError);
-          // Não falhar a criação da viagem se houver erro ao adicionar membros
+        if (invitationsError) {
+          console.error("Erro ao criar convites:", invitationsError);
+          // Não falhar a criação da viagem se houver erro ao criar convites
         }
       }
 

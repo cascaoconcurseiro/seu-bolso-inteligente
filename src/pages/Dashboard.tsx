@@ -8,6 +8,7 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
+import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -99,6 +100,9 @@ export function Dashboard() {
     <div className="space-y-8 animate-fade-in">
       {/* Pending Invitations Alert */}
       <PendingInvitationsAlert />
+      
+      {/* Pending Trip Invitations Alert */}
+      <PendingTripInvitationsAlert />
       
       {/* Hero Section */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">

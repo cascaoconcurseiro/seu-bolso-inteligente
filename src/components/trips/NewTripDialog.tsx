@@ -119,11 +119,11 @@ export function NewTripDialog({
             <div className="space-y-3 pt-4 border-t">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <Label>Participantes da Viagem (opcional)</Label>
+                <Label>Convidar Participantes (opcional)</Label>
               </div>
               <p className="text-sm text-muted-foreground">
-                Selecione membros da família que participarão desta viagem. 
-                Eles poderão ver e gerenciar gastos, mas não poderão alterar nome, período ou moeda.
+                Selecione membros da família para convidar para esta viagem. 
+                Eles receberão uma notificação e poderão aceitar ou recusar o convite.
               </p>
               <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
                 {familyMembers.map((member) => (
@@ -147,7 +147,7 @@ export function NewTripDialog({
               </div>
               {selectedMembers.length > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  {selectedMembers.length} {selectedMembers.length === 1 ? 'membro selecionado' : 'membros selecionados'}
+                  {selectedMembers.length} {selectedMembers.length === 1 ? 'convite será enviado' : 'convites serão enviados'}
                 </p>
               )}
             </div>
