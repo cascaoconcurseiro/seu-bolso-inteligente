@@ -65,7 +65,29 @@ export function useCreateAccount() {
     mutationFn: async (input: CreateAccountInput) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Usar a nova função RPC que cria conta com depósito inicial
+      // Para cartões de crédito, usar insert direto pois RPC não suporta campos extras
+      if (input.type === 'CREDIT_CARD') {
+        const { data, error } = await supabase
+          .from('accounts')
+          .insert({
+            user_id: user.id,
+            name: input.name,
+            type: input.type,
+            balance: 0, // Cartões sempre começam com saldo 0
+            bank_id: input.bank_id || null,
+            currency: input.currency || 'BRL',
+            closing_day: input.closing_day || null,
+            due_day: input.due_day || null,
+            credit_limit: input.credit_limit || null,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Para outras contas, usar RPC que cria com depósito inicial
       const { data, error } = await supabase.rpc('create_account_with_initial_deposit', {
         p_name: input.name,
         p_type: input.type,

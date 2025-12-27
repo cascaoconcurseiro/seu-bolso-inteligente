@@ -254,21 +254,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .filter(i => i.isPaid)
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
-      // REGULAR: Show unpaid items not related to trips
+      // REGULAR: Show unpaid items not related to trips, filtered by current month
       return scopeFilteredItems
         .filter(i => {
           if (i.tripId) return false;
           if (i.isPaid) return false;
           
-          // For installments, check if it's current month
-          const isInstallment = (i.totalInstallments || 0) > 1;
-          if (isInstallment) {
-            const itemDate = new Date(i.date);
-            return itemDate.getMonth() === currentDate.getMonth() && 
-                   itemDate.getFullYear() === currentDate.getFullYear();
-          }
-          
-          return true;
+          // Filter ALL transactions by current month (not just installments)
+          const itemDate = new Date(i.date);
+          return itemDate.getMonth() === currentDate.getMonth() && 
+                 itemDate.getFullYear() === currentDate.getFullYear();
         })
         .sort((a, b) => b.date.localeCompare(a.date));
     }

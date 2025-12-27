@@ -61,9 +61,9 @@ export function useTripMembers(tripId: string | null) {
 
       return data as TripMember[];
     },
-    retry: 1, // Não tentar infinitamente em caso de erro 500
-    staleTime: 1000 * 60 * 5, // 5 minutos de cache para evitar requests desnecessários
-    refetchOnWindowFocus: false,
+    retry: 1,
+    staleTime: 0, // Sem cache - sempre buscar dados frescos
+    refetchOnWindowFocus: true, // Atualizar ao focar na janela
     enabled: !!tripId && !!user,
   });
 }

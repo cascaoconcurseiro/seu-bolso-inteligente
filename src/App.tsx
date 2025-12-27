@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MonthProvider } from "@/contexts/MonthContext";
+import { TransactionModalProvider } from "@/contexts/TransactionModalContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout";
 import { Dashboard } from "./pages/Dashboard";
@@ -27,11 +28,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <MonthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-          <Routes>
+        <TransactionModalProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+            <Routes>
             {/* Public Routes */}
             <Route path="/auth" element={<Auth />} />
             
@@ -140,8 +142,9 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </MonthProvider>
-  </AuthProvider>
+    </TransactionModalProvider>
+  </MonthProvider>
+</AuthProvider>
 </QueryClientProvider>
 );
 

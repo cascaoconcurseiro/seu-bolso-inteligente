@@ -72,7 +72,7 @@ export function SharedInstallmentImport({
   useEffect(() => {
     if (isOpen) {
       setDescription('');
-      setAmount('');
+      setAmount('0,00'); // Iniciar com 0,00 ao invés de string vazia
       setInstallments('2');
       setDate(format(new Date(), 'yyyy-MM-dd'));
       setCategoryId('');
