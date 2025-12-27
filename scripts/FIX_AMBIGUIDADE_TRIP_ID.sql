@@ -33,7 +33,7 @@ CREATE POLICY "Donos de viagem podem criar convites"
         EXISTS (
             SELECT 1 FROM public.trips t
             WHERE t.id = trip_invitations.trip_id
-            AND t.user_id = auth.uid()
+            AND t.owner_id = auth.uid()
         )
     );
 
