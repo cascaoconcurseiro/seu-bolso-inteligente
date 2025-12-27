@@ -672,17 +672,12 @@ function NewCardDialog({
             <Label>Banco</Label>
             <Select value={bankId} onValueChange={setBankId}>
               <SelectTrigger><SelectValue placeholder="Selecione o banco" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px]">
                 {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
                   <SelectItem key={bank.id} value={bank.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold"
-                        style={{ backgroundColor: bank.color, color: bank.textColor }}
-                      >
-                        {bank.icon}
-                      </div>
-                      {bank.name}
+                    <div className="flex items-center gap-3">
+                      <BankIcon bankId={bank.id} size="sm" />
+                      <span>{bank.name}</span>
                     </div>
                   </SelectItem>
                 ))}

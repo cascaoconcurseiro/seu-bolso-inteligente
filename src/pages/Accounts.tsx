@@ -243,16 +243,13 @@ export function Accounts() {
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o banco" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px]">
                   <SelectItem value="">Nenhum</SelectItem>
                   {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
                     <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: bank.color }}
-                        />
-                        {bank.name}
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={bank.id} size="sm" />
+                        <span>{bank.name}</span>
                       </div>
                     </SelectItem>
                   ))}

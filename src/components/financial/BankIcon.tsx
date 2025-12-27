@@ -1,4 +1,5 @@
 import { getBankById, getBankByName, getCardBrand } from "@/lib/banks";
+import { getBankLogo } from "@/utils/bankLogos";
 import { cn } from "@/lib/utils";
 
 interface BankIconProps {
@@ -14,16 +15,38 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
   if (!bank) return null;
 
   const sizeClasses = {
-    sm: "w-6 h-6 text-[10px]",
-    md: "w-10 h-10 text-sm",
-    lg: "w-12 h-12 text-base",
+    sm: "w-8 h-8",
+    md: "w-12 h-12",
+    lg: "w-16 h-16",
   };
 
+  // Tentar buscar logo real do Figma
+  const logoUrl = getBankLogo(bank.id);
+
+  if (logoUrl) {
+    return (
+      <div className={cn("shrink-0 flex items-center justify-center", className)}>
+        <img
+          src={logoUrl}
+          alt={bank.name}
+          className={cn(
+            "object-contain rounded-lg",
+            sizeClasses[size]
+          )}
+        />
+      </div>
+    );
+  }
+
+  // Fallback para ícone colorido
   return (
     <div
       className={cn(
         "rounded-xl flex items-center justify-center font-bold shrink-0",
         sizeClasses[size],
+        size === "sm" && "text-[10px]",
+        size === "md" && "text-sm",
+        size === "lg" && "text-base",
         className
       )}
       style={{ 

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "visa",
+    "filename": "visa.svg"
+  },
+  {
+    "name": "mastercard",
+    "filename": "mastercard.svg"
+  },
+  {
+    "name": "elo",
+    "filename": "elo.svg"
+  },
+  {
+    "name": "amex",
+    "filename": "amex.svg"
+  },
+  {
+    "name": "hipercard",
+    "filename": "hipercard.svg"
+  },
+  {
+    "name": "diners",
+    "filename": "diners.svg"
+  }
+]
