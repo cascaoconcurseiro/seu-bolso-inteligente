@@ -39,7 +39,15 @@ export function usePendingTripInvitations() {
       const { data, error } = await supabase
         .from("trip_invitations")
         .select(`
-          *,
+          id,
+          trip_id,
+          inviter_id,
+          invitee_id,
+          status,
+          message,
+          created_at,
+          updated_at,
+          responded_at,
           trips (
             name,
             destination,
@@ -98,7 +106,7 @@ export function useSentTripInvitations(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_invitations")
-        .select("*")
+        .select("id, trip_id, inviter_id, invitee_id, status, message, created_at, updated_at, responded_at")
         .eq("trip_id", tripId)
         .order("created_at", { ascending: false });
 
@@ -175,7 +183,7 @@ export function useAcceptTripInvitation() {
         .from("trip_invitations")
         .update({ status: 'accepted' })
         .eq("id", invitationId)
-        .select("*, trips(name, destination)")
+        .select("id, trip_id, inviter_id, invitee_id, status, trips(name, destination)")
         .single();
 
       if (error) throw error;

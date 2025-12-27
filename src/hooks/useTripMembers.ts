@@ -29,7 +29,7 @@ export function useTripMembers(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_members")
-        .select("*")
+        .select("id, trip_id, user_id, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at")
         .eq("trip_id", tripId)
         .order("created_at");
 
