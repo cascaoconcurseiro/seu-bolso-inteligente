@@ -31,7 +31,7 @@ export function useTripMembers(tripId: string | null) {
         .from("trip_members")
         .select(`
           *,
-          profiles:user_id (
+          profiles!trip_members_user_id_fkey (
             full_name,
             email
           )
@@ -39,7 +39,12 @@ export function useTripMembers(tripId: string | null) {
         .eq("trip_id", tripId)
         .order("created_at");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar membros da viagem:", error);
+        throw error;
+      }
+      
+      console.log("Membros da viagem:", data);
       return data as TripMember[];
     },
     enabled: !!tripId && !!user,

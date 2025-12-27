@@ -10,13 +10,25 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function PendingTripInvitationsAlert() {
-  const { data: invitations = [], isLoading } = usePendingTripInvitations();
+  const { data: invitations = [], isLoading, error } = usePendingTripInvitations();
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
-  if (isLoading || invitations.length === 0) {
+  console.log("PendingTripInvitationsAlert - isLoading:", isLoading);
+  console.log("PendingTripInvitationsAlert - invitations:", invitations);
+  console.log("PendingTripInvitationsAlert - error:", error);
+
+  if (isLoading) {
+    console.log("Ainda carregando convites...");
     return null;
   }
+  
+  if (invitations.length === 0) {
+    console.log("Nenhum convite encontrado");
+    return null;
+  }
+
+  console.log("Renderizando", invitations.length, "convites");
 
   return (
     <div className="space-y-3">
