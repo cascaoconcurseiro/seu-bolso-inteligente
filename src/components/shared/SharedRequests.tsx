@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X, Clock, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useSharedTransactionManager } from '@/hooks/useSharedTransactionManager';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

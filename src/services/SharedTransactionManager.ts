@@ -7,7 +7,7 @@
  * - Retry automático
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SharedTransactionData {
   amount: number;
