@@ -4,6 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,6 +21,17 @@ import {
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { Users, Calendar } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
+
+const CURRENCIES = [
+  { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
+  { code: 'USD', symbol: '$', name: 'Dólar Americano' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'Libra Esterlina' },
+  { code: 'ARS', symbol: '$', name: 'Peso Argentino' },
+  { code: 'CLP', symbol: '$', name: 'Peso Chileno' },
+  { code: 'UYU', symbol: '$', name: 'Peso Uruguaio' },
+  { code: 'PYG', symbol: '₲', name: 'Guarani Paraguaio' },
+];
 
 interface NewTripDialogProps {
   open: boolean;
@@ -30,6 +48,8 @@ interface NewTripDialogProps {
   setEndDate: (v: string) => void;
   budget: string;
   setBudget: (v: string) => void;
+  currency?: string;
+  setCurrency?: (v: string) => void;
 }
 
 export function NewTripDialog({
@@ -47,9 +67,17 @@ export function NewTripDialog({
   setEndDate,
   budget,
   setBudget,
+  currency = 'BRL',
+  setCurrency,
 }: NewTripDialogProps) {
   const { data: familyMembers = [] } = useFamilyMembers();
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [localCurrency, setLocalCurrency] = useState(currency);
+
+  const handleCurrencyChange = (value: string) => {
+    setLocalCurrency(value);
+    if (setCurrency) setCurrency(value);
+  };
 
   // Calcular número de dias
   const tripDays = useMemo(() => {
