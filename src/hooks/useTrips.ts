@@ -141,12 +141,21 @@ export function useCreateTrip() {
 
       if (error) throw error;
 
-      // Adicionar o criador como participante
-      await supabase.from("trip_participants").insert({
-        trip_id: data.id,
-        user_id: user.id,
-        name: "Eu",
-      });
+      // Adicionar o criador como membro em trip_members (não trip_participants)
+      const { error: memberError } = await supabase
+        .from("trip_members")
+        .insert({
+          trip_id: data.id,
+          user_id: user.id,
+          role: 'owner',
+          can_edit_details: true,
+          can_manage_expenses: true,
+        });
+
+      if (memberError) {
+        console.error("Erro ao adicionar criador como membro:", memberError);
+        // Não falhar a criação da viagem, o trigger deve cuidar disso
+      }
 
       // Criar convites para membros selecionados
       if (memberIds && memberIds.length > 0) {
