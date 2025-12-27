@@ -376,3 +376,4 @@ Se após aplicar a correção ainda houver problemas:
 ---
 
 **Resultado Esperado:** Todas as transações compartilhadas devem aparecer automaticamente para os membros vinculados, sem necessidade de intervenção manual.
+Eu 
