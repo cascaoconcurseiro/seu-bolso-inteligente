@@ -48,23 +48,22 @@ export function useFamily() {
 
 export function useFamilyMembers() {
   const { user } = useAuth();
-  const { data: family } = useFamily();
 
   return useQuery({
-    queryKey: ["family-members", family?.id],
+    queryKey: ["family-members", user?.id],
     queryFn: async () => {
-      if (!family) return [];
+      if (!user) return [];
 
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from("family_members")
         .select("*")
-        .eq("family_id", family.id)
+        .eq("user_id", user.id)
         .order("created_at");
 
       if (error) throw error;
       return data as FamilyMember[];
     },
-    enabled: !!user && !!family,
+    enabled: !!user,
   });
 }
 
