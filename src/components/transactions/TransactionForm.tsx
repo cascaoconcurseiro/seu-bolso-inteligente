@@ -42,6 +42,7 @@ import {
 } from '@/hooks/useTransactions';
 import { useTrips } from '@/hooks/useTrips';
 import { useFamilyMembers } from '@/hooks/useFamily';
+import { useTripMembers } from '@/hooks/useTripMembers';
 import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -55,6 +56,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: trips } = useTrips();
   const { data: familyMembers = [] } = useFamilyMembers();
+  const { data: tripMembers = [] } = useTripMembers(tripId || null);
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
@@ -138,6 +140,13 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
     categories?.filter((c) =>
       activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
     ) || [];
+
+  // Filtrar membros da família: se tem viagem selecionada, mostrar apenas membros dessa viagem
+  const availableMembers = tripId && tripMembers.length > 0
+    ? familyMembers.filter(member => 
+        tripMembers.some(tm => tm.user_id === member.linked_user_id)
+      )
+    : familyMembers;
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -599,7 +608,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         )}
 
         {/* Split / Share (expenses only) */}
-        {isExpense && familyMembers.length > 0 && (
+        {isExpense && availableMembers.length > 0 && (
           <div className="p-4 rounded-xl border border-border space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -611,7 +620,9 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
                       ? `${splits.length} pessoa(s) · ${
                           payerId !== 'me' ? 'Outro pagou' : 'Eu paguei'
                         }`
-                      : 'Compartilhar com família'}
+                      : tripId 
+                        ? 'Compartilhar com membros da viagem'
+                        : 'Compartilhar com família'}
                   </p>
                 </div>
               </div>
@@ -634,6 +645,16 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
               </p>
             )}
           </div>
+        )}
+
+        {/* Mensagem quando não há membros disponíveis */}
+        {isExpense && familyMembers.length > 0 && availableMembers.length === 0 && tripId && (
+          <Alert>
+            <Users className="h-4 w-4" />
+            <AlertDescription>
+              Nenhum membro da família está nesta viagem. Adicione membros à viagem para compartilhar despesas.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Installments (any expense) */}
@@ -830,7 +851,7 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
         setPayerId={setPayerId}
         splits={splits}
         setSplits={setSplits}
-        familyMembers={familyMembers}
+        familyMembers={availableMembers}
         activeAmount={getNumericAmount()}
         onNavigateToFamily={() => navigate('/familia')}
         isInstallment={isInstallment}

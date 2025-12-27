@@ -57,6 +57,8 @@ export function useTrips() {
       return data as Trip[];
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 30000, // Cache por 30 segundos
   });
 }
 
