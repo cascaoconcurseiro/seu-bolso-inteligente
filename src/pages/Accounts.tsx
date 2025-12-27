@@ -223,10 +223,6 @@ export function Accounts() {
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nome da conta</Label>
-              <Input
-                placeholder="Ex: Nubank, Itaú, Carteira"
-            <div className="space-y-2">
               <Label>Banco</Label>
               <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || null)}>
                 <SelectTrigger>
