@@ -71,21 +71,42 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // First get mirror transactions
+      const { data: mirrors, error: mirrorsError } = await supabase
         .from('transactions')
-        .select(`
-          *,
-          source_transaction:source_transaction_id (
-            user_id
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_shared', true)
         .not('source_transaction_id', 'is', null)
         .order('date', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (mirrorsError) throw mirrorsError;
+      if (!mirrors || mirrors.length === 0) return [];
+      
+      // Get source transaction IDs
+      const sourceIds = mirrors
+        .map(m => m.source_transaction_id)
+        .filter(Boolean);
+      
+      if (sourceIds.length === 0) return mirrors;
+      
+      // Fetch source transactions to get user_id
+      const { data: sources, error: sourcesError } = await supabase
+        .from('transactions')
+        .select('id, user_id')
+        .in('id', sourceIds);
+      
+      if (sourcesError) throw sourcesError;
+      
+      // Map source user_id to mirrors
+      const sourcesMap = new Map(sources?.map(s => [s.id, s.user_id]) || []);
+      
+      return mirrors.map(mirror => ({
+        ...mirror,
+        source_transaction: {
+          user_id: sourcesMap.get(mirror.source_transaction_id)
+        }
+      }));
     },
     enabled: !!user,
   });
