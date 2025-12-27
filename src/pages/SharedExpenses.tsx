@@ -65,7 +65,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
-import { SharedRequests } from "@/components/shared/SharedRequests";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
@@ -353,14 +352,6 @@ export function SharedExpenses() {
           </Button>
         </div>
       </div>
-
-      {/* Pending Requests */}
-      <section className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-          Requests Pendentes
-        </h2>
-        <SharedRequests />
-      </section>
 
       {/* Balance Evolution Chart */}
       <SharedBalanceChart 
