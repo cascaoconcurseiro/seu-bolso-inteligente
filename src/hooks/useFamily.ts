@@ -39,10 +39,16 @@ export function useFamily() {
         .select("*")
         .single();
 
+      // Se não encontrou família, retornar null (não é erro)
+      if (error && error.code === 'PGRST116') {
+        return null;
+      }
+
       if (error) throw error;
       return data as Family;
     },
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
   });
 }
 
@@ -77,7 +83,26 @@ export function useInviteFamilyMember() {
 
   return useMutation({
     mutationFn: async ({ name, email, role }: { name: string; email: string; role: FamilyRole }) => {
-      if (!user || !family) throw new Error("Not authenticated or no family");
+      if (!user) throw new Error("Not authenticated");
+
+      // Criar família se não existir
+      let familyId = family?.id;
+      if (!familyId) {
+        const { data: newFamily, error: familyError } = await supabase
+          .from("families")
+          .insert({
+            owner_id: user.id,
+            name: `Família de ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'}`,
+          })
+          .select()
+          .single();
+
+        if (familyError) throw familyError;
+        familyId = newFamily.id;
+        
+        // Invalidar query da família
+        queryClient.invalidateQueries({ queryKey: ["family"] });
+      }
 
       // Impedir que o usuário se adicione a si mesmo
       if (email.toLowerCase() === user.email?.toLowerCase()) {
@@ -103,7 +128,7 @@ export function useInviteFamilyMember() {
           .insert({
             from_user_id: user.id,
             to_user_id: existingProfile.id,
-            family_id: family.id,
+            family_id: familyId,
             member_name: name,
             role,
             status: "pending",
@@ -124,7 +149,7 @@ export function useInviteFamilyMember() {
       const { data, error } = await supabase
         .from("family_members")
         .insert({
-          family_id: family.id,
+          family_id: familyId,
           user_id: user.id,
           linked_user_id: null,
           name,
@@ -142,6 +167,7 @@ export function useInviteFamilyMember() {
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
       queryClient.invalidateQueries({ queryKey: ["family-invitations"] });
+      queryClient.invalidateQueries({ queryKey: ["family"] });
       
       if (result.type === 'invitation') {
         toast.success("Solicitação enviada! Aguardando aceitação.");
