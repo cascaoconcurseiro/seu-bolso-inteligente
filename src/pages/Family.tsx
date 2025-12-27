@@ -165,7 +165,7 @@ export function Family() {
         ) : (
           <div className="space-y-2">
             {activeMembers.map((member) => {
-              const isSelf = member.user_id === user?.id;
+              const isSelf = member.linked_user_id === user?.id;
               const memberIsOwner = family?.owner_id === member.user_id;
               
               return (
