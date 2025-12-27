@@ -52,6 +52,8 @@ export function useAccounts() {
       return data as Account[];
     },
     enabled: !!user,
+    staleTime: 60000, // Cache por 1 minuto
+    retry: false,
   });
 }
 

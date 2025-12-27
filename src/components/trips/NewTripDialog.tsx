@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useFamilyMembers } from "@/hooks/useFamily";
-import { Users } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
+import { differenceInDays, parseISO } from "date-fns";
 
 interface NewTripDialogProps {
   open: boolean;
@@ -49,6 +50,19 @@ export function NewTripDialog({
 }: NewTripDialogProps) {
   const { data: familyMembers = [] } = useFamilyMembers();
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+
+  // Calcular número de dias
+  const tripDays = useMemo(() => {
+    if (!startDate || !endDate) return null;
+    try {
+      const start = parseISO(startDate);
+      const end = parseISO(endDate);
+      const days = differenceInDays(end, start) + 1; // +1 para incluir o último dia
+      return days > 0 ? days : null;
+    } catch {
+      return null;
+    }
+  }, [startDate, endDate]);
 
   const handleSubmit = () => {
     onSubmit(selectedMembers);
@@ -102,9 +116,21 @@ export function NewTripDialog({
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                min={startDate} // Não permitir data anterior ao início
               />
             </div>
           </div>
+          
+          {/* Mostrar número de dias */}
+          {tripDays && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/50 p-3 rounded-lg">
+              <Calendar className="h-4 w-4" />
+              <span>
+                {tripDays} {tripDays === 1 ? 'dia' : 'dias'} de viagem
+              </span>
+            </div>
+          )}
+          
           <div className="space-y-2">
             <Label>Orçamento (opcional)</Label>
             <Input 
