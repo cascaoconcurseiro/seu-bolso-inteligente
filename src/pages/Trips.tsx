@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,6 +92,14 @@ export function Trips() {
   // Buscar orçamento pessoal do usuário atual
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget || null;
+
+  // Auto-mostrar modal de orçamento se for obrigatório (Task 10)
+  useEffect(() => {
+    if (view === "detail" && selectedTripId && myMembership && !myPersonalBudget) {
+      // Usuário é membro mas não tem orçamento definido - mostrar modal obrigatório
+      setShowPersonalBudgetDialog(true);
+    }
+  }, [view, selectedTripId, myMembership, myPersonalBudget]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -459,14 +467,17 @@ export function Trips() {
                 <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                   Participantes ({participants.length})
                 </h2>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowAddParticipantDialog(true)}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Adicionar
-                </Button>
+                {/* Botão de adicionar participante apenas para owners */}
+                {permissions?.isOwner && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowAddParticipantDialog(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar
+                  </Button>
+                )}
               </div>
               {balances.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -770,6 +781,7 @@ export function Trips() {
         tripName={selectedTrip?.name || ""}
         onSubmit={handleUpdatePersonalBudget}
         isLoading={updatePersonalBudget.isPending}
+        required={!myPersonalBudget} // Obrigatório se não tiver orçamento definido
       />
 
       {/* Transaction Modal */}

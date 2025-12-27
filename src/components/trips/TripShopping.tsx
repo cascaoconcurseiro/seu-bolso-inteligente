@@ -124,26 +124,26 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     <div className="space-y-6 animate-fade-in">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-          <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+        <div className="p-4 rounded-xl border border-border bg-muted/30">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
             Previsão Total
           </p>
-          <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+          <p className="font-mono text-2xl font-bold">
             {trip.currency} {totalEstimated.toFixed(2)}
           </p>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {shoppingList.length} {shoppingList.length === 1 ? 'item' : 'itens'}
           </p>
         </div>
 
-        <div className="p-4 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-          <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">
+        <div className="p-4 rounded-xl border border-border bg-muted/30">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
             Já Comprado
           </p>
-          <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+          <p className="font-mono text-2xl font-bold text-positive">
             {trip.currency} {totalPurchased.toFixed(2)}
           </p>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {purchasedCount} de {shoppingList.length} itens
           </p>
         </div>
@@ -212,28 +212,22 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
       {/* Shopping List */}
       {shoppingList.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
-            <ShoppingCart className="h-8 w-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground">Nenhum item na lista</p>
-          <p className="text-sm text-muted-foreground mt-1">
+        <div className="py-12 text-center border border-dashed border-border rounded-xl">
+          <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Nenhum item na lista</p>
+          <p className="text-xs text-muted-foreground mt-1">
             Adicione itens que deseja comprar para a viagem
           </p>
         </div>
       ) : (
         <div className="space-y-2">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+          <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
             Lista de Compras
           </h3>
           {shoppingList.map((item) => (
             <div
               key={item.id}
-              className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${
-                item.purchased
-                  ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-                  : 'bg-background border-border hover:border-primary/50'
-              }`}
+              className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
             >
               <Checkbox
                 checked={item.purchased}
@@ -251,26 +245,20 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                 >
                   {item.item}
                 </p>
-                <p
-                  className={`text-sm ${
-                    item.purchased ? 'text-muted-foreground' : 'text-primary'
-                  }`}
-                >
+                <p className="text-sm text-muted-foreground font-mono">
                   {trip.currency} {item.estimatedCost.toFixed(2)}
                 </p>
               </div>
 
               {item.purchased && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                  <Check className="h-4 w-4 text-white" />
-                </div>
+                <Check className="h-4 w-4 text-positive flex-shrink-0" />
               )}
 
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => handleDeleteItem(item.id)}
-                className="flex-shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="flex-shrink-0 text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

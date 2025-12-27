@@ -50,32 +50,19 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar IDs das viagens onde o usuário é membro
-      const { data: memberTrips, error: memberError } = await supabase
-        .from("trip_members")
-        .select("trip_id")
-        .eq("user_id", user.id);
-
-      if (memberError) throw memberError;
-
-      if (!memberTrips || memberTrips.length === 0) return [];
-
-      const tripIds = memberTrips.map(m => m.trip_id);
-
-      // Buscar as viagens completas
+      // Buscar viagens diretamente - RLS filtra automaticamente
       const { data, error } = await supabase
         .from("trips")
         .select("*")
-        .in("id", tripIds)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
       return data as Trip[];
     },
     enabled: !!user,
-    retry: false, // Não retentar em caso de erro para evitar loops
-    staleTime: 30000, // Cache por 30 segundos
-    refetchOnWindowFocus: false, // Não re-buscar ao focar janela
+    retry: false,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -142,14 +129,13 @@ export function useCreateTrip() {
 
       if (error) throw error;
 
-      // Trigger 'trg_add_trip_owner' no banco já adiciona o criador como owner automaticamente.
-      // Não precisamos inserir manualmente em trip_members aqui.
+      // Owner é adicionado automaticamente via trigger add_trip_owner()
 
       // Criar convites para membros selecionados
       if (memberIds && memberIds.length > 0) {
         const invitations = memberIds.map(userId => ({
           trip_id: data.id,
-          inviter_id: user.id, // ADICIONAR inviter_id
+          inviter_id: user.id,
           invitee_id: userId,
           message: `Você foi convidado para participar da viagem "${data.name}"!`,
         }));

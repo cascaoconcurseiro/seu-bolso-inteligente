@@ -37,47 +37,44 @@ export function PendingTripInvitationsAlert() {
         const inviterName = invitation.inviter?.full_name || invitation.inviter?.email || "Alguém";
 
         return (
-          <Alert key={invitation.id} className="border-blue-200 bg-blue-50">
-            <Plane className="h-5 w-5 text-blue-600" />
-            <AlertTitle className="text-blue-900 font-semibold">
-              Convite para Viagem
-            </AlertTitle>
-            <AlertDescription className="space-y-3">
-              <div className="text-blue-800">
-                <p className="font-medium">
-                  {inviterName} convidou você para participar da viagem "{tripName}"
-                </p>
-                
-                {destination && (
-                  <div className="flex items-center gap-2 mt-2 text-sm">
-                    <MapPin className="h-4 w-4" />
-                    <span>{destination}</span>
-                  </div>
-                )}
-                
-                {startDate && endDate && (
-                  <div className="flex items-center gap-2 mt-1 text-sm">
-                    <Calendar className="h-4 w-4" />
-                    <span>
-                      {format(new Date(startDate), "dd/MM/yyyy", { locale: ptBR })} até{" "}
-                      {format(new Date(endDate), "dd/MM/yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
-                )}
+          <Alert key={invitation.id} className="border-primary/50 bg-primary/5">
+            <Plane className="h-4 w-4" />
+            <AlertTitle>Convite para Viagem</AlertTitle>
+            <AlertDescription className="mt-2 space-y-3">
+              <p>
+                <strong>{inviterName}</strong> convidou você para participar da viagem{" "}
+                <strong>"{tripName}"</strong>.
+              </p>
+              
+              {destination && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  <span>{destination}</span>
+                </div>
+              )}
+              
+              {startDate && endDate && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>
+                    {format(new Date(startDate), "dd/MM/yyyy", { locale: ptBR })} até{" "}
+                    {format(new Date(endDate), "dd/MM/yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+              )}
 
-                {invitation.message && (
-                  <p className="mt-2 text-sm italic">"{invitation.message}"</p>
-                )}
-              </div>
+              {invitation.message && (
+                <p className="text-sm italic text-muted-foreground">"{invitation.message}"</p>
+              )}
 
-              <div className="flex gap-2 mt-3">
+              <div className="flex gap-2">
                 <Button
                   size="sm"
                   onClick={() => acceptInvitation.mutate(invitation.id)}
                   disabled={acceptInvitation.isPending || rejectInvitation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="gap-2"
                 >
-                  <Check className="h-4 w-4 mr-1" />
+                  <Check className="h-4 w-4" />
                   Aceitar
                 </Button>
                 <Button
@@ -85,8 +82,9 @@ export function PendingTripInvitationsAlert() {
                   variant="outline"
                   onClick={() => rejectInvitation.mutate(invitation.id)}
                   disabled={acceptInvitation.isPending || rejectInvitation.isPending}
+                  className="gap-2"
                 >
-                  <X className="h-4 w-4 mr-1" />
+                  <X className="h-4 w-4" />
                   Recusar
                 </Button>
               </div>

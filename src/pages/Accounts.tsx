@@ -36,14 +36,20 @@ import {
   PiggyBank,
   TrendingUp,
   Banknote,
-  Loader2
+  Loader2,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
+import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const accountTypeIcons = {
   CHECKING: Landmark,
@@ -61,6 +67,7 @@ const accountTypeLabels = {
 
 export function Accounts() {
   const { data: accounts = [], isLoading } = useAccounts();
+  const { data: allTransactions = [] } = useTransactions();
   const createAccount = useCreateAccount();
   const deleteAccount = useDeleteAccount();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
@@ -76,6 +83,18 @@ export function Accounts() {
 
   // Filter only non-credit card accounts
   const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
+  // Função para pegar últimas 3 transações de uma conta
+  const getLastTransactions = (accountId: string, limit: number = 3) => {
+    return allTransactions
+      .filter(t => t.account_id === accountId || t.destination_account_id === accountId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, limit);
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -148,18 +167,26 @@ export function Accounts() {
         </Button>
       </div>
 
-      {/* Summary */}
-      <div className="p-6 rounded-2xl border border-border">
-        <p className="text-sm text-muted-foreground mb-1">Saldo total</p>
-        <p className={cn(
-          "font-mono text-3xl font-bold",
-          totalBalance >= 0 ? "text-positive" : "text-negative"
-        )}>
-          {formatCurrency(totalBalance)}
-        </p>
+      {/* Summary Card */}
+      <div className="p-8 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-primary/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">Saldo Total</p>
+            <p className={cn(
+              "font-mono text-4xl font-bold",
+              totalBalance >= 0 ? "text-positive" : "text-negative"
+            )}>
+              {formatCurrency(totalBalance)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground mb-2">Contas Ativas</p>
+            <p className="font-mono text-3xl font-bold">{regularAccounts.length}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Accounts List */}
+      {/* Accounts Grid */}
       {regularAccounts.length === 0 ? (
         <div className="py-16 text-center border border-dashed border-border rounded-xl">
           <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -171,49 +198,76 @@ export function Accounts() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {regularAccounts.map((account) => {
             const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
+            const lastTransactions = getLastTransactions(account.id, 3);
             
             return (
               <Link
                 key={account.id}
                 to={`/contas/${account.id}`}
-                className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                           hover:border-foreground/20 transition-all duration-200 hover:shadow-sm block"
+                className="group flex flex-col p-5 rounded-xl border border-border 
+                           hover:border-foreground/20 transition-all duration-200 hover:shadow-md"
               >
-                <div className="flex items-center gap-4">
-                  <BankIcon 
-                    bankId={account.bank_id} 
-                    size="lg"
-                    className="transition-transform duration-200 group-hover:scale-110" 
-                  />
-                  <div>
-                    <p className="font-display font-semibold text-lg">{account.name}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Icon className="h-3 w-3" />
-                      {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
-                    </p>
+                {/* Card Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <BankIcon 
+                      bankId={account.bank_id} 
+                      size="md"
+                      className="transition-transform duration-200 group-hover:scale-110" 
+                    />
+                    <div>
+                      <p className="font-display font-semibold text-base">{account.name}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Icon className="h-3 w-3" />
+                        {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+
+                {/* Balance */}
+                <div className="mb-4 pb-4 border-b border-border">
                   <p className={cn(
-                    "font-mono text-xl font-bold",
+                    "font-mono text-2xl font-bold",
                     Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
                   )}>
                     {formatCurrency(Number(account.balance))}
                   </p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setDeleteId(account.id);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                </div>
+
+                {/* Last Transactions */}
+                <div className="space-y-2 flex-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                    Últimas transações
+                  </p>
+                  {lastTransactions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
+                  ) : (
+                    lastTransactions.map((tx) => {
+                      const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                      return (
+                        <div key={tx.id} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {isIncome ? (
+                              <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
+                            ) : (
+                              <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
+                            )}
+                            <span className="truncate text-muted-foreground">{tx.description}</span>
+                          </div>
+                          <span className={cn(
+                            "font-mono font-medium ml-2 flex-shrink-0",
+                            isIncome ? "text-positive" : "text-negative"
+                          )}>
+                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </Link>
             );

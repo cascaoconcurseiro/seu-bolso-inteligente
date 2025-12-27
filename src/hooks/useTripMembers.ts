@@ -34,11 +34,8 @@ export function useTripMembers(tripId: string | null) {
         .order("created_at");
 
       if (error) {
-        console.error("Erro ao buscar membros da viagem:", error);
         throw error;
       }
-
-      console.log("Membros da viagem (sem profiles):", data);
 
       // Buscar dados dos profiles separadamente
       if (data && data.length > 0) {
@@ -50,12 +47,14 @@ export function useTripMembers(tripId: string | null) {
 
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
+        // Aplicar privacidade de orçamento: apenas o próprio usuário vê seu orçamento
         const enrichedData = data.map(member => ({
           ...member,
-          profiles: profilesMap.get(member.user_id)
+          profiles: profilesMap.get(member.user_id),
+          // Ocultar orçamento pessoal de outros membros
+          personal_budget: member.user_id === user?.id ? member.personal_budget : null,
         }));
 
-        console.log("Membros enriquecidos:", enrichedData);
         return enrichedData as TripMember[];
       }
 
@@ -100,7 +99,6 @@ export function useAddTripMember() {
       toast.success("Membro adicionado à viagem");
     },
     onError: (error: any) => {
-      console.error("Erro ao adicionar membro:", error);
       toast.error("Erro ao adicionar membro: " + error.message);
     },
   });
@@ -130,7 +128,6 @@ export function useRemoveTripMember() {
       toast.success("Membro removido da viagem");
     },
     onError: (error: any) => {
-      console.error("Erro ao remover membro:", error);
       toast.error("Erro ao remover membro: " + error.message);
     },
   });
@@ -197,7 +194,6 @@ export function useUpdatePersonalBudget() {
       toast.success("Orçamento pessoal atualizado!");
     },
     onError: (error: any) => {
-      console.error("Erro ao atualizar orçamento:", error);
       toast.error("Erro ao atualizar orçamento: " + error.message);
     },
   });

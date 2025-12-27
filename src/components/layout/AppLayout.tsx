@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationButton } from "./NotificationButton";
 import { MonthSelector } from "./MonthSelector";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -56,6 +58,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
@@ -70,6 +73,30 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const getInitials = (email: string) => {
     return email.substring(0, 2).toUpperCase();
+  };
+
+  // Detectar contexto baseado na rota atual
+  const handleNewTransaction = () => {
+    // Extrair contexto da URL
+    const context: any = {};
+    
+    // Se estiver em uma viagem específica
+    if (location.pathname.startsWith('/viagens/')) {
+      const tripId = location.pathname.split('/viagens/')[1];
+      if (tripId && tripId !== '') {
+        context.tripId = tripId;
+      }
+    }
+    
+    // Se estiver em uma conta específica
+    if (location.pathname.startsWith('/contas/')) {
+      const accountId = location.pathname.split('/contas/')[1];
+      if (accountId && accountId !== '') {
+        context.accountId = accountId;
+      }
+    }
+    
+    setShowTransactionModal(true, context);
   };
 
   return (
@@ -204,10 +231,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex-1 flex justify-end">
               <Button 
                 size="sm"
-                onClick={() => {
-                  // Trigger event to open transaction modal
-                  window.dispatchEvent(new CustomEvent('openTransactionModal'));
-                }}
+                onClick={handleNewTransaction}
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -224,6 +248,12 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </div>
       </main>
+
+      {/* Global Transaction Modal */}
+      <TransactionModal
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
+      />
     </div>
   );
 }

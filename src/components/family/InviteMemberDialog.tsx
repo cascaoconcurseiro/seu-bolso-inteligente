@@ -70,13 +70,38 @@ export function InviteMemberDialog({
   // Load trips for specific_trip option
   useEffect(() => {
     if (user && sharingScope === "specific_trip") {
+      // Buscar viagens onde o usuário é membro (owner ou participante)
       supabase
-        .from("trips")
-        .select("id, name, start_date, end_date")
+        .from("trip_members")
+        .select(`
+          trip_id,
+          trips:trip_id (
+            id,
+            name,
+            start_date,
+            end_date,
+            destination
+          )
+        `)
         .eq("user_id", user.id)
-        .order("start_date", { ascending: false })
+        .order("created_at", { ascending: false })
         .then(({ data }) => {
-          setTrips(data || []);
+          if (data) {
+            // Extrair e formatar as viagens
+            const userTrips = data
+              .map(item => item.trips)
+              .filter(trip => trip !== null)
+              .map(trip => ({
+                id: trip.id,
+                name: trip.name,
+                start_date: trip.start_date,
+                end_date: trip.end_date,
+                destination: trip.destination
+              }));
+            setTrips(userTrips);
+          } else {
+            setTrips([]);
+          }
         });
     }
   }, [user, sharingScope]);
@@ -317,14 +342,26 @@ export function InviteMemberDialog({
                     <SelectContent>
                       {trips.map((trip) => (
                         <SelectItem key={trip.id} value={trip.id}>
-                          {trip.name}
+                          <div className="flex flex-col items-start">
+                            <span>{trip.name}</span>
+                            {trip.destination && (
+                              <span className="text-xs text-muted-foreground">
+                                📍 {trip.destination}
+                              </span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {trips.length === 0 && (
+                    <p className="text-xs text-warning">
+                      ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
+                    </p>
+                  )}
+                  {trips.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      Nenhuma viagem encontrada. Crie uma viagem primeiro.
+                      💡 Apenas transações desta viagem serão compartilhadas.
                     </p>
                   )}
                 </div>

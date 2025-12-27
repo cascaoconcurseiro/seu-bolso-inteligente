@@ -65,20 +65,21 @@ export function useCreateAccount() {
     mutationFn: async (input: CreateAccountInput) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase
-        .from("accounts")
-        .insert({
-          user_id: user.id,
-          ...input,
-        })
-        .select()
-        .single();
+      // Usar a nova função RPC que cria conta com depósito inicial
+      const { data, error } = await supabase.rpc('create_account_with_initial_deposit', {
+        p_name: input.name,
+        p_type: input.type,
+        p_bank: input.bank_id || null,
+        p_initial_balance: input.balance || 0,
+        p_currency: input.currency || 'BRL',
+      });
 
       if (error) throw error;
-      return data as Account;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Conta criada com sucesso!");
     },
     onError: (error) => {
