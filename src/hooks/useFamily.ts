@@ -54,30 +54,17 @@ export function useFamilyMembers() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar membros onde user_id OU linked_user_id seja o usuário atual
+      // Buscar membros da família do usuário
+      // Lógica simples: buscar onde user_id = eu (sou o dono da relação)
+      // Isso mostra os outros membros que EU adicionei
       const { data, error} = await supabase
         .from("family_members")
         .select("*")
-        .or(`user_id.eq.${user.id},linked_user_id.eq.${user.id}`)
+        .eq("user_id", user.id)
         .order("created_at");
 
       if (error) throw error;
-      
-      // Filtrar para não mostrar o próprio usuário como membro
-      // Mostrar apenas os outros membros da família
-      const filteredData = (data as FamilyMember[]).filter(member => {
-        // Se o membro tem user_id = eu, mostrar apenas se linked_user_id for diferente
-        if (member.user_id === user.id) {
-          return member.linked_user_id && member.linked_user_id !== user.id;
-        }
-        // Se o membro tem linked_user_id = eu, mostrar apenas se user_id for diferente
-        if (member.linked_user_id === user.id) {
-          return member.user_id && member.user_id !== user.id;
-        }
-        return true;
-      });
-      
-      return filteredData;
+      return data as FamilyMember[];
     },
     enabled: !!user,
   });
