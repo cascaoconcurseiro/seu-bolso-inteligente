@@ -87,8 +87,17 @@ export function Accounts() {
   const handleCreate = async () => {
     const bank = bankId ? getBankById(bankId) : null;
     
+    // Gera nome automaticamente baseado no banco e tipo
+    const typeNames = {
+      CHECKING: 'Conta Corrente',
+      SAVINGS: 'Poupança',
+      INVESTMENT: 'Investimento',
+      CASH: 'Dinheiro'
+    };
+    const accountName = bank ? `${bank.name} - ${typeNames[type as keyof typeof typeNames]}` : typeNames[type as keyof typeof typeNames];
+    
     await createAccount.mutateAsync({
-      name,
+      name: accountName,
       type: type as any,
       bank_id: bankId || null,
       bank_logo: null,
@@ -217,9 +226,23 @@ export function Accounts() {
               <Label>Nome da conta</Label>
               <Input
                 placeholder="Ex: Nubank, Itaú, Carteira"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+            <div className="space-y-2">
+              <Label>Banco</Label>
+              <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o banco" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={bank.id} size="sm" />
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -233,25 +256,6 @@ export function Accounts() {
                   <SelectItem value="SAVINGS">Poupança</SelectItem>
                   <SelectItem value="INVESTMENT">Investimento</SelectItem>
                   <SelectItem value="CASH">Dinheiro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Banco (opcional)</Label>
-              <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || null)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Nenhum" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-3">
-                        <BankIcon bankId={bank.id} size="sm" />
-                        <span>{bank.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -271,7 +275,7 @@ export function Accounts() {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreate} disabled={!name || createAccount.isPending}>
+            <Button onClick={handleCreate} disabled={!bankId || createAccount.isPending}>
               {createAccount.isPending ? "Criando..." : "Criar conta"}
             </Button>
           </DialogFooter>
