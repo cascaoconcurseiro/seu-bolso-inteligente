@@ -87,7 +87,8 @@ export function useTransactions(filters?: TransactionFilters) {
           account:accounts!account_id(name, bank_color),
           category:categories(name, icon)
         `)
-        .eq("user_id", user!.id) // Apenas transações do usuário (inclui espelhos recebidos)
+        .eq("user_id", user!.id)
+        .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 

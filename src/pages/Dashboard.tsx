@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
@@ -18,6 +18,13 @@ export function Dashboard() {
   const { getSummary, getFilteredInvoice } = useSharedFinances({ activeTab: 'REGULAR' });
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+
+  // Listen for global transaction modal event
+  useEffect(() => {
+    const handleOpenModal = () => setShowTransactionModal(true);
+    window.addEventListener('openTransactionModal', handleOpenModal);
+    return () => window.removeEventListener('openTransactionModal', handleOpenModal);
+  }, []);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);

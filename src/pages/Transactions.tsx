@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,6 +51,13 @@ export function Transactions() {
   const { data: categories } = useCategories();
   const { data: familyMembers = [] } = useFamilyMembers();
   const deleteTransaction = useDeleteTransaction();
+
+  // Listen for global transaction modal event
+  useEffect(() => {
+    const handleOpenModal = () => setShowTransactionModal(true);
+    window.addEventListener('openTransactionModal', handleOpenModal);
+    return () => window.removeEventListener('openTransactionModal', handleOpenModal);
+  }, []);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -334,9 +341,6 @@ export function Transactions() {
         }}
         initialData={editingTransaction}
       />
-
-      {/* FAB */}
-      <FAB onClick={() => setShowTransactionModal(true)} />
     </div>
   );
 }
