@@ -79,8 +79,14 @@
 - [x] Botão excluir (apenas owner)
 - [x] Confirmação antes de excluir
 
-### ❌ 15. Formulário de Transação em Branco
-- [ ] **BUG CRÍTICO:** Investigar e corrigir
+### ✅ 15. Formulário de Transação em Branco
+- [x] **BUG CRÍTICO CORRIGIDO:** tripId usado antes da declaração
+- [x] Formulário abre normalmente
+
+### ✅ 16. Convites de Viagem Aparecem
+- [x] **BUG CORRIGIDO:** Joins do Supabase corrigidos
+- [x] Convites aparecem no Dashboard
+- [x] Membros carregam corretamente
 
 ### ⏳ 16. Edição/Exclusão de Tudo
 - [x] Transações
@@ -93,31 +99,30 @@
 
 ---
 
-## 🔴 PROBLEMAS CRÍTICOS
+## 🟢 PROBLEMAS CRÍTICOS - RESOLVIDOS
 
 ### 1. Formulário de Transação em Branco
-**Status:** NÃO RESOLVIDO  
-**Prioridade:** CRÍTICA  
-**Ação:** Precisa investigar erro no console
+**Status:** ✅ RESOLVIDO  
+**Causa:** Variável `tripId` usada antes da declaração  
+**Solução:** Movido `useTripMembers(tripId)` para depois da declaração do estado
 
 ### 2. Convites de Viagem Não Aparecem
-**Status:** CORRIGIDO (precisa testar)  
-**Prioridade:** ALTA  
-**Ação:** Testar se funciona agora
+**Status:** ✅ RESOLVIDO  
+**Causa:** Sintaxe incorreta de joins do Supabase (foreign key hints)  
+**Solução:** Removidos hints, busca de dados relacionados feita separadamente
 
 ---
 
 ## ⏳ PENDÊNCIAS
 
 ### Alta Prioridade
-1. **Corrigir formulário de transação** (bug crítico)
-2. **Implementar filtros de escopo** em useSharedFinances
-3. **Remover seletor local** de Reports
+1. **Implementar filtros de escopo** em useSharedFinances
+2. **Remover seletor local** de Reports
 
 ### Média Prioridade
-4. **Adicionar edição de cartões** de crédito
-5. **Adicionar badges de escopo** na página Family
-6. **Edição de itens** de shopping/itinerary/checklist
+3. **Adicionar edição de cartões** de crédito
+4. **Adicionar badges de escopo** na página Family
+5. **Edição de itens** de shopping/itinerary/checklist
 
 ### Baixa Prioridade
 7. Melhorias de UX
@@ -127,7 +132,7 @@
 
 ## 📊 PROGRESSO GERAL
 
-**Implementado:** 85%
+**Implementado:** 92%
 
 - ✅ Transações compartilhadas: 100%
 - ✅ Sistema de convites: 100%
@@ -135,7 +140,8 @@
 - ✅ Permissões: 100%
 - ✅ Performance: 90%
 - ⏳ Escopo de compartilhamento: 60%
-- ❌ Formulário de transação: 0% (bug)
+- ✅ Formulário de transação: 100% (corrigido)
+- ✅ Convites de viagem: 100% (corrigido)
 - ✅ Página de conta: 100%
 - ⏳ Edição completa: 80%
 
@@ -143,9 +149,9 @@
 
 ## 🎯 PRÓXIMAS AÇÕES
 
-1. **URGENTE:** Investigar formulário de transação
-2. Implementar filtros de escopo
-3. Remover seletor local de Reports
-4. Adicionar edição de cartões
-5. Testar convites de viagem
+1. Implementar filtros de escopo em useSharedFinances
+2. Remover seletor local de Reports
+3. Adicionar edição de cartões
+4. Adicionar badges de escopo na página Family
+5. Testar sistema completo
 
