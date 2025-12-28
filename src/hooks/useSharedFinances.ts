@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyMembers } from './useFamily';
@@ -31,6 +31,18 @@ interface UseSharedFinancesProps {
 export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSharedFinancesProps) => {
   const { user } = useAuth();
   const { data: members = [] } = useFamilyMembers();
+  const queryClient = useQueryClient();
+
+  // Função para invalidar todas as queries relacionadas
+  const refetchAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] }),
+      queryClient.invalidateQueries({ queryKey: ['mirror-transactions'] }),
+      queryClient.invalidateQueries({ queryKey: ['paid-by-others-transactions'] }),
+      queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+      queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+    ]);
+  };
 
   // Fetch shared transactions with their splits
   const { data: transactionsWithSplits = [], isLoading, refetch } = useQuery({
@@ -402,7 +414,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     members, 
     transactions: transactionsWithSplits,
     isLoading,
-    refetch
+    refetch: refetchAll // Usar refetchAll para invalidar todas as queries
   };
 };
 

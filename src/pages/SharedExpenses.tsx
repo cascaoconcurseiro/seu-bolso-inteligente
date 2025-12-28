@@ -253,7 +253,7 @@ export function SharedExpenses() {
       // SEMPRE marcar items como settled
       for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
-          await supabase
+          const { error } = await supabase
             .from('transaction_splits')
             .update({
               is_settled: true,
@@ -261,24 +261,32 @@ export function SharedExpenses() {
               settled_transaction_id: settlementTxId
             })
             .eq('id', item.splitId);
+          
+          if (error) console.error('Error updating split:', error);
         } else if (item.type === 'DEBIT') {
-          await supabase
+          const { error } = await supabase
             .from('transactions')
             .update({
               is_settled: true,
               settled_at: new Date().toISOString()
             })
             .eq('id', item.originalTxId);
+          
+          if (error) console.error('Error updating transaction:', error);
         }
       }
 
-      toast.success(`Acerto de ${formatCurrency(amount)} realizado!`);
+      // Fechar dialog e limpar estado
       setShowSettleDialog(false);
       setSelectedMember(null);
       setSettleAmount("");
       setSettleAccountId("");
       setSelectedItems([]);
-      refetch();
+      
+      // Aguardar refetch para atualizar a UI
+      await refetch();
+      
+      toast.success(`Acerto de ${formatCurrency(amount)} realizado!`);
     } catch (error) {
       console.error('Settlement error:', error);
       toast.error("Erro ao realizar acerto");
@@ -293,7 +301,7 @@ export function SharedExpenses() {
 
     try {
       if (item.type === 'CREDIT' && item.splitId) {
-        await supabase
+        const { error } = await supabase
           .from('transaction_splits')
           .update({
             is_settled: false,
@@ -301,19 +309,27 @@ export function SharedExpenses() {
             settled_transaction_id: null
           })
           .eq('id', item.splitId);
+        
+        if (error) throw error;
       } else if (item.type === 'DEBIT') {
-        await supabase
+        const { error } = await supabase
           .from('transactions')
           .update({
             is_settled: false,
             settled_at: null
           })
           .eq('id', item.originalTxId);
+        
+        if (error) throw error;
       }
 
-      toast.success("Acerto desfeito com sucesso!");
+      // Fechar dialog primeiro
       setUndoConfirm({ isOpen: false, item: null });
-      refetch();
+      
+      // Aguardar um pouco e então atualizar
+      await refetch();
+      
+      toast.success("Acerto desfeito com sucesso!");
     } catch (error) {
       console.error('Undo error:', error);
       toast.error("Erro ao desfazer acerto");
