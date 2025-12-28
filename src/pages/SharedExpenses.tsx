@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -34,25 +37,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
   Plane,
   History,
   Wallet,
   Loader2,
-  ArrowLeft,
-  ChevronRight,
-  ChevronLeft,
   MoreHorizontal,
-  Pencil,
-  Trash2,
   Undo2,
+  Layers,
   CheckCircle2,
+  ArrowRight,
+  Globe,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
-import { useCreateTransaction, useDeleteTransaction } from "@/hooks/useTransactions";
+import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
@@ -61,34 +63,30 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
+import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
-type ViewMode = "list" | "detail";
 
 export function SharedExpenses() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
-  const [view, setView] = useState<ViewMode>("list");
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const { currentDate } = useMonth();
-  
-  // Dialog states
-  const [showPayDialog, setShowPayDialog] = useState(false);
-  const [payAccountId, setPayAccountId] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Transaction modal
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  
-  // Delete confirm
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
-    isOpen: false,
-    item: null,
-  });
-  
-  // Undo settlement
+  const [showSettleDialog, setShowSettleDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
+  const [settleAmount, setSettleAmount] = useState("");
+  const [settleAccountId, setSettleAccountId] = useState("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isSettling, setIsSettling] = useState(false);
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+
+  // Undo settlement state
   const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
     isOpen: false,
     item: null,
@@ -98,9 +96,8 @@ export function SharedExpenses() {
   const { data: accounts = [] } = useAccounts();
   const { data: trips = [] } = useTrips();
   const createTransaction = useCreateTransaction();
-  const deleteTransaction = useDeleteTransaction();
 
-  const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch } = useSharedFinances({
+  const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
     currentDate,
     activeTab,
   });
@@ -113,61 +110,97 @@ export function SharedExpenses() {
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  // Get member invoice data
-  const getMemberInvoice = (memberId: string) => {
-    const items = getFilteredInvoice(memberId);
-    const totals = getTotals(items);
-    const net = totals["BRL"]?.net || 0;
-    return { 
-      total: Math.abs(net), 
-      net,
-      itemCount: items.filter(i => !i.isPaid).length,
-      items
-    };
+  const toggleMemberExpand = (memberId: string) => {
+    // Não faz nada - membros sempre expandidos
   };
 
-  // Selected member data
-  const selectedMemberData = selectedMember ? members.find(m => m.id === selectedMember) : null;
-  const selectedInvoice = selectedMember ? getMemberInvoice(selectedMember) : null;
-
-  // Calculate totals for summary
-  let totalToReceive = 0;
-  let totalToPay = 0;
-  members.forEach(member => {
-    const invoice = getMemberInvoice(member.id);
-    if (invoice.net > 0) totalToReceive += invoice.net;
-    else totalToPay += Math.abs(invoice.net);
-  });
-
-  const openMemberDetail = (memberId: string) => {
+  const openSettleDialog = (memberId: string, type: "PAY" | "RECEIVE", amount: number) => {
     setSelectedMember(memberId);
-    setView("detail");
+    setSettleType(type);
+    setSettleAmount(amount.toFixed(2).replace(".", ","));
+    setSelectedItems([]);
+    setShowSettleDialog(true);
   };
 
-  const goBack = () => {
-    setView("list");
-    setSelectedMember(null);
+  const toggleItem = (itemId: string) => {
+    setSelectedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
   };
 
-  // Pay/Receive handler
-  const handlePay = async () => {
-    if (!selectedMember || !payAccountId || !selectedInvoice) return;
+  const getSelectedTotal = () => {
+    if (!selectedMember) return 0;
+    const items = getFilteredInvoice(selectedMember);
+    return items
+      .filter(i => selectedItems.includes(i.id))
+      .reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+  };
 
-    setIsProcessing(true);
+  const handleSelectAll = () => {
+    if (!selectedMember) return;
+    const items = getFilteredInvoice(selectedMember).filter(i => !i.isPaid);
+    if (selectedItems.length === items.length) {
+      setSelectedItems([]);
+      setSettleAmount("0,00");
+    } else {
+      setSelectedItems(items.map(i => i.id));
+      // Quando seleciona todos, atualiza o valor para o total
+      const total = items.reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+      setSettleAmount(Math.abs(total).toFixed(2).replace(".", ","));
+    }
+  };
+
+  // Atualizar valor quando itens são selecionados
+  const updateSettleAmountFromSelection = () => {
+    if (!selectedMember) return;
+    const items = getFilteredInvoice(selectedMember);
+    const selectedTotal = items
+      .filter(i => selectedItems.includes(i.id))
+      .reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+    setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
+  };
+
+  const handleSettle = async () => {
+    if (!selectedMember || !settleAccountId) {
+      toast.error("Selecione uma conta");
+      return;
+    }
+
+    setIsSettling(true);
     try {
       const member = members.find(m => m.id === selectedMember);
-      const items = selectedInvoice.items.filter(i => !i.isPaid);
-      const amount = selectedInvoice.total;
-      const iOwe = selectedInvoice.net < 0;
+      const items = getFilteredInvoice(selectedMember);
+      const itemsToSettle = selectedItems.length > 0
+        ? items.filter(i => selectedItems.includes(i.id))
+        : items.filter(i => !i.isPaid);
 
-      if (items.length === 0) {
-        toast.error("Nenhum item pendente");
-        setIsProcessing(false);
+      if (itemsToSettle.length === 0) {
+        toast.error("Nenhum item para acertar");
+        setIsSettling(false);
         return;
       }
 
-      // Verificar se splits já foram pagos
-      const splitIds = items.filter(i => i.splitId).map(i => i.splitId);
+      // VERIFICAR SE ALGUM ITEM JÁ FOI PAGO (prevenir duplicidade)
+      const alreadyPaidItems = itemsToSettle.filter(i => i.isPaid);
+      if (alreadyPaidItems.length > 0) {
+        toast.error(`${alreadyPaidItems.length} item(ns) já foram pagos anteriormente!`);
+        setIsSettling(false);
+        return;
+      }
+
+      // Verificar no banco se os splits já estão marcados como pagos
+      const splitIds = itemsToSettle.filter(i => i.splitId).map(i => i.splitId);
       if (splitIds.length > 0) {
         const { data: existingSplits } = await supabase
           .from('transaction_splits')
@@ -176,24 +209,40 @@ export function SharedExpenses() {
         
         const alreadySettled = existingSplits?.filter(s => s.is_settled) || [];
         if (alreadySettled.length > 0) {
-          toast.error(`${alreadySettled.length} item(ns) já foram pagos!`);
-          setIsProcessing(false);
+          toast.error(`${alreadySettled.length} item(ns) já foram pagos no banco de dados!`);
+          setIsSettling(false);
           refetch();
           return;
         }
       }
 
-      const desc = iOwe
-        ? `Pagamento Acerto - ${member?.name}`
-        : `Recebimento Acerto - ${member?.name}`;
+      const amount = parseFloat(settleAmount.replace(".", "").replace(",", "."));
+      if (isNaN(amount) || amount <= 0) {
+        toast.error("Valor inválido");
+        setIsSettling(false);
+        return;
+      }
+
+      // Calculate total of selected items
+      const itemsTotal = itemsToSettle.reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+      
+      // Considerar pagamento completo se o valor for >= 99% do total
+      const isPartialSettlement = amount < Math.abs(itemsTotal) * 0.99;
+
+      const desc = settleType === "PAY"
+        ? `Pagamento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`
+        : `Recebimento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`;
 
       // Create settlement transaction
       const result = await createTransaction.mutateAsync({
         amount,
         description: desc,
         date: new Date().toISOString().split("T")[0],
-        type: iOwe ? "EXPENSE" : "INCOME",
-        account_id: payAccountId,
+        type: settleType === "PAY" ? "EXPENSE" : "INCOME",
+        account_id: settleAccountId,
         domain: "SHARED",
         is_shared: false,
         related_member_id: selectedMember,
@@ -201,8 +250,8 @@ export function SharedExpenses() {
 
       const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
 
-      // Mark all items as settled
-      for (const item of items) {
+      // SEMPRE marcar items como settled
+      for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
           await supabase
             .from('transaction_splits')
@@ -224,18 +273,20 @@ export function SharedExpenses() {
       }
 
       toast.success(`Acerto de ${formatCurrency(amount)} realizado!`);
-      setShowPayDialog(false);
-      setPayAccountId("");
+      setShowSettleDialog(false);
+      setSelectedMember(null);
+      setSettleAmount("");
+      setSettleAccountId("");
+      setSelectedItems([]);
       refetch();
     } catch (error) {
       console.error('Settlement error:', error);
       toast.error("Erro ao realizar acerto");
     } finally {
-      setIsProcessing(false);
+      setIsSettling(false);
     }
   };
 
-  // Undo settlement
   const handleUndoSettlement = async () => {
     const item = undoConfirm.item;
     if (!item) return;
@@ -260,36 +311,55 @@ export function SharedExpenses() {
           .eq('id', item.originalTxId);
       }
 
-      toast.success("Acerto desfeito!");
+      toast.success("Acerto desfeito com sucesso!");
       setUndoConfirm({ isOpen: false, item: null });
       refetch();
     } catch (error) {
+      console.error('Undo error:', error);
       toast.error("Erro ao desfazer acerto");
     }
   };
 
-  // Delete transaction
-  const handleDeleteItem = async () => {
-    const item = deleteConfirm.item;
-    if (!item) return;
+  // Group items by trip
+  const getGroupedItems = (memberId: string) => {
+    const items = getFilteredInvoice(memberId);
+    const groups: Record<string, { tripName?: string; items: InvoiceItem[] }> = {};
 
-    try {
-      await deleteTransaction.mutateAsync(item.originalTxId);
-      toast.success("Transação excluída!");
-      setDeleteConfirm({ isOpen: false, item: null });
-      refetch();
-    } catch (error) {
-      toast.error("Erro ao excluir");
-    }
+    items.forEach(item => {
+      const tripKey = item.tripId || 'no-trip';
+      if (!groups[tripKey]) {
+        const trip = trips.find(t => t.id === item.tripId);
+        groups[tripKey] = {
+          tripName: trip?.name,
+          items: []
+        };
+      }
+      groups[tripKey].items.push(item);
+    });
+
+    return groups;
   };
 
-  // Loading state
+  // Calculate totals
+  let totalOwedToMe = 0;
+  let totalIOwe = 0;
+
+  members.forEach(member => {
+    const items = getFilteredInvoice(member.id);
+    const totals = getTotals(items);
+    const net = totals["BRL"]?.net || 0;
+    if (net > 0) totalOwedToMe += net;
+    else totalIOwe += Math.abs(net);
+  });
+
+  const myBalance = totalOwedToMe - totalIOwe;
+
   if (membersLoading || sharedLoading) {
     return (
       <div className="space-y-8 animate-fade-in">
         <div className="h-12 w-48 bg-muted rounded animate-pulse" />
         <div className="h-24 bg-muted rounded animate-pulse" />
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[1, 2, 3].map(i => (
             <div key={i} className="h-24 bg-muted rounded animate-pulse" />
           ))}
@@ -298,298 +368,304 @@ export function SharedExpenses() {
     );
   }
 
-  // DETAIL VIEW - igual ao detalhe do cartão de crédito
-  if (view === "detail" && selectedMemberData && selectedInvoice) {
-    const iOwe = selectedInvoice.net < 0;
-    const theyOweMe = selectedInvoice.net > 0;
-    const items = selectedInvoice.items;
-    const pendingItems = items.filter(i => !i.isPaid);
-    const paidItems = items.filter(i => i.isPaid);
+  const pendingMemberItems = selectedMember
+    ? getFilteredInvoice(selectedMember).filter(i => !i.isPaid)
+    : [];
 
-    // Cor do card baseada em quem deve
-    const cardColor = iOwe ? "#ef4444" : theyOweMe ? "#22c55e" : "#6b7280";
+  // Função para renderizar card de membro estilo fatura
+  const renderMemberInvoiceCard = (member: any) => {
+    const items = getFilteredInvoice(member.id);
+    const totals = getTotals(items);
+    const net = totals["BRL"]?.net || 0;
+    const isExpanded = true; // Sempre expandido
+    const groupedItems = getGroupedItems(member.id);
+    const pendingCount = items.filter(i => !i.isPaid).length;
+    const paidCount = items.filter(i => i.isPaid).length;
+    const totalPaidAmount = items.filter(i => i.isPaid).reduce((sum, i) => sum + i.amount, 0);
+
+    // Não mostrar membros sem itens
+    if (items.length === 0) {
+      return null;
+    }
+
+    // Determinar se eu devo (PAGAR - vermelho) ou me devem (RECEBER - verde)
+    const iOwe = net < 0; // net negativo = eu devo
+    const theyOweMe = net > 0; // net positivo = me devem
+    const isHistory = activeTab === "HISTORY";
 
     return (
-      <div className="space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={goBack} 
-            className="rounded-full"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-4">
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white"
-              style={{ backgroundColor: cardColor }}
-            >
-              {getInitials(selectedMemberData.name)}
-            </div>
-            <div>
-              <h1 className="font-display font-bold text-2xl tracking-tight">{selectedMemberData.name}</h1>
-              <p className="text-muted-foreground">
-                {activeTab === "TRAVEL" ? "Despesas de Viagem" : 
-                 activeTab === "HISTORY" ? "Histórico" : "Despesas Compartilhadas"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Invoice Card - igual ao cartão de crédito */}
-        <div 
-          className="p-6 rounded-2xl text-white transition-all hover:shadow-lg relative overflow-hidden"
-          style={{ backgroundColor: cardColor }}
-        >
-          <p className="text-sm opacity-80 mb-1">
-            {iOwe ? "Você deve" : theyOweMe ? "Devem a você" : "Saldo"}
-          </p>
-          <p className="font-display font-bold text-4xl tracking-tight">
-            {formatCurrency(selectedInvoice.total)}
-          </p>
-          
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm opacity-80">
-              {pendingItems.length} {pendingItems.length === 1 ? "item pendente" : "itens pendentes"}
-            </p>
-          </div>
-          
-          {/* Action Button - só aparece se tiver valor */}
-          {selectedInvoice.total > 0 && activeTab !== "HISTORY" && (
-            <div className="mt-6">
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className={cn(
-                  "w-full border-0",
-                  iOwe 
-                    ? "bg-white/20 hover:bg-white/30 text-white" 
-                    : "bg-white/20 hover:bg-white/30 text-white"
-                )}
-                onClick={() => setShowPayDialog(true)}
-              >
-                <Wallet className="h-4 w-4 mr-2" />
-                {iOwe ? "Pagar" : "Receber"}
-              </Button>
-            </div>
+      <div
+        key={member.id}
+        className={cn(
+          "rounded-xl border-2 overflow-hidden transition-all",
+          isHistory ? "border-gray-200 dark:border-gray-800" :
+          iOwe ? "border-red-200 dark:border-red-900/50" : 
+          theyOweMe ? "border-green-200 dark:border-green-900/50" : 
+          "border-border"
+        )}
+      >
+        {/* Header estilo fatura */}
+        <div
+          className={cn(
+            "p-4",
+            isHistory ? "bg-gray-50 dark:bg-gray-950/20" :
+            iOwe ? "bg-red-50 dark:bg-red-950/20" :
+            theyOweMe ? "bg-green-50 dark:bg-green-950/20" :
+            "bg-muted/30"
           )}
-        </div>
-
-        {/* Transactions List - igual ao cartão de crédito */}
-        {pendingItems.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-              Lançamentos ({pendingItems.length})
-            </h2>
-            <div className="space-y-2">
-              {pendingItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{item.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
-                        {item.totalInstallments && item.totalInstallments > 1 && (
-                          <span className="ml-2 text-xs">
-                            ({item.installmentNumber}/{item.totalInstallments})
-                          </span>
-                        )}
-                        {item.tripId && trips.find(t => t.id === item.tripId) && (
-                          <span className="ml-2 text-xs text-primary">
-                            • {trips.find(t => t.id === item.tripId)?.name}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "font-mono font-semibold",
-                        item.type === 'CREDIT' ? "text-positive" : "text-negative"
-                      )}>
-                        {item.type === 'CREDIT' ? '+' : '-'}{formatCurrency(item.amount)}
-                      </span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            setEditingTransaction({ id: item.originalTxId });
-                            setShowTransactionModal(true);
-                          }}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {pendingItems.length === 0 && activeTab !== "HISTORY" && (
-          <div className="py-12 text-center border border-dashed border-border rounded-xl">
-            <CheckCircle2 className="h-10 w-10 mx-auto mb-3 text-positive" />
-            <p className="text-muted-foreground">Tudo acertado!</p>
-          </div>
-        )}
-
-        {/* History items - só no histórico */}
-        {activeTab === "HISTORY" && paidItems.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-              Itens Acertados ({paidItems.length})
-            </h2>
-            <div className="space-y-2">
-              {paidItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="p-4 rounded-xl border border-border bg-muted/30 opacity-70"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-positive" />
-                        <p className="font-medium truncate line-through">{item.description}</p>
-                      </div>
-                      <p className="text-sm text-muted-foreground ml-6">
-                        {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-muted-foreground">
-                        {formatCurrency(item.amount)}
-                      </span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setUndoConfirm({ isOpen: true, item })}>
-                            <Undo2 className="h-4 w-4 mr-2" />
-                            Desfazer acerto
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "HISTORY" && paidItems.length === 0 && (
-          <div className="py-12 text-center border border-dashed border-border rounded-xl">
-            <History className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-muted-foreground">Nenhum histórico</p>
-          </div>
-        )}
-
-        {/* Pay Dialog */}
-        <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {selectedInvoice.net < 0 ? "Pagar" : "Receber"} - {selectedMemberData.name}
-              </DialogTitle>
-              <DialogDescription>
-                {selectedInvoice.net < 0 
-                  ? "Registre o pagamento da sua dívida" 
-                  : "Registre o recebimento do valor"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <div className="p-4 rounded-xl bg-muted/50 text-center">
-                <p className="text-sm text-muted-foreground mb-1">Valor total</p>
-                <p className="font-mono text-3xl font-bold">{formatCurrency(selectedInvoice.total)}</p>
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white",
+                isHistory ? "bg-gray-500" :
+                iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
+              )}>
+                {getInitials(member.name)}
               </div>
-              <div className="space-y-2">
-                <Label>Conta</Label>
-                <Select value={payAccountId} onValueChange={setPayAccountId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a conta" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.filter(a => a.type !== "CREDIT_CARD" && !a.is_international).map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              
+              {/* Info */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-display font-semibold text-lg">{member.name}</p>
+                  {/* Badge de status */}
+                  {isHistory ? (
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs font-medium border-gray-300 text-gray-700 bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:bg-gray-900/50"
+                    >
+                      HISTÓRICO
+                    </Badge>
+                  ) : net !== 0 && (
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs font-medium",
+                        iOwe ? "border-red-300 text-red-700 bg-red-100 dark:border-red-800 dark:text-red-300 dark:bg-red-950/50" :
+                        "border-green-300 text-green-700 bg-green-100 dark:border-green-800 dark:text-green-300 dark:bg-green-950/50"
+                      )}
+                    >
+                      {iOwe ? "PAGAR" : "RECEBER"}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isHistory 
+                    ? `${paidCount} ${paidCount === 1 ? "item acertado" : "itens acertados"}`
+                    : `${pendingCount} ${pendingCount === 1 ? "item pendente" : "itens pendentes"}`
+                  }
+                </p>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowPayDialog(false)}>
-                Cancelar
-              </Button>
-              <Button
-                onClick={handlePay}
-                disabled={isProcessing || !payAccountId}
-                className={cn(
-                  selectedInvoice.net < 0 
-                    ? "bg-red-600 hover:bg-red-700" 
-                    : "bg-green-600 hover:bg-green-700"
-                )}
-              >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+
+            <div className="flex items-center gap-4">
+              {/* Valor total */}
+              <div className="text-right">
+                {isHistory ? (
+                  <>
+                    <p className="font-mono font-bold text-xl text-gray-600 dark:text-gray-400">
+                      {formatCurrency(totalPaidAmount)}
+                    </p>
+                    <p className="text-xs font-medium text-gray-500">
+                      Total acertado
+                    </p>
+                  </>
                 ) : (
-                  <Wallet className="h-4 w-4 mr-2" />
+                  <>
+                    <p className={cn(
+                      "font-mono font-bold text-xl",
+                      net === 0 ? "text-muted-foreground" : 
+                      iOwe ? "text-red-600 dark:text-red-400" : 
+                      "text-green-600 dark:text-green-400"
+                    )}>
+                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net))}
+                    </p>
+                    {net !== 0 && (
+                      <p className={cn(
+                        "text-xs font-medium",
+                        iOwe ? "text-red-500" : "text-green-500"
+                      )}>
+                        {iOwe ? "Você deve" : "Devem a você"}
+                      </p>
+                    )}
+                  </>
                 )}
-                Confirmar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
+              </div>
 
-  // Empty state
-  if (members.length === 0) {
-    return (
-      <div className="space-y-8 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
-            <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
+              {/* Botão de acertar - só mostra se não for histórico */}
+              {!isHistory && net !== 0 && (
+                <Button
+                  variant={iOwe ? "destructive" : "default"}
+                  size="sm"
+                  className={cn(
+                    !iOwe && "bg-green-600 hover:bg-green-700"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openSettleDialog(
+                      member.id,
+                      iOwe ? "PAY" : "RECEIVE",
+                      Math.abs(net)
+                    );
+                  }}
+                >
+                  <Wallet className="h-4 w-4 mr-2" />
+                  {iOwe ? "Pagar" : "Receber"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="py-16 text-center border border-dashed border-border rounded-xl">
-          <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
-          <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
-          <Button variant="outline" onClick={() => navigate("/familia")}>
-            Gerenciar Família
-          </Button>
-        </div>
+        {/* Lista de itens expandida - estilo extrato de fatura */}
+        {isExpanded && items.length > 0 && (
+          <div className="border-t border-border">
+            {/* Cabeçalho da lista */}
+            <div className="px-4 py-2 bg-muted/50 border-b border-border grid grid-cols-12 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="col-span-1">Status</div>
+              <div className="col-span-5">Descrição</div>
+              <div className="col-span-2">Data</div>
+              <div className="col-span-2 text-right">Valor</div>
+              <div className="col-span-2 text-right">Tipo</div>
+            </div>
+
+            {Object.entries(groupedItems).map(([tripKey, group]) => (
+              <div key={tripKey}>
+                {/* Trip Header (if applicable) */}
+                {group.tripName && (
+                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-950/20 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        {group.tripName}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Items */}
+                <div className="divide-y divide-border">
+                  {group.items.map(item => {
+                    const isCredit = item.type === "CREDIT";
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
+                          item.isPaid && "opacity-60"
+                        )}
+                      >
+                        {/* Status */}
+                        <div className="col-span-1">
+                          {item.isPaid ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              isCredit ? "bg-green-500" : "bg-red-500"
+                            )} />
+                          )}
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="col-span-5">
+                          <p className={cn(
+                            "text-sm font-medium",
+                            item.isPaid && "line-through text-muted-foreground"
+                          )}>
+                            {item.description}
+                          </p>
+                          {item.totalInstallments && item.totalInstallments > 1 && (
+                            <p className="text-xs text-muted-foreground">
+                              Parcela {item.installmentNumber}/{item.totalInstallments}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Data */}
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                          </p>
+                        </div>
+
+                        {/* Valor */}
+                        <div className="col-span-2 text-right">
+                          <span className={cn(
+                            "font-mono text-sm font-medium",
+                            item.isPaid ? "text-muted-foreground" :
+                            isCredit ? "text-green-600 dark:text-green-400" : 
+                            "text-red-600 dark:text-red-400"
+                          )}>
+                            {formatCurrency(item.amount)}
+                          </span>
+                        </div>
+
+                        {/* Tipo + Ações */}
+                        <div className="col-span-2 flex items-center justify-end gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-xs font-bold",
+                              item.isPaid ? "border-gray-300 text-gray-500" :
+                              isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                              "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                            )}
+                          >
+                            {isCredit ? "CRÉDITO" : "DÉBITO"}
+                          </Badge>
+
+                          {item.isPaid && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                >
+                                  <Undo2 className="h-4 w-4 mr-2" />
+                                  Desfazer acerto
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Resumo no rodapé */}
+            {!isHistory && items.filter(i => !i.isPaid).length > 0 && (
+              <div className={cn(
+                "px-4 py-3 border-t-2",
+                iOwe ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
+                theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
+                "bg-muted/50 border-border"
+              )}>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Total Pendente</span>
+                  <span className={cn(
+                    "font-mono font-bold text-lg",
+                    iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                  )}>
+                    {formatCurrency(Math.abs(net))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
-  }
+  };
 
-  // LIST VIEW - igual à lista de cartões
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -598,17 +674,70 @@ export function SharedExpenses() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
           <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowImportDialog(true)}>
+            <Layers className="h-4 w-4 mr-2" />
+            Importar Parcelas
+          </Button>
+        </div>
       </div>
 
-      {/* Summary - igual ao resumo de cartões */}
-      <div className="flex items-center gap-8 py-4 border-y border-border">
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">A receber</p>
-          <p className="font-mono text-2xl font-bold text-positive">{formatCurrency(totalToReceive)}</p>
+      {/* Balance Evolution Chart */}
+      <SharedBalanceChart 
+        transactions={transactions} 
+        invoices={invoices} 
+        currentDate={currentDate} 
+      />
+
+      {/* Summary Cards - Estilo Fatura */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Meu Saldo */}
+        <div className={cn(
+          "p-6 rounded-xl border-2",
+          myBalance >= 0 
+            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50" 
+            : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50"
+        )}>
+          <div className="flex items-center gap-2 mb-2">
+            <CreditCard className={cn(
+              "h-5 w-5",
+              myBalance >= 0 ? "text-green-600" : "text-red-600"
+            )} />
+            <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+          </div>
+          <p className={cn(
+            "font-mono text-3xl font-bold",
+            myBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+          )}>
+            {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {myBalance >= 0 ? "Saldo positivo" : "Saldo devedor"}
+          </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">A pagar</p>
-          <p className="font-mono text-2xl font-bold text-negative">{formatCurrency(totalToPay)}</p>
+
+        {/* A Receber */}
+        <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+            <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+          </div>
+          <p className="font-mono text-3xl font-bold text-green-600 dark:text-green-400">
+            {formatCurrency(totalOwedToMe)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">Me devem</p>
+        </div>
+
+        {/* A Pagar */}
+        <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowRight className="h-5 w-5 text-red-600" />
+            <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+          </div>
+          <p className="font-mono text-3xl font-bold text-red-600 dark:text-red-400">
+            {formatCurrency(totalIOwe)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">Eu devo</p>
         </div>
       </div>
 
@@ -630,107 +759,319 @@ export function SharedExpenses() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
-          {/* Members List - igual à lista de cartões */}
-          <div className="space-y-3">
-            {members.map((member) => {
-              const invoice = getMemberInvoice(member.id);
-              const iOwe = invoice.net < 0;
-              const theyOweMe = invoice.net > 0;
-              
-              // Não mostrar membros sem itens (exceto no histórico)
-              if (invoice.items.length === 0 && activeTab !== "HISTORY") {
-                return null;
-              }
-
-              return (
-                <div
-                  key={member.id}
-                  onClick={() => openMemberDetail(member.id)}
-                  className="group p-5 rounded-xl border border-border hover:border-foreground/20 
-                             transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-[1.01]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div 
-                        className={cn(
-                          "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white transition-transform duration-200 group-hover:scale-110",
-                          iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
-                        )}
-                      >
-                        {getInitials(member.name)}
-                      </div>
-                      <div>
-                        <p className="font-display font-semibold text-lg">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {invoice.itemCount} {invoice.itemCount === 1 ? "item pendente" : "itens pendentes"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className={cn(
-                          "font-mono font-semibold",
-                          iOwe ? "text-negative" : theyOweMe ? "text-positive" : "text-muted-foreground"
-                        )}>
-                          {invoice.total > 0 ? formatCurrency(invoice.total) : "Em dia"}
-                        </p>
-                        {invoice.total > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            {iOwe ? "você deve" : "devem a você"}
-                          </p>
-                        )}
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground 
-                                               transition-all group-hover:translate-x-1" />
-                    </div>
-                  </div>
+          {members.length === 0 ? (
+            <div className="py-16 text-center border border-dashed border-border rounded-xl">
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
+              <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
+              <Button variant="outline" onClick={() => navigate("/familia")}>
+                Gerenciar Família
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Legenda */}
+              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span>Pagar (você deve)</span>
                 </div>
-              );
-            })}
-
-            {/* Mensagem se não houver membros com itens */}
-            {members.every(m => getMemberInvoice(m.id).items.length === 0) && (
-              <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-positive" />
-                <h3 className="font-display font-semibold text-lg mb-2">
-                  {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {activeTab === "HISTORY" 
-                    ? "Nenhum acerto foi realizado ainda" 
-                    : "Não há despesas pendentes"}
-                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span>Receber (devem a você)</span>
+                </div>
               </div>
-            )}
-          </div>
+
+              {/* Lista de membros estilo fatura */}
+              {members.map(member => renderMemberInvoiceCard(member))}
+
+              {/* Mensagem se não houver itens */}
+              {members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                  <h3 className="font-display font-semibold text-lg mb-2">
+                    {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {activeTab === "HISTORY" 
+                      ? "Nenhum acerto foi realizado ainda" 
+                      : "Não há despesas pendentes neste período"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
-      {/* Delete Confirm Dialog */}
-      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, item: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir "{deleteConfirm.item?.description}"?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteItem} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Settle Dialog - Estilo Fatura */}
+      <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
+            </DialogTitle>
+            <DialogDescription>
+              {settleType === "PAY" 
+                ? "Registre o pagamento da sua dívida" 
+                : "Registre o recebimento do valor devido"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedMember && (() => {
+            const member = members.find(m => m.id === selectedMember);
+            const itemsToConsider = selectedItems.length > 0
+              ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
+              : pendingMemberItems;
+            
+            const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
+            const internationalTrip = tripIds.length > 0 
+              ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
+              : null;
+            
+            const settlementCurrency = internationalTrip?.currency || "BRL";
+            const isInternationalSettlement = settlementCurrency !== "BRL";
+            
+            const filteredSettleAccounts = accounts.filter(a => {
+              if (a.type === "CREDIT_CARD") return false;
+              if (isInternationalSettlement) {
+                return a.is_international && a.currency === settlementCurrency;
+              }
+              return !a.is_international;
+            });
 
-      {/* Undo Settlement Dialog */}
+            return (
+              <div className="py-4 space-y-6">
+                {/* Alerta internacional */}
+                {isInternationalSettlement && (
+                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <Globe className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+                      Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Visual de transferência */}
+                <div className={cn(
+                  "flex items-center justify-center gap-6 p-4 rounded-xl",
+                  settleType === "PAY" 
+                    ? "bg-red-50 dark:bg-red-950/20" 
+                    : "bg-green-50 dark:bg-green-950/20"
+                )}>
+                  <div className="text-center">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                      settleType === "PAY" ? "bg-red-500" : "bg-muted"
+                    )}>
+                      {settleType === "PAY" ? "EU" : getInitials(member?.name || "")}
+                    </div>
+                    <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
+                  </div>
+                  <div className="text-center">
+                    <ArrowRight className={cn(
+                      "h-5 w-5",
+                      settleType === "PAY" ? "text-red-500" : "text-green-500"
+                    )} />
+                    <p className={cn(
+                      "font-mono font-bold mt-1",
+                      settleType === "PAY" ? "text-red-600" : "text-green-600"
+                    )}>
+                      {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                      settleType === "RECEIVE" ? "bg-green-500" : "bg-muted"
+                    )}>
+                      {settleType === "RECEIVE" ? "EU" : getInitials(member?.name || "")}
+                    </div>
+                    <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : member?.name}</p>
+                  </div>
+                </div>
+
+                {/* Seleção de itens */}
+                {pendingMemberItems.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Itens para acertar</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSelectAll}
+                        className="text-xs h-7"
+                      >
+                        {selectedItems.length === pendingMemberItems.length 
+                          ? "Desmarcar todos" 
+                          : "Selecionar todos (pagar tudo)"}
+                      </Button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                      {pendingMemberItems.map(item => {
+                        const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
+                        const itemCurrency = itemTrip?.currency || "BRL";
+                        const isCredit = item.type === "CREDIT";
+                        return (
+                          <label
+                            key={item.id}
+                            className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => {
+                                toggleItem(item.id);
+                                // Atualizar valor após toggle
+                                setTimeout(updateSettleAmountFromSelection, 0);
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm truncate">{item.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(item.date), "dd/MM/yyyy")}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className={cn(
+                                "font-mono text-sm font-medium",
+                                isCredit ? "text-green-600" : "text-red-600"
+                              )}>
+                                {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </span>
+                              {itemCurrency !== "BRL" && (
+                                <p className="text-[10px] text-blue-600">{itemCurrency}</p>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {selectedItems.length > 0 && (
+                      <div className={cn(
+                        "p-2 rounded-lg text-sm",
+                        settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
+                      )}>
+                        <div className="flex justify-between">
+                          <span>Itens selecionados:</span>
+                          <span className="font-medium">{selectedItems.length}</span>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                          <span>Total:</span>
+                          <span className={cn(
+                            "font-mono",
+                            settleType === "PAY" ? "text-red-600" : "text-green-600"
+                          )}>
+                            {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Valor e conta */}
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label>Valor do acerto ({settlementCurrency})</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {getCurrencySymbol(settlementCurrency)}
+                      </span>
+                      <Input
+                        type="text"
+                        value={settleAmount}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          const cents = parseInt(val) / 100;
+                          setSettleAmount(cents.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }));
+                        }}
+                        className="font-mono text-lg pl-10"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Altere o valor para fazer um acerto parcial
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
+                    <Select value={settleAccountId} onValueChange={setSettleAccountId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a conta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredSettleAccounts.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            Nenhuma conta em {settlementCurrency} disponível
+                          </div>
+                        ) : (
+                          filteredSettleAccounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id}>
+                              <div className="flex items-center gap-2">
+                                {account.name}
+                                {account.is_international && (
+                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                                    {account.currency}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSettle}
+              disabled={isSettling || !settleAccountId}
+              className={cn(
+                settleType === "PAY" 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-green-600 hover:bg-green-700"
+              )}
+            >
+              {isSettling ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  {settleType === "PAY" ? "Confirmar Pagamento" : "Confirmar Recebimento"}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Undo Settlement Confirm */}
       <AlertDialog open={undoConfirm.isOpen} onOpenChange={(open) => !open && setUndoConfirm({ isOpen: false, item: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Desfazer Acerto</AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja desfazer o acerto de "{undoConfirm.item?.description}"?
+              Deseja desfazer o acerto de "{undoConfirm.item?.description}"? Ele voltará a aparecer como pendente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -742,15 +1083,18 @@ export function SharedExpenses() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Import Dialog */}
+      <SharedInstallmentImport
+        isOpen={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        members={members}
+        onSuccess={() => refetch()}
+      />
+
       {/* Transaction Modal */}
       <TransactionModal
         isOpen={showTransactionModal}
-        onClose={() => {
-          setShowTransactionModal(false);
-          setEditingTransaction(null);
-          refetch();
-        }}
-        editTransaction={editingTransaction}
+        onClose={() => setShowTransactionModal(false)}
       />
     </div>
   );

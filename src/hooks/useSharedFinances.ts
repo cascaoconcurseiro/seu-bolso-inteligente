@@ -321,19 +321,20 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     }
 
     if (activeTab === 'TRAVEL') {
+      // TRAVEL: Mostrar TODOS os itens de viagens (pagos e não pagos)
       return scopeFilteredItems
         .filter(i => !!i.tripId)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else if (activeTab === 'HISTORY') {
+      // HISTORY: Mostrar apenas itens pagos
       return scopeFilteredItems
         .filter(i => i.isPaid)
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
-      // REGULAR: Show unpaid items not related to trips, filtered by current month
+      // REGULAR: Mostrar TODOS os itens não relacionados a viagens (pagos e não pagos), filtrados pelo mês atual
       return scopeFilteredItems
         .filter(i => {
           if (i.tripId) return false;
-          if (i.isPaid) return false;
           
           // Filter ALL transactions by current month (not just installments)
           const itemDate = new Date(i.date);
