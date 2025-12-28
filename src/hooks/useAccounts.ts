@@ -15,6 +15,7 @@ export interface Account {
   bank_color: string | null;
   bank_logo: string | null;
   currency: string;
+  is_international: boolean;
   is_active: boolean;
   closing_day: number | null;
   due_day: number | null;
@@ -31,6 +32,7 @@ export interface CreateAccountInput {
   bank_color?: string;
   bank_logo?: string;
   currency?: string;
+  is_international?: boolean;
   closing_day?: number;
   due_day?: number;
   credit_limit?: number;
@@ -76,6 +78,7 @@ export function useCreateAccount() {
             balance: 0, // Cartões sempre começam com saldo 0
             bank_id: input.bank_id || null,
             currency: input.currency || 'BRL',
+            is_international: input.is_international || false,
             closing_day: input.closing_day || null,
             due_day: input.due_day || null,
             credit_limit: input.credit_limit || null,

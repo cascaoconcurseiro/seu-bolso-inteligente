@@ -214,7 +214,14 @@ export function Settings() {
                           className="transition-transform duration-200 group-hover:scale-110" 
                         />
                         <div>
-                          <p className="font-medium">{account.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{account.name}</p>
+                            {account.is_international && (
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
+                                {account.currency} 🌍
+                              </span>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {account.type === "CHECKING" ? "Conta Corrente" : 
                              account.type === "SAVINGS" ? "Poupança" :

@@ -21,6 +21,7 @@ export interface Transaction {
   date: string;
   competence_date: string; // Data de competência (YYYY-MM-01)
   type: TransactionType;
+  currency: string | null;
   domain: TransactionDomain;
   is_shared: boolean;
   payer_id: string | null;
@@ -55,6 +56,7 @@ export interface CreateTransactionInput {
   description: string;
   date: string;
   type: TransactionType;
+  currency?: string;
   domain?: TransactionDomain;
   is_shared?: boolean;
   payer_id?: string;
@@ -102,6 +104,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal
         .or(`payer_id.is.null,payer_id.eq.${user!.id}`) // Excluir transações pagas por outros (aparecem em Compartilhados)
+        .or("currency.is.null,currency.eq.BRL") // Excluir transações em moeda estrangeira (aparecem na viagem/conta internacional)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 

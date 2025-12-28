@@ -13,6 +13,7 @@ import {
   BellRing,
   RotateCcw,
   Bell,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -99,6 +100,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
+
+  // Limpar accountId quando a viagem mudar (moeda pode ser diferente)
+  useEffect(() => {
+    // Não limpar se é o contexto inicial
+    if (context?.accountId && context?.tripId === tripId) return;
+    setAccountId('');
+  }, [tripId, context?.accountId, context?.tripId]);
 
   // Parcelamento
   const [isInstallment, setIsInstallment] = useState(false);
@@ -257,6 +265,42 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     }
   }, [isPaidByOther]);
 
+  // Determinar a moeda da transação baseado na viagem selecionada
+  const transactionCurrency = selectedTrip?.currency || 'BRL';
+  const isInternationalTransaction = transactionCurrency !== 'BRL';
+
+  // Filtrar contas por moeda
+  // - Se moeda é BRL: mostrar apenas contas nacionais (não internacionais)
+  // - Se moeda é estrangeira: mostrar apenas contas internacionais com a mesma moeda
+  const filteredAccounts = accounts?.filter((acc) => {
+    if (transactionCurrency === 'BRL') {
+      return !acc.is_international;
+    }
+    return acc.is_international && acc.currency === transactionCurrency;
+  }) || [];
+
+  // Separar cartões e contas regulares filtrados
+  const filteredCreditCards = filteredAccounts.filter((a) => a.type === 'CREDIT_CARD');
+  const filteredRegularAccounts = filteredAccounts.filter((a) => a.type !== 'CREDIT_CARD');
+
+  // Obter símbolo da moeda
+  const getCurrencySymbol = (currency: string) => {
+    const symbols: Record<string, string> = {
+      'BRL': 'R$',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'CAD': 'C$',
+      'AUD': 'A$',
+      'CHF': 'CHF',
+      'CNY': '¥',
+      'ARS': 'ARS$',
+      'CLP': 'CLP$',
+    };
+    return symbols[currency] || currency;
+  };
+
   const buildSplitsForSubmit = (): TransactionSplit[] => {
     if (splits.length === 0) return [];
     const numericAmount = getNumericAmount();
@@ -299,6 +343,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       destination_account_id: isTransfer ? destinationAccountId : undefined,
       category_id: categoryId || undefined,
       trip_id: tripId || undefined,
+      currency: transactionCurrency, // Adicionar moeda da transação
       domain: tripId ? 'TRAVEL' : isShared ? 'SHARED' : 'PERSONAL',
       is_shared: isShared,
       payer_id: payerId !== 'me' ? payerId : undefined,
@@ -465,7 +510,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           <Label>Valor</Label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-              {selectedTrip ? selectedTrip.currency : 'R$'}
+              {getCurrencySymbol(transactionCurrency)}$'}
             </span>
             <Input
               type="text"
@@ -628,6 +673,27 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                 </span>
               </AlertDescription>
             </Alert>
+          ) : filteredAccounts.length === 0 && isInternationalTransaction ? (
+            // Mensagem quando não há conta internacional compatível
+            <Alert className="border-amber-400 bg-amber-50 dark:bg-amber-950/20">
+              <Wallet className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+                ⚠️ Nenhuma conta em <span className="font-semibold">{transactionCurrency}</span> encontrada.
+                <br />
+                <span className="text-xs">
+                  Crie uma conta internacional com moeda {transactionCurrency} em Configurações.
+                </span>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="p-0 h-auto text-amber-700 dark:text-amber-400 underline"
+                  onClick={() => navigate('/configuracoes')}
+                >
+                  Criar conta internacional
+                </Button>
+              </AlertDescription>
+            </Alert>
           ) : (
             <div className="space-y-2">
               <Label>{isExpense ? 'Pagar com' : 'Receber em'}</Label>
@@ -636,7 +702,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   <SelectValue placeholder="Selecione a conta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {allAccounts.map((acc) => (
+                  {filteredAccounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
                       <div className="flex items-center gap-2">
                         <div
@@ -651,11 +717,21 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                             (Cartão)
                           </span>
                         )}
+                        {acc.is_international && (
+                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                            {acc.currency}
+                          </span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {isInternationalTransaction && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  🌍 Mostrando apenas contas em {transactionCurrency}
+                </p>
+              )}
             </div>
           )
         ) : (
@@ -776,7 +852,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   <SelectContent>
                     {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
-                        {n}x de {selectedTrip ? selectedTrip.currency : 'R$'}{' '}
+                        {n}x de {getCurrencySymbol(transactionCurrency)}{' '}
                         {(getNumericAmount() / n).toFixed(2).replace('.', ',')}
                       </SelectItem>
                     ))}
