@@ -180,10 +180,25 @@ export function useDeleteAccount() {
         );
       }
 
-      // Se não tem saldo, fazer soft delete
+      // Verificar se tem transações vinculadas
+      const { count: txCount, error: countError } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true })
+        .or(`account_id.eq.${id},destination_account_id.eq.${id}`)
+        .eq("deleted", false);
+
+      if (countError) throw countError;
+
+      if (txCount && txCount > 0) {
+        throw new Error(
+          `Não é possível excluir a conta "${account?.name}" pois ela possui ${txCount} transação(ões) vinculada(s). Migre as transações para outra conta primeiro.`
+        );
+      }
+
+      // Se não tem saldo nem transações, fazer soft delete
       const { error } = await supabase
         .from("accounts")
-        .update({ is_active: false })
+        .update({ is_active: false, deleted: true })
         .eq("id", id);
 
       if (error) throw error;

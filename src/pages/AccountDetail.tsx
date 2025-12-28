@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote } from "lucide-react";
 import { useAccounts, useDeleteAccount } from "@/hooks/useAccounts";
-import { useTransactions } from "@/hooks/useTransactions";
+import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -16,7 +16,7 @@ export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: accounts = [] } = useAccounts();
-  const { data: allTransactions = [] } = useTransactions();
+  const { data: statementData } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
 
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -24,10 +24,8 @@ export function AccountDetail() {
 
   const account = accounts.find(a => a.id === id);
   
-  // Filtrar transações desta conta
-  const transactions = allTransactions.filter(
-    t => t.account_id === id || t.destination_account_id === id
-  );
+  // Usar transações do extrato (inclui transferências corretamente)
+  const transactions = statementData?.transactions || [];
 
   // Agrupar transações por data
   const groupedTransactions = transactions.reduce((groups, tx) => {
@@ -45,7 +43,7 @@ export function AccountDetail() {
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
     const symbol = getCurrencySymbol(currency);
-    return `${symbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol} ${Math.abs(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const accountCurrency = account?.currency || "BRL";
@@ -108,7 +106,7 @@ export function AccountDetail() {
           "font-mono text-5xl font-bold mb-6",
           Number(account.balance) >= 0 ? "text-positive" : "text-negative"
         )}>
-          {formatCurrency(Number(account.balance), accountCurrency)}
+          {Number(account.balance) >= 0 ? "" : "-"}{formatCurrency(Number(account.balance), accountCurrency)}
         </p>
         {isCredit && account.credit_limit && (
           <p className="text-sm text-muted-foreground">
@@ -181,8 +179,18 @@ export function AccountDetail() {
                   </h3>
                   <div className="rounded-xl border border-border overflow-hidden">
                     {dayTransactions.map((tx, idx) => {
-                      const isIncome = tx.type === "INCOME" || tx.destination_account_id === id;
+                      const isIncome = tx.isIncoming;
                       const txDate = new Date(tx.date);
+                      
+                      // Descrição especial para transferências
+                      let description = tx.description;
+                      if (tx.type === "TRANSFER") {
+                        if (tx.isIncoming) {
+                          description = `Transferência recebida - ${tx.description}`;
+                        } else {
+                          description = `Transferência enviada - ${tx.description}`;
+                        }
+                      }
                       
                       return (
                         <div
@@ -192,9 +200,9 @@ export function AccountDetail() {
                             idx !== dayTransactions.length - 1 && "border-b border-border"
                           )}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
                             <div className={cn(
-                              "w-10 h-10 rounded-full flex items-center justify-center",
+                              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
                               isIncome ? "bg-positive/10" : "bg-negative/10"
                             )}>
                               {isIncome ? (
@@ -203,20 +211,30 @@ export function AccountDetail() {
                                 <TrendingDown className="h-5 w-5 text-negative" />
                               )}
                             </div>
-                            <div>
-                              <p className="font-medium">{tx.description}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{description}</p>
                               <p className="text-sm text-muted-foreground">
                                 {format(txDate, "HH:mm", { locale: ptBR })}
                                 {tx.category?.name && ` • ${tx.category.name}`}
+                                {tx.is_installment && tx.current_installment && tx.total_installments && (
+                                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted">
+                                    {tx.current_installment}/{tx.total_installments}
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
-                          <p className={cn(
-                            "font-mono text-lg font-semibold",
-                            isIncome ? "text-positive" : "text-negative"
-                          )}>
-                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
-                          </p>
+                          <div className="text-right shrink-0 ml-4">
+                            <p className={cn(
+                              "font-mono text-lg font-semibold",
+                              isIncome ? "text-positive" : "text-negative"
+                            )}>
+                              {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
+                            </p>
+                            <p className="text-xs text-muted-foreground font-mono">
+                              Saldo: {tx.runningBalance >= 0 ? "" : "-"}{formatCurrency(tx.runningBalance, accountCurrency)}
+                            </p>
+                          </div>
                         </div>
                       );
                     })}

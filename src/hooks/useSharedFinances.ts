@@ -401,3 +401,96 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     refetch
   };
 };
+
+
+// Hook para confirmar ressarcimento de um split
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+export function useSettleSplit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (splitId: string) => {
+      const { data, error } = await supabase
+        .from('transaction_splits')
+        .update({
+          is_settled: true,
+          settled_at: new Date().toISOString(),
+        })
+        .eq('id', splitId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success('Ressarcimento confirmado!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao confirmar ressarcimento: ' + error.message);
+    },
+  });
+}
+
+// Hook para confirmar ressarcimento de múltiplos splits
+export function useSettleMultipleSplits() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (splitIds: string[]) => {
+      const { data, error } = await supabase
+        .from('transaction_splits')
+        .update({
+          is_settled: true,
+          settled_at: new Date().toISOString(),
+        })
+        .in('id', splitIds)
+        .select();
+
+      if (error) throw error;
+      return { settledCount: data?.length || 0 };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success(`${data.settledCount} ressarcimento(s) confirmado(s)!`);
+    },
+    onError: (error) => {
+      toast.error('Erro ao confirmar ressarcimentos: ' + error.message);
+    },
+  });
+}
+
+// Hook para desfazer ressarcimento
+export function useUnsettleSplit() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (splitId: string) => {
+      const { data, error } = await supabase
+        .from('transaction_splits')
+        .update({
+          is_settled: false,
+          settled_at: null,
+        })
+        .eq('id', splitId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      toast.success('Ressarcimento desfeito!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao desfazer ressarcimento: ' + error.message);
+    },
+  });
+}

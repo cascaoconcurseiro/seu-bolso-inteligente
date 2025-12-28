@@ -103,6 +103,7 @@ export function useTransactions(filters?: TransactionFilters) {
         `)
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal
+        .neq("type", "TRANSFER") // Excluir transferências da lista principal (aparecem apenas no extrato)
         .or(`payer_id.is.null,payer_id.eq.${user!.id}`) // Excluir transações pagas por outros (aparecem em Compartilhados)
         .or("currency.is.null,currency.eq.BRL") // Excluir transações em moeda estrangeira (aparecem na viagem/conta internacional)
         .order("date", { ascending: false })

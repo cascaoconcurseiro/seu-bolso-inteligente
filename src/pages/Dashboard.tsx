@@ -11,6 +11,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
+import { AlertsPanel } from "@/components/alerts/AlertsPanel";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -148,6 +149,11 @@ export function Dashboard() {
       {/* Pending Trip Invitations Alert */}
       <div className="animate-stagger stagger-2">
         <PendingTripInvitationsAlert />
+      </div>
+
+      {/* Financial Alerts */}
+      <div className="animate-stagger stagger-3">
+        <AlertsPanel maxAlerts={3} />
       </div>
       
       {/* Hero Section */}

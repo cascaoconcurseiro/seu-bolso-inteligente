@@ -13,6 +13,16 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,24 +39,51 @@ import {
   Sun,
   Trash2,
   Loader2,
+  User,
+  Lock,
+  Mail,
+  LogOut,
+  AlertTriangle,
+  Check,
+  Eye,
+  EyeOff,
+  Download,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotificationPreferences } from "@/hooks/useNotifications";
+import { useUserProfile, useUpdateUserProfile, useUpdatePassword, useDeleteAccount } from "@/hooks/useUserProfile";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { OrphanTransactionsManager } from "@/components/settings/OrphanTransactionsManager";
 
-type SettingsSection = "categories" | "people" | "appearance" | "notifications";
+type SettingsSection = "account" | "categories" | "people" | "appearance" | "notifications" | "maintenance";
 
 export function Settings() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [searchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState<SettingsSection>("categories");
+  const [activeSection, setActiveSection] = useState<SettingsSection>("account");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating } = useNotificationPreferences();
+  
+  // Profile state
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const updateProfile = useUpdateUserProfile();
+  const updatePassword = useUpdatePassword();
+  const deleteAccount = useDeleteAccount();
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
@@ -59,8 +96,17 @@ export function Settings() {
     const section = searchParams.get('section');
     if (section === 'notifications') {
       setActiveSection('notifications');
+    } else if (section === 'account') {
+      setActiveSection('account');
     }
   }, [searchParams]);
+
+  // Initialize name when profile loads
+  useEffect(() => {
+    if (profile?.name) {
+      setNewName(profile.name);
+    }
+  }, [profile?.name]);
 
   // Form state for categories
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -95,11 +141,38 @@ export function Settings() {
     setNewCategoryIcon("📦");
   };
 
+  const handleSaveName = async () => {
+    if (!newName.trim()) return;
+    await updateProfile.mutateAsync({ name: newName.trim() });
+    setEditingName(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      return;
+    }
+    if (newPassword.length < 6) {
+      return;
+    }
+    await updatePassword.mutateAsync({ newPassword });
+    setShowChangePasswordDialog(false);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "EXCLUIR") return;
+    await deleteAccount.mutateAsync();
+    setShowDeleteAccountDialog(false);
+  };
+
   const sections = [
+    { id: "account" as const, label: "Perfil", icon: User },
     { id: "categories" as const, label: "Categorias", icon: Tag, count: categories.length },
     { id: "people" as const, label: "Pessoas", icon: Users, count: members.length },
     { id: "appearance" as const, label: "Aparência", icon: Palette },
     { id: "notifications" as const, label: "Notificações", icon: Bell },
+    { id: "maintenance" as const, label: "Manutenção", icon: Wrench },
   ];
 
   const getInitials = (name: string) => {
@@ -146,6 +219,176 @@ export function Settings() {
 
         {/* Content */}
         <div className="lg:col-span-3 p-6 rounded-xl border border-border">
+          {/* Account */}
+          {activeSection === "account" && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <h2 className="font-display font-semibold text-lg">Perfil</h2>
+                <p className="text-sm text-muted-foreground">Gerencie seus dados e segurança</p>
+              </div>
+
+              {profileLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Profile Info */}
+                  <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-foreground/80 to-foreground 
+                                      text-background flex items-center justify-center text-xl font-bold">
+                        {getInitials(profile?.name || user?.email || "U")}
+                      </div>
+                      <div className="flex-1">
+                        {editingName ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={newName}
+                              onChange={(e) => setNewName(e.target.value)}
+                              className="max-w-xs"
+                              placeholder="Seu nome"
+                              autoFocus
+                            />
+                            <Button 
+                              size="sm" 
+                              onClick={handleSaveName}
+                              disabled={updateProfile.isPending}
+                            >
+                              {updateProfile.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingName(false);
+                                setNewName(profile?.name || "");
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-lg">{profile?.name || "Sem nome"}</p>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => setEditingName(true)}
+                            >
+                              Editar
+                            </Button>
+                          </div>
+                        )}
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Change Password */}
+                  <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <Lock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Alterar Senha</p>
+                          <p className="text-sm text-muted-foreground">Atualize sua senha de acesso</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowChangePasswordDialog(true)}
+                      >
+                        Alterar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Sign Out */}
+                  <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <LogOut className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Sair da Conta</p>
+                          <p className="text-sm text-muted-foreground">Encerrar sessão neste dispositivo</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline"
+                        onClick={() => signOut()}
+                      >
+                        Sair
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Export Data */}
+                  <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                          <Download className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Exportar Dados</p>
+                          <p className="text-sm text-muted-foreground">Baixe suas transações em CSV</p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline"
+                        onClick={() => window.location.href = '/transacoes'}
+                      >
+                        Ir para Transações
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Danger Zone */}
+                  <div className="pt-6 border-t border-border">
+                    <h3 className="text-sm font-medium text-destructive uppercase tracking-wider mb-3">
+                      Zona de Perigo
+                    </h3>
+                    <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                            <AlertTriangle className="h-5 w-5 text-destructive" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-destructive">Excluir Conta</p>
+                            <p className="text-sm text-muted-foreground">
+                              Esta ação é irreversível
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="destructive"
+                          onClick={() => setShowDeleteAccountDialog(true)}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Categories */}
           {activeSection === "categories" && (
             <div className="space-y-6 animate-fade-in">
@@ -512,6 +755,32 @@ export function Settings() {
               )}
             </div>
           )}
+
+          {/* Maintenance */}
+          {activeSection === "maintenance" && (
+            <div className="space-y-6 animate-fade-in">
+              <div>
+                <h2 className="font-display font-semibold text-lg">Manutenção</h2>
+                <p className="text-sm text-muted-foreground">Ferramentas para organizar seus dados</p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Orphan Transactions Manager */}
+                <OrphanTransactionsManager />
+
+                {/* Info about account deletion */}
+                <div className="p-4 rounded-xl border border-border bg-muted/30">
+                  <h3 className="font-medium mb-2">Sobre exclusão de contas</h3>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Contas com saldo não podem ser excluídas</li>
+                    <li>• Contas com transações vinculadas não podem ser excluídas</li>
+                    <li>• Migre as transações para outra conta antes de excluir</li>
+                    <li>• Contas excluídas ficam inativas (soft delete)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -568,6 +837,105 @@ export function Settings() {
         open={showTransactionModal}
         onOpenChange={setShowTransactionModal}
       />
+
+      {/* Change Password Dialog */}
+      <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Senha</DialogTitle>
+            <DialogDescription>Digite sua nova senha</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nova Senha</Label>
+              <div className="relative">
+                <Input 
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Confirmar Senha</Label>
+              <Input 
+                type={showPassword ? "text" : "password"}
+                placeholder="Repita a senha"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            {newPassword && confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-sm text-destructive">As senhas não coincidem</p>
+            )}
+            {newPassword && newPassword.length < 6 && (
+              <p className="text-sm text-destructive">A senha deve ter no mínimo 6 caracteres</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowChangePasswordDialog(false);
+              setNewPassword("");
+              setConfirmPassword("");
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleChangePassword}
+              disabled={
+                updatePassword.isPending || 
+                !newPassword || 
+                newPassword.length < 6 || 
+                newPassword !== confirmPassword
+              }
+            >
+              {updatePassword.isPending ? "Alterando..." : "Alterar Senha"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Dialog */}
+      <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Excluir Conta</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos.
+              <br /><br />
+              Para confirmar, digite <span className="font-bold">EXCLUIR</span> abaixo:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input 
+            placeholder="Digite EXCLUIR"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+            className="mt-2"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== "EXCLUIR" || deleteAccount.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteAccount.isPending ? "Excluindo..." : "Excluir Conta"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

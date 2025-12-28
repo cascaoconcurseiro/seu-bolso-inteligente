@@ -268,44 +268,50 @@ export function Accounts() {
             {nationalAccounts.map((account) => {
               const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
               const lastTransactions = getLastTransactions(account.id, 3);
+              const bank = getBankById(account.bank_id);
               
               return (
                 <Link
                   key={account.id}
                   to={`/contas/${account.id}`}
-                  className="group flex flex-col p-5 rounded-xl border border-border 
-                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md"
+                  className="group flex flex-col rounded-xl border border-border 
+                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Card Header with Bank Color */}
+                  <div 
+                    className="p-4 text-white"
+                    style={{ backgroundColor: bank.color }}
+                  >
                     <div className="flex items-center gap-3">
-                      <BankIcon 
-                        bankId={account.bank_id} 
-                        size="md"
-                        className="transition-transform duration-200 group-hover:scale-110" 
-                      />
+                      <div 
+                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20"
+                      >
+                        <Icon className="h-5 w-5" style={{ color: bank.textColor }} />
+                      </div>
                       <div>
-                        <p className="font-display font-semibold text-base">{account.name}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Icon className="h-3 w-3" />
+                        <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
+                          {account.name}
+                        </p>
+                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>
                           {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
                         </p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Balance */}
-                  <div className="mb-4 pb-4 border-b border-border">
-                    <p className={cn(
-                      "font-mono text-2xl font-bold",
-                      Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
-                    )}>
-                      {formatCurrency(Number(account.balance))}
-                    </p>
+                    
+                    {/* Balance */}
+                    <div className="mt-4">
+                      <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
+                      <p 
+                        className="font-mono text-2xl font-bold"
+                        style={{ color: bank.textColor }}
+                      >
+                        {formatCurrency(Number(account.balance))}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Last Transactions */}
-                  <div className="space-y-2 flex-1">
+                  <div className="p-4 space-y-2 flex-1 bg-background">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                       Últimas transações
                     </p>
@@ -361,52 +367,60 @@ export function Accounts() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {internationalAccounts.map((account) => {
-              const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
               const lastTransactions = getLastTransactions(account.id, 3);
               const currencySymbol = account.currency === 'USD' ? '$' : account.currency === 'EUR' ? '€' : account.currency;
+              const bank = getBankById(account.bank_id);
               
               return (
                 <Link
                   key={account.id}
                   to={`/contas/${account.id}`}
-                  className="group flex flex-col p-5 rounded-xl border border-blue-200 dark:border-blue-800 
-                             hover:border-blue-400 transition-all duration-200 hover:shadow-md bg-blue-50/30 dark:bg-blue-950/20"
+                  className="group flex flex-col rounded-xl border border-border 
+                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Card Header with Bank Color */}
+                  <div 
+                    className="p-4 text-white relative"
+                    style={{ backgroundColor: bank.color }}
+                  >
+                    {/* International Badge */}
+                    <div className="absolute top-2 right-2">
+                      <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
+                        <Globe className="h-3 w-3" />
+                        {account.currency}
+                      </span>
+                    </div>
+                    
                     <div className="flex items-center gap-3">
-                      <BankIcon 
-                        bankId={account.bank_id} 
-                        size="md"
-                        className="transition-transform duration-200 group-hover:scale-110" 
-                      />
+                      <div 
+                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20"
+                      >
+                        <Globe className="h-5 w-5" style={{ color: bank.textColor }} />
+                      </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-display font-semibold text-base">{account.name}</p>
-                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
-                            {account.currency} 🌍
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Globe className="h-3 w-3" />
+                        <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
+                          {account.name}
+                        </p>
+                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>
                           Conta Global
                         </p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Balance */}
-                  <div className="mb-4 pb-4 border-b border-blue-200 dark:border-blue-800">
-                    <p className={cn(
-                      "font-mono text-2xl font-bold",
-                      Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
-                    )}>
-                      {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </p>
+                    
+                    {/* Balance */}
+                    <div className="mt-4">
+                      <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
+                      <p 
+                        className="font-mono text-2xl font-bold"
+                        style={{ color: bank.textColor }}
+                      >
+                        {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Last Transactions */}
-                  <div className="space-y-2 flex-1">
+                  <div className="p-4 space-y-2 flex-1 bg-background">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                       Últimas transações
                     </p>
