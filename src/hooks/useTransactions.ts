@@ -518,40 +518,48 @@ export function useFinancialSummary() {
     queryFn: async () => {
       if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
 
-      // Buscar contas para saldo total
+      // Buscar contas para saldo total (APENAS BRL - contas nacionais)
       const { data: accounts } = await supabase
         .from("accounts")
-        .select("balance, type")
+        .select("balance, type, is_international, currency")
         .eq("user_id", user.id)
         .eq("is_active", true);
 
-      // Buscar transações do mês
+      // Buscar transações do mês (APENAS BRL)
       const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount, type, source_transaction_id, payer_id")
+        .select("amount, type, source_transaction_id, payer_id, currency")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos do cálculo
         .or(`payer_id.is.null,payer_id.eq.${user.id}`) // Excluir transações pagas por outros
         .gte("competence_date", startDate) // Filtrar por competência
         .lte("competence_date", endDate);
 
+      // Saldo: apenas contas nacionais (BRL)
       const balance = accounts?.reduce((sum, acc) => {
-        if (acc.type !== "CREDIT_CARD") {
+        // Excluir cartões de crédito e contas internacionais
+        if (acc.type !== "CREDIT_CARD" && !acc.is_international) {
           return sum + Number(acc.balance);
         }
         return sum;
       }, 0) || 0;
 
+      // Receitas: apenas em BRL
       const income = transactions?.reduce((sum, tx) => {
-        if (tx.type === "INCOME") return sum + Number(tx.amount);
+        if (tx.type === "INCOME" && (!tx.currency || tx.currency === 'BRL')) {
+          return sum + Number(tx.amount);
+        }
         return sum;
       }, 0) || 0;
 
+      // Despesas: apenas em BRL
       const expenses = transactions?.reduce((sum, tx) => {
-        if (tx.type === "EXPENSE") return sum + Number(tx.amount);
+        if (tx.type === "EXPENSE" && (!tx.currency || tx.currency === 'BRL')) {
+          return sum + Number(tx.amount);
+        }
         return sum;
       }, 0) || 0;
 

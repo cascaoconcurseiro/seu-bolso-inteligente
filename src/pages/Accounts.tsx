@@ -67,12 +67,12 @@ const accountTypeLabels = {
   CASH: "Dinheiro",
 };
 
-// Tipos de conta para contas internacionais (usam os mesmos tipos válidos)
+// Label especial para contas internacionais
+const internationalAccountLabel = "Conta Global";
+
+// Tipos de conta para contas internacionais (apenas Conta Global - usa CHECKING internamente)
 const internationalAccountTypes = [
-  { value: "CHECKING", label: "Conta Corrente / Global" },
-  { value: "SAVINGS", label: "Poupança" },
-  { value: "INVESTMENT", label: "Investimento" },
-  { value: "CASH", label: "Carteira Digital / Dinheiro" },
+  { value: "CHECKING", label: "Conta Global" },
 ];
 
 // Tipos de conta para contas nacionais
@@ -388,8 +388,8 @@ export function Accounts() {
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Icon className="h-3 w-3" />
-                          {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                          <Globe className="h-3 w-3" />
+                          Conta Global
                         </p>
                       </div>
                     </div>
