@@ -10,6 +10,7 @@ import { useAutoRecurrence } from "@/hooks/useRecurrence";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
+import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -135,32 +136,39 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8">
+      {/* Greeting Card */}
+      <GreetingCard className="animate-fade-in-up" />
+      
       {/* Pending Invitations Alert */}
-      <PendingInvitationsAlert />
+      <div className="animate-stagger stagger-1">
+        <PendingInvitationsAlert />
+      </div>
       
       {/* Pending Trip Invitations Alert */}
-      <PendingTripInvitationsAlert />
+      <div className="animate-stagger stagger-2">
+        <PendingTripInvitationsAlert />
+      </div>
       
       {/* Hero Section */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
             Saldo atual (BRL)
           </p>
           <h1 className={cn(
-            "font-display font-bold text-5xl md:text-6xl tracking-tight",
+            "font-display font-bold text-5xl md:text-6xl tracking-tight animate-count-up",
             balance >= 0 ? "text-foreground" : "text-negative"
           )}>
             {formatCurrency(balance)}
           </h1>
           <div className="flex items-center gap-6 text-sm">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 animate-fade-in-left" style={{ animationDelay: '0.4s' }}>
               <ArrowUpRight className="h-4 w-4 text-positive" />
               <span className="text-muted-foreground">Entradas</span>
               <span className="text-positive font-medium">{formatCurrency(income)}</span>
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 animate-fade-in-right" style={{ animationDelay: '0.5s' }}>
               <ArrowDownRight className="h-4 w-4 text-negative" />
               <span className="text-muted-foreground">Saídas</span>
               <span className="text-negative font-medium">{formatCurrency(expenses)}</span>
@@ -171,8 +179,12 @@ export function Dashboard() {
         {/* Saldos em Moedas Estrangeiras */}
         {hasForeignBalances && (
           <div className="flex flex-wrap gap-4 lg:gap-6">
-            {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance]) => (
-              <div key={currency} className="flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+            {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance], index) => (
+              <div 
+                key={currency} 
+                className="flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 hover-lift animate-scale-in"
+                style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+              >
                 <Globe className="h-4 w-4 text-blue-500" />
                 <div>
                   <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider font-medium">
@@ -197,7 +209,7 @@ export function Dashboard() {
         <div className="lg:col-span-8 space-y-8">
           {/* Precisa de Atenção */}
           {(creditCardsWithBalance.length > 0 || membersWithPendingBalance.length > 0 || pendingRecurrences > 0) && (
-            <div className="space-y-3">
+            <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Precisa de atenção
               </h2>
@@ -206,7 +218,8 @@ export function Dashboard() {
                 {pendingRecurrences > 0 && (
                   <div
                     className="group flex items-center justify-between p-4 rounded-xl border border-amber-200 dark:border-amber-800 
-                               bg-amber-50/50 dark:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-700 transition-all cursor-pointer"
+                               bg-amber-50/50 dark:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-700 
+                               transition-all cursor-pointer hover-lift card-animated animate-scale-in"
                     onClick={() => generateRecurrences()}
                   >
                     <div className="flex items-center gap-4">
@@ -242,7 +255,7 @@ export function Dashboard() {
                 )}
 
                 {/* Faturas de cartão */}
-                {creditCardsWithBalance.map((card) => {
+                {creditCardsWithBalance.map((card, index) => {
                   const bank = getBankById(card.bank_id);
                   const dueDay = card.due_day || 10;
                   const today = new Date().getDate();
@@ -253,7 +266,8 @@ export function Dashboard() {
                       key={card.id}
                       to="/cartoes"
                       className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                                 hover:border-foreground/20 transition-all"
+                                 hover:border-foreground/20 transition-all hover-lift card-animated animate-stagger"
+                      style={{ animationDelay: `${0.4 + index * 0.1}s` }}
                     >
                       <div className="flex items-center gap-4">
                         <div 
@@ -273,14 +287,14 @@ export function Dashboard() {
                         <span className="text-negative font-mono font-semibold">
                           -{formatCurrency(Math.abs(Number(card.balance)))}
                         </span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
                       </div>
                     </Link>
                   );
                 })}
 
                 {/* Divisões pendentes - DADOS REAIS */}
-                {membersWithPendingBalance.slice(0, 2).map((member) => {
+                {membersWithPendingBalance.slice(0, 2).map((member, index) => {
                   const items = getFilteredInvoice(member.id);
                   const unpaidItems = items.filter(i => !i.isPaid);
                   const pendingAmount = unpaidItems.reduce((sum, i) => {
@@ -294,7 +308,8 @@ export function Dashboard() {
                       key={member.id}
                       to="/compartilhados"
                       className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                                 hover:border-foreground/20 transition-all"
+                                 hover:border-foreground/20 transition-all hover-lift card-animated animate-stagger"
+                      style={{ animationDelay: `${0.5 + index * 0.1}s` }}
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -311,7 +326,7 @@ export function Dashboard() {
                         <span className="text-positive font-mono font-semibold">
                           +{formatCurrency(pendingAmount)}
                         </span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
                       </div>
                     </Link>
                   );
@@ -321,7 +336,7 @@ export function Dashboard() {
           )}
 
           {/* Atividade Recente */}
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="flex items-center justify-between">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Atividade recente
@@ -335,13 +350,13 @@ export function Dashboard() {
             </div>
 
             {recentTransactions.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-border rounded-xl">
+              <div className="p-8 text-center border border-dashed border-border rounded-xl animate-scale-in">
                 <p className="text-muted-foreground">Nenhuma transação ainda</p>
                 <p className="text-sm text-muted-foreground mt-2">Use o botão "Nova transação" acima para começar</p>
               </div>
             ) : (
               <div className="space-y-1">
-                {recentTransactions.map((tx) => {
+                {recentTransactions.map((tx, index) => {
                   const txDate = new Date(tx.date);
                   const today = new Date();
                   const yesterday = new Date(today);
@@ -354,7 +369,9 @@ export function Dashboard() {
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between py-3 border-b border-border last:border-0"
+                      className="flex items-center justify-between py-3 border-b border-border last:border-0 
+                                 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-colors animate-stagger"
+                      style={{ animationDelay: `${0.5 + index * 0.05}s` }}
                     >
                       <div>
                         <p className="font-medium">{tx.description}</p>
@@ -379,7 +396,7 @@ export function Dashboard() {
         {/* Right Column - Sidebar */}
         <aside className="lg:col-span-4 space-y-6">
           {/* Acesso Rápido */}
-          <div className="space-y-2">
+          <div className="space-y-2 animate-fade-in-right" style={{ animationDelay: '0.3s' }}>
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
               Acesso rápido
             </h2>
@@ -387,7 +404,7 @@ export function Dashboard() {
             <Link
               to="/cartoes"
               className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                         hover:border-foreground/20 transition-all"
+                         hover:border-foreground/20 transition-all hover-lift card-animated"
             >
               <div className="flex items-center gap-3">
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
@@ -398,13 +415,13 @@ export function Dashboard() {
                   )}
                 </div>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </Link>
 
             <Link
               to="/compartilhados"
               className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                         hover:border-foreground/20 transition-all"
+                         hover:border-foreground/20 transition-all hover-lift card-animated"
             >
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-muted-foreground" />
@@ -415,12 +432,12 @@ export function Dashboard() {
                   )}
                 </div>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </Link>
           </div>
 
           {/* Insight Card */}
-          <div className="p-4 rounded-xl border border-border bg-muted/30">
+          <div className="p-4 rounded-xl border border-border bg-muted/30 hover-lift card-animated animate-scale-in" style={{ animationDelay: '0.4s' }}>
             <p className="text-xs text-muted-foreground mb-1">Este mês você</p>
             <p className="font-semibold">
               {savings >= 0 ? "Economizou" : "Gastou a mais"}
@@ -435,9 +452,9 @@ export function Dashboard() {
           </div>
 
           {/* Projeção do Mês */}
-          <div className="p-4 rounded-xl bg-foreground text-background">
+          <div className="p-4 rounded-xl bg-foreground text-background hover-lift card-animated animate-scale-in" style={{ animationDelay: '0.5s' }}>
             <p className="text-xs opacity-70 mb-1">Projeção fim do mês</p>
-            <p className="font-mono text-2xl font-bold">
+            <p className="font-mono text-2xl font-bold animate-count-up">
               {formatCurrency(projectedBalance)}
             </p>
           </div>
