@@ -261,6 +261,7 @@ export function SharedExpenses() {
       let updateErrors: string[] = [];
       for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
+          // CREDIT: Atualizar o split (alguém me deve)
           console.log('Updating split:', item.splitId);
           const { error, data } = await supabase
             .from('transaction_splits')
@@ -279,7 +280,9 @@ export function SharedExpenses() {
             console.log('Split updated successfully:', data);
           }
         } else if (item.type === 'DEBIT') {
-          console.log('Updating transaction:', item.originalTxId);
+          // DEBIT: Atualizar a transação espelhada (eu devo para alguém)
+          // originalTxId agora é o ID da transação espelhada que pertence ao usuário atual
+          console.log('Updating mirror transaction:', item.originalTxId);
           const { error, data } = await supabase
             .from('transactions')
             .update({
@@ -294,6 +297,12 @@ export function SharedExpenses() {
             updateErrors.push(`Transaction ${item.originalTxId}: ${error.message}`);
           } else {
             console.log('Transaction updated successfully:', data);
+            
+            // Se não atualizou nenhum registro, pode ser que originalTxId seja da transação original
+            // Nesse caso, não podemos atualizar (pertence a outro usuário)
+            if (!data || data.length === 0) {
+              console.warn('No rows updated - transaction may belong to another user');
+            }
           }
         }
       }

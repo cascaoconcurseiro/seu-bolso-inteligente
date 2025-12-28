@@ -8,6 +8,7 @@ export interface InvoiceItem {
   id: string;
   originalTxId: string;
   splitId?: string;
+  sourceTransactionId?: string; // ID da transação original (quando é DEBIT de mirror transaction)
   description: string;
   date: string;
   category?: string;
@@ -238,7 +239,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       invoiceMap[targetMemberId].push({
         id: uniqueKey,
-        originalTxId: tx.source_transaction_id || tx.id,
+        originalTxId: tx.id, // ID da transação ESPELHADA (que pertence ao usuário atual)
+        sourceTransactionId: tx.source_transaction_id, // ID da transação original (do outro usuário)
         description: tx.description,
         date: tx.competence_date || tx.date,
         amount: tx.amount,
