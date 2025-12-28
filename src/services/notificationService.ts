@@ -7,7 +7,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export type NotificationType = 
+export type NotificationType =
   | 'WELCOME'
   | 'INVOICE_DUE'
   | 'INVOICE_OVERDUE'
@@ -147,7 +147,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
       .eq('type', input.type)
       .eq('related_id', input.related_id)
       .eq('is_dismissed', false)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return null; // Já existe, não cria duplicata
@@ -177,9 +177,9 @@ export async function createNotification(input: CreateNotificationInput): Promis
 export async function markAsRead(notificationId: string): Promise<boolean> {
   const { error } = await (supabase as any)
     .from('notifications')
-    .update({ 
-      is_read: true, 
-      read_at: new Date().toISOString() 
+    .update({
+      is_read: true,
+      read_at: new Date().toISOString()
     })
     .eq('id', notificationId);
 
@@ -197,9 +197,9 @@ export async function markAsRead(notificationId: string): Promise<boolean> {
 export async function markAllAsRead(userId: string): Promise<boolean> {
   const { error } = await (supabase as any)
     .from('notifications')
-    .update({ 
-      is_read: true, 
-      read_at: new Date().toISOString() 
+    .update({
+      is_read: true,
+      read_at: new Date().toISOString()
     })
     .eq('user_id', userId)
     .eq('is_read', false);
@@ -218,9 +218,9 @@ export async function markAllAsRead(userId: string): Promise<boolean> {
 export async function dismissNotification(notificationId: string): Promise<boolean> {
   const { error } = await (supabase as any)
     .from('notifications')
-    .update({ 
-      is_dismissed: true, 
-      dismissed_at: new Date().toISOString() 
+    .update({
+      is_dismissed: true,
+      dismissed_at: new Date().toISOString()
     })
     .eq('id', notificationId);
 
@@ -238,9 +238,9 @@ export async function dismissNotification(notificationId: string): Promise<boole
 export async function dismissAllRead(userId: string): Promise<boolean> {
   const { error } = await (supabase as any)
     .from('notifications')
-    .update({ 
-      is_dismissed: true, 
-      dismissed_at: new Date().toISOString() 
+    .update({
+      is_dismissed: true,
+      dismissed_at: new Date().toISOString()
     })
     .eq('user_id', userId)
     .eq('is_read', true)
@@ -287,9 +287,9 @@ export async function getNotificationPreferences(userId: string): Promise<Notifi
     .from('notification_preferences')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
+  if (error) {
     console.error('Erro ao buscar preferências:', error);
     return null;
   }
@@ -324,7 +324,7 @@ async function createDefaultPreferences(userId: string): Promise<NotificationPre
  * Atualiza preferências de notificação
  */
 export async function updateNotificationPreferences(
-  userId: string, 
+  userId: string,
   updates: Partial<NotificationPreferences>
 ): Promise<boolean> {
   const { error } = await (supabase as any)
@@ -368,7 +368,7 @@ export async function createInvoiceDueNotification(
   amount: number,
   daysUntilDue: number
 ): Promise<void> {
-  const formatCurrency = (v: number) => 
+  const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   await createNotification({
@@ -398,7 +398,7 @@ export async function createBudgetWarningNotification(
   await createNotification({
     user_id: userId,
     type: isExceeded ? 'BUDGET_EXCEEDED' : 'BUDGET_WARNING',
-    title: isExceeded 
+    title: isExceeded
       ? `Orçamento "${budgetName}" excedido! 🚨`
       : `Orçamento "${budgetName}" em ${percentage.toFixed(0)}%`,
     message: isExceeded
@@ -423,7 +423,7 @@ export async function createSharedPendingNotification(
   amount: number,
   itemCount: number
 ): Promise<void> {
-  const formatCurrency = (v: number) => 
+  const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
   await createNotification({

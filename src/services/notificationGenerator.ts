@@ -43,10 +43,10 @@ export async function generateAllNotifications(userId: string): Promise<Generati
   try {
     // Buscar preferências do usuário
     const prefs = await getNotificationPreferences(userId);
-    
+
     // Gerar notificações em paralelo
     const [invoices, budgets, shared, recurring] = await Promise.all([
-      prefs?.invoice_due_enabled !== false 
+      prefs?.invoice_due_enabled !== false
         ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
         : 0,
       prefs?.budget_warning_enabled !== false
@@ -77,7 +77,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
  * Gera notificações de faturas próximas do vencimento
  */
 async function generateInvoiceDueNotifications(
-  userId: string, 
+  userId: string,
   daysBefore: number
 ): Promise<number> {
   let count = 0;
@@ -163,14 +163,14 @@ async function generateBudgetWarningNotifications(
 
     // Calcular gastos por categoria e moeda
     const spentByCategory: Record<string, Record<string, number>> = {};
-    
+
     (transactions || []).forEach((tx: any) => {
       const catId = tx.category_id || 'all';
       const currency = tx.currency || 'BRL';
-      
+
       if (!spentByCategory[catId]) spentByCategory[catId] = {};
       if (!spentByCategory[catId][currency]) spentByCategory[catId][currency] = 0;
-      
+
       spentByCategory[catId][currency] += Number(tx.amount);
     });
 
@@ -236,7 +236,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     if (error || !pendingSplits) return 0;
 
     // Filtrar apenas splits onde o usuário é o pagador original
-    const userSplits = pendingSplits.filter((split: any) => 
+    const userSplits = pendingSplits.filter((split: any) =>
       split.transaction?.user_id === userId
     );
 
@@ -246,11 +246,11 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     userSplits.forEach((split: any) => {
       const memberId = split.member_id;
       const memberName = split.member?.name || 'Membro';
-      
+
       if (!byMember[memberId]) {
         byMember[memberId] = { name: memberName, amount: 0, count: 0 };
       }
-      
+
       byMember[memberId].amount += Number(split.amount);
       byMember[memberId].count++;
     });
@@ -281,7 +281,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
 async function generateRecurringPendingNotifications(userId: string): Promise<number> {
   try {
     const pendingCount = await checkPendingRecurrences(userId);
-    
+
     if (pendingCount > 0) {
       await createRecurringPendingNotification(userId, pendingCount);
       return 1;
@@ -297,7 +297,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
  * Verifica se é a primeira vez do usuário e cria notificação de boas-vindas
  */
 export async function checkAndCreateWelcomeNotification(
-  userId: string, 
+  userId: string,
   userName: string
 ): Promise<boolean> {
   try {
@@ -307,11 +307,15 @@ export async function checkAndCreateWelcomeNotification(
       .select('id')
       .eq('user_id', userId)
       .eq('type', 'WELCOME')
-      .single();
+      .maybeSingle();
 
-    // Se a tabela não existe (erro 406/42P01), retornar silenciosamente
-    if (checkError && (checkError.code === '42P01' || checkError.message?.includes('406'))) {
-      console.warn('Tabela notifications não existe ainda');
+    if (checkError) {
+      // Se for erro de tabela inexistente, apenas loga e ignora
+      if (checkError.code === '42P01') {
+        console.warn('Tabela notifications não existe ainda');
+        return false;
+      }
+      console.error('Erro ao verificar boas-vindas:', checkError);
       return false;
     }
 
@@ -348,9 +352,9 @@ export async function dismissRelatedNotifications(
   try {
     await (supabase as any)
       .from('notifications')
-      .update({ 
-        is_dismissed: true, 
-        dismissed_at: new Date().toISOString() 
+      .update({
+        is_dismissed: true,
+        dismissed_at: new Date().toISOString()
       })
       .eq('user_id', userId)
       .eq('related_id', relatedId)
