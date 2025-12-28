@@ -326,8 +326,10 @@ export function useTripTransactions(tripId: string | null) {
   return useQuery({
     queryKey: ["trip-transactions", tripId],
     queryFn: async () => {
-      if (!tripId) return [];
+      if (!tripId || !user) return [];
 
+      // Buscar apenas transações do usuário atual nesta viagem
+      // Transações espelho de outros usuários não devem aparecer
       const { data, error } = await supabase
         .from("transactions")
         .select(`
@@ -336,6 +338,8 @@ export function useTripTransactions(tripId: string | null) {
           category:categories(name, icon)
         `)
         .eq("trip_id", tripId)
+        .eq("user_id", user.id) // Apenas minhas transações
+        .is("source_transaction_id", null) // Excluir transações espelho (que têm source_transaction_id)
         .order("date", { ascending: false });
 
       if (error) throw error;
