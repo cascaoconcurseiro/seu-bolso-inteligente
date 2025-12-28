@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,11 +28,13 @@ import {
   Moon,
   Sun,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationPreferences } from "@/hooks/useNotifications";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 
@@ -39,15 +42,25 @@ type SettingsSection = "categories" | "people" | "appearance" | "notifications";
 
 export function Settings() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState<SettingsSection>("categories");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating } = useNotificationPreferences();
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return document.documentElement.classList.contains("dark");
     }
     return false;
   });
+
+  // Verificar se veio da URL com section=notifications
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section === 'notifications') {
+      setActiveSection('notifications');
+    }
+  }, [searchParams]);
 
   // Form state for categories
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -295,28 +308,208 @@ export function Settings() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="font-display font-semibold text-lg">Notificações</h2>
-                <p className="text-sm text-muted-foreground">Alertas e lembretes</p>
+                <p className="text-sm text-muted-foreground">Configure alertas e lembretes do sistema</p>
               </div>
-              <div className="space-y-3">
-                {[
-                  { title: "Vencimento de Faturas", description: "Alertas antes do vencimento", enabled: true },
-                  { title: "Metas de Economia", description: "Progresso das metas", enabled: true },
-                  { title: "Despesas Compartilhadas", description: "Divisões pendentes", enabled: false },
-                  { title: "Resumo Semanal", description: "Relatório por email", enabled: false },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border
-                               hover:border-foreground/20 transition-all duration-200"
-                  >
-                    <div>
-                      <p className="font-medium">{item.title}</p>
-                      <p className="text-sm text-muted-foreground">{item.description}</p>
+              
+              {prefsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Faturas */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Cartões de Crédito
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Vencimento de Faturas</p>
+                          <p className="text-sm text-muted-foreground">
+                            Alertas {preferences?.invoice_due_days_before || 3} dias antes do vencimento
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.invoice_due_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ invoice_due_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                      {preferences?.invoice_due_enabled && (
+                        <div className="mt-4 pt-4 border-t">
+                          <Label className="text-sm">Dias de antecedência</Label>
+                          <Select 
+                            value={String(preferences?.invoice_due_days_before || 3)}
+                            onValueChange={(v) => updatePreferences({ invoice_due_days_before: parseInt(v) })}
+                          >
+                            <SelectTrigger className="w-32 mt-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1 dia</SelectItem>
+                              <SelectItem value="2">2 dias</SelectItem>
+                              <SelectItem value="3">3 dias</SelectItem>
+                              <SelectItem value="5">5 dias</SelectItem>
+                              <SelectItem value="7">7 dias</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
-                    <Switch defaultChecked={item.enabled} />
                   </div>
-                ))}
-              </div>
+
+                  {/* Orçamentos */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Orçamentos
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Alertas de Orçamento</p>
+                          <p className="text-sm text-muted-foreground">
+                            Aviso quando atingir {preferences?.budget_warning_threshold || 80}% do limite
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.budget_warning_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ budget_warning_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                      {preferences?.budget_warning_enabled && (
+                        <div className="mt-4 pt-4 border-t">
+                          <Label className="text-sm">Limite de alerta</Label>
+                          <Select 
+                            value={String(preferences?.budget_warning_threshold || 80)}
+                            onValueChange={(v) => updatePreferences({ budget_warning_threshold: parseInt(v) })}
+                          >
+                            <SelectTrigger className="w-32 mt-2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="50">50%</SelectItem>
+                              <SelectItem value="70">70%</SelectItem>
+                              <SelectItem value="80">80%</SelectItem>
+                              <SelectItem value="90">90%</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Compartilhados */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Despesas Compartilhadas
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Divisões Pendentes</p>
+                          <p className="text-sm text-muted-foreground">
+                            Lembrete de valores a receber de membros
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.shared_pending_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ shared_pending_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recorrências */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Transações Recorrentes
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Recorrências Pendentes</p>
+                          <p className="text-sm text-muted-foreground">
+                            Aviso quando há transações recorrentes para gerar
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.recurring_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ recurring_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Metas */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Metas e Economia
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Progresso de Metas</p>
+                          <p className="text-sm text-muted-foreground">
+                            Atualizações sobre suas metas de economia
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.savings_goal_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ savings_goal_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resumo Semanal */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Resumos
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Resumo Semanal</p>
+                          <p className="text-sm text-muted-foreground">
+                            Relatório semanal das suas finanças
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={preferences?.weekly_summary_enabled ?? true}
+                          onCheckedChange={(checked) => updatePreferences({ weekly_summary_enabled: checked })}
+                          disabled={isUpdating}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Email (futuro) */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Canais
+                    </h3>
+                    <div className="p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium text-muted-foreground">Notificações por Email</p>
+                          <p className="text-sm text-muted-foreground">
+                            Em breve - Receba alertas importantes por email
+                          </p>
+                        </div>
+                        <Switch 
+                          checked={false}
+                          disabled
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
