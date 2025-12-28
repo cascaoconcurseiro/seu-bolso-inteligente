@@ -181,9 +181,16 @@ export function SharedExpenses() {
     try {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
+      
+      console.log('All items for member:', items);
+      console.log('Selected items:', selectedItems);
+      
       const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
+
+      console.log('Items to settle:', itemsToSettle);
+      console.log('Items to settle with splitId:', itemsToSettle.filter(i => i.splitId));
 
       if (itemsToSettle.length === 0) {
         toast.error("Nenhum item para acertar");
@@ -251,29 +258,49 @@ export function SharedExpenses() {
       const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
 
       // SEMPRE marcar items como settled
+      let updateErrors: string[] = [];
       for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
-          const { error } = await supabase
+          console.log('Updating split:', item.splitId);
+          const { error, data } = await supabase
             .from('transaction_splits')
             .update({
               is_settled: true,
               settled_at: new Date().toISOString(),
               settled_transaction_id: settlementTxId
             })
-            .eq('id', item.splitId);
+            .eq('id', item.splitId)
+            .select();
           
-          if (error) console.error('Error updating split:', error);
+          if (error) {
+            console.error('Error updating split:', error);
+            updateErrors.push(`Split ${item.splitId}: ${error.message}`);
+          } else {
+            console.log('Split updated successfully:', data);
+          }
         } else if (item.type === 'DEBIT') {
-          const { error } = await supabase
+          console.log('Updating transaction:', item.originalTxId);
+          const { error, data } = await supabase
             .from('transactions')
             .update({
               is_settled: true,
               settled_at: new Date().toISOString()
             })
-            .eq('id', item.originalTxId);
+            .eq('id', item.originalTxId)
+            .select();
           
-          if (error) console.error('Error updating transaction:', error);
+          if (error) {
+            console.error('Error updating transaction:', error);
+            updateErrors.push(`Transaction ${item.originalTxId}: ${error.message}`);
+          } else {
+            console.log('Transaction updated successfully:', data);
+          }
         }
+      }
+
+      if (updateErrors.length > 0) {
+        console.error('Update errors:', updateErrors);
+        toast.error(`Alguns itens não foram atualizados: ${updateErrors.length} erros`);
       }
 
       // Fechar dialog e limpar estado
