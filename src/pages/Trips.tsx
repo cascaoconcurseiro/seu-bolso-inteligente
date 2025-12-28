@@ -93,21 +93,6 @@ export function Trips() {
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget ?? null;
 
-  // Resetar estados dos modais quando mudar de view
-  useEffect(() => {
-    if (view === "list") {
-      setShowPersonalBudgetDialog(false);
-      setShowEditTripDialog(false);
-    }
-  }, [view]);
-
-  // Fechar modal de orçamento quando salvar com sucesso
-  useEffect(() => {
-    if (myPersonalBudget !== null && showPersonalBudgetDialog && !updatePersonalBudget.isPending) {
-      setShowPersonalBudgetDialog(false);
-    }
-  }, [myPersonalBudget, showPersonalBudgetDialog, updatePersonalBudget.isPending]);
-
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
@@ -178,7 +163,7 @@ export function Trips() {
       userId: user.id,
       personalBudget: budget,
     });
-    // Modal será fechado automaticamente após sucesso
+    setShowPersonalBudgetDialog(false);
   };
 
   const calculateBalances = () => {
@@ -637,6 +622,26 @@ export function Trips() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Trip Dialog - na Detail View */}
+        <EditTripDialog
+          open={showEditTripDialog}
+          onOpenChange={setShowEditTripDialog}
+          trip={selectedTrip}
+          onSubmit={handleEditTrip}
+          isLoading={updateTrip.isPending}
+        />
+
+        {/* Personal Budget Dialog - na Detail View */}
+        <PersonalBudgetDialog
+          open={showPersonalBudgetDialog}
+          onOpenChange={setShowPersonalBudgetDialog}
+          currentBudget={myPersonalBudget}
+          tripName={selectedTrip?.name || ""}
+          onSubmit={handleUpdatePersonalBudget}
+          isLoading={updatePersonalBudget.isPending}
+          required={false}
+        />
       </div>
     );
   }
@@ -773,26 +778,6 @@ export function Trips() {
         setBudget={setTripBudget}
         currency={tripCurrency}
         setCurrency={setTripCurrency}
-      />
-
-      {/* Edit Trip Dialog */}
-      <EditTripDialog
-        open={showEditTripDialog}
-        onOpenChange={setShowEditTripDialog}
-        trip={selectedTrip}
-        onSubmit={handleEditTrip}
-        isLoading={updateTrip.isPending}
-      />
-
-      {/* Personal Budget Dialog */}
-      <PersonalBudgetDialog
-        open={showPersonalBudgetDialog}
-        onOpenChange={setShowPersonalBudgetDialog}
-        currentBudget={myPersonalBudget}
-        tripName={selectedTrip?.name || ""}
-        onSubmit={handleUpdatePersonalBudget}
-        isLoading={updatePersonalBudget.isPending}
-        required={!myPersonalBudget} // Obrigatório se não tiver orçamento definido
       />
 
       {/* Transaction Modal */}
