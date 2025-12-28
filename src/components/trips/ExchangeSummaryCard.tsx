@@ -1,14 +1,29 @@
 import { ExchangeSummary } from "@/types/tripExchange";
-import { getCurrencySymbol, formatCurrencyWithSymbol } from "@/services/exchangeCalculations";
-import { TrendingUp, Wallet, ArrowRightLeft, Hash } from "lucide-react";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { TrendingUp, Wallet, ArrowRightLeft, Hash, DollarSign } from "lucide-react";
 
 interface ExchangeSummaryCardProps {
   summary: ExchangeSummary;
   currency: string;
+  /** Total de gastos na moeda da viagem (opcional) */
+  totalExpenses?: number;
 }
 
-export function ExchangeSummaryCard({ summary, currency }: ExchangeSummaryCardProps) {
+/**
+ * Calcula o equivalente em BRL usando a taxa média de câmbio
+ */
+function calculateBRLEquivalent(foreignAmount: number, averageRate: number): number {
+  if (averageRate <= 0) return 0;
+  return foreignAmount * averageRate;
+}
+
+export function ExchangeSummaryCard({ summary, currency, totalExpenses }: ExchangeSummaryCardProps) {
   const currencySymbol = getCurrencySymbol(currency);
+  
+  // Calcula equivalente em BRL dos gastos usando taxa média
+  const expensesBRLEquivalent = totalExpenses && summary.weightedAverageRate > 0
+    ? calculateBRLEquivalent(totalExpenses, summary.weightedAverageRate)
+    : null;
 
   return (
     <div className="p-6 rounded-xl border border-border bg-muted/30">
@@ -72,6 +87,32 @@ export function ExchangeSummaryCard({ summary, currency }: ExchangeSummaryCardPr
           </p>
         </div>
       </div>
+
+      {/* Equivalente em BRL dos gastos - Req 10 */}
+      {expensesBRLEquivalent !== null && totalExpenses !== undefined && totalExpenses > 0 && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <DollarSign className="h-4 w-4" />
+              <span className="text-sm">Gastos da viagem em BRL (estimado)</span>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-lg font-bold text-primary">
+                R$ {expensesBRLEquivalent.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {currencySymbol} {totalExpenses.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })} × R$ {summary.weightedAverageRate.toFixed(4)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

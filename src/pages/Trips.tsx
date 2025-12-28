@@ -581,7 +581,7 @@ export function Trips() {
           {/* Exchange Tab - apenas para viagens em moeda estrangeira */}
           {selectedTrip.currency !== "BRL" && (
             <TabsContent value="exchange" className="mt-6">
-              <TripExchange trip={selectedTrip} />
+              <TripExchange trip={selectedTrip} totalExpenses={totalExpenses} />
             </TabsContent>
           )}
 

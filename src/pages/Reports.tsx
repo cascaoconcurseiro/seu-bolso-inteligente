@@ -1,13 +1,22 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   TrendingUp,
   TrendingDown,
   Download,
   Loader2,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
@@ -16,29 +25,68 @@ import { startOfMonth, endOfMonth, subMonths, format as formatDate } from "date-
 import { ptBR } from "date-fns/locale";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 export function Reports() {
   const { currentDate } = useMonth();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("ALL");
   
   const { data: allTransactions = [], isLoading } = useTransactions();
+  const { data: accounts = [] } = useAccounts();
   const { data: familyMembers = [] } = useFamilyMembers();
   const { invoices } = useSharedFinances({ activeTab: 'REGULAR', currentDate });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  // Obter moedas disponíveis das transações
+  const availableCurrencies = useMemo(() => {
+    const currencies = new Set<string>();
+    currencies.add('BRL'); // Sempre incluir BRL
+    
+    allTransactions.forEach(tx => {
+      if (tx.currency && tx.currency !== 'BRL') {
+        currencies.add(tx.currency);
+      }
+    });
+    
+    // Também verificar contas internacionais
+    accounts.forEach(acc => {
+      if (acc.is_international && acc.currency) {
+        currencies.add(acc.currency);
+      }
+    });
+    
+    return Array.from(currencies).sort();
+  }, [allTransactions, accounts]);
+
+  const formatCurrency = (value: number, currency: string = 'BRL') => {
+    if (currency === 'BRL') {
+      return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+    }
+    const symbol = getCurrencySymbol(currency);
+    return `${symbol} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Filtrar transações do período selecionado
+  // Filtrar transações do período selecionado E por moeda
   const periodTransactions = useMemo(() => {
     const start = startOfMonth(currentDate);
     const end = endOfMonth(currentDate);
     
     return allTransactions.filter(tx => {
       const txDate = new Date(tx.date);
-      return txDate >= start && txDate <= end;
+      const inPeriod = txDate >= start && txDate <= end;
+      
+      if (!inPeriod) return false;
+      
+      // Filtro por moeda
+      if (selectedCurrency === 'ALL') return true;
+      
+      const txCurrency = tx.currency || 'BRL';
+      return txCurrency === selectedCurrency;
     });
-  }, [allTransactions, currentDate]);
+  }, [allTransactions, currentDate, selectedCurrency]);
+
+  // Moeda atual para formatação
+  const displayCurrency = selectedCurrency === 'ALL' ? 'BRL' : selectedCurrency;
 
   // Calcular totais do período
   const { totalIncome, totalExpense, balance } = useMemo(() => {
@@ -218,12 +266,66 @@ export function Reports() {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* Filtro de Moeda */}
+          {availableCurrencies.length > 1 && (
+            <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue>
+                  {selectedCurrency === 'ALL' ? (
+                    <span className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Todas
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>
+                      {selectedCurrency}
+                    </span>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">
+                  <span className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Todas as moedas
+                  </span>
+                </SelectItem>
+                {availableCurrencies.map(currency => (
+                  <SelectItem key={currency} value={currency}>
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono w-6">{getCurrencySymbol(currency)}</span>
+                      {currency}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">Exportar</span>
           </Button>
         </div>
       </div>
+
+      {/* Currency Filter Info */}
+      {selectedCurrency !== 'ALL' && (
+        <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+          <Globe className="h-4 w-4 text-blue-500" />
+          <span className="text-sm text-blue-600 dark:text-blue-400">
+            Exibindo apenas transações em {selectedCurrency}
+          </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="ml-auto h-6 text-xs"
+            onClick={() => setSelectedCurrency('ALL')}
+          >
+            Limpar filtro
+          </Button>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -232,14 +334,14 @@ export function Reports() {
             <TrendingUp className="h-4 w-4 text-positive" />
             Entradas
           </div>
-          <p className="font-mono text-2xl font-bold text-positive">{formatCurrency(totalIncome)}</p>
+          <p className="font-mono text-2xl font-bold text-positive">{formatCurrency(totalIncome, displayCurrency)}</p>
         </div>
         <div className="p-5 rounded-xl border border-border">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <TrendingDown className="h-4 w-4 text-negative" />
             Saídas
           </div>
-          <p className="font-mono text-2xl font-bold text-negative">{formatCurrency(totalExpense)}</p>
+          <p className="font-mono text-2xl font-bold text-negative">{formatCurrency(totalExpense, displayCurrency)}</p>
         </div>
         <div className="p-5 rounded-xl border border-border">
           <p className="text-sm text-muted-foreground mb-2">Resultado</p>
@@ -247,7 +349,7 @@ export function Reports() {
             "font-mono text-2xl font-bold",
             balance >= 0 ? "text-positive" : "text-negative"
           )}>
-            {balance >= 0 ? "+" : ""}{formatCurrency(balance)}
+            {balance >= 0 ? "+" : ""}{formatCurrency(balance, displayCurrency)}
           </p>
         </div>
         <div className="p-5 rounded-xl bg-foreground text-background">
@@ -295,8 +397,8 @@ export function Reports() {
                             style={{ width: `${(month.income / maxMonthValue) * 100}%` }}
                           />
                         </div>
-                        <span className="font-mono text-xs text-positive w-20 text-right">
-                          {formatCurrency(month.income)}
+                        <span className="font-mono text-xs text-positive w-24 text-right">
+                          {formatCurrency(month.income, displayCurrency)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -306,8 +408,8 @@ export function Reports() {
                             style={{ width: `${(month.expense / maxMonthValue) * 100}%` }}
                           />
                         </div>
-                        <span className="font-mono text-xs text-negative w-20 text-right">
-                          {formatCurrency(month.expense)}
+                        <span className="font-mono text-xs text-negative w-24 text-right">
+                          {formatCurrency(month.expense, displayCurrency)}
                         </span>
                       </div>
                     </div>
@@ -344,7 +446,7 @@ export function Reports() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium truncate flex-1">{cat.category}</span>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono">{formatCurrency(cat.value)}</span>
+                      <span className="font-mono">{formatCurrency(cat.value, displayCurrency)}</span>
                       <span className="text-xs text-muted-foreground w-10 text-right">{cat.percent}%</span>
                     </div>
                   </div>
@@ -385,16 +487,16 @@ export function Reports() {
                     <tr key={person.name} className="border-b border-border last:border-0">
                       <td className="py-3 px-4 font-medium">{person.name}</td>
                       <td className="py-3 px-4 text-right font-mono text-positive">
-                        {formatCurrency(person.spent)}
+                        {formatCurrency(person.spent, displayCurrency)}
                       </td>
                       <td className="py-3 px-4 text-right font-mono text-negative">
-                        {formatCurrency(person.received)}
+                        {formatCurrency(person.received, displayCurrency)}
                       </td>
                       <td className={cn(
                         "py-3 px-4 text-right font-mono font-semibold",
                         person.balance >= 0 ? "text-positive" : "text-negative"
                       )}>
-                        {person.balance >= 0 ? "+" : ""}{formatCurrency(person.balance)}
+                        {person.balance >= 0 ? "+" : ""}{formatCurrency(person.balance, displayCurrency)}
                       </td>
                       <td className="py-3 px-4 text-right text-muted-foreground">
                         {person.count}

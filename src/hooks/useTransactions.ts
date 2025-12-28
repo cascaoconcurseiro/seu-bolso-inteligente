@@ -363,6 +363,150 @@ export function useDeleteTransaction() {
   });
 }
 
+// Hook para excluir série de parcelas
+export function useDeleteInstallmentSeries() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (seriesId: string) => {
+      // Primeiro, buscar todas as transações da série
+      const { data: transactions, error: fetchError } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("series_id", seriesId);
+
+      if (fetchError) throw fetchError;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error("Nenhuma parcela encontrada nesta série");
+      }
+
+      // Excluir splits associados
+      const transactionIds = transactions.map(t => t.id);
+      await supabase
+        .from("transaction_splits")
+        .delete()
+        .in("transaction_id", transactionIds);
+
+      // Excluir todas as transações da série
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("series_id", seriesId);
+
+      if (error) throw error;
+
+      return { deletedCount: transactions.length };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      toast.success(`${data.deletedCount} parcelas removidas com sucesso!`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover parcelas: " + error.message);
+    },
+  });
+}
+
+// Hook para excluir parcelas futuras de uma série
+export function useDeleteFutureInstallments() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ seriesId, fromInstallment }: { seriesId: string; fromInstallment: number }) => {
+      // Buscar parcelas futuras
+      const { data: transactions, error: fetchError } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("series_id", seriesId)
+        .gte("current_installment", fromInstallment);
+
+      if (fetchError) throw fetchError;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error("Nenhuma parcela futura encontrada");
+      }
+
+      // Excluir splits associados
+      const transactionIds = transactions.map(t => t.id);
+      await supabase
+        .from("transaction_splits")
+        .delete()
+        .in("transaction_id", transactionIds);
+
+      // Excluir parcelas futuras
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("series_id", seriesId)
+        .gte("current_installment", fromInstallment);
+
+      if (error) throw error;
+
+      // Atualizar total_installments nas parcelas restantes
+      const newTotal = fromInstallment - 1;
+      await supabase
+        .from("transactions")
+        .update({ total_installments: newTotal })
+        .eq("series_id", seriesId);
+
+      return { deletedCount: transactions.length };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      toast.success(`${data.deletedCount} parcelas futuras removidas!`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover parcelas: " + error.message);
+    },
+  });
+}
+
+// Hook para atualizar série de parcelas (descrição, categoria, etc.)
+export function useUpdateInstallmentSeries() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      seriesId, 
+      updates,
+      updateFutureOnly = false,
+      fromInstallment = 1
+    }: { 
+      seriesId: string; 
+      updates: Partial<Pick<Transaction, 'description' | 'category_id' | 'notes'>>;
+      updateFutureOnly?: boolean;
+      fromInstallment?: number;
+    }) => {
+      let query = supabase
+        .from("transactions")
+        .update(updates)
+        .eq("series_id", seriesId);
+
+      if (updateFutureOnly) {
+        query = query.gte("current_installment", fromInstallment);
+      }
+
+      const { data, error } = await query.select();
+
+      if (error) throw error;
+
+      return { updatedCount: data?.length || 0 };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success(`${data.updatedCount} parcelas atualizadas!`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar parcelas: " + error.message);
+    },
+  });
+}
+
 // Hook para resumo financeiro
 export function useFinancialSummary() {
   const { user } = useAuth();

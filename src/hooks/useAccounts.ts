@@ -164,6 +164,23 @@ export function useDeleteAccount() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // Primeiro, verificar se a conta tem saldo
+      const { data: account, error: fetchError } = await supabase
+        .from("accounts")
+        .select("balance, name")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Verificar se tem saldo diferente de zero
+      if (account && Math.abs(Number(account.balance)) > 0.01) {
+        throw new Error(
+          `Não é possível excluir a conta "${account.name}" pois ela possui saldo de ${Number(account.balance).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Transfira o saldo antes de excluir.`
+        );
+      }
+
+      // Se não tem saldo, fazer soft delete
       const { error } = await supabase
         .from("accounts")
         .update({ is_active: false })
@@ -176,7 +193,7 @@ export function useDeleteAccount() {
       toast.success("Conta removida!");
     },
     onError: (error) => {
-      toast.error("Erro ao remover conta: " + error.message);
+      toast.error(error.message || "Erro ao remover conta");
     },
   });
 }

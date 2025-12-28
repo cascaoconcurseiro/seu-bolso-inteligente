@@ -18,6 +18,7 @@ import {
   UsersRound,
   Wallet,
   Plus,
+  PiggyBank,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +42,7 @@ const navigationItems = [
   { path: "/viagens", label: "Viagens", icon: Plane },
   { path: "/familia", label: "Família", icon: UsersRound },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
 ];
 
 interface AppLayoutProps {

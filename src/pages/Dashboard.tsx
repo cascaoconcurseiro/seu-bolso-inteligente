@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight, Globe } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight, Globe, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
+import { useAutoRecurrence } from "@/hooks/useRecurrence";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
@@ -33,6 +34,7 @@ export function Dashboard() {
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: familyMembers = [] } = useFamilyMembers();
   const { getSummary, getFilteredInvoice } = useSharedFinances({ activeTab: 'REGULAR' });
+  const { pendingCount: pendingRecurrences, isGenerating, generate: generateRecurrences } = useAutoRecurrence();
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
@@ -194,12 +196,51 @@ export function Dashboard() {
         {/* Left Column */}
         <div className="lg:col-span-8 space-y-8">
           {/* Precisa de Atenção */}
-          {(creditCardsWithBalance.length > 0 || membersWithPendingBalance.length > 0) && (
+          {(creditCardsWithBalance.length > 0 || membersWithPendingBalance.length > 0 || pendingRecurrences > 0) && (
             <div className="space-y-3">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Precisa de atenção
               </h2>
               <div className="space-y-2">
+                {/* Transações recorrentes pendentes */}
+                {pendingRecurrences > 0 && (
+                  <div
+                    className="group flex items-center justify-between p-4 rounded-xl border border-amber-200 dark:border-amber-800 
+                               bg-amber-50/50 dark:bg-amber-950/20 hover:border-amber-300 dark:hover:border-amber-700 transition-all cursor-pointer"
+                    onClick={() => generateRecurrences()}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <RefreshCw className={cn("h-5 w-5 text-amber-600", isGenerating && "animate-spin")} />
+                      </div>
+                      <div>
+                        <p className="font-medium">Transações recorrentes</p>
+                        <p className="text-sm text-muted-foreground">
+                          {pendingRecurrences} transação(ões) pendente(s)
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      disabled={isGenerating}
+                      className="gap-2"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4" />
+                          Gerar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
                 {/* Faturas de cartão */}
                 {creditCardsWithBalance.map((card) => {
                   const bank = getBankById(card.bank_id);

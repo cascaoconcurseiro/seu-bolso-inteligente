@@ -188,6 +188,34 @@ export function validateTransaction(
   }
 
   // ==========================================
+  // 4.1 VALIDAÇÃO DE SALDO NEGATIVO EM CONTAS
+  // ==========================================
+  
+  // Para despesas em contas regulares (não cartão de crédito)
+  if (account && account.type !== 'CREDIT_CARD' && transaction.type === 'EXPENSE') {
+    const newBalance = account.balance - (transaction.amount || 0);
+    
+    if (newBalance < 0) {
+      warnings.push(
+        `Esta transação deixará a conta com saldo negativo: ` +
+        `${newBalance.toLocaleString('pt-BR', { style: 'currency', currency: account.currency || 'BRL' })}`
+      );
+    }
+  }
+  
+  // Para transferências, validar saldo da conta de origem
+  if (account && transaction.type === 'TRANSFER') {
+    const newBalance = account.balance - (transaction.amount || 0);
+    
+    if (newBalance < 0) {
+      errors.push(
+        `Saldo insuficiente para transferência. ` +
+        `Disponível: ${account.balance.toLocaleString('pt-BR', { style: 'currency', currency: account.currency || 'BRL' })}`
+      );
+    }
+  }
+
+  // ==========================================
   // 5. VALIDAÇÃO DE PARCELAMENTO
   // ==========================================
   

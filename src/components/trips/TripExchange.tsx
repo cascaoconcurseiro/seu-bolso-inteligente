@@ -28,9 +28,11 @@ import {
 
 interface TripExchangeProps {
   trip: Trip;
+  /** Total de gastos da viagem na moeda da viagem */
+  totalExpenses?: number;
 }
 
-export function TripExchange({ trip }: TripExchangeProps) {
+export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState<ExchangePurchase | undefined>();
   const [deletingPurchase, setDeletingPurchase] = useState<ExchangePurchase | null>(null);
@@ -113,7 +115,7 @@ export function TripExchange({ trip }: TripExchangeProps) {
   return (
     <div className="space-y-6">
       {/* Resumo */}
-      {summary && <ExchangeSummaryCard summary={summary} currency={trip.currency} />}
+      {summary && <ExchangeSummaryCard summary={summary} currency={trip.currency} totalExpenses={totalExpenses} />}
 
       {/* Lista de compras */}
       <section className="space-y-4">

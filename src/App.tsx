@@ -19,6 +19,7 @@ import { Settings } from "./pages/Settings";
 import { Family } from "./pages/Family";
 import { Accounts } from "./pages/Accounts";
 import { AccountDetail } from "./pages/AccountDetail";
+import { Budgets } from "./pages/Budgets";
 import { Auth } from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -124,6 +125,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AppLayout>
                     <Reports />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orcamentos"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <Budgets />
                   </AppLayout>
                 </ProtectedRoute>
               }

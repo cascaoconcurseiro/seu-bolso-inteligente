@@ -997,3 +997,49 @@ export const Constants = {
   },
 } as const
 
+
+
+// Tipos adicionais para Orçamentos
+export interface Budget {
+  id: string;
+  user_id: string;
+  category_id: string | null;
+  name: string;
+  amount: number;
+  currency: string;
+  period: 'MONTHLY' | 'YEARLY' | 'WEEKLY';
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+  deleted: boolean;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  category?: { name: string; icon: string | null };
+}
+
+export interface BudgetProgress {
+  budget_id: string;
+  budget_name: string;
+  budget_amount: number;
+  spent_amount: number;
+  remaining_amount: number;
+  percentage_used: number;
+  category_name: string | null;
+  currency: string;
+}
+
+// Tipos adicionais para Metas
+export interface Goal {
+  id: string;
+  user_id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  currency: string;
+  target_date: string | null;
+  is_completed: boolean;
+  deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
