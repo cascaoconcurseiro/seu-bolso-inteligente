@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
-  Plus,
   Plane,
   History,
   Wallet,
@@ -49,10 +49,10 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  TrendingUp,
   CheckCircle2,
   ArrowRight,
   Globe,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -61,7 +61,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { useMonth } from "@/contexts/MonthContext";
-import { format, subMonths } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -156,9 +156,29 @@ export function SharedExpenses() {
     const items = getFilteredInvoice(selectedMember).filter(i => !i.isPaid);
     if (selectedItems.length === items.length) {
       setSelectedItems([]);
+      setSettleAmount("0,00");
     } else {
       setSelectedItems(items.map(i => i.id));
+      // Quando seleciona todos, atualiza o valor para o total
+      const total = items.reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+      setSettleAmount(Math.abs(total).toFixed(2).replace(".", ","));
     }
+  };
+
+  // Atualizar valor quando itens são selecionados
+  const updateSettleAmountFromSelection = () => {
+    if (!selectedMember) return;
+    const items = getFilteredInvoice(selectedMember);
+    const selectedTotal = items
+      .filter(i => selectedItems.includes(i.id))
+      .reduce((sum, item) => {
+        if (item.type === "CREDIT") return sum + item.amount;
+        return sum - item.amount;
+      }, 0);
+    setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
   };
 
   const handleSettle = async () => {
@@ -201,7 +221,7 @@ export function SharedExpenses() {
         if (alreadySettled.length > 0) {
           toast.error(`${alreadySettled.length} item(ns) já foram pagos no banco de dados!`);
           setIsSettling(false);
-          refetch(); // Atualizar a lista
+          refetch();
           return;
         }
       }
@@ -219,7 +239,7 @@ export function SharedExpenses() {
         return sum - item.amount;
       }, 0);
       
-      // Considerar pagamento completo se o valor for >= 99% do total (para evitar problemas de arredondamento)
+      // Considerar pagamento completo se o valor for >= 99% do total
       const isPartialSettlement = amount < Math.abs(itemsTotal) * 0.99;
 
       const desc = settleType === "PAY"
@@ -240,7 +260,7 @@ export function SharedExpenses() {
 
       const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
 
-      // SEMPRE marcar items como settled (mesmo em pagamento parcial, marcar os selecionados)
+      // SEMPRE marcar items como settled
       for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
           await supabase
@@ -362,6 +382,308 @@ export function SharedExpenses() {
     ? getFilteredInvoice(selectedMember).filter(i => !i.isPaid)
     : [];
 
+  // Função para renderizar card de membro estilo fatura
+  const renderMemberInvoiceCard = (member: any) => {
+    const items = getFilteredInvoice(member.id);
+    const totals = getTotals(items);
+    const net = totals["BRL"]?.net || 0;
+    const isExpanded = expandedMembers.has(member.id);
+    const groupedItems = getGroupedItems(member.id);
+    const pendingCount = items.filter(i => !i.isPaid).length;
+    const paidCount = items.filter(i => i.isPaid).length;
+    const totalPaidAmount = items.filter(i => i.isPaid).reduce((sum, i) => sum + i.amount, 0);
+
+    // Não mostrar membros sem itens
+    if (items.length === 0) {
+      return null;
+    }
+
+    // Determinar se eu devo (PAGAR - vermelho) ou me devem (RECEBER - verde)
+    const iOwe = net < 0; // net negativo = eu devo
+    const theyOweMe = net > 0; // net positivo = me devem
+    const isHistory = activeTab === "HISTORY";
+
+    return (
+      <div
+        key={member.id}
+        className={cn(
+          "rounded-xl border-2 overflow-hidden transition-all",
+          isHistory ? "border-gray-200 dark:border-gray-800" :
+          iOwe ? "border-red-200 dark:border-red-900/50" : 
+          theyOweMe ? "border-green-200 dark:border-green-900/50" : 
+          "border-border"
+        )}
+      >
+        {/* Header estilo fatura */}
+        <div
+          className={cn(
+            "p-4 cursor-pointer transition-colors",
+            isHistory ? "bg-gray-50 dark:bg-gray-950/20 hover:bg-gray-100 dark:hover:bg-gray-950/30" :
+            iOwe ? "bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/30" :
+            theyOweMe ? "bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/30" :
+            "bg-muted/30 hover:bg-muted/50"
+          )}
+          onClick={() => toggleMemberExpand(member.id)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white",
+                isHistory ? "bg-gray-500" :
+                iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
+              )}>
+                {getInitials(member.name)}
+              </div>
+              
+              {/* Info */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-display font-semibold text-lg">{member.name}</p>
+                  {/* Badge de status */}
+                  {isHistory ? (
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs font-medium border-gray-300 text-gray-700 bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:bg-gray-900/50"
+                    >
+                      HISTÓRICO
+                    </Badge>
+                  ) : net !== 0 && (
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs font-medium",
+                        iOwe ? "border-red-300 text-red-700 bg-red-100 dark:border-red-800 dark:text-red-300 dark:bg-red-950/50" :
+                        "border-green-300 text-green-700 bg-green-100 dark:border-green-800 dark:text-green-300 dark:bg-green-950/50"
+                      )}
+                    >
+                      {iOwe ? "PAGAR" : "RECEBER"}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isHistory 
+                    ? `${paidCount} ${paidCount === 1 ? "item acertado" : "itens acertados"}`
+                    : `${pendingCount} ${pendingCount === 1 ? "item pendente" : "itens pendentes"}`
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Valor total */}
+              <div className="text-right">
+                {isHistory ? (
+                  <>
+                    <p className="font-mono font-bold text-xl text-gray-600 dark:text-gray-400">
+                      {formatCurrency(totalPaidAmount)}
+                    </p>
+                    <p className="text-xs font-medium text-gray-500">
+                      Total acertado
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className={cn(
+                      "font-mono font-bold text-xl",
+                      net === 0 ? "text-muted-foreground" : 
+                      iOwe ? "text-red-600 dark:text-red-400" : 
+                      "text-green-600 dark:text-green-400"
+                    )}>
+                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net))}
+                    </p>
+                    {net !== 0 && (
+                      <p className={cn(
+                        "text-xs font-medium",
+                        iOwe ? "text-red-500" : "text-green-500"
+                      )}>
+                        {iOwe ? "Você deve" : "Devem a você"}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Botão de acertar - só mostra se não for histórico */}
+              {!isHistory && net !== 0 && (
+                <Button
+                  variant={iOwe ? "destructive" : "default"}
+                  size="sm"
+                  className={cn(
+                    !iOwe && "bg-green-600 hover:bg-green-700"
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openSettleDialog(
+                      member.id,
+                      iOwe ? "PAY" : "RECEIVE",
+                      Math.abs(net)
+                    );
+                  }}
+                >
+                  <Wallet className="h-4 w-4 mr-2" />
+                  {iOwe ? "Pagar" : "Receber"}
+                </Button>
+              )}
+
+              {/* Chevron */}
+              {isExpanded ? (
+                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de itens expandida - estilo extrato de fatura */}
+        {isExpanded && items.length > 0 && (
+          <div className="border-t border-border">
+            {/* Cabeçalho da lista */}
+            <div className="px-4 py-2 bg-muted/50 border-b border-border grid grid-cols-12 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="col-span-1">Status</div>
+              <div className="col-span-5">Descrição</div>
+              <div className="col-span-2">Data</div>
+              <div className="col-span-2 text-right">Valor</div>
+              <div className="col-span-2 text-right">Tipo</div>
+            </div>
+
+            {Object.entries(groupedItems).map(([tripKey, group]) => (
+              <div key={tripKey}>
+                {/* Trip Header (if applicable) */}
+                {group.tripName && (
+                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-950/20 border-b border-border">
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        {group.tripName}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Items */}
+                <div className="divide-y divide-border">
+                  {group.items.map(item => {
+                    const isCredit = item.type === "CREDIT";
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
+                          item.isPaid && "opacity-60"
+                        )}
+                      >
+                        {/* Status */}
+                        <div className="col-span-1">
+                          {item.isPaid ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              isCredit ? "bg-green-500" : "bg-red-500"
+                            )} />
+                          )}
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="col-span-5">
+                          <p className={cn(
+                            "text-sm font-medium",
+                            item.isPaid && "line-through text-muted-foreground"
+                          )}>
+                            {item.description}
+                          </p>
+                          {item.totalInstallments && item.totalInstallments > 1 && (
+                            <p className="text-xs text-muted-foreground">
+                              Parcela {item.installmentNumber}/{item.totalInstallments}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Data */}
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                          </p>
+                        </div>
+
+                        {/* Valor */}
+                        <div className="col-span-2 text-right">
+                          <span className={cn(
+                            "font-mono text-sm font-medium",
+                            item.isPaid ? "text-muted-foreground" :
+                            isCredit ? "text-green-600 dark:text-green-400" : 
+                            "text-red-600 dark:text-red-400"
+                          )}>
+                            {formatCurrency(item.amount)}
+                          </span>
+                        </div>
+
+                        {/* Tipo + Ações */}
+                        <div className="col-span-2 flex items-center justify-end gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-xs",
+                              item.isPaid ? "border-gray-300 text-gray-500" :
+                              isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                              "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                            )}
+                          >
+                            {isCredit ? "Receber" : "Pagar"}
+                          </Badge>
+
+                          {item.isPaid && activeTab === "HISTORY" && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                >
+                                  <Undo2 className="h-4 w-4 mr-2" />
+                                  Desfazer acerto
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Resumo no rodapé */}
+            {!isHistory && items.filter(i => !i.isPaid).length > 0 && (
+              <div className={cn(
+                "px-4 py-3 border-t-2",
+                iOwe ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
+                theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
+                "bg-muted/50 border-border"
+              )}>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Total Pendente</span>
+                  <span className={cn(
+                    "font-mono font-bold text-lg",
+                    iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                  )}>
+                    {formatCurrency(Math.abs(net))}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -385,24 +707,55 @@ export function SharedExpenses() {
         currentDate={currentDate} 
       />
 
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 py-4 px-6 rounded-xl bg-muted/50 border border-border">
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu saldo</p>
+      {/* Summary Cards - Estilo Fatura */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Meu Saldo */}
+        <div className={cn(
+          "p-6 rounded-xl border-2",
+          myBalance >= 0 
+            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50" 
+            : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50"
+        )}>
+          <div className="flex items-center gap-2 mb-2">
+            <CreditCard className={cn(
+              "h-5 w-5",
+              myBalance >= 0 ? "text-green-600" : "text-red-600"
+            )} />
+            <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+          </div>
           <p className={cn(
-            "font-mono text-2xl font-bold",
-            myBalance >= 0 ? "text-positive" : "text-negative"
+            "font-mono text-3xl font-bold",
+            myBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           )}>
             {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance)}
           </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {myBalance >= 0 ? "Saldo positivo" : "Saldo devedor"}
+          </p>
         </div>
-        <div className="text-center border-x border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Me devem</p>
-          <p className="font-mono text-lg font-medium text-positive">{formatCurrency(totalOwedToMe)}</p>
+
+        {/* A Receber */}
+        <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+            <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+          </div>
+          <p className="font-mono text-3xl font-bold text-green-600 dark:text-green-400">
+            {formatCurrency(totalOwedToMe)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">Me devem</p>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Eu devo</p>
-          <p className="font-mono text-lg font-medium text-negative">{formatCurrency(totalIOwe)}</p>
+
+        {/* A Pagar */}
+        <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+          <div className="flex items-center gap-2 mb-2">
+            <ArrowRight className="h-5 w-5 text-red-600" />
+            <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+          </div>
+          <p className="font-mono text-3xl font-bold text-red-600 dark:text-red-400">
+            {formatCurrency(totalIOwe)}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">Eu devo</p>
         </div>
       </div>
 
@@ -435,186 +788,61 @@ export function SharedExpenses() {
             </div>
           ) : (
             <div className="space-y-4">
-              {members.map(member => {
-                const items = getFilteredInvoice(member.id);
-                const totals = getTotals(items);
-                const net = totals["BRL"]?.net || 0;
-                const isExpanded = expandedMembers.has(member.id);
-                const groupedItems = getGroupedItems(member.id);
+              {/* Legenda */}
+              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span>Pagar (você deve)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <span>Receber (devem a você)</span>
+                </div>
+              </div>
 
-                if (items.length === 0 && activeTab !== "HISTORY") {
-                  return null;
-                }
+              {/* Lista de membros estilo fatura */}
+              {members.map(member => renderMemberInvoiceCard(member))}
 
-                return (
-                  <div
-                    key={member.id}
-                    className="rounded-xl border border-border overflow-hidden"
-                  >
-                    {/* Member Header */}
-                    <div
-                      className="p-5 hover:bg-muted/30 transition-colors cursor-pointer"
-                      onClick={() => toggleMemberExpand(member.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-foreground/80 to-foreground text-background flex items-center justify-center font-medium">
-                            {getInitials(member.name)}
-                          </div>
-                          <div>
-                            <p className="font-display font-semibold text-lg">{member.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {items.filter(i => !i.isPaid).length} {items.filter(i => !i.isPaid).length === 1 ? "item" : "itens"} pendentes
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className={cn(
-                              "font-mono font-semibold text-lg",
-                              net === 0 ? "text-muted-foreground" : net > 0 ? "text-positive" : "text-negative"
-                            )}>
-                              {net >= 0 ? "+" : ""}{formatCurrency(net)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {net === 0 ? "em dia" : net > 0 ? "a receber" : "a pagar"}
-                            </p>
-                          </div>
-                          {net !== 0 && activeTab !== "HISTORY" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openSettleDialog(
-                                  member.id,
-                                  net > 0 ? "RECEIVE" : "PAY",
-                                  Math.abs(net)
-                                );
-                              }}
-                            >
-                              <Wallet className="h-4 w-4 mr-2" />
-                              Acertar
-                            </Button>
-                          )}
-                          {isExpanded ? (
-                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Expanded Items */}
-                    {isExpanded && items.length > 0 && (
-                      <div className="border-t border-border">
-                        {Object.entries(groupedItems).map(([tripKey, group]) => (
-                          <div key={tripKey}>
-                            {/* Trip Header (if applicable) */}
-                            {group.tripName && (
-                              <div className="px-5 py-2 bg-muted/50 border-b border-border">
-                                <div className="flex items-center gap-2">
-                                  <Plane className="h-4 w-4 text-primary" />
-                                  <span className="text-sm font-medium">{group.tripName}</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Items */}
-                            <div className="divide-y divide-border">
-                              {group.items.map(item => (
-                                <div
-                                  key={item.id}
-                                  className="px-5 py-3 flex items-center justify-between hover:bg-muted/20"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    {item.isPaid ? (
-                                      <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                                    ) : (
-                                      <div className={cn(
-                                        "w-2 h-2 rounded-full",
-                                        item.type === "CREDIT" ? "bg-positive" : "bg-negative"
-                                      )} />
-                                    )}
-                                    <div>
-                                      <p className={cn(
-                                        "text-sm font-medium",
-                                        item.isPaid && "text-muted-foreground line-through"
-                                      )}>
-                                        {item.description}
-                                        {item.tripId && trips.find(t => t.id === item.tripId) && (
-                                          <span className="text-xs text-muted-foreground ml-2">
-                                            · {trips.find(t => t.id === item.tripId)?.name}
-                                          </span>
-                                        )}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {format(new Date(item.date), "dd MMM yyyy", { locale: ptBR })}
-                                        {item.totalInstallments && item.totalInstallments > 1 && (
-                                          <> · {item.installmentNumber}/{item.totalInstallments}</>
-                                        )}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <span className={cn(
-                                      "font-mono text-sm",
-                                      item.isPaid
-                                        ? "text-muted-foreground"
-                                        : item.type === "CREDIT" ? "text-positive" : "text-negative"
-                                    )}>
-                                      {item.type === "CREDIT" ? "+" : "-"}{formatCurrency(item.amount)}
-                                    </span>
-                                    {item.isPaid && activeTab === "HISTORY" && (
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem
-                                            onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                          >
-                                            <Undo2 className="h-4 w-4 mr-2" />
-                                            Desfazer acerto
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {/* Mensagem se não houver itens */}
+              {members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                  <h3 className="font-display font-semibold text-lg mb-2">
+                    {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {activeTab === "HISTORY" 
+                      ? "Nenhum acerto foi realizado ainda" 
+                      : "Não há despesas pendentes neste período"}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Settle Dialog */}
+      {/* Settle Dialog - Estilo Fatura */}
       <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Acertar Conta</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
+            </DialogTitle>
             <DialogDescription>
-              Selecione os itens para acertar ou acerte o saldo total
+              {settleType === "PAY" 
+                ? "Registre o pagamento da sua dívida" 
+                : "Registre o recebimento do valor devido"}
             </DialogDescription>
           </DialogHeader>
+          
           {selectedMember && (() => {
-            // Determine settlement currency based on selected items or all pending items
+            const member = members.find(m => m.id === selectedMember);
             const itemsToConsider = selectedItems.length > 0
               ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
               : pendingMemberItems;
             
-            // Check if any item is from an international trip
             const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
             const internationalTrip = tripIds.length > 0 
               ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
@@ -623,7 +851,6 @@ export function SharedExpenses() {
             const settlementCurrency = internationalTrip?.currency || "BRL";
             const isInternationalSettlement = settlementCurrency !== "BRL";
             
-            // Filter accounts by currency
             const filteredSettleAccounts = accounts.filter(a => {
               if (a.type === "CREDIT_CARD") return false;
               if (isInternationalSettlement) {
@@ -633,156 +860,200 @@ export function SharedExpenses() {
             });
 
             return (
-            <div className="py-4 space-y-6">
-              {/* International settlement alert */}
-              {isInternationalSettlement && (
-                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <Globe className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
-                    Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
-                    Selecione uma conta na mesma moeda.
-                  </AlertDescription>
-                </Alert>
-              )}
+              <div className="py-4 space-y-6">
+                {/* Alerta internacional */}
+                {isInternationalSettlement && (
+                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <Globe className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+                      Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-              {/* Visual representation */}
-              <div className="flex items-center justify-center gap-6 p-4 bg-muted/50 rounded-xl">
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-medium mx-auto">
-                    {settleType === "PAY" ? "EU" : getInitials(members.find(m => m.id === selectedMember)?.name || "")}
+                {/* Visual de transferência */}
+                <div className={cn(
+                  "flex items-center justify-center gap-6 p-4 rounded-xl",
+                  settleType === "PAY" 
+                    ? "bg-red-50 dark:bg-red-950/20" 
+                    : "bg-green-50 dark:bg-green-950/20"
+                )}>
+                  <div className="text-center">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                      settleType === "PAY" ? "bg-red-500" : "bg-muted"
+                    )}>
+                      {settleType === "PAY" ? "EU" : getInitials(member?.name || "")}
+                    </div>
+                    <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
                   </div>
-                  <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : members.find(m => m.id === selectedMember)?.name}</p>
-                </div>
-                <div className="text-center">
-                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                  <p className="font-mono font-semibold mt-1">
-                    {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center font-medium mx-auto">
-                    {settleType === "RECEIVE" ? "EU" : getInitials(members.find(m => m.id === selectedMember)?.name || "")}
-                  </div>
-                  <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : members.find(m => m.id === selectedMember)?.name}</p>
-                </div>
-              </div>
-
-              {/* Items selection */}
-              {pendingMemberItems.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm">Selecionar itens para acertar</Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSelectAll}
-                      className="text-xs h-7"
-                    >
-                      {selectedItems.length === pendingMemberItems.length ? "Desmarcar todos" : "Selecionar todos"}
-                    </Button>
-                  </div>
-                  <div className="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-2">
-                    {pendingMemberItems.map(item => {
-                      const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
-                      const itemCurrency = itemTrip?.currency || "BRL";
-                      return (
-                      <label
-                        key={item.id}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={selectedItems.includes(item.id)}
-                          onCheckedChange={() => toggleItem(item.id)}
-                        />
-                        <span className="flex-1 text-sm truncate">
-                          {item.description}
-                          {itemCurrency !== "BRL" && (
-                            <span className="text-[10px] ml-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded">
-                              {itemCurrency}
-                            </span>
-                          )}
-                        </span>
-                        <span className={cn(
-                          "font-mono text-xs",
-                          item.type === "CREDIT" ? "text-positive" : "text-negative"
-                        )}>
-                          {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </label>
-                    )})}
-                  </div>
-                  {selectedItems.length > 0 && (
-                    <p className="text-xs text-muted-foreground text-right">
-                      Total selecionado: {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  <div className="text-center">
+                    <ArrowRight className={cn(
+                      "h-5 w-5",
+                      settleType === "PAY" ? "text-red-500" : "text-green-500"
+                    )} />
+                    <p className={cn(
+                      "font-mono font-bold mt-1",
+                      settleType === "PAY" ? "text-red-600" : "text-green-600"
+                    )}>
+                      {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
                     </p>
-                  )}
-                </div>
-              )}
-
-              {/* Amount and account */}
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label>Valor do acerto ({settlementCurrency})</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                      {getCurrencySymbol(settlementCurrency)}
-                    </span>
-                    <Input
-                      type="text"
-                      value={settleAmount}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        const cents = parseInt(val) / 100;
-                        setSettleAmount(cents.toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        }));
-                      }}
-                      className="font-mono text-lg pl-10"
-                      placeholder="0,00"
-                    />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Você pode alterar o valor para fazer um acerto parcial
-                  </p>
+                  <div className="text-center">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                      settleType === "RECEIVE" ? "bg-green-500" : "bg-muted"
+                    )}>
+                      {settleType === "RECEIVE" ? "EU" : getInitials(member?.name || "")}
+                    </div>
+                    <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : member?.name}</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
-                  <Select value={settleAccountId} onValueChange={setSettleAccountId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a conta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredSettleAccounts.length === 0 ? (
-                        <div className="p-2 text-sm text-muted-foreground text-center">
-                          Nenhuma conta em {settlementCurrency} disponível
-                        </div>
-                      ) : (
-                        filteredSettleAccounts.map((account) => (
-                          <SelectItem key={account.id} value={account.id}>
-                            <div className="flex items-center gap-2">
-                              {account.name}
-                              {account.is_international && (
-                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                                  {account.currency}
-                                </span>
+
+                {/* Seleção de itens */}
+                {pendingMemberItems.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Itens para acertar</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSelectAll}
+                        className="text-xs h-7"
+                      >
+                        {selectedItems.length === pendingMemberItems.length 
+                          ? "Desmarcar todos" 
+                          : "Selecionar todos (pagar tudo)"}
+                      </Button>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                      {pendingMemberItems.map(item => {
+                        const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
+                        const itemCurrency = itemTrip?.currency || "BRL";
+                        const isCredit = item.type === "CREDIT";
+                        return (
+                          <label
+                            key={item.id}
+                            className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => {
+                                toggleItem(item.id);
+                                // Atualizar valor após toggle
+                                setTimeout(updateSettleAmountFromSelection, 0);
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm truncate">{item.description}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {format(new Date(item.date), "dd/MM/yyyy")}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className={cn(
+                                "font-mono text-sm font-medium",
+                                isCredit ? "text-green-600" : "text-red-600"
+                              )}>
+                                {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                              </span>
+                              {itemCurrency !== "BRL" && (
+                                <p className="text-[10px] text-blue-600">{itemCurrency}</p>
                               )}
                             </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400">
-                      ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {selectedItems.length > 0 && (
+                      <div className={cn(
+                        "p-2 rounded-lg text-sm",
+                        settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
+                      )}>
+                        <div className="flex justify-between">
+                          <span>Itens selecionados:</span>
+                          <span className="font-medium">{selectedItems.length}</span>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                          <span>Total:</span>
+                          <span className={cn(
+                            "font-mono",
+                            settleType === "PAY" ? "text-red-600" : "text-green-600"
+                          )}>
+                            {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Valor e conta */}
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label>Valor do acerto ({settlementCurrency})</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {getCurrencySymbol(settlementCurrency)}
+                      </span>
+                      <Input
+                        type="text"
+                        value={settleAmount}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          const cents = parseInt(val) / 100;
+                          setSettleAmount(cents.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }));
+                        }}
+                        className="font-mono text-lg pl-10"
+                        placeholder="0,00"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Altere o valor para fazer um acerto parcial
                     </p>
-                  )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
+                    <Select value={settleAccountId} onValueChange={setSettleAccountId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a conta" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredSettleAccounts.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            Nenhuma conta em {settlementCurrency} disponível
+                          </div>
+                        ) : (
+                          filteredSettleAccounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id}>
+                              <div className="flex items-center gap-2">
+                                {account.name}
+                                {account.is_international && (
+                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                                    {account.currency}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
+            );
           })()}
+          
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
               Cancelar
@@ -790,6 +1061,11 @@ export function SharedExpenses() {
             <Button
               onClick={handleSettle}
               disabled={isSettling || !settleAccountId}
+              className={cn(
+                settleType === "PAY" 
+                  ? "bg-red-600 hover:bg-red-700" 
+                  : "bg-green-600 hover:bg-green-700"
+              )}
             >
               {isSettling ? (
                 <>
@@ -799,7 +1075,7 @@ export function SharedExpenses() {
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Confirmar Acerto
+                  {settleType === "PAY" ? "Confirmar Pagamento" : "Confirmar Recebimento"}
                 </>
               )}
             </Button>

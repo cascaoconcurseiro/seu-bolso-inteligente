@@ -1,26 +1,52 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAccounts, useDeleteAccount } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
+import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBankById } from "@/lib/banks";
 import { TransferModal } from "@/components/accounts/TransferModal";
 import { WithdrawalModal } from "@/components/accounts/WithdrawalModal";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { toast } from "sonner";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: accounts = [] } = useAccounts();
-  const { data: statementData } = useAccountStatement({ accountId: id || "" });
+  const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
+  const deleteTransaction = useDeleteTransaction();
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
+    isOpen: false,
+    transaction: null,
+  });
 
   const account = accounts.find(a => a.id === id);
   
@@ -60,6 +86,25 @@ export function AccountDetail() {
     if (confirm(`Tem certeza que deseja excluir a conta "${account.name}"?`)) {
       await deleteAccount.mutateAsync(id!);
       navigate("/contas");
+    }
+  };
+
+  const handleEditTransaction = (tx: any) => {
+    setEditingTransaction(tx);
+    setShowTransactionModal(true);
+  };
+
+  const handleDeleteTransaction = async () => {
+    const tx = deleteConfirm.transaction;
+    if (!tx) return;
+
+    try {
+      await deleteTransaction.mutateAsync(tx.id);
+      toast.success("Transação excluída com sucesso!");
+      setDeleteConfirm({ isOpen: false, transaction: null });
+      refetchStatement();
+    } catch (error) {
+      toast.error("Erro ao excluir transação");
     }
   };
 
@@ -240,16 +285,39 @@ export function AccountDetail() {
                               </p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0 ml-4">
-                            <p className={cn(
-                              "font-mono text-lg font-semibold",
-                              isIncome ? "text-positive" : "text-negative"
-                            )}>
-                              {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
-                            </p>
-                            <p className="text-xs text-muted-foreground font-mono">
-                              Saldo: {tx.runningBalance >= 0 ? "" : "-"}{formatCurrency(tx.runningBalance, accountCurrency)}
-                            </p>
+                          <div className="text-right shrink-0 ml-4 flex items-center gap-2">
+                            <div>
+                              <p className={cn(
+                                "font-mono text-lg font-semibold",
+                                isIncome ? "text-positive" : "text-negative"
+                              )}>
+                                {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-mono">
+                                Saldo: {tx.runningBalance >= 0 ? "" : "-"}{formatCurrency(tx.runningBalance, accountCurrency)}
+                              </p>
+                            </div>
+                            {/* Menu de ações */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => setDeleteConfirm({ isOpen: true, transaction: tx })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </div>
                       );
@@ -280,6 +348,35 @@ export function AccountDetail() {
         accountName={account.name}
         accountBalance={Number(account.balance)}
       />
+
+      {/* Transaction Modal for editing */}
+      <TransactionModal
+        isOpen={showTransactionModal}
+        onClose={() => {
+          setShowTransactionModal(false);
+          setEditingTransaction(null);
+          refetchStatement();
+        }}
+        editTransaction={editingTransaction}
+      />
+
+      {/* Delete Transaction Confirm */}
+      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir "{deleteConfirm.transaction?.description}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

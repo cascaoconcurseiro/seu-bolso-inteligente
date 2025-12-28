@@ -12,6 +12,22 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -33,16 +49,20 @@ import {
   X,
   Save,
   Globe,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, cardBrands, getBankById, internationalBanks } from "@/lib/banks";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount } from "@/hooks/useAccounts";
-import { useTransactions, useCreateTransaction } from "@/hooks/useTransactions";
+import { useTransactions, useCreateTransaction, useDeleteTransaction } from "@/hooks/useTransactions";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange, formatLocalDate } from "@/lib/invoiceUtils";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 // Lista de moedas para cartões internacionais
 const currencies = [
@@ -89,10 +109,18 @@ export function CreditCards() {
   const [newCurrency, setNewCurrency] = useState("USD");
 
   const { data: accounts = [], isLoading } = useAccounts();
-  const { data: transactions = [] } = useTransactions();
+  const { data: transactions = [], refetch: refetchTransactions } = useTransactions();
   const createAccount = useCreateAccount();
   const createTransaction = useCreateTransaction();
-  const { toast } = useToast();
+  const deleteTransaction = useDeleteTransaction();
+  const { toast: toastHook } = useToast();
+
+  // Edit/Delete transaction state
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
+    isOpen: false,
+    transaction: null,
+  });
 
   // Filter credit cards
   const creditCards = accounts.filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[];
@@ -188,6 +216,26 @@ export function CreditCards() {
   const nextDueDate = creditCards.length > 0 
     ? Math.min(...creditCards.map(card => getDaysUntilDue(getCardInvoice(card).dueDate)))
     : 0;
+
+  // Edit/Delete handlers
+  const handleEditTransaction = (tx: any) => {
+    setEditingTransaction(tx);
+    setShowTransactionModal(true);
+  };
+
+  const handleDeleteTransaction = async () => {
+    const tx = deleteConfirm.transaction;
+    if (!tx) return;
+
+    try {
+      await deleteTransaction.mutateAsync(tx.id);
+      toast.success("Transação excluída com sucesso!");
+      setDeleteConfirm({ isOpen: false, transaction: null });
+      refetchTransactions();
+    } catch (error) {
+      toast.error("Erro ao excluir transação");
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -364,8 +412,8 @@ export function CreditCards() {
                   className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{tx.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{tx.description}</p>
                       <p className="text-sm text-muted-foreground">
                         {format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}
                         {tx.is_installment && tx.current_installment && tx.total_installments && (
@@ -375,12 +423,35 @@ export function CreditCards() {
                         )}
                       </p>
                     </div>
-                    <span className={cn(
-                      "font-mono font-semibold",
-                      tx.type === 'INCOME' ? "text-positive" : ""
-                    )}>
-                      {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "font-mono font-semibold",
+                        tx.type === 'INCOME' ? "text-positive" : ""
+                      )}>
+                        {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                      </span>
+                      {/* Menu de ações */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteConfirm({ isOpen: true, transaction: tx })}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -457,7 +528,7 @@ export function CreditCards() {
             for (const tx of txs) {
               await createTransaction.mutateAsync(tx as any);
             }
-            toast({ title: "Faturas importadas com sucesso!" });
+            toastHook({ title: "Faturas importadas com sucesso!" });
             setShowImportDialog(false);
           }}
         />
@@ -479,10 +550,39 @@ export function CreditCards() {
               destination_account_id: selectedCard.id,
               domain: "PERSONAL",
             });
-            toast({ title: "Fatura paga com sucesso!" });
+            toastHook({ title: "Fatura paga com sucesso!" });
             setShowPayDialog(false);
           }}
         />
+
+        {/* Transaction Modal for editing */}
+        <TransactionModal
+          isOpen={showTransactionModal}
+          onClose={() => {
+            setShowTransactionModal(false);
+            setEditingTransaction(null);
+            refetchTransactions();
+          }}
+          editTransaction={editingTransaction}
+        />
+
+        {/* Delete Transaction Confirm */}
+        <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir "{deleteConfirm.transaction?.description}"? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
