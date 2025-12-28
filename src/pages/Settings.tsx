@@ -811,13 +811,48 @@ export function Settings() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Ícone (emoji)</Label>
-              <Input 
-                placeholder="📦"
-                value={newCategoryIcon}
-                onChange={(e) => setNewCategoryIcon(e.target.value)}
-                maxLength={2}
-              />
+              <Label>Ícone</Label>
+              <div className="grid grid-cols-8 gap-2 p-2 border rounded-lg max-h-[200px] overflow-y-auto">
+                {[
+                  // Alimentação
+                  "🍔", "🍕", "🍜", "🍱", "🍳", "☕", "🍺", "🍷",
+                  // Transporte
+                  "🚗", "🚌", "🚇", "✈️", "⛽", "🚕", "🚲", "🛵",
+                  // Casa
+                  "🏠", "🔌", "💡", "🚿", "🛋️", "🧹", "🔧", "🏗️",
+                  // Saúde
+                  "💊", "🏥", "🩺", "💉", "🧘", "🏋️", "🦷", "👓",
+                  // Educação
+                  "📚", "🎓", "✏️", "💻", "🎨", "🎵", "📖", "🧠",
+                  // Lazer
+                  "🎬", "🎮", "🎭", "🎪", "🏖️", "⚽", "🎾", "🎳",
+                  // Compras
+                  "🛒", "👕", "👗", "👟", "💄", "🎁", "📦", "🛍️",
+                  // Finanças
+                  "💰", "💳", "🏦", "📈", "💵", "🪙", "💎", "📊",
+                  // Trabalho
+                  "💼", "📱", "🖥️", "📧", "📝", "🗂️", "📋", "🔒",
+                  // Pets
+                  "🐕", "🐈", "🐠", "🐦", "🐾", "🦴", "🐶", "🐱",
+                  // Outros
+                  "❤️", "⭐", "🔥", "✨", "🎯", "🏆", "🎉", "📌",
+                ].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setNewCategoryIcon(emoji)}
+                    className={cn(
+                      "w-9 h-9 text-xl rounded-lg hover:bg-muted transition-colors flex items-center justify-center",
+                      newCategoryIcon === emoji && "bg-primary/20 ring-2 ring-primary"
+                    )}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Selecionado: <span className="text-lg">{newCategoryIcon}</span>
+              </p>
             </div>
           </div>
           <DialogFooter>

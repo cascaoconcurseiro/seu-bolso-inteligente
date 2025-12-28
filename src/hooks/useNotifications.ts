@@ -38,6 +38,7 @@ export function useNotifications() {
     enabled: !!user,
     refetchInterval: 60000, // Atualiza a cada 1 minuto
     staleTime: 30000,
+    retry: false, // Não tentar novamente se falhar (tabela pode não existir)
   });
 
   // Contar não lidas
@@ -45,7 +46,9 @@ export function useNotifications() {
     queryKey: ["notifications-unread-count", user?.id],
     queryFn: () => countUnreadNotifications(user!.id),
     enabled: !!user,
-    refetchInterval: 30000, // Atualiza a cada 30 segundos
+    refetchInterval: 60000, // Reduzido para 1 minuto
+    staleTime: 30000,
+    retry: false, // Não tentar novamente se falhar
   });
 
   // Marcar como lida
@@ -83,12 +86,12 @@ export function useNotifications() {
     },
   });
 
-  // Limpar antigas (executa uma vez ao carregar)
+  // Limpar antigas (executa uma vez ao carregar) - desabilitado se tabela não existe
   useEffect(() => {
-    if (user) {
+    if (user && notifications.length > 0) {
       cleanupOldNotifications(user.id);
     }
-  }, [user]);
+  }, [user, notifications.length]);
 
   return {
     notifications,
@@ -115,6 +118,8 @@ export function useNotificationPreferences() {
     queryKey: ["notification-preferences", user?.id],
     queryFn: () => getNotificationPreferences(user!.id),
     enabled: !!user,
+    retry: false, // Não tentar novamente se falhar
+    staleTime: 60000,
   });
 
   const updateMutation = useMutation({
@@ -143,8 +148,9 @@ export function useUnreadNotificationCount() {
     queryKey: ["notifications-unread-count", user?.id],
     queryFn: () => countUnreadNotifications(user!.id),
     enabled: !!user,
-    refetchInterval: 30000,
-    staleTime: 15000,
+    refetchInterval: 60000, // Reduzido para 1 minuto
+    staleTime: 30000,
+    retry: false, // Não tentar novamente se falhar
   });
 
   return count;

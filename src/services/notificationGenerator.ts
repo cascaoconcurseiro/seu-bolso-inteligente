@@ -302,12 +302,18 @@ export async function checkAndCreateWelcomeNotification(
 ): Promise<boolean> {
   try {
     // Verificar se já existe notificação de boas-vindas
-    const { data: existing } = await (supabase as any)
+    const { data: existing, error: checkError } = await (supabase as any)
       .from('notifications')
       .select('id')
       .eq('user_id', userId)
       .eq('type', 'WELCOME')
       .single();
+
+    // Se a tabela não existe (erro 406/42P01), retornar silenciosamente
+    if (checkError && (checkError.code === '42P01' || checkError.message?.includes('406'))) {
+      console.warn('Tabela notifications não existe ainda');
+      return false;
+    }
 
     if (existing) {
       return false; // Já existe
