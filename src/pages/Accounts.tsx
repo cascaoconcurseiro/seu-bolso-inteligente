@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -40,9 +41,10 @@ import {
   TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { banks, getBankById } from "@/lib/banks";
+import { banks, internationalBanks, getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -80,9 +82,13 @@ export function Accounts() {
   const [type, setType] = useState<string>("CHECKING");
   const [bankId, setBankId] = useState("");
   const [balance, setBalance] = useState("");
+  const [isInternational, setIsInternational] = useState(false);
+  const [currency, setCurrency] = useState("USD");
 
   // Filter only non-credit card accounts
   const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
+  const nationalAccounts = regularAccounts.filter(a => !a.is_international);
+  const internationalAccounts = regularAccounts.filter(a => a.is_international);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -101,6 +107,8 @@ export function Accounts() {
     setType("CHECKING");
     setBankId("");
     setBalance("");
+    setIsInternational(false);
+    setCurrency("USD");
   };
 
   const handleCreate = async () => {
@@ -122,6 +130,8 @@ export function Accounts() {
       bank_logo: null,
       bank_color: bank?.color || null,
       balance: parseFloat(balance) || 0,
+      is_international: isInternational,
+      currency: isInternational ? currency : 'BRL',
     });
 
     setShowAddDialog(false);
@@ -135,7 +145,8 @@ export function Accounts() {
     }
   };
 
-  const totalBalance = regularAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalBalance = nationalAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalInternationalBalance = internationalAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   if (isLoading) {
     return (
@@ -167,7 +178,7 @@ export function Accounts() {
       <div className="p-8 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-primary/10">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground mb-2">Saldo Total</p>
+            <p className="text-sm text-muted-foreground mb-2">Saldo Total (BRL)</p>
             <p className={cn(
               "font-mono text-4xl font-bold",
               totalBalance >= 0 ? "text-positive" : "text-negative"
@@ -182,97 +193,199 @@ export function Accounts() {
         </div>
       </div>
 
-      {/* Accounts Grid */}
-      {regularAccounts.length === 0 ? (
-        <div className="py-16 text-center border border-dashed border-border rounded-xl">
-          <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="font-display font-semibold text-xl mb-2">Nenhuma conta cadastrada</h2>
-          <p className="text-muted-foreground mb-6">Adicione sua primeira conta para começar</p>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar conta
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {regularAccounts.map((account) => {
-            const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
-            const lastTransactions = getLastTransactions(account.id, 3);
-            
-            return (
-              <Link
-                key={account.id}
-                to={`/contas/${account.id}`}
-                className="group flex flex-col p-5 rounded-xl border border-border 
-                           hover:border-foreground/20 transition-all duration-200 hover:shadow-md"
-              >
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <BankIcon 
-                      bankId={account.bank_id} 
-                      size="md"
-                      className="transition-transform duration-200 group-hover:scale-110" 
-                    />
-                    <div>
-                      <p className="font-display font-semibold text-base">{account.name}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Icon className="h-3 w-3" />
-                        {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
-                      </p>
+      {/* National Accounts */}
+      <div className="space-y-4">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          Contas Nacionais ({nationalAccounts.length})
+        </h2>
+        
+        {nationalAccounts.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+            <Wallet className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">Nenhuma conta nacional cadastrada</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {nationalAccounts.map((account) => {
+              const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
+              const lastTransactions = getLastTransactions(account.id, 3);
+              
+              return (
+                <Link
+                  key={account.id}
+                  to={`/contas/${account.id}`}
+                  className="group flex flex-col p-5 rounded-xl border border-border 
+                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md"
+                >
+                  {/* Card Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <BankIcon 
+                        bankId={account.bank_id} 
+                        size="md"
+                        className="transition-transform duration-200 group-hover:scale-110" 
+                      />
+                      <div>
+                        <p className="font-display font-semibold text-base">{account.name}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Icon className="h-3 w-3" />
+                          {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Balance */}
-                <div className="mb-4 pb-4 border-b border-border">
-                  <p className={cn(
-                    "font-mono text-2xl font-bold",
-                    Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
-                  )}>
-                    {formatCurrency(Number(account.balance))}
-                  </p>
-                </div>
+                  {/* Balance */}
+                  <div className="mb-4 pb-4 border-b border-border">
+                    <p className={cn(
+                      "font-mono text-2xl font-bold",
+                      Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
+                    )}>
+                      {formatCurrency(Number(account.balance))}
+                    </p>
+                  </div>
 
-                {/* Last Transactions */}
-                <div className="space-y-2 flex-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                    Últimas transações
-                  </p>
-                  {lastTransactions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
-                  ) : (
-                    lastTransactions.map((tx) => {
-                      const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
-                      return (
-                        <div key={tx.id} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            {isIncome ? (
-                              <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
-                            ) : (
-                              <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
-                            )}
-                            <span className="truncate text-muted-foreground">{tx.description}</span>
+                  {/* Last Transactions */}
+                  <div className="space-y-2 flex-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Últimas transações
+                    </p>
+                    {lastTransactions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
+                    ) : (
+                      lastTransactions.map((tx) => {
+                        const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                        return (
+                          <div key={tx.id} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {isIncome ? (
+                                <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
+                              ) : (
+                                <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
+                              )}
+                              <span className="truncate text-muted-foreground">{tx.description}</span>
+                            </div>
+                            <span className={cn(
+                              "font-mono font-medium ml-2 flex-shrink-0",
+                              isIncome ? "text-positive" : "text-negative"
+                            )}>
+                              {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
+                            </span>
                           </div>
-                          <span className={cn(
-                            "font-mono font-medium ml-2 flex-shrink-0",
-                            isIncome ? "text-positive" : "text-negative"
-                          )}>
-                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
+                        );
+                      })
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* International Accounts */}
+      <div className="space-y-4">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2">
+          <Globe className="h-4 w-4" />
+          Contas Internacionais ({internationalAccounts.length})
+        </h2>
+        
+        {internationalAccounts.length === 0 ? (
+          <div className="py-12 text-center border border-dashed border-border rounded-xl bg-blue-50/50 dark:bg-blue-950/20">
+            <Globe className="h-10 w-10 mx-auto mb-3 text-blue-500" />
+            <p className="text-muted-foreground mb-4">Nenhuma conta internacional cadastrada</p>
+            <Button variant="outline" onClick={() => { setIsInternational(true); setShowAddDialog(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar conta internacional
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {internationalAccounts.map((account) => {
+              const Icon = accountTypeIcons[account.type as keyof typeof accountTypeIcons] || Wallet;
+              const lastTransactions = getLastTransactions(account.id, 3);
+              const currencySymbol = account.currency === 'USD' ? '$' : account.currency === 'EUR' ? '€' : account.currency;
+              
+              return (
+                <Link
+                  key={account.id}
+                  to={`/contas/${account.id}`}
+                  className="group flex flex-col p-5 rounded-xl border border-blue-200 dark:border-blue-800 
+                             hover:border-blue-400 transition-all duration-200 hover:shadow-md bg-blue-50/30 dark:bg-blue-950/20"
+                >
+                  {/* Card Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <BankIcon 
+                        bankId={account.bank_id} 
+                        size="md"
+                        className="transition-transform duration-200 group-hover:scale-110" 
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-display font-semibold text-base">{account.name}</p>
+                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
+                            {account.currency} 🌍
                           </span>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Icon className="h-3 w-3" />
+                          {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Balance */}
+                  <div className="mb-4 pb-4 border-b border-blue-200 dark:border-blue-800">
+                    <p className={cn(
+                      "font-mono text-2xl font-bold",
+                      Number(account.balance) >= 0 ? "text-foreground" : "text-negative"
+                    )}>
+                      {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+
+                  {/* Last Transactions */}
+                  <div className="space-y-2 flex-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Últimas transações
+                    </p>
+                    {lastTransactions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
+                    ) : (
+                      lastTransactions.map((tx) => {
+                        const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                        return (
+                          <div key={tx.id} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {isIncome ? (
+                                <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
+                              ) : (
+                                <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
+                              )}
+                              <span className="truncate text-muted-foreground">{tx.description}</span>
+                            </div>
+                            <span className={cn(
+                              "font-mono font-medium ml-2 flex-shrink-0",
+                              isIncome ? "text-positive" : "text-negative"
+                            )}>
+                              {isIncome ? "+" : "-"}{currencySymbol}{Math.abs(Number(tx.amount)).toFixed(2)}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* Add Account Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      <Dialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) resetForm(); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova conta</DialogTitle>
@@ -280,24 +393,83 @@ export function Accounts() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Toggle Internacional */}
+            <div className="p-4 rounded-xl border border-border space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Globe className="h-5 w-5 text-blue-500" />
+                  <div>
+                    <p className="font-medium">Conta Internacional</p>
+                    <p className="text-sm text-muted-foreground">Nomad, Wise, etc.</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={isInternational} 
+                  onCheckedChange={(checked) => {
+                    setIsInternational(checked);
+                    setBankId(""); // Reset bank selection
+                  }} 
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>Banco</Label>
-              <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || null)}>
+              <Label>{isInternational ? 'Instituição' : 'Banco'}</Label>
+              <Select value={bankId || undefined} onValueChange={(value) => setBankId(value || "")}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o banco" />
+                  <SelectValue placeholder={isInternational ? "Selecione a instituição" : "Selecione o banco"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-3">
-                        <BankIcon bankId={bank.id} size="sm" />
-                        <span>{bank.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {isInternational ? (
+                    // Bancos internacionais
+                    Object.values(internationalBanks).map((bank) => (
+                      <SelectItem key={bank.id} value={bank.id}>
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                            style={{ backgroundColor: bank.color, color: bank.textColor }}
+                          >
+                            {bank.icon}
+                          </div>
+                          <span>{bank.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    // Bancos nacionais
+                    Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                      <SelectItem key={bank.id} value={bank.id}>
+                        <div className="flex items-center gap-3">
+                          <BankIcon bankId={bank.id} size="sm" />
+                          <span>{bank.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Moeda (apenas para internacional) */}
+            {isInternational && (
+              <div className="space-y-2">
+                <Label>Moeda</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - Libra Esterlina</SelectItem>
+                    <SelectItem value="CAD">CAD - Dólar Canadense</SelectItem>
+                    <SelectItem value="AUD">AUD - Dólar Australiano</SelectItem>
+                    <SelectItem value="CHF">CHF - Franco Suíço</SelectItem>
+                    <SelectItem value="JPY">JPY - Iene Japonês</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Tipo</Label>
@@ -315,7 +487,7 @@ export function Accounts() {
             </div>
 
             <div className="space-y-2">
-              <Label>Saldo inicial</Label>
+              <Label>Saldo inicial {isInternational && `(${currency})`}</Label>
               <Input
                 type="number"
                 placeholder="0,00"

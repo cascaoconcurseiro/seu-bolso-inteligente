@@ -7,6 +7,8 @@ export interface BankConfig {
   color: string;
   textColor: string;
   icon: string; // Emoji or letter fallback
+  isInternational?: boolean;
+  currency?: string;
 }
 
 export interface CardBrandConfig {
@@ -153,6 +155,98 @@ export const banks: Record<string, BankConfig> = {
   },
 };
 
+// Bancos/Contas Internacionais
+export const internationalBanks: Record<string, BankConfig> = {
+  wise: {
+    id: "wise",
+    name: "Wise",
+    color: "#9FE870",
+    textColor: "#000000",
+    icon: "W",
+    isInternational: true,
+  },
+  nomad: {
+    id: "nomad",
+    name: "Nomad",
+    color: "#00D4AA",
+    textColor: "#FFFFFF",
+    icon: "N",
+    isInternational: true,
+  },
+  payoneer: {
+    id: "payoneer",
+    name: "Payoneer",
+    color: "#FF4800",
+    textColor: "#FFFFFF",
+    icon: "P",
+    isInternational: true,
+  },
+  revolut: {
+    id: "revolut",
+    name: "Revolut",
+    color: "#0075EB",
+    textColor: "#FFFFFF",
+    icon: "R",
+    isInternational: true,
+  },
+  paypal: {
+    id: "paypal",
+    name: "PayPal",
+    color: "#003087",
+    textColor: "#FFFFFF",
+    icon: "PP",
+    isInternational: true,
+  },
+  avenue: {
+    id: "avenue",
+    name: "Avenue",
+    color: "#6C5CE7",
+    textColor: "#FFFFFF",
+    icon: "A",
+    isInternational: true,
+  },
+  passfolio: {
+    id: "passfolio",
+    name: "Passfolio",
+    color: "#00C853",
+    textColor: "#FFFFFF",
+    icon: "P",
+    isInternational: true,
+  },
+  husky: {
+    id: "husky",
+    name: "Husky",
+    color: "#1E3A5F",
+    textColor: "#FFFFFF",
+    icon: "H",
+    isInternational: true,
+  },
+  remessa_online: {
+    id: "remessa_online",
+    name: "Remessa Online",
+    color: "#00B4D8",
+    textColor: "#FFFFFF",
+    icon: "RO",
+    isInternational: true,
+  },
+  bs2: {
+    id: "bs2",
+    name: "BS2",
+    color: "#FF6B00",
+    textColor: "#FFFFFF",
+    icon: "BS",
+    isInternational: true,
+  },
+  default_international: {
+    id: "default_international",
+    name: "Outra Conta Internacional",
+    color: "#4A5568",
+    textColor: "#FFFFFF",
+    icon: "🌍",
+    isInternational: true,
+  },
+};
+
 // Bandeiras de cartão
 export const cardBrands: Record<string, CardBrandConfig> = {
   visa: {
@@ -218,7 +312,14 @@ export function getBankByName(name: string): BankConfig {
 // Função para obter config do banco pelo ID
 export function getBankById(id: string | null): BankConfig {
   if (!id) return banks.default;
-  return banks[id] || banks.default;
+  // Busca primeiro em bancos nacionais, depois em internacionais
+  return banks[id] || internationalBanks[id] || banks.default;
+}
+
+// Função para obter banco internacional pelo ID
+export function getInternationalBankById(id: string | null): BankConfig {
+  if (!id) return internationalBanks.default_international;
+  return internationalBanks[id] || internationalBanks.default_international;
 }
 
 // Função para obter bandeira pelo nome

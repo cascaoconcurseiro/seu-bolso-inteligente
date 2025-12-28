@@ -19,33 +19,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Wallet,
   Tag,
   Users,
   Palette,
   Bell,
   Plus,
-  Pencil,
   Moon,
   Sun,
   Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { banks, getBankById } from "@/lib/banks";
-import { BankIcon } from "@/components/financial/BankIcon";
-import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 
-type SettingsSection = "accounts" | "categories" | "people" | "appearance" | "notifications";
+type SettingsSection = "categories" | "people" | "appearance" | "notifications";
 
 export function Settings() {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState<SettingsSection>("accounts");
-  const [showAddAccountDialog, setShowAddAccountDialog] = useState(false);
+  const [activeSection, setActiveSection] = useState<SettingsSection>("categories");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const [isDark, setIsDark] = useState(() => {
@@ -55,25 +49,14 @@ export function Settings() {
     return false;
   });
 
-  // Form state
-  const [newAccountName, setNewAccountName] = useState("");
-  const [newAccountType, setNewAccountType] = useState<string>("CHECKING");
-  const [newAccountBankId, setNewAccountBankId] = useState("");
-  const [newAccountBalance, setNewAccountBalance] = useState("");
-  const [newAccountCreditLimit, setNewAccountCreditLimit] = useState("");
-  const [newAccountCurrency, setNewAccountCurrency] = useState("BRL");
-  const [newAccountIsInternational, setNewAccountIsInternational] = useState(false);
-
+  // Form state for categories
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryType, setNewCategoryType] = useState<"expense" | "income">("expense");
   const [newCategoryIcon, setNewCategoryIcon] = useState("📦");
 
-  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
 
-  const createAccount = useCreateAccount();
-  const deleteAccount = useDeleteAccount();
   const createCategory = useCreateCategory();
   const deleteCategory = useDeleteCategory();
 
@@ -85,26 +68,6 @@ export function Settings() {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
     document.documentElement.classList.toggle("dark", newIsDark);
-  };
-
-  const handleCreateAccount = async () => {
-    await createAccount.mutateAsync({
-      name: newAccountName,
-      type: newAccountType as any,
-      bank_id: newAccountBankId || null,
-      balance: parseFloat(newAccountBalance) || 0,
-      credit_limit: newAccountType === 'CREDIT_CARD' ? parseFloat(newAccountCreditLimit) || null : null,
-      currency: newAccountIsInternational ? newAccountCurrency : 'BRL',
-      is_international: newAccountIsInternational,
-    });
-    setShowAddAccountDialog(false);
-    setNewAccountName("");
-    setNewAccountType("CHECKING");
-    setNewAccountBankId("");
-    setNewAccountBalance("");
-    setNewAccountCreditLimit("");
-    setNewAccountCurrency("BRL");
-    setNewAccountIsInternational(false);
   };
 
   const handleCreateCategory = async () => {
@@ -120,7 +83,6 @@ export function Settings() {
   };
 
   const sections = [
-    { id: "accounts" as const, label: "Contas", icon: Wallet, count: accounts.length },
     { id: "categories" as const, label: "Categorias", icon: Tag, count: categories.length },
     { id: "people" as const, label: "Pessoas", icon: Users, count: members.length },
     { id: "appearance" as const, label: "Aparência", icon: Palette },
@@ -171,83 +133,6 @@ export function Settings() {
 
         {/* Content */}
         <div className="lg:col-span-3 p-6 rounded-xl border border-border">
-          {/* Accounts */}
-          {activeSection === "accounts" && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-display font-semibold text-lg">Contas</h2>
-                  <p className="text-sm text-muted-foreground">Suas contas bancárias e carteiras</p>
-                </div>
-                <Button 
-                  onClick={() => setShowAddAccountDialog(true)}
-                  className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
-                  Nova
-                </Button>
-              </div>
-              {accountsLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-muted rounded animate-pulse" />
-                  ))}
-                </div>
-              ) : accounts.length === 0 ? (
-                <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                  <Wallet className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="font-medium">Nenhuma conta cadastrada</p>
-                  <p className="text-sm text-muted-foreground">Adicione sua primeira conta</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {accounts.map((account) => (
-                    <div
-                      key={account.id}
-                      className="group flex items-center justify-between p-4 rounded-xl border border-border 
-                                 hover:border-foreground/20 transition-all duration-200 hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-4">
-                        <BankIcon 
-                          bankId={account.bank_id} 
-                          size="md"
-                          className="transition-transform duration-200 group-hover:scale-110" 
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{account.name}</p>
-                            {account.is_international && (
-                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
-                                {account.currency} 🌍
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {account.type === "CHECKING" ? "Conta Corrente" : 
-                             account.type === "SAVINGS" ? "Poupança" :
-                             account.type === "CREDIT_CARD" ? "Cartão de Crédito" :
-                             account.type === "INVESTMENT" ? "Investimento" : "Dinheiro"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono font-medium">{formatCurrency(account.balance)}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive"
-                          onClick={() => deleteAccount.mutate(account.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Categories */}
           {activeSection === "categories" && (
             <div className="space-y-6 animate-fade-in">
@@ -436,130 +321,6 @@ export function Settings() {
           )}
         </div>
       </div>
-
-      {/* Add Account Dialog */}
-      <Dialog open={showAddAccountDialog} onOpenChange={setShowAddAccountDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Conta</DialogTitle>
-            <DialogDescription>Adicione uma conta bancária</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input 
-                placeholder="Ex: Conta Principal"
-                value={newAccountName}
-                onChange={(e) => setNewAccountName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={newAccountType} onValueChange={setNewAccountType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CHECKING">Conta Corrente</SelectItem>
-                  <SelectItem value="SAVINGS">Poupança</SelectItem>
-                  <SelectItem value="CREDIT_CARD">Cartão de Crédito</SelectItem>
-                  <SelectItem value="INVESTMENT">Investimento</SelectItem>
-                  <SelectItem value="CASH">Dinheiro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Limite de Crédito (apenas para cartões) */}
-            {newAccountType === 'CREDIT_CARD' && (
-              <div className="space-y-2">
-                <Label>Limite de Crédito</Label>
-                <Input 
-                  placeholder="5000"
-                  value={newAccountCreditLimit}
-                  onChange={(e) => setNewAccountCreditLimit(e.target.value.replace(/[^\d.-]/g, ""))}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Obrigatório para cartões de crédito
-                </p>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label>Banco (opcional)</Label>
-              <Select value={newAccountBankId} onValueChange={setNewAccountBankId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o banco" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-3">
-                        <BankIcon bankId={bank.id} size="sm" />
-                        <span>{bank.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Conta Internacional */}
-            <div className="p-4 rounded-xl border border-border space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Conta Internacional</p>
-                  <p className="text-sm text-muted-foreground">Moeda diferente de BRL</p>
-                </div>
-                <Switch 
-                  checked={newAccountIsInternational} 
-                  onCheckedChange={setNewAccountIsInternational} 
-                />
-              </div>
-              
-              {newAccountIsInternational && (
-                <div className="space-y-2">
-                  <Label>Moeda</Label>
-                  <Select value={newAccountCurrency} onValueChange={setNewAccountCurrency}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">GBP - Libra Esterlina</SelectItem>
-                      <SelectItem value="JPY">JPY - Iene Japonês</SelectItem>
-                      <SelectItem value="CAD">CAD - Dólar Canadense</SelectItem>
-                      <SelectItem value="AUD">AUD - Dólar Australiano</SelectItem>
-                      <SelectItem value="CHF">CHF - Franco Suíço</SelectItem>
-                      <SelectItem value="CNY">CNY - Yuan Chinês</SelectItem>
-                      <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
-                      <SelectItem value="CLP">CLP - Peso Chileno</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Saldo inicial</Label>
-              <Input 
-                placeholder="0"
-                value={newAccountBalance}
-                onChange={(e) => setNewAccountBalance(e.target.value.replace(/[^\d.-]/g, ""))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddAccountDialog(false)}>Cancelar</Button>
-            <Button 
-              onClick={handleCreateAccount}
-              disabled={
-                createAccount.isPending || 
-                !newAccountName ||
-                (newAccountType === 'CREDIT_CARD' && !newAccountCreditLimit)
-              }
-            >
-              {createAccount.isPending ? "Adicionando..." : "Adicionar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Category Dialog */}
       <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
