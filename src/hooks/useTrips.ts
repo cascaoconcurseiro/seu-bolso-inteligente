@@ -54,51 +54,39 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // ESTRATÉGIA: Buscar trip_participants do usuário e fazer JOIN com trips
-      // Isso garante que RLS funcione corretamente
-      const { data: participations, error: participationsError } = await supabase
-        .from("trip_participants")
-        .select(`
-          personal_budget,
-          trip_id,
-          trips (
-            id,
-            owner_id,
-            name,
-            destination,
-            start_date,
-            end_date,
-            currency,
-            budget,
-            status,
-            cover_image,
-            notes,
-            created_at,
-            updated_at
-          )
-        `)
+      // Buscar viagens onde o usuário é owner OU participante
+      const { data: trips, error: tripsError } = await supabase
+        .from("trips")
+        .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("start_date", { ascending: false });
 
-      if (participationsError) throw participationsError;
+      if (tripsError) throw tripsError;
       
-      // Transformar para formato esperado
-      const userTrips = participations
-        .filter(p => p.trips) // Garantir que trip existe
-        .map(p => {
-          const trip = Array.isArray(p.trips) ? p.trips[0] : p.trips;
-          return {
-            ...trip,
-            my_personal_budget: p.personal_budget || null,
-          };
-        }) as TripWithPersonalBudget[];
+      if (!trips || trips.length === 0) return [];
+
+      // Buscar orçamentos pessoais para essas viagens
+      const tripIds = trips.map(t => t.id);
+      const { data: budgets } = await supabase
+        .from("trip_participant_budgets")
+        .select("trip_id, budget")
+        .eq("user_id", user.id)
+        .in("trip_id", tripIds);
+
+      // Mapear orçamentos para viagens
+      const budgetMap = new Map(budgets?.map(b => [b.trip_id, b.budget]) || []);
       
-      // Ordenar por data de início (mais recente primeiro)
-      userTrips.sort((a, b) => 
-        new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
-      );
-      
-      return userTrips;
+      return trips.map(trip => ({
+        ...trip,
+        my_personal_budget: budgetMap.get(trip.id) || null,
+      })) as TripWithPersonalBudget[];
+    },
+    enabled: !!user,
+    retry: false,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+  });
+}
       
       return userTrips;
     },
