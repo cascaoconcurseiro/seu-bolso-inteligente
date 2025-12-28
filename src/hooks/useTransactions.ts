@@ -97,8 +97,8 @@ export function useTransactions(filters?: TransactionFilters) {
         .from("transactions")
         .select(`
           *,
-          account:accounts!account_id(name),
-          category:categories(name, icon),
+          account:accounts(id, name),
+          category:categories(id, name, icon),
           transaction_splits(*)
         `)
         .eq("user_id", user!.id)
