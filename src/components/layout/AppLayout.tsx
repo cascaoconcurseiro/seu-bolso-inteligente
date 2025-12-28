@@ -251,8 +251,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Global Transaction Modal */}
       <TransactionModal
-        open={showTransactionModal}
-        onOpenChange={setShowTransactionModal}
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
       />
     </div>
   );

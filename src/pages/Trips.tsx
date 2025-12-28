@@ -74,7 +74,7 @@ export function Trips() {
   const [tripBudget, setTripBudget] = useState("");
   const [tripCurrency, setTripCurrency] = useState("BRL");
 
-  const { data: trips = [], isLoading } = useTrips();
+  const { data: trips = [], isLoading } = useTrips() as { data: import("@/hooks/useTrips").TripWithPersonalBudget[], isLoading: boolean };
   const { data: selectedTrip } = useTrip(selectedTripId);
   const { data: participants = [] } = useTripParticipants(selectedTripId);
   const { data: tripTransactions = [] } = useTripTransactions(selectedTripId);
@@ -326,10 +326,10 @@ export function Trips() {
               {format(new Date(selectedTrip.end_date), "dd MMM", { locale: ptBR })}
             </p>
           </div>
-          {selectedTrip.budget && (
+          {myPersonalBudget && (
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Orçamento</p>
-              <p className="font-mono text-sm">{formatCurrency(selectedTrip.budget)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu Orçamento</p>
+              <p className="font-mono text-sm">{formatCurrency(myPersonalBudget)}</p>
             </div>
           )}
         </div>
@@ -362,44 +362,44 @@ export function Trips() {
           {/* Summary Tab */}
           <TabsContent value="summary" className="space-y-6 mt-6">
             {/* Budget Progress */}
-            {selectedTrip.budget && (
+            {myPersonalBudget && (
               <section className="space-y-4">
                 <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                  Orçamento
+                  Meu Orçamento
                 </h2>
                 <div className="p-6 rounded-xl border border-border bg-muted/30">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">Gasto Total</p>
-                      <p className="font-mono text-3xl font-bold">{formatCurrency(totalExpenses)}</p>
+                      <p className="text-sm text-muted-foreground">Meus Gastos</p>
+                      <p className="font-mono text-3xl font-bold">{formatCurrency(tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0))}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Orçamento</p>
-                      <p className="font-mono text-2xl font-medium">{formatCurrency(selectedTrip.budget)}</p>
+                      <p className="text-sm text-muted-foreground">Meu Orçamento</p>
+                      <p className="font-mono text-2xl font-medium">{formatCurrency(myPersonalBudget)}</p>
                     </div>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
                     <div
                       className={cn(
                         "h-full transition-all rounded-full",
-                        totalExpenses > selectedTrip.budget
+                        tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget
                           ? "bg-destructive"
-                          : totalExpenses > selectedTrip.budget * 0.8
+                          : tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget * 0.8
                           ? "bg-amber-500"
                           : "bg-positive"
                       )}
-                      style={{ width: `${Math.min((totalExpenses / selectedTrip.budget) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) / myPersonalBudget) * 100, 100)}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-muted-foreground">
-                      {((totalExpenses / selectedTrip.budget) * 100).toFixed(1)}% utilizado
+                      {((tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) / myPersonalBudget) * 100).toFixed(1)}% utilizado
                     </p>
                     <p className={cn(
                       "text-xs font-medium",
-                      totalExpenses > selectedTrip.budget ? "text-destructive" : "text-positive"
+                      tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "text-destructive" : "text-positive"
                     )}>
-                      {totalExpenses > selectedTrip.budget ? "Acima" : "Restam"} {formatCurrency(Math.abs(selectedTrip.budget - totalExpenses))}
+                      {tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0)))}
                     </p>
                   </div>
                 </div>
@@ -739,10 +739,14 @@ export function Trips() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                {trip.budget && (
+                {trip.my_personal_budget ? (
                   <div className="text-right">
-                    <p className="font-mono font-semibold">{formatCurrency(trip.budget)}</p>
-                    <p className="text-xs text-muted-foreground">Orçamento</p>
+                    <p className="font-mono font-semibold">{formatCurrency(trip.my_personal_budget)}</p>
+                    <p className="text-xs text-muted-foreground">Meu Orçamento</p>
+                  </div>
+                ) : (
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Orçamento não definido</p>
                   </div>
                 )}
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />

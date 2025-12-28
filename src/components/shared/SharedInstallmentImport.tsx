@@ -156,6 +156,12 @@ export function SharedInstallmentImport({
       // Create all installments
       for (let i = 0; i < totalInstallmentsNum; i++) {
         const installmentDate = addMonths(baseDate, i);
+        
+        // CORREÇÃO: Adicionar competence_date (sempre 1º dia do mês)
+        const competenceDate = format(
+          new Date(installmentDate.getFullYear(), installmentDate.getMonth(), 1),
+          'yyyy-MM-dd'
+        );
 
         await createTransaction.mutateAsync({
           amount: parcelAmount,

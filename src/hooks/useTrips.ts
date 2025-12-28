@@ -21,6 +21,10 @@ export interface Trip {
   updated_at: string;
 }
 
+export interface TripWithPersonalBudget extends Trip {
+  my_personal_budget: number | null;
+}
+
 export interface TripParticipant {
   id: string;
   trip_id: string;
@@ -50,14 +54,27 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar viagens diretamente - RLS filtra automaticamente
+      // Buscar viagens com orçamento pessoal do usuário
       const { data, error } = await supabase
         .from("trips")
-        .select("*")
+        .select(`
+          *,
+          trip_participants!inner(
+            personal_budget,
+            user_id
+          )
+        `)
+        .eq("trip_participants.user_id", user.id)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
-      return data as Trip[];
+      
+      // Transformar para incluir orçamento pessoal
+      return data.map(trip => ({
+        ...trip,
+        my_personal_budget: trip.trip_participants?.[0]?.personal_budget || null,
+        trip_participants: undefined, // Remover para não poluir o tipo
+      })) as TripWithPersonalBudget[];
     },
     enabled: !!user,
     retry: false,

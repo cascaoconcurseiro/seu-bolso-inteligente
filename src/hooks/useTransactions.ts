@@ -19,6 +19,7 @@ export interface Transaction {
   amount: number;
   description: string;
   date: string;
+  competence_date: string; // Data de competência (YYYY-MM-01)
   type: TransactionType;
   domain: TransactionDomain;
   is_shared: boolean;
@@ -103,11 +104,13 @@ export function useTransactions(filters?: TransactionFilters) {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
+      // CORREÇÃO CRÍTICA: Filtrar por COMPETÊNCIA, não por data da transação
+      // Isso evita acúmulo de parcelas ao navegar pelos meses
       if (effectiveFilters?.startDate) {
-        query = query.gte("date", effectiveFilters.startDate);
+        query = query.gte("competence_date", effectiveFilters.startDate);
       }
       if (effectiveFilters?.endDate) {
-        query = query.lte("date", effectiveFilters.endDate);
+        query = query.lte("competence_date", effectiveFilters.endDate);
       }
       if (effectiveFilters?.type) {
         query = query.eq("type", effectiveFilters.type);
@@ -172,12 +175,16 @@ export function useCreateTransaction() {
           const installmentDate = new Date(targetYear, finalMonth, targetDay);
           const formattedDate = `${installmentDate.getFullYear()}-${String(installmentDate.getMonth() + 1).padStart(2, '0')}-${String(installmentDate.getDate()).padStart(2, '0')}`;
           
+          // CORREÇÃO CRÍTICA: Adicionar competence_date (sempre 1º dia do mês)
+          const competenceDate = `${targetYear}-${String(finalMonth + 1).padStart(2, '0')}-01`;
+          
           transactions.push({
             user_id: user.id,
             creator_user_id: user.id, // Rastrear quem criou
             ...transactionData,
             amount: installmentAmount,
             date: formattedDate,
+            competence_date: competenceDate, // Campo de competência
             description: `${input.description} (${i + 1}/${input.total_installments})`,
             current_installment: i + 1,
             series_id: seriesId,
@@ -373,8 +380,8 @@ export function useFinancialSummary() {
         .select("amount, type, source_transaction_id")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos do cálculo
-        .gte("date", startDate)
-        .lte("date", endDate);
+        .gte("competence_date", startDate) // Filtrar por competência
+        .lte("competence_date", endDate);
 
       const balance = accounts?.reduce((sum, acc) => {
         if (acc.type !== "CREDIT_CARD") {
