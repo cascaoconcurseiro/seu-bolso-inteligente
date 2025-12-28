@@ -50,7 +50,18 @@ import { validateTransaction } from '@/services/validationService';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
-export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
+interface TransactionFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  initialData?: any;
+  context?: {
+    tripId?: string;
+    accountId?: string;
+    categoryId?: string;
+  };
+}
+
+export function TransactionForm({ onSuccess, onCancel, initialData, context }: TransactionFormProps) {
   const navigate = useNavigate();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
@@ -70,6 +81,19 @@ export function TransactionForm({ onSuccess, onCancel }: { onSuccess?: () => voi
   const [categoryId, setCategoryId] = useState('');
   const [tripId, setTripId] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Aplicar contexto inicial se fornecido
+  useEffect(() => {
+    if (context?.tripId) {
+      setTripId(context.tripId);
+    }
+    if (context?.accountId) {
+      setAccountId(context.accountId);
+    }
+    if (context?.categoryId) {
+      setCategoryId(context.categoryId);
+    }
+  }, [context]);
 
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);

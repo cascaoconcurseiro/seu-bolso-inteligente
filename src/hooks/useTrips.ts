@@ -54,27 +54,37 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar viagens com orçamento pessoal do usuário
+      // Buscar todas as viagens onde o usuário é participante
+      // Usar LEFT JOIN para não perder viagens sem orçamento definido
       const { data, error } = await supabase
         .from("trips")
         .select(`
           *,
-          trip_participants!inner(
+          trip_participants(
             personal_budget,
             user_id
           )
         `)
-        .eq("trip_participants.user_id", user.id)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
       
-      // Transformar para incluir orçamento pessoal
-      return data.map(trip => ({
-        ...trip,
-        my_personal_budget: trip.trip_participants?.[0]?.personal_budget || null,
-        trip_participants: undefined, // Remover para não poluir o tipo
-      })) as TripWithPersonalBudget[];
+      // Filtrar apenas viagens onde o usuário é participante
+      // E incluir orçamento pessoal
+      const userTrips = data
+        .filter(trip => 
+          trip.trip_participants?.some((p: any) => p.user_id === user.id)
+        )
+        .map(trip => {
+          const myParticipation = trip.trip_participants?.find((p: any) => p.user_id === user.id);
+          return {
+            ...trip,
+            my_personal_budget: myParticipation?.personal_budget || null,
+            trip_participants: undefined, // Remover para não poluir o tipo
+          };
+        }) as TripWithPersonalBudget[];
+      
+      return userTrips;
     },
     enabled: !!user,
     retry: false,
