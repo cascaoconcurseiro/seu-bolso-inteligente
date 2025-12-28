@@ -94,11 +94,12 @@ export function useTransactions(filters?: TransactionFilters) {
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
       // Buscar TODAS as transações do usuário (exceto espelhadas e transferências)
+      // IMPORTANTE: Especificar a FK para evitar erro 300 (ambiguidade)
       let query = supabase
         .from("transactions")
         .select(`
           *,
-          account:accounts(id, name),
+          account:accounts!transactions_account_id_fkey(id, name),
           category:categories(id, name, icon),
           transaction_splits(*)
         `)
