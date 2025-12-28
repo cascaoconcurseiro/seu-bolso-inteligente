@@ -93,25 +93,17 @@ export function Trips() {
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget ?? null;
 
-  // Verificar se deve mostrar modal de orçamento obrigatório
-  const shouldShowBudgetModal = 
-    view === "detail" && 
-    selectedTripId && 
-    tripMembers.length > 0 && 
-    myMembership && 
-    myPersonalBudget === null &&
-    !showPersonalBudgetDialog;
-
-  // Auto-mostrar modal de orçamento se for obrigatório
+  // Resetar estados dos modais quando mudar de view
   useEffect(() => {
-    if (shouldShowBudgetModal) {
-      setShowPersonalBudgetDialog(true);
+    if (view === "list") {
+      setShowPersonalBudgetDialog(false);
+      setShowEditTripDialog(false);
     }
-  }, [shouldShowBudgetModal]);
+  }, [view]);
 
-  // Fechar modal quando orçamento for salvo com sucesso
+  // Fechar modal de orçamento quando salvar com sucesso
   useEffect(() => {
-    if (myPersonalBudget && showPersonalBudgetDialog && !updatePersonalBudget.isPending) {
+    if (myPersonalBudget !== null && showPersonalBudgetDialog && !updatePersonalBudget.isPending) {
       setShowPersonalBudgetDialog(false);
     }
   }, [myPersonalBudget, showPersonalBudgetDialog, updatePersonalBudget.isPending]);
