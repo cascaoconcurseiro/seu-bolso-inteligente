@@ -6,14 +6,14 @@ Este plano implementa o sistema de controle de câmbio em viagens, permitindo re
 
 ## Tasks
 
-- [ ] 1. Criar tabela e políticas RLS no banco de dados
+- [x] 1. Criar tabela e políticas RLS no banco de dados
   - Criar tabela `trip_exchange_purchases` com todos os campos
   - Criar índices para trip_id e user_id
   - Criar políticas RLS para SELECT, INSERT, UPDATE, DELETE
   - _Requirements: 9.1, 9.2, 9.4_
 
-- [ ] 2. Implementar funções de cálculo de câmbio
-  - [ ] 2.1 Criar arquivo `src/services/exchangeCalculations.ts`
+- [x] 2. Implementar funções de cálculo de câmbio
+  - [x] 2.1 Criar arquivo `src/services/exchangeCalculations.ts`
     - Implementar `calculateEffectiveRate(exchangeRate, cetPercentage)`
     - Implementar `calculateLocalAmount(foreignAmount, effectiveRate)`
     - Implementar `calculateWeightedAverageRate(purchases)`
@@ -24,15 +24,15 @@ Este plano implementa o sistema de controle de câmbio em viagens, permitindo re
     - **Property 2: Weighted Average Rate Calculation**
     - **Validates: Requirements 4.3, 5.2, 6.2**
 
-- [ ] 3. Criar tipos TypeScript
-  - [ ] 3.1 Criar arquivo `src/types/tripExchange.ts`
+- [x] 3. Criar tipos TypeScript
+  - [x] 3.1 Criar arquivo `src/types/tripExchange.ts`
     - Definir interface `ExchangePurchase`
     - Definir interface `ExchangePurchaseInput`
     - Definir interface `ExchangeSummary`
     - _Requirements: 4.2_
 
-- [ ] 4. Implementar hooks de câmbio
-  - [ ] 4.1 Criar arquivo `src/hooks/useTripExchange.ts`
+- [x] 4. Implementar hooks de câmbio
+  - [x] 4.1 Criar arquivo `src/hooks/useTripExchange.ts`
     - Implementar `useTripExchangePurchases(tripId)`
     - Implementar `useCreateExchangePurchase()`
     - Implementar `useUpdateExchangePurchase()`
@@ -40,16 +40,16 @@ Este plano implementa o sistema de controle de câmbio em viagens, permitindo re
     - Implementar `useExchangeSummary(tripId)`
     - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 5. Implementar componente de resumo de câmbio
-  - [ ] 5.1 Criar `src/components/trips/ExchangeSummaryCard.tsx`
+- [x] 5. Implementar componente de resumo de câmbio
+  - [x] 5.1 Criar `src/components/trips/ExchangeSummaryCard.tsx`
     - Exibir total de moeda estrangeira comprada
     - Exibir total gasto em BRL
     - Exibir média ponderada do câmbio
     - Exibir quantidade de compras
     - _Requirements: 7.1, 6.4_
 
-- [ ] 6. Implementar dialog de compra de câmbio
-  - [ ] 6.1 Criar `src/components/trips/ExchangePurchaseDialog.tsx`
+- [x] 6. Implementar dialog de compra de câmbio
+  - [x] 6.1 Criar `src/components/trips/ExchangePurchaseDialog.tsx`
     - Campos: valor estrangeiro, taxa de câmbio, CET%, data, descrição
     - Validação de campos obrigatórios
     - Cálculo em tempo real da taxa efetiva e valor total
@@ -59,8 +59,8 @@ Este plano implementa o sistema de controle de câmbio em viagens, permitindo re
     - **Property 4: Input Validation - Positive Numbers**
     - **Validates: Requirements 4.4, 4.5**
 
-- [ ] 7. Implementar componente principal de câmbio
-  - [ ] 7.1 Criar `src/components/trips/TripExchange.tsx`
+- [x] 7. Implementar componente principal de câmbio
+  - [x] 7.1 Criar `src/components/trips/TripExchange.tsx`
     - Exibir card de resumo
     - Exibir lista de compras de câmbio
     - Botão para adicionar nova compra
@@ -71,25 +71,25 @@ Este plano implementa o sistema de controle de câmbio em viagens, permitindo re
     - **Property 8: Display Completeness**
     - **Validates: Requirements 8.1, 8.2**
 
-- [ ] 8. Adicionar aba de Câmbio na página de viagem
-  - [ ] 8.1 Atualizar `src/pages/Trips.tsx`
+- [x] 8. Adicionar aba de Câmbio na página de viagem
+  - [x] 8.1 Atualizar `src/pages/Trips.tsx`
     - Adicionar tab "Câmbio" com ícone
     - Renderizar componente TripExchange na aba
     - _Requirements: 3.1_
 
-- [ ] 9. Exibir criador e moeda da viagem
-  - [ ] 9.1 Atualizar header da viagem em `src/pages/Trips.tsx`
+- [x] 9. Exibir criador e moeda da viagem
+  - [x] 9.1 Atualizar header da viagem em `src/pages/Trips.tsx`
     - Buscar nome do criador da viagem
     - Exibir nome do criador com ícone/badge
     - Exibir moeda da viagem (código e símbolo)
     - _Requirements: 1.1, 1.2, 2.1, 2.2_
 
-- [ ] 10. Implementar edição e exclusão de compras
-  - [ ] 10.1 Adicionar funcionalidade de edição
+- [x] 10. Implementar edição e exclusão de compras
+  - [x] 10.1 Adicionar funcionalidade de edição
     - Botão de editar em cada item da lista
     - Abrir dialog preenchido com dados existentes
     - _Requirements: 8.3_
-  - [ ] 10.2 Adicionar funcionalidade de exclusão
+  - [x] 10.2 Adicionar funcionalidade de exclusão
     - Botão de excluir em cada item da lista
     - Confirmação antes de excluir
     - Recalcular média após exclusão

@@ -49,11 +49,15 @@ import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { useTripMembers, useTripPermissions, useUpdatePersonalBudget } from "@/hooks/useTripMembers";
 import { EditTripDialog } from "@/components/trips/EditTripDialog";
 import { PersonalBudgetDialog } from "@/components/trips/PersonalBudgetDialog";
+import { TripExchange } from "@/components/trips/TripExchange";
+import { TripItinerary } from "@/components/trips/TripItinerary";
+import { TripChecklist } from "@/components/trips/TripChecklist";
 import { useAuth } from "@/contexts/AuthContext";
-import { Pencil, Wallet } from "lucide-react";
+import { Pencil, Wallet, ArrowRightLeft, User, Coins } from "lucide-react";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 type TripView = "list" | "detail";
-type TripTab = "summary" | "expenses" | "shopping" | "itinerary" | "checklist";
+type TripTab = "summary" | "expenses" | "shopping" | "exchange" | "itinerary" | "checklist";
 
 export function Trips() {
   const { user } = useAuth();
@@ -243,6 +247,17 @@ export function Trips() {
                 {selectedTrip.destination}
               </p>
             )}
+            {/* Criador e Moeda */}
+            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <User className="h-3.5 w-3.5" />
+                Criado por {permissions?.isOwner ? "você" : "outro membro"}
+              </span>
+              <span className="flex items-center gap-1">
+                <Coins className="h-3.5 w-3.5" />
+                {getCurrencySymbol(selectedTrip.currency)} {selectedTrip.currency}
+              </span>
+            </div>
           </div>
           
           {/* Botões de ação baseados em permissões */}
@@ -321,7 +336,7 @@ export function Trips() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TripTab)}>
-          <TabsList className="w-full">
+          <TabsList className="w-full flex-wrap">
             <TabsTrigger value="summary" className="flex-1 gap-2">
               <TrendingUp className="h-4 w-4" />
               Resumo
@@ -334,6 +349,12 @@ export function Trips() {
               <ShoppingCart className="h-4 w-4" />
               Compras
             </TabsTrigger>
+            {selectedTrip.currency !== "BRL" && (
+              <TabsTrigger value="exchange" className="flex-1 gap-2">
+                <ArrowRightLeft className="h-4 w-4" />
+                Câmbio
+              </TabsTrigger>
+            )}
             <TabsTrigger value="itinerary" className="flex-1 gap-2">
               <Route className="h-4 w-4" />
               Roteiro
@@ -556,30 +577,21 @@ export function Trips() {
             />
           </TabsContent>
 
+          {/* Exchange Tab - apenas para viagens em moeda estrangeira */}
+          {selectedTrip.currency !== "BRL" && (
+            <TabsContent value="exchange" className="mt-6">
+              <TripExchange trip={selectedTrip} />
+            </TabsContent>
+          )}
+
           {/* Itinerary Tab */}
-          <TabsContent value="itinerary" className="space-y-6 mt-6">
-            <div className="py-12 text-center border border-dashed border-border rounded-xl">
-              <Route className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-display font-semibold text-lg mb-2">Roteiro da viagem</h3>
-              <p className="text-muted-foreground mb-6">Adicione atividades e passeios</p>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar atividade
-              </Button>
-            </div>
+          <TabsContent value="itinerary" className="mt-6">
+            <TripItinerary tripId={selectedTrip.id} />
           </TabsContent>
 
           {/* Checklist Tab */}
-          <TabsContent value="checklist" className="space-y-6 mt-6">
-            <div className="py-12 text-center border border-dashed border-border rounded-xl">
-              <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-display font-semibold text-lg mb-2">Checklist</h3>
-              <p className="text-muted-foreground mb-6">Organize o que levar na viagem</p>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar item
-              </Button>
-            </div>
+          <TabsContent value="checklist" className="mt-6">
+            <TripChecklist tripId={selectedTrip.id} />
           </TabsContent>
         </Tabs>
 
