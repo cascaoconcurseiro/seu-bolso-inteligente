@@ -192,6 +192,7 @@ export function useUpdatePersonalBudget() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
+      queryClient.invalidateQueries({ queryKey: ["trips"] }); // Atualizar lista de viagens também
       toast.success("Orçamento pessoal atualizado!");
     },
     onError: (error: any) => {

@@ -95,11 +95,22 @@ export function Trips() {
 
   // Auto-mostrar modal de orçamento se for obrigatório (Task 10)
   useEffect(() => {
-    if (view === "detail" && selectedTripId && myMembership && !myPersonalBudget) {
-      // Usuário é membro mas não tem orçamento definido - mostrar modal obrigatório
+    // Só mostrar quando:
+    // 1. Estiver na view de detalhes
+    // 2. Tiver um tripId selecionado
+    // 3. tripMembers já carregou (length > 0)
+    // 4. Usuário é membro da viagem
+    // 5. Não tem orçamento definido
+    if (
+      view === "detail" && 
+      selectedTripId && 
+      tripMembers.length > 0 && 
+      myMembership && 
+      myPersonalBudget === null
+    ) {
       setShowPersonalBudgetDialog(true);
     }
-  }, [view, selectedTripId, myMembership, myPersonalBudget]);
+  }, [view, selectedTripId, tripMembers.length, myMembership, myPersonalBudget]);
 
   // Fechar modal quando orçamento for salvo com sucesso
   useEffect(() => {
