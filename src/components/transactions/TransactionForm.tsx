@@ -510,7 +510,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           <Label>Valor</Label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-              {getCurrencySymbol(transactionCurrency)}$'}
+              {getCurrencySymbol(transactionCurrency)}
             </span>
             <Input
               type="text"
