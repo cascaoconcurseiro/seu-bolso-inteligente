@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
-import { calculateEffectiveRate, calculateLocalAmount, getCurrencySymbol } from "@/services/exchangeCalculations";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 interface ExchangePurchaseDialogProps {
   open: boolean;
@@ -32,7 +32,6 @@ export function ExchangePurchaseDialog({
 }: ExchangePurchaseDialogProps) {
   const [foreignAmount, setForeignAmount] = useState("");
   const [exchangeRate, setExchangeRate] = useState("");
-  const [cetPercentage, setCetPercentage] = useState("6.38"); // IOF padrão
   const [description, setDescription] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -46,13 +45,11 @@ export function ExchangePurchaseDialog({
     if (purchase) {
       setForeignAmount(purchase.foreign_amount.toString());
       setExchangeRate(purchase.exchange_rate.toString());
-      setCetPercentage(purchase.cet_percentage.toString());
       setDescription(purchase.description || "");
       setPurchaseDate(purchase.purchase_date);
     } else {
       setForeignAmount("");
       setExchangeRate("");
-      setCetPercentage("6.38");
       setDescription("");
       setPurchaseDate(new Date().toISOString().split("T")[0]);
     }
@@ -61,16 +58,10 @@ export function ExchangePurchaseDialog({
   // Cálculos em tempo real
   const foreignAmountNum = parseFloat(foreignAmount) || 0;
   const exchangeRateNum = parseFloat(exchangeRate) || 0;
-  const cetPercentageNum = parseFloat(cetPercentage) || 0;
 
-  let effectiveRate = 0;
   let localAmount = 0;
-
-  if (exchangeRateNum > 0 && cetPercentageNum >= 0) {
-    effectiveRate = calculateEffectiveRate(exchangeRateNum, cetPercentageNum);
-    if (foreignAmountNum > 0) {
-      localAmount = calculateLocalAmount(foreignAmountNum, effectiveRate);
-    }
+  if (exchangeRateNum > 0 && foreignAmountNum > 0) {
+    localAmount = foreignAmountNum * exchangeRateNum;
   }
 
   const handleSubmit = () => {
@@ -79,7 +70,7 @@ export function ExchangePurchaseDialog({
     onSubmit({
       foreign_amount: foreignAmountNum,
       exchange_rate: exchangeRateNum,
-      cet_percentage: cetPercentageNum,
+      cet_percentage: 0,
       description: description || undefined,
       purchase_date: purchaseDate,
     });
@@ -119,62 +110,35 @@ export function ExchangePurchaseDialog({
           </div>
 
           {/* Taxa de câmbio */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Taxa de Câmbio *</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  R$
-                </span>
-                <Input
-                  type="number"
-                  step="0.0001"
-                  placeholder="5.1234"
-                  value={exchangeRate}
-                  onChange={(e) => setExchangeRate(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            {/* CET */}
-            <div className="space-y-2">
-              <Label>CET / IOF (%)</Label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="6.38"
-                  value={cetPercentage}
-                  onChange={(e) => setCetPercentage(e.target.value)}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  %
-                </span>
-              </div>
+          <div className="space-y-2">
+            <Label>Taxa de Câmbio *</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                R$
+              </span>
+              <Input
+                type="number"
+                step="0.0001"
+                placeholder="5.1234"
+                value={exchangeRate}
+                onChange={(e) => setExchangeRate(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </div>
 
-          {/* Cálculos em tempo real */}
-          {effectiveRate > 0 && (
-            <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+          {/* Cálculo em tempo real */}
+          {localAmount > 0 && (
+            <div className="p-4 rounded-lg bg-muted/50">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Taxa Efetiva:</span>
-                <span className="font-mono font-medium">
-                  R$ {effectiveRate.toFixed(4)}
+                <span className="text-muted-foreground">Total em R$:</span>
+                <span className="font-mono font-bold text-lg">
+                  R$ {localAmount.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
-              {localAmount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total em R$:</span>
-                  <span className="font-mono font-bold text-lg">
-                    R$ {localAmount.toLocaleString("pt-BR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              )}
             </div>
           )}
 

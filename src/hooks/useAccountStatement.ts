@@ -106,11 +106,12 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       let periodSum = 0;
       for (const t of allTransactions) {
         const amount = Number(t.amount);
-        if (t.type === "INCOME") {
+        const txType = String(t.type).toUpperCase();
+        if (txType === "INCOME") {
           periodSum += amount;
-        } else if (t.type === "EXPENSE") {
+        } else if (txType === "EXPENSE") {
           periodSum -= amount;
-        } else if (t.type === "TRANSFER") {
+        } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             periodSum += amount; // Entrada
           } else if (t.account_id === accountId) {
@@ -125,18 +126,19 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       let runningBalance = initialBalance;
       const processedTransactions: StatementTransaction[] = allTransactions.map(t => {
         const amount = Number(t.amount);
+        const txType = String(t.type).toUpperCase(); // Garantir que type é string uppercase
         let isIncoming = false;
         let displayAmount = 0;
 
-        if (t.type === "INCOME") {
+        if (txType === "INCOME") {
           isIncoming = true;
           displayAmount = amount;
           runningBalance += amount;
-        } else if (t.type === "EXPENSE") {
+        } else if (txType === "EXPENSE") {
           isIncoming = false;
           displayAmount = -amount;
           runningBalance -= amount;
-        } else if (t.type === "TRANSFER") {
+        } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             isIncoming = true;
             displayAmount = amount;
@@ -150,6 +152,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
 
         return {
           ...t,
+          amount, // Garantir que amount é número
+          type: txType as "EXPENSE" | "INCOME" | "TRANSFER",
           isIncoming,
           displayAmount,
           runningBalance,

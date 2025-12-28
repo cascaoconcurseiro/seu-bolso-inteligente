@@ -217,7 +217,18 @@ export function AccountDetail() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{description}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium truncate">{description}</p>
+                                {/* Tag de Receita/Despesa */}
+                                <span className={cn(
+                                  "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",
+                                  isIncome 
+                                    ? "bg-positive/20 text-positive" 
+                                    : "bg-negative/20 text-negative"
+                                )}>
+                                  {isIncome ? "Receita" : "Despesa"}
+                                </span>
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {format(txDate, "HH:mm", { locale: ptBR })}
                                 {tx.category?.name && ` • ${tx.category.name}`}
