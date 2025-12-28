@@ -181,6 +181,31 @@ export function SharedExpenses() {
         return;
       }
 
+      // VERIFICAR SE ALGUM ITEM JÁ FOI PAGO (prevenir duplicidade)
+      const alreadyPaidItems = itemsToSettle.filter(i => i.isPaid);
+      if (alreadyPaidItems.length > 0) {
+        toast.error(`${alreadyPaidItems.length} item(ns) já foram pagos anteriormente!`);
+        setIsSettling(false);
+        return;
+      }
+
+      // Verificar no banco se os splits já estão marcados como pagos
+      const splitIds = itemsToSettle.filter(i => i.splitId).map(i => i.splitId);
+      if (splitIds.length > 0) {
+        const { data: existingSplits } = await supabase
+          .from('transaction_splits')
+          .select('id, is_settled')
+          .in('id', splitIds);
+        
+        const alreadySettled = existingSplits?.filter(s => s.is_settled) || [];
+        if (alreadySettled.length > 0) {
+          toast.error(`${alreadySettled.length} item(ns) já foram pagos no banco de dados!`);
+          setIsSettling(false);
+          refetch(); // Atualizar a lista
+          return;
+        }
+      }
+
       const amount = parseFloat(settleAmount.replace(".", "").replace(",", "."));
       if (isNaN(amount) || amount <= 0) {
         toast.error("Valor inválido");
@@ -193,7 +218,9 @@ export function SharedExpenses() {
         if (item.type === "CREDIT") return sum + item.amount;
         return sum - item.amount;
       }, 0);
-      const isPartialSettlement = amount < Math.abs(itemsTotal);
+      
+      // Considerar pagamento completo se o valor for >= 99% do total (para evitar problemas de arredondamento)
+      const isPartialSettlement = amount < Math.abs(itemsTotal) * 0.99;
 
       const desc = settleType === "PAY"
         ? `Pagamento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`
@@ -213,27 +240,25 @@ export function SharedExpenses() {
 
       const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
 
-      // Mark items as settled (only if full settlement)
-      if (!isPartialSettlement) {
-        for (const item of itemsToSettle) {
-          if (item.type === 'CREDIT' && item.splitId) {
-            await supabase
-              .from('transaction_splits')
-              .update({
-                is_settled: true,
-                settled_at: new Date().toISOString(),
-                settled_transaction_id: settlementTxId
-              })
-              .eq('id', item.splitId);
-          } else if (item.type === 'DEBIT') {
-            await supabase
-              .from('transactions')
-              .update({
-                is_settled: true,
-                settled_at: new Date().toISOString()
-              })
-              .eq('id', item.originalTxId);
-          }
+      // SEMPRE marcar items como settled (mesmo em pagamento parcial, marcar os selecionados)
+      for (const item of itemsToSettle) {
+        if (item.type === 'CREDIT' && item.splitId) {
+          await supabase
+            .from('transaction_splits')
+            .update({
+              is_settled: true,
+              settled_at: new Date().toISOString(),
+              settled_transaction_id: settlementTxId
+            })
+            .eq('id', item.splitId);
+        } else if (item.type === 'DEBIT') {
+          await supabase
+            .from('transactions')
+            .update({
+              is_settled: true,
+              settled_at: new Date().toISOString()
+            })
+            .eq('id', item.originalTxId);
         }
       }
 
