@@ -265,18 +265,31 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     }
   }, [isPaidByOther]);
 
-  // Determinar a moeda da transação baseado na viagem selecionada
-  const transactionCurrency = selectedTrip?.currency || 'BRL';
+  // Obter conta selecionada para determinar moeda
+  const selectedAccount = accounts?.find((a) => a.id === accountId);
+
+  // Determinar a moeda da transação:
+  // 1. Se tem viagem selecionada → usa moeda da viagem
+  // 2. Se tem conta internacional selecionada (sem viagem) → usa moeda da conta
+  // 3. Caso contrário → BRL
+  const transactionCurrency = selectedTrip?.currency 
+    || (selectedAccount?.is_international ? selectedAccount.currency : null)
+    || 'BRL';
   const isInternationalTransaction = transactionCurrency !== 'BRL';
 
-  // Filtrar contas por moeda
-  // - Se moeda é BRL: mostrar apenas contas nacionais (não internacionais)
-  // - Se moeda é estrangeira: mostrar apenas contas internacionais com a mesma moeda
+  // Filtrar contas por moeda:
+  // - Se tem viagem: mostrar apenas contas na moeda da viagem
+  // - Se NÃO tem viagem: mostrar TODAS as contas (nacionais e internacionais)
   const filteredAccounts = accounts?.filter((acc) => {
-    if (transactionCurrency === 'BRL') {
-      return !acc.is_international;
+    // Se tem viagem selecionada, filtrar por moeda da viagem
+    if (selectedTrip) {
+      if (selectedTrip.currency === 'BRL') {
+        return !acc.is_international;
+      }
+      return acc.is_international && acc.currency === selectedTrip.currency;
     }
-    return acc.is_international && acc.currency === transactionCurrency;
+    // Se NÃO tem viagem, mostrar todas as contas
+    return true;
   }) || [];
 
   // Separar cartões e contas regulares filtrados
@@ -700,15 +713,15 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                 </span>
               </AlertDescription>
             </Alert>
-          ) : filteredAccounts.length === 0 && isInternationalTransaction ? (
-            // Mensagem quando não há conta internacional compatível
+          ) : filteredAccounts.length === 0 && selectedTrip && selectedTrip.currency !== 'BRL' ? (
+            // Mensagem quando não há conta internacional compatível COM A VIAGEM
             <Alert className="border-amber-400 bg-amber-50 dark:bg-amber-950/20">
               <Wallet className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
-                ⚠️ Nenhuma conta em <span className="font-semibold">{transactionCurrency}</span> encontrada.
+                ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
                 <br />
                 <span className="text-xs">
-                  Crie uma conta internacional com moeda {transactionCurrency} em Configurações.
+                  Crie uma conta internacional com moeda {selectedTrip.currency} em Configurações.
                 </span>
                 <Button
                   type="button"
@@ -754,9 +767,14 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   ))}
                 </SelectContent>
               </Select>
-              {isInternationalTransaction && (
+              {selectedTrip && selectedTrip.currency !== 'BRL' && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  🌍 Mostrando apenas contas em {transactionCurrency}
+                  🌍 Mostrando apenas contas em {selectedTrip.currency}
+                </p>
+              )}
+              {selectedAccount?.is_international && !selectedTrip && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                  🌍 Transação em {selectedAccount.currency} (conta internacional)
                 </p>
               )}
             </div>

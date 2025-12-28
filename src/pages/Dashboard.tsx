@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { ArrowUpRight, ArrowDownRight, Plus, Loader2, CreditCard, Users, ChevronRight, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -11,6 +11,21 @@ import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsA
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
+
+// Helper para formatar moeda com símbolo correto
+const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
+  const symbols: Record<string, string> = {
+    'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
+    'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'MXN': 'MX$',
+  };
+  const symbol = symbols[currency] || currency;
+  
+  if (currency === 'BRL') {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  }
+  
+  return `${symbol} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 export function Dashboard() {
   const { data: summary, isLoading: summaryLoading } = useFinancialSummary();
@@ -35,12 +50,33 @@ export function Dashboard() {
   const recentTransactions = transactions?.slice(0, 5) || [];
   const isLoading = summaryLoading || txLoading || accountsLoading;
 
-  // Cálculos
+  // Cálculos - separar por moeda
   const balance = summary?.balance || 0;
   const income = summary?.income || 0;
   const expenses = summary?.expenses || 0;
   const savings = income - expenses;
   const projectedBalance = balance + savings;
+
+  // Agrupar saldos por moeda (contas internacionais)
+  const balancesByForeignCurrency = useMemo(() => {
+    if (!accounts) return {};
+    
+    const grouped: Record<string, number> = {};
+    
+    accounts
+      .filter(a => a.is_international && a.type !== 'CREDIT_CARD')
+      .forEach(acc => {
+        const currency = acc.currency || 'USD';
+        if (!grouped[currency]) {
+          grouped[currency] = 0;
+        }
+        grouped[currency] += Number(acc.balance);
+      });
+    
+    return grouped;
+  }, [accounts]);
+
+  const hasForeignBalances = Object.keys(balancesByForeignCurrency).length > 0;
 
   // Cartões de crédito com faturas
   const creditCards = accounts?.filter(a => a.type === "CREDIT_CARD") || [];
@@ -108,7 +144,7 @@ export function Dashboard() {
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-            Saldo atual
+            Saldo atual (BRL)
           </p>
           <h1 className={cn(
             "font-display font-bold text-5xl md:text-6xl tracking-tight",
@@ -129,6 +165,28 @@ export function Dashboard() {
             </span>
           </div>
         </div>
+        
+        {/* Saldos em Moedas Estrangeiras */}
+        {hasForeignBalances && (
+          <div className="flex flex-wrap gap-4 lg:gap-6">
+            {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance]) => (
+              <div key={currency} className="flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                <Globe className="h-4 w-4 text-blue-500" />
+                <div>
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider font-medium">
+                    {currency}
+                  </p>
+                  <p className={cn(
+                    "font-mono font-bold text-lg",
+                    currencyBalance >= 0 ? "text-foreground" : "text-negative"
+                  )}>
+                    {formatCurrencyWithSymbol(currencyBalance, currency)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Main Grid */}

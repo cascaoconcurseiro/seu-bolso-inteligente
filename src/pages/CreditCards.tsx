@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -31,9 +32,10 @@ import {
   DollarSign,
   X,
   Save,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { banks, cardBrands, getBankById } from "@/lib/banks";
+import { banks, cardBrands, getBankById, internationalBanks } from "@/lib/banks";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount } from "@/hooks/useAccounts";
 import { useTransactions, useCreateTransaction } from "@/hooks/useTransactions";
@@ -41,6 +43,17 @@ import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange, formatLocalDate } from "@/lib/invoiceUtils";
 import { useToast } from "@/hooks/use-toast";
+
+// Lista de moedas para cartões internacionais
+const currencies = [
+  { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
+  { value: "EUR", label: "EUR - Euro", symbol: "€" },
+  { value: "GBP", label: "GBP - Libra Esterlina", symbol: "£" },
+  { value: "CAD", label: "CAD - Dólar Canadense", symbol: "C$" },
+  { value: "AUD", label: "AUD - Dólar Australiano", symbol: "A$" },
+  { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
+  { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
+];
 
 type CardView = "list" | "detail";
 
@@ -72,6 +85,8 @@ export function CreditCards() {
   const [newClosingDay, setNewClosingDay] = useState("");
   const [newDueDay, setNewDueDay] = useState("");
   const [newLimit, setNewLimit] = useState("");
+  const [newIsInternational, setNewIsInternational] = useState(false);
+  const [newCurrency, setNewCurrency] = useState("USD");
 
   const { data: accounts = [], isLoading } = useAccounts();
   const { data: transactions = [] } = useTransactions();
@@ -155,6 +170,8 @@ export function CreditCards() {
       credit_limit: parseFloat(newLimit) || 0,
       closing_day: parseInt(newClosingDay) || null,
       due_day: parseInt(newDueDay) || null,
+      is_international: newIsInternational,
+      currency: newIsInternational ? newCurrency : 'BRL',
     });
     setShowNewCardDialog(false);
     setNewBankId("");
@@ -163,6 +180,8 @@ export function CreditCards() {
     setNewClosingDay("");
     setNewDueDay("");
     setNewLimit("");
+    setNewIsInternational(false);
+    setNewCurrency("USD");
   };
 
   const totalInvoices = creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0);
@@ -506,6 +525,10 @@ export function CreditCards() {
           setDueDay={setNewDueDay}
           limit={newLimit}
           setLimit={setNewLimit}
+          isInternational={newIsInternational}
+          setIsInternational={setNewIsInternational}
+          currency={newCurrency}
+          setCurrency={setNewCurrency}
         />
       </div>
     );
@@ -620,6 +643,10 @@ export function CreditCards() {
         setDueDay={setNewDueDay}
         limit={newLimit}
         setLimit={setNewLimit}
+        isInternational={newIsInternational}
+        setIsInternational={setNewIsInternational}
+        currency={newCurrency}
+        setCurrency={setNewCurrency}
       />
     </div>
   );
@@ -643,6 +670,10 @@ interface NewCardDialogProps {
   setDueDay: (v: string) => void;
   limit: string;
   setLimit: (v: string) => void;
+  isInternational: boolean;
+  setIsInternational: (v: boolean) => void;
+  currency: string;
+  setCurrency: (v: string) => void;
 }
 
 function NewCardDialog({
@@ -662,7 +693,17 @@ function NewCardDialog({
   setDueDay,
   limit,
   setLimit,
+  isInternational,
+  setIsInternational,
+  currency,
+  setCurrency,
 }: NewCardDialogProps) {
+  // Reset bank when switching between national/international
+  const handleInternationalChange = (checked: boolean) => {
+    setIsInternational(checked);
+    setBankId("");
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -671,22 +712,80 @@ function NewCardDialog({
           <DialogDescription>Adicione um cartão para acompanhar</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {/* Toggle Internacional */}
+          <div className="p-4 rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Globe className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="font-medium">Cartão Internacional</p>
+                  <p className="text-sm text-muted-foreground">Fatura em moeda estrangeira</p>
+                </div>
+              </div>
+              <Switch 
+                checked={isInternational} 
+                onCheckedChange={handleInternationalChange} 
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label>Banco</Label>
+            <Label>{isInternational ? 'Instituição' : 'Banco'}</Label>
             <Select value={bankId} onValueChange={setBankId}>
-              <SelectTrigger><SelectValue placeholder="Selecione o banco" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={isInternational ? "Selecione a instituição" : "Selecione o banco"} /></SelectTrigger>
               <SelectContent className="max-h-[300px]">
-                {Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id}>
-                    <div className="flex items-center gap-3">
-                      <BankIcon bankId={bank.id} size="sm" />
-                      <span>{bank.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
+                {isInternational ? (
+                  // Bancos internacionais
+                  Object.values(internationalBanks).map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                          style={{ backgroundColor: bank.color, color: bank.textColor }}
+                        >
+                          {bank.icon}
+                        </div>
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Bancos nacionais
+                  Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={bank.id} size="sm" />
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Moeda (apenas para internacional) */}
+          {isInternational && (
+            <div className="space-y-2">
+              <Label>Moeda da Fatura</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((curr) => (
+                    <SelectItem key={curr.value} value={curr.value}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs w-6">{curr.symbol}</span>
+                        <span>{curr.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Bandeira</Label>
             <Select value={brand} onValueChange={setBrand}>
@@ -741,7 +840,7 @@ function NewCardDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Limite</Label>
+            <Label>Limite {isInternational && `(${currency})`}</Label>
             <Input 
               placeholder="10000"
               value={limit}
