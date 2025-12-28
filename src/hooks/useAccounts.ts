@@ -15,7 +15,7 @@ export interface Account {
   bank_color: string | null;
   bank_logo: string | null;
   currency: string;
-  is_international: boolean;
+  is_international: boolean | null;
   is_active: boolean;
   closing_day: number | null;
   due_day: number | null;
@@ -90,7 +90,28 @@ export function useCreateAccount() {
         return data;
       }
 
-      // Para outras contas, usar RPC que cria com depósito inicial
+      // Para contas internacionais, usar insert direto para garantir que is_international seja salvo
+      if (input.is_international) {
+        const { data, error } = await supabase
+          .from('accounts')
+          .insert({
+            user_id: user.id,
+            name: input.name,
+            type: input.type,
+            balance: input.balance || 0,
+            initial_balance: input.balance || 0,
+            bank_id: input.bank_id || null,
+            currency: input.currency || 'BRL',
+            is_international: true,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+
+      // Para outras contas nacionais, usar RPC que cria com depósito inicial
       const { data, error } = await supabase.rpc('create_account_with_initial_deposit', {
         p_name: input.name,
         p_type: input.type,
