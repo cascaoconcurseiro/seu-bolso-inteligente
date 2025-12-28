@@ -334,7 +334,7 @@ export function useTripTransactions(tripId: string | null) {
         .from("transactions")
         .select(`
           *,
-          account:accounts!account_id(name, bank_color),
+          account:accounts!account_id(name, bank_id),
           category:categories(name, icon)
         `)
         .eq("trip_id", tripId)

@@ -49,6 +49,7 @@ import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
 import { validateTransaction } from '@/services/validationService';
+import { getBankById } from '@/lib/banks';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -748,7 +749,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                         <div
                           className="w-4 h-4 rounded"
                           style={{
-                            backgroundColor: acc.bank_color || 'hsl(var(--muted))',
+                            backgroundColor: getBankById(acc.bank_id).color,
                           }}
                         />
                         {acc.name}

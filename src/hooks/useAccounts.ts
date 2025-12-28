@@ -12,8 +12,6 @@ export interface Account {
   type: AccountType;
   balance: number;
   bank_id: string | null;
-  bank_color: string | null;
-  bank_logo: string | null;
   currency: string;
   is_international: boolean | null;
   is_active: boolean;
@@ -29,8 +27,6 @@ export interface CreateAccountInput {
   type: AccountType;
   balance?: number;
   bank_id?: string;
-  bank_color?: string;
-  bank_logo?: string;
   currency?: string;
   is_international?: boolean;
   closing_day?: number;

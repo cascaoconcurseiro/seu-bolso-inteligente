@@ -23,7 +23,7 @@ export interface Transaction {
   series_id: string | null;
   created_at: string;
   updated_at: string;
-  account?: { name: string; bank_color: string | null };
+  account?: { name: string; bank_id?: string | null };
   category?: { name: string; icon: string | null };
   transaction_splits?: any[];
 }

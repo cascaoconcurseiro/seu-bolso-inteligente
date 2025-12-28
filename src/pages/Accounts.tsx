@@ -186,8 +186,6 @@ export function Accounts() {
       name: accountName,
       type: type as any,
       bank_id: bankId || null,
-      bank_logo: null,
-      bank_color: bank?.color || null,
       balance: parseFloat(balance) || 0,
       is_international: isInternational,
       currency: isInternational ? currency : 'BRL',

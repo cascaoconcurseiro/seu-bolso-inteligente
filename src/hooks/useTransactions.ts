@@ -37,7 +37,7 @@ export interface Transaction {
   created_at: string;
   updated_at: string;
   // Joined data
-  account?: { name: string; bank_color: string | null };
+  account?: { name: string };
   category?: { name: string; icon: string | null };
 }
 
@@ -97,7 +97,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .from("transactions")
         .select(`
           *,
-          account:accounts!account_id(name, bank_color),
+          account:accounts!account_id(name),
           category:categories(name, icon),
           transaction_splits(*)
         `)
