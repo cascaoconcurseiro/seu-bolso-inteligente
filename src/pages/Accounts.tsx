@@ -58,6 +58,9 @@ const accountTypeIcons = {
   SAVINGS: PiggyBank,
   INVESTMENT: TrendingUp,
   CASH: Banknote,
+  // Tipos internacionais
+  GLOBAL: Globe,
+  DIGITAL_WALLET: Wallet,
 };
 
 const accountTypeLabels = {
@@ -65,7 +68,67 @@ const accountTypeLabels = {
   SAVINGS: "Poupança",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
+  // Tipos internacionais
+  GLOBAL: "Conta Global",
+  DIGITAL_WALLET: "Carteira Digital",
 };
+
+// Tipos de conta para contas internacionais
+const internationalAccountTypes = [
+  { value: "GLOBAL", label: "Conta Global" },
+  { value: "DIGITAL_WALLET", label: "Carteira Digital" },
+  { value: "CHECKING", label: "Conta Corrente" },
+  { value: "SAVINGS", label: "Poupança" },
+  { value: "INVESTMENT", label: "Investimento" },
+];
+
+// Tipos de conta para contas nacionais
+const nationalAccountTypes = [
+  { value: "CHECKING", label: "Conta Corrente" },
+  { value: "SAVINGS", label: "Poupança" },
+  { value: "INVESTMENT", label: "Investimento" },
+  { value: "CASH", label: "Dinheiro" },
+];
+
+// Lista expandida de moedas
+const currencies = [
+  // Américas
+  { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
+  { value: "CAD", label: "CAD - Dólar Canadense", symbol: "C$" },
+  { value: "MXN", label: "MXN - Peso Mexicano", symbol: "MX$" },
+  { value: "ARS", label: "ARS - Peso Argentino", symbol: "AR$" },
+  { value: "CLP", label: "CLP - Peso Chileno", symbol: "CL$" },
+  { value: "COP", label: "COP - Peso Colombiano", symbol: "CO$" },
+  { value: "PEN", label: "PEN - Sol Peruano", symbol: "S/" },
+  { value: "UYU", label: "UYU - Peso Uruguaio", symbol: "UY$" },
+  // Europa
+  { value: "EUR", label: "EUR - Euro", symbol: "€" },
+  { value: "GBP", label: "GBP - Libra Esterlina", symbol: "£" },
+  { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
+  { value: "SEK", label: "SEK - Coroa Sueca", symbol: "kr" },
+  { value: "NOK", label: "NOK - Coroa Norueguesa", symbol: "kr" },
+  { value: "DKK", label: "DKK - Coroa Dinamarquesa", symbol: "kr" },
+  { value: "PLN", label: "PLN - Zloty Polonês", symbol: "zł" },
+  { value: "CZK", label: "CZK - Coroa Tcheca", symbol: "Kč" },
+  { value: "HUF", label: "HUF - Florim Húngaro", symbol: "Ft" },
+  { value: "TRY", label: "TRY - Lira Turca", symbol: "₺" },
+  // Ásia e Oceania
+  { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
+  { value: "CNY", label: "CNY - Yuan Chinês", symbol: "¥" },
+  { value: "HKD", label: "HKD - Dólar de Hong Kong", symbol: "HK$" },
+  { value: "SGD", label: "SGD - Dólar de Singapura", symbol: "S$" },
+  { value: "KRW", label: "KRW - Won Sul-Coreano", symbol: "₩" },
+  { value: "INR", label: "INR - Rupia Indiana", symbol: "₹" },
+  { value: "THB", label: "THB - Baht Tailandês", symbol: "฿" },
+  { value: "AUD", label: "AUD - Dólar Australiano", symbol: "A$" },
+  { value: "NZD", label: "NZD - Dólar Neozelandês", symbol: "NZ$" },
+  // Oriente Médio e África
+  { value: "AED", label: "AED - Dirham dos Emirados", symbol: "د.إ" },
+  { value: "SAR", label: "SAR - Rial Saudita", symbol: "﷼" },
+  { value: "ILS", label: "ILS - Shekel Israelense", symbol: "₪" },
+  { value: "ZAR", label: "ZAR - Rand Sul-Africano", symbol: "R" },
+  { value: "EGP", label: "EGP - Libra Egípcia", symbol: "E£" },
+];
 
 export function Accounts() {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -84,6 +147,13 @@ export function Accounts() {
   const [balance, setBalance] = useState("");
   const [isInternational, setIsInternational] = useState(false);
   const [currency, setCurrency] = useState("USD");
+
+  // Atualizar tipo padrão quando mudar entre nacional/internacional
+  const handleInternationalChange = (checked: boolean) => {
+    setIsInternational(checked);
+    setBankId(""); // Reset bank selection
+    setType(checked ? "GLOBAL" : "CHECKING"); // Tipo padrão apropriado
+  };
 
   // Filter only non-credit card accounts
   const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
@@ -115,13 +185,9 @@ export function Accounts() {
     const bank = bankId ? getBankById(bankId) : null;
     
     // Gera nome automaticamente baseado no banco e tipo
-    const typeNames = {
-      CHECKING: 'Conta Corrente',
-      SAVINGS: 'Poupança',
-      INVESTMENT: 'Investimento',
-      CASH: 'Dinheiro'
-    };
-    const accountName = bank ? `${bank.name} - ${typeNames[type as keyof typeof typeNames]}` : typeNames[type as keyof typeof typeNames];
+    const accountName = bank 
+      ? `${bank.name} - ${accountTypeLabels[type as keyof typeof accountTypeLabels] || type}` 
+      : accountTypeLabels[type as keyof typeof accountTypeLabels] || type;
     
     await createAccount.mutateAsync({
       name: accountName,
@@ -405,10 +471,7 @@ export function Accounts() {
                 </div>
                 <Switch 
                   checked={isInternational} 
-                  onCheckedChange={(checked) => {
-                    setIsInternational(checked);
-                    setBankId(""); // Reset bank selection
-                  }} 
+                  onCheckedChange={handleInternationalChange} 
                 />
               </div>
             </div>
@@ -458,14 +521,15 @@ export function Accounts() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD - Dólar Americano</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="GBP">GBP - Libra Esterlina</SelectItem>
-                    <SelectItem value="CAD">CAD - Dólar Canadense</SelectItem>
-                    <SelectItem value="AUD">AUD - Dólar Australiano</SelectItem>
-                    <SelectItem value="CHF">CHF - Franco Suíço</SelectItem>
-                    <SelectItem value="JPY">JPY - Iene Japonês</SelectItem>
+                  <SelectContent className="max-h-[300px]">
+                    {currencies.map((curr) => (
+                      <SelectItem key={curr.value} value={curr.value}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs w-6">{curr.symbol}</span>
+                          <span>{curr.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -478,10 +542,11 @@ export function Accounts() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CHECKING">Conta Corrente</SelectItem>
-                  <SelectItem value="SAVINGS">Poupança</SelectItem>
-                  <SelectItem value="INVESTMENT">Investimento</SelectItem>
-                  <SelectItem value="CASH">Dinheiro</SelectItem>
+                  {(isInternational ? internationalAccountTypes : nationalAccountTypes).map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

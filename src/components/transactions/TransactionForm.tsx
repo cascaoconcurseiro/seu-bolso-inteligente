@@ -286,17 +286,44 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   // Obter símbolo da moeda
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = {
+      // Brasil
       'BRL': 'R$',
+      // Américas
       'USD': '$',
+      'CAD': 'C$',
+      'MXN': 'MX$',
+      'ARS': 'AR$',
+      'CLP': 'CL$',
+      'COP': 'CO$',
+      'PEN': 'S/',
+      'UYU': 'UY$',
+      // Europa
       'EUR': '€',
       'GBP': '£',
-      'JPY': '¥',
-      'CAD': 'C$',
-      'AUD': 'A$',
       'CHF': 'CHF',
+      'SEK': 'kr',
+      'NOK': 'kr',
+      'DKK': 'kr',
+      'PLN': 'zł',
+      'CZK': 'Kč',
+      'HUF': 'Ft',
+      'TRY': '₺',
+      // Ásia e Oceania
+      'JPY': '¥',
       'CNY': '¥',
-      'ARS': 'ARS$',
-      'CLP': 'CLP$',
+      'HKD': 'HK$',
+      'SGD': 'S$',
+      'KRW': '₩',
+      'INR': '₹',
+      'THB': '฿',
+      'AUD': 'A$',
+      'NZD': 'NZ$',
+      // Oriente Médio e África
+      'AED': 'د.إ',
+      'SAR': '﷼',
+      'ILS': '₪',
+      'ZAR': 'R',
+      'EGP': 'E£',
     };
     return symbols[currency] || currency;
   };
