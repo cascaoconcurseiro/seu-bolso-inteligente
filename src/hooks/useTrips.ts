@@ -54,35 +54,51 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar todas as viagens onde o usuário é participante
-      // Usar LEFT JOIN para não perder viagens sem orçamento definido
-      const { data, error } = await supabase
-        .from("trips")
+      // ESTRATÉGIA: Buscar trip_participants do usuário e fazer JOIN com trips
+      // Isso garante que RLS funcione corretamente
+      const { data: participations, error: participationsError } = await supabase
+        .from("trip_participants")
         .select(`
-          *,
-          trip_participants(
-            personal_budget,
-            user_id
+          personal_budget,
+          trip_id,
+          trips (
+            id,
+            owner_id,
+            name,
+            destination,
+            start_date,
+            end_date,
+            currency,
+            budget,
+            status,
+            cover_image,
+            notes,
+            created_at,
+            updated_at
           )
         `)
-        .order("start_date", { ascending: false });
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (participationsError) throw participationsError;
       
-      // Filtrar apenas viagens onde o usuário é participante
-      // E incluir orçamento pessoal
-      const userTrips = data
-        .filter(trip => 
-          trip.trip_participants?.some((p: any) => p.user_id === user.id)
-        )
-        .map(trip => {
-          const myParticipation = trip.trip_participants?.find((p: any) => p.user_id === user.id);
+      // Transformar para formato esperado
+      const userTrips = participations
+        .filter(p => p.trips) // Garantir que trip existe
+        .map(p => {
+          const trip = Array.isArray(p.trips) ? p.trips[0] : p.trips;
           return {
             ...trip,
-            my_personal_budget: myParticipation?.personal_budget || null,
-            trip_participants: undefined, // Remover para não poluir o tipo
+            my_personal_budget: p.personal_budget || null,
           };
         }) as TripWithPersonalBudget[];
+      
+      // Ordenar por data de início (mais recente primeiro)
+      userTrips.sort((a, b) => 
+        new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      );
+      
+      return userTrips;
       
       return userTrips;
     },
