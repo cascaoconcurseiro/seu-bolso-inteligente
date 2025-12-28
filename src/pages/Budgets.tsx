@@ -417,12 +417,12 @@ export function Budgets() {
 
             <div className="space-y-2">
               <Label>Categoria</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
+              <Select value={categoryId || "all"} onValueChange={(val) => setCategoryId(val === "all" ? "" : val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as categorias</SelectItem>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
                   {expenseCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       <span className="flex items-center gap-2">
