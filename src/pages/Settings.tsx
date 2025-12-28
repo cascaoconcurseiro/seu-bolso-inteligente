@@ -59,6 +59,7 @@ import { useUserProfile, useUpdateUserProfile, useUpdatePassword, useDeleteAccou
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { OrphanTransactionsManager } from "@/components/settings/OrphanTransactionsManager";
+import { AdminResetPanel } from "@/components/settings/AdminResetPanel";
 
 type SettingsSection = "account" | "categories" | "people" | "appearance" | "notifications" | "maintenance";
 
@@ -777,6 +778,11 @@ export function Settings() {
                     <li>• Migre as transações para outra conta antes de excluir</li>
                     <li>• Contas excluídas ficam inativas (soft delete)</li>
                   </ul>
+                </div>
+
+                {/* Admin Reset Panel */}
+                <div className="pt-6 border-t border-border">
+                  <AdminResetPanel />
                 </div>
               </div>
             </div>
