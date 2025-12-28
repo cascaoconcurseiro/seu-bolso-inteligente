@@ -36,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
   Plus,
@@ -51,6 +52,7 @@ import {
   TrendingUp,
   CheckCircle2,
   ArrowRight,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -67,6 +69,7 @@ import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentIm
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -580,8 +583,43 @@ export function SharedExpenses() {
               Selecione os itens para acertar ou acerte o saldo total
             </DialogDescription>
           </DialogHeader>
-          {selectedMember && (
+          {selectedMember && (() => {
+            // Determine settlement currency based on selected items or all pending items
+            const itemsToConsider = selectedItems.length > 0
+              ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
+              : pendingMemberItems;
+            
+            // Check if any item is from an international trip
+            const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
+            const internationalTrip = tripIds.length > 0 
+              ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
+              : null;
+            
+            const settlementCurrency = internationalTrip?.currency || "BRL";
+            const isInternationalSettlement = settlementCurrency !== "BRL";
+            
+            // Filter accounts by currency
+            const filteredSettleAccounts = accounts.filter(a => {
+              if (a.type === "CREDIT_CARD") return false;
+              if (isInternationalSettlement) {
+                return a.is_international && a.currency === settlementCurrency;
+              }
+              return !a.is_international;
+            });
+
+            return (
             <div className="py-4 space-y-6">
+              {/* International settlement alert */}
+              {isInternationalSettlement && (
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <Globe className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+                    Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
+                    Selecione uma conta na mesma moeda.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Visual representation */}
               <div className="flex items-center justify-center gap-6 p-4 bg-muted/50 rounded-xl">
                 <div className="text-center">
@@ -593,7 +631,7 @@ export function SharedExpenses() {
                 <div className="text-center">
                   <ArrowRight className="h-5 w-5 text-muted-foreground" />
                   <p className="font-mono font-semibold mt-1">
-                    {formatCurrency(parseFloat(settleAmount.replace(".", "").replace(",", ".")) || 0)}
+                    {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
                   </p>
                 </div>
                 <div className="text-center">
@@ -619,7 +657,10 @@ export function SharedExpenses() {
                     </Button>
                   </div>
                   <div className="max-h-40 overflow-y-auto space-y-1 border rounded-lg p-2">
-                    {pendingMemberItems.map(item => (
+                    {pendingMemberItems.map(item => {
+                      const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
+                      const itemCurrency = itemTrip?.currency || "BRL";
+                      return (
                       <label
                         key={item.id}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
@@ -628,19 +669,26 @@ export function SharedExpenses() {
                           checked={selectedItems.includes(item.id)}
                           onCheckedChange={() => toggleItem(item.id)}
                         />
-                        <span className="flex-1 text-sm truncate">{item.description}</span>
+                        <span className="flex-1 text-sm truncate">
+                          {item.description}
+                          {itemCurrency !== "BRL" && (
+                            <span className="text-[10px] ml-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded">
+                              {itemCurrency}
+                            </span>
+                          )}
+                        </span>
                         <span className={cn(
                           "font-mono text-xs",
                           item.type === "CREDIT" ? "text-positive" : "text-negative"
                         )}>
-                          {formatCurrency(item.amount)}
+                          {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </span>
                       </label>
-                    ))}
+                    )})}
                   </div>
                   {selectedItems.length > 0 && (
                     <p className="text-xs text-muted-foreground text-right">
-                      Total selecionado: {formatCurrency(Math.abs(getSelectedTotal()))}
+                      Total selecionado: {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
                   )}
                 </div>
@@ -649,43 +697,67 @@ export function SharedExpenses() {
               {/* Amount and account */}
               <div className="grid gap-4">
                 <div className="space-y-2">
-                  <Label>Valor do acerto</Label>
-                  <Input
-                    type="text"
-                    value={settleAmount}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      const cents = parseInt(val) / 100;
-                      setSettleAmount(cents.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      }));
-                    }}
-                    className="font-mono text-lg"
-                    placeholder="0,00"
-                  />
+                  <Label>Valor do acerto ({settlementCurrency})</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      {getCurrencySymbol(settlementCurrency)}
+                    </span>
+                    <Input
+                      type="text"
+                      value={settleAmount}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        const cents = parseInt(val) / 100;
+                        setSettleAmount(cents.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        }));
+                      }}
+                      className="font-mono text-lg pl-10"
+                      placeholder="0,00"
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Você pode alterar o valor para fazer um acerto parcial
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Conta</Label>
+                  <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
                   <Select value={settleAccountId} onValueChange={setSettleAccountId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a conta" />
                     </SelectTrigger>
                     <SelectContent>
-                      {accounts.filter(a => a.type !== "CREDIT_CARD").map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name}
-                        </SelectItem>
-                      ))}
+                      {filteredSettleAccounts.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Nenhuma conta em {settlementCurrency} disponível
+                        </div>
+                      ) : (
+                        filteredSettleAccounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            <div className="flex items-center gap-2">
+                              {account.name}
+                              {account.is_international && (
+                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                                  {account.currency}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
+                  {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
-          )}
+          );
+          })()}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
               Cancelar

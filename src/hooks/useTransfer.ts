@@ -8,6 +8,8 @@ interface TransferData {
   amount: number;
   description: string;
   date: string;
+  exchangeRate?: number;
+  destinationAmount?: number;
 }
 
 export function useTransfer() {
@@ -21,6 +23,8 @@ export function useTransfer() {
         p_amount: data.amount,
         p_description: data.description,
         p_date: data.date,
+        p_exchange_rate: data.exchangeRate || null,
+        p_destination_amount: data.destinationAmount || null,
       });
 
       if (error) throw error;

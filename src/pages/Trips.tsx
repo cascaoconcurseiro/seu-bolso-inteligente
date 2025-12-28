@@ -97,8 +97,9 @@ export function Trips() {
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget ?? null;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  const formatCurrency = (value: number, currency: string = "BRL") => {
+    const symbol = getCurrencySymbol(currency);
+    return `${symbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const getInitials = (name: string) => {
@@ -308,13 +309,13 @@ export function Trips() {
         <div className="flex items-center gap-8 py-4 border-y border-border">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Total</p>
-            <p className="font-mono text-2xl font-bold">{formatCurrency(totalExpenses)}</p>
+            <p className="font-mono text-2xl font-bold">{formatCurrency(totalExpenses, selectedTrip.currency)}</p>
           </div>
           {participants.length > 0 && (
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por pessoa</p>
               <p className="font-mono text-lg font-medium">
-                {formatCurrency(totalExpenses / participants.length)}
+                {formatCurrency(totalExpenses / participants.length, selectedTrip.currency)}
               </p>
             </div>
           )}
@@ -329,7 +330,7 @@ export function Trips() {
           {myPersonalBudget && (
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu Orçamento</p>
-              <p className="font-mono text-sm">{formatCurrency(myPersonalBudget)}</p>
+              <p className="font-mono text-sm">{formatCurrency(myPersonalBudget, selectedTrip.currency)}</p>
             </div>
           )}
         </div>
@@ -377,11 +378,11 @@ export function Trips() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Meus Gastos</p>
-                      <p className="font-mono text-3xl font-bold">{formatCurrency(tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0))}</p>
+                      <p className="font-mono text-3xl font-bold">{formatCurrency(tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0), selectedTrip.currency)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Meu Orçamento</p>
-                      <p className="font-mono text-2xl font-medium">{formatCurrency(myPersonalBudget)}</p>
+                      <p className="font-mono text-2xl font-medium">{formatCurrency(myPersonalBudget, selectedTrip.currency)}</p>
                     </div>
                   </div>
                   <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
@@ -405,7 +406,7 @@ export function Trips() {
                       "text-xs font-medium",
                       tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "text-destructive" : "text-positive"
                     )}>
-                      {tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0)))}
+                      {tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0)), selectedTrip.currency)}
                     </p>
                   </div>
                 </div>
@@ -427,7 +428,7 @@ export function Trips() {
                         </div>
                         <div className="flex-1">
                           <p className="font-medium">{balance.name}</p>
-                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
+                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid, selectedTrip.currency)}</p>
                         </div>
                       </div>
                       <div className="pt-3 border-t border-border">
@@ -437,7 +438,7 @@ export function Trips() {
                             "font-mono font-semibold",
                             balance.balance >= 0 ? "text-positive" : "text-negative"
                           )}>
-                            {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
+                            {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance, selectedTrip.currency)}
                           </span>
                         </div>
                       </div>
@@ -456,7 +457,7 @@ export function Trips() {
               <div className="p-4 rounded-xl border border-border text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Média/Dia</p>
                 <p className="font-mono text-lg font-medium">
-                  {formatCurrency(totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))))}
+                  {formatCurrency(totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))), selectedTrip.currency)}
                 </p>
               </div>
               <div className="p-4 rounded-xl border border-border text-center">
@@ -466,7 +467,7 @@ export function Trips() {
               <div className="p-4 rounded-xl border border-border text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por Pessoa</p>
                 <p className="font-mono text-lg font-medium">
-                  {participants.length > 0 ? formatCurrency(totalExpenses / participants.length) : formatCurrency(0)}
+                  {participants.length > 0 ? formatCurrency(totalExpenses / participants.length, selectedTrip.currency) : formatCurrency(0, selectedTrip.currency)}
                 </p>
               </div>
             </section>
@@ -502,7 +503,7 @@ export function Trips() {
                         </div>
                         <div>
                           <p className="font-medium">{balance.name}</p>
-                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid)}</p>
+                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid, selectedTrip.currency)}</p>
                         </div>
                       </div>
                       <div className="pt-3 border-t border-border flex items-center justify-between">
@@ -511,7 +512,7 @@ export function Trips() {
                           "font-mono font-semibold",
                           balance.balance >= 0 ? "text-positive" : "text-negative"
                         )}>
-                          {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance)}
+                          {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance, selectedTrip.currency)}
                         </span>
                       </div>
                     </div>
@@ -549,7 +550,7 @@ export function Trips() {
                             </p>
                           </div>
                         </div>
-                        <span className="font-mono font-medium">{formatCurrency(expense.amount)}</span>
+                        <span className="font-mono font-medium">{formatCurrency(expense.amount, selectedTrip.currency)}</span>
                       </div>
                     );
                   })}
@@ -758,7 +759,7 @@ export function Trips() {
               <div className="flex items-center gap-4">
                 {trip.my_personal_budget ? (
                   <div className="text-right">
-                    <p className="font-mono font-semibold">{formatCurrency(trip.my_personal_budget)}</p>
+                    <p className="font-mono font-semibold">{formatCurrency(trip.my_personal_budget, trip.currency)}</p>
                     <p className="text-xs text-muted-foreground">Meu Orçamento</p>
                   </div>
                 ) : (

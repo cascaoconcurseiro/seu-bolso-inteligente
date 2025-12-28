@@ -10,6 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { getBankById } from "@/lib/banks";
 import { TransferModal } from "@/components/accounts/TransferModal";
 import { WithdrawalModal } from "@/components/accounts/WithdrawalModal";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +43,12 @@ export function AccountDetail() {
     new Date(b).getTime() - new Date(a).getTime()
   );
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  const formatCurrency = (value: number, currency: string = "BRL") => {
+    const symbol = getCurrencySymbol(currency);
+    return `${symbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
+
+  const accountCurrency = account?.currency || "BRL";
 
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -104,11 +108,16 @@ export function AccountDetail() {
           "font-mono text-5xl font-bold mb-6",
           Number(account.balance) >= 0 ? "text-positive" : "text-negative"
         )}>
-          {formatCurrency(Number(account.balance))}
+          {formatCurrency(Number(account.balance), accountCurrency)}
         </p>
         {isCredit && account.credit_limit && (
           <p className="text-sm text-muted-foreground">
-            Limite: {formatCurrency(Number(account.credit_limit))}
+            Limite: {formatCurrency(Number(account.credit_limit), accountCurrency)}
+          </p>
+        )}
+        {account.is_international && (
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+            🌍 Conta Internacional ({accountCurrency})
           </p>
         )}
 
@@ -206,7 +215,7 @@ export function AccountDetail() {
                             "font-mono text-lg font-semibold",
                             isIncome ? "text-positive" : "text-negative"
                           )}>
-                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
+                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
                           </p>
                         </div>
                       );
@@ -226,6 +235,7 @@ export function AccountDetail() {
         fromAccountId={id!}
         fromAccountName={account.name}
         fromAccountBalance={Number(account.balance)}
+        fromAccountCurrency={account.currency || "BRL"}
       />
 
       {/* Withdrawal Modal */}
