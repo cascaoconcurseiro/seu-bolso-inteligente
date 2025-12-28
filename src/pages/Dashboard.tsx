@@ -47,6 +47,18 @@ export function Dashboard() {
   const hasError = summaryError || txError || accountsError;
   const isLoading = (summaryLoading || txLoading || accountsLoading) && !hasError;
 
+  // Helper para extrair mensagem de erro
+  const getErrorMessage = (err: unknown): string => {
+    if (!err) return "Erro desconhecido";
+    if (err instanceof Error) return err.message;
+    if (typeof err === "string") return err;
+    try {
+      return JSON.stringify(err, null, 2);
+    } catch {
+      return "Erro ao serializar";
+    }
+  };
+
   // DEBUG: Mostrar erros detalhados
   if (hasError) {
     return (
@@ -56,8 +68,8 @@ export function Dashboard() {
         {summaryError && (
           <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="font-semibold text-red-700 dark:text-red-400">Erro em useFinancialSummary:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
-              {JSON.stringify(summaryErrorObj, null, 2)}
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
+              {getErrorMessage(summaryErrorObj)}
             </pre>
           </div>
         )}
@@ -65,8 +77,8 @@ export function Dashboard() {
         {txError && (
           <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="font-semibold text-red-700 dark:text-red-400">Erro em useTransactions:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
-              {JSON.stringify(txErrorObj, null, 2)}
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
+              {getErrorMessage(txErrorObj)}
             </pre>
           </div>
         )}
@@ -74,8 +86,8 @@ export function Dashboard() {
         {accountsError && (
           <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="font-semibold text-red-700 dark:text-red-400">Erro em useAccounts:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
-              {JSON.stringify(accountsErrorObj, null, 2)}
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
+              {getErrorMessage(accountsErrorObj)}
             </pre>
           </div>
         )}
