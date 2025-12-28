@@ -93,6 +93,15 @@ export function useTransactions(filters?: TransactionFilters) {
   return useQuery({
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
+      // Buscar o family_member_id do usuário para filtrar corretamente
+      const { data: myMember } = await supabase
+        .from("family_members")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      
+      const myMemberId = myMember?.id;
+
       let query = supabase
         .from("transactions")
         .select(`
@@ -102,28 +111,28 @@ export function useTransactions(filters?: TransactionFilters) {
           transaction_splits(*)
         `)
         .eq("user_id", user!.id)
-        .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal
-        .neq("type", "TRANSFER") // Excluir transferências da lista principal (aparecem apenas no extrato)
-        .or(`payer_id.is.null,payer_id.eq.${user!.id}`) // Excluir transações pagas por outros (aparecem em Compartilhados)
-        .or("currency.is.null,currency.eq.BRL") // Excluir transações em moeda estrangeira (aparecem na viagem/conta internacional)
+        .is("source_transaction_id", null) // Excluir transações espelhadas
+        .neq("type", "TRANSFER") // Excluir transferências (aparecem no extrato)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      // Filtrar por data - usar competence_date se existir, senão usar date
-      // Isso garante compatibilidade com transações antigas que não têm competence_date
-      if (effectiveFilters?.startDate && effectiveFilters?.endDate) {
-        // Usar OR para pegar transações com competence_date OU date no período
-        query = query.or(
-          `and(competence_date.gte.${effectiveFilters.startDate},competence_date.lte.${effectiveFilters.endDate}),and(competence_date.is.null,date.gte.${effectiveFilters.startDate},date.lte.${effectiveFilters.endDate})`
-        );
-      } else if (effectiveFilters?.startDate) {
-        query = query.or(
-          `competence_date.gte.${effectiveFilters.startDate},and(competence_date.is.null,date.gte.${effectiveFilters.startDate})`
-        );
-      } else if (effectiveFilters?.endDate) {
-        query = query.or(
-          `competence_date.lte.${effectiveFilters.endDate},and(competence_date.is.null,date.lte.${effectiveFilters.endDate})`
-        );
+      // Filtrar transações pagas por outros (aparecem em Compartilhados)
+      // payer_id deve ser null OU igual ao meu family_member_id
+      if (myMemberId) {
+        query = query.or(`payer_id.is.null,payer_id.eq.${myMemberId}`);
+      } else {
+        query = query.is("payer_id", null);
+      }
+
+      // Filtrar por moeda (apenas BRL na lista principal)
+      query = query.or("currency.is.null,currency.eq.BRL");
+
+      // Filtrar por competence_date (campo obrigatório após migration)
+      if (effectiveFilters?.startDate) {
+        query = query.gte("competence_date", effectiveFilters.startDate);
+      }
+      if (effectiveFilters?.endDate) {
+        query = query.lte("competence_date", effectiveFilters.endDate);
       }
       if (effectiveFilters?.type) {
         query = query.eq("type", effectiveFilters.type);
@@ -141,14 +150,14 @@ export function useTransactions(filters?: TransactionFilters) {
         query = query.eq("domain", effectiveFilters.domain);
       }
 
-      const { data, error } = await query.limit(100);
+      const { data, error } = await query.limit(200);
 
       if (error) throw error;
       return data as Transaction[];
     },
     enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
-    staleTime: 30000, // Cache por 30 segundos
+    retry: false,
+    staleTime: 30000,
   });
 }
 
@@ -527,6 +536,15 @@ export function useFinancialSummary() {
     queryFn: async () => {
       if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
 
+      // Buscar o family_member_id do usuário
+      const { data: myMember } = await supabase
+        .from("family_members")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      const myMemberId = myMember?.id;
+
       // Buscar contas para saldo total (APENAS BRL - contas nacionais)
       const { data: accounts } = await supabase
         .from("accounts")
@@ -538,18 +556,26 @@ export function useFinancialSummary() {
       const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
-      const { data: transactions } = await supabase
+      // Query base para transações do mês
+      let txQuery = supabase
         .from("transactions")
         .select("amount, type, source_transaction_id, payer_id, currency")
         .eq("user_id", user.id)
-        .is("source_transaction_id", null) // Excluir espelhos do cálculo
-        .or(`payer_id.is.null,payer_id.eq.${user.id}`) // Excluir transações pagas por outros
-        .gte("competence_date", startDate) // Filtrar por competência
+        .is("source_transaction_id", null) // Excluir espelhos
+        .gte("competence_date", startDate)
         .lte("competence_date", endDate);
+
+      // Filtrar por payer_id corretamente
+      if (myMemberId) {
+        txQuery = txQuery.or(`payer_id.is.null,payer_id.eq.${myMemberId}`);
+      } else {
+        txQuery = txQuery.is("payer_id", null);
+      }
+
+      const { data: transactions } = await txQuery;
 
       // Saldo: apenas contas nacionais (BRL)
       const balance = accounts?.reduce((sum, acc) => {
-        // Excluir cartões de crédito e contas internacionais
         if (acc.type !== "CREDIT_CARD" && !acc.is_international) {
           return sum + Number(acc.balance);
         }
@@ -580,7 +606,7 @@ export function useFinancialSummary() {
       };
     },
     enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
-    staleTime: 30000, // Cache por 30 segundos
+    retry: false,
+    staleTime: 30000,
   });
 }

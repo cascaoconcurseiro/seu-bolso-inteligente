@@ -142,6 +142,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   const invoices = useMemo(() => {
     const invoiceMap: Record<string, InvoiceItem[]> = {};
+    const processedTxIds = new Set<string>(); // Para evitar duplicidades
     
     // Initialize map for each member
     members.forEach(m => {
@@ -149,6 +150,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     // CASE 1: I PAID - Process transaction splits (CREDITS)
+    // Transações que EU criei e dividi com outros
     transactionsWithSplits.forEach(tx => {
       if (tx.type !== 'EXPENSE') return;
       
@@ -160,6 +162,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         const memberId = split.member_id;
         if (!memberId) return;
         
+        // Evitar duplicidade
+        const uniqueKey = `${tx.id}-credit-${memberId}`;
+        if (processedTxIds.has(uniqueKey)) return;
+        processedTxIds.add(uniqueKey);
+        
         // Find member info
         const member = members.find(m => m.id === memberId);
         
@@ -168,14 +175,14 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }
         
         invoiceMap[memberId].push({
-          id: `${tx.id}-credit-${memberId}`,
+          id: uniqueKey,
           originalTxId: tx.id,
           splitId: split.id,
           description: tx.description,
-          date: tx.date,
+          date: tx.competence_date || tx.date,
           amount: split.amount,
           type: 'CREDIT',
-          isPaid: split.is_settled || false,
+          isPaid: split.is_settled === true, // Garantir boolean
           tripId: tx.trip_id || undefined,
           memberId: memberId,
           memberName: member?.name || split.name,
@@ -188,6 +195,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     // CASE 2: SOMEONE ELSE PAID - Process mirror transactions (DEBITS)
+    // Transações espelhadas onde EU devo para quem criou
     mirrorTransactions.forEach((tx: any) => {
       if (tx.type !== 'EXPENSE') return;
       
@@ -196,35 +204,34 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // Get payer user_id from source transaction
       const payerUserId = tx.source_transaction?.user_id;
       
-      if (!payerUserId) {
-        console.warn('Payer user_id not found for mirror transaction:', tx.id);
-        return;
-      }
+      if (!payerUserId) return;
       
       // Find the member who paid (by user_id or linked_user_id match)
       const payerMember = members.find(m => 
         m.user_id === payerUserId || m.linked_user_id === payerUserId
       );
       
-      if (!payerMember) {
-        console.warn('Payer member not found for user_id:', payerUserId);
-        return;
-      }
+      if (!payerMember) return;
       
       const targetMemberId = payerMember.id;
+      
+      // Evitar duplicidade
+      const uniqueKey = `${tx.source_transaction_id || tx.id}-debit-${targetMemberId}`;
+      if (processedTxIds.has(uniqueKey)) return;
+      processedTxIds.add(uniqueKey);
       
       if (!invoiceMap[targetMemberId]) {
         invoiceMap[targetMemberId] = [];
       }
       
       invoiceMap[targetMemberId].push({
-        id: `${tx.id}-debit-${targetMemberId}`,
+        id: uniqueKey,
         originalTxId: tx.source_transaction_id || tx.id,
         description: tx.description,
-        date: tx.date,
+        date: tx.competence_date || tx.date,
         amount: tx.amount,
         type: 'DEBIT',
-        isPaid: tx.is_settled || false,
+        isPaid: tx.is_settled === true, // Garantir boolean
         tripId: tx.trip_id || undefined,
         memberId: targetMemberId,
         memberName: payerMember?.name,
@@ -236,46 +243,42 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     // CASE 3: PAID BY OTHER (payer_id) - Transactions where another family member paid for me (DEBITS)
+    // Transações onde payer_id indica que outro membro pagou por mim
     paidByOthersTransactions.forEach((tx: any) => {
       if (tx.type !== 'EXPENSE') return;
       
       const txCurrency = 'BRL';
       const payer = tx.payer;
       
-      if (!payer) {
-        console.warn('Payer not found for transaction:', tx.id);
-        return;
-      }
+      if (!payer) return;
       
       const targetMemberId = payer.id;
+      
+      // Evitar duplicidade - verificar se já foi processado
+      const uniqueKey = `${tx.id}-debit-${targetMemberId}`;
+      if (processedTxIds.has(uniqueKey)) return;
+      processedTxIds.add(uniqueKey);
       
       if (!invoiceMap[targetMemberId]) {
         invoiceMap[targetMemberId] = [];
       }
       
-      // Check if this transaction is already added (avoid duplicates with mirror transactions)
-      const existingItem = invoiceMap[targetMemberId].find(
-        item => item.originalTxId === tx.id && item.type === 'DEBIT'
-      );
-      
-      if (!existingItem) {
-        invoiceMap[targetMemberId].push({
-          id: `${tx.id}-debit-paidby-${targetMemberId}`,
-          originalTxId: tx.id,
-          description: tx.description,
-          date: tx.competence_date || tx.date, // Use competence_date for monthly filtering
-          amount: tx.amount,
-          type: 'DEBIT',
-          isPaid: tx.is_settled || false,
-          tripId: tx.trip_id || undefined,
-          memberId: targetMemberId,
-          memberName: payer.name,
-          currency: txCurrency,
-          installmentNumber: tx.current_installment,
-          totalInstallments: tx.total_installments,
-          creatorUserId: tx.user_id
-        });
-      }
+      invoiceMap[targetMemberId].push({
+        id: uniqueKey,
+        originalTxId: tx.id,
+        description: tx.description,
+        date: tx.competence_date || tx.date,
+        amount: tx.amount,
+        type: 'DEBIT',
+        isPaid: tx.is_settled === true, // Garantir boolean
+        tripId: tx.trip_id || undefined,
+        memberId: targetMemberId,
+        memberName: payer.name,
+        currency: txCurrency,
+        installmentNumber: tx.current_installment,
+        totalInstallments: tx.total_installments,
+        creatorUserId: tx.user_id
+      });
     });
 
     return invoiceMap;
