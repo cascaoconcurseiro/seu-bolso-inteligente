@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface SettleParams {
   splitId: string;
@@ -25,9 +26,9 @@ interface SettleMultipleParams {
 
 /**
  * Hook para confirmar ressarcimento de despesa compartilhada
+ * - Verifica se o split já foi pago (previne duplicidade)
  * - Marca o split como pago (is_settled = true)
- * - Cria transação de RECEITA na conta selecionada
- * - Vincula a transação de pagamento ao split
+ * - Cria transação de INCOME na conta selecionada
  */
 export function useSettleWithPayment() {
   const { user } = useAuth();
@@ -37,34 +38,49 @@ export function useSettleWithPayment() {
     mutationFn: async ({ splitId, transactionId, amount, accountId, memberName, description }: SettleParams) => {
       if (!user) throw new Error("Não autenticado");
 
-      // 1. Criar transação de RECEITA (entrada na conta)
+      // VERIFICAR SE JÁ FOI PAGO (prevenir duplicidade)
+      const { data: existingSplit } = await supabase
+        .from("transaction_splits")
+        .select("is_settled")
+        .eq("id", splitId)
+        .single();
+
+      if (existingSplit?.is_settled) {
+        throw new Error("Este item já foi pago anteriormente!");
+      }
+
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const competenceDate = format(new Date(), 'yyyy-MM-01');
+
+      // 1. Criar transação de INCOME (entrada na conta)
       const { data: paymentTx, error: txError } = await supabase
         .from("transactions")
         .insert({
           user_id: user.id,
-          created_by: user.id,
+          creator_user_id: user.id,
           description: `Ressarcimento: ${description} (${memberName})`,
           amount: amount,
-          date: new Date().toISOString().split("T")[0],
-          type: "RECEITA",
-          category: "Ressarcimento",
+          date: today,
+          competence_date: competenceDate,
+          type: "INCOME",
           account_id: accountId,
           currency: "BRL",
           domain: "SHARED",
-          observation: `Ressarcimento de despesa compartilhada com ${memberName}`,
+          is_shared: false,
+          notes: `Ressarcimento de despesa compartilhada com ${memberName}`,
         })
         .select()
         .single();
 
       if (txError) throw txError;
 
-      // 2. Atualizar o split como pago e vincular a transação de pagamento
+      // 2. Atualizar o split como pago
       const { error: splitError } = await supabase
         .from("transaction_splits")
         .update({
           is_settled: true,
           settled_at: new Date().toISOString(),
-          payment_transaction_id: paymentTx.id,
+          settled_transaction_id: paymentTx.id,
         })
         .eq("id", splitId);
 
@@ -95,10 +111,11 @@ export function useSettleWithPayment() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      toast.success("Ressarcimento confirmado e entrada registrada!");
+      queryClient.invalidateQueries({ queryKey: ["account-statement"] });
+      toast.success("Ressarcimento confirmado!");
     },
     onError: (error) => {
-      toast.error("Erro ao confirmar ressarcimento: " + error.message);
+      toast.error(error.message || "Erro ao confirmar ressarcimento");
     },
   });
 }
@@ -114,24 +131,39 @@ export function useSettleMultipleWithPayment() {
     mutationFn: async ({ items, accountId }: SettleMultipleParams) => {
       if (!user) throw new Error("Não autenticado");
 
+      // VERIFICAR SE ALGUM JÁ FOI PAGO
+      const splitIds = items.map(i => i.splitId);
+      const { data: existingSplits } = await supabase
+        .from("transaction_splits")
+        .select("id, is_settled")
+        .in("id", splitIds);
+
+      const alreadyPaid = existingSplits?.filter(s => s.is_settled) || [];
+      if (alreadyPaid.length > 0) {
+        throw new Error(`${alreadyPaid.length} item(ns) já foram pagos anteriormente!`);
+      }
+
       const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
       const memberNames = [...new Set(items.map(i => i.memberName))].join(", ");
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const competenceDate = format(new Date(), 'yyyy-MM-01');
 
-      // 1. Criar transação de RECEITA consolidada
+      // 1. Criar transação de INCOME consolidada
       const { data: paymentTx, error: txError } = await supabase
         .from("transactions")
         .insert({
           user_id: user.id,
-          created_by: user.id,
-          description: `Ressarcimento de ${items.length} item(ns) - ${memberNames}`,
+          creator_user_id: user.id,
+          description: `Acerto Total - ${memberNames}`,
           amount: totalAmount,
-          date: new Date().toISOString().split("T")[0],
-          type: "RECEITA",
-          category: "Ressarcimento",
+          date: today,
+          competence_date: competenceDate,
+          type: "INCOME",
           account_id: accountId,
           currency: "BRL",
           domain: "SHARED",
-          observation: `Ressarcimento consolidado de ${items.length} despesa(s) compartilhada(s)`,
+          is_shared: false,
+          notes: `Ressarcimento consolidado de ${items.length} despesa(s) compartilhada(s)`,
         })
         .select()
         .single();
@@ -139,13 +171,12 @@ export function useSettleMultipleWithPayment() {
       if (txError) throw txError;
 
       // 2. Atualizar todos os splits como pagos
-      const splitIds = items.map(i => i.splitId);
       const { error: splitError } = await supabase
         .from("transaction_splits")
         .update({
           is_settled: true,
           settled_at: new Date().toISOString(),
-          payment_transaction_id: paymentTx.id,
+          settled_transaction_id: paymentTx.id,
         })
         .in("id", splitIds);
 
@@ -176,19 +207,17 @@ export function useSettleMultipleWithPayment() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["account-statement"] });
       toast.success(`${data.settledCount} ressarcimento(s) confirmado(s)!`);
     },
     onError: (error) => {
-      toast.error("Erro ao confirmar ressarcimentos: " + error.message);
+      toast.error(error.message || "Erro ao confirmar ressarcimentos");
     },
   });
 }
 
 /**
- * Hook para reverter ressarcimento (efeito cascata)
- * - Marca o split como não pago
- * - Exclui a transação de pagamento
- * - Reverte o saldo da conta
+ * Hook para reverter ressarcimento
  */
 export function useUnsettleWithReversal() {
   const queryClient = useQueryClient();
@@ -198,13 +227,13 @@ export function useUnsettleWithReversal() {
       // 1. Buscar o split para obter a transação de pagamento
       const { data: split, error: splitFetchError } = await supabase
         .from("transaction_splits")
-        .select("*, payment_transaction_id")
+        .select("*, settled_transaction_id")
         .eq("id", splitId)
         .single();
 
       if (splitFetchError) throw splitFetchError;
 
-      const paymentTxId = split.payment_transaction_id;
+      const paymentTxId = split.settled_transaction_id;
 
       // 2. Se houver transação de pagamento, buscar e reverter
       if (paymentTxId) {
@@ -240,7 +269,7 @@ export function useUnsettleWithReversal() {
         .update({
           is_settled: false,
           settled_at: null,
-          payment_transaction_id: null,
+          settled_transaction_id: null,
         })
         .eq("id", splitId);
 
@@ -253,6 +282,7 @@ export function useUnsettleWithReversal() {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["account-statement"] });
       toast.success("Ressarcimento revertido!");
     },
     onError: (error) => {

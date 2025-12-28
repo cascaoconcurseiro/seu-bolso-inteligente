@@ -93,6 +93,7 @@ export function useTransactions(filters?: TransactionFilters) {
   return useQuery({
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
+      // Buscar TODAS as transações do usuário (exceto espelhadas e transferências)
       let query = supabase
         .from("transactions")
         .select(`
@@ -107,11 +108,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      // Mostrar transações onde:
-      // - payer_id é null (transação própria, não paga por outro membro)
-      // - OU payer_id é o meu family_member_id (eu paguei)
-      // Transações onde outro membro pagou por mim aparecem em Compartilhados
-      query = query.is("payer_id", null);
+      // NÃO filtrar por payer_id - mostrar todas as transações do usuário
 
       // Filtrar por competence_date (campo obrigatório após migration)
       if (effectiveFilters?.startDate) {
@@ -529,18 +526,15 @@ export function useFinancialSummary() {
         .eq("user_id", user.id)
         .eq("is_active", true);
 
-      // Buscar transações do mês (APENAS BRL)
+      // Buscar transações do mês (TODAS do usuário, exceto espelhadas)
       const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
       const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
-      // Query base para transações do mês
-      // Mostrar apenas transações próprias (payer_id = null)
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount, type, source_transaction_id, payer_id, currency")
+        .select("amount, type, source_transaction_id, currency")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos
-        .is("payer_id", null) // Apenas transações próprias
         .gte("competence_date", startDate)
         .lte("competence_date", endDate);
 
