@@ -23,6 +23,7 @@ export interface Transaction {
   category_id?: string;
   trip_id?: string;
   is_shared?: boolean;
+  payer_id?: string;  // ID do membro que pagou (undefined = eu paguei)
   is_installment?: boolean;
   total_installments?: number;
   is_recurring?: boolean;
@@ -117,9 +118,16 @@ export function validateTransaction(
     errors.push('Tipo de transação é obrigatório');
   }
 
-  // Conta obrigatória para EXPENSE e INCOME
-  if ((transaction.type === 'EXPENSE' || transaction.type === 'INCOME') && !transaction.account_id) {
+  // Conta obrigatória para EXPENSE e INCOME (exceto quando pago por outro)
+  const isPaidByOther = !!transaction.payer_id;
+  
+  if ((transaction.type === 'EXPENSE' || transaction.type === 'INCOME') && !transaction.account_id && !isPaidByOther) {
     errors.push('Conta é obrigatória');
+  }
+  
+  // Validar que account_id é null quando pago por outro
+  if (isPaidByOther && transaction.account_id) {
+    errors.push('Transação paga por outra pessoa não deve ter conta vinculada');
   }
 
   // Conta origem e destino obrigatórias para TRANSFER

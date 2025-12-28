@@ -101,6 +101,7 @@ export function useTransactions(filters?: TransactionFilters) {
         `)
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas da lista principal
+        .or(`payer_id.is.null,payer_id.eq.${user!.id}`) // Excluir transações pagas por outros (aparecem em Compartilhados)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -322,6 +323,9 @@ export function useCreateTransaction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
+      queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] });
       toast.success("Transação criada com sucesso!");
     },
     onError: (error) => {
@@ -345,6 +349,9 @@ export function useDeleteTransaction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
+      queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] });
       toast.success("Transação removida!");
     },
     onError: (error) => {
@@ -377,9 +384,10 @@ export function useFinancialSummary() {
 
       const { data: transactions } = await supabase
         .from("transactions")
-        .select("amount, type, source_transaction_id")
+        .select("amount, type, source_transaction_id, payer_id")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos do cálculo
+        .or(`payer_id.is.null,payer_id.eq.${user.id}`) // Excluir transações pagas por outros
         .gte("competence_date", startDate) // Filtrar por competência
         .lte("competence_date", endDate);
 

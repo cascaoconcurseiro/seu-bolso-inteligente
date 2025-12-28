@@ -43,6 +43,7 @@ import {
 import { useTrips } from '@/hooks/useTrips';
 import { useFamilyMembers } from '@/hooks/useFamily';
 import { useTripMembers } from '@/hooks/useTripMembers';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
@@ -63,6 +64,7 @@ interface TransactionFormProps {
 
 export function TransactionForm({ onSuccess, onCancel, initialData, context }: TransactionFormProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const { data: trips } = useTrips();
@@ -183,11 +185,30 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
     ) || [];
 
-  // Filtrar membros da família: se tem viagem selecionada, mostrar apenas membros dessa viagem
+  // Membros disponíveis para divisão:
+  // - Se tem viagem selecionada: usar membros da viagem (trip_members) convertidos para formato FamilyMember
+  // - Senão: usar membros da família
   const availableMembers = tripId && tripMembers.length > 0
-    ? familyMembers.filter(member =>
-      tripMembers.some(tm => tm.user_id === member.linked_user_id)
-    )
+    ? tripMembers
+        .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
+        .map(tm => ({
+          id: tm.user_id, // Usar user_id como id para compatibilidade
+          name: tm.profiles?.full_name || tm.profiles?.email || 'Membro',
+          email: tm.profiles?.email || null,
+          linked_user_id: tm.user_id,
+          family_id: '', // Não relevante para viagens
+          user_id: null,
+          role: 'viewer' as const,
+          status: 'active',
+          invited_by: null,
+          created_at: tm.created_at,
+          updated_at: tm.updated_at,
+          avatar_url: null,
+          sharing_scope: 'all' as const,
+          scope_start_date: null,
+          scope_end_date: null,
+          scope_trip_id: null,
+        }))
     : familyMembers;
 
   const formatCurrency = (value: string) => {
@@ -219,6 +240,22 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
+  
+  // Verificar se a despesa é paga por outra pessoa
+  const isPaidByOther = payerId !== 'me' && payerId !== '';
+  
+  // Obter nome do pagador para exibição
+  const getPayerName = (id: string) => {
+    const member = familyMembers.find(m => m.id === id);
+    return member?.name || 'outra pessoa';
+  };
+  
+  // Limpar accountId quando payerId mudar para outro
+  useEffect(() => {
+    if (isPaidByOther) {
+      setAccountId('');
+    }
+  }, [isPaidByOther]);
 
   const buildSplitsForSubmit = (): TransactionSplit[] => {
     if (splits.length === 0) return [];
@@ -579,7 +616,19 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
         {/* Account */}
         {!isTransfer ? (
-          payerId === 'me' && (
+          isPaidByOther ? (
+            // Mensagem quando outro pagou - não mostra seleção de conta
+            <Alert className="bg-muted/50 border-primary/20">
+              <Users className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                💡 Despesa paga por <span className="font-semibold">{getPayerName(payerId)}</span> — não afeta suas contas.
+                <br />
+                <span className="text-xs text-muted-foreground">
+                  Esta despesa será registrada como débito seu com {getPayerName(payerId)}.
+                </span>
+              </AlertDescription>
+            </Alert>
+          ) : (
             <div className="space-y-2">
               <Label>{isExpense ? 'Pagar com' : 'Receber em'}</Label>
               <Select value={accountId} onValueChange={setAccountId}>

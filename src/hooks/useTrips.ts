@@ -77,15 +77,15 @@ export function useTrips() {
       
       if (!trips || trips.length === 0) return [];
 
-      // Buscar orçamentos pessoais para essas viagens
+      // Buscar orçamentos pessoais para essas viagens (de trip_members)
       const { data: budgets } = await supabase
-        .from("trip_participant_budgets")
-        .select("trip_id, budget")
+        .from("trip_members")
+        .select("trip_id, personal_budget")
         .eq("user_id", user.id)
         .in("trip_id", tripIds);
 
       // Mapear orçamentos para viagens
-      const budgetMap = new Map(budgets?.map(b => [b.trip_id, b.budget]) || []);
+      const budgetMap = new Map(budgets?.map(b => [b.trip_id, b.personal_budget]) || []);
       
       return trips.map(trip => ({
         ...trip,

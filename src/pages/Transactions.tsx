@@ -107,6 +107,24 @@ export function Transactions() {
     return member?.name || 'Outro membro';
   };
 
+  const getPayerInfo = (transaction: any) => {
+    // Se não é compartilhada ou não tem payer_id, não mostrar badge
+    if (!transaction.is_shared) return null;
+    
+    // Se payer_id é null ou é o próprio usuário, mostrar "Você pagou"
+    if (!transaction.payer_id || transaction.payer_id === user?.id) {
+      return { label: 'Você pagou', isMe: true };
+    }
+    
+    // Se payer_id é de outro membro, mostrar nome
+    const payer = familyMembers.find(m => m.id === transaction.payer_id);
+    if (payer) {
+      return { label: `Pago por ${payer.name}`, isMe: false };
+    }
+    
+    return null;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -216,6 +234,7 @@ export function Transactions() {
             const isMirror = !!transaction.source_transaction_id;
             const canEdit = isCreator || !isMirror;
             const canDelete = isCreator;
+            const payerInfo = getPayerInfo(transaction);
             
             return (
             <div
@@ -240,6 +259,16 @@ export function Transactions() {
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">
                         <User className="h-3 w-3" />
                         {creatorName}
+                      </span>
+                    )}
+                    {payerInfo && (
+                      <span className={cn(
+                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                        payerInfo.isMe 
+                          ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
+                          : "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
+                      )}>
+                        💳 {payerInfo.label}
                       </span>
                     )}
                   </div>

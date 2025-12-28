@@ -111,6 +111,35 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     enabled: !!user,
   });
 
+  // Fetch transactions paid by others (payer_id != user_id) - these are debts I owe
+  const { data: paidByOthersTransactions = [] } = useQuery({
+    queryKey: ['paid-by-others-transactions', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      // Get transactions where payer_id is set and different from user
+      const { data, error } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          payer:family_members!payer_id (
+            id,
+            name,
+            user_id,
+            linked_user_id
+          )
+        `)
+        .eq('user_id', user.id)
+        .not('payer_id', 'is', null)
+        .is('source_transaction_id', null)
+        .order('date', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
   const invoices = useMemo(() => {
     const invoiceMap: Record<string, InvoiceItem[]> = {};
     
@@ -206,8 +235,51 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
     });
 
+    // CASE 3: PAID BY OTHER (payer_id) - Transactions where another family member paid for me (DEBITS)
+    paidByOthersTransactions.forEach((tx: any) => {
+      if (tx.type !== 'EXPENSE') return;
+      
+      const txCurrency = 'BRL';
+      const payer = tx.payer;
+      
+      if (!payer) {
+        console.warn('Payer not found for transaction:', tx.id);
+        return;
+      }
+      
+      const targetMemberId = payer.id;
+      
+      if (!invoiceMap[targetMemberId]) {
+        invoiceMap[targetMemberId] = [];
+      }
+      
+      // Check if this transaction is already added (avoid duplicates with mirror transactions)
+      const existingItem = invoiceMap[targetMemberId].find(
+        item => item.originalTxId === tx.id && item.type === 'DEBIT'
+      );
+      
+      if (!existingItem) {
+        invoiceMap[targetMemberId].push({
+          id: `${tx.id}-debit-paidby-${targetMemberId}`,
+          originalTxId: tx.id,
+          description: tx.description,
+          date: tx.competence_date || tx.date, // Use competence_date for monthly filtering
+          amount: tx.amount,
+          type: 'DEBIT',
+          isPaid: tx.is_settled || false,
+          tripId: tx.trip_id || undefined,
+          memberId: targetMemberId,
+          memberName: payer.name,
+          currency: txCurrency,
+          installmentNumber: tx.current_installment,
+          totalInstallments: tx.total_installments,
+          creatorUserId: tx.user_id
+        });
+      }
+    });
+
     return invoiceMap;
-  }, [transactionsWithSplits, mirrorTransactions, members]);
+  }, [transactionsWithSplits, mirrorTransactions, paidByOthersTransactions, members]);
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
