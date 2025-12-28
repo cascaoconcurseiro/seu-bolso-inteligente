@@ -25,6 +25,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -52,11 +53,12 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, cardBrands, getBankById, internationalBanks } from "@/lib/banks";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
-import { useAccounts, useCreateAccount } from "@/hooks/useAccounts";
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from "@/hooks/useAccounts";
 import { useTransactions, useCreateTransaction, useDeleteTransaction } from "@/hooks/useTransactions";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -108,9 +110,11 @@ export function CreditCards() {
   const [newIsInternational, setNewIsInternational] = useState(false);
   const [newCurrency, setNewCurrency] = useState("USD");
 
-  const { data: accounts = [], isLoading } = useAccounts();
+  const { data: accounts = [], isLoading, refetch: refetchAccounts } = useAccounts();
   const { data: transactions = [], refetch: refetchTransactions } = useTransactions();
   const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
+  const deleteAccountMutation = useDeleteAccount();
   const createTransaction = useCreateTransaction();
   const deleteTransaction = useDeleteTransaction();
   const { toast: toastHook } = useToast();
@@ -121,6 +125,17 @@ export function CreditCards() {
     isOpen: false,
     transaction: null,
   });
+
+  // Edit/Delete card state
+  const [showEditCardDialog, setShowEditCardDialog] = useState(false);
+  const [deleteCardConfirm, setDeleteCardConfirm] = useState<{ isOpen: boolean; card: CreditCardAccount | null }>({
+    isOpen: false,
+    card: null,
+  });
+  const [editCardName, setEditCardName] = useState("");
+  const [editClosingDay, setEditClosingDay] = useState("");
+  const [editDueDay, setEditDueDay] = useState("");
+  const [editLimit, setEditLimit] = useState("");
 
   // Filter credit cards
   const creditCards = accounts.filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[];
@@ -237,6 +252,57 @@ export function CreditCards() {
     }
   };
 
+  // Card edit/delete handlers
+  const openEditCardDialog = (card: CreditCardAccount) => {
+    setEditCardName(card.name);
+    setEditClosingDay(card.closing_day?.toString() || "");
+    setEditDueDay(card.due_day?.toString() || "");
+    setEditLimit(card.credit_limit?.toString() || "");
+    setShowEditCardDialog(true);
+  };
+
+  const handleEditCard = async () => {
+    if (!selectedCard) return;
+
+    try {
+      await updateAccount.mutateAsync({
+        id: selectedCard.id,
+        name: editCardName,
+        closing_day: editClosingDay ? parseInt(editClosingDay) : null,
+        due_day: editDueDay ? parseInt(editDueDay) : null,
+        credit_limit: editLimit ? parseFloat(editLimit) : null,
+      });
+      toast.success("Cartão atualizado com sucesso!");
+      setShowEditCardDialog(false);
+      refetchAccounts();
+      // Atualizar o cartão selecionado
+      setSelectedCard(prev => prev ? {
+        ...prev,
+        name: editCardName,
+        closing_day: editClosingDay ? parseInt(editClosingDay) : null,
+        due_day: editDueDay ? parseInt(editDueDay) : null,
+        credit_limit: editLimit ? parseFloat(editLimit) : null,
+      } : null);
+    } catch (error) {
+      toast.error("Erro ao atualizar cartão");
+    }
+  };
+
+  const handleDeleteCard = async () => {
+    const card = deleteCardConfirm.card;
+    if (!card) return;
+
+    try {
+      await deleteAccountMutation.mutateAsync(card.id);
+      toast.success("Cartão excluído com sucesso!");
+      setDeleteCardConfirm({ isOpen: false, card: null });
+      goBack();
+      refetchAccounts();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao excluir cartão");
+    }
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -275,13 +341,35 @@ export function CreditCards() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1">
             <BankIcon bankId={selectedCard.bank_id} size="lg" />
             <div>
               <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
               <p className="text-muted-foreground">{bank.name}</p>
             </div>
           </div>
+          {/* Menu de ações do cartão */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => openEditCardDialog(selectedCard)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar Cartão
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setDeleteCardConfirm({ isOpen: true, card: selectedCard })}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir Cartão
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Month Navigation */}
@@ -579,6 +667,90 @@ export function CreditCards() {
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Edit Card Dialog */}
+        <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Cartão</DialogTitle>
+              <DialogDescription>Altere as informações do cartão</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Nome do cartão</Label>
+                <Input 
+                  value={editCardName}
+                  onChange={(e) => setEditCardName(e.target.value)}
+                  placeholder="Nome do cartão"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Dia de Fechamento</Label>
+                  <Input 
+                    type="number" 
+                    min={1} 
+                    max={31}
+                    value={editClosingDay}
+                    onChange={(e) => setEditClosingDay(e.target.value)}
+                    placeholder="20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Dia de Vencimento</Label>
+                  <Input 
+                    type="number" 
+                    min={1} 
+                    max={31}
+                    value={editDueDay}
+                    onChange={(e) => setEditDueDay(e.target.value)}
+                    placeholder="28"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Limite</Label>
+                <Input 
+                  type="number"
+                  value={editLimit}
+                  onChange={(e) => setEditLimit(e.target.value)}
+                  placeholder="10000"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEditCardDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleEditCard} disabled={updateAccount.isPending}>
+                {updateAccount.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Card Confirm */}
+        <AlertDialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Cartão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o cartão "{deleteCardConfirm.card?.name}"? 
+                Esta ação não pode ser desfeita e todas as transações vinculadas precisam ser migradas primeiro.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteCard} 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteAccountMutation.isPending}
+              >
+                {deleteAccountMutation.isPending ? "Excluindo..." : "Excluir"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

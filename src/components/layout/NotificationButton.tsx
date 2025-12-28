@@ -239,13 +239,21 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
     locale: ptBR,
   });
 
-  const content = (
+  const handleClick = () => {
+    onClick();
+    // Se tem action_url, navegar
+    if (notification.action_url && !notification.action_label) {
+      window.location.href = notification.action_url;
+    }
+  };
+
+  return (
     <div
       className={cn(
         "group relative flex gap-3 p-4 hover:bg-muted/50 transition-colors cursor-pointer",
         !notification.is_read && "bg-primary/5"
       )}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {/* Icon */}
       <div className={cn(
@@ -304,30 +312,16 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
 
         {/* Action button */}
         {notification.action_url && notification.action_label && (
-          <Button
-            variant="link"
-            size="sm"
-            className="h-auto p-0 mt-2 text-xs gap-1"
-            asChild
+          <Link 
+            to={notification.action_url}
+            className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Link to={notification.action_url}>
-              {notification.action_label}
-              <ExternalLink className="h-3 w-3" />
-            </Link>
-          </Button>
+            {notification.action_label}
+            <ExternalLink className="h-3 w-3" />
+          </Link>
         )}
       </div>
     </div>
   );
-
-  // Se tem action_url mas não tem label, envolve em Link
-  if (notification.action_url && !notification.action_label) {
-    return (
-      <Link to={notification.action_url} className="block">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
 }
