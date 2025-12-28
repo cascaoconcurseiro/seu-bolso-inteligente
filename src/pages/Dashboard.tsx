@@ -61,7 +61,7 @@ export function Dashboard() {
   const savings = income - expenses;
   const projectedBalance = balance + savings;
 
-  // Agrupar saldos por moeda (contas internacionais)
+  // Agrupar saldos por moeda (contas internacionais) - memoizado
   const balancesByForeignCurrency = useMemo(() => {
     if (!accounts) return {};
     
@@ -82,20 +82,24 @@ export function Dashboard() {
 
   const hasForeignBalances = Object.keys(balancesByForeignCurrency).length > 0;
 
-  // Cartões de crédito com faturas
-  const creditCards = accounts?.filter(a => a.type === "CREDIT_CARD") || [];
-  const creditCardsWithBalance = creditCards.filter(c => Number(c.balance) !== 0);
+  // Cartões de crédito com faturas - memoizado
+  const creditCardsWithBalance = useMemo(() => {
+    if (!accounts) return [];
+    return accounts.filter(a => a.type === "CREDIT_CARD" && Number(a.balance) !== 0);
+  }, [accounts]);
   
-  // Transações compartilhadas pendentes - DADOS REAIS
-  const sharedSummary = getSummary();
-  const membersWithPendingBalance = familyMembers.filter(m => {
-    const items = getFilteredInvoice(m.id);
-    const unpaidItems = items.filter(i => !i.isPaid);
-    const balance = unpaidItems.reduce((sum, i) => {
-      return sum + (i.type === 'CREDIT' ? i.amount : -i.amount);
-    }, 0);
-    return balance > 0; // Apenas membros que me devem
-  });
+  // Transações compartilhadas pendentes - memoizado
+  const membersWithPendingBalance = useMemo(() => {
+    if (!familyMembers.length) return [];
+    return familyMembers.filter(m => {
+      const items = getFilteredInvoice(m.id);
+      const unpaidItems = items.filter(i => !i.isPaid);
+      const balance = unpaidItems.reduce((sum, i) => {
+        return sum + (i.type === 'CREDIT' ? i.amount : -i.amount);
+      }, 0);
+      return balance > 0; // Apenas membros que me devem
+    });
+  }, [familyMembers, getFilteredInvoice]);
 
   // Contadores para acesso rápido
   const cardInvoicesCount = creditCardsWithBalance.length;
