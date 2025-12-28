@@ -38,21 +38,25 @@ export function usePermissions(): PermissionCheck {
  * Hook para verificar se o usuário pode editar/excluir uma transação específica
  */
 export function useTransactionPermissions(transaction?: {
+  user_id?: string | null;
   creator_user_id?: string | null;
   source_transaction_id?: string | null;
 }) {
   const { user } = useAuth();
-  const permissions = usePermissions();
 
-  // Se não tem transação, retorna permissões padrão
+  // Se não tem transação, retorna permissões padrão (pode criar)
   if (!transaction) {
     return {
-      canEdit: permissions.canEdit,
-      canDelete: permissions.canDelete,
-      isCreator: false,
+      canEdit: true,
+      canDelete: true,
+      isCreator: true,
       isMirror: false,
+      isOwner: true,
     };
   }
+
+  // Verifica se é o dono da transação (user_id)
+  const isOwner = transaction.user_id === user?.id;
 
   // Verifica se é o criador
   const isCreator = transaction.creator_user_id === user?.id;
@@ -60,10 +64,12 @@ export function useTransactionPermissions(transaction?: {
   // Verifica se é uma transação espelhada (mirror)
   const isMirror = !!transaction.source_transaction_id;
 
+  // Dono ou criador pode editar/excluir (exceto mirrors)
   return {
-    canEdit: isCreator || (permissions.canEdit && !isMirror),
-    canDelete: isCreator || permissions.canDelete,
+    canEdit: (isOwner || isCreator) && !isMirror,
+    canDelete: isOwner || isCreator,
     isCreator,
     isMirror,
+    isOwner,
   };
 }

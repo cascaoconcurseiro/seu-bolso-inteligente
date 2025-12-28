@@ -445,10 +445,13 @@ export function Transactions() {
               <div className="bg-card rounded-xl border border-border overflow-hidden">
                 {group.transactions.map((transaction, index) => {
                   const creatorName = getCreatorName(transaction.creator_user_id);
+                  // Verificar se é dono (user_id) ou criador (creator_user_id)
+                  const isOwner = transaction.user_id === user?.id;
                   const isCreator = transaction.creator_user_id === user?.id;
                   const isMirror = !!transaction.source_transaction_id;
-                  const canEdit = isCreator || !isMirror;
-                  const canDelete = isCreator;
+                  // Dono ou criador pode editar (exceto mirrors) e excluir
+                  const canEdit = (isOwner || isCreator) && !isMirror;
+                  const canDelete = isOwner || isCreator;
                   const payerInfo = getPayerInfo(transaction);
                   const pending = hasPendingSplits(transaction);
                   const settled = isFullySettled(transaction);
@@ -548,7 +551,7 @@ export function Transactions() {
                         </span>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                           {/* Botão Confirmar Ressarcimento - apenas para compartilhadas pendentes que eu paguei */}
-                          {transaction.is_shared && pending && isCreator && (
+                          {transaction.is_shared && pending && (isOwner || isCreator) && (
                             <Button
                               variant="ghost"
                               size="icon"
