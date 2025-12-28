@@ -133,7 +133,7 @@ export function Reports() {
       .slice(0, 10); // Top 10 categorias
   }, [periodTransactions]);
 
-  // Gastos por pessoa
+  // Gastos por pessoa (compartilhados)
   const personData = useMemo(() => {
     const personMap: Record<string, { 
       name: string;
@@ -141,24 +141,36 @@ export function Reports() {
       received: number;
       balance: number;
       count: number;
+      installmentsTotal: number;
+      installmentsRemaining: number;
+      installmentsCount: number;
     }> = {};
     
     // Processar transações compartilhadas
     periodTransactions.forEach(tx => {
       if (tx.is_shared && tx.transaction_splits) {
-        tx.transaction_splits.forEach(split => {
+        tx.transaction_splits.forEach((split: any) => {
           const member = familyMembers.find(m => m.id === split.member_id);
-          const memberName = member?.name || 'Desconhecido';
+          const memberName = member?.name || split.name || 'Desconhecido';
           
           if (!personMap[memberName]) {
-            personMap[memberName] = { name: memberName, spent: 0, received: 0, balance: 0, count: 0 };
+            personMap[memberName] = { 
+              name: memberName, 
+              spent: 0, 
+              received: 0, 
+              balance: 0, 
+              count: 0,
+              installmentsTotal: 0,
+              installmentsRemaining: 0,
+              installmentsCount: 0,
+            };
           }
           
-          // Se a pessoa pagou
+          // Se a pessoa pagou (é o pagador da transação)
           if (tx.payer_id === split.member_id) {
             personMap[memberName].spent += Number(tx.amount);
           } else {
-            // Se a pessoa deve
+            // Se a pessoa deve (split para ela)
             personMap[memberName].received += Number(split.amount);
           }
           
@@ -173,8 +185,72 @@ export function Reports() {
     });
     
     return Object.values(personMap)
+      .filter(p => p.spent > 0 || p.received > 0)
       .sort((a, b) => b.spent - a.spent);
   }, [periodTransactions, familyMembers]);
+
+  // Parcelamentos por pessoa (total de todas as parcelas futuras)
+  const installmentsByPerson = useMemo(() => {
+    const personMap: Record<string, {
+      name: string;
+      totalAmount: number;
+      remainingAmount: number;
+      totalInstallments: number;
+      remainingInstallments: number;
+      series: Set<string>;
+    }> = {};
+
+    // Buscar todas as transações parceladas (não apenas do período)
+    allTransactions
+      .filter(tx => tx.is_installment && tx.series_id)
+      .forEach(tx => {
+        // Verificar splits da transação
+        if (tx.is_shared && tx.transaction_splits) {
+          tx.transaction_splits.forEach((split: any) => {
+            const member = familyMembers.find(m => m.id === split.member_id);
+            const memberName = member?.name || split.name || 'Desconhecido';
+            
+            if (!personMap[memberName]) {
+              personMap[memberName] = {
+                name: memberName,
+                totalAmount: 0,
+                remainingAmount: 0,
+                totalInstallments: 0,
+                remainingInstallments: 0,
+                series: new Set(),
+              };
+            }
+
+            // Adicionar série se ainda não foi contada
+            if (!personMap[memberName].series.has(tx.series_id!)) {
+              personMap[memberName].series.add(tx.series_id!);
+            }
+
+            // Valor da parcela para esta pessoa
+            const splitAmount = Number(split.amount);
+            personMap[memberName].totalAmount += splitAmount;
+            
+            // Se a parcela ainda não foi paga (data futura ou não settled)
+            const txDate = new Date(tx.date);
+            const today = new Date();
+            if (txDate >= today || !split.is_settled) {
+              personMap[memberName].remainingAmount += splitAmount;
+              personMap[memberName].remainingInstallments += 1;
+            }
+            
+            personMap[memberName].totalInstallments += 1;
+          });
+        }
+      });
+
+    return Object.values(personMap)
+      .filter(p => p.totalInstallments > 0)
+      .map(p => ({
+        ...p,
+        seriesCount: p.series.size,
+      }))
+      .sort((a, b) => b.remainingAmount - a.remainingAmount);
+  }, [allTransactions, familyMembers]);
 
   // Evolução mensal (últimos 6 meses)
   const monthlyData = useMemo(() => {
@@ -465,11 +541,11 @@ export function Reports() {
           )}
         </section>
 
-        {/* By Person */}
+        {/* By Person - Gastos Compartilhados */}
         {personData.length > 0 && (
           <section className="p-6 rounded-xl border border-border lg:col-span-2">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">
-              Gastos por Pessoa
+              Gastos Compartilhados por Pessoa
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -484,7 +560,7 @@ export function Reports() {
                 </thead>
                 <tbody>
                   {personData.map((person) => (
-                    <tr key={person.name} className="border-b border-border last:border-0">
+                    <tr key={person.name} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="py-3 px-4 font-medium">{person.name}</td>
                       <td className="py-3 px-4 text-right font-mono text-positive">
                         {formatCurrency(person.spent, displayCurrency)}
@@ -504,6 +580,79 @@ export function Reports() {
                     </tr>
                   ))}
                 </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* Parcelamentos por Pessoa */}
+        {installmentsByPerson.length > 0 && (
+          <section className="p-6 rounded-xl border border-border lg:col-span-2">
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-2">
+              Parcelamentos por Pessoa
+            </h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Total de parcelas compartilhadas (todas as séries)
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Pessoa</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Total Parcelado</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Restante</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Parcelas</th>
+                    <th className="text-right py-3 px-4 text-xs uppercase tracking-widest text-muted-foreground font-medium">Séries</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {installmentsByPerson.map((person) => (
+                    <tr key={person.name} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 font-medium">{person.name}</td>
+                      <td className="py-3 px-4 text-right font-mono">
+                        {formatCurrency(person.totalAmount, displayCurrency)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono text-amber-600 dark:text-amber-400">
+                        {formatCurrency(person.remainingAmount, displayCurrency)}
+                      </td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">{person.remainingInstallments}</span>
+                        <span className="text-muted-foreground"> / {person.totalInstallments}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">
+                        {person.seriesCount} {person.seriesCount === 1 ? 'compra' : 'compras'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-border bg-muted/30">
+                    <td className="py-3 px-4 font-semibold">Total</td>
+                    <td className="py-3 px-4 text-right font-mono font-semibold">
+                      {formatCurrency(
+                        installmentsByPerson.reduce((sum, p) => sum + p.totalAmount, 0),
+                        displayCurrency
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right font-mono font-semibold text-amber-600 dark:text-amber-400">
+                      {formatCurrency(
+                        installmentsByPerson.reduce((sum, p) => sum + p.remainingAmount, 0),
+                        displayCurrency
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right font-semibold">
+                      <span className="text-amber-600 dark:text-amber-400">
+                        {installmentsByPerson.reduce((sum, p) => sum + p.remainingInstallments, 0)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {' / '}{installmentsByPerson.reduce((sum, p) => sum + p.totalInstallments, 0)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right text-muted-foreground font-semibold">
+                      {installmentsByPerson.reduce((sum, p) => sum + p.seriesCount, 0)} compras
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </section>
