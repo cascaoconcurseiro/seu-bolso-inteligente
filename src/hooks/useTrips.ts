@@ -87,15 +87,6 @@ export function useTrips() {
     refetchOnWindowFocus: false,
   });
 }
-      
-      return userTrips;
-    },
-    enabled: !!user,
-    retry: false,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
-  });
-}
 
 export function useTrip(id: string | null) {
   const { user } = useAuth();
