@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -117,6 +118,9 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* Greeting Card */}
+      <GreetingCard className="animate-fade-in" />
+
       {/* Hero Section */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
         <div className="space-y-2">
