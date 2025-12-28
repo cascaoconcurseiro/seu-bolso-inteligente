@@ -39,7 +39,7 @@ const CONFIRM_WORD = "RESETAR";
 interface UserOption {
   id: string;
   email: string;
-  name: string | null;
+  full_name: string | null;
 }
 
 export function AdminResetPanel() {
@@ -71,8 +71,9 @@ export function AdminResetPanel() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, name')
-        .order('name');
+        .select('id, email, full_name');
+      
+      console.log('Loaded users:', data, 'Error:', error);
       
       if (error) throw error;
       setUsers(data || []);
@@ -261,16 +262,21 @@ export function AdminResetPanel() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all" className="text-red-600 font-medium">
-                  🔴 TODOS OS USUÁRIOS
+                  🔴 TODOS OS USUÁRIOS ({users.length} cadastrados)
                 </SelectItem>
                 {isLoadingUsers ? (
                   <SelectItem value="loading" disabled>
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
                     Carregando...
+                  </SelectItem>
+                ) : users.length === 0 ? (
+                  <SelectItem value="none" disabled>
+                    Nenhum usuário encontrado
                   </SelectItem>
                 ) : (
                   users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
-                      {user.name || user.email}
+                      {user.full_name || user.email} ({user.email})
                     </SelectItem>
                   ))
                 )}
