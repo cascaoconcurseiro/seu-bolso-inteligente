@@ -93,15 +93,6 @@ export function useTransactions(filters?: TransactionFilters) {
   return useQuery({
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
-      // Buscar o family_member_id do usuário para filtrar corretamente
-      const { data: myMember } = await supabase
-        .from("family_members")
-        .select("id")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      
-      const myMemberId = myMember?.id;
-
       let query = supabase
         .from("transactions")
         .select(`
@@ -116,16 +107,11 @@ export function useTransactions(filters?: TransactionFilters) {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      // Filtrar transações pagas por outros (aparecem em Compartilhados)
-      // payer_id deve ser null OU igual ao meu family_member_id
-      if (myMemberId) {
-        query = query.or(`payer_id.is.null,payer_id.eq.${myMemberId}`);
-      } else {
-        query = query.is("payer_id", null);
-      }
-
-      // Filtrar por moeda (apenas BRL na lista principal)
-      query = query.or("currency.is.null,currency.eq.BRL");
+      // Mostrar transações onde:
+      // - payer_id é null (transação própria, não paga por outro membro)
+      // - OU payer_id é o meu family_member_id (eu paguei)
+      // Transações onde outro membro pagou por mim aparecem em Compartilhados
+      query = query.is("payer_id", null);
 
       // Filtrar por competence_date (campo obrigatório após migration)
       if (effectiveFilters?.startDate) {
@@ -536,15 +522,6 @@ export function useFinancialSummary() {
     queryFn: async () => {
       if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
 
-      // Buscar o family_member_id do usuário
-      const { data: myMember } = await supabase
-        .from("family_members")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      const myMemberId = myMember?.id;
-
       // Buscar contas para saldo total (APENAS BRL - contas nacionais)
       const { data: accounts } = await supabase
         .from("accounts")
@@ -557,22 +534,15 @@ export function useFinancialSummary() {
       const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
       // Query base para transações do mês
-      let txQuery = supabase
+      // Mostrar apenas transações próprias (payer_id = null)
+      const { data: transactions } = await supabase
         .from("transactions")
         .select("amount, type, source_transaction_id, payer_id, currency")
         .eq("user_id", user.id)
         .is("source_transaction_id", null) // Excluir espelhos
+        .is("payer_id", null) // Apenas transações próprias
         .gte("competence_date", startDate)
         .lte("competence_date", endDate);
-
-      // Filtrar por payer_id corretamente
-      if (myMemberId) {
-        txQuery = txQuery.or(`payer_id.is.null,payer_id.eq.${myMemberId}`);
-      } else {
-        txQuery = txQuery.is("payer_id", null);
-      }
-
-      const { data: transactions } = await txQuery;
 
       // Saldo: apenas contas nacionais (BRL)
       const balance = accounts?.reduce((sum, acc) => {
