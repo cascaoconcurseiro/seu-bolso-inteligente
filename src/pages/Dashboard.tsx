@@ -15,8 +15,16 @@ const formatCurrency = (value: number) => {
 
 const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
   const symbols: Record<string, string> = {
-    'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥',
-    'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'MXN': 'MX$',
+    'BRL': 'R$',
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CAD': 'C$',
+    'AUD': 'A$',
+    'CHF': 'CHF',
+    'CNY': '¥',
+    'MXN': 'MX$',
   };
   const symbol = symbols[currency] || currency;
   
@@ -28,9 +36,9 @@ const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
 };
 
 export function Dashboard() {
-  const { data: summary, isLoading: summaryLoading, isError: summaryError, error: summaryErrorObj } = useFinancialSummary();
-  const { data: transactions, isLoading: txLoading, isError: txError, error: txErrorObj } = useTransactions();
-  const { data: accounts, isLoading: accountsLoading, isError: accountsError, error: accountsErrorObj } = useAccounts();
+  const { data: summary, isLoading: summaryLoading, isError: summaryError } = useFinancialSummary();
+  const { data: transactions, isLoading: txLoading, isError: txError } = useTransactions();
+  const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
@@ -47,55 +55,6 @@ export function Dashboard() {
   const hasError = summaryError || txError || accountsError;
   const isLoading = (summaryLoading || txLoading || accountsLoading) && !hasError;
 
-  // Helper para extrair mensagem de erro
-  const getErrorMessage = (err: unknown): string => {
-    if (!err) return "Erro desconhecido";
-    if (err instanceof Error) return err.message;
-    if (typeof err === "string") return err;
-    try {
-      return JSON.stringify(err, null, 2);
-    } catch {
-      return "Erro ao serializar";
-    }
-  };
-
-  // DEBUG: Mostrar erros detalhados
-  if (hasError) {
-    return (
-      <div className="p-6 space-y-4">
-        <h2 className="text-xl font-bold text-red-500">Debug: Erros encontrados</h2>
-        
-        {summaryError && (
-          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useFinancialSummary:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
-              {getErrorMessage(summaryErrorObj)}
-            </pre>
-          </div>
-        )}
-        
-        {txError && (
-          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useTransactions:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
-              {getErrorMessage(txErrorObj)}
-            </pre>
-          </div>
-        )}
-        
-        {accountsError && (
-          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useAccounts:</p>
-            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300 whitespace-pre-wrap">
-              {getErrorMessage(accountsErrorObj)}
-            </pre>
-          </div>
-        )}
-        
-        <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
-      </div>
-    );
-  }
   const balance = summary?.balance || 0;
   const income = summary?.income || 0;
   const expenses = summary?.expenses || 0;
