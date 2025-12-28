@@ -40,17 +40,23 @@ export function useAccounts() {
   return useQuery({
     queryKey: ["accounts", user?.id],
     queryFn: async () => {
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from("accounts")
         .select("*")
+        .eq("user_id", user.id)
         .eq("is_active", true)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar contas:", error);
+        throw error;
+      }
       return data as Account[];
     },
     enabled: !!user,
-    staleTime: 60000, // Cache por 1 minuto
+    staleTime: 60000,
     retry: false,
   });
 }

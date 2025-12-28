@@ -28,9 +28,9 @@ const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
 };
 
 export function Dashboard() {
-  const { data: summary, isLoading: summaryLoading, isError: summaryError } = useFinancialSummary();
-  const { data: transactions, isLoading: txLoading, isError: txError } = useTransactions();
-  const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
+  const { data: summary, isLoading: summaryLoading, isError: summaryError, error: summaryErrorObj } = useFinancialSummary();
+  const { data: transactions, isLoading: txLoading, isError: txError, error: txErrorObj } = useTransactions();
+  const { data: accounts, isLoading: accountsLoading, isError: accountsError, error: accountsErrorObj } = useAccounts();
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
@@ -47,7 +47,43 @@ export function Dashboard() {
   const hasError = summaryError || txError || accountsError;
   const isLoading = (summaryLoading || txLoading || accountsLoading) && !hasError;
 
-  // Cálculos
+  // DEBUG: Mostrar erros detalhados
+  if (hasError) {
+    return (
+      <div className="p-6 space-y-4">
+        <h2 className="text-xl font-bold text-red-500">Debug: Erros encontrados</h2>
+        
+        {summaryError && (
+          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useFinancialSummary:</p>
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
+              {JSON.stringify(summaryErrorObj, null, 2)}
+            </pre>
+          </div>
+        )}
+        
+        {txError && (
+          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useTransactions:</p>
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
+              {JSON.stringify(txErrorObj, null, 2)}
+            </pre>
+          </div>
+        )}
+        
+        {accountsError && (
+          <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="font-semibold text-red-700 dark:text-red-400">Erro em useAccounts:</p>
+            <pre className="text-xs mt-2 overflow-auto text-red-600 dark:text-red-300">
+              {JSON.stringify(accountsErrorObj, null, 2)}
+            </pre>
+          </div>
+        )}
+        
+        <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+      </div>
+    );
+  }
   const balance = summary?.balance || 0;
   const income = summary?.income || 0;
   const expenses = summary?.expenses || 0;
@@ -79,16 +115,6 @@ export function Dashboard() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Se tiver erro, mostrar mensagem
-  if (hasError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <p className="text-muted-foreground">Erro ao carregar dados</p>
-        <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
       </div>
     );
   }
