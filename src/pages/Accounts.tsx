@@ -58,9 +58,6 @@ const accountTypeIcons = {
   SAVINGS: PiggyBank,
   INVESTMENT: TrendingUp,
   CASH: Banknote,
-  // Tipos internacionais
-  GLOBAL: Globe,
-  DIGITAL_WALLET: Wallet,
 };
 
 const accountTypeLabels = {
@@ -68,18 +65,14 @@ const accountTypeLabels = {
   SAVINGS: "Poupança",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
-  // Tipos internacionais
-  GLOBAL: "Conta Global",
-  DIGITAL_WALLET: "Carteira Digital",
 };
 
-// Tipos de conta para contas internacionais
+// Tipos de conta para contas internacionais (usam os mesmos tipos válidos)
 const internationalAccountTypes = [
-  { value: "GLOBAL", label: "Conta Global" },
-  { value: "DIGITAL_WALLET", label: "Carteira Digital" },
-  { value: "CHECKING", label: "Conta Corrente" },
+  { value: "CHECKING", label: "Conta Corrente / Global" },
   { value: "SAVINGS", label: "Poupança" },
   { value: "INVESTMENT", label: "Investimento" },
+  { value: "CASH", label: "Carteira Digital / Dinheiro" },
 ];
 
 // Tipos de conta para contas nacionais
@@ -152,7 +145,7 @@ export function Accounts() {
   const handleInternationalChange = (checked: boolean) => {
     setIsInternational(checked);
     setBankId(""); // Reset bank selection
-    setType(checked ? "GLOBAL" : "CHECKING"); // Tipo padrão apropriado
+    setType("CHECKING"); // Tipo padrão para ambos
   };
 
   // Filter only non-credit card accounts
