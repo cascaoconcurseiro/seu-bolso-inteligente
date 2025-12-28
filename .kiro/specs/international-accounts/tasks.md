@@ -10,10 +10,12 @@
 - [x] Show correct currency symbol in amount field
 - [x] Save transaction with correct currency field
 - [x] Show message when no compatible account exists
+- [x] Clear account selection when trip changes
 
 ## Task 3: Update useTransactions to Filter Foreign Currency
 - [x] Filter out foreign currency transactions from main page (already done)
 - [x] Add currency field to CreateTransactionInput
+- [x] Add currency field to Transaction interface
 
 ## Task 4: Display International Accounts with Visual Indicator
 - [x] Show currency badge on international accounts in Settings
