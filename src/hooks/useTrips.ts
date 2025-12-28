@@ -54,11 +54,23 @@ export function useTrips() {
     queryFn: async () => {
       if (!user) return [];
 
-      // Buscar viagens onde o usuário é owner OU participante
+      // CORREÇÃO: Buscar viagens através de trip_members
+      const { data: memberTrips, error: memberError } = await supabase
+        .from("trip_members")
+        .select("trip_id")
+        .eq("user_id", user.id);
+
+      if (memberError) throw memberError;
+      
+      if (!memberTrips || memberTrips.length === 0) return [];
+
+      const tripIds = memberTrips.map(m => m.trip_id);
+
+      // Buscar as viagens completas
       const { data: trips, error: tripsError } = await supabase
         .from("trips")
         .select("*")
-        .eq("user_id", user.id)
+        .in("id", tripIds)
         .order("start_date", { ascending: false });
 
       if (tripsError) throw tripsError;
@@ -66,7 +78,6 @@ export function useTrips() {
       if (!trips || trips.length === 0) return [];
 
       // Buscar orçamentos pessoais para essas viagens
-      const tripIds = trips.map(t => t.id);
       const { data: budgets } = await supabase
         .from("trip_participant_budgets")
         .select("trip_id, budget")
@@ -168,15 +179,26 @@ export function useCreateTrip() {
 
         if (invitationsError) {
           console.error("Erro ao criar convites:", invitationsError);
-          // Não falhar a criação da viagem se houver erro ao criar convites
+          toast.warning(
+            `Viagem criada, mas houve erro ao enviar convites: ${invitationsError.message}`,
+            { duration: 5000 }
+          );
+        } else {
+          toast.success(
+            `Viagem criada com sucesso! ${memberIds.length} convite(s) enviado(s).`,
+            { duration: 3000 }
+          );
         }
+      } else {
+        // Sem convites, apenas sucesso simples
+        toast.success("Viagem criada com sucesso!");
       }
 
       return data as Trip;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
-      toast.success("Viagem criada com sucesso!");
+      // Não mostrar toast aqui se já mostramos acima
     },
     onError: (error) => {
       toast.error("Erro ao criar viagem: " + error.message);
