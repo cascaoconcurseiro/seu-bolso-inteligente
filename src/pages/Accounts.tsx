@@ -32,13 +32,11 @@ import {
 import { 
   Wallet, 
   Plus, 
-  Trash2, 
   Landmark,
   PiggyBank,
   TrendingUp,
   Banknote,
   Loader2,
-  TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
   Globe,
@@ -50,8 +48,6 @@ import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAcco
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 const accountTypeIcons = {
   CHECKING: Landmark,
@@ -67,15 +63,10 @@ const accountTypeLabels = {
   CASH: "Dinheiro",
 };
 
-// Label especial para contas internacionais
-const internationalAccountLabel = "Conta Global";
-
-// Tipos de conta para contas internacionais (apenas Conta Global - usa CHECKING internamente)
 const internationalAccountTypes = [
   { value: "CHECKING", label: "Conta Global" },
 ];
 
-// Tipos de conta para contas nacionais
 const nationalAccountTypes = [
   { value: "CHECKING", label: "Conta Corrente" },
   { value: "SAVINGS", label: "Poupança" },
@@ -83,45 +74,20 @@ const nationalAccountTypes = [
   { value: "CASH", label: "Dinheiro" },
 ];
 
-// Lista expandida de moedas
 const currencies = [
-  // Américas
   { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
   { value: "CAD", label: "CAD - Dólar Canadense", symbol: "C$" },
-  { value: "MXN", label: "MXN - Peso Mexicano", symbol: "MX$" },
-  { value: "ARS", label: "ARS - Peso Argentino", symbol: "AR$" },
-  { value: "CLP", label: "CLP - Peso Chileno", symbol: "CL$" },
-  { value: "COP", label: "COP - Peso Colombiano", symbol: "CO$" },
-  { value: "PEN", label: "PEN - Sol Peruano", symbol: "S/" },
-  { value: "UYU", label: "UYU - Peso Uruguaio", symbol: "UY$" },
-  // Europa
   { value: "EUR", label: "EUR - Euro", symbol: "€" },
   { value: "GBP", label: "GBP - Libra Esterlina", symbol: "£" },
-  { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
-  { value: "SEK", label: "SEK - Coroa Sueca", symbol: "kr" },
-  { value: "NOK", label: "NOK - Coroa Norueguesa", symbol: "kr" },
-  { value: "DKK", label: "DKK - Coroa Dinamarquesa", symbol: "kr" },
-  { value: "PLN", label: "PLN - Zloty Polonês", symbol: "zł" },
-  { value: "CZK", label: "CZK - Coroa Tcheca", symbol: "Kč" },
-  { value: "HUF", label: "HUF - Florim Húngaro", symbol: "Ft" },
-  { value: "TRY", label: "TRY - Lira Turca", symbol: "₺" },
-  // Ásia e Oceania
   { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
-  { value: "CNY", label: "CNY - Yuan Chinês", symbol: "¥" },
-  { value: "HKD", label: "HKD - Dólar de Hong Kong", symbol: "HK$" },
-  { value: "SGD", label: "SGD - Dólar de Singapura", symbol: "S$" },
-  { value: "KRW", label: "KRW - Won Sul-Coreano", symbol: "₩" },
-  { value: "INR", label: "INR - Rupia Indiana", symbol: "₹" },
-  { value: "THB", label: "THB - Baht Tailandês", symbol: "฿" },
   { value: "AUD", label: "AUD - Dólar Australiano", symbol: "A$" },
-  { value: "NZD", label: "NZD - Dólar Neozelandês", symbol: "NZ$" },
-  // Oriente Médio e África
-  { value: "AED", label: "AED - Dirham dos Emirados", symbol: "د.إ" },
-  { value: "SAR", label: "SAR - Rial Saudita", symbol: "﷼" },
-  { value: "ILS", label: "ILS - Shekel Israelense", symbol: "₪" },
-  { value: "ZAR", label: "ZAR - Rand Sul-Africano", symbol: "R" },
-  { value: "EGP", label: "EGP - Libra Egípcia", symbol: "E£" },
+  { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
 ];
+
+const getCurrencySymbol = (currency: string) => {
+  const found = currencies.find(c => c.value === currency);
+  return found?.symbol || currency;
+};
 
 export function Accounts() {
   const { data: accounts = [], isLoading } = useAccounts();
@@ -132,23 +98,18 @@ export function Accounts() {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Form state
-  const [name, setName] = useState("");
   const [type, setType] = useState<string>("CHECKING");
   const [bankId, setBankId] = useState("");
   const [balance, setBalance] = useState("");
   const [isInternational, setIsInternational] = useState(false);
   const [currency, setCurrency] = useState("USD");
 
-  // Atualizar tipo padrão quando mudar entre nacional/internacional
   const handleInternationalChange = (checked: boolean) => {
     setIsInternational(checked);
-    setBankId(""); // Reset bank selection
-    setType("CHECKING"); // Tipo padrão para ambos
+    setBankId("");
+    setType("CHECKING");
   };
 
-  // Filter only non-credit card accounts
   const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
   const nationalAccounts = regularAccounts.filter(a => !a.is_international);
   const internationalAccounts = regularAccounts.filter(a => a.is_international);
@@ -157,7 +118,6 @@ export function Accounts() {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
 
-  // Função para pegar últimas 3 transações de uma conta
   const getLastTransactions = (accountId: string, limit: number = 3) => {
     return allTransactions
       .filter(t => t.account_id === accountId || t.destination_account_id === accountId)
@@ -166,7 +126,6 @@ export function Accounts() {
   };
 
   const resetForm = () => {
-    setName("");
     setType("CHECKING");
     setBankId("");
     setBalance("");
@@ -176,8 +135,6 @@ export function Accounts() {
 
   const handleCreate = async () => {
     const bank = bankId ? getBankById(bankId) : null;
-    
-    // Gera nome automaticamente baseado no banco e tipo
     const accountName = bank 
       ? `${bank.name} - ${accountTypeLabels[type as keyof typeof accountTypeLabels] || type}` 
       : accountTypeLabels[type as keyof typeof accountTypeLabels] || type;
@@ -203,7 +160,6 @@ export function Accounts() {
   };
 
   const totalBalance = nationalAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
-  const totalInternationalBalance = internationalAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   if (isLoading) {
     return (
@@ -221,12 +177,8 @@ export function Accounts() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Contas</h1>
           <p className="text-muted-foreground mt-1">Gerencie suas contas bancárias</p>
         </div>
-        <Button
-          size="lg"
-          onClick={() => setShowAddDialog(true)}
-          className="group transition-all hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" />
+        <Button size="lg" onClick={() => setShowAddDialog(true)} className="group">
+          <Plus className="h-5 w-5 mr-2" />
           Nova conta
         </Button>
       </div>
@@ -236,10 +188,7 @@ export function Accounts() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground mb-2">Saldo Total (BRL)</p>
-            <p className={cn(
-              "font-mono text-4xl font-bold",
-              totalBalance >= 0 ? "text-positive" : "text-negative"
-            )}>
+            <p className={cn("font-mono text-4xl font-bold", totalBalance >= 0 ? "text-positive" : "text-negative")}>
               {formatCurrency(totalBalance)}
             </p>
           </div>
@@ -272,18 +221,11 @@ export function Accounts() {
                 <Link
                   key={account.id}
                   to={`/contas/${account.id}`}
-                  className="group flex flex-col rounded-xl border border-border 
-                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  {/* Card Header with Bank Color */}
-                  <div 
-                    className="p-4 text-white"
-                    style={{ backgroundColor: bank.color }}
-                  >
+                  <div className="p-4" style={{ backgroundColor: bank.color }}>
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20"
-                      >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20">
                         <Icon className="h-5 w-5" style={{ color: bank.textColor }} />
                       </div>
                       <div>
@@ -295,24 +237,15 @@ export function Accounts() {
                         </p>
                       </div>
                     </div>
-                    
-                    {/* Balance */}
                     <div className="mt-4">
                       <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
-                      <p 
-                        className="font-mono text-2xl font-bold"
-                        style={{ color: bank.textColor }}
-                      >
+                      <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
                         {formatCurrency(Number(account.balance))}
                       </p>
                     </div>
                   </div>
-
-                  {/* Last Transactions */}
                   <div className="p-4 space-y-2 flex-1 bg-background">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                      Últimas transações
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
                     {lastTransactions.length === 0 ? (
                       <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
                     ) : (
@@ -328,10 +261,7 @@ export function Accounts() {
                               )}
                               <span className="truncate text-muted-foreground">{tx.description}</span>
                             </div>
-                            <span className={cn(
-                              "font-mono font-medium ml-2 flex-shrink-0",
-                              isIncome ? "text-positive" : "text-negative"
-                            )}>
+                            <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
                               {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
                             </span>
                           </div>
@@ -366,62 +296,42 @@ export function Accounts() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {internationalAccounts.map((account) => {
               const lastTransactions = getLastTransactions(account.id, 3);
-              const currencySymbol = account.currency === 'USD' ? '$' : account.currency === 'EUR' ? '€' : account.currency;
+              const currencySymbol = getCurrencySymbol(account.currency || 'USD');
               const bank = getBankById(account.bank_id);
               
               return (
                 <Link
                   key={account.id}
                   to={`/contas/${account.id}`}
-                  className="group flex flex-col rounded-xl border border-border 
-                             hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  {/* Card Header with Bank Color */}
-                  <div 
-                    className="p-4 text-white relative"
-                    style={{ backgroundColor: bank.color }}
-                  >
-                    {/* International Badge */}
+                  <div className="p-4 relative" style={{ backgroundColor: bank.color }}>
                     <div className="absolute top-2 right-2">
                       <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
                         <Globe className="h-3 w-3" />
                         {account.currency}
                       </span>
                     </div>
-                    
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20"
-                      >
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20">
                         <Globe className="h-5 w-5" style={{ color: bank.textColor }} />
                       </div>
                       <div>
                         <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
                           {account.name}
                         </p>
-                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>
-                          Conta Global
-                        </p>
+                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>Conta Global</p>
                       </div>
                     </div>
-                    
-                    {/* Balance */}
                     <div className="mt-4">
                       <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
-                      <p 
-                        className="font-mono text-2xl font-bold"
-                        style={{ color: bank.textColor }}
-                      >
+                      <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
                         {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </p>
                     </div>
                   </div>
-
-                  {/* Last Transactions */}
                   <div className="p-4 space-y-2 flex-1 bg-background">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                      Últimas transações
-                    </p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
                     {lastTransactions.length === 0 ? (
                       <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
                     ) : (
@@ -437,10 +347,7 @@ export function Accounts() {
                               )}
                               <span className="truncate text-muted-foreground">{tx.description}</span>
                             </div>
-                            <span className={cn(
-                              "font-mono font-medium ml-2 flex-shrink-0",
-                              isIncome ? "text-positive" : "text-negative"
-                            )}>
+                            <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
                               {isIncome ? "+" : "-"}{currencySymbol}{Math.abs(Number(tx.amount)).toFixed(2)}
                             </span>
                           </div>
@@ -464,7 +371,6 @@ export function Accounts() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {/* Toggle Internacional */}
             <div className="p-4 rounded-xl border border-border space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -474,10 +380,7 @@ export function Accounts() {
                     <p className="text-sm text-muted-foreground">Nomad, Wise, etc.</p>
                   </div>
                 </div>
-                <Switch 
-                  checked={isInternational} 
-                  onCheckedChange={handleInternationalChange} 
-                />
+                <Switch checked={isInternational} onCheckedChange={handleInternationalChange} />
               </div>
             </div>
 
@@ -489,14 +392,11 @@ export function Accounts() {
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   {isInternational ? (
-                    // Bancos internacionais
                     Object.values(internationalBanks).map((bank) => (
                       <SelectItem key={bank.id} value={bank.id}>
                         <div className="flex items-center gap-3">
-                          <div 
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                            style={{ backgroundColor: bank.color, color: bank.textColor }}
-                          >
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
+                            style={{ backgroundColor: bank.color, color: bank.textColor }}>
                             {bank.icon}
                           </div>
                           <span>{bank.name}</span>
@@ -504,7 +404,6 @@ export function Accounts() {
                       </SelectItem>
                     ))
                   ) : (
-                    // Bancos nacionais
                     Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
                       <SelectItem key={bank.id} value={bank.id}>
                         <div className="flex items-center gap-3">
@@ -518,7 +417,6 @@ export function Accounts() {
               </Select>
             </div>
 
-            {/* Moeda (apenas para internacional) */}
             {isInternational && (
               <div className="space-y-2">
                 <Label>Moeda</Label>
@@ -526,13 +424,11 @@ export function Accounts() {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
+                  <SelectContent>
                     {currencies.map((curr) => (
                       <SelectItem key={curr.value} value={curr.value}>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs w-6">{curr.symbol}</span>
-                          <span>{curr.label}</span>
-                        </div>
+                        <span className="font-mono text-xs mr-2">{curr.symbol}</span>
+                        {curr.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -548,9 +444,7 @@ export function Accounts() {
                 </SelectTrigger>
                 <SelectContent>
                   {(isInternational ? internationalAccountTypes : nationalAccountTypes).map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -558,19 +452,12 @@ export function Accounts() {
 
             <div className="space-y-2">
               <Label>Saldo inicial {isInternational && `(${currency})`}</Label>
-              <Input
-                type="number"
-                placeholder="0,00"
-                value={balance}
-                onChange={(e) => setBalance(e.target.value)}
-              />
+              <Input type="number" placeholder="0,00" value={balance} onChange={(e) => setBalance(e.target.value)} />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancelar</Button>
             <Button onClick={handleCreate} disabled={!bankId || createAccount.isPending}>
               {createAccount.isPending ? "Criando..." : "Criar conta"}
             </Button>
@@ -583,27 +470,18 @@ export function Accounts() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A conta será removida permanentemente.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Transaction Modal */}
-      <TransactionModal
-        open={showTransactionModal}
-        onOpenChange={setShowTransactionModal}
-      />
+      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
     </div>
   );
 }

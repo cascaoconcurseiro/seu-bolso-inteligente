@@ -100,21 +100,26 @@ export function AccountDetail() {
       </div>
 
       {/* Saldo Card */}
-      <div className="p-8 rounded-2xl border border-border bg-gradient-to-br from-primary/5 to-primary/10">
-        <p className="text-sm text-muted-foreground mb-2">Saldo {isCredit ? "Atual" : "Disponível"}</p>
-        <p className={cn(
-          "font-mono text-5xl font-bold mb-6",
-          Number(account.balance) >= 0 ? "text-positive" : "text-negative"
-        )}>
+      <div 
+        className="p-8 rounded-2xl border border-border"
+        style={{ backgroundColor: bank?.color || '#6366f1' }}
+      >
+        <p className="text-sm mb-2" style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
+          Saldo {isCredit ? "Atual" : "Disponível"}
+        </p>
+        <p 
+          className="font-mono text-5xl font-bold mb-6"
+          style={{ color: bank?.textColor || '#fff' }}
+        >
           {Number(account.balance) >= 0 ? "" : "-"}{formatCurrency(Number(account.balance), accountCurrency)}
         </p>
         {isCredit && account.credit_limit && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
             Limite: {formatCurrency(Number(account.credit_limit), accountCurrency)}
           </p>
         )}
         {account.is_international && (
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+          <p className="text-xs mt-2" style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
             🌍 Conta Internacional ({accountCurrency})
           </p>
         )}

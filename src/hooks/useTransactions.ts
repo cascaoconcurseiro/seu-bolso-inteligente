@@ -109,13 +109,21 @@ export function useTransactions(filters?: TransactionFilters) {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
-      // CORREÇÃO CRÍTICA: Filtrar por COMPETÊNCIA, não por data da transação
-      // Isso evita acúmulo de parcelas ao navegar pelos meses
-      if (effectiveFilters?.startDate) {
-        query = query.gte("competence_date", effectiveFilters.startDate);
-      }
-      if (effectiveFilters?.endDate) {
-        query = query.lte("competence_date", effectiveFilters.endDate);
+      // Filtrar por data - usar competence_date se existir, senão usar date
+      // Isso garante compatibilidade com transações antigas que não têm competence_date
+      if (effectiveFilters?.startDate && effectiveFilters?.endDate) {
+        // Usar OR para pegar transações com competence_date OU date no período
+        query = query.or(
+          `and(competence_date.gte.${effectiveFilters.startDate},competence_date.lte.${effectiveFilters.endDate}),and(competence_date.is.null,date.gte.${effectiveFilters.startDate},date.lte.${effectiveFilters.endDate})`
+        );
+      } else if (effectiveFilters?.startDate) {
+        query = query.or(
+          `competence_date.gte.${effectiveFilters.startDate},and(competence_date.is.null,date.gte.${effectiveFilters.startDate})`
+        );
+      } else if (effectiveFilters?.endDate) {
+        query = query.or(
+          `competence_date.lte.${effectiveFilters.endDate},and(competence_date.is.null,date.lte.${effectiveFilters.endDate})`
+        );
       }
       if (effectiveFilters?.type) {
         query = query.eq("type", effectiveFilters.type);
