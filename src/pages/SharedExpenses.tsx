@@ -182,15 +182,9 @@ export function SharedExpenses() {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
       
-      console.log('All items for member:', items);
-      console.log('Selected items:', selectedItems);
-      
       const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
-
-      console.log('Items to settle:', itemsToSettle);
-      console.log('Items to settle with splitId:', itemsToSettle.filter(i => i.splitId));
 
       if (itemsToSettle.length === 0) {
         toast.error("Nenhum item para acertar");
@@ -262,7 +256,6 @@ export function SharedExpenses() {
       for (const item of itemsToSettle) {
         if (item.type === 'CREDIT' && item.splitId) {
           // CREDIT: Atualizar o split (alguém me deve)
-          console.log('Updating split:', item.splitId);
           const { error, data } = await supabase
             .from('transaction_splits')
             .update({
@@ -276,13 +269,10 @@ export function SharedExpenses() {
           if (error) {
             console.error('Error updating split:', error);
             updateErrors.push(`Split ${item.splitId}: ${error.message}`);
-          } else {
-            console.log('Split updated successfully:', data);
           }
         } else if (item.type === 'DEBIT') {
           // DEBIT: Atualizar a transação espelhada (eu devo para alguém)
           // originalTxId agora é o ID da transação espelhada que pertence ao usuário atual
-          console.log('Updating mirror transaction:', item.originalTxId);
           const { error, data } = await supabase
             .from('transactions')
             .update({
@@ -295,14 +285,10 @@ export function SharedExpenses() {
           if (error) {
             console.error('Error updating transaction:', error);
             updateErrors.push(`Transaction ${item.originalTxId}: ${error.message}`);
-          } else {
-            console.log('Transaction updated successfully:', data);
-            
+          } else if (!data || data.length === 0) {
             // Se não atualizou nenhum registro, pode ser que originalTxId seja da transação original
             // Nesse caso, não podemos atualizar (pertence a outro usuário)
-            if (!data || data.length === 0) {
-              console.warn('No rows updated - transaction may belong to another user');
-            }
+            console.warn('No rows updated - transaction may belong to another user');
           }
         }
       }

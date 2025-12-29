@@ -53,8 +53,6 @@ export function usePendingTripInvitations() {
         const tripIds = [...new Set(data.map(inv => inv.trip_id))];
         const inviterIds = [...new Set(data.map(inv => inv.inviter_id))];
 
-        console.log("� Buscando viagens e perfis separadamente...");
-
         // Buscar Viagens e Profiles em paralelo para performance
         const [tripsResult, profilesResult] = await Promise.all([
           supabase
