@@ -93,25 +93,28 @@ export function useCreateAccount() {
       // Se tem saldo inicial e não é cartão de crédito, criar transação de saldo inicial
       // O trigger vai atualizar o saldo da conta automaticamente
       if (input.balance && input.balance > 0 && input.type !== 'CREDIT_CARD') {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+        const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+        
         const { error: txError } = await supabase.from('transactions').insert({
           user_id: user.id,
+          creator_user_id: user.id,
           account_id: data.id,
           type: 'INCOME',
           amount: input.balance,
           description: 'Saldo inicial',
-          date: new Date().toISOString().split('T')[0],
-          competence_date: new Date().toISOString().split('T')[0],
+          date: dateStr,
+          competence_date: competenceStr,
           domain: 'PERSONAL',
           is_shared: false,
           is_installment: false,
           is_recurring: false,
-          sync_status: 'SYNCED',
-          is_settled: true,
         });
         
         if (txError) {
           console.error('Erro ao criar transação de saldo inicial:', txError);
-          // Não falhar a criação da conta, apenas logar o erro
+          throw new Error('Erro ao criar saldo inicial: ' + txError.message);
         }
       }
       
