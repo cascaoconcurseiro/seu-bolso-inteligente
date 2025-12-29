@@ -65,6 +65,16 @@ export function Family() {
   const isLoading = familyLoading || membersLoading;
   const isOwner = family?.owner_id === user?.id;
 
+  console.log('👨‍👩‍👧‍👦 Family Page:', {
+    userId: user?.id,
+    familyId: family?.id,
+    ownerId: family?.owner_id,
+    isOwner,
+    familyData: family,
+    membersCount: members.length,
+    members
+  });
+
   // Incluir o dono da família na lista de membros ativos
   const activeMembers = members.filter((m) => m.status === "active");
   
@@ -72,13 +82,13 @@ export function Family() {
   const allActiveMembers = isOwner ? activeMembers : [
     ...activeMembers,
     // Adicionar o dono como um "pseudo-membro"
-    ...(family && family.owner ? [{
+    ...(family ? [{
       id: 'owner-' + family.owner_id,
       family_id: family.id,
       user_id: family.owner_id,
       linked_user_id: null,
-      name: family.owner.full_name || family.owner.email || 'Proprietário',
-      email: family.owner.email,
+      name: (family as any).owner?.full_name || (family as any).owner?.email || 'Proprietário',
+      email: (family as any).owner?.email || null,
       role: 'admin' as FamilyRole,
       status: 'active' as const,
       invited_by: null,
