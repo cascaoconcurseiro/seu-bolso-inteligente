@@ -65,7 +65,7 @@ export function Dashboard() {
 
   // Saldos em moedas estrangeiras
   const balancesByForeignCurrency = useMemo(() => {
-    if (!accounts) return {};
+    if (!accounts || !Array.isArray(accounts)) return {};
     const grouped: Record<string, number> = {};
     accounts
       .filter(a => a.is_international && a.type !== 'CREDIT_CARD')
@@ -80,7 +80,7 @@ export function Dashboard() {
 
   // Cartões com fatura
   const creditCardsWithBalance = useMemo(() => {
-    if (!accounts) return [];
+    if (!accounts || !Array.isArray(accounts)) return [];
     return accounts.filter(a => a.type === "CREDIT_CARD" && Number(a.balance) !== 0);
   }, [accounts]);
 
