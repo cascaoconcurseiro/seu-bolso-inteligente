@@ -106,3 +106,82 @@ export function useDeleteNotification() {
     },
   });
 }
+
+// Hook para buscar preferências de notificação
+export function useNotificationPreferences() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["notification-preferences", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from("notification_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      // Se não existir, criar com valores padrão
+      if (!data) {
+        const { data: newPrefs, error: insertError } = await supabase
+          .from("notification_preferences")
+          .insert({
+            user_id: user.id,
+            invoice_due_enabled: true,
+            invoice_due_days_before: 3,
+            budget_warning_enabled: true,
+            budget_warning_threshold: 80,
+            shared_pending_enabled: true,
+            recurring_enabled: true,
+            savings_goal_enabled: true,
+            weekly_summary_enabled: true,
+            email_notifications: false,
+            push_notifications: false,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        return newPrefs;
+      }
+
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (updates: Partial<any>) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("notification_preferences")
+        .update(updates)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-preferences"] });
+      toast.success("Preferências atualizadas");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar preferências");
+      console.error(error);
+    },
+  });
+
+  return {
+    preferences: query.data,
+    isLoading: query.isLoading,
+    updatePreferences: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+  };
+}
