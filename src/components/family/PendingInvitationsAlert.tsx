@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Check, X, Users } from "lucide-react";
 import { usePendingInvitations, useAcceptInvitation, useRejectInvitation } from "@/hooks/useFamilyInvitations";
+import { useEffect } from "react";
 
 export function PendingInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingInvitations();
@@ -10,6 +11,18 @@ export function PendingInvitationsAlert() {
 
   // Garantir que invitations é sempre um array
   const safeInvitations = Array.isArray(invitations) ? invitations : [];
+
+  // Log sempre que o componente renderizar
+  useEffect(() => {
+    console.log('🔔 PendingInvitationsAlert MONTADO/ATUALIZADO:', { 
+      isLoading, 
+      error,
+      invitationsCount: safeInvitations.length,
+      invitations: safeInvitations,
+      rawData: invitations,
+      timestamp: new Date().toISOString()
+    });
+  }, [isLoading, error, safeInvitations.length, invitations]);
 
   console.log('🔔 PendingInvitationsAlert RENDER:', { 
     isLoading, 
