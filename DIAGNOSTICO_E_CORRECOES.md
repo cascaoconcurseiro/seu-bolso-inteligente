@@ -1,5 +1,49 @@
 # Diagnóstico e Correções do Sistema - 29/12/2024
 
+## ✅ CORREÇÃO APLICADA
+
+### Política RLS para family_members
+Aplicada migração `20251229142746_fix_family_members_rls_view_same_family.sql`:
+- ✅ Membros podem ver outros membros da mesma família
+- ✅ Índice criado para performance: `idx_family_members_lookup`
+
+## Estado Atual do Sistema
+
+### Estrutura de Dados
+- **Wesley** (56ccd60b-641f-4265-bc17-7b8705a2f8c9) = DONO (owner_id na tabela families)
+- **Fran** (9545d0c1-94be-4b69-b110-f939bce072ee) = MEMBRO (linked_user_id na tabela family_members)
+
+### Como o Sistema Funciona
+
+#### Dados PESSOAIS (cada usuário vê apenas os seus):
+- Contas bancárias
+- Cartões de crédito
+- Transações normais
+- Orçamentos
+
+#### Dados COMPARTILHADOS (membros da família veem):
+- **Família**: Todos os membros aparecem para todos
+- **Transações Compartilhadas**: Quando um usuário é adicionado como participante
+- **Viagens**: Quando um usuário é adicionado como participante
+- **Sistema de Compensação**: Débitos entre membros
+
+### Problema Atual
+
+**Wesley não aparece na página Família para Fran**
+
+Possíveis causas:
+1. Hook `useFamily` não está retornando `owner` corretamente
+2. Página `Family.tsx` não está exibindo o owner corretamente
+3. Problema de tipagem no TypeScript
+
+## Próximos Passos
+
+1. ⏭️ Testar no frontend se Wesley aparece para Fran
+2. ⏭️ Verificar console logs no navegador
+3. ⏭️ Ajustar página Family.tsx se necessário
+4. ⏭️ Testar formulários de transações compartilhadas
+5. ⏭️ Testar formulários de viagens
+
 ## Estado Atual do Banco de Dados
 
 ### Dados
