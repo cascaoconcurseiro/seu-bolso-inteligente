@@ -69,60 +69,41 @@ export function useCreateAccount() {
     mutationFn: async (input: CreateAccountInput) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Para cartões de crédito, usar insert direto pois RPC não suporta campos extras
-      if (input.type === 'CREDIT_CARD') {
-        const { data, error } = await supabase
-          .from('accounts')
-          .insert({
-            user_id: user.id,
-            name: input.name,
-            type: input.type,
-            balance: 0, // Cartões sempre começam com saldo 0
-            bank_id: input.bank_id || null,
-            currency: input.currency || 'BRL',
-            is_international: input.is_international || false,
-            closing_day: input.closing_day || null,
-            due_day: input.due_day || null,
-            credit_limit: input.credit_limit || null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      }
-
-      // Para contas internacionais, usar insert direto para garantir que is_international seja salvo
-      if (input.is_international) {
-        const { data, error } = await supabase
-          .from('accounts')
-          .insert({
-            user_id: user.id,
-            name: input.name,
-            type: input.type,
-            balance: input.balance || 0,
-            initial_balance: input.balance || 0,
-            bank_id: input.bank_id || null,
-            currency: input.currency || 'BRL',
-            is_international: true,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      }
-
-      // Para outras contas nacionais, usar RPC que cria com depósito inicial
-      const { data, error } = await supabase.rpc('create_account_with_initial_deposit', {
-        p_name: input.name,
-        p_type: input.type,
-        p_bank: input.bank_id || null,
-        p_initial_balance: input.balance || 0,
-        p_currency: input.currency || 'BRL',
-      });
+      // Usar INSERT direto para todas as contas (mais confiável que RPC)
+      const { data, error } = await supabase
+        .from('accounts')
+        .insert({
+          user_id: user.id,
+          name: input.name,
+          type: input.type,
+          balance: input.type === 'CREDIT_CARD' ? 0 : (input.balance || 0),
+          initial_balance: input.type === 'CREDIT_CARD' ? 0 : (input.balance || 0),
+          bank_id: input.bank_id || null,
+          currency: input.currency || 'BRL',
+          is_international: input.is_international || false,
+          closing_day: input.closing_day || null,
+          due_day: input.due_day || null,
+          credit_limit: input.credit_limit || null,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+      
+      // Se tem saldo inicial e não é cartão de crédito, criar transação de depósito
+      if (input.balance && input.balance > 0 && input.type !== 'CREDIT_CARD') {
+        await supabase.from('transactions').insert({
+          user_id: user.id,
+          account_id: data.id,
+          type: 'INCOME',
+          amount: input.balance,
+          description: 'Depósito inicial',
+          date: new Date().toISOString().split('T')[0],
+          category: 'Depósito',
+          domain: 'PERSONAL',
+        });
+      }
+      
       return data;
     },
     onSuccess: () => {
