@@ -29,6 +29,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Wallet, 
   Plus, 
@@ -40,14 +47,18 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Globe,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, internationalBanks, getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
-import { useAccounts, useCreateAccount, useDeleteAccount } from "@/hooks/useAccounts";
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from "@/hooks/useAccounts";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { toast } from "sonner";
 
 const accountTypeIcons = {
   CHECKING: Landmark,
@@ -90,14 +101,19 @@ const getCurrencySymbol = (currency: string) => {
 };
 
 export function Accounts() {
-  const { data: accounts = [], isLoading } = useAccounts();
+  const { data: accounts = [], isLoading, refetch } = useAccounts();
   const { data: allTransactions = [] } = useTransactions();
   const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
   const deleteAccount = useDeleteAccount();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<any>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editBalance, setEditBalance] = useState("");
   const [type, setType] = useState<string>("CHECKING");
   const [bankId, setBankId] = useState("");
   const [balance, setBalance] = useState("");
@@ -218,58 +234,94 @@ export function Accounts() {
               const bank = getBankById(account.bank_id);
               
               return (
-                <Link
+                <div
                   key={account.id}
-                  to={`/contas/${account.id}`}
-                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden relative"
                 >
-                  <div className="p-4" style={{ backgroundColor: bank.color }}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20">
-                        <Icon className="h-5 w-5" style={{ color: bank.textColor }} />
-                      </div>
-                      <div>
-                        <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
-                          {account.name}
-                        </p>
-                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>
-                          {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
-                      <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
-                        {formatCurrency(Number(account.balance))}
-                      </p>
-                    </div>
+                  <div className="absolute top-2 right-2 z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 bg-white/20 hover:bg-white/40"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" style={{ color: bank.textColor }} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingAccount(account);
+                          setEditName(account.name);
+                          setEditBalance(String(account.balance));
+                          setShowEditDialog(true);
+                        }}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteId(account.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <div className="p-4 space-y-2 flex-1 bg-background">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
-                    {lastTransactions.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
-                    ) : (
-                      lastTransactions.map((tx) => {
-                        const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
-                        return (
-                          <div key={tx.id} className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              {isIncome ? (
-                                <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
-                              ) : (
-                                <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
-                              )}
-                              <span className="truncate text-muted-foreground">{tx.description}</span>
+                  <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
+                    <div className="p-4" style={{ backgroundColor: bank.color }}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={account.bank_id} size="md" />
+                        <div>
+                          <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
+                            {account.name}
+                          </p>
+                          <p className="text-xs opacity-80" style={{ color: bank.textColor }}>
+                            {accountTypeLabels[account.type as keyof typeof accountTypeLabels] || account.type}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
+                        <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
+                          {formatCurrency(Number(account.balance))}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-2 flex-1 bg-background">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
+                      {lastTransactions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
+                      ) : (
+                        lastTransactions.map((tx) => {
+                          const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                          return (
+                            <div key={tx.id} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {isIncome ? (
+                                  <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
+                                ) : (
+                                  <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
+                                )}
+                                <span className="truncate text-muted-foreground">{tx.description}</span>
+                              </div>
+                              <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
+                                {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
+                              </span>
                             </div>
-                            <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
-                              {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
-                            </span>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                  </Link>
+                </div>
               );
             })}
           </div>
@@ -300,62 +352,96 @@ export function Accounts() {
               const bank = getBankById(account.bank_id);
               
               return (
-                <Link
+                <div
                   key={account.id}
-                  to={`/contas/${account.id}`}
-                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden relative"
                 >
-                  <div className="p-4 relative" style={{ backgroundColor: bank.color }}>
-                    <div className="absolute top-2 right-2">
-                      <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
-                        <Globe className="h-3 w-3" />
-                        {account.currency}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/20">
-                        <Globe className="h-5 w-5" style={{ color: bank.textColor }} />
+                  <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+                    <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
+                      <Globe className="h-3 w-3" />
+                      {account.currency}
+                    </span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 bg-white/20 hover:bg-white/40"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-3 w-3" style={{ color: bank.textColor }} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingAccount(account);
+                          setEditName(account.name);
+                          setEditBalance(String(account.balance));
+                          setShowEditDialog(true);
+                        }}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteId(account.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
+                    <div className="p-4 relative" style={{ backgroundColor: bank.color }}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={account.bank_id} size="md" />
+                        <div>
+                          <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
+                            {account.name}
+                          </p>
+                          <p className="text-xs opacity-80" style={{ color: bank.textColor }}>Conta Global</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-display font-semibold text-base" style={{ color: bank.textColor }}>
-                          {account.name}
+                      <div className="mt-4">
+                        <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
+                        <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
+                          {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </p>
-                        <p className="text-xs opacity-80" style={{ color: bank.textColor }}>Conta Global</p>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>
-                      <p className="font-mono text-2xl font-bold" style={{ color: bank.textColor }}>
-                        {currencySymbol} {Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-2 flex-1 bg-background">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
-                    {lastTransactions.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
-                    ) : (
-                      lastTransactions.map((tx) => {
-                        const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
-                        return (
-                          <div key={tx.id} className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              {isIncome ? (
-                                <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
-                              ) : (
-                                <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
-                              )}
-                              <span className="truncate text-muted-foreground">{tx.description}</span>
+                    <div className="p-4 space-y-2 flex-1 bg-background">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Últimas transações</p>
+                      {lastTransactions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Nenhuma transação</p>
+                      ) : (
+                        lastTransactions.map((tx) => {
+                          const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                          return (
+                            <div key={tx.id} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {isIncome ? (
+                                  <ArrowDownRight className="h-3 w-3 text-positive flex-shrink-0" />
+                                ) : (
+                                  <ArrowUpRight className="h-3 w-3 text-negative flex-shrink-0" />
+                                )}
+                                <span className="truncate text-muted-foreground">{tx.description}</span>
+                              </div>
+                              <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
+                                {isIncome ? "+" : "-"}{currencySymbol}{Math.abs(Number(tx.amount)).toFixed(2)}
+                              </span>
                             </div>
-                            <span className={cn("font-mono font-medium ml-2 flex-shrink-0", isIncome ? "text-positive" : "text-negative")}>
-                              {isIncome ? "+" : "-"}{currencySymbol}{Math.abs(Number(tx.amount)).toFixed(2)}
-                            </span>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </Link>
+                          );
+                        })
+                      )}
+                    </div>
+                  </Link>
+                </div>
               );
             })}
           </div>
@@ -460,6 +546,46 @@ export function Accounts() {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancelar</Button>
             <Button onClick={handleCreate} disabled={!bankId || createAccount.isPending}>
               {createAccount.isPending ? "Criando..." : "Criar conta"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Account Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar conta</DialogTitle>
+            <DialogDescription>Altere os dados da conta</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome da conta</Label>
+              <Input 
+                value={editName} 
+                onChange={(e) => setEditName(e.target.value)} 
+                placeholder="Nome da conta"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+            <Button 
+              onClick={async () => {
+                if (editingAccount) {
+                  await updateAccount.mutateAsync({
+                    id: editingAccount.id,
+                    name: editName,
+                  });
+                  setShowEditDialog(false);
+                  setEditingAccount(null);
+                }
+              }} 
+              disabled={!editName || updateAccount.isPending}
+            >
+              {updateAccount.isPending ? "Salvando..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>
