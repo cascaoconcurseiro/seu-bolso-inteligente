@@ -110,6 +110,9 @@ export function Dashboard() {
   if (!hasAccounts && !hasTransactions) {
     return (
       <div className="space-y-8 animate-fade-in">
+        {/* Pending Invitations Alert - SEMPRE mostrar */}
+        <PendingInvitationsAlert />
+        
         <div className="text-center py-16">
           <h1 className="font-display font-bold text-4xl tracking-tight mb-4">
             Bem-vindo ao Pé de Meia
