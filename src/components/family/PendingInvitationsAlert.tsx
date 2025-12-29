@@ -2,7 +2,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Check, X, Users } from "lucide-react";
 import { usePendingInvitations, useAcceptInvitation, useRejectInvitation } from "@/hooks/useFamilyInvitations";
-import { useEffect } from "react";
 
 export function PendingInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingInvitations();
@@ -12,54 +11,18 @@ export function PendingInvitationsAlert() {
   // Garantir que invitations é sempre um array
   const safeInvitations = Array.isArray(invitations) ? invitations : [];
 
-  // Log sempre que o componente renderizar
-  useEffect(() => {
-    console.log('🔔 PendingInvitationsAlert MONTADO/ATUALIZADO:', { 
-      isLoading, 
-      error,
-      invitationsCount: safeInvitations.length,
-      invitations: safeInvitations,
-      rawData: invitations,
-      timestamp: new Date().toISOString()
-    });
-  }, [isLoading, error, safeInvitations.length, invitations]);
-
-  console.log('🔔 PendingInvitationsAlert RENDER:', { 
-    isLoading, 
-    error,
-    invitationsCount: safeInvitations.length,
-    invitations: safeInvitations,
-    rawData: invitations
-  });
-
   if (isLoading) {
-    console.log('🔔 PendingInvitationsAlert: Carregando...');
-    return (
-      <div className="p-2 text-xs text-muted-foreground">
-        🔄 Verificando convites...
-      </div>
-    );
+    return null;
   }
 
   if (error) {
-    console.error('🔔 PendingInvitationsAlert ERROR:', error);
-    return (
-      <div className="p-2 text-xs text-red-500">
-        ❌ Erro ao carregar convites: {error.message}
-      </div>
-    );
+    console.error('Erro ao carregar convites:', error);
+    return null;
   }
 
   if (safeInvitations.length === 0) {
-    console.log('🔔 PendingInvitationsAlert: Nenhum convite para mostrar');
-    return (
-      <div className="p-2 text-xs text-muted-foreground">
-        ℹ️ Nenhum convite pendente
-      </div>
-    );
+    return null;
   }
-
-  console.log('🔔 PendingInvitationsAlert: Mostrando', safeInvitations.length, 'convite(s)');
 
   return (
     <div className="space-y-3">

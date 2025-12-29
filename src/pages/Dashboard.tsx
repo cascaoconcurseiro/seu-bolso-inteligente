@@ -44,16 +44,6 @@ export function Dashboard() {
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
-  // DEBUG: Log do Dashboard
-  console.log('🏠 Dashboard RENDER:', {
-    summaryLoading,
-    txLoading,
-    accountsLoading,
-    hasAccounts: accounts?.length,
-    hasTransactions: transactions?.length,
-    timestamp: new Date().toISOString()
-  });
-
   // Listen for global transaction modal event
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
@@ -138,24 +128,6 @@ export function Dashboard() {
 
       {/* Pending Invitations Alert */}
       <PendingInvitationsAlert />
-      
-      {/* DEBUG: Botão para verificar convites */}
-      <div className="p-4 border border-yellow-500 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-        <p className="text-sm font-medium mb-2">🔍 DEBUG: Verificar Convites</p>
-        <p className="text-xs text-muted-foreground mb-2">
-          Abra o Console (F12) e clique no botão abaixo para ver os logs detalhados
-        </p>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            console.log('🔍 DEBUG: Forçando refetch de convites...');
-            window.location.reload();
-          }}
-        >
-          Recarregar e Ver Logs
-        </Button>
-      </div>
 
       {/* Hero Section */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up stagger-1">
