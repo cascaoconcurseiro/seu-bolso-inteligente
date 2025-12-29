@@ -68,7 +68,7 @@ export function Dashboard() {
     if (!accounts || !Array.isArray(accounts)) return {};
     const grouped: Record<string, number> = {};
     
-    const foreignAccounts = accounts.filter(a => a.is_international && a.type !== 'CREDIT_CARD');
+    const foreignAccounts = (accounts || []).filter(a => a.is_international && a.type !== 'CREDIT_CARD');
     foreignAccounts.forEach(acc => {
       const currency = acc.currency || 'USD';
       grouped[currency] = (grouped[currency] || 0) + Number(acc.balance);
@@ -82,7 +82,7 @@ export function Dashboard() {
   // Cartões com fatura
   const creditCardsWithBalance = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return [];
-    return accounts.filter(a => a.type === "CREDIT_CARD" && Number(a.balance) !== 0);
+    return (accounts || []).filter(a => a.type === "CREDIT_CARD" && Number(a.balance) !== 0);
   }, [accounts]);
 
   if (isLoading) {

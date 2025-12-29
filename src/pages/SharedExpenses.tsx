@@ -871,7 +871,7 @@ export function SharedExpenses() {
             const settlementCurrency = internationalTrip?.currency || "BRL";
             const isInternationalSettlement = settlementCurrency !== "BRL";
             
-            const filteredSettleAccounts = accounts.filter(a => {
+            const filteredSettleAccounts = (accounts || []).filter(a => {
               if (a.type === "CREDIT_CARD") return false;
               if (isInternationalSettlement) {
                 return a.is_international && a.currency === settlementCurrency;

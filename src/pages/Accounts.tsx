@@ -126,9 +126,9 @@ export function Accounts() {
     setType("CHECKING");
   };
 
-  const regularAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
-  const nationalAccounts = regularAccounts.filter(a => !a.is_international);
-  const internationalAccounts = regularAccounts.filter(a => a.is_international);
+  const regularAccounts = (accounts || []).filter(a => a.type !== "CREDIT_CARD");
+  const nationalAccounts = (regularAccounts || []).filter(a => !a.is_international);
+  const internationalAccounts = (regularAccounts || []).filter(a => a.is_international);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);

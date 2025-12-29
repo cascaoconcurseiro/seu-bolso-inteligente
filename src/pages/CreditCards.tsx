@@ -138,7 +138,7 @@ export function CreditCards() {
   const [editLimit, setEditLimit] = useState("");
 
   // Filter credit cards
-  const creditCards = accounts.filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[];
+  const creditCards = (accounts || []).filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[];
 
   // Update selected date when card changes
   useEffect(() => {
@@ -627,7 +627,7 @@ export function CreditCards() {
           onClose={() => setShowPayDialog(false)}
           card={selectedCard}
           invoiceTotal={invoiceData.invoiceTotal}
-          accounts={accounts.filter(a => a.type !== 'CREDIT_CARD')}
+          accounts={(accounts || []).filter(a => a.type !== 'CREDIT_CARD')}
           onPay={async (fromAccountId) => {
             await createTransaction.mutateAsync({
               amount: invoiceData.invoiceTotal,
@@ -1289,7 +1289,7 @@ function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts, onPay
   const isInternationalCard = card.is_international || cardCurrency !== 'BRL';
 
   // Filtrar contas compatíveis
-  const compatibleAccounts = accounts.filter(acc => {
+  const compatibleAccounts = (accounts || []).filter(acc => {
     if (isInternationalCard) {
       // Para cartão internacional, mostrar contas na mesma moeda OU contas BRL (com câmbio)
       return acc.currency === cardCurrency || acc.currency === 'BRL' || !acc.currency;
