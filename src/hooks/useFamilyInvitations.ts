@@ -27,10 +27,16 @@ export function usePendingInvitations() {
   return useQuery({
     queryKey: ["family-invitations-pending", user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      console.log('📨 usePendingInvitations: Iniciando busca para user:', user?.id);
+      
+      if (!user) {
+        console.log('📨 usePendingInvitations: Sem usuário autenticado');
+        return [];
+      }
 
       try {
         // Buscar convites
+        console.log('📨 usePendingInvitations: Fazendo query no Supabase...');
         const { data: invitations, error } = await supabase
           .from("family_invitations")
           .select("*")
@@ -38,26 +44,36 @@ export function usePendingInvitations() {
           .eq("status", "pending")
           .order("created_at", { ascending: false });
 
+        console.log('📨 usePendingInvitations: Resposta do Supabase:', { 
+          invitations, 
+          error,
+          count: invitations?.length 
+        });
+
         if (error) {
-          console.error("Erro ao buscar convites:", error);
+          console.error("📨 Erro ao buscar convites:", error);
           return [];
         }
 
         if (!invitations || invitations.length === 0) {
-          console.log('📨 Nenhum convite pendente encontrado');
+          console.log('📨 Nenhum convite pendente encontrado para user:', user.id);
           return [];
         }
 
         // Buscar dados dos usuários que enviaram os convites
         const fromUserIds = invitations.map(inv => inv.from_user_id);
+        console.log('📨 Buscando perfis dos remetentes:', fromUserIds);
+        
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, full_name, email")
           .in("id", fromUserIds);
 
         if (profilesError) {
-          console.error("Erro ao buscar perfis:", profilesError);
+          console.error("📨 Erro ao buscar perfis:", profilesError);
         }
+
+        console.log('📨 Perfis encontrados:', profiles);
 
         // Combinar dados
         const invitationsWithUsers = invitations.map(inv => ({
@@ -65,10 +81,10 @@ export function usePendingInvitations() {
           from_user: profiles?.find(p => p.id === inv.from_user_id) || null
         }));
         
-        console.log('📨 Convites pendentes encontrados:', invitationsWithUsers);
+        console.log('📨 Convites pendentes FINAIS:', invitationsWithUsers);
         return invitationsWithUsers as FamilyInvitation[];
       } catch (error) {
-        console.error("Erro ao buscar convites:", error);
+        console.error("📨 Exceção ao buscar convites:", error);
         return [];
       }
     },
