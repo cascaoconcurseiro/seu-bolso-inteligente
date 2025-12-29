@@ -42,7 +42,10 @@ export function useFamily() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("families")
-        .select("*")
+        .select(`
+          *,
+          owner:profiles!families_owner_id_fkey(id, full_name, email)
+        `)
         .single();
 
       // Se não encontrou família, retornar null (não é erro)
@@ -51,7 +54,7 @@ export function useFamily() {
       }
 
       if (error) throw error;
-      return data as Family;
+      return data as Family & { owner?: { id: string; full_name: string; email: string } };
     },
     enabled: !!user,
     retry: false, // Não tentar novamente se falhar

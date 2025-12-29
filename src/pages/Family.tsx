@@ -65,7 +65,33 @@ export function Family() {
   const isLoading = familyLoading || membersLoading;
   const isOwner = family?.owner_id === user?.id;
 
+  // Incluir o dono da família na lista de membros ativos
   const activeMembers = members.filter((m) => m.status === "active");
+  
+  // Se o usuário NÃO é o dono, adicionar o dono à lista
+  const allActiveMembers = isOwner ? activeMembers : [
+    ...activeMembers,
+    // Adicionar o dono como um "pseudo-membro"
+    ...(family && family.owner ? [{
+      id: 'owner-' + family.owner_id,
+      family_id: family.id,
+      user_id: family.owner_id,
+      linked_user_id: null,
+      name: family.owner.full_name || family.owner.email || 'Proprietário',
+      email: family.owner.email,
+      role: 'admin' as FamilyRole,
+      status: 'active' as const,
+      invited_by: null,
+      created_at: family.created_at,
+      updated_at: family.updated_at,
+      avatar_url: null,
+      sharing_scope: 'all' as const,
+      scope_start_date: null,
+      scope_end_date: null,
+      scope_trip_id: null,
+    }] : [])
+  ];
+  
   const pendingMembers = members.filter((m) => m.status === "pending");
   const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
   const acceptedInvitations = sentInvitations.filter((i) => i.status === "accepted");
@@ -145,7 +171,7 @@ export function Family() {
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
             Membros ativos
           </p>
-          <p className="font-mono text-2xl font-bold">{activeMembers.length}</p>
+          <p className="font-mono text-2xl font-bold">{allActiveMembers.length}</p>
         </div>
         {(pendingMembers.length > 0 || pendingInvitations.length > 0) && (
           <div>
@@ -162,9 +188,9 @@ export function Family() {
       {/* Active Members */}
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-          Membros ({activeMembers.length})
+          Membros ({allActiveMembers.length})
         </h2>
-        {activeMembers.length === 0 ? (
+        {allActiveMembers.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p className="font-medium">Nenhum membro ativo</p>
@@ -172,7 +198,7 @@ export function Family() {
           </div>
         ) : (
           <div className="space-y-2">
-            {activeMembers.map((member) => {
+            {allActiveMembers.map((member) => {
               const isSelf = member.linked_user_id === user?.id;
               const memberIsOwner = family?.owner_id === member.user_id;
               
