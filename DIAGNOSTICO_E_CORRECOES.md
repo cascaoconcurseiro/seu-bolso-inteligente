@@ -1,11 +1,19 @@
 # Diagnóstico e Correções do Sistema - 29/12/2024
 
-## ✅ CORREÇÃO APLICADA
+## ✅ CORREÇÕES APLICADAS
 
-### Política RLS para family_members
-Aplicada migração `20251229142746_fix_family_members_rls_view_same_family.sql`:
-- ✅ Membros podem ver outros membros da mesma família
-- ✅ Índice criado para performance: `idx_family_members_lookup`
+### 1. Política RLS para family_members (CORRIGIDA)
+**Problema**: Recursão infinita causando erro 500
+**Solução**: Criada função `is_member_of_family()` SECURITY DEFINER
+**Migração**: `20251229143746_fix_family_members_recursion_with_security_definer.sql`
+
+Status: ✅ Resolvido - Sem mais erros de recursão
+
+### Como Funciona Agora:
+- Função `is_member_of_family(fam_id, usr_id)` verifica se usuário é membro ativo
+- Política RLS usa a função para evitar recursão
+- Fran consegue ver outros membros da mesma família
+- Wesley (dono) não aparece em family_members (correto - ele é owner_id)
 
 ## Estado Atual do Sistema
 
