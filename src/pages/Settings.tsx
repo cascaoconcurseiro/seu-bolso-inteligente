@@ -58,7 +58,6 @@ import { useNotificationPreferences } from "@/hooks/useNotifications";
 import { useUserProfile, useUpdateUserProfile, useUpdatePassword, useDeleteAccount } from "@/hooks/useUserProfile";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
-import { OrphanTransactionsManager } from "@/components/settings/OrphanTransactionsManager";
 import { AdminResetPanel } from "@/components/settings/AdminResetPanel";
 
 type SettingsSection = "account" | "categories" | "people" | "appearance" | "notifications" | "maintenance";
@@ -762,29 +761,11 @@ export function Settings() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="font-display font-semibold text-lg">Manutenção</h2>
-                <p className="text-sm text-muted-foreground">Ferramentas para organizar seus dados</p>
+                <p className="text-sm text-muted-foreground">Ferramentas administrativas do sistema</p>
               </div>
 
-              <div className="space-y-4">
-                {/* Orphan Transactions Manager */}
-                <OrphanTransactionsManager />
-
-                {/* Info about account deletion */}
-                <div className="p-4 rounded-xl border border-border bg-muted/30">
-                  <h3 className="font-medium mb-2">Sobre exclusão de contas</h3>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Contas com saldo não podem ser excluídas</li>
-                    <li>• Contas com transações vinculadas não podem ser excluídas</li>
-                    <li>• Migre as transações para outra conta antes de excluir</li>
-                    <li>• Contas excluídas ficam inativas (soft delete)</li>
-                  </ul>
-                </div>
-
-                {/* Admin Reset Panel */}
-                <div className="pt-6 border-t border-border">
-                  <AdminResetPanel />
-                </div>
-              </div>
+              {/* Admin Reset Panel - contém todas as ferramentas */}
+              <AdminResetPanel />
             </div>
           )}
         </div>
