@@ -42,28 +42,7 @@ export function useFamily() {
     queryFn: async () => {
       if (!user) return null;
 
-      // Primeiro, tentar buscar família onde sou o dono
-      const { data: ownedFamily, error: ownedError } = await supabase
-        .from("families")
-        .select("*")
-        .eq("owner_id", user.id)
-        .maybeSingle();
-
-      if (ownedFamily) {
-        // Buscar dados do owner separadamente
-        const { data: ownerProfile } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .eq("id", ownedFamily.owner_id)
-          .single();
-
-        return {
-          ...ownedFamily,
-          owner: ownerProfile
-        } as Family & { owner?: { id: string; full_name: string; email: string } };
-      }
-
-      // Se não sou dono, buscar família onde sou membro
+      // Buscar família onde sou membro ativo
       const { data: memberRecord } = await supabase
         .from("family_members")
         .select("family_id")
@@ -76,25 +55,15 @@ export function useFamily() {
       }
 
       // Buscar dados da família
-      const { data: memberFamily, error: memberError } = await supabase
+      const { data: family, error } = await supabase
         .from("families")
         .select("*")
         .eq("id", memberRecord.family_id)
         .single();
 
-      if (memberError) throw memberError;
+      if (error) throw error;
 
-      // Buscar dados do owner separadamente
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .eq("id", memberFamily.owner_id)
-        .single();
-
-      return {
-        ...memberFamily,
-        owner: ownerProfile
-      } as Family & { owner?: { id: string; full_name: string; email: string } };
+      return family as Family;
     },
     enabled: !!user,
     retry: false,
