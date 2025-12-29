@@ -6,6 +6,7 @@ import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
+import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -120,6 +121,9 @@ export function Dashboard() {
     <div className="space-y-8">
       {/* Greeting Card */}
       <GreetingCard className="animate-fade-in-down" />
+
+      {/* Pending Invitations Alert */}
+      <PendingInvitationsAlert />
 
       {/* Hero Section */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up stagger-1">
