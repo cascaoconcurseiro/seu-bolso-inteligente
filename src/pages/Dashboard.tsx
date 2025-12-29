@@ -119,27 +119,27 @@ export function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Greeting Card */}
-      <GreetingCard className="animate-fade-in" />
+      <GreetingCard className="animate-fade-in-down" />
 
       {/* Hero Section */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up stagger-1">
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
             Saldo atual (BRL)
           </p>
           <h1 className={cn(
-            "font-display font-bold text-5xl md:text-6xl tracking-tight",
+            "font-display font-bold text-5xl md:text-6xl tracking-tight animate-count-up",
             balance >= 0 ? "text-foreground" : "text-destructive"
           )}>
             {formatCurrency(balance)}
           </h1>
           <div className="flex items-center gap-6 text-sm">
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 animate-stagger stagger-2">
               <ArrowUpRight className="h-4 w-4 text-green-500" />
               <span className="text-muted-foreground">Entradas</span>
               <span className="text-green-500 font-medium">{formatCurrency(income)}</span>
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 animate-stagger stagger-3">
               <ArrowDownRight className="h-4 w-4 text-red-500" />
               <span className="text-muted-foreground">Saídas</span>
               <span className="text-red-500 font-medium">{formatCurrency(expenses)}</span>
@@ -150,12 +150,15 @@ export function Dashboard() {
         {/* Saldos em Moedas Estrangeiras */}
         {hasForeignBalances && (
           <div className="flex flex-wrap gap-4">
-            {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance]) => (
+            {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance], index) => (
               <div 
                 key={currency} 
-                className="flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20"
+                className={cn(
+                  "flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 hover-lift animate-stagger",
+                  `stagger-${index + 4}`
+                )}
               >
-                <Globe className="h-4 w-4 text-blue-500" />
+                <Globe className="h-4 w-4 text-blue-500 animate-soft-pulse" />
                 <div>
                   <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider font-medium">
                     {currency}
@@ -179,12 +182,12 @@ export function Dashboard() {
         <div className="lg:col-span-8 space-y-8">
           {/* Faturas de Cartão */}
           {creditCardsWithBalance.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-3 animate-fade-in-up stagger-4">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Faturas pendentes
               </h2>
               <div className="space-y-2">
-                {creditCardsWithBalance.map((card) => {
+                {creditCardsWithBalance.map((card, index) => {
                   const bank = getBankById(card.bank_id);
                   const dueDay = card.due_day || 10;
                   const today = new Date().getDate();
@@ -194,11 +197,14 @@ export function Dashboard() {
                     <Link
                       key={card.id}
                       to="/cartoes"
-                      className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-all"
+                      className={cn(
+                        "group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 card-animated hover-lift animate-stagger",
+                        `stagger-${index + 1}`
+                      )}
                     >
                       <div className="flex items-center gap-4">
                         <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center"
+                          className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
                           style={{ backgroundColor: bank.color }}
                         >
                           <CreditCard className="h-5 w-5" style={{ color: bank.textColor }} />
@@ -224,26 +230,26 @@ export function Dashboard() {
           )}
 
           {/* Atividade Recente */}
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in-up stagger-5">
             <div className="flex items-center justify-between">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Atividade recente
               </h2>
               <Link 
                 to="/transacoes" 
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-animated"
               >
                 Ver todas
               </Link>
             </div>
 
             {recentTransactions.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-border rounded-xl">
+              <div className="p-8 text-center border border-dashed border-border rounded-xl animate-fade-in">
                 <p className="text-muted-foreground">Nenhuma transação ainda</p>
               </div>
             ) : (
               <div className="space-y-1">
-                {recentTransactions.map((tx) => {
+                {recentTransactions.map((tx, index) => {
                   const txDate = new Date(tx.date);
                   const today = new Date();
                   const yesterday = new Date(today);
@@ -256,7 +262,10 @@ export function Dashboard() {
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-colors"
+                      className={cn(
+                        "flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-all hover-lift animate-stagger",
+                        `stagger-${index + 1}`
+                      )}
                     >
                       <div>
                         <p className="font-medium">{tx.description}</p>
@@ -279,7 +288,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Column - Sidebar */}
-        <aside className="lg:col-span-4 space-y-6">
+        <aside className="lg:col-span-4 space-y-6 animate-fade-in-right stagger-6">
           {/* Acesso Rápido */}
           <div className="space-y-2">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
@@ -288,29 +297,29 @@ export function Dashboard() {
             
             <Link
               to="/cartoes"
-              className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-all"
+              className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 card-animated hover-lift"
             >
               <div className="flex items-center gap-3">
-                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                <CreditCard className="h-5 w-5 text-muted-foreground group-hover:scale-110 transition-transform" />
                 <p className="font-medium">Cartões</p>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-all" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </Link>
 
             <Link
               to="/compartilhados"
-              className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-all"
+              className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 card-animated hover-lift"
             >
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-muted-foreground" />
+                <Users className="h-5 w-5 text-muted-foreground group-hover:scale-110 transition-transform" />
                 <p className="font-medium">Compartilhados</p>
               </div>
-              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-all" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
             </Link>
           </div>
 
           {/* Insight Card */}
-          <div className="p-4 rounded-xl border border-border bg-muted/30">
+          <div className="p-4 rounded-xl border border-border bg-muted/30 animate-scale-in hover-glow">
             <p className="text-xs text-muted-foreground mb-1">Este mês você</p>
             <p className="font-semibold">
               {savings >= 0 ? "Economizou" : "Gastou a mais"}
@@ -319,15 +328,15 @@ export function Dashboard() {
               "text-sm flex items-center gap-1",
               savings >= 0 ? "text-green-500" : "text-red-500"
             )}>
-              {savings >= 0 ? <ArrowDownRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+              {savings >= 0 ? <ArrowDownRight className="h-3 w-3 animate-soft-bounce" /> : <ArrowUpRight className="h-3 w-3 animate-soft-bounce" />}
               {formatCurrency(Math.abs(savings))}
             </p>
           </div>
 
           {/* Projeção do Mês */}
-          <div className="p-4 rounded-xl bg-foreground text-background">
+          <div className="p-4 rounded-xl bg-foreground text-background animate-scale-in-bounce hover-lift">
             <p className="text-xs opacity-70 mb-1">Projeção fim do mês</p>
-            <p className="font-mono text-2xl font-bold">
+            <p className="font-mono text-2xl font-bold animate-count-up">
               {formatCurrency(projectedBalance)}
             </p>
           </div>
