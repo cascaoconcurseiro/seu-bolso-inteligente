@@ -28,7 +28,6 @@ import {
 } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
-import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 
@@ -132,9 +131,6 @@ export function Family() {
           Convidar
         </Button>
       </div>
-
-      {/* Pending Invitations Alert */}
-      <PendingInvitationsAlert />
 
       {/* Summary */}
       <div className="flex items-center gap-8 py-4 border-y border-border">

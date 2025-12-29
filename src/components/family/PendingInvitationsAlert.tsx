@@ -11,6 +11,12 @@ export function PendingInvitationsAlert() {
   // Garantir que invitations é sempre um array
   const safeInvitations = Array.isArray(invitations) ? invitations : [];
 
+  console.log('🔔 PendingInvitationsAlert:', { 
+    isLoading, 
+    invitationsCount: safeInvitations.length,
+    invitations: safeInvitations 
+  });
+
   if (isLoading || safeInvitations.length === 0) return null;
 
   return (
