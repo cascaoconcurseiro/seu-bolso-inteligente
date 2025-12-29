@@ -4,20 +4,37 @@ import { Check, X, Users } from "lucide-react";
 import { usePendingInvitations, useAcceptInvitation, useRejectInvitation } from "@/hooks/useFamilyInvitations";
 
 export function PendingInvitationsAlert() {
-  const { data: invitations = [], isLoading } = usePendingInvitations();
+  const { data: invitations = [], isLoading, error } = usePendingInvitations();
   const acceptInvitation = useAcceptInvitation();
   const rejectInvitation = useRejectInvitation();
 
   // Garantir que invitations é sempre um array
   const safeInvitations = Array.isArray(invitations) ? invitations : [];
 
-  console.log('🔔 PendingInvitationsAlert:', { 
+  console.log('🔔 PendingInvitationsAlert RENDER:', { 
     isLoading, 
+    error,
     invitationsCount: safeInvitations.length,
-    invitations: safeInvitations 
+    invitations: safeInvitations,
+    rawData: invitations
   });
 
-  if (isLoading || safeInvitations.length === 0) return null;
+  if (isLoading) {
+    console.log('🔔 PendingInvitationsAlert: Carregando...');
+    return null;
+  }
+
+  if (error) {
+    console.error('🔔 PendingInvitationsAlert ERROR:', error);
+    return null;
+  }
+
+  if (safeInvitations.length === 0) {
+    console.log('🔔 PendingInvitationsAlert: Nenhum convite para mostrar');
+    return null;
+  }
+
+  console.log('🔔 PendingInvitationsAlert: Mostrando', safeInvitations.length, 'convite(s)');
 
   return (
     <div className="space-y-3">
