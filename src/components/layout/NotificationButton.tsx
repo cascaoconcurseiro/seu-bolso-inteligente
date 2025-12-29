@@ -36,7 +36,7 @@ export function NotificationButton() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { 
-    notifications, 
+    data: notifications = [],
     unreadCount, 
     markAsRead, 
     markAllAsRead, 
