@@ -147,38 +147,7 @@ export function useDeleteAccount() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Primeiro, verificar se a conta tem saldo
-      const { data: account, error: fetchError } = await supabase
-        .from("accounts")
-        .select("balance, name")
-        .eq("id", id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Verificar se tem saldo diferente de zero
-      if (account && Math.abs(Number(account.balance)) > 0.01) {
-        throw new Error(
-          `Não é possível excluir a conta "${account.name}" pois ela possui saldo de ${Number(account.balance).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}. Transfira o saldo antes de excluir.`
-        );
-      }
-
-      // Verificar se tem transações vinculadas
-      const { count: txCount, error: countError } = await supabase
-        .from("transactions")
-        .select("*", { count: "exact", head: true })
-        .or(`account_id.eq.${id},destination_account_id.eq.${id}`)
-        .eq("deleted", false);
-
-      if (countError) throw countError;
-
-      if (txCount && txCount > 0) {
-        throw new Error(
-          `Não é possível excluir a conta "${account?.name}" pois ela possui ${txCount} transação(ões) vinculada(s). Migre as transações para outra conta primeiro.`
-        );
-      }
-
-      // Se não tem saldo nem transações, fazer soft delete
+      // Fazer soft delete direto (sem verificações restritivas)
       const { error } = await supabase
         .from("accounts")
         .update({ is_active: false, deleted: true })

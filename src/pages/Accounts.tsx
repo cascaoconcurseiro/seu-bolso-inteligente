@@ -568,6 +568,19 @@ export function Accounts() {
                 placeholder="Nome da conta"
               />
             </div>
+            <div className="space-y-2">
+              <Label>Saldo atual</Label>
+              <Input 
+                type="number"
+                step="0.01"
+                value={editBalance} 
+                onChange={(e) => setEditBalance(e.target.value)} 
+                placeholder="0,00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Ajuste o saldo se necessário. Isso não cria transação.
+              </p>
+            </div>
           </div>
 
           <DialogFooter>
@@ -578,6 +591,7 @@ export function Accounts() {
                   await updateAccount.mutateAsync({
                     id: editingAccount.id,
                     name: editName,
+                    balance: parseFloat(editBalance) || 0,
                   });
                   setShowEditDialog(false);
                   setEditingAccount(null);
