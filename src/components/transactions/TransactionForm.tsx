@@ -196,7 +196,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   // Membros disponíveis para divisão:
   // - Se tem viagem selecionada: usar membros da viagem (trip_members) convertidos para formato FamilyMember
-  // - Senão: usar membros da família
+  // - Senão: usar membros da família (apenas linked_user_id, não o dono)
   const availableMembers = tripId && tripMembers && tripMembers.length > 0
     ? (tripMembers || [])
         .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
