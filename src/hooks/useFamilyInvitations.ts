@@ -29,23 +29,34 @@ export function usePendingInvitations() {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
-        .from("family_invitations")
-        .select(`
-          *,
-          from_user:from_user_id (
-            full_name,
-            email
-          )
-        `)
-        .eq("to_user_id", user.id)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("family_invitations")
+          .select(`
+            *,
+            from_user:from_user_id (
+              full_name,
+              email
+            )
+          `)
+          .eq("to_user_id", user.id)
+          .eq("status", "pending")
+          .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data as unknown as FamilyInvitation[];
+        if (error) {
+          console.error("Erro ao buscar convites:", error);
+          return [];
+        }
+        
+        return (data || []) as unknown as FamilyInvitation[];
+      } catch (error) {
+        console.error("Erro ao buscar convites:", error);
+        return [];
+      }
     },
     enabled: !!user,
+    retry: 1,
+    staleTime: 30000,
   });
 }
 

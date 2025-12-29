@@ -8,11 +8,14 @@ export function PendingInvitationsAlert() {
   const acceptInvitation = useAcceptInvitation();
   const rejectInvitation = useRejectInvitation();
 
-  if (isLoading || invitations.length === 0) return null;
+  // Garantir que invitations é sempre um array
+  const safeInvitations = Array.isArray(invitations) ? invitations : [];
+
+  if (isLoading || safeInvitations.length === 0) return null;
 
   return (
     <div className="space-y-3">
-      {invitations.map((invitation) => (
+      {safeInvitations.map((invitation) => (
         <Alert key={invitation.id} className="border-primary/50 bg-primary/5">
           <Users className="h-4 w-4" />
           <AlertTitle>Solicitação de Vínculo Familiar</AlertTitle>
