@@ -35,7 +35,7 @@ export class SharedTransactionManager {
 
   constructor() {
     this.startAutoSync();
-    this.loadPendingOperations();
+    // Não precisa mais carregar do localStorage - dados vêm do banco
   }
 
   /**
@@ -112,13 +112,10 @@ export class SharedTransactionManager {
     } catch (error) {
       console.error('Erro ao criar transação compartilhada:', error);
       
-      // Adicionar à fila de retry
-      this.addPendingOperation({
-        id: crypto.randomUUID(),
+      // Adicionar à fila de retry no banco de dados
+      await this.addPendingOperation({
         type: 'CREATE',
         data,
-        retryCount: 0,
-        maxRetries: 3,
       });
 
       throw error;
@@ -181,40 +178,106 @@ export class SharedTransactionManager {
   }
 
   /**
-   * Sincronizar transações pendentes
+   * Sincronizar transações pendentes (SINGLE SOURCE OF TRUTH: Banco de dados)
    */
   private async syncPendingOperations(): Promise<void> {
-    if (this.pendingOperations.length === 0) return;
+    try {
+      // Buscar operações pendentes do banco de dados
+      const { data: operations, error } = await supabase
+        .from('pending_operations')
+        .select('*')
+        .eq('status', 'PENDING')
+        .lte('retry_count', supabase.rpc('max_retries'))
+        .order('created_at', { ascending: true })
+        .limit(10);
 
-    const operations = [...this.pendingOperations];
-    
-    for (const operation of operations) {
-      try {
-        switch (operation.type) {
-          case 'CREATE':
-            await this.createSharedTransaction(operation.data, operation.data.payerId);
-            break;
-          // Adicionar outros tipos conforme necessário
-        }
+      if (error) throw error;
+      if (!operations || operations.length === 0) return;
 
-        // Remover da fila se sucesso
-        this.pendingOperations = this.pendingOperations.filter(op => op.id !== operation.id);
-        
-        // Salvar no localStorage
-        this.savePendingOperations();
-      } catch (error) {
-        // Incrementar retry count
-        operation.retryCount++;
-        
-        if (operation.retryCount >= operation.maxRetries) {
-          // Remover se excedeu max retries
-          this.pendingOperations = this.pendingOperations.filter(op => op.id !== operation.id);
-          console.error('Operação falhou após max retries:', operation);
+      for (const operation of operations) {
+        try {
+          // Marcar como processando
+          await supabase
+            .from('pending_operations')
+            .update({ status: 'PROCESSING' })
+            .eq('id', operation.id);
+
+          // Executar operação baseado no tipo
+          switch (operation.operation_type) {
+            case 'CREATE_SPLIT':
+              await this.executePendingCreateSplit(operation.payload);
+              break;
+            case 'MIRROR_TRANSACTION':
+              await this.executePendingMirror(operation.payload);
+              break;
+            // Adicionar outros tipos conforme necessário
+          }
+
+          // Marcar como completada
+          await supabase
+            .from('pending_operations')
+            .update({ 
+              status: 'COMPLETED',
+              completed_at: new Date().toISOString()
+            })
+            .eq('id', operation.id);
+
+        } catch (error) {
+          // Incrementar retry count
+          const newRetryCount = operation.retry_count + 1;
+          const nextRetryAt = new Date(Date.now() + Math.pow(2, newRetryCount) * 1000); // Exponential backoff
+
+          if (newRetryCount >= operation.max_retries) {
+            // Marcar como falhada se excedeu max retries
+            await supabase
+              .from('pending_operations')
+              .update({ 
+                status: 'FAILED',
+                last_error: error instanceof Error ? error.message : 'Unknown error',
+                retry_count: newRetryCount
+              })
+              .eq('id', operation.id);
+            
+            console.error('Operação falhou após max retries:', operation);
+          } else {
+            // Agendar próximo retry
+            await supabase
+              .from('pending_operations')
+              .update({ 
+                status: 'PENDING',
+                retry_count: newRetryCount,
+                next_retry_at: nextRetryAt.toISOString(),
+                last_error: error instanceof Error ? error.message : 'Unknown error'
+              })
+              .eq('id', operation.id);
+          }
         }
-        
-        this.savePendingOperations();
       }
+    } catch (error) {
+      console.error('Erro ao sincronizar operações pendentes:', error);
     }
+  }
+
+  /**
+   * Executar criação de split pendente
+   */
+  private async executePendingCreateSplit(payload: any): Promise<void> {
+    const { error } = await supabase
+      .from('transaction_splits')
+      .insert(payload);
+    
+    if (error) throw error;
+  }
+
+  /**
+   * Executar espelhamento pendente
+   */
+  private async executePendingMirror(payload: any): Promise<void> {
+    const { error } = await supabase
+      .from('transactions')
+      .insert(payload);
+    
+    if (error) throw error;
   }
 
   /**
@@ -237,39 +300,40 @@ export class SharedTransactionManager {
   }
 
   /**
-   * Adicionar operação pendente
+   * Adicionar operação pendente (SINGLE SOURCE OF TRUTH: Banco de dados)
    */
-  private addPendingOperation(operation: PendingOperation): void {
-    this.pendingOperations.push(operation);
-    this.savePendingOperations();
+  private async addPendingOperation(operation: Omit<PendingOperation, 'id' | 'retryCount' | 'maxRetries'>): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('pending_operations')
+        .insert({
+          user_id: user.id,
+          operation_type: operation.type === 'CREATE' ? 'CREATE_SPLIT' : 'MIRROR_TRANSACTION',
+          payload: operation.data,
+          retry_count: 0,
+          max_retries: 3,
+          status: 'PENDING'
+        });
+    } catch (error) {
+      console.error('Erro ao adicionar operação pendente:', error);
+    }
   }
 
   /**
-   * Salvar operações pendentes no localStorage
+   * @deprecated Não usa mais localStorage - dados no banco de dados
    */
   private savePendingOperations(): void {
-    try {
-      localStorage.setItem(
-        'shared_pending_operations',
-        JSON.stringify(this.pendingOperations)
-      );
-    } catch (error) {
-      console.error('Erro ao salvar operações pendentes:', error);
-    }
+    // Removido - operações agora são salvas no banco de dados
   }
 
   /**
-   * Carregar operações pendentes do localStorage
+   * @deprecated Não usa mais localStorage - dados no banco de dados
    */
   private loadPendingOperations(): void {
-    try {
-      const stored = localStorage.getItem('shared_pending_operations');
-      if (stored) {
-        this.pendingOperations = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar operações pendentes:', error);
-    }
+    // Removido - operações agora são carregadas do banco de dados
   }
 
   /**
