@@ -67,12 +67,13 @@ export function Dashboard() {
   const balancesByForeignCurrency = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return {};
     const grouped: Record<string, number> = {};
-    accounts
-      .filter(a => a.is_international && a.type !== 'CREDIT_CARD')
-      .forEach(acc => {
-        const currency = acc.currency || 'USD';
-        grouped[currency] = (grouped[currency] || 0) + Number(acc.balance);
-      });
+    
+    const foreignAccounts = accounts.filter(a => a.is_international && a.type !== 'CREDIT_CARD');
+    foreignAccounts.forEach(acc => {
+      const currency = acc.currency || 'USD';
+      grouped[currency] = (grouped[currency] || 0) + Number(acc.balance);
+    });
+    
     return grouped;
   }, [accounts]);
 
