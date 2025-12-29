@@ -92,16 +92,25 @@ export function useCreateAccount() {
       
       // Se tem saldo inicial e não é cartão de crédito, criar transação de depósito
       if (input.balance && input.balance > 0 && input.type !== 'CREDIT_CARD') {
-        await supabase.from('transactions').insert({
+        const { error: txError } = await supabase.from('transactions').insert({
           user_id: user.id,
           account_id: data.id,
           type: 'INCOME',
           amount: input.balance,
-          description: 'Depósito inicial',
+          description: 'Saldo inicial',
           date: new Date().toISOString().split('T')[0],
-          category: 'Depósito',
+          competence_date: new Date().toISOString().split('T')[0],
           domain: 'PERSONAL',
+          is_shared: false,
+          is_installment: false,
+          is_recurring: false,
+          sync_status: 'SYNCED',
+          is_settled: true,
         });
+        
+        if (txError) {
+          console.error('Erro ao criar transação de saldo inicial:', txError);
+        }
       }
       
       return data;
