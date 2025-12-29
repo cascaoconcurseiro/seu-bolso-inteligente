@@ -6,7 +6,8 @@ import { toast } from "sonner";
 export interface UserProfile {
   id: string;
   email: string | null;
-  name: string | null;
+  full_name: string | null;
+  name?: string | null; // Alias for compatibility
   avatar_url: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -21,7 +22,7 @@ export function useUserProfile() {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from("user_profiles")
+        .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
@@ -29,21 +30,21 @@ export function useUserProfile() {
       if (error && error.code === "PGRST116") {
         // Profile doesn't exist, create one
         const { data: newProfile, error: createError } = await supabase
-          .from("user_profiles")
+          .from("profiles")
           .insert({
             id: user.id,
             email: user.email,
-            name: user.user_metadata?.full_name || user.email?.split("@")[0],
+            full_name: user.user_metadata?.full_name || user.email?.split("@")[0],
           })
           .select()
           .single();
 
         if (createError) throw createError;
-        return newProfile as UserProfile;
+        return { ...newProfile, name: newProfile.full_name } as UserProfile;
       }
 
       if (error) throw error;
-      return data as UserProfile;
+      return { ...data, name: data.full_name } as UserProfile;
     },
     enabled: !!user,
   });
@@ -57,12 +58,20 @@ export function useUpdateUserProfile() {
     mutationFn: async (input: { name?: string; avatar_url?: string }) => {
       if (!user) throw new Error("Não autenticado");
 
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      if (input.name !== undefined) {
+        updateData.full_name = input.name;
+      }
+      if (input.avatar_url !== undefined) {
+        updateData.avatar_url = input.avatar_url;
+      }
+
       const { data, error } = await supabase
-        .from("user_profiles")
-        .update({
-          ...input,
-          updated_at: new Date().toISOString(),
-        })
+        .from("profiles")
+        .update(updateData)
         .eq("id", user.id)
         .select()
         .single();
@@ -76,7 +85,7 @@ export function useUpdateUserProfile() {
         });
       }
 
-      return data as UserProfile;
+      return { ...data, name: data.full_name } as UserProfile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
@@ -114,20 +123,12 @@ export function useDeleteAccount() {
     mutationFn: async () => {
       if (!user) throw new Error("Não autenticado");
 
-      // Mark profile as deleted (soft delete)
-      const { error } = await supabase
-        .from("user_profiles")
-        .update({ deleted: true })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      // Sign out
+      // Sign out (profiles table doesn't have deleted column)
       await supabase.auth.signOut();
       return true;
     },
     onSuccess: () => {
-      toast.success("Conta desativada. Você foi desconectado.");
+      toast.success("Você foi desconectado.");
     },
     onError: (error) => {
       toast.error("Erro ao desativar conta: " + error.message);
