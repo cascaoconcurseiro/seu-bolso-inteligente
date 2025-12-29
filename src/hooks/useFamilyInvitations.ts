@@ -117,8 +117,11 @@ export function useAcceptInvitation() {
       return data;
     },
     onSuccess: () => {
+      // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.refetchQueries({ queryKey: ["family-invitations-pending"] });
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      queryClient.refetchQueries({ queryKey: ["family-members"] });
       toast.success("Solicitação aceita! Vínculo criado.");
     },
     onError: (error) => {
@@ -144,7 +147,9 @@ export function useRejectInvitation() {
       return data;
     },
     onSuccess: () => {
+      // Invalidar e refetch imediatamente
       queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.refetchQueries({ queryKey: ["family-invitations-pending"] });
       toast.success("Solicitação rejeitada.");
     },
     onError: (error) => {
