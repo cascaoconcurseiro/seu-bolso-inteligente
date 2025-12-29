@@ -28,15 +28,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategories } from "@/hooks/useCategories";
-import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useBudgets, BudgetWithProgress } from "@/hooks/useBudgets";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 interface Budget {
@@ -52,12 +49,21 @@ interface Budget {
 }
 
 export function Budgets() {
-  const { user } = useAuth();
   const { currentDate } = useMonth();
-  const queryClient = useQueryClient();
   const { data: categories = [] } = useCategories();
-  const { data: transactions = [] } = useTransactions();
   const { data: accounts = [] } = useAccounts();
+  
+  // SINGLE SOURCE OF TRUTH: Usar hook que busca orçamentos com progresso calculado pelo banco
+  const { 
+    budgets = [], 
+    budgetsWithProgress = [], 
+    isLoading,
+    createBudget,
+    updateBudget,
+    deleteBudget,
+    isCreating,
+    isUpdating,
+  } = useBudgets();
   
   const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -67,119 +73,6 @@ export function Budgets() {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currency, setCurrency] = useState("BRL");
-
-  // Buscar orçamentos - usa any para evitar erros de tipo até a tabela ser criada
-  const { data: budgets = [], isLoading } = useQuery({
-    queryKey: ["budgets", user?.id],
-    queryFn: async () => {
-      try {
-        const { data, error } = await (supabase as any)
-          .from("budgets")
-          .select("*, category:categories(name, icon)")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          // Se a tabela não existe, retornar array vazio
-          if (error.code === "42P01" || error.message?.includes("does not exist")) {
-            console.warn("Tabela budgets não existe ainda. Execute a migração.");
-            return [];
-          }
-          throw error;
-        }
-        return (data || []) as Budget[];
-      } catch (err) {
-        console.warn("Erro ao buscar orçamentos:", err);
-        return [];
-      }
-    },
-    enabled: !!user,
-  });
-
-  // Criar orçamento
-  const createBudget = useMutation({
-    mutationFn: async (input: Omit<Budget, "id" | "user_id" | "created_at">) => {
-      const { data, error } = await (supabase as any)
-        .from("budgets")
-        .insert({ ...input, user_id: user!.id })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      toast.success("Orçamento criado!");
-      resetForm();
-      setShowNewBudgetDialog(false);
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao criar orçamento: " + error.message);
-    },
-  });
-
-  // Atualizar orçamento
-  const updateBudget = useMutation({
-    mutationFn: async ({ id, ...input }: Partial<Budget> & { id: string }) => {
-      const { data, error } = await (supabase as any)
-        .from("budgets")
-        .update(input)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      toast.success("Orçamento atualizado!");
-      resetForm();
-      setEditingBudget(null);
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao atualizar: " + error.message);
-    },
-  });
-
-  // Excluir orçamento
-  const deleteBudget = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
-        .from("budgets")
-        .update({ is_active: false })
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      toast.success("Orçamento removido!");
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao remover: " + error.message);
-    },
-  });
-
-  // Calcular gastos por categoria e moeda
-  const spentByCategory = useMemo(() => {
-    const spent: Record<string, Record<string, number>> = {};
-    
-    transactions
-      .filter(t => t.type === "EXPENSE")
-      .forEach(tx => {
-        const catId = tx.category_id || "uncategorized";
-        const txCurrency = tx.currency || "BRL";
-        
-        if (!spent[catId]) spent[catId] = {};
-        if (!spent[catId][txCurrency]) spent[catId][txCurrency] = 0;
-        
-        spent[catId][txCurrency] += Number(tx.amount);
-      });
-    
-    return spent;
-  }, [transactions]);
 
   // Moedas disponíveis
   const availableCurrencies = useMemo(() => {
@@ -218,9 +111,13 @@ export function Budgets() {
     };
 
     if (editingBudget) {
-      updateBudget.mutate({ id: editingBudget.id, ...budgetData });
+      updateBudget({ id: editingBudget.id, ...budgetData });
+      resetForm();
+      setEditingBudget(null);
     } else {
-      createBudget.mutate(budgetData as any);
+      createBudget(budgetData as any);
+      resetForm();
+      setShowNewBudgetDialog(false);
     }
   };
 
@@ -271,17 +168,18 @@ export function Budgets() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {budgets.map((budget) => {
-            const spent = spentByCategory[budget.category_id || ""]?.[budget.currency] || 0;
-            const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
-            const remaining = budget.amount - spent;
+          {/* SINGLE SOURCE OF TRUTH: Usar budgetsWithProgress que tem os gastos calculados pelo banco */}
+          {budgetsWithProgress.map((budget) => {
+            const spent = Number(budget.spent_amount) || 0;
+            const budgetAmount = Number(budget.budget_amount) || 0;
+            const percentage = Number(budget.percentage_used) || 0;
+            const remaining = Number(budget.remaining_amount) || 0;
             const isOverBudget = percentage > 100;
             const isWarning = percentage > 80 && percentage <= 100;
-            const category = categories.find(c => c.id === budget.category_id);
 
             return (
               <div
-                key={budget.id}
+                key={budget.budget_id}
                 className={cn(
                   "p-5 rounded-xl border transition-all",
                   isOverBudget 
@@ -301,12 +199,12 @@ export function Budgets() {
                           ? "bg-amber-100 dark:bg-amber-900/30"
                           : "bg-muted"
                     )}>
-                      {category?.icon || "💰"}
+                      {budget.category_icon || "💰"}
                     </div>
                     <div>
-                      <h3 className="font-semibold">{budget.name}</h3>
+                      <h3 className="font-semibold">{budget.budget_name}</h3>
                       <p className="text-xs text-muted-foreground">
-                        {category?.name || "Todas categorias"}
+                        {budget.category_name || "Todas categorias"}
                         {budget.currency !== "BRL" && (
                           <span className="ml-1 text-blue-500">
                             <Globe className="h-3 w-3 inline" /> {budget.currency}
@@ -320,7 +218,10 @@ export function Budgets() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => handleEdit(budget)}
+                      onClick={() => {
+                        const originalBudget = budgets?.find(b => b.id === budget.budget_id);
+                        if (originalBudget) handleEdit(originalBudget as Budget);
+                      }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -328,7 +229,7 @@ export function Budgets() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive"
-                      onClick={() => deleteBudget.mutate(budget.id)}
+                      onClick={() => deleteBudget(budget.budget_id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -339,7 +240,7 @@ export function Budgets() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">
-                      {formatCurrency(spent, budget.currency)} de {formatCurrency(budget.amount, budget.currency)}
+                      {formatCurrency(spent, budget.currency)} de {formatCurrency(budgetAmount, budget.currency)}
                     </span>
                     <span className={cn(
                       "font-mono font-semibold",
@@ -479,7 +380,7 @@ export function Budgets() {
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={!name.trim() || !amount || createBudget.isPending || updateBudget.isPending}
+              disabled={!name.trim() || !amount || isCreating || isUpdating}
             >
               {editingBudget ? "Salvar" : "Criar"}
             </Button>

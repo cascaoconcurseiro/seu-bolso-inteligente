@@ -511,65 +511,39 @@ export function useUpdateInstallmentSeries() {
   });
 }
 
-// Hook para resumo financeiro
+// Hook para resumo financeiro (SINGLE SOURCE OF TRUTH)
+// Todos os valores são calculados diretamente das transações pelo banco de dados
 export function useFinancialSummary() {
   const { user } = useAuth();
   const { currentDate } = useMonth();
   const currentMonth = format(currentDate, 'yyyy-MM');
+  const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
+  const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
 
   return useQuery({
     queryKey: ["financial-summary", user?.id, currentMonth],
     queryFn: async () => {
       if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
 
-      // Buscar contas para saldo total (APENAS BRL - contas nacionais)
-      const { data: accounts } = await supabase
-        .from("accounts")
-        .select("balance, type, is_international, currency")
-        .eq("user_id", user.id)
-        .eq("is_active", true);
+      // Usar função do banco de dados para calcular resumo
+      const { data, error } = await supabase.rpc('get_monthly_financial_summary', {
+        p_user_id: user.id,
+        p_start_date: startDate,
+        p_end_date: endDate,
+      });
 
-      // Buscar transações do mês (TODAS do usuário, exceto espelhadas)
-      const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
-      const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+      if (error) {
+        console.error('Erro ao buscar resumo financeiro:', error);
+        // Fallback para cálculo local em caso de erro
+        return { balance: 0, income: 0, expenses: 0, savings: 0 };
+      }
 
-      const { data: transactions } = await supabase
-        .from("transactions")
-        .select("amount, type, source_transaction_id, currency")
-        .eq("user_id", user.id)
-        .is("source_transaction_id", null) // Excluir espelhos
-        .gte("competence_date", startDate)
-        .lte("competence_date", endDate);
-
-      // Saldo: apenas contas nacionais (BRL)
-      const balance = accounts?.reduce((sum, acc) => {
-        if (acc.type !== "CREDIT_CARD" && !acc.is_international) {
-          return sum + Number(acc.balance);
-        }
-        return sum;
-      }, 0) || 0;
-
-      // Receitas: apenas em BRL
-      const income = transactions?.reduce((sum, tx) => {
-        if (tx.type === "INCOME" && (!tx.currency || tx.currency === 'BRL')) {
-          return sum + Number(tx.amount);
-        }
-        return sum;
-      }, 0) || 0;
-
-      // Despesas: apenas em BRL
-      const expenses = transactions?.reduce((sum, tx) => {
-        if (tx.type === "EXPENSE" && (!tx.currency || tx.currency === 'BRL')) {
-          return sum + Number(tx.amount);
-        }
-        return sum;
-      }, 0) || 0;
-
+      const summary = data?.[0];
       return {
-        balance,
-        income,
-        expenses,
-        savings: income - expenses,
+        balance: Number(summary?.total_balance) || 0,
+        income: Number(summary?.total_income) || 0,
+        expenses: Number(summary?.total_expenses) || 0,
+        savings: Number(summary?.net_savings) || 0,
       };
     },
     enabled: !!user,

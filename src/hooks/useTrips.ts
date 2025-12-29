@@ -348,3 +348,56 @@ export function useTripTransactions(tripId: string | null) {
     enabled: !!user && !!tripId,
   });
 }
+
+// Interface para resumo financeiro da viagem
+export interface TripFinancialSummary {
+  total_budget: number | null;
+  total_spent: number;
+  remaining: number;
+  percentage_used: number;
+  currency: string;
+  participants_count: number;
+  transactions_count: number;
+}
+
+// Hook para buscar resumo financeiro da viagem (SINGLE SOURCE OF TRUTH)
+// O total gasto é calculado diretamente das transações pelo banco de dados
+export function useTripFinancialSummary(tripId: string | null) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["trip-financial-summary", tripId],
+    queryFn: async () => {
+      if (!tripId) return null;
+
+      const { data, error } = await supabase.rpc('get_trip_financial_summary', {
+        p_trip_id: tripId,
+      });
+
+      if (error) throw error;
+      return data?.[0] as TripFinancialSummary | null;
+    },
+    enabled: !!user && !!tripId,
+  });
+}
+
+// Hook para calcular gasto pessoal em uma viagem
+export function useMyTripSpent(tripId: string | null) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-trip-spent", tripId, user?.id],
+    queryFn: async () => {
+      if (!tripId || !user) return 0;
+
+      const { data, error } = await supabase.rpc('calculate_trip_spent', {
+        p_trip_id: tripId,
+        p_user_id: user.id,
+      });
+
+      if (error) throw error;
+      return data as number;
+    },
+    enabled: !!user && !!tripId,
+  });
+}
