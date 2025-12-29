@@ -44,6 +44,16 @@ export function Dashboard() {
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
+  // DEBUG: Log do Dashboard
+  console.log('🏠 Dashboard RENDER:', {
+    summaryLoading,
+    txLoading,
+    accountsLoading,
+    hasAccounts: accounts?.length,
+    hasTransactions: transactions?.length,
+    timestamp: new Date().toISOString()
+  });
+
   // Listen for global transaction modal event
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
