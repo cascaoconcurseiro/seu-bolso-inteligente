@@ -34,17 +34,29 @@ export function PendingInvitationsAlert() {
 
   if (isLoading) {
     console.log('🔔 PendingInvitationsAlert: Carregando...');
-    return null;
+    return (
+      <div className="p-2 text-xs text-muted-foreground">
+        🔄 Verificando convites...
+      </div>
+    );
   }
 
   if (error) {
     console.error('🔔 PendingInvitationsAlert ERROR:', error);
-    return null;
+    return (
+      <div className="p-2 text-xs text-red-500">
+        ❌ Erro ao carregar convites: {error.message}
+      </div>
+    );
   }
 
   if (safeInvitations.length === 0) {
     console.log('🔔 PendingInvitationsAlert: Nenhum convite para mostrar');
-    return null;
+    return (
+      <div className="p-2 text-xs text-muted-foreground">
+        ℹ️ Nenhum convite pendente
+      </div>
+    );
   }
 
   console.log('🔔 PendingInvitationsAlert: Mostrando', safeInvitations.length, 'convite(s)');
