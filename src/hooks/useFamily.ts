@@ -45,15 +45,22 @@ export function useFamily() {
       // Primeiro, tentar buscar família onde sou o dono
       const { data: ownedFamily, error: ownedError } = await supabase
         .from("families")
-        .select(`
-          *,
-          owner:profiles!families_owner_id_fkey(id, full_name, email)
-        `)
+        .select("*")
         .eq("owner_id", user.id)
         .maybeSingle();
 
       if (ownedFamily) {
-        return ownedFamily as Family & { owner?: { id: string; full_name: string; email: string } };
+        // Buscar dados do owner separadamente
+        const { data: ownerProfile } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("id", ownedFamily.owner_id)
+          .single();
+
+        return {
+          ...ownedFamily,
+          owner: ownerProfile
+        } as Family & { owner?: { id: string; full_name: string; email: string } };
       }
 
       // Se não sou dono, buscar família onde sou membro
@@ -71,15 +78,23 @@ export function useFamily() {
       // Buscar dados da família
       const { data: memberFamily, error: memberError } = await supabase
         .from("families")
-        .select(`
-          *,
-          owner:profiles!families_owner_id_fkey(id, full_name, email)
-        `)
+        .select("*")
         .eq("id", memberRecord.family_id)
         .single();
 
       if (memberError) throw memberError;
-      return memberFamily as Family & { owner?: { id: string; full_name: string; email: string } };
+
+      // Buscar dados do owner separadamente
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", memberFamily.owner_id)
+        .single();
+
+      return {
+        ...memberFamily,
+        owner: ownerProfile
+      } as Family & { owner?: { id: string; full_name: string; email: string } };
     },
     enabled: !!user,
     retry: false,
