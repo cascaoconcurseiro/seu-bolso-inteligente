@@ -33,6 +33,8 @@ import {
   useTrip, 
   useTripParticipants, 
   useTripTransactions,
+  useTripFinancialSummary,
+  useMyTripSpent,
   useCreateTrip,
   useUpdateTrip,
   useDeleteTrip,
@@ -85,6 +87,10 @@ export function Trips() {
   const { data: familyMembers = [] } = useFamilyMembers();
   const { data: tripMembers = [] } = useTripMembers(selectedTripId);
   const { data: permissions } = useTripPermissions(selectedTripId);
+  
+  // SINGLE SOURCE OF TRUTH: Usar dados calculados pelo banco de dados
+  const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
+  const { data: myTripSpent = 0 } = useMyTripSpent(selectedTripId);
   
   const createTrip = useCreateTrip();
   const updateTrip = useUpdateTrip();
@@ -217,7 +223,8 @@ export function Trips() {
   // Detail View
   if (view === "detail" && selectedTrip) {
     const balances = calculateBalances();
-    const totalExpenses = tripTransactions.reduce((sum, t) => 
+    // SINGLE SOURCE OF TRUTH: Usar total calculado pelo banco de dados
+    const totalExpenses = tripFinancialSummary?.total_spent || tripTransactions.reduce((sum, t) => 
       t.type === "EXPENSE" ? sum + t.amount : sum, 0
     );
 
@@ -378,7 +385,8 @@ export function Trips() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Meus Gastos</p>
-                      <p className="font-mono text-3xl font-bold">{formatCurrency(tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0), selectedTrip.currency)}</p>
+                      {/* SINGLE SOURCE OF TRUTH: Usar valor calculado pelo banco */}
+                      <p className="font-mono text-3xl font-bold">{formatCurrency(myTripSpent, selectedTrip.currency)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Meu Orçamento</p>
@@ -389,24 +397,24 @@ export function Trips() {
                     <div
                       className={cn(
                         "h-full transition-all rounded-full",
-                        tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget
+                        myTripSpent > myPersonalBudget
                           ? "bg-destructive"
-                          : tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget * 0.8
+                          : myTripSpent > myPersonalBudget * 0.8
                           ? "bg-amber-500"
                           : "bg-positive"
                       )}
-                      style={{ width: `${Math.min((tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) / myPersonalBudget) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((myTripSpent / myPersonalBudget) * 100, 100)}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <p className="text-xs text-muted-foreground">
-                      {((tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) / myPersonalBudget) * 100).toFixed(1)}% utilizado
+                      {((myTripSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
                     </p>
                     <p className={cn(
                       "text-xs font-medium",
-                      tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "text-destructive" : "text-positive"
+                      myTripSpent > myPersonalBudget ? "text-destructive" : "text-positive"
                     )}>
-                      {tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0) > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - tripTransactions.filter(t => t.type === "EXPENSE" && t.user_id === user?.id).reduce((sum, t) => sum + t.amount, 0)), selectedTrip.currency)}
+                      {myTripSpent > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - myTripSpent), selectedTrip.currency)}
                     </p>
                   </div>
                 </div>
