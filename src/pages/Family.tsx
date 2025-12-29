@@ -9,6 +9,7 @@ import {
   X,
   Trash2,
   UserPlus,
+  RefreshCw,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ import {
   useRemoveFamilyMember,
   FamilyRole 
 } from "@/hooks/useFamily";
-import { useSentInvitations } from "@/hooks/useFamilyInvitations";
+import { useSentInvitations, useCancelInvitation, useResendInvitation } from "@/hooks/useFamilyInvitations";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -55,6 +56,8 @@ export function Family() {
   const inviteMember = useInviteFamilyMember();
   const updateMember = useUpdateFamilyMember();
   const removeMember = useRemoveFamilyMember();
+  const cancelInvitation = useCancelInvitation();
+  const resendInvitation = useResendInvitation();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -65,6 +68,7 @@ export function Family() {
   const activeMembers = members.filter((m) => m.status === "active");
   const pendingMembers = members.filter((m) => m.status === "pending");
   const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
+  const acceptedInvitations = sentInvitations.filter((i) => i.status === "accepted");
 
   const getInitials = (name: string) => {
     return name
@@ -263,12 +267,60 @@ export function Family() {
       </div>
 
       {/* Pending Invites */}
-      {(pendingMembers.length > 0 || pendingInvitations.length > 0) && (
+      {(pendingMembers.length > 0 || pendingInvitations.length > 0 || acceptedInvitations.length > 0) && (
         <div className="space-y-4">
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-            Aguardando resposta ({pendingMembers.length + pendingInvitations.length})
+            Aguardando resposta ({pendingMembers.length + pendingInvitations.length + acceptedInvitations.length})
           </h2>
           <div className="space-y-2">
+            {/* Convites aceitos mas com erro (não viraram membros) */}
+            {acceptedInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="group p-4 rounded-xl border border-dashed border-destructive/50
+                           hover:border-destructive transition-all duration-200 bg-destructive/5"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-full bg-destructive/20 text-destructive
+                                 flex items-center justify-center font-medium text-sm"
+                    >
+                      {getInitials(invitation.member_name)}
+                    </div>
+                    <div>
+                      <p className="font-display font-semibold text-foreground">
+                        {invitation.member_name}
+                      </p>
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        ⚠️ Erro ao aceitar - Reenvie o convite
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => resendInvitation.mutate(invitation.id)}
+                      disabled={resendInvitation.isPending}
+                      className="gap-1"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Reenviar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => cancelInvitation.mutate(invitation.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
             {/* Convites enviados (family_invitations) */}
             {pendingInvitations.map((invitation) => (
               <div
@@ -298,6 +350,14 @@ export function Family() {
                     <span className="text-xs text-warning px-2 py-1 rounded-full bg-warning/10">
                       Aguardando aceite
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => cancelInvitation.mutate(invitation.id)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>

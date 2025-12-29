@@ -152,3 +152,55 @@ export function useRejectInvitation() {
     },
   });
 }
+
+// Hook para cancelar convite enviado
+export function useCancelInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { error } = await supabase
+        .from("family_invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-invitations-sent"] });
+      toast.success("Convite cancelado.");
+    },
+    onError: (error) => {
+      toast.error("Erro ao cancelar: " + error.message);
+    },
+  });
+}
+
+// Hook para reenviar convite (reseta para pending)
+export function useResendInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const { data, error } = await supabase
+        .from("family_invitations")
+        .update({ 
+          status: "pending",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", invitationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-invitations-sent"] });
+      toast.success("Convite reenviado!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao reenviar: " + error.message);
+    },
+  });
+}
