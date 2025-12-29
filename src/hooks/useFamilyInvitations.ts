@@ -34,7 +34,7 @@ export function usePendingInvitations() {
           .from("family_invitations")
           .select(`
             *,
-            from_user:from_user_id (
+            from_user:profiles!family_invitations_from_user_id_fkey (
               full_name,
               email
             )
@@ -48,6 +48,7 @@ export function usePendingInvitations() {
           return [];
         }
         
+        console.log('📨 Convites pendentes encontrados:', data);
         return (data || []) as unknown as FamilyInvitation[];
       } catch (error) {
         console.error("Erro ao buscar convites:", error);

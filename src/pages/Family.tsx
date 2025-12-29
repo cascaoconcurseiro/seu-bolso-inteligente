@@ -26,6 +26,7 @@ import {
   useRemoveFamilyMember,
   FamilyRole 
 } from "@/hooks/useFamily";
+import { useSentInvitations } from "@/hooks/useFamilyInvitations";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -50,6 +51,7 @@ export function Family() {
   const { user } = useAuth();
   const { data: family, isLoading: familyLoading } = useFamily();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: sentInvitations = [], isLoading: invitationsLoading } = useSentInvitations();
   const inviteMember = useInviteFamilyMember();
   const updateMember = useUpdateFamilyMember();
   const removeMember = useRemoveFamilyMember();
@@ -62,6 +64,7 @@ export function Family() {
 
   const activeMembers = members.filter((m) => m.status === "active");
   const pendingMembers = members.filter((m) => m.status === "pending");
+  const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
 
   const getInitials = (name: string) => {
     return name
@@ -140,13 +143,13 @@ export function Family() {
           </p>
           <p className="font-mono text-2xl font-bold">{activeMembers.length}</p>
         </div>
-        {pendingMembers.length > 0 && (
+        {(pendingMembers.length > 0 || pendingInvitations.length > 0) && (
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
               Convites pendentes
             </p>
             <p className="font-display text-lg font-semibold text-warning">
-              {pendingMembers.length}
+              {pendingMembers.length + pendingInvitations.length}
             </p>
           </div>
         )}
@@ -260,12 +263,47 @@ export function Family() {
       </div>
 
       {/* Pending Invites */}
-      {pendingMembers.length > 0 && (
+      {(pendingMembers.length > 0 || pendingInvitations.length > 0) && (
         <div className="space-y-4">
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-            Convites pendentes ({pendingMembers.length})
+            Aguardando resposta ({pendingMembers.length + pendingInvitations.length})
           </h2>
           <div className="space-y-2">
+            {/* Convites enviados (family_invitations) */}
+            {pendingInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="group p-4 rounded-xl border border-dashed border-border 
+                           hover:border-foreground/20 transition-all duration-200 bg-muted/30"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="w-12 h-12 rounded-full bg-muted text-muted-foreground 
+                                 flex items-center justify-center font-medium text-sm"
+                    >
+                      {getInitials(invitation.member_name)}
+                    </div>
+                    <div>
+                      <p className="font-display font-semibold text-muted-foreground">
+                        {invitation.member_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        Convite enviado (aguardando aceite)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-warning px-2 py-1 rounded-full bg-warning/10">
+                      Aguardando aceite
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Membros pendentes (legado) */}
             {pendingMembers.map((member) => (
               <div
                 key={member.id}
