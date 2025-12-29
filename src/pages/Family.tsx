@@ -94,7 +94,8 @@ export function Family() {
   
   const pendingMembers = members.filter((m) => m.status === "pending");
   const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
-  const acceptedInvitations = sentInvitations.filter((i) => i.status === "accepted");
+  // NÃO mostrar convites aceitos - eles já viraram membros
+  const acceptedInvitations = [];
 
   const getInitials = (name: string) => {
     return name

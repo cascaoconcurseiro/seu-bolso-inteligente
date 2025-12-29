@@ -40,50 +40,76 @@ export function useFamily() {
   return useQuery({
     queryKey: ["family", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return null;
+
+      // Primeiro, tentar buscar família onde sou o dono
+      const { data: ownedFamily, error: ownedError } = await supabase
         .from("families")
         .select(`
           *,
           owner:profiles!families_owner_id_fkey(id, full_name, email)
         `)
-        .single();
+        .eq("owner_id", user.id)
+        .maybeSingle();
 
-      // Se não encontrou família, retornar null (não é erro)
-      if (error && error.code === 'PGRST116') {
-        return null;
+      if (ownedFamily) {
+        return ownedFamily as Family & { owner?: { id: string; full_name: string; email: string } };
       }
 
-      if (error) throw error;
-      return data as Family & { owner?: { id: string; full_name: string; email: string } };
+      // Se não sou dono, buscar família onde sou membro
+      const { data: memberRecord } = await supabase
+        .from("family_members")
+        .select("family_id")
+        .eq("linked_user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!memberRecord) {
+        return null; // Não pertence a nenhuma família
+      }
+
+      // Buscar dados da família
+      const { data: memberFamily, error: memberError } = await supabase
+        .from("families")
+        .select(`
+          *,
+          owner:profiles!families_owner_id_fkey(id, full_name, email)
+        `)
+        .eq("id", memberRecord.family_id)
+        .single();
+
+      if (memberError) throw memberError;
+      return memberFamily as Family & { owner?: { id: string; full_name: string; email: string } };
     },
     enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
+    retry: false,
   });
 }
 
 export function useFamilyMembers() {
   const { user } = useAuth();
+  const { data: family } = useFamily();
 
   return useQuery({
-    queryKey: ["family-members", user?.id],
+    queryKey: ["family-members", user?.id, family?.id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || !family) return [];
 
-      // Buscar membros da família do usuário
-      // Lógica simples: buscar onde user_id = eu (sou o dono da relação)
-      // Isso mostra os outros membros que EU adicionei
-      const { data, error} = await supabase
+      // Buscar TODOS os membros da família
+      // Se sou o dono (owner_id), busco todos os membros da minha família
+      // Se sou membro (linked_user_id), busco todos os membros da família que pertenço
+      const { data, error } = await supabase
         .from("family_members")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("family_id", family.id)
         .order("created_at");
 
       if (error) throw error;
       return data as FamilyMember[];
     },
-    enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
-    staleTime: 60000, // Cache por 1 minuto
+    enabled: !!user && !!family,
+    retry: false,
+    staleTime: 60000,
   });
 }
 
