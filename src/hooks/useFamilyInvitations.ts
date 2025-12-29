@@ -30,15 +30,10 @@ export function usePendingInvitations() {
       if (!user) return [];
 
       try {
-        const { data, error } = await supabase
+        // Buscar convites
+        const { data: invitations, error } = await supabase
           .from("family_invitations")
-          .select(`
-            *,
-            from_user:profiles!family_invitations_from_user_id_fkey (
-              full_name,
-              email
-            )
-          `)
+          .select("*")
           .eq("to_user_id", user.id)
           .eq("status", "pending")
           .order("created_at", { ascending: false });
@@ -47,9 +42,31 @@ export function usePendingInvitations() {
           console.error("Erro ao buscar convites:", error);
           return [];
         }
+
+        if (!invitations || invitations.length === 0) {
+          console.log('📨 Nenhum convite pendente encontrado');
+          return [];
+        }
+
+        // Buscar dados dos usuários que enviaram os convites
+        const fromUserIds = invitations.map(inv => inv.from_user_id);
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", fromUserIds);
+
+        if (profilesError) {
+          console.error("Erro ao buscar perfis:", profilesError);
+        }
+
+        // Combinar dados
+        const invitationsWithUsers = invitations.map(inv => ({
+          ...inv,
+          from_user: profiles?.find(p => p.id === inv.from_user_id) || null
+        }));
         
-        console.log('📨 Convites pendentes encontrados:', data);
-        return (data || []) as unknown as FamilyInvitation[];
+        console.log('📨 Convites pendentes encontrados:', invitationsWithUsers);
+        return invitationsWithUsers as FamilyInvitation[];
       } catch (error) {
         console.error("Erro ao buscar convites:", error);
         return [];
