@@ -197,8 +197,8 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   // Membros disponíveis para divisão:
   // - Se tem viagem selecionada: usar membros da viagem (trip_members) convertidos para formato FamilyMember
   // - Senão: usar membros da família
-  const availableMembers = tripId && tripMembers.length > 0
-    ? tripMembers
+  const availableMembers = tripId && tripMembers && tripMembers.length > 0
+    ? (tripMembers || [])
         .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
         .map(tm => ({
           id: tm.user_id, // Usar user_id como id para compatibilidade
@@ -239,8 +239,8 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   };
 
   const isLoading = accountsLoading || categoriesLoading;
-  const creditCards = accounts?.filter((a) => a.type === 'CREDIT_CARD') || [];
-  const regularAccounts = accounts?.filter((a) => a.type !== 'CREDIT_CARD') || [];
+  const creditCards = (accounts || []).filter((a) => a.type === 'CREDIT_CARD');
+  const regularAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD');
   const allAccounts = accounts || [];
   const isCreditCard = creditCards.some((c) => c.id === accountId);
   const isExpense = activeTab === 'EXPENSE';
@@ -294,8 +294,8 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   }) || [];
 
   // Separar cartões e contas regulares filtrados
-  const filteredCreditCards = filteredAccounts.filter((a) => a.type === 'CREDIT_CARD');
-  const filteredRegularAccounts = filteredAccounts.filter((a) => a.type !== 'CREDIT_CARD');
+  const filteredCreditCards = (filteredAccounts || []).filter((a) => a.type === 'CREDIT_CARD');
+  const filteredRegularAccounts = (filteredAccounts || []).filter((a) => a.type !== 'CREDIT_CARD');
 
   // Obter símbolo da moeda
   const getCurrencySymbol = (currency: string) => {
