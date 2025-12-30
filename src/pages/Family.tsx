@@ -76,43 +76,16 @@ export function Family() {
   });
 
   // Lógica correta de exibição:
-  // - Se sou OWNER: mostrar todos os membros (linked_user_id)
-  // - Se sou MEMBRO: mostrar o owner + outros membros
-  // - NUNCA mostrar a mim mesmo
+  // - Mostrar todos os membros ativos da família
+  // - NUNCA mostrar o usuário logado (ele não deve estar na lista de membros)
+  // - Com sistema bidirecional, todos os membros já estão na tabela family_members
   
   const allActiveMembers = members
     .filter((m) => m.status === "active" && m.linked_user_id !== user?.id)
     .map((m) => ({
       ...m,
-      // Buscar dados do perfil do linked_user_id
-      isOwner: false,
+      isOwner: false, // Nenhum membro é owner da família que está visualizando
     }));
-
-  // Se NÃO sou o owner, adicionar o owner à lista
-  if (!isOwner && family) {
-    const ownerData = (family as any).owner;
-    if (ownerData) {
-      allActiveMembers.unshift({
-        id: 'owner-' + family.owner_id,
-        family_id: family.id,
-        user_id: null,
-        linked_user_id: family.owner_id,
-        name: ownerData.full_name || ownerData.email || 'Proprietário',
-        email: ownerData.email || null,
-        role: 'admin' as FamilyRole,
-        status: 'active' as const,
-        invited_by: null,
-        created_at: family.created_at,
-        updated_at: family.updated_at,
-        avatar_url: null,
-        sharing_scope: 'all' as const,
-        scope_start_date: null,
-        scope_end_date: null,
-        scope_trip_id: null,
-        isOwner: true,
-      });
-    }
-  }
   
   const pendingMembers = members.filter((m) => m.status === "pending");
   const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
@@ -228,7 +201,7 @@ export function Family() {
           <div className="space-y-2">
             {allActiveMembers.map((member: any) => {
               const isSelf = member.linked_user_id === user?.id;
-              const memberIsOwner = member.isOwner || family?.owner_id === member.linked_user_id;
+              const memberIsOwner = false; // Membros nunca são owners da família que estão visualizando
               
               return (
                 <div
