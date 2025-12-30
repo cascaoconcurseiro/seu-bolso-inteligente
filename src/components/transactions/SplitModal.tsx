@@ -24,7 +24,7 @@ export interface TransactionSplitData {
 interface SplitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (splits: TransactionSplitData[]) => void; // ✅ CORREÇÃO: Passar splits
   payerId: string;
   setPayerId: (id: string) => void;
   splits: TransactionSplitData[];
@@ -352,7 +352,12 @@ export function SplitModal({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={onConfirm}>Confirmar</Button>
+          <Button onClick={() => {
+            console.log('🔵 [SplitModal] Confirmando com splits:', splits);
+            onConfirm(splits); // ✅ CORREÇÃO: Passar splits explicitamente
+          }}>
+            Confirmar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

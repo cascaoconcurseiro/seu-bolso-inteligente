@@ -392,6 +392,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     console.log('🟢 [TransactionForm] Splits processados:', transactionSplits);
     console.log('🟢 [TransactionForm] isShared:', isShared);
 
+    // ✅ VALIDAÇÃO CRÍTICA: Se marcou como compartilhada mas não tem splits
+    if (isShared && payerId === 'me' && transactionSplits.length === 0) {
+      toast.error('Selecione pelo menos um membro para dividir a despesa');
+      setShowSplitModal(true); // Reabrir modal
+      return;
+    }
+
     // Preparar dados da transação
     const transactionData = {
       amount: numericAmount,
@@ -1078,7 +1085,11 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       <SplitModal
         isOpen={showSplitModal}
         onClose={() => setShowSplitModal(false)}
-        onConfirm={() => setShowSplitModal(false)}
+        onConfirm={(confirmedSplits) => {
+          console.log('🟢 [TransactionForm] Recebendo splits do modal:', confirmedSplits);
+          setSplits(confirmedSplits); // ✅ CORREÇÃO: Atualizar estado com splits confirmados
+          setShowSplitModal(false);
+        }}
         payerId={payerId}
         setPayerId={setPayerId}
         splits={splits}
