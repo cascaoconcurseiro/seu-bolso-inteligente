@@ -75,37 +75,44 @@ export function Family() {
     members
   });
 
-  // Incluir membros da família
-  // Se sou MEMBRO: mostrar o DONO + outros membros (exceto eu)
-  // Se sou DONO: mostrar apenas os MEMBROS (exceto eu, que não estou em family_members)
+  // Lógica correta de exibição:
+  // - Se sou OWNER: mostrar todos os membros (linked_user_id)
+  // - Se sou MEMBRO: mostrar o owner + outros membros
+  // - NUNCA mostrar a mim mesmo
   
-  const activeMembers = members.filter((m) => 
-    m.status === "active" && m.linked_user_id !== user?.id
-  );
-  
-  // Se NÃO sou o dono, adicionar o dono à lista
-  const allActiveMembers = !isOwner && family ? [
-    // Adicionar o dono como primeiro membro
-    {
-      id: 'owner-' + family.owner_id,
-      family_id: family.id,
-      user_id: family.owner_id,
-      linked_user_id: family.owner_id,
-      name: (family as any).owner?.full_name || (family as any).owner?.email || 'Proprietário',
-      email: (family as any).owner?.email || null,
-      role: 'admin' as FamilyRole,
-      status: 'active' as const,
-      invited_by: null,
-      created_at: family.created_at,
-      updated_at: family.updated_at,
-      avatar_url: null,
-      sharing_scope: 'all' as const,
-      scope_start_date: null,
-      scope_end_date: null,
-      scope_trip_id: null,
-    },
-    ...activeMembers
-  ] : activeMembers;
+  const allActiveMembers = members
+    .filter((m) => m.status === "active" && m.linked_user_id !== user?.id)
+    .map((m) => ({
+      ...m,
+      // Buscar dados do perfil do linked_user_id
+      isOwner: false,
+    }));
+
+  // Se NÃO sou o owner, adicionar o owner à lista
+  if (!isOwner && family) {
+    const ownerData = (family as any).owner;
+    if (ownerData) {
+      allActiveMembers.unshift({
+        id: 'owner-' + family.owner_id,
+        family_id: family.id,
+        user_id: null,
+        linked_user_id: family.owner_id,
+        name: ownerData.full_name || ownerData.email || 'Proprietário',
+        email: ownerData.email || null,
+        role: 'admin' as FamilyRole,
+        status: 'active' as const,
+        invited_by: null,
+        created_at: family.created_at,
+        updated_at: family.updated_at,
+        avatar_url: null,
+        sharing_scope: 'all' as const,
+        scope_start_date: null,
+        scope_end_date: null,
+        scope_trip_id: null,
+        isOwner: true,
+      });
+    }
+  }
   
   const pendingMembers = members.filter((m) => m.status === "pending");
   const pendingInvitations = sentInvitations.filter((i) => i.status === "pending");
@@ -219,9 +226,9 @@ export function Family() {
           </div>
         ) : (
           <div className="space-y-2">
-            {allActiveMembers.map((member) => {
-              const isSelf = member.linked_user_id === user?.id || member.user_id === user?.id;
-              const memberIsOwner = family?.owner_id === member.user_id || family?.owner_id === member.linked_user_id || member.id.startsWith('owner-');
+            {allActiveMembers.map((member: any) => {
+              const isSelf = member.linked_user_id === user?.id;
+              const memberIsOwner = member.isOwner || family?.owner_id === member.linked_user_id;
               
               return (
                 <div

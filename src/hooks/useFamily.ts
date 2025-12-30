@@ -42,7 +42,18 @@ export function useFamily() {
     queryFn: async () => {
       if (!user) return null;
 
-      // Buscar família onde sou membro ativo
+      // Primeiro, tentar buscar família onde sou o DONO
+      const { data: ownedFamily } = await supabase
+        .from("families")
+        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+
+      if (ownedFamily) {
+        return ownedFamily as Family & { owner?: { id: string; full_name: string; email: string } };
+      }
+
+      // Se não sou dono, buscar família onde sou MEMBRO ativo
       const { data: memberRecord } = await supabase
         .from("family_members")
         .select("family_id")
@@ -54,16 +65,16 @@ export function useFamily() {
         return null; // Não pertence a nenhuma família
       }
 
-      // Buscar dados da família
+      // Buscar dados da família com owner
       const { data: family, error } = await supabase
         .from("families")
-        .select("*")
+        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
         .eq("id", memberRecord.family_id)
         .single();
 
       if (error) throw error;
 
-      return family as Family;
+      return family as Family & { owner?: { id: string; full_name: string; email: string } };
     },
     enabled: !!user,
     retry: false,
