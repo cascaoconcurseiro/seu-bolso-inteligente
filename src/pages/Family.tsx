@@ -63,10 +63,13 @@ export function Family() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   const isLoading = familyLoading || membersLoading;
+  const isOwner = family?.owner_id === user?.id;
 
   console.log('👨‍👩‍👧‍👦 Family Page:', {
     userId: user?.id,
     familyId: family?.id,
+    ownerId: family?.owner_id,
+    isOwner,
     familyData: family,
     membersCount: members.length,
     members
