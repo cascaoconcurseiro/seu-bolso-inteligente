@@ -210,12 +210,14 @@ export function useCreateTransaction() {
         if (splits && splits.length > 0) {
           const { data: membersData } = await supabase
             .from("family_members")
-            .select("id, name")
+            .select("id, name, linked_user_id")
             .in("id", splits.map(s => s.member_id));
           
           const memberNames: Record<string, string> = {};
+          const memberUserIds: Record<string, string> = {};
           membersData?.forEach(m => {
             memberNames[m.id] = m.name;
+            memberUserIds[m.id] = m.linked_user_id;
           });
 
           for (const transaction of data) {
@@ -230,6 +232,7 @@ export function useCreateTransaction() {
               return {
                 transaction_id: transaction.id,
                 member_id: split.member_id,
+                user_id: memberUserIds[split.member_id], // Preencher user_id explicitamente
                 percentage: split.percentage,
                 amount: splitAmount,
                 name: memberNames[split.member_id] || "Membro",
@@ -270,20 +273,23 @@ export function useCreateTransaction() {
       // Se tem splits (divisão com membros da família), criar transaction_splits
       // Isso vai disparar o trigger de espelhamento automático
       if (splits && splits.length > 0) {
-        // Buscar nomes dos membros para popular o campo name
+        // Buscar nomes E user_ids dos membros para popular os campos
         const { data: membersData } = await supabase
           .from("family_members")
-          .select("id, name")
+          .select("id, name, linked_user_id")
           .in("id", splits.map(s => s.member_id));
         
         const memberNames: Record<string, string> = {};
+        const memberUserIds: Record<string, string> = {};
         membersData?.forEach(m => {
           memberNames[m.id] = m.name;
+          memberUserIds[m.id] = m.linked_user_id;
         });
 
         const splitsToInsert = splits.map(split => ({
           transaction_id: data.id,
           member_id: split.member_id,
+          user_id: memberUserIds[split.member_id], // Preencher user_id explicitamente
           percentage: split.percentage,
           amount: split.amount,
           name: memberNames[split.member_id] || "Membro",

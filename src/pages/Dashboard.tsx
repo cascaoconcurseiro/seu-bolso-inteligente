@@ -4,6 +4,7 @@ import { ArrowUpRight, ArrowDownRight, Loader2, CreditCard, Users, ChevronRight,
 import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
@@ -41,6 +42,7 @@ export function Dashboard() {
   const { data: summary, isLoading: summaryLoading, isError: summaryError } = useFinancialSummary();
   const { data: transactions, isLoading: txLoading, isError: txError } = useTransactions();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
+  const { data: projection, isLoading: projectionLoading } = useMonthlyProjection();
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
@@ -61,7 +63,9 @@ export function Dashboard() {
   const income = summary?.income || 0;
   const expenses = summary?.expenses || 0;
   const savings = income - expenses;
-  const projectedBalance = balance + savings;
+  
+  // PROJEÇÃO CORRETA: usar a função que considera tudo do mês
+  const projectedBalance = projection?.projected_balance ?? balance;
 
   // Saldos em moedas estrangeiras
   const balancesByForeignCurrency = useMemo(() => {
@@ -326,11 +330,11 @@ export function Dashboard() {
             </Link>
           </div>
 
-          {/* Insight Card */}
+          {/* Insight Card - Saldo do Mês */}
           <div className="p-4 rounded-xl border border-border bg-muted/30 animate-scale-in hover-glow">
-            <p className="text-xs text-muted-foreground mb-1">Este mês você</p>
+            <p className="text-xs text-muted-foreground mb-1">Saldo do mês</p>
             <p className="font-semibold">
-              {savings >= 0 ? "Economizou" : "Gastou a mais"}
+              {savings >= 0 ? "Positivo" : "Negativo"}
             </p>
             <p className={cn(
               "text-sm flex items-center gap-1",
@@ -347,6 +351,41 @@ export function Dashboard() {
             <p className="font-mono text-2xl font-bold animate-count-up">
               {formatCurrency(projectedBalance)}
             </p>
+            
+            {/* Detalhamento da Projeção */}
+            {projection && (
+              projection.future_income > 0 || 
+              projection.future_expenses > 0 || 
+              projection.credit_card_invoices > 0 || 
+              projection.shared_debts > 0
+            ) && (
+              <div className="mt-3 pt-3 border-t border-background/20 space-y-1 text-xs opacity-80">
+                {projection.future_income > 0 && (
+                  <div className="flex justify-between">
+                    <span>+ Receitas futuras</span>
+                    <span>{formatCurrency(projection.future_income)}</span>
+                  </div>
+                )}
+                {projection.future_expenses > 0 && (
+                  <div className="flex justify-between">
+                    <span>- Despesas futuras</span>
+                    <span>{formatCurrency(projection.future_expenses)}</span>
+                  </div>
+                )}
+                {projection.credit_card_invoices > 0 && (
+                  <div className="flex justify-between">
+                    <span>- Faturas cartão</span>
+                    <span>{formatCurrency(projection.credit_card_invoices)}</span>
+                  </div>
+                )}
+                {projection.shared_debts > 0 && (
+                  <div className="flex justify-between">
+                    <span>- Compartilhados</span>
+                    <span>{formatCurrency(projection.shared_debts)}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </aside>
       </div>
