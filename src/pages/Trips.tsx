@@ -54,6 +54,7 @@ import { PersonalBudgetDialog } from "@/components/trips/PersonalBudgetDialog";
 import { TripExchange } from "@/components/trips/TripExchange";
 import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
+import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { Pencil, Wallet, ArrowRightLeft, User, Coins } from "lucide-react";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
@@ -724,6 +725,9 @@ export function Trips() {
           Nova viagem
         </Button>
       </div>
+
+      {/* Pending Trip Invitations */}
+      <PendingTripInvitationsAlert />
 
       {/* Trips List */}
       <div className="space-y-3">
