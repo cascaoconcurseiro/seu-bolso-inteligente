@@ -9,10 +9,12 @@ Corrigir bugs de exibição para que Wesley e Fran apareçam um para o outro cor
 **Problema:** Wesley não aparece para Fran e vice-versa
 
 **Correção:**
-- [ ] Remover lógica de "adicionar owner como pseudo-membro"
-- [ ] Buscar TODOS os membros da família (incluindo owner)
-- [ ] Filtrar apenas o próprio usuário logado
-- [ ] Mostrar owner com badge de coroa
+- [x] Corrigir `useFamily()` para buscar família tanto como owner quanto como member
+- [x] Buscar dados do owner junto com a família
+- [x] Remover lógica complexa de "adicionar owner como pseudo-membro"
+- [x] Simplificar: filtrar apenas o próprio usuário logado
+- [x] Adicionar flag `isOwner` no objeto do owner
+- [x] Mostrar owner com badge de coroa
 - [ ] Testar: Wesley vê Fran / Fran vê Wesley
 
 ### 2. ✅ Formulário de Transação - Lista de Pessoas

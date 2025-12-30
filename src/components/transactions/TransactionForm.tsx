@@ -195,8 +195,9 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     ) || [];
 
   // Membros disponíveis para divisão:
-  // - Se tem viagem selecionada: usar membros da viagem (trip_members) convertidos para formato FamilyMember
-  // - Senão: usar membros da família (apenas linked_user_id, não o dono)
+  // - Se tem viagem selecionada: usar membros da viagem (trip_members)
+  // - Senão: usar membros da família
+  // IMPORTANTE: NUNCA incluir o próprio usuário logado
   const availableMembers = tripId && tripMembers && tripMembers.length > 0
     ? (tripMembers || [])
         .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
@@ -218,7 +219,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           scope_end_date: null,
           scope_trip_id: null,
         }))
-    : familyMembers;
+    : (familyMembers || []).filter(m => m.linked_user_id !== user?.id); // Excluir o próprio usuário
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
