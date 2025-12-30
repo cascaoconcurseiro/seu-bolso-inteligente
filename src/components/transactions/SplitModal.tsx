@@ -56,13 +56,24 @@ export function SplitModal({
   setTotalInstallments,
   currentUserName,
 }: SplitModalProps) {
+  console.log('🔵 [SplitModal] Renderizado com:', { 
+    isOpen, 
+    splits, 
+    familyMembers: familyMembers.length, 
+    activeAmount,
+    payerId 
+  });
   const toggleSplitMember = (memberId: string) => {
+    console.log('🔵 [SplitModal] toggleSplitMember chamado:', { memberId, currentSplits: splits });
+    
     let newSplits = [...splits];
     const exists = newSplits.find((s) => s.memberId === memberId);
 
     if (exists) {
+      console.log('🔵 [SplitModal] Removendo membro:', memberId);
       newSplits = newSplits.filter((s) => s.memberId !== memberId);
     } else {
+      console.log('🔵 [SplitModal] Adicionando membro:', memberId);
       newSplits.push({ memberId, percentage: 0, amount: 0 });
     }
 
@@ -76,18 +87,25 @@ export function SplitModal({
         percentage: Number(sharePct.toFixed(1)),
         amount: Number((activeAmount * (sharePct / 100)).toFixed(2)),
       }));
+      
+      console.log('🔵 [SplitModal] Splits redistribuídos:', newSplits);
     }
 
+    console.log('🔵 [SplitModal] Chamando setSplits com:', newSplits);
     setSplits(newSplits);
   };
 
   const applyPreset = (myPct: number) => {
+    console.log('🔵 [SplitModal] applyPreset chamado:', { myPct, currentSplits: splits });
+    
     const otherPct = 100 - myPct;
     const newSplits = splits.map((s) => ({
       ...s,
       percentage: otherPct / splits.length,
       amount: (activeAmount * otherPct) / 100 / splits.length,
     }));
+    
+    console.log('🔵 [SplitModal] Preset aplicado, novos splits:', newSplits);
     setSplits(newSplits);
   };
 

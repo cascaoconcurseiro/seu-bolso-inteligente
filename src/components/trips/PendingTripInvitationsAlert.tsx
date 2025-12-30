@@ -14,18 +14,29 @@ export function PendingTripInvitationsAlert() {
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
+  console.log('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
+    invitations, 
+    isLoading, 
+    error,
+    hasInvitations: invitations && invitations.length > 0 
+  });
+
   if (isLoading) {
+    console.log('🟣 [PendingTripInvitationsAlert] Carregando...');
     return null;
   }
 
   if (error) {
-    console.error("Erro ao carregar convites:", error);
+    console.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
     return null;
   }
   
   if (!invitations || invitations.length === 0) {
+    console.log('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
     return null;
   }
+
+  console.log('🟣 [PendingTripInvitationsAlert] Renderizando', invitations.length, 'convite(s)');
 
   return (
     <div className="space-y-3">

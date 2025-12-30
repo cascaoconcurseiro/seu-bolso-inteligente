@@ -344,14 +344,24 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   };
 
   const buildSplitsForSubmit = (): TransactionSplit[] => {
-    if (splits.length === 0) return [];
+    console.log('🟢 [TransactionForm] buildSplitsForSubmit chamado. Splits atuais:', splits);
+    
+    if (splits.length === 0) {
+      console.log('🟢 [TransactionForm] Nenhum split para processar');
+      return [];
+    }
+    
     const numericAmount = getNumericAmount();
+    console.log('🟢 [TransactionForm] Valor numérico:', numericAmount);
 
-    return splits.map((s) => ({
+    const result = splits.map((s) => ({
       member_id: s.memberId,
       percentage: s.percentage,
       amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
     }));
+    
+    console.log('🟢 [TransactionForm] Splits processados para submit:', result);
+    return result;
   };
 
   const performSubmit = async (transactionData: any) => {
@@ -367,6 +377,10 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('🟢 [TransactionForm] handleSubmit iniciado');
+    console.log('🟢 [TransactionForm] Estado atual dos splits:', splits);
+    console.log('🟢 [TransactionForm] PayerId:', payerId);
+
     // Limpar erros anteriores
     setValidationErrors([]);
     setValidationWarnings([]);
@@ -374,6 +388,9 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     const numericAmount = getNumericAmount();
     const transactionSplits = buildSplitsForSubmit();
     const isShared = transactionSplits.length > 0 || payerId !== 'me';
+
+    console.log('🟢 [TransactionForm] Splits processados:', transactionSplits);
+    console.log('🟢 [TransactionForm] isShared:', isShared);
 
     // Preparar dados da transação
     const transactionData = {
@@ -401,6 +418,8 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       enable_notification: enableNotification,
       notification_date: enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
     };
+
+    console.log('🟢 [TransactionForm] Dados da transação preparados:', transactionData);
 
     // Buscar contas selecionadas
     const selectedAccount = accounts?.find(a => a.id === accountId);

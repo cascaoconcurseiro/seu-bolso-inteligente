@@ -32,7 +32,10 @@ export function usePendingTripInvitations() {
   return useQuery({
     queryKey: ["pending-trip-invitations", user?.id],
     queryFn: async () => {
+      console.log('🟣 [usePendingTripInvitations] Buscando convites para user:', user?.id);
+      
       if (!user) {
+        console.log('🟣 [usePendingTripInvitations] Sem usuário logado');
         return [];
       }
 
@@ -44,14 +47,18 @@ export function usePendingTripInvitations() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Erro ao buscar convites:", error);
+        console.error("🟣 [usePendingTripInvitations] Erro ao buscar convites:", error);
         throw error;
       }
+
+      console.log('🟣 [usePendingTripInvitations] Convites encontrados:', data?.length || 0);
 
       if (data && data.length > 0) {
         // Buscar IDs únicos para os dados complementares
         const tripIds = [...new Set(data.map(inv => inv.trip_id))];
         const inviterIds = [...new Set(data.map(inv => inv.inviter_id))];
+
+        console.log('🟣 [usePendingTripInvitations] Buscando dados complementares:', { tripIds, inviterIds });
 
         // Buscar Viagens e Profiles em paralelo para performance
         const [tripsResult, profilesResult] = await Promise.all([
@@ -65,8 +72,8 @@ export function usePendingTripInvitations() {
             .in("id", inviterIds)
         ]);
 
-        if (tripsResult.error) console.error("Erro ao buscar viagens:", tripsResult.error);
-        if (profilesResult.error) console.error("Erro ao buscar perfis:", profilesResult.error);
+        if (tripsResult.error) console.error("🟣 [usePendingTripInvitations] Erro ao buscar viagens:", tripsResult.error);
+        if (profilesResult.error) console.error("🟣 [usePendingTripInvitations] Erro ao buscar perfis:", profilesResult.error);
 
         const tripsMap = new Map(tripsResult.data?.map(t => [t.id, t]) || []);
         const profilesMap = new Map(profilesResult.data?.map(p => [p.id, p]) || []);
@@ -77,6 +84,7 @@ export function usePendingTripInvitations() {
           inviter: profilesMap.get(inv.inviter_id)
         }));
 
+        console.log('🟣 [usePendingTripInvitations] Dados enriquecidos:', enrichedData);
         return enrichedData as TripInvitation[];
       }
 
