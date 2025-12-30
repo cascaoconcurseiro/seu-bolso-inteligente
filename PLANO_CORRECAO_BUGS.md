@@ -21,8 +21,9 @@ Corrigir bugs de exibição para que Wesley e Fran apareçam um para o outro cor
 **Problema:** Pode incluir o próprio usuário nas opções
 
 **Correção:**
-- [ ] Garantir que `availableMembers` NUNCA inclui o usuário logado
-- [ ] Simplificar lógica de filtro
+- [x] Adicionar filtro `.filter(m => m.linked_user_id !== user?.id)` em familyMembers
+- [x] Garantir que `availableMembers` NUNCA inclui o usuário logado
+- [x] Simplificar lógica de filtro
 - [ ] Testar: Usuário não aparece como opção
 
 ### 3. ✅ Viagens - Participantes
