@@ -273,11 +273,15 @@ export function useCreateTransaction() {
       // Se tem splits (divisão com membros da família), criar transaction_splits
       // Isso vai disparar o trigger de espelhamento automático
       if (splits && splits.length > 0) {
+        console.log('🔍 Criando splits:', splits);
+        
         // Buscar nomes E user_ids dos membros para popular os campos
         const { data: membersData } = await supabase
           .from("family_members")
           .select("id, name, linked_user_id")
           .in("id", splits.map(s => s.member_id));
+        
+        console.log('👥 Membros encontrados:', membersData);
         
         const memberNames: Record<string, string> = {};
         const memberUserIds: Record<string, string> = {};
@@ -296,13 +300,16 @@ export function useCreateTransaction() {
           is_settled: false,
         }));
 
+        console.log('💾 Inserindo splits:', splitsToInsert);
+
         const { error: splitsError } = await supabase
           .from("transaction_splits")
           .insert(splitsToInsert);
 
         if (splitsError) {
-          console.error("Erro ao criar splits:", splitsError);
+          console.error("❌ Erro ao criar splits:", splitsError);
         } else {
+          console.log('✅ Splits criados com sucesso');
           // Atualizar transação para is_shared = true e disparar sync
           await supabase
             .from("transactions")
