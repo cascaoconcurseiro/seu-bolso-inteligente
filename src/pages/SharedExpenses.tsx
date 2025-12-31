@@ -68,6 +68,7 @@ import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { SharedExpensesDebug } from "@/components/debug/SharedExpensesDebug";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -1800,6 +1801,9 @@ export function SharedExpenses() {
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
       />
+
+      {/* DEBUG: Componente temporário para diagnóstico */}
+      <SharedExpensesDebug />
     </div>
   );
 }
