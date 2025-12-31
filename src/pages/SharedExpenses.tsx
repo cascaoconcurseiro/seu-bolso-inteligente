@@ -673,7 +673,16 @@ export function SharedExpenses() {
     const groupedItems = getGroupedItems(member.id);
     const pendingCount = items.filter(i => !i.isPaid).length;
     const paidCount = items.filter(i => i.isPaid).length;
-    const totalPaidAmount = items.filter(i => i.isPaid).reduce((sum, i) => sum + i.amount, 0);
+    
+    // CORREÇÃO CRÍTICA: Calcular totalPaidAmount POR MOEDA (nunca somar moedas diferentes!)
+    const paidItemsByCurrency: Record<string, number> = {};
+    items.filter(i => i.isPaid).forEach(i => {
+      const curr = i.currency || 'BRL';
+      paidItemsByCurrency[curr] = (paidItemsByCurrency[curr] || 0) + i.amount;
+    });
+    
+    // Para HISTORY, usar apenas BRL
+    const totalPaidAmount = paidItemsByCurrency[primaryCurrency] || 0;
 
     // Não mostrar membros sem itens
     if (items.length === 0) {
