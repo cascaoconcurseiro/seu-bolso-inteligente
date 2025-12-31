@@ -36,10 +36,31 @@ export function TransferModal({
   const { data: accounts = [] } = useAccounts();
   const transfer = useTransfer();
 
-  // Filtrar contas (excluir a conta de origem e cartões de crédito como destino)
-  const availableAccounts = accounts.filter((acc) => 
-    acc.id !== fromAccountId && acc.type !== "CREDIT_CARD"
-  );
+  // Filtrar contas disponíveis para transferência:
+  // - Excluir a conta de origem
+  // - Excluir cartões de crédito (não podem receber transferências)
+  // - Se conta origem é internacional, só mostrar contas da mesma moeda OU contas BRL (com conversão)
+  const availableAccounts = useMemo(() => {
+    return accounts.filter((acc) => {
+      // Não pode transferir para si mesmo
+      if (acc.id === fromAccountId) return false;
+      
+      // Cartões de crédito não podem receber transferências
+      if (acc.type === "CREDIT_CARD") return false;
+      
+      // Se conta origem é internacional (não-BRL)
+      if (fromAccountCurrency !== "BRL") {
+        // Só pode transferir para:
+        // 1. Contas da mesma moeda
+        // 2. Contas BRL (com conversão)
+        const accCurrency = acc.currency || "BRL";
+        return accCurrency === fromAccountCurrency || accCurrency === "BRL";
+      }
+      
+      // Se conta origem é BRL, pode transferir para qualquer conta
+      return true;
+    });
+  }, [accounts, fromAccountId, fromAccountCurrency]);
 
   // Detectar se é transferência cross-currency
   const selectedDestAccount = accounts.find((acc) => acc.id === toAccountId);
