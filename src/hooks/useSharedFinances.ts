@@ -437,18 +437,23 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .filter(i => {
           if (i.tripId) return false;
           
-          // Filter ALL transactions by current month (not just installments)
-          const itemDate = new Date(i.date);
-          const matches = itemDate.getMonth() === currentDate.getMonth() && 
-                 itemDate.getFullYear() === currentDate.getFullYear();
+          // Parse date as YYYY-MM-DD to avoid timezone issues
+          const [year, month, day] = i.date.split('-').map(Number);
+          const itemMonth = month - 1; // JavaScript months are 0-indexed
+          const itemYear = year;
+          
+          const currentMonth = currentDate.getMonth();
+          const currentYear = currentDate.getFullYear();
+          
+          const matches = itemMonth === currentMonth && itemYear === currentYear;
           
           console.log('🔍 [REGULAR Filter] Item:', {
             description: i.description,
             date: i.date,
-            itemMonth: itemDate.getMonth(),
-            itemYear: itemDate.getFullYear(),
-            currentMonth: currentDate.getMonth(),
-            currentYear: currentDate.getFullYear(),
+            itemMonth,
+            itemYear,
+            currentMonth,
+            currentYear,
             matches
           });
           
