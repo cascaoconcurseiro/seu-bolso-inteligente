@@ -11,6 +11,7 @@ import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsA
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
+import { BankIcon } from "@/components/financial/BankIcon";
 
 // Helper para formatar moeda
 const formatCurrency = (value: number) => {
@@ -218,12 +219,7 @@ export function Dashboard() {
                       )}
                     >
                       <div className="flex items-center gap-4">
-                        <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
-                          style={{ backgroundColor: bank.color }}
-                        >
-                          <CreditCard className="h-5 w-5" style={{ color: bank.textColor }} />
-                        </div>
+                        <BankIcon bankId={card.bank_id} size="md" />
                         <div>
                           <p className="font-medium">Fatura {card.name}</p>
                           <p className="text-sm text-muted-foreground">
