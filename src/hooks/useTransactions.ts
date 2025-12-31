@@ -139,7 +139,18 @@ export function useTransactions(filters?: TransactionFilters) {
       const { data, error } = await query.limit(200);
 
       if (error) throw error;
-      return data as Transaction[];
+      
+      // Filtrar transações de contas internacionais (não-BRL)
+      // Essas transações só devem aparecer:
+      // - No extrato da própria conta
+      // - Na aba Viagem (se trip_id)
+      // - Na aba Compartilhados > Viagem (se is_shared e trip_id)
+      const filteredData = (data || []).filter(tx => {
+        const accountCurrency = tx.account?.currency || 'BRL';
+        return accountCurrency === 'BRL';
+      });
+      
+      return filteredData as Transaction[];
     },
     enabled: !!user,
     retry: false,
