@@ -113,13 +113,6 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(2);
 
-  // Desabilitar parcelamento se não for cartão de crédito
-  useEffect(() => {
-    if (!isCreditCard && isInstallment) {
-      setIsInstallment(false);
-    }
-  }, [accountId, isCreditCard, isInstallment]);
-
   // Divisão / Compartilhamento
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [payerId, setPayerId] = useState<string>('me');
@@ -257,6 +250,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
+  
+  // Desabilitar parcelamento se não for cartão de crédito
+  useEffect(() => {
+    if (!isCreditCard && isInstallment) {
+      setIsInstallment(false);
+    }
+  }, [accountId, isCreditCard, isInstallment]);
   
   // Verificar se a despesa é paga por outra pessoa
   const isPaidByOther = payerId !== 'me' && payerId !== '';

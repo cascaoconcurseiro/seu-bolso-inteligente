@@ -422,14 +422,38 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     }
 
     if (activeTab === 'TRAVEL') {
-      // TRAVEL: Mostrar TODOS os itens de viagens (pagos e não pagos)
+      // TRAVEL: Mostrar itens de viagens filtrados pelo mês atual
       return scopeFilteredItems
-        .filter(i => !!i.tripId)
+        .filter(i => {
+          if (!i.tripId) return false;
+          
+          // Filtrar pelo mês selecionado
+          const [year, month, day] = i.date.split('-').map(Number);
+          const itemMonth = month - 1;
+          const itemYear = year;
+          
+          const currentMonth = currentDate.getMonth();
+          const currentYear = currentDate.getFullYear();
+          
+          return itemMonth === currentMonth && itemYear === currentYear;
+        })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else if (activeTab === 'HISTORY') {
-      // HISTORY: Mostrar apenas itens pagos
+      // HISTORY: Mostrar apenas itens pagos filtrados pelo mês atual
       return scopeFilteredItems
-        .filter(i => i.isPaid)
+        .filter(i => {
+          if (!i.isPaid) return false;
+          
+          // Filtrar pelo mês selecionado
+          const [year, month, day] = i.date.split('-').map(Number);
+          const itemMonth = month - 1;
+          const itemYear = year;
+          
+          const currentMonth = currentDate.getMonth();
+          const currentYear = currentDate.getFullYear();
+          
+          return itemMonth === currentMonth && itemYear === currentYear;
+        })
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
       // REGULAR: Mostrar apenas itens NÃO PAGOS não relacionados a viagens, filtrados pelo mês atual
