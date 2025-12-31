@@ -46,37 +46,49 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   // Fetch shared transactions with their splits
   const { data: transactionsWithSplits = [], isLoading, refetch } = useQuery({
-    queryKey: ['shared-transactions-with-splits', user?.id, Date.now()], // Force refetch
+    queryKey: ['shared-transactions-with-splits', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // Buscar transações compartilhadas
+      const { data: transactions, error: txError } = await supabase
         .from('transactions')
-        .select(`
-          *,
-          transaction_splits!transaction_splits_transaction_id_fkey (
-            id,
-            member_id,
-            user_id,
-            name,
-            amount,
-            percentage,
-            is_settled,
-            settled_at
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_shared', true)
         .order('date', { ascending: false });
       
-      if (error) {
-        console.error('❌ [Query Error]:', error);
-        throw error;
+      if (txError) {
+        console.error('❌ [Query Error - Transactions]:', txError);
+        throw txError;
       }
       
+      if (!transactions || transactions.length === 0) {
+        console.log('ℹ️ [Query Result] Nenhuma transação compartilhada encontrada');
+        return [];
+      }
+      
+      // Buscar splits para essas transações
+      const transactionIds = transactions.map(t => t.id);
+      const { data: splits, error: splitsError } = await supabase
+        .from('transaction_splits')
+        .select('*')
+        .in('transaction_id', transactionIds);
+      
+      if (splitsError) {
+        console.error('❌ [Query Error - Splits]:', splitsError);
+        throw splitsError;
+      }
+      
+      // Combinar transações com seus splits
+      const transactionsWithSplitsData = transactions.map(tx => ({
+        ...tx,
+        transaction_splits: splits?.filter(s => s.transaction_id === tx.id) || []
+      }));
+      
       console.log('✅ [Query Result] Transações com splits:', {
-        count: data?.length || 0,
-        transactions: data?.map(t => ({
+        count: transactionsWithSplitsData.length,
+        transactions: transactionsWithSplitsData.map(t => ({
           id: t.id,
           description: t.description,
           splits: t.transaction_splits?.length || 0,
@@ -84,7 +96,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }))
       });
       
-      return data || [];
+      return transactionsWithSplitsData;
     },
     enabled: !!user,
   });
