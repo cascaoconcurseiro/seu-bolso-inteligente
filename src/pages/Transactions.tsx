@@ -550,7 +550,7 @@ export function Transactions() {
                       <div className="flex items-center gap-3 shrink-0">
                         <span className={cn(
                           "font-mono font-medium text-right min-w-[100px]",
-                          transaction.type === "INCOME" ? "text-positive" : "text-foreground"
+                          transaction.type === "INCOME" ? "text-positive" : "text-negative"
                         )}>
                           {transaction.type === "INCOME" ? "+" : "-"}
                           {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
