@@ -384,6 +384,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       memberId,
       memberName: members.find(m => m.id === memberId)?.name,
       allItemsCount: allItems.length,
+      allItems: allItems.map(i => ({
+        description: i.description,
+        date: i.date,
+        tripId: i.tripId,
+        type: i.type,
+        isPaid: i.isPaid
+      })),
       activeTab,
       currentDate: currentDate.toISOString()
     });
@@ -423,9 +430,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
     if (activeTab === 'TRAVEL') {
       // TRAVEL: Mostrar itens de viagens filtrados pelo mês atual
-      return scopeFilteredItems
+      const filtered = scopeFilteredItems
         .filter(i => {
-          if (!i.tripId) return false;
+          if (!i.tripId) {
+            console.log('🔍 [TRAVEL Filter] Item sem tripId:', i);
+            return false;
+          }
           
           // Filtrar pelo mês selecionado
           const [year, month, day] = i.date.split('-').map(Number);
@@ -435,9 +445,29 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
           
-          return itemMonth === currentMonth && itemYear === currentYear;
+          const matches = itemMonth === currentMonth && itemYear === currentYear;
+          
+          console.log('🔍 [TRAVEL Filter] Item:', {
+            description: i.description,
+            date: i.date,
+            tripId: i.tripId,
+            itemMonth,
+            itemYear,
+            currentMonth,
+            currentYear,
+            matches
+          });
+          
+          return matches;
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      
+      console.log('✅ [getFilteredInvoice] Resultado TRAVEL:', {
+        filteredCount: filtered.length,
+        items: filtered
+      });
+      
+      return filtered;
     } else if (activeTab === 'HISTORY') {
       // HISTORY: Mostrar apenas itens pagos filtrados pelo mês atual
       return scopeFilteredItems
