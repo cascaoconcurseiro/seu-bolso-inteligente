@@ -110,6 +110,7 @@ export function useCreateAccount() {
           is_shared: false,
           is_installment: false,
           is_recurring: false,
+          currency: input.currency || 'BRL', // Usar a moeda da conta
         });
         
         if (txError) {
