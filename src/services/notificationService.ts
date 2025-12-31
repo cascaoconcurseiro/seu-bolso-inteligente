@@ -160,6 +160,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
     .insert({
       ...input,
       priority: input.priority || 'NORMAL',
+      created_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD para controle de duplicação diária
     })
     .select()
     .single();
