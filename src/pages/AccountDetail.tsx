@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBankById } from "@/lib/banks";
+import { BankIcon } from "@/components/financial/BankIcon";
 import { TransferModal } from "@/components/accounts/TransferModal";
 import { WithdrawalModal } from "@/components/accounts/WithdrawalModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -132,6 +133,7 @@ export function AccountDetail() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/contas")} className="rounded-full">
           <ArrowLeft className="h-5 w-5" />
         </Button>
+        {bank && <BankIcon bankId={account.bank_id} size="lg" />}
         <div className="flex-1">
           <h1 className="font-display font-bold text-2xl tracking-tight">{account.name}</h1>
           <p className="text-muted-foreground text-sm">

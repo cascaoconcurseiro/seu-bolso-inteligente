@@ -23,26 +23,8 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
   // Tentar buscar logo real do Figma
   const logoUrl = getBankLogo(bank.id);
 
-  if (logoUrl) {
-    return (
-      <div className={cn("shrink-0 flex items-center justify-center", className)}>
-        <img
-          src={logoUrl}
-          alt={bank.name}
-          className={cn(
-            "object-contain rounded-lg",
-            sizeClasses[size]
-          )}
-          onError={(e) => {
-            // Fallback se a imagem não carregar
-            e.currentTarget.style.display = 'none';
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Fallback para ícone colorido
+  // Sempre mostrar fallback por enquanto (problema com Vite servindo SVGs)
+  // TODO: Investigar por que Vite não está servindo /banks/*.svg corretamente
   return (
     <div
       className={cn(
