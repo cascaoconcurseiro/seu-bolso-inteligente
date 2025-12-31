@@ -2,68 +2,56 @@
 
 ## Problema Identificado
 
-Contas internacionais (USD, EUR, etc.) estavam sendo criadas corretamente, mas as transações eram exibidas em **R$** ao invés da moeda correta ($ para USD, € para EUR, etc.).
+Ao criar contas internacionais (USD, EUR, etc.), a transação de saldo inicial estava sendo criada em **BRL** ao invés da moeda da conta.
 
 ### Exemplo do Problema:
 - Conta: Wise - Conta Corrente (USD)
 - Saldo: $ 1.000,00 ✅ (correto)
 - Transação "Saldo inicial": **+R$ 1.000,00** ❌ (errado - deveria ser $ 1.000,00)
+- Dashboard: Mostrava R$ 1.000,00 no saldo BRL ❌ (errado - não deveria incluir moeda estrangeira)
 
 ---
 
 ## Causa Raiz
 
-1. **Hook `useTransactions`** não estava buscando o campo `currency` da conta
-2. **Página `Transactions.tsx`** não estava passando a moeda ao formatar valores
-3. **Página `AccountDetail.tsx`** já estava correta, mas dependia dos dados do hook
+1. **Hook `useAccounts.ts`** não estava passando a moeda da conta ao criar a transação de saldo inicial
+2. Transação era criada com `currency: 'BRL'` (padrão) mesmo para contas internacionais
+3. Isso causava dois problemas:
+   - Transação exibida com símbolo errado (R$ ao invés de $)
+   - Dashboard incluía o valor no total BRL (incorreto)
 
 ---
 
 ## Correções Aplicadas
 
-### 1. Hook `useTransactions.ts`
-**Linha 102**: Adicionado `currency` na query da conta
+### 1. Hook `useAccounts.ts` (Linha 82)
+**Correção principal**: Passar a moeda da conta ao criar transação de saldo inicial
+
 ```typescript
 // ANTES
-account:accounts!transactions_account_id_fkey(id, name),
-
-// DEPOIS
-account:accounts!transactions_account_id_fkey(id, name, currency),
-```
-
-**Linha 42**: Atualizada interface `Transaction`
-```typescript
-// ANTES
-account?: { name: string };
-
-// DEPOIS
-account?: { id: string; name: string; currency?: string };
-```
-
-### 2. Página `Transactions.tsx`
-**Linha 565**: Passada a moeda ao formatar transação
-```typescript
-// ANTES
-{formatCurrency(Number(transaction.amount))}
-
-// DEPOIS
-{formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
-```
-
-### 3. Hook `useAccountStatement.ts`
-**Linha 17**: Adicionado campo `currency` na interface
-```typescript
-export interface StatementTransaction {
+const { error: txError } = await supabase.from('transactions').insert({
   // ... outros campos
-  currency: string | null;
-  // ...
-}
+  currency: 'BRL', // ❌ Sempre BRL
+});
+
+// DEPOIS
+const { error: txError } = await supabase.from('transactions').insert({
+  // ... outros campos
+  currency: input.currency || 'BRL', // ✅ Usa moeda da conta
+});
 ```
 
-### 4. Melhorias de UX em `Accounts.tsx`
-Adicionados indicadores visuais no formulário:
-- "💡 A conta será criada em USD" (quando internacional)
-- "💡 Conta nacional em BRL" (quando não internacional)
+### 2. Correção de Dados Existentes
+Corrigida transação de saldo inicial existente no banco:
+- ID: `35d2782b-b930-4b41-9366-9af2aa91ec7c`
+- Conta: Wise - Conta Corrente (USD)
+- Alterado: `currency: 'BRL'` → `currency: 'USD'`
+
+### 3. Verificação do Dashboard
+A função `get_monthly_financial_summary` já estava correta:
+- Filtra apenas transações BRL: `WHERE (currency = 'BRL' OR currency IS NULL)`
+- Exclui contas internacionais do saldo: `WHERE (is_international = false OR is_international IS NULL)`
+- Portanto, o Dashboard **não inclui** moedas estrangeiras nos totais BRL ✅
 
 ---
 
@@ -102,30 +90,35 @@ Ao exibir uma transação, a moeda é determinada por:
 
 ### Antes ❌
 ```
-Wise - Conta Corrente
+Wise - Conta Corrente (USD)
 Saldo: $ 1.000,00
 
 Transações:
 +R$ 1.000,00  Saldo inicial  ← ERRADO
+
+Dashboard:
+Saldo atual (BRL): R$ 1.000,00  ← ERRADO (incluía USD)
 ```
 
 ### Depois ✅
 ```
-Wise - Conta Corrente
+Wise - Conta Corrente (USD)
 Saldo: $ 1.000,00
 
 Transações:
 +$ 1.000,00  Saldo inicial  ← CORRETO
+
+Dashboard:
+Saldo atual (BRL): R$ 0,00  ← CORRETO (exclui USD)
+USD: $ 1.000,00  ← Mostrado separadamente
 ```
 
 ---
 
 ## Arquivos Alterados
 
-1. ✅ `src/hooks/useTransactions.ts` - Buscar currency da conta
-2. ✅ `src/pages/Transactions.tsx` - Passar currency ao formatar
-3. ✅ `src/hooks/useAccountStatement.ts` - Adicionar currency na interface
-4. ✅ `src/pages/Accounts.tsx` - Melhorar UX do formulário
+1. ✅ `src/hooks/useAccounts.ts` - Passar currency ao criar transação de saldo inicial
+2. ✅ Banco de dados - Corrigida transação existente de USD para BRL
 
 ---
 
@@ -154,20 +147,28 @@ Transações:
 
 ## Observações Importantes
 
-### Resumo de Transações
-O resumo (ENTRADAS, SAÍDAS, RESULTADO) na página Transactions ainda mostra apenas BRL porque **mistura transações de diferentes moedas**. Para corrigir isso, seria necessário:
-- Filtrar por moeda
-- Ou mostrar múltiplos resumos (um por moeda)
-- Ou converter tudo para BRL usando taxa de câmbio
+### Dashboard - Separação de Moedas
+O Dashboard agora funciona corretamente:
+- **Saldo atual (BRL)**: Mostra apenas contas em BRL (exclui internacionais)
+- **Entradas/Saídas**: Considera apenas transações em BRL
+- **Saldos Estrangeiros**: Mostrados separadamente com ícone de globo (🌐)
 
-**Decisão**: Manter como está por enquanto, pois a maioria dos usuários usa apenas BRL.
+### Função do Banco de Dados
+A função `get_monthly_financial_summary` já estava preparada:
+```sql
+-- Receitas/Despesas: apenas BRL
+WHERE (currency = 'BRL' OR currency IS NULL)
 
-### Extrato da Conta
-O extrato individual de cada conta (AccountDetail) já mostra a moeda correta porque trabalha com uma única conta/moeda por vez.
+-- Saldo: exclui contas internacionais
+WHERE (is_international = false OR is_international IS NULL)
+```
+
+### Próximas Contas Internacionais
+Ao criar novas contas internacionais, o saldo inicial será automaticamente criado na moeda correta.
 
 ---
 
 **Data**: 31/12/2024  
 **Desenvolvedor**: Kiro AI  
 **Versão**: 1.0  
-**Status**: ✅ Aplicado e testado
+**Status**: ✅ Aplicado, testado e commitado (commit 0d333cc)
