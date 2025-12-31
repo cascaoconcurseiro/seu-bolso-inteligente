@@ -623,10 +623,13 @@ export function SharedExpenses() {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
     
-    // CORREÇÃO: Na aba TRAVEL usar moeda da viagem, nas abas REGULAR e HISTORY usar BRL
-    const primaryCurrency = activeTab === 'TRAVEL' 
-      ? (Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL')
-      : 'BRL';
+    // CORREÇÃO: Na aba TRAVEL não renderizar cards de membros (será por viagem)
+    // Nas abas REGULAR e HISTORY usar BRL
+    if (activeTab === 'TRAVEL') {
+      return null; // Não renderizar na aba TRAVEL
+    }
+    
+    const primaryCurrency = 'BRL';
     
     const net = totals[primaryCurrency]?.net || 0;
     const isExpanded = true; // Sempre expandido
@@ -928,6 +931,245 @@ export function SharedExpenses() {
     );
   };
 
+  // Função para renderizar card de viagem (usado na aba TRAVEL)
+  const renderTripCard = (trip: any) => {
+    // Buscar todos os itens desta viagem de todos os membros
+    const tripItems: InvoiceItem[] = [];
+    members.forEach(member => {
+      const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+      tripItems.push(...memberItems);
+    });
+
+    if (tripItems.length === 0) return null;
+
+    // Calcular totais por moeda
+    const totals = getTotals(tripItems);
+    const tripCurrency = trip.currency || 'BRL';
+    const net = totals[tripCurrency]?.net || 0;
+
+    // Agrupar itens por membro
+    const itemsByMember: Record<string, InvoiceItem[]> = {};
+    tripItems.forEach(item => {
+      if (!itemsByMember[item.memberId]) {
+        itemsByMember[item.memberId] = [];
+      }
+      itemsByMember[item.memberId].push(item);
+    });
+
+    const pendingCount = tripItems.filter(i => !i.isPaid).length;
+    const paidCount = tripItems.filter(i => i.isPaid).length;
+
+    return (
+      <div
+        key={trip.id}
+        className="rounded-xl border-2 border-blue-200 dark:border-blue-900/50 overflow-hidden transition-all"
+      >
+        {/* Header da viagem */}
+        <div className="p-4 bg-blue-50 dark:bg-blue-950/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Ícone da viagem */}
+              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white bg-blue-500">
+                <Plane className="h-6 w-6" />
+              </div>
+              
+              {/* Info */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-display font-semibold text-lg">{trip.name}</p>
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs font-medium border-blue-300 text-blue-700 bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-900/50"
+                  >
+                    {tripCurrency}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {pendingCount} {pendingCount === 1 ? "item pendente" : "itens pendentes"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Valor total */}
+              <div className="text-right">
+                <p className={cn(
+                  "font-mono font-bold text-xl",
+                  net === 0 ? "text-muted-foreground" : 
+                  net < 0 ? "text-red-600 dark:text-red-400" : 
+                  "text-green-600 dark:text-green-400"
+                )}>
+                  {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
+                </p>
+                {net !== 0 && (
+                  <p className={cn(
+                    "text-xs font-medium",
+                    net < 0 ? "text-red-500" : "text-green-500"
+                  )}>
+                    {net < 0 ? "Você deve" : "Devem a você"}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de itens por membro */}
+        <div className="border-t border-border">
+          {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
+            const member = members.find(m => m.id === memberId);
+            if (!member) return null;
+
+            const memberTotals = getTotals(memberItems);
+            const memberNet = memberTotals[tripCurrency]?.net || 0;
+
+            return (
+              <div key={memberId} className="border-b border-border last:border-0">
+                {/* Header do membro */}
+                <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white bg-gray-500 text-sm">
+                      {getInitials(member.name)}
+                    </div>
+                    <span className="font-medium">{member.name}</span>
+                  </div>
+                  <span className={cn(
+                    "font-mono font-semibold",
+                    memberNet === 0 ? "text-muted-foreground" :
+                    memberNet < 0 ? "text-red-600" : "text-green-600"
+                  )}>
+                    {formatCurrency(Math.abs(memberNet), tripCurrency)}
+                  </span>
+                </div>
+
+                {/* Itens do membro */}
+                <div className="divide-y divide-border">
+                  {memberItems.map(item => {
+                    const isCredit = item.type === 'CREDIT';
+                    return (
+                      <div
+                        key={item.id}
+                        className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
+                      >
+                        {/* Status */}
+                        <div className="col-span-1">
+                          {item.isPaid ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <div className={cn(
+                              "h-5 w-5 rounded-full border-2",
+                              isCredit ? "border-green-500" : "border-red-500"
+                            )} />
+                          )}
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="col-span-5">
+                          <p className={cn(
+                            "font-medium",
+                            item.isPaid && "text-muted-foreground line-through"
+                          )}>
+                            {item.description}
+                          </p>
+                          {item.category && (
+                            <p className="text-xs text-muted-foreground">{item.category}</p>
+                          )}
+                        </div>
+
+                        {/* Data */}
+                        <div className="col-span-2 text-muted-foreground">
+                          {format(new Date(item.date), "dd/MM/yyyy")}
+                        </div>
+
+                        {/* Valor */}
+                        <div className="col-span-2 text-right">
+                          <span className={cn(
+                            "font-mono text-sm font-medium",
+                            item.isPaid ? "text-muted-foreground" :
+                            isCredit ? "text-green-600 dark:text-green-400" : 
+                            "text-red-600 dark:text-red-400"
+                          )}>
+                            {formatCurrency(item.amount, tripCurrency)}
+                          </span>
+                        </div>
+
+                        {/* Tipo */}
+                        <div className="col-span-2 flex items-center justify-end gap-2">
+                          {item.isPaid && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                            >
+                              PAGO
+                            </Badge>
+                          )}
+                          
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-xs font-bold",
+                              item.isPaid ? "border-gray-300 text-gray-500" :
+                              isCredit ? "border-green-300 text-green-700 bg-green-50" :
+                              "border-red-300 text-red-700 bg-red-50"
+                            )}
+                          >
+                            {isCredit ? "CRÉDITO" : "DÉBITO"}
+                          </Badge>
+
+                          {item.isPaid && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                >
+                                  <Undo2 className="h-4 w-4 mr-2" />
+                                  Desfazer acerto
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botão de acertar para este membro nesta viagem */}
+                {memberNet !== 0 && memberItems.filter(i => !i.isPaid).length > 0 && (
+                  <div className="px-4 py-3 bg-muted/20 flex justify-end">
+                    <Button
+                      variant={memberNet < 0 ? "destructive" : "default"}
+                      size="sm"
+                      className={cn(
+                        memberNet > 0 && "bg-green-600 hover:bg-green-700"
+                      )}
+                      onClick={() => {
+                        setSelectedMember(memberId);
+                        openSettleDialog(
+                          memberId,
+                          memberNet < 0 ? "PAY" : "RECEIVE",
+                          Math.abs(memberNet)
+                        );
+                      }}
+                    >
+                      <Wallet className="h-4 w-4 mr-2" />
+                      {memberNet < 0 ? "Pagar" : "Receber"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -1044,23 +1286,46 @@ export function SharedExpenses() {
                 </div>
               </div>
 
-              {/* Lista de membros estilo fatura */}
-              {members.map(member => renderMemberInvoiceCard(member))}
+              {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
+              {activeTab !== 'TRAVEL' && members.map(member => renderMemberInvoiceCard(member))}
+
+              {/* Lista de viagens (TRAVEL) */}
+              {activeTab === 'TRAVEL' && trips
+                .filter(trip => {
+                  // Verificar se há itens desta viagem no mês atual
+                  return members.some(member => {
+                    const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+                    return memberItems.length > 0;
+                  });
+                })
+                .map(trip => renderTripCard(trip))
+              }
 
               {/* Mensagem se não houver itens */}
-              {members.every(m => getFilteredInvoice(m.id).length === 0) && (
-                <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                  <h3 className="font-display font-semibold text-lg mb-2">
-                    {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {activeTab === "HISTORY" 
-                      ? "Nenhum acerto foi realizado ainda" 
-                      : "Não há despesas pendentes neste período"}
-                  </p>
-                </div>
-              )}
+              {activeTab === 'TRAVEL' 
+                ? trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
+                    <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                      <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                      <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
+                      <p className="text-muted-foreground">
+                        Não há despesas de viagens neste período
+                      </p>
+                    </div>
+                  )
+                : members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                    <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                      <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                      <h3 className="font-display font-semibold text-lg mb-2">
+                        {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {activeTab === "HISTORY" 
+                          ? "Nenhum acerto foi realizado ainda" 
+                          : "Não há despesas pendentes neste período"}
+                      </p>
+                    </div>
+                  )
+              }
             </div>
           )}
         </TabsContent>
