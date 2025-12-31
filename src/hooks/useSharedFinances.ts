@@ -54,7 +54,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .from('transactions')
         .select(`
           *,
-          transaction_splits (
+          transaction_splits!transaction_splits_transaction_id_fkey (
             id,
             member_id,
             user_id,
