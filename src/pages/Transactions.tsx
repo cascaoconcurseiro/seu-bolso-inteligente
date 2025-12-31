@@ -472,14 +472,14 @@ export function Transactions() {
                       )}
                       onClick={() => setDetailsTransaction(transaction)}
                     >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex items-start gap-4 flex-1 min-w-0">
                         <div className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0",
                           transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
                         )}>
                           {transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium truncate">{transaction.description}</p>
                             {transaction.is_shared && (
@@ -500,7 +500,7 @@ export function Transactions() {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-0.5">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
                             <span className="truncate">{transaction.category?.name || "Sem categoria"}</span>
                             {transaction.account?.name && (
                               <>
@@ -553,17 +553,17 @@ export function Transactions() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-start gap-3 shrink-0 pt-0.5">
+                        <div className="flex flex-col items-end gap-0.5">
                           <span className={cn(
-                            "font-mono font-medium text-right",
+                            "font-mono font-medium text-right whitespace-nowrap",
                             transaction.type === "INCOME" ? "text-positive" : "text-negative"
                           )}>
                             {transaction.type === "INCOME" ? "+" : "-"}
                             {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
                           </span>
                           <span className={cn(
-                            "text-[10px] font-bold uppercase tracking-wider",
+                            "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
                             transaction.type === "INCOME" ? "text-positive" : "text-negative"
                           )}>
                             {transaction.type === "INCOME" ? "Crédito" : "Débito"}
