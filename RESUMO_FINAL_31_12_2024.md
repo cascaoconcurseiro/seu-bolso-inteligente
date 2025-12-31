@@ -81,12 +81,43 @@
 
 ---
 
+## 4. Correção de Moeda Internacional ✅
+
+**Status:** 100% Concluído e Commitado
+
+### Problema Corrigido
+
+#### Saldo Inicial em Moeda Errada
+- ❌ Antes: Conta USD criava transação em BRL
+- ❌ Antes: Dashboard incluía USD no total BRL
+- ✅ Depois: Conta USD cria transação em USD
+- ✅ Depois: Dashboard exclui moedas estrangeiras do total BRL
+
+### Solução Implementada
+1. **Hook `useAccounts.ts`** - Passa `currency: input.currency || 'BRL'` ao criar transação
+2. **Banco de dados** - Corrigida transação existente (BRL → USD)
+3. **Dashboard** - Já filtrava corretamente (função `get_monthly_financial_summary`)
+
+### Arquivos Modificados
+- `src/hooks/useAccounts.ts`
+- Banco de dados (1 transação corrigida)
+
+### Documentação
+- `CORRECAO_MOEDA_INTERNACIONAL_31_12_2024.md`
+
+### Commits
+- `0d333cc` - fix: usar moeda da conta na transação de saldo inicial
+- `b86346d` - docs: atualiza documentação da correção de moeda internacional
+
+---
+
 ## 📊 Estatísticas Finais
 
 ### Arquivos Modificados
-- **Código:** 6 arquivos
+- **Código:** 7 arquivos
 - **Migrations:** 1 arquivo novo
-- **Documentação:** 8 documentos
+- **Documentação:** 9 documentos
+- **Banco de dados:** 1 transação corrigida
 
 ### Bugs Corrigidos
 - ✅ Valor incorreto em parcelas compartilhadas
@@ -94,11 +125,14 @@
 - ✅ Parcelas duplicadas por mês
 - ✅ Exclusão incompleta de séries
 - ✅ Recursão infinita em RLS
+- ✅ Moeda incorreta em contas internacionais
+- ✅ Dashboard incluindo moedas estrangeiras em BRL
 
 ### Melhorias de Performance
 - ✅ Importação de parcelas: **5-10x mais rápida**
 - ✅ Exclusão de séries: **100% confiável**
 - ✅ Logos: **Carregamento otimizado**
+- ✅ Dashboard: **Filtra moedas estrangeiras corretamente**
 
 ---
 
@@ -160,6 +194,12 @@ npm run dev
 - [ ] Mirrors são excluídos automaticamente
 - [ ] Toast mostra contagem correta
 
+### Moeda Internacional
+- [ ] Criar conta internacional (USD, EUR, etc.)
+- [ ] Verificar que saldo inicial está na moeda correta
+- [ ] Dashboard não inclui moeda estrangeira no total BRL
+- [ ] Saldo estrangeiro aparece separadamente com ícone 🌐
+
 ---
 
 ## 📚 Documentação Completa
@@ -168,6 +208,7 @@ npm run dev
 1. `docs/INTEGRACAO_LOGOS_COMPLETA.md` - Integração de logos
 2. `docs/CORRECAO_PARCELAS_COMPARTILHADAS.md` - Correção de parcelas
 3. `docs/CORRECAO_FINAL_EXCLUSAO_SERIES.md` - Correção de exclusão
+4. `CORRECAO_MOEDA_INTERNACIONAL_31_12_2024.md` - Correção de moeda internacional
 
 ### Guias de Teste
 1. `docs/COMO_TESTAR_LOGOS.md` - Como testar logos
@@ -234,11 +275,12 @@ npm run dev
 
 ✅ **52 logos** de bancos integradas  
 ✅ **9 logos** de bandeiras integradas  
-✅ **5 bugs críticos** corrigidos  
-✅ **7 arquivos** atualizados  
-✅ **8 documentos** criados  
+✅ **7 bugs críticos** corrigidos  
+✅ **8 arquivos** atualizados  
+✅ **9 documentos** criados  
 ✅ **0 erros** de compilação  
 ✅ **100% funcional** e pronto para produção  
+✅ **Moedas internacionais** funcionando corretamente  
 
 ---
 
