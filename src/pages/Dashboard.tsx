@@ -279,7 +279,14 @@ export function Dashboard() {
                       )}
                     >
                       <div>
-                        <p className="font-medium">{tx.description}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium">{tx.description}</p>
+                          {tx.is_shared && (
+                            <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                              Compartilhado
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {tx.category?.name || "Sem categoria"} • {dateLabel}
                         </p>

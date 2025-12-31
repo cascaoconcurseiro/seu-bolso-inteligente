@@ -482,6 +482,11 @@ export function Transactions() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium truncate">{transaction.description}</p>
+                            {transaction.is_shared && (
+                              <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                Compartilhado
+                              </span>
+                            )}
                             {isMirror && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                                 <Lock className="h-3 w-3" />

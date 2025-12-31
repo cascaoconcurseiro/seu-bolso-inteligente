@@ -262,8 +262,14 @@ export function AccountDetail() {
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <p className="font-medium truncate">{description}</p>
+                                {/* Tag de Compartilhado */}
+                                {tx.is_shared && (
+                                  <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium shrink-0">
+                                    Compartilhado
+                                  </span>
+                                )}
                                 {/* Tag de Receita/Despesa */}
                                 <span className={cn(
                                   "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",

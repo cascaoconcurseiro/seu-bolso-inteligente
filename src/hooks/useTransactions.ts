@@ -234,22 +234,37 @@ export function useCreateTransaction() {
 
         // CORREÇÃO: Se tem splits, criar para cada parcela com valor correto
         if (splits && splits.length > 0) {
+          // CORREÇÃO: Para viagens, member_id pode ser um user_id direto
+          // Precisamos buscar tanto por family_members.id quanto por family_members.linked_user_id
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
-            .in("id", splits.map(s => s.member_id));
+            .or(`id.in.(${splits.map(s => s.member_id).join(',')}),linked_user_id.in.(${splits.map(s => s.member_id).join(',')})`);
           
+          // Criar mapeamentos bidirecionais
           const memberNames: Record<string, string> = {};
           const memberUserIds: Record<string, string> = {};
+          const userIdToMemberId: Record<string, string> = {};
+          const userIdToName: Record<string, string> = {};
+          
           membersData?.forEach(m => {
             memberNames[m.id] = m.name;
             memberUserIds[m.id] = m.linked_user_id;
+            userIdToMemberId[m.linked_user_id] = m.id;
+            userIdToName[m.linked_user_id] = m.name;
           });
 
           for (const transaction of data) {
             // IMPORTANTE: Calcular splits sobre o valor DA PARCELA, não do total
             // Usar SafeFinancialCalculator para garantir precisão
             const splitsToInsert = splits.map(split => {
+              // Determinar se member_id é um family_member.id ou um user_id
+              const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
+              
+              const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
+              const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
+              const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
+              
               const splitAmount = SafeFinancialCalculator.percentage(
                 transaction.amount,
                 split.percentage
@@ -257,16 +272,23 @@ export function useCreateTransaction() {
               
               return {
                 transaction_id: transaction.id,
-                member_id: split.member_id,
-                user_id: memberUserIds[split.member_id], // Preencher user_id explicitamente
+                member_id: actualMemberId,
+                user_id: actualUserId,
                 percentage: split.percentage,
                 amount: splitAmount,
-                name: memberNames[split.member_id] || "Membro",
+                name: actualName || "Membro",
                 is_settled: false,
               };
             });
 
-            await supabase.from("transaction_splits").insert(splitsToInsert);
+            const { error: splitsError } = await supabase
+              .from("transaction_splits")
+              .insert(splitsToInsert);
+            
+            if (splitsError) {
+              console.error("❌ Erro ao criar splits para parcela:", splitsError);
+              throw new Error(`Erro ao criar splits: ${splitsError.message}`);
+            }
             
             // Marcar transação como compartilhada
             await supabase
@@ -301,30 +323,56 @@ export function useCreateTransaction() {
       if (splits && splits.length > 0) {
         console.log('🔍 Criando splits:', splits);
         
-        // Buscar nomes E user_ids dos membros para popular os campos
+        // CORREÇÃO: Para viagens, member_id pode ser um user_id direto
+        // Precisamos buscar tanto por family_members.id quanto por family_members.linked_user_id
         const { data: membersData } = await supabase
           .from("family_members")
           .select("id, name, linked_user_id")
-          .in("id", splits.map(s => s.member_id));
+          .or(`id.in.(${splits.map(s => s.member_id).join(',')}),linked_user_id.in.(${splits.map(s => s.member_id).join(',')})`);
         
         console.log('👥 Membros encontrados:', membersData);
         
+        // Criar mapeamentos bidirecionais: id->name, id->user_id, user_id->id, user_id->name
         const memberNames: Record<string, string> = {};
         const memberUserIds: Record<string, string> = {};
+        const userIdToMemberId: Record<string, string> = {};
+        const userIdToName: Record<string, string> = {};
+        
         membersData?.forEach(m => {
+          // Mapeamento por member_id
           memberNames[m.id] = m.name;
           memberUserIds[m.id] = m.linked_user_id;
+          // Mapeamento por user_id
+          userIdToMemberId[m.linked_user_id] = m.id;
+          userIdToName[m.linked_user_id] = m.name;
         });
 
-        const splitsToInsert = splits.map(split => ({
-          transaction_id: data.id,
-          member_id: split.member_id,
-          user_id: memberUserIds[split.member_id], // Preencher user_id explicitamente
-          percentage: split.percentage,
-          amount: split.amount,
-          name: memberNames[split.member_id] || "Membro",
-          is_settled: false,
-        }));
+        const splitsToInsert = splits.map(split => {
+          // Determinar se member_id é um family_member.id ou um user_id
+          const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
+          
+          const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
+          const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
+          const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
+          
+          console.log('🔍 Processando split:', {
+            inputMemberId: split.member_id,
+            isUserId,
+            actualMemberId,
+            actualUserId,
+            actualName
+          });
+          
+          return {
+            transaction_id: data.id,
+            member_id: actualMemberId,
+            user_id: actualUserId,
+            percentage: split.percentage,
+            amount: split.amount,
+            name: actualName || "Membro",
+            is_settled: false,
+          };
+        });
 
         console.log('💾 Inserindo splits:', splitsToInsert);
 
@@ -334,6 +382,7 @@ export function useCreateTransaction() {
 
         if (splitsError) {
           console.error("❌ Erro ao criar splits:", splitsError);
+          throw new Error(`Erro ao criar splits: ${splitsError.message}`);
         } else {
           console.log('✅ Splits criados com sucesso');
           // Atualizar transação para is_shared = true e disparar sync
