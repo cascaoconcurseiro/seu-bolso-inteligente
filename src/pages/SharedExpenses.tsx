@@ -321,7 +321,7 @@ export function SharedExpenses() {
           // Verificar se o split existe antes de atualizar
           const { data: existingSplit, error: checkError } = await supabase
             .from('transaction_splits')
-            .select('id, is_settled, user_id')
+            .select('id, is_settled, settled_by_debtor, settled_by_creditor, user_id')
             .eq('id', item.splitId)
             .single();
           
@@ -337,21 +337,44 @@ export function SharedExpenses() {
             continue;
           }
           
-          if (existingSplit.is_settled) {
-            console.warn('⚠️ [handleSettle] Split já está settled:', item.splitId);
+          // Verificar se já foi marcado como pago pelo lado correto
+          const alreadySettled = settleType === 'PAY' 
+            ? existingSplit.settled_by_debtor 
+            : existingSplit.settled_by_creditor;
+          
+          if (alreadySettled) {
+            console.warn('⚠️ [handleSettle] Split já está settled por este lado:', item.splitId);
             continue;
           }
           
           console.log('✅ [handleSettle] Split encontrado, atualizando:', existingSplit);
           
+          // Determinar qual flag atualizar baseado no tipo de acerto
+          const updateFields: any = {
+            settled_at: new Date().toISOString(),
+          };
+          
+          if (settleType === 'PAY') {
+            // Devedor está pagando
+            updateFields.settled_by_debtor = true;
+            updateFields.debtor_settlement_tx_id = settlementTxId;
+          } else {
+            // Credor está recebendo
+            updateFields.settled_by_creditor = true;
+            updateFields.creditor_settlement_tx_id = settlementTxId;
+          }
+          
+          // Manter is_settled como true se ambos marcaram
+          if (settleType === 'PAY' && existingSplit.settled_by_creditor) {
+            updateFields.is_settled = true;
+          } else if (settleType === 'RECEIVE' && existingSplit.settled_by_debtor) {
+            updateFields.is_settled = true;
+          }
+          
           // Atualizar o split
           const { error, data } = await supabase
             .from('transaction_splits')
-            .update({
-              is_settled: true,
-              settled_at: new Date().toISOString(),
-              settled_transaction_id: settlementTxId
-            })
+            .update(updateFields)
             .eq('id', item.splitId)
             .select();
           

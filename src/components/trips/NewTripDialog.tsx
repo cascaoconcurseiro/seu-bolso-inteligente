@@ -116,14 +116,6 @@ export function NewTripDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input 
-              placeholder="Ex: Férias de Verão" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
             <Label>Destino</Label>
             <Input 
               placeholder="Ex: Rio de Janeiro, RJ" 
@@ -233,7 +225,7 @@ export function NewTripDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={isLoading || !name || !startDate || !endDate || !budget}
+            disabled={isLoading || !destination || !startDate || !endDate || !budget}
           >
             {isLoading ? "Criando..." : "Criar"}
           </Button>

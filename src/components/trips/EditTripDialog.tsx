@@ -73,7 +73,7 @@ export function EditTripDialog({
 
   const handleSubmit = () => {
     onSubmit({
-      name,
+      name: destination, // Usar destino como nome
       destination,
       start_date: startDate,
       end_date: endDate,
@@ -92,14 +92,6 @@ export function EditTripDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input
-              placeholder="Ex: Férias de Verão"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
           <div className="space-y-2">
             <Label>Destino</Label>
             <Input
@@ -159,7 +151,7 @@ export function EditTripDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || !name || !startDate || !endDate || !budget}
+            disabled={isLoading || !destination || !startDate || !endDate || !budget}
           >
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>

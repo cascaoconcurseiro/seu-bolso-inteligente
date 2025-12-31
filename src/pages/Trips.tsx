@@ -138,8 +138,8 @@ export function Trips() {
 
   const handleCreateTrip = async (selectedMemberIds: string[]) => {
     await createTrip.mutateAsync({
-      name: tripName,
-      destination: tripDestination || null,
+      name: tripDestination, // Usar destino como nome
+      destination: tripDestination,
       start_date: tripStartDate,
       end_date: tripEndDate,
       budget: tripBudget ? parseFloat(tripBudget) : null,

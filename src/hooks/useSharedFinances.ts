@@ -258,7 +258,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             date: tx.competence_date || tx.date,
             amount: split.amount,
             type: 'CREDIT',
-            isPaid: split.is_settled === true,
+            isPaid: split.settled_by_creditor === true, // Credor: usa settled_by_creditor
             tripId: tx.trip_id || undefined,
             memberId: memberId,
             memberName: member?.name || split.name,
@@ -303,7 +303,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 date: tx.competence_date || tx.date,
                 amount: mySplit.amount,
                 type: 'DEBIT',
-                isPaid: mySplit.is_settled === true,
+                isPaid: mySplit.settled_by_debtor === true, // Devedor: usa settled_by_debtor
                 tripId: tx.trip_id || undefined,
                 memberId: creatorMember.id,
                 memberName: creatorMember.name,
