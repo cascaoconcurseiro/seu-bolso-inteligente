@@ -102,8 +102,13 @@ export function SharedExpenses() {
     activeTab,
   });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  const formatCurrency = (value: number, currency: string = "BRL") => {
+    if (currency === "BRL") {
+      return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+    }
+    // Para outras moedas, usar símbolo + valor formatado
+    const symbol = getCurrencySymbol(currency);
+    return `${symbol} ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const getInitials = (name: string) => {
@@ -703,7 +708,7 @@ export function SharedExpenses() {
                 {isHistory ? (
                   <>
                     <p className="font-mono font-bold text-xl text-gray-600 dark:text-gray-400">
-                      {formatCurrency(totalPaidAmount)}
+                      {formatCurrency(totalPaidAmount, totals[currency]?.currency || 'BRL')}
                     </p>
                     <p className="text-xs font-medium text-gray-500">
                       Total acertado
@@ -717,7 +722,7 @@ export function SharedExpenses() {
                       iOwe ? "text-red-600 dark:text-red-400" : 
                       "text-green-600 dark:text-green-400"
                     )}>
-                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net))}
+                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), currency)}
                     </p>
                     {net !== 0 && (
                       <p className={cn(
@@ -836,7 +841,7 @@ export function SharedExpenses() {
                             isCredit ? "text-green-600 dark:text-green-400" : 
                             "text-red-600 dark:text-red-400"
                           )}>
-                            {formatCurrency(item.amount)}
+                            {formatCurrency(item.amount, item.currency)}
                           </span>
                         </div>
 
@@ -903,7 +908,7 @@ export function SharedExpenses() {
                     "font-mono font-bold text-lg",
                     iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
                   )}>
-                    {formatCurrency(Math.abs(net))}
+                    {formatCurrency(Math.abs(net), currency)}
                   </span>
                 </div>
               </div>

@@ -211,7 +211,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       if (tx.type !== 'EXPENSE') return;
       
       const splits = tx.transaction_splits || [];
-      const txCurrency = 'BRL';
+      const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação
 
       console.log('🔍 [CASO 1] Processando tx:', {
         id: tx.id,
@@ -222,7 +222,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         splits: splits.length,
         splitsData: splits,
         date: tx.date,
-        competence_date: tx.competence_date
+        competence_date: tx.competence_date,
+        currency: txCurrency
       });
 
       // Se EU criei a transação, os splits são CRÉDITOS (me devem)
@@ -339,7 +340,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     paidByOthersTransactions.forEach((tx: any) => {
       if (tx.type !== 'EXPENSE') return;
       
-      const txCurrency = 'BRL';
+      const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação
       const payer = tx.payer;
       
       if (!payer) return;
