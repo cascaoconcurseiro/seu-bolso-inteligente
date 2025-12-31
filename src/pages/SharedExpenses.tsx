@@ -457,7 +457,7 @@ export function SharedExpenses() {
       // Aguardar refetch para atualizar a UI
       await refetch();
       
-      toast.success(`Acerto de ${formatCurrency(amount)} realizado!`);
+      toast.success(`Acerto de ${formatCurrency(amount, settlementCurrency)} realizado!`);
     } catch (error) {
       console.error('Settlement error:', error);
       toast.error("Erro ao realizar acerto");
@@ -962,7 +962,7 @@ export function SharedExpenses() {
             "font-mono text-3xl font-bold",
             myBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           )}>
-            {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance)}
+            {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance, 'BRL')}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             {myBalance >= 0 ? "Saldo positivo" : "Saldo devedor"}
@@ -976,7 +976,7 @@ export function SharedExpenses() {
             <p className="text-sm font-medium text-muted-foreground">A Receber</p>
           </div>
           <p className="font-mono text-3xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(totalOwedToMe)}
+            {formatCurrency(totalOwedToMe, 'BRL')}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Me devem</p>
         </div>
@@ -988,7 +988,7 @@ export function SharedExpenses() {
             <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
           </div>
           <p className="font-mono text-3xl font-bold text-red-600 dark:text-red-400">
-            {formatCurrency(totalIOwe)}
+            {formatCurrency(totalIOwe, 'BRL')}
           </p>
           <p className="text-xs text-muted-foreground mt-1">Eu devo</p>
         </div>
