@@ -623,10 +623,11 @@ export function SharedExpenses() {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
     
-    // Determinar a moeda principal (primeira moeda com valores ou BRL)
-    const primaryCurrency = Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL';
+    // CORREÇÃO: Na aba TRAVEL usar moeda da viagem, nas abas REGULAR e HISTORY usar BRL
+    const primaryCurrency = activeTab === 'TRAVEL' 
+      ? (Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL')
+      : 'BRL';
     
-    // CORREÇÃO: Usar primaryCurrency ao invés de hardcoded "BRL"
     const net = totals[primaryCurrency]?.net || 0;
     const isExpanded = true; // Sempre expandido
     const groupedItems = getGroupedItems(member.id);
