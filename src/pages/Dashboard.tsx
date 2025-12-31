@@ -8,6 +8,7 @@ import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
+import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { cn } from "@/lib/utils";
 import { getBankById } from "@/lib/banks";
 
@@ -106,6 +107,7 @@ export function Dashboard() {
       <div className="space-y-8 animate-fade-in">
         {/* Pending Invitations Alert - SEMPRE mostrar */}
         <PendingInvitationsAlert />
+        <PendingTripInvitationsAlert />
         
         <div className="text-center py-16">
           <h1 className="font-display font-bold text-4xl tracking-tight mb-4">
@@ -132,6 +134,7 @@ export function Dashboard() {
 
       {/* Pending Invitations Alert */}
       <PendingInvitationsAlert />
+      <PendingTripInvitationsAlert />
 
       {/* Hero Section */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up stagger-1">
