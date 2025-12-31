@@ -236,10 +236,11 @@ export function useCreateTransaction() {
         if (splits && splits.length > 0) {
           // CORREÇÃO: Para viagens, member_id pode ser um user_id direto
           // Precisamos buscar tanto por family_members.id quanto por family_members.linked_user_id
+          const memberIds = splits.map(s => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
-            .or(`id.in.(${splits.map(s => s.member_id).join(',')}),linked_user_id.in.(${splits.map(s => s.member_id).join(',')})`);
+            .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
           
           // Criar mapeamentos bidirecionais
           const memberNames: Record<string, string> = {};
@@ -325,10 +326,11 @@ export function useCreateTransaction() {
         
         // CORREÇÃO: Para viagens, member_id pode ser um user_id direto
         // Precisamos buscar tanto por family_members.id quanto por family_members.linked_user_id
+        const memberIds = splits.map(s => s.member_id);
         const { data: membersData } = await supabase
           .from("family_members")
           .select("id, name, linked_user_id")
-          .or(`id.in.(${splits.map(s => s.member_id).join(',')}),linked_user_id.in.(${splits.map(s => s.member_id).join(',')})`);
+          .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
         
         console.log('👥 Membros encontrados:', membersData);
         
