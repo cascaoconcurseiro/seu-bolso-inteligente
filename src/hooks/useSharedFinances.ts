@@ -250,6 +250,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             invoiceMap[memberId] = [];
           }
           
+          console.log('🔍 [CASO 1A] Criando CRÉDITO com tripId:', tx.trip_id);
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -272,7 +274,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             memberId,
             memberName: member?.name,
             amount: split.amount,
-            date: tx.competence_date || tx.date
+            date: tx.competence_date || tx.date,
+            tripId: tx.trip_id
           });
         });
       } else {
@@ -282,6 +285,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         
         if (mySplit) {
           console.log('🔍 [CASO 1B - OUTRO PAGOU] Encontrei meu split:', mySplit);
+          console.log('🔍 [CASO 1B] Transação completa:', tx);
           
           // Encontrar o membro que representa o criador da transação
           const creatorMember = members.find(m => m.linked_user_id === tx.user_id);
@@ -294,6 +298,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               if (!invoiceMap[creatorMember.id]) {
                 invoiceMap[creatorMember.id] = [];
               }
+              
+              console.log('🔍 [CASO 1B] Criando DÉBITO com tripId:', tx.trip_id);
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
@@ -317,7 +323,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 memberId: creatorMember.id,
                 memberName: creatorMember.name,
                 amount: mySplit.amount,
-                date: tx.competence_date || tx.date
+                date: tx.competence_date || tx.date,
+                tripId: tx.trip_id
               });
             }
           } else {
