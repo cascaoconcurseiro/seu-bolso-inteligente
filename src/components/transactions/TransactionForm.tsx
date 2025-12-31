@@ -113,6 +113,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(2);
 
+  // Desabilitar parcelamento se não for cartão de crédito
+  useEffect(() => {
+    if (!isCreditCard && isInstallment) {
+      setIsInstallment(false);
+    }
+  }, [accountId, isCreditCard, isInstallment]);
+
   // Divisão / Compartilhamento
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [payerId, setPayerId] = useState<string>('me');
@@ -908,8 +915,8 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           </Alert>
         )}
 
-        {/* Installments (any expense) */}
-        {isExpense && (
+        {/* Installments (credit card only) */}
+        {isExpense && isCreditCard && (
           <div className="p-4 rounded-xl border border-border space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -943,11 +950,6 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                     ))}
                   </SelectContent>
                 </Select>
-                {!isCreditCard && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    ⚠️ Parcelamento em conta corrente: as parcelas serão debitadas mensalmente
-                  </p>
-                )}
               </div>
             )}
           </div>
