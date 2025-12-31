@@ -69,7 +69,21 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .eq('is_shared', true)
         .order('date', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [Query Error]:', error);
+        throw error;
+      }
+      
+      console.log('✅ [Query Result] Transações com splits:', {
+        count: data?.length || 0,
+        transactions: data?.map(t => ({
+          id: t.id,
+          description: t.description,
+          splits: t.transaction_splits?.length || 0,
+          splitsData: t.transaction_splits
+        }))
+      });
+      
       return data || [];
     },
     enabled: !!user,
@@ -107,6 +121,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const invoices = useMemo(() => {
     const invoiceMap: Record<string, InvoiceItem[]> = {};
     const processedTxIds = new Set<string>();
+    
+    console.log('🔍 [useMemo] Iniciando processamento:', {
+      membersCount: members.length,
+      membersData: members.map(m => ({ id: m.id, name: m.name })),
+      transactionsCount: transactionsWithSplits.length
+    });
     
     // Initialize map for each member
     members.forEach(m => {
