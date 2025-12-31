@@ -180,6 +180,21 @@ async function generateBudgetWarningNotifications(
       const spent = spentByCategory[catId]?.[budget.currency] || 0;
       const percentage = (spent / budget.amount) * 100;
 
+      // Verificar se já existe notificação não dispensada para este orçamento
+      const { data: existingNotification } = await (supabase as any)
+        .from('notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('related_id', budget.id)
+        .eq('related_type', 'budget')
+        .eq('is_dismissed', false)
+        .maybeSingle();
+
+      // Se já existe notificação ativa, pular
+      if (existingNotification) {
+        continue;
+      }
+
       if (percentage >= 100) {
         await createBudgetWarningNotification(
           userId,

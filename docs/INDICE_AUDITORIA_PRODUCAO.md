@@ -237,6 +237,7 @@
 ### Histórico de Correções
 - [CORRECOES_APLICADAS_31_12_2024.md](./CORRECOES_APLICADAS_31_12_2024.md) - Correções recentes
 - [STATUS_FINAL_CORRECOES.md](./STATUS_FINAL_CORRECOES.md) - Status das correções
+- [CORRECAO_NOTIFICACOES_E_SELETOR_MES.md](./CORRECAO_NOTIFICACOES_E_SELETOR_MES.md) - Correção de notificações duplicadas e seletor de mês
 
 ---
 

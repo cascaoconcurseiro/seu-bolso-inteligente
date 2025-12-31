@@ -226,22 +226,25 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}
 
         {/* Month Selector - Below TopBar */}
-        <div className="border-t border-border bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-            <div className="flex-1" />
-            <MonthSelector />
-            <div className="flex-1 flex justify-end">
-              <Button 
-                size="sm"
-                onClick={handleNewTransaction}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Nova transação
-              </Button>
+        {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}
+        {location.pathname !== '/cartoes' && (
+          <div className="border-t border-border bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+              <div className="flex-1" />
+              <MonthSelector />
+              <div className="flex-1 flex justify-end">
+                <Button 
+                  size="sm"
+                  onClick={handleNewTransaction}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nova transação
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Main Content */}
