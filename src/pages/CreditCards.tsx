@@ -493,32 +493,59 @@ export function CreditCards() {
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
               Lançamentos ({invoiceData.transactions.length})
             </h2>
-            <div className="space-y-2">
-              {invoiceData.transactions.map((tx) => (
+            <div className="bg-card rounded-xl border border-border overflow-hidden">
+              {invoiceData.transactions.map((tx, index) => (
                 <div 
                   key={tx.id} 
-                  className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
+                  className={cn(
+                    "group flex items-start gap-4 p-4 hover:bg-muted/30 transition-colors",
+                    index !== invoiceData.transactions.length - 1 && "border-b border-border"
+                  )}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
+                  {/* Ícone da categoria */}
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0",
+                    tx.type === "INCOME" ? "bg-positive/10" : "bg-muted"
+                  )}>
+                    {tx.category?.icon || (tx.type === "INCOME" ? "💰" : "💸")}
+                  </div>
+                  
+                  {/* Conteúdo */}
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium truncate">{tx.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}
-                        {tx.is_installment && tx.current_installment && tx.total_installments && (
-                          <span className="ml-2 text-xs">
-                            ({tx.current_installment}/{tx.total_installments})
-                          </span>
-                        )}
-                      </p>
+                      {tx.is_installment && tx.current_installment && tx.total_installments && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-medium">
+                          {tx.current_installment}/{tx.total_installments}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
+                      <span className="truncate">{tx.category?.name || "Sem categoria"}</span>
+                      <span>·</span>
+                      <span>{format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Valor e ações */}
+                  <div className="flex items-start gap-3 shrink-0 pt-0.5">
+                    <div className="flex flex-col items-end gap-0.5">
                       <span className={cn(
-                        "font-mono font-semibold",
-                        tx.type === 'INCOME' ? "text-positive" : ""
+                        "font-mono font-medium text-right whitespace-nowrap",
+                        tx.type === "INCOME" ? "text-positive" : "text-negative"
                       )}>
-                        {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                        {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(tx.amount)}
                       </span>
-                      {/* Menu de ações */}
+                      <span className={cn(
+                        "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
+                        tx.type === "INCOME" ? "text-positive" : "text-negative"
+                      )}>
+                        {tx.type === "INCOME" ? "Crédito" : "Débito"}
+                      </span>
+                    </div>
+                    
+                    {/* Menu de ações */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">

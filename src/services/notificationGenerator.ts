@@ -180,18 +180,21 @@ async function generateBudgetWarningNotifications(
       const spent = spentByCategory[catId]?.[budget.currency] || 0;
       const percentage = (spent / budget.amount) * 100;
 
-      // Verificar se já existe notificação não dispensada para este orçamento
+      // Verificar se já existe notificação não dispensada para este orçamento HOJE
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const { data: existingNotification } = await (supabase as any)
         .from('notifications')
-        .select('id')
+        .select('id, created_date')
         .eq('user_id', userId)
         .eq('related_id', budget.id)
         .eq('related_type', 'budget')
         .eq('is_dismissed', false)
+        .gte('created_date', today) // Criada hoje ou depois
         .maybeSingle();
 
-      // Se já existe notificação ativa, pular
+      // Se já existe notificação ativa criada hoje, pular
       if (existingNotification) {
+        console.log(`Notificação de orçamento já existe hoje para budget ${budget.id}`);
         continue;
       }
 

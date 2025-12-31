@@ -5,7 +5,11 @@
  * garantindo que não repita a mesma saudação no mesmo dia.
  * 
  * 365+ saudações únicas, amigáveis e bem-humoradas!
+ * 
+ * IMPORTANTE: Usa horário de Brasília (America/Sao_Paulo)
  */
+
+import { getBrazilPeriodOfDay, getBrazilDayOfWeek, getTodayKey } from '@/utils/dateUtils';
 
 // ============================================
 // SAUDAÇÕES DA MANHÃ (120 saudações)
@@ -583,28 +587,24 @@ const fridayGreetings = [
 ];
 
 /**
- * Obtém o período do dia atual
+ * Obtém o período do dia atual (horário de Brasília)
  */
 function getPeriodOfDay(): 'morning' | 'afternoon' | 'evening' {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 18) return 'afternoon';
-  return 'evening';
+  return getBrazilPeriodOfDay();
 }
 
 /**
- * Obtém o dia da semana
+ * Obtém o dia da semana (horário de Brasília)
  */
 function getDayOfWeek(): number {
-  return new Date().getDay(); // 0 = domingo, 6 = sábado
+  return getBrazilDayOfWeek();
 }
 
 /**
- * Gera uma chave única para o dia atual
+ * Gera uma chave única para o dia atual (horário de Brasília)
  */
-function getTodayKey(): string {
-  const today = new Date();
-  return `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+function getTodayKeyLocal(): string {
+  return getTodayKey();
 }
 
 /**
@@ -616,7 +616,7 @@ function getUsedGreetingIndex(): number | null {
   
   try {
     const data = JSON.parse(stored);
-    if (data.date === getTodayKey()) {
+    if (data.date === getTodayKeyLocal()) {
       return data.index;
     }
   } catch {
@@ -631,7 +631,7 @@ function getUsedGreetingIndex(): number | null {
  */
 function saveUsedGreetingIndex(index: number): void {
   localStorage.setItem('lastGreeting', JSON.stringify({
-    date: getTodayKey(),
+    date: getTodayKeyLocal(),
     index,
   }));
 }
