@@ -586,19 +586,33 @@ export function SharedExpenses() {
     return groups;
   };
 
-  // Calculate totals
-  let totalOwedToMe = 0;
-  let totalIOwe = 0;
+  // Calculate totals POR MOEDA (nunca somar moedas diferentes!)
+  const totalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number }> = {};
 
   members.forEach(member => {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
-    const net = totals["BRL"]?.net || 0;
-    if (net > 0) totalOwedToMe += net;
-    else totalIOwe += Math.abs(net);
+    
+    // Para cada moeda, calcular separadamente
+    Object.keys(totals).forEach(currency => {
+      if (!totalsByCurrency[currency]) {
+        totalsByCurrency[currency] = { owedToMe: 0, iOwe: 0, balance: 0 };
+      }
+      
+      const net = totals[currency]?.net || 0;
+      if (net > 0) {
+        totalsByCurrency[currency].owedToMe += net;
+      } else {
+        totalsByCurrency[currency].iOwe += Math.abs(net);
+      }
+      totalsByCurrency[currency].balance = totalsByCurrency[currency].owedToMe - totalsByCurrency[currency].iOwe;
+    });
   });
 
-  const myBalance = totalOwedToMe - totalIOwe;
+  // Para compatibilidade com código existente, manter as variáveis antigas apenas para BRL
+  const totalOwedToMe = totalsByCurrency["BRL"]?.owedToMe || 0;
+  const totalIOwe = totalsByCurrency["BRL"]?.iOwe || 0;
+  const myBalance = totalsByCurrency["BRL"]?.balance || 0;
 
   if (membersLoading || sharedLoading) {
     return (
@@ -1193,55 +1207,76 @@ export function SharedExpenses() {
         currentDate={currentDate} 
       />
 
-      {/* Summary Cards - Estilo Fatura */}
+      {/* Summary Cards - Separado por moeda (NUNCA somar moedas diferentes!) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Meu Saldo */}
-        <div className={cn(
-          "p-6 rounded-xl border-2",
-          myBalance >= 0 
-            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50" 
-            : "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50"
-        )}>
-          <div className="flex items-center gap-2 mb-2">
-            <CreditCard className={cn(
-              "h-5 w-5",
-              myBalance >= 0 ? "text-green-600" : "text-red-600"
-            )} />
+        {/* Meu Saldo - Por moeda */}
+        <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="h-5 w-5 text-muted-foreground" />
             <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
           </div>
-          <p className={cn(
-            "font-mono text-3xl font-bold",
-            myBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-          )}>
-            {myBalance >= 0 ? "+" : ""}{formatCurrency(myBalance, 'BRL')}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {myBalance >= 0 ? "Saldo positivo" : "Saldo devedor"}
-          </p>
+          <div className="space-y-2">
+            {Object.entries(totalsByCurrency).map(([currency, data]) => (
+              <div key={currency} className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                <p className={cn(
+                  "font-mono text-lg font-bold",
+                  data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                )}>
+                  {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                </p>
+              </div>
+            ))}
+            {Object.keys(totalsByCurrency).length === 0 && (
+              <p className="text-muted-foreground text-center">Sem saldo</p>
+            )}
+          </div>
         </div>
 
-        {/* A Receber */}
+        {/* A Receber - Por moeda */}
         <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
             <p className="text-sm font-medium text-muted-foreground">A Receber</p>
           </div>
-          <p className="font-mono text-3xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(totalOwedToMe, 'BRL')}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">Me devem</p>
+          <div className="space-y-2">
+            {Object.entries(totalsByCurrency)
+              .filter(([_, data]) => data.owedToMe > 0)
+              .map(([currency, data]) => (
+                <div key={currency} className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                  <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                    {formatCurrency(data.owedToMe, currency)}
+                  </p>
+                </div>
+              ))}
+            {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
+              <p className="text-muted-foreground text-center">Nada a receber</p>
+            )}
+          </div>
         </div>
 
-        {/* A Pagar */}
+        {/* A Pagar - Por moeda */}
         <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <ArrowRight className="h-5 w-5 text-red-600" />
             <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
           </div>
-          <p className="font-mono text-3xl font-bold text-red-600 dark:text-red-400">
-            {formatCurrency(totalIOwe, 'BRL')}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">Eu devo</p>
+          <div className="space-y-2">
+            {Object.entries(totalsByCurrency)
+              .filter(([_, data]) => data.iOwe > 0)
+              .map(([currency, data]) => (
+                <div key={currency} className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                  <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                    {formatCurrency(data.iOwe, currency)}
+                  </p>
+                </div>
+              ))}
+            {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
+              <p className="text-muted-foreground text-center">Nada a pagar</p>
+            )}
+          </div>
         </div>
       </div>
 
