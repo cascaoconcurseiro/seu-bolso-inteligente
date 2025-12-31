@@ -264,6 +264,9 @@ export function SharedExpenses() {
         return;
       }
 
+      // Determinar a moeda do acerto (usar a moeda dos itens)
+      const settlementCurrency = itemsToSettle[0]?.currency || 'BRL';
+
       // Calculate total of selected items
       const itemsTotal = itemsToSettle.reduce((sum, item) => {
         if (item.type === "CREDIT") return sum + item.amount;
@@ -619,15 +622,17 @@ export function SharedExpenses() {
   const renderMemberInvoiceCard = (member: any) => {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
-    const net = totals["BRL"]?.net || 0;
+    
+    // Determinar a moeda principal (primeira moeda com valores ou BRL)
+    const primaryCurrency = Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL';
+    
+    // CORREÇÃO: Usar primaryCurrency ao invés de hardcoded "BRL"
+    const net = totals[primaryCurrency]?.net || 0;
     const isExpanded = true; // Sempre expandido
     const groupedItems = getGroupedItems(member.id);
     const pendingCount = items.filter(i => !i.isPaid).length;
     const paidCount = items.filter(i => i.isPaid).length;
     const totalPaidAmount = items.filter(i => i.isPaid).reduce((sum, i) => sum + i.amount, 0);
-    
-    // Determinar a moeda principal (primeira moeda com valores ou BRL)
-    const primaryCurrency = Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL';
 
     // Não mostrar membros sem itens
     if (items.length === 0) {
