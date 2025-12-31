@@ -34,6 +34,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const { data: members = [] } = useFamilyMembers();
   const queryClient = useQueryClient();
 
+  // DEBUG: Log members
+  console.log('🔍 [useSharedFinances] Members from useFamilyMembers:', {
+    count: members.length,
+    members: members.map(m => ({ id: m.id, name: m.name, linked_user_id: m.linked_user_id }))
+  });
+
   // Função para invalidar todas as queries relacionadas
   const refetchAll = async () => {
     await Promise.all([
@@ -70,6 +76,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       // Buscar splits para essas transações
       const transactionIds = transactions.map(t => t.id);
+      console.log('🔍 [Query] Buscando splits para transactionIds:', transactionIds);
+      
       const { data: splits, error: splitsError } = await supabase
         .from('transaction_splits')
         .select('*')
@@ -79,6 +87,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         console.error('❌ [Query Error - Splits]:', splitsError);
         throw splitsError;
       }
+      
+      console.log('✅ [Query Result - Splits]:', {
+        count: splits?.length || 0,
+        splits: splits
+      });
       
       // Combinar transações com seus splits
       const transactionsWithSplitsData = transactions.map(tx => ({
@@ -137,12 +150,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     console.log('🔍 [useMemo] Iniciando processamento:', {
       membersCount: members.length,
       membersData: members.map(m => ({ id: m.id, name: m.name })),
-      transactionsCount: transactionsWithSplits.length
+      transactionsCount: transactionsWithSplits.length,
+      transactionsData: transactionsWithSplits.map(t => ({
+        id: t.id,
+        description: t.description,
+        splits: t.transaction_splits?.length || 0
+      }))
     });
     
     // Initialize map for each member
     members.forEach(m => {
       invoiceMap[m.id] = [];
+      console.log('✅ [useMemo] Inicializando invoiceMap para membro:', m.id, m.name);
     });
 
     // DEBUG: Log dados recebidos
