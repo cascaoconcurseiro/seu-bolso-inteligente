@@ -52,6 +52,7 @@ import { SettlementConfirmDialog } from "@/components/transactions/SettlementCon
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
 import { groupTransactionsByDay, DayGroup } from "@/utils/transactionUtils";
 import { exportTransactions } from "@/services/exportService";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 
 export function Transactions() {
