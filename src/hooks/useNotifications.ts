@@ -17,6 +17,7 @@ export function useNotifications() {
         .from("notifications")
         .select("*")
         .eq("user_id", user.id)
+        .eq("is_dismissed", false)
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -102,6 +103,61 @@ export function useDeleteNotification() {
     },
     onError: (error) => {
       toast.error("Erro ao remover notificação");
+      console.error(error);
+    },
+  });
+}
+
+export function useDismissNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (notificationId: string) => {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ 
+          is_dismissed: true,
+          dismissed_at: new Date().toISOString()
+        })
+        .eq("id", notificationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error) => {
+      console.error("Erro ao dispensar notificação:", error);
+    },
+  });
+}
+
+export function useDismissAllRead() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await supabase
+        .from("notifications")
+        .update({ 
+          is_dismissed: true,
+          dismissed_at: new Date().toISOString()
+        })
+        .eq("user_id", user.id)
+        .eq("is_read", true)
+        .eq("is_dismissed", false);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Notificações lidas removidas");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover notificações");
       console.error(error);
     },
   });

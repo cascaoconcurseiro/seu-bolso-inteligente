@@ -14,7 +14,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNotifications } from "@/hooks/useNotifications";
+import { 
+  useNotifications, 
+  useMarkNotificationAsRead, 
+  useMarkAllAsRead,
+  useDismissNotification,
+  useDismissAllRead
+} from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { 
@@ -38,13 +44,14 @@ export function NotificationButton() {
   const { 
     data: notifications = [],
     unreadCount, 
-    markAsRead, 
-    markAllAsRead, 
-    dismiss,
-    dismissAllRead,
     isLoading,
     refetch,
   } = useNotifications();
+  
+  const markAsRead = useMarkNotificationAsRead();
+  const markAllAsRead = useMarkAllAsRead();
+  const dismiss = useDismissNotification();
+  const dismissAllRead = useDismissAllRead();
 
   // Gerar notificações ao abrir o app (uma vez por sessão)
   useEffect(() => {
@@ -83,7 +90,7 @@ export function NotificationButton() {
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
-      markAsRead(notification.id);
+      markAsRead.mutate(notification.id);
     }
     if (notification.action_url) {
       setIsOpen(false);
@@ -130,7 +137,7 @@ export function NotificationButton() {
                 variant="ghost"
                 size="sm"
                 className="h-8 text-xs gap-1"
-                onClick={() => markAllAsRead()}
+                onClick={() => markAllAsRead.mutate()}
               >
                 <CheckCheck className="h-3.5 w-3.5" />
                 Marcar todas
@@ -141,7 +148,7 @@ export function NotificationButton() {
                 variant="ghost"
                 size="sm"
                 className="h-8 text-xs gap-1 text-muted-foreground"
-                onClick={() => dismissAllRead()}
+                onClick={() => dismissAllRead.mutate()}
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Limpar
@@ -181,7 +188,7 @@ export function NotificationButton() {
                       key={notification.id}
                       notification={notification}
                       onClick={() => handleNotificationClick(notification)}
-                      onDismiss={() => dismiss(notification.id)}
+                      onDismiss={() => dismiss.mutate(notification.id)}
                     />
                   ))}
                 </div>
@@ -200,7 +207,7 @@ export function NotificationButton() {
                       key={notification.id}
                       notification={notification}
                       onClick={() => handleNotificationClick(notification)}
-                      onDismiss={() => dismiss(notification.id)}
+                      onDismiss={() => dismiss.mutate(notification.id)}
                     />
                   ))}
                 </div>
@@ -282,6 +289,7 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
               e.stopPropagation();
               onDismiss();
             }}
+            aria-label="Remover notificação"
           >
             <X className="h-3.5 w-3.5" />
           </Button>

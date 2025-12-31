@@ -38,7 +38,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const refetchAll = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] }),
-      queryClient.invalidateQueries({ queryKey: ['mirror-transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['paid-by-others-transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       queryClient.invalidateQueries({ queryKey: ['accounts'] }),
@@ -51,7 +50,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryFn: async () => {
       if (!user) return [];
       
-      // Specify the FK relationship explicitly to avoid ambiguity
       const { data, error } = await supabase
         .from('transactions')
         .select(`
@@ -69,57 +67,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         `)
         .eq('user_id', user.id)
         .eq('is_shared', true)
-        .is('source_transaction_id', null)
         .order('date', { ascending: false });
       
       if (error) throw error;
       return data || [];
-    },
-    enabled: !!user,
-  });
-
-  // Fetch mirror transactions (where I owe others)
-  const { data: mirrorTransactions = [] } = useQuery({
-    queryKey: ['mirror-transactions', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      // First get mirror transactions
-      const { data: mirrors, error: mirrorsError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_shared', true)
-        .not('source_transaction_id', 'is', null)
-        .order('date', { ascending: false });
-      
-      if (mirrorsError) throw mirrorsError;
-      if (!mirrors || mirrors.length === 0) return [];
-      
-      // Get source transaction IDs
-      const sourceIds = mirrors
-        .map(m => m.source_transaction_id)
-        .filter(Boolean);
-      
-      if (sourceIds.length === 0) return mirrors;
-      
-      // Fetch source transactions to get user_id
-      const { data: sources, error: sourcesError } = await supabase
-        .from('transactions')
-        .select('id, user_id')
-        .in('id', sourceIds);
-      
-      if (sourcesError) throw sourcesError;
-      
-      // Map source user_id to mirrors
-      const sourcesMap = new Map(sources?.map(s => [s.id, s.user_id]) || []);
-      
-      return mirrors.map(mirror => ({
-        ...mirror,
-        source_transaction: {
-          user_id: sourcesMap.get(mirror.source_transaction_id)
-        }
-      }));
     },
     enabled: !!user,
   });
@@ -155,14 +106,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   const invoices = useMemo(() => {
     const invoiceMap: Record<string, InvoiceItem[]> = {};
-    const processedTxIds = new Set<string>(); // Para evitar duplicidades
+    const processedTxIds = new Set<string>();
     
     // Initialize map for each member
     members.forEach(m => {
       invoiceMap[m.id] = [];
     });
 
-    // CASE 1: I PAID - Process transaction splits (CREDITS)
+    // LÓGICA CORRETA (SEM ESPELHAMENTO):
+    
+    // CASO 1: EU PAGUEI - Créditos (me devem)
     // Transações que EU criei e dividi com outros
     transactionsWithSplits.forEach(tx => {
       if (tx.type !== 'EXPENSE') return;
@@ -170,17 +123,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       const splits = tx.transaction_splits || [];
       const txCurrency = 'BRL';
 
-      // For each split, create a CREDIT item (someone owes me)
+      // Para cada split, criar um CRÉDITO (alguém me deve)
       splits.forEach((split: any) => {
         const memberId = split.member_id;
         if (!memberId) return;
         
-        // Evitar duplicidade
         const uniqueKey = `${tx.id}-credit-${memberId}`;
         if (processedTxIds.has(uniqueKey)) return;
         processedTxIds.add(uniqueKey);
         
-        // Find member info
         const member = members.find(m => m.id === memberId);
         
         if (!invoiceMap[memberId]) {
@@ -195,7 +146,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           date: tx.competence_date || tx.date,
           amount: split.amount,
           type: 'CREDIT',
-          isPaid: split.is_settled === true, // Garantir boolean
+          isPaid: split.is_settled === true,
           tripId: tx.trip_id || undefined,
           memberId: memberId,
           memberName: member?.name || split.name,
@@ -207,56 +158,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
     });
 
-    // CASE 2: SOMEONE ELSE PAID - Process mirror transactions (DEBITS)
-    // Transações espelhadas onde EU devo para quem criou
-    mirrorTransactions.forEach((tx: any) => {
-      if (tx.type !== 'EXPENSE') return;
-      
-      const txCurrency = 'BRL';
-      
-      // Get payer user_id from source transaction
-      const payerUserId = tx.source_transaction?.user_id;
-      
-      if (!payerUserId) return;
-      
-      // Find the member who paid (by user_id or linked_user_id match)
-      const payerMember = members.find(m => 
-        m.user_id === payerUserId || m.linked_user_id === payerUserId
-      );
-      
-      if (!payerMember) return;
-      
-      const targetMemberId = payerMember.id;
-      
-      // Evitar duplicidade
-      const uniqueKey = `${tx.source_transaction_id || tx.id}-debit-${targetMemberId}`;
-      if (processedTxIds.has(uniqueKey)) return;
-      processedTxIds.add(uniqueKey);
-      
-      if (!invoiceMap[targetMemberId]) {
-        invoiceMap[targetMemberId] = [];
-      }
-      
-      invoiceMap[targetMemberId].push({
-        id: uniqueKey,
-        originalTxId: tx.id, // ID da transação ESPELHADA (que pertence ao usuário atual)
-        sourceTransactionId: tx.source_transaction_id, // ID da transação original (do outro usuário)
-        description: tx.description,
-        date: tx.competence_date || tx.date,
-        amount: tx.amount,
-        type: 'DEBIT',
-        isPaid: tx.is_settled === true, // Garantir boolean
-        tripId: tx.trip_id || undefined,
-        memberId: targetMemberId,
-        memberName: payerMember?.name,
-        currency: txCurrency,
-        installmentNumber: tx.current_installment,
-        totalInstallments: tx.total_installments,
-        creatorUserId: payerUserId
-      });
-    });
-
-    // CASE 3: PAID BY OTHER (payer_id) - Transactions where another family member paid for me (DEBITS)
+    // CASO 2: OUTRO PAGOU - Débitos (eu devo)
     // Transações onde payer_id indica que outro membro pagou por mim
     paidByOthersTransactions.forEach((tx: any) => {
       if (tx.type !== 'EXPENSE') return;
@@ -268,7 +170,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       const targetMemberId = payer.id;
       
-      // Evitar duplicidade - verificar se já foi processado
       const uniqueKey = `${tx.id}-debit-${targetMemberId}`;
       if (processedTxIds.has(uniqueKey)) return;
       processedTxIds.add(uniqueKey);
@@ -284,7 +185,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         date: tx.competence_date || tx.date,
         amount: tx.amount,
         type: 'DEBIT',
-        isPaid: tx.is_settled === true, // Garantir boolean
+        isPaid: tx.is_settled === true,
         tripId: tx.trip_id || undefined,
         memberId: targetMemberId,
         memberName: payer.name,
@@ -296,7 +197,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     return invoiceMap;
-  }, [transactionsWithSplits, mirrorTransactions, paidByOthersTransactions, members]);
+  }, [transactionsWithSplits, paidByOthersTransactions, members]);
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];

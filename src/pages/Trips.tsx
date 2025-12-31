@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +41,7 @@ import {
   useAddTripParticipant,
   useRemoveTripParticipant,
 } from "@/hooks/useTrips";
+import { usePendingTripInvitations } from "@/hooks/useTripInvitations";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -72,6 +73,7 @@ export function Trips() {
   const [showPersonalBudgetDialog, setShowPersonalBudgetDialog] = useState(false);
   const [showAddParticipantDialog, setShowAddParticipantDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const invitationsRef = useRef<HTMLDivElement>(null);
   
   // Form state
   const [tripName, setTripName] = useState("");
@@ -88,6 +90,7 @@ export function Trips() {
   const { data: familyMembers = [] } = useFamilyMembers();
   const { data: tripMembers = [] } = useTripMembers(selectedTripId);
   const { data: permissions } = useTripPermissions(selectedTripId);
+  const { data: pendingInvitations = [] } = usePendingTripInvitations();
   
   // SINGLE SOURCE OF TRUTH: Usar dados calculados pelo banco de dados
   const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
@@ -103,6 +106,15 @@ export function Trips() {
   // Buscar orçamento pessoal do usuário atual
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget ?? null;
+
+  // Scroll automático para convites quando a página carrega
+  useEffect(() => {
+    if (view === "list" && pendingInvitations.length > 0 && invitationsRef.current) {
+      setTimeout(() => {
+        invitationsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, [view, pendingInvitations.length]);
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
     const symbol = getCurrencySymbol(currency);
@@ -727,7 +739,9 @@ export function Trips() {
       </div>
 
       {/* Pending Trip Invitations */}
-      <PendingTripInvitationsAlert />
+      <div ref={invitationsRef}>
+        <PendingTripInvitationsAlert />
+      </div>
 
       {/* Trips List */}
       <div className="space-y-3">
