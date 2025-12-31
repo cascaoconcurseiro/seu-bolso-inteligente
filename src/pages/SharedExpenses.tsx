@@ -589,8 +589,9 @@ export function SharedExpenses() {
   // Calculate totals POR MOEDA E POR TIPO (REGULAR vs TRAVEL)
   // NUNCA somar moedas diferentes!
   // NUNCA somar REGULAR com TRAVEL!
-  const totalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number }> = {};
-  const travelTotalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number }> = {};
+  // INCLUIR valores já acertados (isPaid) nos cards de resumo
+  const totalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number; settled: number }> = {};
+  const travelTotalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number; settled: number }> = {};
 
   members.forEach(member => {
     const items = getFilteredInvoice(member.id);
@@ -599,37 +600,54 @@ export function SharedExpenses() {
     const regularItems = items.filter(i => !i.tripId);
     const travelItems = items.filter(i => i.tripId);
     
-    // Calcular totais REGULAR
-    const regularTotals = getTotals(regularItems);
-    Object.keys(regularTotals).forEach(currency => {
-      if (!totalsByCurrency[currency]) {
-        totalsByCurrency[currency] = { owedToMe: 0, iOwe: 0, balance: 0 };
+    // Calcular totais REGULAR (incluindo acertados)
+    regularItems.forEach(item => {
+      const curr = item.currency || 'BRL';
+      if (!totalsByCurrency[curr]) {
+        totalsByCurrency[curr] = { owedToMe: 0, iOwe: 0, balance: 0, settled: 0 };
       }
       
-      const net = regularTotals[currency]?.net || 0;
-      if (net > 0) {
-        totalsByCurrency[currency].owedToMe += net;
+      if (item.isPaid) {
+        // Valores já acertados
+        totalsByCurrency[curr].settled += item.amount;
       } else {
-        totalsByCurrency[currency].iOwe += Math.abs(net);
+        // Valores pendentes
+        if (item.type === 'CREDIT') {
+          totalsByCurrency[curr].owedToMe += item.amount;
+        } else {
+          totalsByCurrency[curr].iOwe += item.amount;
+        }
       }
-      totalsByCurrency[currency].balance = totalsByCurrency[currency].owedToMe - totalsByCurrency[currency].iOwe;
     });
     
-    // Calcular totais TRAVEL
-    const travelTotals = getTotals(travelItems);
-    Object.keys(travelTotals).forEach(currency => {
-      if (!travelTotalsByCurrency[currency]) {
-        travelTotalsByCurrency[currency] = { owedToMe: 0, iOwe: 0, balance: 0 };
+    // Calcular totais TRAVEL (incluindo acertados)
+    travelItems.forEach(item => {
+      const curr = item.currency || 'BRL';
+      if (!travelTotalsByCurrency[curr]) {
+        travelTotalsByCurrency[curr] = { owedToMe: 0, iOwe: 0, balance: 0, settled: 0 };
       }
       
-      const net = travelTotals[currency]?.net || 0;
-      if (net > 0) {
-        travelTotalsByCurrency[currency].owedToMe += net;
+      if (item.isPaid) {
+        // Valores já acertados
+        travelTotalsByCurrency[curr].settled += item.amount;
       } else {
-        travelTotalsByCurrency[currency].iOwe += Math.abs(net);
+        // Valores pendentes
+        if (item.type === 'CREDIT') {
+          travelTotalsByCurrency[curr].owedToMe += item.amount;
+        } else {
+          travelTotalsByCurrency[curr].iOwe += item.amount;
+        }
       }
-      travelTotalsByCurrency[currency].balance = travelTotalsByCurrency[currency].owedToMe - travelTotalsByCurrency[currency].iOwe;
     });
+  });
+
+  // Calcular balance para cada moeda
+  Object.keys(totalsByCurrency).forEach(curr => {
+    totalsByCurrency[curr].balance = totalsByCurrency[curr].owedToMe - totalsByCurrency[curr].iOwe;
+  });
+  
+  Object.keys(travelTotalsByCurrency).forEach(curr => {
+    travelTotalsByCurrency[curr].balance = travelTotalsByCurrency[curr].owedToMe - travelTotalsByCurrency[curr].iOwe;
   });
 
   // Para compatibilidade com código existente, manter as variáveis antigas apenas para BRL REGULAR
@@ -761,38 +779,27 @@ export function SharedExpenses() {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Valor total */}
-              <div className="text-right">
-                {isHistory ? (
-                  <>
-                    <p className="font-mono font-bold text-xl text-gray-600 dark:text-gray-400">
-                      {formatCurrency(totalPaidAmount, primaryCurrency)}
-                    </p>
-                    <p className="text-xs font-medium text-gray-500">
-                      Total acertado
-                    </p>
-                  </>
-                ) : (
-                  <>
+              {/* Valor total - Removido do histórico, agora aparece nos cards de resumo */}
+              {!isHistory && (
+                <div className="text-right">
+                  <p className={cn(
+                    "font-mono font-bold text-xl",
+                    net === 0 ? "text-muted-foreground" : 
+                    iOwe ? "text-red-600 dark:text-red-400" : 
+                    "text-green-600 dark:text-green-400"
+                  )}>
+                    {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), primaryCurrency)}
+                  </p>
+                  {net !== 0 && (
                     <p className={cn(
-                      "font-mono font-bold text-xl",
-                      net === 0 ? "text-muted-foreground" : 
-                      iOwe ? "text-red-600 dark:text-red-400" : 
-                      "text-green-600 dark:text-green-400"
+                      "text-xs font-medium",
+                      iOwe ? "text-red-500" : "text-green-500"
                     )}>
-                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), primaryCurrency)}
+                      {iOwe ? "Você deve" : "Devem a você"}
                     </p>
-                    {net !== 0 && (
-                      <p className={cn(
-                        "text-xs font-medium",
-                        iOwe ? "text-red-500" : "text-green-500"
-                      )}>
-                        {iOwe ? "Você deve" : "Devem a você"}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               {/* Botão de acertar - só mostra se não for histórico */}
               {!isHistory && net !== 0 && (
@@ -1254,14 +1261,24 @@ export function SharedExpenses() {
                 </div>
                 <div className="space-y-2">
                   {Object.entries(totalsByCurrency).map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className={cn(
-                        "font-mono text-lg font-bold",
-                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      )}>
-                        {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                      </p>
+                    <div key={currency}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className={cn(
+                          "font-mono text-lg font-bold",
+                          data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        )}>
+                          {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                        </p>
+                      </div>
+                      {data.settled > 0 && (
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[10px] text-muted-foreground">Acertado</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            {formatCurrency(data.settled, currency)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1332,14 +1349,24 @@ export function SharedExpenses() {
                 </div>
                 <div className="space-y-2">
                   {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className={cn(
-                        "font-mono text-lg font-bold",
-                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      )}>
-                        {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                      </p>
+                    <div key={currency}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className={cn(
+                          "font-mono text-lg font-bold",
+                          data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        )}>
+                          {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                        </p>
+                      </div>
+                      {data.settled > 0 && (
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-[10px] text-muted-foreground">Acertado</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            {formatCurrency(data.settled, currency)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
