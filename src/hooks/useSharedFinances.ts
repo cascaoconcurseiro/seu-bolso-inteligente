@@ -46,7 +46,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   // Fetch shared transactions with their splits
   const { data: transactionsWithSplits = [], isLoading, refetch } = useQuery({
-    queryKey: ['shared-transactions-with-splits', user?.id],
+    queryKey: ['shared-transactions-with-splits', user?.id, Date.now()], // Force refetch
     queryFn: async () => {
       if (!user) return [];
       
