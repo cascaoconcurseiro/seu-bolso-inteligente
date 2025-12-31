@@ -586,20 +586,27 @@ export function SharedExpenses() {
     return groups;
   };
 
-  // Calculate totals POR MOEDA (nunca somar moedas diferentes!)
+  // Calculate totals POR MOEDA E POR TIPO (REGULAR vs TRAVEL)
+  // NUNCA somar moedas diferentes!
+  // NUNCA somar REGULAR com TRAVEL!
   const totalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number }> = {};
+  const travelTotalsByCurrency: Record<string, { owedToMe: number; iOwe: number; balance: number }> = {};
 
   members.forEach(member => {
     const items = getFilteredInvoice(member.id);
-    const totals = getTotals(items);
     
-    // Para cada moeda, calcular separadamente
-    Object.keys(totals).forEach(currency => {
+    // Separar itens REGULAR (sem tripId) de TRAVEL (com tripId)
+    const regularItems = items.filter(i => !i.tripId);
+    const travelItems = items.filter(i => i.tripId);
+    
+    // Calcular totais REGULAR
+    const regularTotals = getTotals(regularItems);
+    Object.keys(regularTotals).forEach(currency => {
       if (!totalsByCurrency[currency]) {
         totalsByCurrency[currency] = { owedToMe: 0, iOwe: 0, balance: 0 };
       }
       
-      const net = totals[currency]?.net || 0;
+      const net = regularTotals[currency]?.net || 0;
       if (net > 0) {
         totalsByCurrency[currency].owedToMe += net;
       } else {
@@ -607,9 +614,25 @@ export function SharedExpenses() {
       }
       totalsByCurrency[currency].balance = totalsByCurrency[currency].owedToMe - totalsByCurrency[currency].iOwe;
     });
+    
+    // Calcular totais TRAVEL
+    const travelTotals = getTotals(travelItems);
+    Object.keys(travelTotals).forEach(currency => {
+      if (!travelTotalsByCurrency[currency]) {
+        travelTotalsByCurrency[currency] = { owedToMe: 0, iOwe: 0, balance: 0 };
+      }
+      
+      const net = travelTotals[currency]?.net || 0;
+      if (net > 0) {
+        travelTotalsByCurrency[currency].owedToMe += net;
+      } else {
+        travelTotalsByCurrency[currency].iOwe += Math.abs(net);
+      }
+      travelTotalsByCurrency[currency].balance = travelTotalsByCurrency[currency].owedToMe - travelTotalsByCurrency[currency].iOwe;
+    });
   });
 
-  // Para compatibilidade com código existente, manter as variáveis antigas apenas para BRL
+  // Para compatibilidade com código existente, manter as variáveis antigas apenas para BRL REGULAR
   const totalOwedToMe = totalsByCurrency["BRL"]?.owedToMe || 0;
   const totalIOwe = totalsByCurrency["BRL"]?.iOwe || 0;
   const myBalance = totalsByCurrency["BRL"]?.balance || 0;
@@ -1207,77 +1230,160 @@ export function SharedExpenses() {
         currentDate={currentDate} 
       />
 
-      {/* Summary Cards - Separado por moeda (NUNCA somar moedas diferentes!) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Meu Saldo - Por moeda */}
-        <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <CreditCard className="h-5 w-5 text-muted-foreground" />
-            <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
-          </div>
-          <div className="space-y-2">
-            {Object.entries(totalsByCurrency).map(([currency, data]) => (
-              <div key={currency} className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                <p className={cn(
-                  "font-mono text-lg font-bold",
-                  data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                )}>
-                  {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                </p>
+      {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
+      <div className="space-y-4">
+        {/* Cards REGULAR */}
+        {Object.keys(totalsByCurrency).length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Meu Saldo - REGULAR */}
+              <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(totalsByCurrency).map(([currency, data]) => (
+                    <div key={currency} className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                      <p className={cn(
+                        "font-mono text-lg font-bold",
+                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      )}>
+                        {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-            {Object.keys(totalsByCurrency).length === 0 && (
-              <p className="text-muted-foreground text-center">Sem saldo</p>
-            )}
-          </div>
-        </div>
 
-        {/* A Receber - Por moeda */}
-        <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-          <div className="flex items-center gap-2 mb-3">
-            <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-            <p className="text-sm font-medium text-muted-foreground">A Receber</p>
-          </div>
-          <div className="space-y-2">
-            {Object.entries(totalsByCurrency)
-              .filter(([_, data]) => data.owedToMe > 0)
-              .map(([currency, data]) => (
-                <div key={currency} className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                  <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
-                    {formatCurrency(data.owedToMe, currency)}
-                  </p>
+              {/* A Receber - REGULAR */}
+              <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                  <p className="text-sm font-medium text-muted-foreground">A Receber</p>
                 </div>
-              ))}
-            {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
-              <p className="text-muted-foreground text-center">Nada a receber</p>
-            )}
-          </div>
-        </div>
+                <div className="space-y-2">
+                  {Object.entries(totalsByCurrency)
+                    .filter(([_, data]) => data.owedToMe > 0)
+                    .map(([currency, data]) => (
+                      <div key={currency} className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                          {formatCurrency(data.owedToMe, currency)}
+                        </p>
+                      </div>
+                    ))}
+                  {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
+                    <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                  )}
+                </div>
+              </div>
 
-        {/* A Pagar - Por moeda */}
-        <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-          <div className="flex items-center gap-2 mb-3">
-            <ArrowRight className="h-5 w-5 text-red-600" />
-            <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
-          </div>
-          <div className="space-y-2">
-            {Object.entries(totalsByCurrency)
-              .filter(([_, data]) => data.iOwe > 0)
-              .map(([currency, data]) => (
-                <div key={currency} className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                  <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
-                    {formatCurrency(data.iOwe, currency)}
-                  </p>
+              {/* A Pagar - REGULAR */}
+              <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <ArrowRight className="h-5 w-5 text-red-600" />
+                  <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
                 </div>
-              ))}
-            {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
-              <p className="text-muted-foreground text-center">Nada a pagar</p>
-            )}
+                <div className="space-y-2">
+                  {Object.entries(totalsByCurrency)
+                    .filter(([_, data]) => data.iOwe > 0)
+                    .map(([currency, data]) => (
+                      <div key={currency} className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                          {formatCurrency(data.iOwe, currency)}
+                        </p>
+                      </div>
+                    ))}
+                  {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
+                    <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Cards TRAVEL */}
+        {Object.keys(travelTotalsByCurrency).length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-2">
+              <Plane className="h-4 w-4" />
+              Viagens
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Meu Saldo - TRAVEL */}
+              <div className="p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="h-5 w-5 text-blue-600" />
+                  <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
+                    <div key={currency} className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                      <p className={cn(
+                        "font-mono text-lg font-bold",
+                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                      )}>
+                        {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* A Receber - TRAVEL */}
+              <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                  <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(travelTotalsByCurrency)
+                    .filter(([_, data]) => data.owedToMe > 0)
+                    .map(([currency, data]) => (
+                      <div key={currency} className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                          {formatCurrency(data.owedToMe, currency)}
+                        </p>
+                      </div>
+                    ))}
+                  {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
+                    <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                  )}
+                </div>
+              </div>
+
+              {/* A Pagar - TRAVEL */}
+              <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                <div className="flex items-center gap-2 mb-3">
+                  <ArrowRight className="h-5 w-5 text-red-600" />
+                  <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(travelTotalsByCurrency)
+                    .filter(([_, data]) => data.iOwe > 0)
+                    .map(([currency, data]) => (
+                      <div key={currency} className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                        <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                          {formatCurrency(data.iOwe, currency)}
+                        </p>
+                      </div>
+                    ))}
+                  {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
+                    <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

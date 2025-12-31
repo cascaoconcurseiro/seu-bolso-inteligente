@@ -564,28 +564,33 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     return totalsByCurrency;
   };
 
-  // Calculate global summary
+  // Calculate global summary - SEPARADO POR MOEDA (NUNCA SOMAR MOEDAS DIFERENTES!)
   const getSummary = () => {
-    let totalCredits = 0;
-    let totalDebits = 0;
+    const summaryByCurrency: Record<string, { totalCredits: number; totalDebits: number; net: number }> = {};
     
     Object.values(invoices).forEach(items => {
       items.forEach(item => {
+        const curr = item.currency || 'BRL';
+        if (!summaryByCurrency[curr]) {
+          summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
+        }
+        
         if (!item.isPaid) {
           if (item.type === 'CREDIT') {
-            totalCredits += item.amount;
+            summaryByCurrency[curr].totalCredits += item.amount;
           } else {
-            totalDebits += item.amount;
+            summaryByCurrency[curr].totalDebits += item.amount;
           }
         }
       });
     });
     
-    return {
-      totalCredits,
-      totalDebits,
-      net: totalCredits - totalDebits
-    };
+    // Calcular net para cada moeda
+    Object.keys(summaryByCurrency).forEach(curr => {
+      summaryByCurrency[curr].net = summaryByCurrency[curr].totalCredits - summaryByCurrency[curr].totalDebits;
+    });
+    
+    return summaryByCurrency;
   };
 
   return { 
