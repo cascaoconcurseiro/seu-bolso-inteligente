@@ -19,6 +19,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useFamilyMembers } from "@/hooks/useFamily";
+import { useAuth } from "@/contexts/AuthContext";
 import { Users, Calendar } from "lucide-react";
 import { differenceInDays, parseISO } from "date-fns";
 
@@ -70,6 +71,7 @@ export function NewTripDialog({
   currency = 'BRL',
   setCurrency,
 }: NewTripDialogProps) {
+  const { user } = useAuth();
   const { data: familyMembers = [] } = useFamilyMembers();
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [localCurrency, setLocalCurrency] = useState(currency);
@@ -199,6 +201,7 @@ export function NewTripDialog({
               <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-3">
                 {familyMembers
                   .filter(member => member.linked_user_id) // Apenas membros cadastrados
+                  .filter(member => member.linked_user_id !== user?.id) // Excluir o criador da viagem
                   .map((member) => (
                     <div
                       key={member.id}

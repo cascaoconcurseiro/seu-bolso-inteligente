@@ -72,7 +72,7 @@ export function SharedInstallmentImport({
   useEffect(() => {
     if (isOpen) {
       setDescription('');
-      setAmount('0,00'); // Iniciar com 0,00 ao invés de string vazia
+      setAmount(''); // Iniciar vazio para o usuário digitar
       setInstallments('2');
       setDate(format(new Date(), 'yyyy-MM-dd'));
       setCategoryId('');
@@ -125,17 +125,24 @@ export function SharedInstallmentImport({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Permitir digitar valores normalmente (ex: 95 = R$ 95,00)
-    const value = e.target.value.replace(/\D/g, '');
-    if (!value) {
-      setAmount('');
-      return;
+    // Permitir digitar valores com vírgula (ex: 95,00)
+    let value = e.target.value;
+    
+    // Remover tudo exceto números e vírgula
+    value = value.replace(/[^\d,]/g, '');
+    
+    // Permitir apenas uma vírgula
+    const parts = value.split(',');
+    if (parts.length > 2) {
+      value = parts[0] + ',' + parts.slice(1).join('');
     }
-    const numValue = parseInt(value);
-    setAmount((numValue / 100).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }));
+    
+    // Limitar casas decimais a 2
+    if (parts.length === 2 && parts[1].length > 2) {
+      value = parts[0] + ',' + parts[1].substring(0, 2);
+    }
+    
+    setAmount(value);
   };
 
   const handleSubmit = async () => {
@@ -151,37 +158,30 @@ export function SharedInstallmentImport({
       const baseDate = new Date(date);
       const totalInstallmentsNum = parseInt(installments);
       const parcelAmount = parseAmount(amount);
-      const seriesId = crypto.randomUUID();
 
-      // Create all installments
-      for (let i = 0; i < totalInstallmentsNum; i++) {
-        const installmentDate = addMonths(baseDate, i);
-        
-        // CORREÇÃO: Adicionar competence_date (sempre 1º dia do mês)
-        const competenceDate = format(
-          new Date(installmentDate.getFullYear(), installmentDate.getMonth(), 1),
+      // CORREÇÃO: Deixar o hook useCreateTransaction criar as parcelas
+      // NÃO fazer loop manual aqui
+      await createTransaction.mutateAsync({
+        amount: parcelAmount,
+        description: description.trim(),
+        date: format(baseDate, 'yyyy-MM-dd'),
+        competence_date: format(
+          new Date(baseDate.getFullYear(), baseDate.getMonth(), 1),
           'yyyy-MM-dd'
-        );
-
-        await createTransaction.mutateAsync({
+        ),
+        type: 'EXPENSE',
+        category_id: categoryId || undefined,
+        domain: 'SHARED',
+        is_shared: true,
+        is_installment: true,
+        total_installments: totalInstallmentsNum,
+        // NÃO passar current_installment nem series_id, o hook cria
+        splits: [{
+          member_id: assigneeId,
+          percentage: 100,
           amount: parcelAmount,
-          description: `${description.trim()} (${i + 1}/${totalInstallmentsNum})`,
-          date: format(installmentDate, 'yyyy-MM-dd'),
-          type: 'EXPENSE',
-          category_id: categoryId || undefined,
-          domain: 'SHARED',
-          is_shared: true,
-          is_installment: true,
-          current_installment: i + 1,
-          total_installments: totalInstallmentsNum,
-          series_id: seriesId,
-          splits: [{
-            member_id: assigneeId,
-            percentage: 100,
-            amount: parcelAmount,
-          }],
-        });
-      }
+        }],
+      });
 
       toast.success(`${totalInstallmentsNum} parcelas importadas com sucesso!`);
       onSuccess?.();

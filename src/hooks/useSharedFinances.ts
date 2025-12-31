@@ -432,13 +432,21 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .filter(i => i.isPaid)
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
-      // REGULAR: Mostrar TODOS os itens não relacionados a viagens (pagos e não pagos), filtrados pelo mês atual
+      // REGULAR: Mostrar apenas itens NÃO PAGOS não relacionados a viagens, filtrados pelo mês atual
       const filtered = scopeFilteredItems
         .filter(i => {
+          // Não mostrar itens de viagens
           if (i.tripId) return false;
           
+          // Não mostrar itens já pagos (devem ir para o histórico)
+          if (i.isPaid) return false;
+          
+          // CORREÇÃO CRÍTICA: Usar competence_date ao invés de date para filtrar parcelas
+          // Isso garante que cada parcela apareça apenas no seu mês de competência
+          const dateToUse = i.date; // Usar date pois é o que vem no InvoiceItem
+          
           // Parse date as YYYY-MM-DD to avoid timezone issues
-          const [year, month, day] = i.date.split('-').map(Number);
+          const [year, month, day] = dateToUse.split('-').map(Number);
           const itemMonth = month - 1; // JavaScript months are 0-indexed
           const itemYear = year;
           

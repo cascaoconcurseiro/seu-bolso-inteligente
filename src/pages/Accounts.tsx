@@ -519,6 +519,9 @@ export function Accounts() {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  💡 A conta será criada em <strong>{currency}</strong>
+                </p>
               </div>
             )}
 
@@ -539,6 +542,11 @@ export function Accounts() {
             <div className="space-y-2">
               <Label>Saldo inicial {isInternational && `(${currency})`}</Label>
               <Input type="number" placeholder="0,00" value={balance} onChange={(e) => setBalance(e.target.value)} />
+              {!isInternational && (
+                <p className="text-xs text-muted-foreground">
+                  💡 Conta nacional em BRL (Real Brasileiro)
+                </p>
+              )}
             </div>
           </div>
 

@@ -14,6 +14,7 @@ export interface StatementTransaction {
   description: string;
   date: string;
   type: "EXPENSE" | "INCOME" | "TRANSFER";
+  currency: string | null;
   is_installment: boolean;
   current_installment: number | null;
   total_installments: number | null;

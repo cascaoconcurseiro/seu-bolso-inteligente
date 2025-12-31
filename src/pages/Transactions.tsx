@@ -83,7 +83,13 @@ export function Transactions() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number, currency: string = "BRL") => {
+    // Para moedas internacionais, usar símbolo simples
+    if (currency !== "BRL") {
+      const symbol = getCurrencySymbol(currency);
+      return `${symbol} ${Math.abs(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    // Para BRL, usar formatação padrão brasileira
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
@@ -547,7 +553,7 @@ export function Transactions() {
                           transaction.type === "INCOME" ? "text-positive" : "text-foreground"
                         )}>
                           {transaction.type === "INCOME" ? "+" : "-"}
-                          {formatCurrency(Number(transaction.amount))}
+                          {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
                         </span>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                           {/* Botão Confirmar Ressarcimento - apenas para compartilhadas pendentes que eu paguei */}

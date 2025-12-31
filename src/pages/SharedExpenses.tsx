@@ -177,14 +177,49 @@ export function SharedExpenses() {
       return;
     }
 
+    console.log('🔍 [handleSettle] Iniciando acerto:', {
+      selectedMember,
+      settleAccountId,
+      settleType,
+      settleAmount,
+      selectedItems: selectedItems.length
+    });
+
     setIsSettling(true);
     try {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
       
+      console.log('🔍 [handleSettle] Dados do membro:', {
+        member,
+        totalItems: items.length,
+        items: items.map(i => ({
+          id: i.id,
+          type: i.type,
+          splitId: i.splitId,
+          originalTxId: i.originalTxId,
+          isPaid: i.isPaid,
+          amount: i.amount,
+          description: i.description
+        }))
+      });
+      
       const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
+
+      console.log('🔍 [handleSettle] Itens para acertar:', {
+        totalItems: itemsToSettle.length,
+        items: itemsToSettle.map(i => ({
+          id: i.id,
+          type: i.type,
+          splitId: i.splitId,
+          originalTxId: i.originalTxId,
+          isPaid: i.isPaid,
+          amount: i.amount,
+          description: i.description
+        }))
+      });
 
       if (itemsToSettle.length === 0) {
         toast.error("Nenhum item para acertar");
@@ -253,9 +288,63 @@ export function SharedExpenses() {
 
       // SEMPRE marcar items como settled
       let updateErrors: string[] = [];
+      let successCount = 0;
+      
+      console.log('🔍 [handleSettle] Iniciando atualização de itens:', {
+        totalItems: itemsToSettle.length,
+        settlementTxId,
+        items: itemsToSettle.map(i => ({
+          id: i.id,
+          type: i.type,
+          splitId: i.splitId,
+          originalTxId: i.originalTxId,
+          amount: i.amount,
+          description: i.description
+        }))
+      });
+      
       for (const item of itemsToSettle) {
-        if (item.type === 'CREDIT' && item.splitId) {
-          // CREDIT: Atualizar o split (alguém me deve)
+        console.log('🔍 [handleSettle] Processando item:', {
+          id: item.id,
+          type: item.type,
+          splitId: item.splitId,
+          originalTxId: item.originalTxId,
+          amount: item.amount,
+          description: item.description
+        });
+        
+        // CORREÇÃO CRÍTICA: Para AMBOS os tipos (CREDIT e DEBIT), 
+        // devemos atualizar o SPLIT se ele existir!
+        // O split representa a dívida/crédito do usuário
+        
+        if (item.splitId) {
+          // Verificar se o split existe antes de atualizar
+          const { data: existingSplit, error: checkError } = await supabase
+            .from('transaction_splits')
+            .select('id, is_settled, user_id')
+            .eq('id', item.splitId)
+            .single();
+          
+          if (checkError) {
+            console.error('❌ [handleSettle] Erro ao verificar split:', checkError);
+            updateErrors.push(`Split ${item.splitId}: ${checkError.message}`);
+            continue;
+          }
+          
+          if (!existingSplit) {
+            console.error('❌ [handleSettle] Split não encontrado:', item.splitId);
+            updateErrors.push(`Split ${item.splitId}: Not found`);
+            continue;
+          }
+          
+          if (existingSplit.is_settled) {
+            console.warn('⚠️ [handleSettle] Split já está settled:', item.splitId);
+            continue;
+          }
+          
+          console.log('✅ [handleSettle] Split encontrado, atualizando:', existingSplit);
+          
+          // Atualizar o split
           const { error, data } = await supabase
             .from('transaction_splits')
             .update({
@@ -267,12 +356,20 @@ export function SharedExpenses() {
             .select();
           
           if (error) {
-            console.error('Error updating split:', error);
+            console.error('❌ [handleSettle] Erro ao atualizar split:', error);
             updateErrors.push(`Split ${item.splitId}: ${error.message}`);
+          } else if (!data || data.length === 0) {
+            console.error('❌ [handleSettle] Nenhuma linha atualizada (RLS?):', item.splitId);
+            updateErrors.push(`Split ${item.splitId}: No rows updated (RLS or permission issue)`);
+          } else {
+            console.log('✅ [handleSettle] Split atualizado com sucesso:', data);
+            successCount++;
           }
-        } else if (item.type === 'DEBIT') {
-          // DEBIT: Atualizar a transação espelhada (eu devo para alguém)
-          // originalTxId agora é o ID da transação espelhada que pertence ao usuário atual
+        } else if (item.type === 'DEBIT' && item.originalTxId) {
+          // Fallback: Se não tem splitId mas tem originalTxId, tentar atualizar a transaction
+          // (caso antigo, não deveria acontecer mais)
+          console.warn('⚠️ [handleSettle] Item DEBIT sem splitId, tentando atualizar transaction:', item.originalTxId);
+          
           const { error, data } = await supabase
             .from('transactions')
             .update({
@@ -283,19 +380,43 @@ export function SharedExpenses() {
             .select();
           
           if (error) {
-            console.error('Error updating transaction:', error);
+            console.error('❌ [handleSettle] Erro ao atualizar transaction:', error);
             updateErrors.push(`Transaction ${item.originalTxId}: ${error.message}`);
           } else if (!data || data.length === 0) {
-            // Se não atualizou nenhum registro, pode ser que originalTxId seja da transação original
-            // Nesse caso, não podemos atualizar (pertence a outro usuário)
-            console.warn('No rows updated - transaction may belong to another user');
+            console.warn('⚠️ [handleSettle] Nenhuma linha atualizada (pode pertencer a outro usuário)');
+            updateErrors.push(`Transaction ${item.originalTxId}: No rows updated (may belong to another user)`);
+          } else {
+            console.log('✅ [handleSettle] Transaction atualizada com sucesso:', data);
+            successCount++;
           }
+        } else {
+          console.error('❌ [handleSettle] Item sem splitId nem originalTxId:', item);
+          updateErrors.push(`Item ${item.id}: Missing splitId and originalTxId`);
         }
       }
+      
+      console.log('📊 [handleSettle] Resultado final:', {
+        totalItems: itemsToSettle.length,
+        successCount,
+        errorCount: updateErrors.length,
+        errors: updateErrors
+      });
 
       if (updateErrors.length > 0) {
-        console.error('Update errors:', updateErrors);
-        toast.error(`Alguns itens não foram atualizados: ${updateErrors.length} erros`);
+        console.error('❌ [handleSettle] Erros de atualização:', updateErrors);
+        toast.error(`Alguns itens não foram atualizados: ${updateErrors.length} erros. Verifique o console para detalhes.`);
+        
+        // Mesmo com erros, se algum item foi atualizado, considerar sucesso parcial
+        if (successCount > 0) {
+          toast.success(`${successCount} item(ns) atualizado(s) com sucesso!`);
+        }
+      } else if (successCount === 0) {
+        console.error('❌ [handleSettle] Nenhum item foi atualizado!');
+        toast.error('Nenhum item foi atualizado. Verifique o console para detalhes.');
+        setIsSettling(false);
+        return;
+      } else {
+        console.log('✅ [handleSettle] Todos os itens atualizados com sucesso!');
       }
 
       // Fechar dialog e limpar estado
@@ -642,6 +763,16 @@ export function SharedExpenses() {
 
                         {/* Tipo + Ações */}
                         <div className="col-span-2 flex items-center justify-end gap-2">
+                          {/* Tag PAGO - mais visível */}
+                          {item.isPaid && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                            >
+                              PAGO
+                            </Badge>
+                          )}
+                          
                           <Badge 
                             variant="outline" 
                             className={cn(

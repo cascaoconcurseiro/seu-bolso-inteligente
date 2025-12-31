@@ -1,5 +1,5 @@
 import { getBankById, getBankByName, getCardBrand } from "@/lib/banks";
-import { getBankLogo } from "@/utils/bankLogos";
+import { getBankLogo, getCardBrandLogo } from "@/utils/bankLogos";
 import { cn } from "@/lib/utils";
 
 interface BankIconProps {
@@ -33,6 +33,10 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
             "object-contain rounded-lg",
             sizeClasses[size]
           )}
+          onError={(e) => {
+            // Fallback se a imagem não carregar
+            e.currentTarget.style.display = 'none';
+          }}
         />
       </div>
     );
@@ -71,11 +75,34 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
   if (!brandConfig) return null;
 
   const sizeClasses = {
-    sm: "w-5 h-3 text-[8px]",
-    md: "w-8 h-5 text-[10px]",
-    lg: "w-10 h-6 text-xs",
+    sm: "w-8 h-5 text-[8px]",
+    md: "w-12 h-8 text-[10px]",
+    lg: "w-16 h-10 text-xs",
   };
 
+  // Tentar buscar logo real da bandeira
+  const logoUrl = getCardBrandLogo(brand);
+
+  if (logoUrl) {
+    return (
+      <div className={cn("shrink-0 flex items-center justify-center", className)}>
+        <img
+          src={logoUrl}
+          alt={brandConfig.name}
+          className={cn(
+            "object-contain rounded",
+            sizeClasses[size]
+          )}
+          onError={(e) => {
+            // Fallback se a imagem não carregar
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback para ícone colorido
   return (
     <div
       className={cn(

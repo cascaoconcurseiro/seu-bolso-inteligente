@@ -37,7 +37,7 @@ export interface Transaction {
   created_at: string;
   updated_at: string;
   // Joined data
-  account?: { name: string };
+  account?: { id: string; name: string; currency?: string };
   category?: { name: string; icon: string | null };
 }
 
@@ -101,7 +101,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .from("transactions")
         .select(`
           *,
-          account:accounts!transactions_account_id_fkey(id, name),
+          account:accounts!transactions_account_id_fkey(id, name, currency),
           category:categories(id, name, icon),
           transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(*)
         `)
@@ -401,34 +401,29 @@ export function useDeleteInstallmentSeries() {
 
   return useMutation({
     mutationFn: async (seriesId: string) => {
-      // Primeiro, buscar todas as transações da série
-      const { data: transactions, error: fetchError } = await supabase
-        .from("transactions")
-        .select("id")
-        .eq("series_id", seriesId);
+      console.log('🗑️ [useDeleteInstallmentSeries] Iniciando exclusão da série:', seriesId);
+      
+      // CORREÇÃO: Usar função RPC que garante exclusão completa
+      const { data, error } = await supabase
+        .rpc('delete_installment_series', { p_series_id: seriesId });
 
-      if (fetchError) throw fetchError;
-
-      if (!transactions || transactions.length === 0) {
-        throw new Error("Nenhuma parcela encontrada nesta série");
+      if (error) {
+        console.error('❌ [useDeleteInstallmentSeries] Erro ao excluir série:', error);
+        throw error;
       }
 
-      // Excluir splits associados
-      const transactionIds = transactions.map(t => t.id);
-      await supabase
-        .from("transaction_splits")
-        .delete()
-        .in("transaction_id", transactionIds);
+      const deletedCount = data?.[0]?.deleted_count || 0;
+      
+      console.log('✅ [useDeleteInstallmentSeries] Série excluída:', {
+        seriesId,
+        deletedCount
+      });
 
-      // Excluir todas as transações da série
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("series_id", seriesId);
+      if (deletedCount === 0) {
+        throw new Error("Nenhuma parcela foi excluída. Verifique se a série existe e pertence a você.");
+      }
 
-      if (error) throw error;
-
-      return { deletedCount: transactions.length };
+      return { deletedCount };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
@@ -437,6 +432,7 @@ export function useDeleteInstallmentSeries() {
       toast.success(`${data.deletedCount} parcelas removidas com sucesso!`);
     },
     onError: (error) => {
+      console.error('❌ [useDeleteInstallmentSeries] Erro final:', error);
       toast.error("Erro ao remover parcelas: " + error.message);
     },
   });
