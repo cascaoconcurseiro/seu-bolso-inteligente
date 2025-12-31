@@ -466,18 +466,74 @@ export function SharedExpenses() {
     if (!item) return;
 
     try {
-      if (item.type === 'CREDIT' && item.splitId) {
-        const { error } = await supabase
+      console.log('🔍 [handleUndoSettlement] Desfazendo acerto:', item);
+      
+      if (item.splitId) {
+        // Buscar o split para pegar os IDs das transações de acerto
+        const { data: split, error: fetchError } = await supabase
           .from('transaction_splits')
-          .update({
-            is_settled: false,
-            settled_at: null,
-            settled_transaction_id: null
-          })
+          .select('settled_by_debtor, settled_by_creditor, debtor_settlement_tx_id, creditor_settlement_tx_id')
+          .eq('id', item.splitId)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        console.log('🔍 [handleUndoSettlement] Split encontrado:', split);
+        
+        // Determinar qual lado está desfazendo
+        const isDebtor = item.type === 'DEBIT';
+        const settlementTxId = isDebtor ? split.debtor_settlement_tx_id : split.creditor_settlement_tx_id;
+        
+        // Deletar a transação de acerto
+        if (settlementTxId) {
+          console.log('🔍 [handleUndoSettlement] Deletando transação de acerto:', settlementTxId);
+          const { error: deleteError } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('id', settlementTxId);
+          
+          if (deleteError) {
+            console.error('❌ [handleUndoSettlement] Erro ao deletar transação:', deleteError);
+            throw deleteError;
+          }
+          console.log('✅ [handleUndoSettlement] Transação deletada com sucesso');
+        }
+        
+        // Atualizar o split
+        const updateFields: any = {
+          settled_at: null,
+        };
+        
+        if (isDebtor) {
+          updateFields.settled_by_debtor = false;
+          updateFields.debtor_settlement_tx_id = null;
+          // Se o credor também não marcou, desmarcar is_settled
+          if (!split.settled_by_creditor) {
+            updateFields.is_settled = false;
+            updateFields.settled_transaction_id = null;
+          }
+        } else {
+          updateFields.settled_by_creditor = false;
+          updateFields.creditor_settlement_tx_id = null;
+          // Se o devedor também não marcou, desmarcar is_settled
+          if (!split.settled_by_debtor) {
+            updateFields.is_settled = false;
+            updateFields.settled_transaction_id = null;
+          }
+        }
+        
+        console.log('🔍 [handleUndoSettlement] Atualizando split:', updateFields);
+        
+        const { error: updateError } = await supabase
+          .from('transaction_splits')
+          .update(updateFields)
           .eq('id', item.splitId);
         
-        if (error) throw error;
-      } else if (item.type === 'DEBIT') {
+        if (updateError) throw updateError;
+        
+        console.log('✅ [handleUndoSettlement] Split atualizado com sucesso');
+      } else if (item.type === 'DEBIT' && item.originalTxId) {
+        // Fallback para caso antigo
         const { error } = await supabase
           .from('transactions')
           .update({
@@ -497,7 +553,7 @@ export function SharedExpenses() {
       
       toast.success("Acerto desfeito com sucesso!");
     } catch (error) {
-      console.error('Undo error:', error);
+      console.error('❌ [handleUndoSettlement] Erro:', error);
       toast.error("Erro ao desfazer acerto");
     }
   };
