@@ -72,7 +72,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // Buscar transações compartilhadas onde EU FUI INCLUÍDO em um split
       const { data: mySplits, error: mySplitsError } = await supabase
         .from('transaction_splits')
-        .select('*, transaction:transactions(*)')
+        .select('*, transaction:transactions!transaction_id(*)')
         .eq('user_id', user.id);
       
       if (mySplitsError) {
