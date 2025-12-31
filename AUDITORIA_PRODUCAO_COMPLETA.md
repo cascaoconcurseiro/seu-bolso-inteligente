@@ -1,270 +1,309 @@
-# 🔍 AUDITORIA COMPLETA DO SISTEMA - PRODUÇÃO
-
-**Data**: 29 de Dezembro de 2024  
-**Status**: ✅ SISTEMA PRONTO PARA PRODUÇÃO
-
----
-
-## 📋 RESUMO EXECUTIVO
-
-O sistema foi auditado completamente e está **PRONTO PARA PRODUÇÃO**. Todos os problemas críticos foram resolvidos e o sistema segue as melhores práticas de sistemas financeiros profissionais.
-
-### ✅ Principais Conquistas
-
-1. **Single Source of Truth**: Todos os dados financeiros vêm exclusivamente do banco de dados
-2. **Sem Console.log**: Código limpo, sem logs de debug em produção
-3. **Sem Erros TypeScript**: Código 100% type-safe
-4. **RLS Configurado**: Todas as tabelas têm políticas de segurança
-5. **Triggers Ativos**: Sincronização automática de saldos
-6. **Cascade Configurado**: Integridade referencial garantida
+# 🔍 AUDITORIA COMPLETA DO SISTEMA DE COMPARTILHAMENTO
+**Data**: 31/12/2024 09:15 BRT  
+**Ambiente**: Produção (Supabase Hosted)  
+**Project ID**: vrrcagukyfnlhxuvnssp
 
 ---
 
-## 🎯 CHECKLIST DE PRODUÇÃO
+## ✅ STATUS GERAL
 
-### ✅ Código Frontend
+### Backend (Banco de Dados)
+| Componente | Status | Detalhes |
+|------------|--------|----------|
+| Tabela `transactions` | ✅ OK | 5 transações, estrutura correta |
+| Tabela `transaction_splits` | ✅ OK | 2 splits criados |
+| Tabela `financial_ledger` | ✅ OK | 7 entradas de ledger |
+| Tabela `shared_transaction_mirrors` | ✅ OK | 0 registros (não usado) |
+| View `shared_transactions_view` | ✅ OK | Retorna 3 transações |
+| Triggers de espelhamento | ⚠️ DUPLICADOS | 9 triggers (deveria ter 3) |
+| Funções de espelhamento | ✅ OK | 9 funções criadas |
 
-- [x] Sem console.log statements
-- [x] Sem erros TypeScript
-- [x] Sem imports não utilizados
-- [x] Tratamento de erros em todos os hooks
-- [x] Validação de formulários
-- [x] Loading states implementados
-- [x] Error boundaries configurados
-
-### ✅ Banco de Dados
-
-- [x] RLS policies em todas as tabelas
-- [x] Triggers funcionando corretamente
-- [x] Foreign keys com CASCADE
-- [x] Indexes de performance
-- [x] Funções documentadas
-- [x] Sem duplicidades de dados
-- [x] Sem objetos obsoletos
-
-### ✅ Arquitetura
-
-- [x] Single Source of Truth implementado
-- [x] Cálculos no banco de dados
-- [x] Operações pendentes no banco
-- [x] Sem localStorage para dados
-- [x] Cache configurado (React Query)
-- [x] Retry automático implementado
+### Frontend (Aplicação)
+| Componente | Status | Detalhes |
+|------------|--------|----------|
+| Hook `useSharedFinances` | ✅ OK | Busca corretamente |
+| Página `SharedExpenses` | ✅ OK | Renderiza corretamente |
+| Query de transações | ✅ OK | Retorna dados |
+| Filtros de tab | ✅ OK | REGULAR, TRAVEL, HISTORY |
 
 ---
 
-## 🔒 SEGURANÇA
+## 🎯 TRANSAÇÃO DE TESTE
 
-### Avisos do Supabase (Não Críticos)
-
-#### 1. Function Search Path Mutable (13 funções)
-**Severidade**: ⚠️ WARN  
-**Impacto**: Baixo - Potencial vulnerabilidade de segurança em funções  
-**Ação**: Adicionar `SET search_path = public` nas funções (opcional)
-
-**Funções afetadas**:
-- `update_family_invitations_updated_at`
-- `user_is_trip_member`
-- `handle_invitation_accepted`
-- `handle_trip_invitation_accepted`
-- `user_can_view_trip`
-- `sync_transaction_settled_status`
-- `add_trip_owner`
-- `calculate_account_balance`
-- `is_trip_member`
-- `sync_account_balance`
-- `recalculate_all_account_balances`
-- `get_user_trip_ids`
-- `auto_link_family_member`
-
-#### 2. Leaked Password Protection Disabled
-**Severidade**: ⚠️ WARN  
-**Impacto**: Médio - Usuários podem usar senhas comprometidas  
-**Ação**: Habilitar no painel do Supabase (Auth > Password Protection)
-
----
-
-## ⚡ PERFORMANCE
-
-### Avisos de Performance (Não Críticos)
-
-#### 1. Unindexed Foreign Keys (26 FKs)
-**Severidade**: ℹ️ INFO  
-**Impacto**: Baixo - Pode afetar performance em queries com JOINs  
-**Ação**: Adicionar indexes conforme necessário (monitorar uso)
-
-**Principais tabelas**:
-- `transactions` (7 FKs sem index)
-- `family_members` (3 FKs sem index)
-- `trip_invitations` (2 FKs sem index)
-
-#### 2. Auth RLS Initialization Plan (70+ policies)
-**Severidade**: ⚠️ WARN  
-**Impacto**: Médio - RLS policies re-avaliam `auth.uid()` para cada linha  
-**Ação**: Otimizar com `(select auth.uid())` (opcional)
-
-**Solução**:
+### Dados da Transação Original
 ```sql
--- Antes
-WHERE user_id = auth.uid()
-
--- Depois (mais performático)
-WHERE user_id = (select auth.uid())
+ID: 8b752657-60cd-4654-8783-a6fc2d84d52f
+Usuário: Wesley (56ccd60b-641f-4265-bc17-7b8705a2f8c9)
+Valor: R$ 100,00
+Descrição: "teste compartilhado"
+is_shared: TRUE
+domain: SHARED
+Data: 2025-12-31
 ```
 
-#### 3. Multiple Permissive Policies (25 casos)
-**Severidade**: ⚠️ WARN  
-**Impacto**: Médio - Múltiplas policies executadas por query  
-**Ação**: Consolidar policies quando possível
-
-**Principais tabelas**:
-- `transactions` (15 policies duplicadas)
-- `profiles` (5 policies duplicadas)
-- `transaction_splits` (5 policies duplicadas)
-
-#### 4. Unused Indexes (18 indexes)
-**Severidade**: ℹ️ INFO  
-**Impacto**: Baixo - Indexes não utilizados ocupam espaço  
-**Ação**: Remover após monitoramento em produção
-
-**Indexes não utilizados**:
-- `idx_transactions_frequency`
-- `idx_transactions_is_refund`
-- `idx_family_members_role`
-- `idx_accounts_is_international`
-- `idx_transactions_is_mirror`
-- E outros 13...
-
-#### 5. Duplicate Index
-**Severidade**: ⚠️ WARN  
-**Impacto**: Baixo - Indexes duplicados  
-**Ação**: Remover um dos indexes
-
+### Splits Criados (2 splits - DUPLICADOS!)
 ```sql
--- Remover um destes:
-DROP INDEX idx_transactions_mirror_id;
--- OU
-DROP INDEX idx_transactions_source_transaction_id;
+Split 1:
+  ID: 46db4140-5bda-429d-887f-0412198be2cf
+  Member: Fran (5c4a4fb5-ccc9-440f-912e-9e81731aa7ab)
+  User: Fran (9545d0c1-94be-4b69-b110-f939bce072ee)
+  Valor: R$ 50,00 (50%)
+
+Split 2: (DUPLICADO!)
+  ID: 07394c6c-9f65-4505-adfe-412b5f46c14f
+  Member: Fran (5c4a4fb5-ccc9-440f-912e-9e81731aa7ab)
+  User: Fran (9545d0c1-94be-4b69-b110-f939bce072ee)
+  Valor: R$ 50,00 (50%)
 ```
 
----
+**⚠️ PROBLEMA**: Splits duplicados! Deveria ter apenas 1 split para Fran.
 
-## 📊 MÉTRICAS DO SISTEMA
+### Transações Espelhadas (2 mirrors - DUPLICADOS!)
+```sql
+Mirror 1:
+  ID: fcaa5bba-b4cf-47a3-bd71-47bd48d1cc8b
+  User: Fran (9545d0c1-94be-4b69-b110-f939bce072ee)
+  Valor: R$ 50,00
+  source_transaction_id: 8b752657-60cd-4654-8783-a6fc2d84d52f
 
-### Código
-- **Arquivos TypeScript**: 150+
-- **Componentes React**: 80+
-- **Hooks Customizados**: 25+
-- **Páginas**: 15+
+Mirror 2: (DUPLICADO!)
+  ID: 4462c8a4-94d6-4196-9d5f-0589c60b5cc6
+  User: Fran (9545d0c1-94be-4b69-b110-f939bce072ee)
+  Valor: R$ 50,00
+  source_transaction_id: 8b752657-60cd-4654-8783-a6fc2d84d52f
+```
 
-### Banco de Dados
-- **Tabelas**: 25+
-- **Funções**: 20+
-- **Triggers**: 10+
-- **RLS Policies**: 100+
-- **Indexes**: 50+
+**⚠️ PROBLEMA**: Transações espelhadas duplicadas! Deveria ter apenas 1 mirror para Fran.
 
-### Funcionalidades
-- ✅ Autenticação e Perfis
-- ✅ Contas e Cartões (Nacional e Internacional)
-- ✅ Transações (Receitas, Despesas, Transferências)
-- ✅ Parcelamento Inteligente
-- ✅ Transações Compartilhadas
-- ✅ Família e Membros
-- ✅ Viagens e Divisão de Gastos
-- ✅ Orçamentos por Categoria
-- ✅ Relatórios e Gráficos
-- ✅ Notificações
-- ✅ Painel Administrativo
+### Ledger Financeiro (5 entradas - DUPLICADAS!)
+```sql
+1. DEBIT Wesley R$ 100,00 (Pagamento) ✅ OK
+2. CREDIT Wesley R$ 50,00 (A receber de Fran) ⚠️ DUPLICADO
+3. DEBIT Fran R$ 50,00 (Dívida com Wesley) ⚠️ DUPLICADO
+4. CREDIT Wesley R$ 50,00 (A receber de Fran) ⚠️ DUPLICADO
+5. DEBIT Fran R$ 50,00 (Dívida com Wesley) ⚠️ DUPLICADO
+```
 
----
-
-## 🚀 PRÓXIMOS PASSOS (OPCIONAL)
-
-### Otimizações de Performance (Não Urgente)
-
-1. **Otimizar RLS Policies**
-   - Substituir `auth.uid()` por `(select auth.uid())`
-   - Consolidar policies duplicadas
-   - Tempo estimado: 2-3 horas
-
-2. **Adicionar Indexes Faltantes**
-   - Monitorar queries lentas em produção
-   - Adicionar indexes conforme necessário
-   - Tempo estimado: 1-2 horas
-
-3. **Remover Indexes Não Utilizados**
-   - Monitorar uso por 1-2 semanas
-   - Remover indexes confirmadamente não utilizados
-   - Tempo estimado: 30 minutos
-
-4. **Habilitar Password Protection**
-   - Ativar no painel do Supabase
-   - Tempo estimado: 5 minutos
-
-### Melhorias Futuras (Backlog)
-
-1. **Testes Automatizados**
-   - Unit tests para hooks
-   - Integration tests para fluxos críticos
-   - E2E tests para user journeys
-
-2. **Monitoramento**
-   - Sentry para error tracking
-   - Analytics para uso
-   - Performance monitoring
-
-3. **CI/CD**
-   - GitHub Actions para deploy automático
-   - Testes automáticos no PR
-   - Preview deployments
+**⚠️ PROBLEMA**: Entradas de ledger duplicadas! Deveria ter apenas 3 entradas:
+- 1 DEBIT Wesley (pagamento)
+- 1 CREDIT Wesley (a receber)
+- 1 DEBIT Fran (dívida)
 
 ---
 
-## 📝 NOTAS IMPORTANTES
+## 🔍 ANÁLISE DE TRIGGERS
 
-### Single Source of Truth ✅
+### Triggers Encontrados (9 triggers)
+```sql
+1. trg_create_ledger_on_split (INSERT on transaction_splits) ✅ CORRETO
+2. trg_create_mirrored_transaction_on_split (INSERT on transaction_splits) ✅ CORRETO
+3. trg_delete_mirrored_transaction_on_split_delete (DELETE on transaction_splits) ✅ CORRETO
+4. trg_fill_split_user_id (INSERT/UPDATE on transaction_splits) ✅ CORRETO
+5. trg_transaction_mirroring (INSERT/UPDATE/DELETE on transactions) ⚠️ ANTIGO
+6. trg_update_mirrored_transactions_on_update (UPDATE on transactions) ⚠️ ANTIGO
+```
 
-Todos os cálculos financeiros são feitos no banco de dados:
+### Triggers Duplicados/Conflitantes
+- `trg_transaction_mirroring`: Trigger antigo que tenta criar mirrors na tabela `transactions`
+- `trg_update_mirrored_transactions_on_update`: Trigger antigo que atualiza mirrors
 
-- **Saldos de Contas**: Calculados via trigger `sync_account_balance()`
-- **Gastos em Orçamentos**: Função `calculate_budget_spent()`
-- **Gastos em Viagens**: Função `calculate_trip_spent()`
-- **Resumo Financeiro**: Função `get_monthly_financial_summary()`
-- **Balanços Compartilhados**: Função `calculate_member_balance()`
+**CAUSA RAIZ**: Triggers antigos estão criando duplicatas porque:
+1. `trg_create_mirrored_transaction_on_split` cria 1 mirror (CORRETO)
+2. `trg_transaction_mirroring` tenta criar outro mirror (DUPLICADO)
 
-### Operações Pendentes ✅
+---
 
-Todas as operações pendentes são armazenadas no banco de dados:
+## 🐛 PROBLEMAS IDENTIFICADOS
 
-- Tabela `pending_operations` com retry automático
-- Exponential backoff para retries
-- Cleanup automático após 7 dias
-- Sem uso de localStorage
+### 1. Splits Duplicados no Frontend ❌ CRÍTICO
+**Sintoma**: Ao criar uma despesa compartilhada, 2 splits idênticos são criados para o mesmo membro.
 
-### Integridade de Dados ✅
+**Causa**: Frontend está enviando splits duplicados ou trigger está duplicando.
 
-- Todas as foreign keys têm `ON DELETE CASCADE` configurado
-- Triggers garantem sincronização automática
-- RLS policies protegem acesso aos dados
-- Validações no frontend e backend
+**Evidência**:
+```typescript
+// useSharedFinances.ts busca corretamente:
+.select(`
+  *,
+  transaction_splits!transaction_splits_transaction_id_fkey (...)
+`)
+.eq('user_id', user.id)
+.eq('is_shared', true)
+```
+
+**Impacto**: 
+- Ledger duplicado (saldo errado)
+- Transações espelhadas duplicadas
+- Valores incorretos na tela "Compartilhados"
+
+### 2. Triggers Conflitantes ⚠️ ALTO
+**Sintoma**: Múltiplos triggers tentam criar mirrors e ledger.
+
+**Causa**: Migrations antigas não foram limpas.
+
+**Evidência**:
+- 9 triggers encontrados (deveria ter 6)
+- Funções antigas ainda ativas
+
+**Impacto**:
+- Duplicação de dados
+- Performance degradada
+- Inconsistência de dados
+
+### 3. View Não Usada ℹ️ BAIXO
+**Sintoma**: `shared_transactions_view` existe mas não é usada pelo frontend.
+
+**Causa**: Frontend usa query direta em vez de view.
+
+**Impacto**: Nenhum (view funciona corretamente)
+
+---
+
+## 🎯 PLANO DE CORREÇÃO
+
+### FASE 1: Limpeza de Dados Duplicados (URGENTE)
+```sql
+-- 1. Identificar e remover splits duplicados
+DELETE FROM transaction_splits
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (
+      PARTITION BY transaction_id, member_id, user_id, amount 
+      ORDER BY created_at
+    ) as rn
+    FROM transaction_splits
+  ) t WHERE rn > 1
+);
+
+-- 2. Identificar e remover transações espelhadas duplicadas
+DELETE FROM transactions
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (
+      PARTITION BY source_transaction_id, user_id 
+      ORDER BY created_at
+    ) as rn
+    FROM transactions
+    WHERE source_transaction_id IS NOT NULL
+  ) t WHERE rn > 1
+);
+
+-- 3. Identificar e remover entradas de ledger duplicadas
+DELETE FROM financial_ledger
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (
+      PARTITION BY transaction_id, user_id, entry_type, related_user_id, amount 
+      ORDER BY created_at
+    ) as rn
+    FROM financial_ledger
+  ) t WHERE rn > 1
+);
+```
+
+### FASE 2: Limpeza de Triggers Antigos (URGENTE)
+```sql
+-- Remover triggers antigos conflitantes
+DROP TRIGGER IF EXISTS trg_transaction_mirroring ON transactions;
+DROP TRIGGER IF EXISTS trg_update_mirrored_transactions_on_update ON transactions;
+
+-- Remover funções antigas
+DROP FUNCTION IF EXISTS handle_transaction_mirroring();
+DROP FUNCTION IF EXISTS update_mirrored_transactions_on_transaction_update();
+```
+
+### FASE 3: Investigação do Frontend (ALTA)
+**Objetivo**: Descobrir por que splits duplicados são criados.
+
+**Passos**:
+1. Adicionar logs em `SplitModal.tsx` no botão Confirmar
+2. Verificar se `onConfirm` está sendo chamado 2 vezes
+3. Verificar se `setSplits` está duplicando o array
+4. Verificar se `useTransactions.ts` está criando splits duplicados
+
+**Arquivos a investigar**:
+- `src/components/transactions/SplitModal.tsx`
+- `src/components/transactions/TransactionForm.tsx`
+- `src/hooks/useTransactions.ts`
+
+### FASE 4: Teste Completo (MÉDIA)
+1. Limpar dados de teste
+2. Criar nova despesa compartilhada
+3. Verificar:
+   - ✅ 1 transação original
+   - ✅ 1 split por membro
+   - ✅ 1 transação espelhada por membro
+   - ✅ Ledger correto (1 DEBIT pagador + 1 CREDIT/DEBIT por split)
+4. Verificar na tela "Compartilhados"
+5. Testar acerto de contas
+
+---
+
+## 📊 MÉTRICAS ATUAIS
+
+### Transações
+- Total: 5 transações
+- Compartilhadas: 3 (1 original + 2 mirrors)
+- Individuais: 2
+
+### Splits
+- Total: 2 splits
+- Duplicados: 1 (50%)
+
+### Ledger
+- Total: 7 entradas
+- Duplicadas: 4 (57%)
+
+### Triggers
+- Total: 9 triggers
+- Conflitantes: 2 (22%)
+
+---
+
+## � PRÓoXIMOS PASSOS
+
+1. **IMEDIATO**: Executar FASE 1 (limpeza de duplicados)
+2. **IMEDIATO**: Executar FASE 2 (limpeza de triggers)
+3. **URGENTE**: Executar FASE 3 (investigar frontend)
+4. **IMPORTANTE**: Executar FASE 4 (teste completo)
+5. **OPCIONAL**: Otimizar view para uso futuro
+
+---
+
+## 📝 NOTAS TÉCNICAS
+
+### Por que splits duplicados?
+Possíveis causas:
+1. Frontend chama `onConfirm` duas vezes (double-click?)
+2. `setSplits` duplica o array antes de enviar
+3. Trigger `trg_create_mirrored_transaction_on_split` é chamado 2 vezes
+4. Mutation do React Query executa 2 vezes
+
+### Por que triggers conflitantes?
+- Migrations antigas não foram removidas
+- Sistema evoluiu mas limpeza não foi feita
+- Triggers antigos usavam lógica diferente (tabela `shared_transaction_mirrors`)
+
+### Por que view não é usada?
+- Frontend foi desenvolvido antes da view
+- Query direta é mais flexível
+- View pode ser usada no futuro para otimização
 
 ---
 
 ## ✅ CONCLUSÃO
 
-O sistema está **100% PRONTO PARA PRODUÇÃO**. Todos os problemas críticos foram resolvidos e o sistema segue as melhores práticas de desenvolvimento.
+**Sistema está FUNCIONAL mas com DUPLICAÇÕES**.
 
-Os avisos do Supabase são **não críticos** e podem ser tratados como otimizações futuras, não bloqueiam o lançamento em produção.
+**Prioridade**: 
+1. 🔴 CRÍTICO: Limpar duplicados (FASE 1)
+2. 🔴 CRÍTICO: Limpar triggers (FASE 2)
+3. 🟡 ALTA: Investigar frontend (FASE 3)
+4. 🟢 MÉDIA: Testar completo (FASE 4)
 
-### Recomendações Finais
+**Impacto**: 
+- Usuários veem valores duplicados
+- Saldos incorretos
+- Performance degradada
 
-1. ✅ **Deploy Imediato**: Sistema pronto para produção
-2. 📊 **Monitorar Performance**: Acompanhar métricas nas primeiras semanas
-3. 🔒 **Habilitar Password Protection**: Configurar no Supabase
-4. ⚡ **Otimizações Futuras**: Implementar conforme necessidade
-
----
-
-**Auditoria realizada por**: Kiro AI  
-**Última atualização**: 29/12/2024
+**Tempo estimado**: 2-3 horas para correção completa

@@ -155,6 +155,21 @@ export function useCreateTransaction() {
     mutationFn: async (input: CreateTransactionInput) => {
       if (!user) throw new Error("User not authenticated");
 
+      // ✅ VALIDAÇÃO CRÍTICA: Se is_shared=true, DEVE ter splits
+      if (input.is_shared && (!input.splits || input.splits.length === 0)) {
+        throw new Error("Transação compartilhada deve ter pelo menos um split. Selecione membros para dividir.");
+      }
+
+      // ✅ VALIDAÇÃO: Valor deve ser positivo
+      if (input.amount <= 0) {
+        throw new Error("O valor da transação deve ser maior que zero");
+      }
+
+      // ✅ VALIDAÇÃO: Descrição obrigatória
+      if (!input.description || input.description.trim() === '') {
+        throw new Error("A descrição é obrigatória");
+      }
+
       // Remove splits from input (não existe na tabela transactions)
       const { splits, transaction_splits, ...transactionData } = input;
 

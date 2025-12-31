@@ -1,244 +1,188 @@
--- =====================================================
--- CORREÇÃO COMPLETA - APLICAR NO SUPABASE SQL EDITOR
--- =====================================================
--- 
--- Este script corrige:
--- 1. Parcelas acumuladas (competence_date)
--- 2. Transações compartilhadas (espelhamento)
--- 3. Viagens (query corrigida no código)
--- 
--- =====================================================
+-- ============================================================================
+-- CORREÇÃO COMPLETA DO SISTEMA DE COMPARTILHAMENTO
+-- Data: 31/12/2024 09:15 BRT
+-- Ambiente: Produção (Supabase Hosted)
+-- ============================================================================
 
--- PASSO 1: Adicionar campo competence_date
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'transactions' 
-    AND column_name = 'competence_date'
-  ) THEN
-    ALTER TABLE transactions ADD COLUMN competence_date DATE;
-    RAISE NOTICE '✅ Campo competence_date adicionado';
-  ELSE
-    RAISE NOTICE '⚠️  Campo competence_date já existe';
-  END IF;
-END $$;
+-- IMPORTANTE: Execute este script no Supabase SQL Editor
+-- Este script irá:
+-- 1. Remover dados duplicados (splits, mirrors, ledger)
+-- 2. Remover triggers conflitantes
+-- 3. Remover funções antigas
+-- 4. Manter apenas os triggers corretos
 
--- PASSO 2: Popular competence_date para transações existentes
-DO $$
-DECLARE
-  v_updated_count INTEGER;
-BEGIN
-  UPDATE transactions
-  SET competence_date = DATE_TRUNC('month', date)::DATE
-  WHERE competence_date IS NULL;
-  
-  GET DIAGNOSTICS v_updated_count = ROW_COUNT;
-  RAISE NOTICE '✅ % transações atualizadas com competence_date', v_updated_count;
-END $$;
+BEGIN;
 
--- PASSO 3: Criar função de normalização
-DO $$
-BEGIN
-  CREATE OR REPLACE FUNCTION normalize_competence_date()
-  RETURNS TRIGGER AS $func$
-  BEGIN
-    NEW.competence_date := DATE_TRUNC('month', NEW.date)::DATE;
-    RETURN NEW;
-  END;
-  $func$ LANGUAGE plpgsql;
-  
-  RAISE NOTICE '✅ Função normalize_competence_date criada';
-END $$;
+-- ============================================================================
+-- FASE 1: LIMPEZA DE DADOS DUPLICADOS
+-- ============================================================================
 
--- PASSO 4: Criar trigger
-DO $$
-BEGIN
-  DROP TRIGGER IF EXISTS trigger_normalize_competence_date ON transactions;
-  CREATE TRIGGER trigger_normalize_competence_date
-    BEFORE INSERT OR UPDATE OF date ON transactions
-    FOR EACH ROW
-    EXECUTE FUNCTION normalize_competence_date();
-  
-  RAISE NOTICE '✅ Trigger criado';
-END $$;
+-- 1.1. Remover splits duplicados
+-- Mantém apenas o primeiro split de cada grupo (por transaction_id, member_id, user_id, amount)
+DELETE FROM public.transaction_splits
+WHERE id IN (
+  SELECT id FROM (
+    SELECT 
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY transaction_id, member_id, user_id, amount 
+        ORDER BY created_at ASC
+      ) as rn
+    FROM public.transaction_splits
+  ) t 
+  WHERE rn > 1
+);
 
--- PASSO 5: Remover duplicatas de parcelas
-DO $$
-DECLARE
-  v_deleted_count INTEGER;
-BEGIN
-  -- Remover duplicatas mantendo apenas a primeira de cada mês
-  DELETE FROM transactions t1
-  WHERE t1.series_id IS NOT NULL
-  AND EXISTS (
-    SELECT 1 FROM transactions t2
-    WHERE t2.series_id = t1.series_id
-    AND t2.competence_date = t1.competence_date
-    AND t2.created_at < t1.created_at
-  );
-  
-  GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
-  RAISE NOTICE '✅ % parcelas duplicadas removidas', v_deleted_count;
-END $$;
+-- 1.2. Remover transações espelhadas duplicadas
+-- Mantém apenas a primeira transação espelhada de cada grupo (por source_transaction_id, user_id)
+DELETE FROM public.transactions
+WHERE id IN (
+  SELECT id FROM (
+    SELECT 
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY source_transaction_id, user_id 
+        ORDER BY created_at ASC
+      ) as rn
+    FROM public.transactions
+    WHERE source_transaction_id IS NOT NULL
+  ) t 
+  WHERE rn > 1
+);
 
--- PASSO 6: Adicionar constraint de unicidade
-DO $$
-BEGIN
-  ALTER TABLE transactions DROP CONSTRAINT IF EXISTS unique_installment_per_month;
-  
-  ALTER TABLE transactions
-  ADD CONSTRAINT unique_installment_per_month 
-  UNIQUE (series_id, competence_date)
-  WHERE series_id IS NOT NULL;
-  
-  RAISE NOTICE '✅ Constraint unique_installment_per_month adicionada';
-EXCEPTION
-  WHEN OTHERS THEN
-    RAISE NOTICE '⚠️  Erro ao adicionar constraint: %', SQLERRM;
-END $$;
+-- 1.3. Remover entradas de ledger duplicadas
+-- Mantém apenas a primeira entrada de cada grupo (por transaction_id, user_id, entry_type, related_user_id, amount)
+DELETE FROM public.financial_ledger
+WHERE id IN (
+  SELECT id FROM (
+    SELECT 
+      id,
+      ROW_NUMBER() OVER (
+        PARTITION BY transaction_id, user_id, entry_type, COALESCE(related_user_id::text, 'NULL'), amount 
+        ORDER BY created_at ASC
+      ) as rn
+    FROM public.financial_ledger
+  ) t 
+  WHERE rn > 1
+);
 
--- PASSO 7: Atualizar função de espelhamento
-DO $$
-BEGIN
-  CREATE OR REPLACE FUNCTION mirror_shared_transaction()
-  RETURNS TRIGGER AS $func$
-  DECLARE
-    v_split RECORD;
-    v_member_user_id UUID;
-    v_payer_user_id UUID;
-    v_split_amount NUMERIC;
-  BEGIN
-    IF NEW.is_shared = TRUE THEN
-      IF NEW.payer_id IS NOT NULL THEN
-        SELECT user_id INTO v_payer_user_id
-        FROM family_members
-        WHERE id = NEW.payer_id;
-      END IF;
-      
-      FOR v_split IN 
-        SELECT * FROM transaction_splits 
-        WHERE transaction_id = NEW.id
-      LOOP
-        SELECT user_id INTO v_member_user_id
-        FROM family_members
-        WHERE id = v_split.member_id;
-        
-        IF v_member_user_id IS NOT NULL AND v_member_user_id != COALESCE(v_payer_user_id, NEW.user_id) THEN
-          v_split_amount := (NEW.amount * v_split.percentage / 100);
-          
-          INSERT INTO transactions (
-            user_id,
-            account_id,
-            category_id,
-            trip_id,
-            amount,
-            description,
-            date,
-            competence_date,
-            type,
-            domain,
-            is_shared,
-            source_transaction_id,
-            notes,
-            created_at,
-            updated_at
-          ) VALUES (
-            v_member_user_id,
-            NEW.account_id,
-            NEW.category_id,
-            NEW.trip_id,
-            v_split_amount,
-            NEW.description || ' (compartilhado)',
-            NEW.date,
-            NEW.competence_date,
-            NEW.type,
-            NEW.domain,
-            TRUE,
-            NEW.id,
-            'Transação compartilhada - ' || v_split.percentage || '% do total',
-            NOW(),
-            NOW()
-          )
-          ON CONFLICT (source_transaction_id, user_id) 
-          DO UPDATE SET
-            amount = EXCLUDED.amount,
-            description = EXCLUDED.description,
-            date = EXCLUDED.date,
-            competence_date = EXCLUDED.competence_date,
-            updated_at = NOW();
-        END IF;
-      END LOOP;
-    END IF;
-    
-    RETURN NEW;
-  END;
-  $func$ LANGUAGE plpgsql;
-  
-  RAISE NOTICE '✅ Função mirror_shared_transaction atualizada';
-END $$;
+-- ============================================================================
+-- FASE 2: LIMPEZA DE TRIGGERS CONFLITANTES
+-- ============================================================================
 
--- PASSO 8: Verificações
-DO $$
-DECLARE
-  v_null_count INTEGER;
-  v_trigger_exists BOOLEAN;
-  v_constraint_exists BOOLEAN;
-BEGIN
-  -- Verificar competence_date NULL
-  SELECT COUNT(*) INTO v_null_count
-  FROM transactions
-  WHERE competence_date IS NULL;
-  
-  IF v_null_count = 0 THEN
-    RAISE NOTICE '✅ Nenhum competence_date NULL';
-  ELSE
-    RAISE NOTICE '⚠️  % transações com competence_date NULL', v_null_count;
-  END IF;
-  
-  -- Verificar trigger
-  SELECT EXISTS (
-    SELECT 1 FROM pg_trigger
-    WHERE tgname = 'trigger_normalize_competence_date'
-  ) INTO v_trigger_exists;
-  
-  IF v_trigger_exists THEN
-    RAISE NOTICE '✅ Trigger ativo';
-  ELSE
-    RAISE NOTICE '❌ Trigger não encontrado';
-  END IF;
-  
-  -- Verificar constraint
-  SELECT EXISTS (
-    SELECT 1 FROM information_schema.table_constraints
-    WHERE table_name = 'transactions' 
-    AND constraint_name = 'unique_installment_per_month'
-  ) INTO v_constraint_exists;
-  
-  IF v_constraint_exists THEN
-    RAISE NOTICE '✅ Constraint ativa';
-  ELSE
-    RAISE NOTICE '⚠️  Constraint não criada';
-  END IF;
-END $$;
+-- 2.1. Remover triggers antigos que causam duplicação
+DROP TRIGGER IF EXISTS trg_transaction_mirroring ON public.transactions;
+DROP TRIGGER IF EXISTS trg_update_mirrored_transactions_on_update ON public.transactions;
+DROP TRIGGER IF EXISTS trigger_create_mirrors_on_insert ON public.transactions;
+DROP TRIGGER IF EXISTS trigger_mirror_shared_transaction ON public.transactions;
+DROP TRIGGER IF EXISTS trg_create_mirror_transaction ON public.transactions;
 
--- Mensagem final
-DO $$
-BEGIN
-  RAISE NOTICE '';
-  RAISE NOTICE '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-  RAISE NOTICE '✅ CORREÇÃO COMPLETA APLICADA!';
-  RAISE NOTICE '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
-  RAISE NOTICE '';
-  RAISE NOTICE '🎯 Resultado:';
-  RAISE NOTICE '  ✅ Parcelas não acumulam mais';
-  RAISE NOTICE '  ✅ Cada mês mostra apenas 1 parcela';
-  RAISE NOTICE '  ✅ Transações compartilhadas espelhadas';
-  RAISE NOTICE '  ✅ Viagens voltaram a aparecer';
-  RAISE NOTICE '';
-  RAISE NOTICE '📝 Próximos passos:';
-  RAISE NOTICE '  1. Limpe o cache (Ctrl+Shift+R)';
-  RAISE NOTICE '  2. Teste navegando entre meses';
-  RAISE NOTICE '  3. Verifique que parcelas não acumulam';
-  RAISE NOTICE '';
-END $$;
+-- 2.2. Remover funções antigas
+DROP FUNCTION IF EXISTS public.handle_transaction_mirroring() CASCADE;
+DROP FUNCTION IF EXISTS public.update_mirrored_transactions_on_transaction_update() CASCADE;
+DROP FUNCTION IF EXISTS public.create_mirror_transactions() CASCADE;
+DROP FUNCTION IF EXISTS public.mirror_shared_transaction() CASCADE;
+
+-- ============================================================================
+-- FASE 3: VERIFICAÇÃO DOS TRIGGERS CORRETOS
+-- ============================================================================
+
+-- Verificar se os triggers corretos existem
+-- Se não existirem, serão criados pela migration 20251231000002
+
+-- Triggers esperados:
+-- 1. trg_fill_split_user_id (INSERT/UPDATE on transaction_splits)
+-- 2. trg_create_ledger_on_split (INSERT on transaction_splits)
+-- 3. trg_create_mirrored_transaction_on_split (INSERT on transaction_splits)
+-- 4. trg_delete_mirrored_transaction_on_split_delete (DELETE on transaction_splits)
+
+-- ============================================================================
+-- FASE 4: VERIFICAÇÃO FINAL
+-- ============================================================================
+
+-- 4.1. Contar splits por transação (deve ser 1 por membro)
+SELECT 
+  transaction_id,
+  member_id,
+  COUNT(*) as split_count,
+  CASE 
+    WHEN COUNT(*) > 1 THEN '⚠️ DUPLICADO'
+    ELSE '✅ OK'
+  END as status
+FROM public.transaction_splits
+GROUP BY transaction_id, member_id
+HAVING COUNT(*) > 1;
+
+-- 4.2. Contar transações espelhadas por source (deve ser 1 por usuário)
+SELECT 
+  source_transaction_id,
+  user_id,
+  COUNT(*) as mirror_count,
+  CASE 
+    WHEN COUNT(*) > 1 THEN '⚠️ DUPLICADO'
+    ELSE '✅ OK'
+  END as status
+FROM public.transactions
+WHERE source_transaction_id IS NOT NULL
+GROUP BY source_transaction_id, user_id
+HAVING COUNT(*) > 1;
+
+-- 4.3. Contar entradas de ledger por transação (deve ser consistente)
+SELECT 
+  transaction_id,
+  user_id,
+  entry_type,
+  related_user_id,
+  COUNT(*) as ledger_count,
+  CASE 
+    WHEN COUNT(*) > 1 THEN '⚠️ DUPLICADO'
+    ELSE '✅ OK'
+  END as status
+FROM public.financial_ledger
+GROUP BY transaction_id, user_id, entry_type, related_user_id
+HAVING COUNT(*) > 1;
+
+-- 4.4. Listar triggers ativos
+SELECT 
+  trigger_name,
+  event_object_table,
+  event_manipulation,
+  action_statement
+FROM information_schema.triggers
+WHERE trigger_schema = 'public'
+  AND (
+    trigger_name LIKE '%mirror%' 
+    OR trigger_name LIKE '%split%'
+    OR trigger_name LIKE '%shared%'
+  )
+ORDER BY event_object_table, trigger_name;
+
+COMMIT;
+
+-- ============================================================================
+-- RESULTADO ESPERADO
+-- ============================================================================
+
+-- Após executar este script, você deve ver:
+-- ✅ 0 splits duplicados
+-- ✅ 0 transações espelhadas duplicadas
+-- ✅ 0 entradas de ledger duplicadas
+-- ✅ 6 triggers corretos (4 em transaction_splits, 0 em transactions)
+
+-- ============================================================================
+-- PRÓXIMO PASSO
+-- ============================================================================
+
+-- 1. Recarregar a página "Compartilhados" no frontend
+-- 2. Verificar se os valores estão corretos
+-- 3. Criar uma nova despesa compartilhada de teste
+-- 4. Verificar se não há duplicação
+
+-- ============================================================================
+-- ROLLBACK (SE NECESSÁRIO)
+-- ============================================================================
+
+-- Se algo der errado, execute:
+-- ROLLBACK;
+
+-- E restaure o backup do banco de dados

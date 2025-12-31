@@ -399,6 +399,18 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       return;
     }
 
+    // ✅ VALIDAÇÃO ADICIONAL: Valor deve ser maior que zero
+    if (numericAmount <= 0) {
+      toast.error('O valor da transação deve ser maior que zero');
+      return;
+    }
+
+    // ✅ VALIDAÇÃO: Descrição obrigatória
+    if (!description.trim()) {
+      toast.error('A descrição é obrigatória');
+      return;
+    }
+
     // Preparar dados da transação
     const transactionData = {
       amount: numericAmount,

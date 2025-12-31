@@ -89,6 +89,8 @@ export function SplitModal({
       }));
       
       console.log('🔵 [SplitModal] Splits redistribuídos:', newSplits);
+    } else {
+      console.log('🔵 [SplitModal] ⚠️ Nenhum split após remoção');
     }
 
     console.log('🔵 [SplitModal] Chamando setSplits com:', newSplits);
