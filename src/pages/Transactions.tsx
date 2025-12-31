@@ -548,13 +548,21 @@ export function Transactions() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <span className={cn(
-                          "font-mono font-medium text-right min-w-[100px]",
-                          transaction.type === "INCOME" ? "text-positive" : "text-negative"
-                        )}>
-                          {transaction.type === "INCOME" ? "+" : "-"}
-                          {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className={cn(
+                            "font-mono font-medium text-right",
+                            transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                          )}>
+                            {transaction.type === "INCOME" ? "+" : "-"}
+                            {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
+                          </span>
+                          <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-wider",
+                            transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                          )}>
+                            {transaction.type === "INCOME" ? "Crédito" : "Débito"}
+                          </span>
+                        </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                           {/* Botão Confirmar Ressarcimento - apenas para compartilhadas pendentes que eu paguei */}
                           {transaction.is_shared && pending && (isOwner || isCreator) && (
