@@ -113,6 +113,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       invoiceMap[m.id] = [];
     });
 
+    // DEBUG: Log dados recebidos
+    console.log('🔍 [useSharedFinances] DEBUG:', {
+      transactionsWithSplits: transactionsWithSplits.length,
+      paidByOthersTransactions: paidByOthersTransactions.length,
+      members: members.length,
+      activeTab,
+      currentDate
+    });
+
     // LÓGICA CORRETA (SEM ESPELHAMENTO):
     
     // CASO 1: EU PAGUEI - Créditos (me devem)
@@ -122,6 +131,14 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       const splits = tx.transaction_splits || [];
       const txCurrency = 'BRL';
+
+      console.log('🔍 [CASO 1] Processando tx:', {
+        id: tx.id,
+        description: tx.description,
+        splits: splits.length,
+        date: tx.date,
+        competence_date: tx.competence_date
+      });
 
       // Para cada split, criar um CRÉDITO (alguém me deve)
       splits.forEach((split: any) => {
@@ -154,6 +171,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           installmentNumber: tx.current_installment,
           totalInstallments: tx.total_installments,
           creatorUserId: tx.user_id
+        });
+
+        console.log('✅ [CASO 1] CRÉDITO criado:', {
+          memberId,
+          memberName: member?.name,
+          amount: split.amount,
+          date: tx.competence_date || tx.date
         });
       });
     });
@@ -196,11 +220,28 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
     });
 
+    console.log('📊 [useSharedFinances] Invoice Map Final:', {
+      totalMembers: Object.keys(invoiceMap).length,
+      itemsPerMember: Object.entries(invoiceMap).map(([id, items]) => ({
+        memberId: id,
+        memberName: members.find(m => m.id === id)?.name,
+        itemCount: items.length
+      }))
+    });
+
     return invoiceMap;
   }, [transactionsWithSplits, paidByOthersTransactions, members]);
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
+    
+    console.log('🔍 [getFilteredInvoice] Filtrando para membro:', {
+      memberId,
+      memberName: members.find(m => m.id === memberId)?.name,
+      allItemsCount: allItems.length,
+      activeTab,
+      currentDate: currentDate.toISOString()
+    });
     
     // Buscar configuração de escopo do membro
     const member = members.find(m => m.id === memberId);
@@ -247,16 +288,34 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
       // REGULAR: Mostrar TODOS os itens não relacionados a viagens (pagos e não pagos), filtrados pelo mês atual
-      return scopeFilteredItems
+      const filtered = scopeFilteredItems
         .filter(i => {
           if (i.tripId) return false;
           
           // Filter ALL transactions by current month (not just installments)
           const itemDate = new Date(i.date);
-          return itemDate.getMonth() === currentDate.getMonth() && 
+          const matches = itemDate.getMonth() === currentDate.getMonth() && 
                  itemDate.getFullYear() === currentDate.getFullYear();
+          
+          console.log('🔍 [REGULAR Filter] Item:', {
+            description: i.description,
+            date: i.date,
+            itemMonth: itemDate.getMonth(),
+            itemYear: itemDate.getFullYear(),
+            currentMonth: currentDate.getMonth(),
+            currentYear: currentDate.getFullYear(),
+            matches
+          });
+          
+          return matches;
         })
         .sort((a, b) => b.date.localeCompare(a.date));
+      
+      console.log('✅ [getFilteredInvoice] Resultado REGULAR:', {
+        filteredCount: filtered.length
+      });
+      
+      return filtered;
     }
   };
 
