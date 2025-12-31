@@ -625,6 +625,9 @@ export function SharedExpenses() {
     const pendingCount = items.filter(i => !i.isPaid).length;
     const paidCount = items.filter(i => i.isPaid).length;
     const totalPaidAmount = items.filter(i => i.isPaid).reduce((sum, i) => sum + i.amount, 0);
+    
+    // Determinar a moeda principal (primeira moeda com valores ou BRL)
+    const primaryCurrency = Object.keys(totals).find(curr => totals[curr].net !== 0) || 'BRL';
 
     // Não mostrar membros sem itens
     if (items.length === 0) {
@@ -708,7 +711,7 @@ export function SharedExpenses() {
                 {isHistory ? (
                   <>
                     <p className="font-mono font-bold text-xl text-gray-600 dark:text-gray-400">
-                      {formatCurrency(totalPaidAmount, totals[currency]?.currency || 'BRL')}
+                      {formatCurrency(totalPaidAmount, primaryCurrency)}
                     </p>
                     <p className="text-xs font-medium text-gray-500">
                       Total acertado
@@ -722,7 +725,7 @@ export function SharedExpenses() {
                       iOwe ? "text-red-600 dark:text-red-400" : 
                       "text-green-600 dark:text-green-400"
                     )}>
-                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), currency)}
+                      {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), primaryCurrency)}
                     </p>
                     {net !== 0 && (
                       <p className={cn(
@@ -908,7 +911,7 @@ export function SharedExpenses() {
                     "font-mono font-bold text-lg",
                     iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
                   )}>
-                    {formatCurrency(Math.abs(net), currency)}
+                    {formatCurrency(Math.abs(net), primaryCurrency)}
                   </span>
                 </div>
               </div>
