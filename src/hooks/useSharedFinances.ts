@@ -56,26 +56,55 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryFn: async () => {
       if (!user) return [];
       
-      // Buscar transações compartilhadas
-      const { data: transactions, error: txError } = await supabase
+      // Buscar transações compartilhadas CRIADAS POR MIM
+      const { data: myTransactions, error: myTxError } = await supabase
         .from('transactions')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_shared', true)
         .order('date', { ascending: false });
       
-      if (txError) {
-        console.error('❌ [Query Error - Transactions]:', txError);
-        throw txError;
+      if (myTxError) {
+        console.error('❌ [Query Error - My Transactions]:', myTxError);
+        throw myTxError;
       }
       
-      if (!transactions || transactions.length === 0) {
+      // Buscar transações compartilhadas onde EU FUI INCLUÍDO em um split
+      const { data: mySplits, error: mySplitsError } = await supabase
+        .from('transaction_splits')
+        .select('*, transaction:transactions(*)')
+        .eq('user_id', user.id);
+      
+      if (mySplitsError) {
+        console.error('❌ [Query Error - My Splits]:', mySplitsError);
+        throw mySplitsError;
+      }
+      
+      console.log('✅ [Query Result - My Splits]:', {
+        count: mySplits?.length || 0,
+        splits: mySplits
+      });
+      
+      // Extrair transações dos splits (transações criadas por outros)
+      const othersTransactions = (mySplits || [])
+        .map((split: any) => split.transaction)
+        .filter((tx: any) => tx && tx.user_id !== user.id); // Apenas transações de outros
+      
+      // Combinar minhas transações + transações de outros
+      const allTransactions = [...(myTransactions || []), ...othersTransactions];
+      
+      // Remover duplicatas
+      const uniqueTransactions = Array.from(
+        new Map(allTransactions.map(tx => [tx.id, tx])).values()
+      );
+      
+      if (uniqueTransactions.length === 0) {
         console.log('ℹ️ [Query Result] Nenhuma transação compartilhada encontrada');
         return [];
       }
       
-      // Buscar splits para essas transações
-      const transactionIds = transactions.map(t => t.id);
+      // Buscar splits para todas as transações
+      const transactionIds = uniqueTransactions.map(t => t.id);
       console.log('🔍 [Query] Buscando splits para transactionIds:', transactionIds);
       
       const { data: splits, error: splitsError } = await supabase
@@ -94,7 +123,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
       
       // Combinar transações com seus splits
-      const transactionsWithSplitsData = transactions.map(tx => ({
+      const transactionsWithSplitsData = uniqueTransactions.map(tx => ({
         ...tx,
         transaction_splits: splits?.filter(s => s.transaction_id === tx.id) || []
       }));
@@ -104,6 +133,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         transactions: transactionsWithSplitsData.map(t => ({
           id: t.id,
           description: t.description,
+          user_id: t.user_id,
           splits: t.transaction_splits?.length || 0,
           splitsData: t.transaction_splits
         }))
@@ -186,61 +216,115 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       console.log('🔍 [CASO 1] Processando tx:', {
         id: tx.id,
         description: tx.description,
+        user_id: tx.user_id,
+        current_user_id: user?.id,
+        is_my_transaction: tx.user_id === user?.id,
         splits: splits.length,
         splitsData: splits,
         date: tx.date,
         competence_date: tx.competence_date
       });
 
-      // Para cada split, criar um CRÉDITO (alguém me deve)
-      splits.forEach((split: any) => {
-        console.log('🔍 [CASO 1] Processando split:', split);
-        
-        const memberId = split.member_id;
-        if (!memberId) {
-          console.warn('⚠️ [CASO 1] Split sem member_id!', split);
-          return;
-        }
-        
-        const uniqueKey = `${tx.id}-credit-${memberId}`;
-        if (processedTxIds.has(uniqueKey)) {
-          console.warn('⚠️ [CASO 1] Item já processado:', uniqueKey);
-          return;
-        }
-        processedTxIds.add(uniqueKey);
-        
-        const member = members.find(m => m.id === memberId);
-        
-        if (!invoiceMap[memberId]) {
-          console.warn('⚠️ [CASO 1] Member não encontrado no invoiceMap:', memberId);
-          invoiceMap[memberId] = [];
-        }
-        
-        invoiceMap[memberId].push({
-          id: uniqueKey,
-          originalTxId: tx.id,
-          splitId: split.id,
-          description: tx.description,
-          date: tx.competence_date || tx.date,
-          amount: split.amount,
-          type: 'CREDIT',
-          isPaid: split.is_settled === true,
-          tripId: tx.trip_id || undefined,
-          memberId: memberId,
-          memberName: member?.name || split.name,
-          currency: txCurrency,
-          installmentNumber: tx.current_installment,
-          totalInstallments: tx.total_installments,
-          creatorUserId: tx.user_id
-        });
+      // Se EU criei a transação, os splits são CRÉDITOS (me devem)
+      if (tx.user_id === user?.id) {
+        splits.forEach((split: any) => {
+          console.log('🔍 [CASO 1A - EU PAGUEI] Processando split:', split);
+          
+          const memberId = split.member_id;
+          if (!memberId) {
+            console.warn('⚠️ [CASO 1A] Split sem member_id!', split);
+            return;
+          }
+          
+          const uniqueKey = `${tx.id}-credit-${memberId}`;
+          if (processedTxIds.has(uniqueKey)) {
+            console.warn('⚠️ [CASO 1A] Item já processado:', uniqueKey);
+            return;
+          }
+          processedTxIds.add(uniqueKey);
+          
+          const member = members.find(m => m.id === memberId);
+          
+          if (!invoiceMap[memberId]) {
+            console.warn('⚠️ [CASO 1A] Member não encontrado no invoiceMap:', memberId);
+            invoiceMap[memberId] = [];
+          }
+          
+          invoiceMap[memberId].push({
+            id: uniqueKey,
+            originalTxId: tx.id,
+            splitId: split.id,
+            description: tx.description,
+            date: tx.competence_date || tx.date,
+            amount: split.amount,
+            type: 'CREDIT',
+            isPaid: split.is_settled === true,
+            tripId: tx.trip_id || undefined,
+            memberId: memberId,
+            memberName: member?.name || split.name,
+            currency: txCurrency,
+            installmentNumber: tx.current_installment,
+            totalInstallments: tx.total_installments,
+            creatorUserId: tx.user_id
+          });
 
-        console.log('✅ [CASO 1] CRÉDITO criado:', {
-          memberId,
-          memberName: member?.name,
-          amount: split.amount,
-          date: tx.competence_date || tx.date
+          console.log('✅ [CASO 1A] CRÉDITO criado:', {
+            memberId,
+            memberName: member?.name,
+            amount: split.amount,
+            date: tx.competence_date || tx.date
+          });
         });
-      });
+      } else {
+        // CASO 1B: OUTRO PAGOU e me incluiu em um split - DÉBITO (eu devo)
+        // Encontrar o split onde EU sou o devedor
+        const mySplit = splits.find((s: any) => s.user_id === user?.id);
+        
+        if (mySplit) {
+          console.log('🔍 [CASO 1B - OUTRO PAGOU] Encontrei meu split:', mySplit);
+          
+          // Encontrar o membro que representa o criador da transação
+          const creatorMember = members.find(m => m.linked_user_id === tx.user_id);
+          
+          if (creatorMember) {
+            const uniqueKey = `${tx.id}-debit-${creatorMember.id}`;
+            if (!processedTxIds.has(uniqueKey)) {
+              processedTxIds.add(uniqueKey);
+              
+              if (!invoiceMap[creatorMember.id]) {
+                invoiceMap[creatorMember.id] = [];
+              }
+              
+              invoiceMap[creatorMember.id].push({
+                id: uniqueKey,
+                originalTxId: tx.id,
+                splitId: mySplit.id,
+                description: tx.description,
+                date: tx.competence_date || tx.date,
+                amount: mySplit.amount,
+                type: 'DEBIT',
+                isPaid: mySplit.is_settled === true,
+                tripId: tx.trip_id || undefined,
+                memberId: creatorMember.id,
+                memberName: creatorMember.name,
+                currency: txCurrency,
+                installmentNumber: tx.current_installment,
+                totalInstallments: tx.total_installments,
+                creatorUserId: tx.user_id
+              });
+
+              console.log('✅ [CASO 1B] DÉBITO criado:', {
+                memberId: creatorMember.id,
+                memberName: creatorMember.name,
+                amount: mySplit.amount,
+                date: tx.competence_date || tx.date
+              });
+            }
+          } else {
+            console.warn('⚠️ [CASO 1B] Criador da transação não encontrado nos membros:', tx.user_id);
+          }
+        }
+      }
     });
 
     // CASO 2: OUTRO PAGOU - Débitos (eu devo)
