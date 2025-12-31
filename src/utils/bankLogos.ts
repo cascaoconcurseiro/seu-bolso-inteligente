@@ -1,75 +1,102 @@
-// Logos dos bancos brasileiros baixados do Figma
-// https://www.figma.com/design/PlaR6YeIs3ElRSx6NZeK7w/Brazilian-Banks-Logos--Community-
+// Logos dos bancos brasileiros baixados do repositório
+// https://github.com/Tgentil/Bancos-em-SVG
 
 // ============================================
 // LOGOS DE BANCOS BRASILEIROS
 // ============================================
 export const BANK_LOGOS = {
   // Principais bancos digitais
-  nubank: '/bank-logos/nubank.png',
-  inter: '/bank-logos/inter.png',
-  neon: '/bank-logos/neon.png',
-  c6: '/bank-logos/c6-bank.png',
-  picpay: '/bank-logos/picpay.png',
-  mercadopago: '/bank-logos/mercado-pago.png',
-  pagbank: '/bank-logos/pagbank.png',
-  stone: '/bank-logos/stone.png',
-  iti: '/bank-logos/iti.png',
-  next: '/bank-logos/banco-next.png',
-  original: '/bank-logos/banco-original.png',
+  nubank: '/banks/nubank.svg',
+  inter: '/banks/inter.svg',
+  neon: '/banks/neon.svg',
+  c6: '/banks/c6.svg',
+  picpay: '/banks/picpay.svg',
+  mercadopago: '/banks/mercadopago.svg',
+  pagbank: '/banks/pagbank.svg',
+  stone: '/banks/stone.svg',
+  iti: '/banks/itau.svg', // Iti é do Itaú
+  next: '/banks/bradesco.svg', // Next é do Bradesco
+  original: '/banks/original.svg',
   
   // Grandes bancos tradicionais
-  itau: '/bank-logos/itau-unibanco.svg',
-  bradesco: '/bank-logos/bradesco.svg',
-  bb: '/bank-logos/banco-do-brasil.png',
-  caixa: '/bank-logos/caixa-economica-federal.png',
-  santander: '/bank-logos/santander-brasil.svg',
+  itau: '/banks/itau.svg',
+  bradesco: '/banks/bradesco.svg',
+  bb: '/banks/banco-do-brasil.svg',
+  caixa: '/banks/caixa.svg',
+  santander: '/banks/santander.svg',
   
   // Bancos de investimento
-  btg: '/bank-logos/btg-pactual.svg',
-  safra: '/bank-logos/banco-safra.svg',
+  btg: '/banks/btg.svg',
+  safra: '/banks/safra.svg',
+  xp: '/banks/xp.svg',
   
   // Bancos médios
-  pan: '/bank-logos/banco-pan.png',
-  bv: '/bank-logos/banco-bv.png',
-  bmg: '/bank-logos/banco-bmg.png',
-  daycoval: '/bank-logos/banco-daycoval.png',
-  mercantil: '/bank-logos/banco-mercantil.png',
-  modal: '/bank-logos/banco-modal.png',
-  sofisa: '/bank-logos/banco-sofisa.png',
-  pine: '/bank-logos/banco-pine.png',
-  rendimento: '/bank-logos/banco-rendimento.png',
-  fibra: '/bank-logos/banco-fibra.png',
-  paulista: '/bank-logos/banco-paulista.png',
-  topazio: '/bank-logos/banco-topazio.png',
-  votorantim: '/bank-logos/banco-votorantim.png',
-  industrial: '/bank-logos/banco-industrial.png',
-  indusval: '/bank-logos/banco-indusval.png',
-  master: '/bank-logos/banco-master.png',
-  abc: '/bank-logos/banco-abc.png',
-  alfa: '/bank-logos/banco-alfa.png',
-  bs2: '/bank-logos/banco-bs2.png',
+  pan: '/banks/banco-do-brasil.svg', // Fallback
+  bv: '/banks/banco-bv-logo.svg',
+  bmg: '/banks/banco-bmg-logo.svg',
+  daycoval: '/banks/logo-Daycoval.svg',
+  mercantil: '/banks/banco-mercantil-novo-azul.svg',
+  modal: '/banks/banco-do-brasil.svg', // Fallback
+  sofisa: '/banks/logo-banco-sofisa.svg',
+  pine: '/banks/banco-pine.svg',
+  rendimento: '/banks/banco rendimento logo nova .svg',
+  fibra: '/banks/banco-do-brasil.svg', // Fallback
+  paulista: '/banks/banco-paulista.svg',
+  topazio: '/banks/logo-banco-topazio.svg',
+  votorantim: '/banks/banco-do-brasil.svg', // Fallback
+  industrial: '/banks/banco-do-brasil.svg', // Fallback
+  indusval: '/banks/banco-do-brasil.svg', // Fallback
+  master: '/banks/banco-do-brasil.svg', // Fallback
+  abc: '/banks/logoabc.svg',
+  alfa: '/banks/banco-do-brasil.svg', // Fallback
+  bs2: '/banks/Banco_BS2.svg',
   
   // Bancos regionais
-  banrisul: '/bank-logos/banrisul.png',
-  brb: '/bank-logos/brb.png',
-  bnb: '/bank-logos/banco-do-nordeste.png',
-  parana: '/bank-logos/parana-banco.png',
-  banese: '/bank-logos/banco-banese.png',
-  banestes: '/bank-logos/banco-banestes.png',
-  banpara: '/bank-logos/banco-banpara.png',
+  banrisul: '/banks/banrisul.svg',
+  brb: '/banks/brb-logo.svg',
+  bnb: '/banks/Logo_BNB.svg',
+  parana: '/banks/Logo_do_Banpará.svg',
+  banese: '/banks/logo banese.svg',
+  banestes: '/banks/banestes.svg',
+  banpara: '/banks/banpara-logo-sem-fundo.svg',
   
   // Cooperativas
-  sicoob: '/bank-logos/sicoob.png',
-  sicredi: '/bank-logos/sicredi.png',
+  sicoob: '/banks/sicoob.svg',
+  sicredi: '/banks/sicredi.svg',
   
   // Outros
-  genial: '/bank-logos/genial.png',
-  agibank: '/bank-logos/agibank.png',
-  bndes: '/bank-logos/bndes.png',
-  citibank: '/bank-logos/citibank.png',
-  hsbc: '/bank-logos/hsbc.png',
-  ef: '/bank-logos/ef-bank.png',
+  genial: '/banks/banco-do-brasil.svg', // Fallback
+  agibank: '/banks/banco-do-brasil.svg', // Fallback
+  bndes: '/banks/banco-do-brasil.svg', // Fallback
+  citibank: '/banks/bankofamerica-logo.svg',
+  hsbc: '/banks/banco-do-brasil.svg', // Fallback
+  ef: '/banks/logo-efi-bank-laranja.svg',
+  
+  // Bancos adicionais encontrados nas logos
+  cora: '/banks/icone-cora-rosa-2500px.svg',
+  contasimples: '/banks/conta-simples_logo-novo.svg',
+  infinitepay: '/banks/InfitePay.svg',
+  omni: '/banks/logo-omni.svg',
+  pagseguro: '/banks/pagseguro.svg',
+  transfeera: '/banks/transfeera-logo-verde-nova.svg',
+  unicred: '/banks/unicred-centralizada.svg',
+  uniprime: '/banks/uniprime.svg',
+  tribanco: '/banks/logotribanco.svg',
+  bnp: '/banks/logo-bnp.svg',
+  quality: '/banks/quality-logo-cinza.svg',
+  grafeno: '/banks/grafeno.svg',
+  credisis: '/banks/credisis.svg',
+  ailos: '/banks/logo-ailos.svg',
+  letsbank: '/banks/Logo Letsbank.svg',
+  bees: '/banks/BEESBank_Horizontal.svg',
+  bib: '/banks/BIB-logo.svg',
+  bkbank: '/banks/bkBank.svg',
+  duepay: '/banks/Duepay.svg',
+  iugo: '/banks/Iugo.svg',
+  recargapay: '/banks/RecargaPay.svg',
+  arbi: '/banks/Banco_Arbi .svg',
+  contaip: '/banks/conta-ip.svg',
+  mufg: '/banks/mufg-seeklogo.svg',
 } as const;
 
 // ============================================
@@ -161,6 +188,17 @@ export function getBankLogo(bankName: string): string | undefined {
     // Cooperativas
     'sistemadecooperativasdecreditodobrasil': 'sicoob',
     'sistemadecreditocooperativo': 'sicredi',
+    
+    // Novos bancos adicionados
+    'contasimples': 'contasimples',
+    'infinitepay': 'infinitepay',
+    'recargapay': 'recargapay',
+    'transfeera': 'transfeera',
+    'letsbank': 'letsbank',
+    'bkbank': 'bkbank',
+    'duepay': 'duepay',
+    'contaip': 'contaip',
+    'bancoarbi': 'arbi',
   };
   
   // Busca direta
