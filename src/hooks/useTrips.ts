@@ -320,6 +320,8 @@ export function useRemoveTripParticipant() {
 }
 
 // Hook para buscar transações de uma viagem
+// IMPORTANTE: Busca TODAS as transações da viagem, não apenas do usuário atual
+// Isso inclui despesas compartilhadas pagas por outros participantes
 export function useTripTransactions(tripId: string | null) {
   const { user } = useAuth();
 
@@ -328,8 +330,9 @@ export function useTripTransactions(tripId: string | null) {
     queryFn: async () => {
       if (!tripId || !user) return [];
 
-      // Buscar apenas transações do usuário atual nesta viagem
-      // Transações espelho de outros usuários não devem aparecer
+      // Buscar TODAS as transações desta viagem
+      // Inclui transações de todos os participantes (despesas compartilhadas)
+      // Exclui apenas transações espelho (source_transaction_id não nulo)
       const { data, error } = await supabase
         .from("transactions")
         .select(`
@@ -338,8 +341,7 @@ export function useTripTransactions(tripId: string | null) {
           category:categories(name, icon)
         `)
         .eq("trip_id", tripId)
-        .eq("user_id", user.id) // Apenas minhas transações
-        .is("source_transaction_id", null) // Excluir transações espelho (que têm source_transaction_id)
+        .is("source_transaction_id", null) // Excluir transações espelho
         .order("date", { ascending: false });
 
       if (error) throw error;
