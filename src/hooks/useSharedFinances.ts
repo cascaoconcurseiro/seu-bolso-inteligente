@@ -136,22 +136,32 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         id: tx.id,
         description: tx.description,
         splits: splits.length,
+        splitsData: splits,
         date: tx.date,
         competence_date: tx.competence_date
       });
 
       // Para cada split, criar um CRÉDITO (alguém me deve)
       splits.forEach((split: any) => {
+        console.log('🔍 [CASO 1] Processando split:', split);
+        
         const memberId = split.member_id;
-        if (!memberId) return;
+        if (!memberId) {
+          console.warn('⚠️ [CASO 1] Split sem member_id!', split);
+          return;
+        }
         
         const uniqueKey = `${tx.id}-credit-${memberId}`;
-        if (processedTxIds.has(uniqueKey)) return;
+        if (processedTxIds.has(uniqueKey)) {
+          console.warn('⚠️ [CASO 1] Item já processado:', uniqueKey);
+          return;
+        }
         processedTxIds.add(uniqueKey);
         
         const member = members.find(m => m.id === memberId);
         
         if (!invoiceMap[memberId]) {
+          console.warn('⚠️ [CASO 1] Member não encontrado no invoiceMap:', memberId);
           invoiceMap[memberId] = [];
         }
         
