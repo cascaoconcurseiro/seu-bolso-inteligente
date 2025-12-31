@@ -437,7 +437,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     }
 
     if (activeTab === 'TRAVEL') {
-      // TRAVEL: Mostrar itens de viagens filtrados pelo mês atual
+      // TRAVEL: Mostrar TODOS os itens de viagens (sem filtro de mês)
+      // As viagens são agrupadas por trip, então não faz sentido filtrar por mês
       const filtered = scopeFilteredItems
         .filter(i => {
           if (!i.tripId) {
@@ -445,34 +446,27 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             return false;
           }
           
-          // Filtrar pelo mês selecionado
-          const [year, month, day] = i.date.split('-').map(Number);
-          const itemMonth = month - 1;
-          const itemYear = year;
-          
-          const currentMonth = currentDate.getMonth();
-          const currentYear = currentDate.getFullYear();
-          
-          const matches = itemMonth === currentMonth && itemYear === currentYear;
-          
-          console.log('🔍 [TRAVEL Filter] Item:', {
+          console.log('🔍 [TRAVEL Filter] Item com tripId:', {
             description: i.description,
             date: i.date,
             tripId: i.tripId,
-            itemMonth,
-            itemYear,
-            currentMonth,
-            currentYear,
-            matches
+            type: i.type,
+            isPaid: i.isPaid
           });
           
-          return matches;
+          return true; // Mostrar TODOS os itens de viagem
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       console.log('✅ [getFilteredInvoice] Resultado TRAVEL:', {
         filteredCount: filtered.length,
-        items: filtered
+        items: filtered.map(i => ({
+          description: i.description,
+          date: i.date,
+          tripId: i.tripId,
+          type: i.type,
+          isPaid: i.isPaid
+        }))
       });
       
       return filtered;
