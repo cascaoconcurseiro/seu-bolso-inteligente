@@ -560,18 +560,25 @@ export function Trips() {
                     );
                     return (
                       <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
                             {payer ? getInitials(payer.name) : "?"}
                           </div>
-                          <div>
-                            <p className="font-medium">{expense.description}</p>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium">{expense.description}</p>
+                              {expense.is_shared && (
+                                <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                  Compartilhado
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
-                              {payer?.name || "Desconhecido"} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
+                              {expense.category?.name || "Sem categoria"} · {payer?.name || "Desconhecido"} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
                             </p>
                           </div>
                         </div>
-                        <span className="font-mono font-medium">{formatCurrency(expense.amount, selectedTrip.currency)}</span>
+                        <span className="font-mono font-medium ml-2">{formatCurrency(expense.amount, selectedTrip.currency)}</span>
                       </div>
                     );
                   })}
