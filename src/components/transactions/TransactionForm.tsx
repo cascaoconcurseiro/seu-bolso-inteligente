@@ -198,37 +198,9 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   // - Se tem viagem selecionada: usar membros da viagem (trip_members)
   // - Senão: usar membros da família
   // IMPORTANTE: NUNCA incluir o próprio usuário logado
-  
-  console.log('🔍 [TransactionForm] Debug membros:', {
-    tripId,
-    tripIdType: typeof tripId,
-    hasTripMembers: tripMembers && tripMembers.length > 0,
-    tripMembersCount: tripMembers?.length || 0,
-    tripMembersRaw: tripMembers,
-    tripMembers: tripMembers?.map(tm => ({
-      user_id: tm.user_id,
-      name: tm.profiles?.full_name,
-      email: tm.profiles?.email,
-      hasProfiles: !!tm.profiles
-    })),
-    currentUserId: user?.id,
-    familyMembersCount: familyMembers?.length || 0,
-    willUseTripMembers: !!(tripId && tripMembers && tripMembers.length > 0),
-    willUseFamilyMembers: !(tripId && tripMembers && tripMembers.length > 0),
-  });
-  
   const availableMembers = tripId && tripMembers && tripMembers.length > 0
     ? (tripMembers || [])
-        .filter(tm => {
-          const keep = tm.user_id !== user?.id;
-          console.log('🔍 [TransactionForm] Filtrando membro:', {
-            user_id: tm.user_id,
-            name: tm.profiles?.full_name,
-            currentUserId: user?.id,
-            keep
-          });
-          return keep;
-        })
+        .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
         .map(tm => ({
           id: tm.user_id, // Usar user_id como id para compatibilidade
           name: tm.profiles?.full_name || tm.profiles?.email || 'Membro',
@@ -248,8 +220,6 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           scope_trip_id: null,
         }))
     : (familyMembers || []).filter(m => m.linked_user_id !== user?.id); // Excluir o próprio usuário
-  
-  console.log('🔍 [TransactionForm] Membros disponíveis:', availableMembers.length, availableMembers.map(m => ({ id: m.id, name: m.name })));
 
   const formatCurrency = (value: string) => {
     const numbers = value.replace(/\D/g, '');
