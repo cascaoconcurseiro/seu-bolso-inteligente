@@ -43,10 +43,14 @@ export function SharedBalanceChart({ transactions, invoices, currentDate }: Shar
       // Process all invoices for this month
       Object.values(invoices).forEach((items) => {
         items.forEach((item: any) => {
-          const itemDate = new Date(item.date);
+          // Parse date as YYYY-MM-DD to avoid timezone issues
+          const [year, month, day] = item.date.split('-').map(Number);
+          const itemMonth = month - 1; // JavaScript months are 0-indexed
+          const itemYear = year;
+          
           if (
-            itemDate.getMonth() === monthDate.getMonth() &&
-            itemDate.getFullYear() === monthDate.getFullYear()
+            itemMonth === monthDate.getMonth() &&
+            itemYear === monthDate.getFullYear()
           ) {
             if (item.type === "CREDIT" && !item.isPaid) {
               credits += item.amount;
