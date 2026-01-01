@@ -1436,20 +1436,22 @@ export function SharedExpenses() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
-        <TabsList className="w-full">
-          <TabsTrigger value="REGULAR" className="flex-1 gap-2">
-            <Users className="h-4 w-4" />
-            Regular
-          </TabsTrigger>
-          <TabsTrigger value="TRAVEL" className="flex-1 gap-2">
-            <Plane className="h-4 w-4" />
-            Viagens
-          </TabsTrigger>
-          <TabsTrigger value="HISTORY" className="flex-1 gap-2">
-            <History className="h-4 w-4" />
-            Histórico
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-auto min-w-full md:w-full">
+            <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
+              <Users className="h-4 w-4" />
+              Regular
+            </TabsTrigger>
+            <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
+              <Plane className="h-4 w-4" />
+              Viagens
+            </TabsTrigger>
+            <TabsTrigger value="HISTORY" className="flex-1 min-w-[100px] gap-2">
+              <History className="h-4 w-4" />
+              Histórico
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value={activeTab} className="mt-6">
           {members.length === 0 ? (

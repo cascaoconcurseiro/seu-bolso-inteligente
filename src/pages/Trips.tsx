@@ -282,15 +282,15 @@ export function Trips() {
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={goBack} className="rounded-full">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <Button variant="ghost" size="icon" onClick={goBack} className="rounded-full self-start h-11 w-11 md:h-10 md:w-10">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="font-display font-bold text-2xl tracking-tight">{selectedTrip.name}</h1>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+              <h1 className="font-display font-bold text-xl md:text-2xl tracking-tight truncate">{selectedTrip.name}</h1>
               <span className={cn(
-                "text-xs px-2 py-0.5 rounded-full",
+                "text-xs px-2 py-0.5 rounded-full shrink-0",
                 selectedTrip.status === "ACTIVE" || selectedTrip.status === "PLANNING" 
                   ? "bg-foreground text-background" 
                   : "bg-muted text-muted-foreground"
@@ -320,16 +320,17 @@ export function Trips() {
           </div>
           
           {/* Botões de ação baseados em permissões */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {/* Botão de orçamento pessoal (todos os membros) */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowPersonalBudgetDialog(true)}
-              className="gap-2"
+              className="w-full sm:w-auto gap-2 h-11 md:h-9"
             >
               <Wallet className="h-4 w-4" />
-              {myPersonalBudget ? "Meu Orçamento" : "Adicionar Orçamento"}
+              <span className="hidden sm:inline">{myPersonalBudget ? "Meu Orçamento" : "Adicionar Orçamento"}</span>
+              <span className="sm:hidden">Orçamento</span>
             </Button>
             
             {/* Botão de editar (apenas owner) */}
@@ -339,10 +340,11 @@ export function Trips() {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowEditTripDialog(true)}
-                  className="gap-2"
+                  className="w-full sm:w-auto gap-2 h-11 md:h-9"
                 >
                   <Pencil className="h-4 w-4" />
-                  Editar Viagem
+                  <span className="hidden sm:inline">Editar Viagem</span>
+                  <span className="sm:hidden">Editar</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -395,34 +397,42 @@ export function Trips() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TripTab)}>
-          <TabsList className="w-full flex-wrap">
-            <TabsTrigger value="summary" className="flex-1 gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Resumo
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="flex-1 gap-2">
-              <DollarSign className="h-4 w-4" />
-              Gastos
-            </TabsTrigger>
-            <TabsTrigger value="shopping" className="flex-1 gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Compras
-            </TabsTrigger>
-            {selectedTrip.currency !== "BRL" && (
-              <TabsTrigger value="exchange" className="flex-1 gap-2">
-                <ArrowRightLeft className="h-4 w-4" />
-                Câmbio
+          <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+            <TabsList className="inline-flex w-auto min-w-full md:w-full">
+              <TabsTrigger value="summary" className="flex-1 min-w-[100px] gap-2">
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden sm:inline">Resumo</span>
+                <span className="sm:hidden">Resumo</span>
               </TabsTrigger>
-            )}
-            <TabsTrigger value="itinerary" className="flex-1 gap-2">
-              <Route className="h-4 w-4" />
-              Roteiro
-            </TabsTrigger>
-            <TabsTrigger value="checklist" className="flex-1 gap-2">
-              <ListChecks className="h-4 w-4" />
-              Checklist
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="expenses" className="flex-1 min-w-[100px] gap-2">
+                <DollarSign className="h-4 w-4" />
+                <span className="hidden sm:inline">Gastos</span>
+                <span className="sm:hidden">Gastos</span>
+              </TabsTrigger>
+              <TabsTrigger value="shopping" className="flex-1 min-w-[100px] gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">Compras</span>
+                <span className="sm:hidden">Compras</span>
+              </TabsTrigger>
+              {selectedTrip.currency !== "BRL" && (
+                <TabsTrigger value="exchange" className="flex-1 min-w-[100px] gap-2">
+                  <ArrowRightLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Câmbio</span>
+                  <span className="sm:hidden">Câmbio</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="itinerary" className="flex-1 min-w-[100px] gap-2">
+                <Route className="h-4 w-4" />
+                <span className="hidden sm:inline">Roteiro</span>
+                <span className="sm:hidden">Roteiro</span>
+              </TabsTrigger>
+              <TabsTrigger value="checklist" className="flex-1 min-w-[100px] gap-2">
+                <ListChecks className="h-4 w-4" />
+                <span className="hidden sm:inline">Checklist</span>
+                <span className="sm:hidden">Checklist</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Summary Tab */}
           <TabsContent value="summary" className="space-y-6 mt-6">
