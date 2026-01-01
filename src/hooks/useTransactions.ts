@@ -430,6 +430,7 @@ export function useCreateTransaction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["account-statement"] }); // ✅ CRÍTICO: Invalidar extrato
       queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
       queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
       queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] });
