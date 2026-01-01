@@ -88,12 +88,15 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
-      if (outError) throw outError;
+      if (outError) {
+        console.error('❌ [useAccountStatement] Erro ao buscar transações:', outError);
+        throw outError;
+      }
 
       console.log('🔍 [useAccountStatement] Transações encontradas:', {
         accountId,
         outgoingCount: outgoingTransactions?.length || 0,
-        outgoing: outgoingTransactions?.map(t => ({ id: t.id, desc: t.description, amount: t.amount }))
+        outgoing: outgoingTransactions?.map(t => ({ id: t.id, desc: t.description, amount: t.amount, date: t.date }))
       });
 
       // Buscar transferências de entrada (destination_account_id = conta)
@@ -112,12 +115,15 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
-      if (inError) throw inError;
+      if (inError) {
+        console.error('❌ [useAccountStatement] Erro ao buscar transferências:', inError);
+        throw inError;
+      }
 
       console.log('🔍 [useAccountStatement] Transferências de entrada:', {
         accountId,
         incomingCount: incomingTransfers?.length || 0,
-        incoming: incomingTransfers?.map(t => ({ id: t.id, desc: t.description, amount: t.amount }))
+        incoming: incomingTransfers?.map(t => ({ id: t.id, desc: t.description, amount: t.amount, date: t.date }))
       });
 
       // Combinar e processar transações
@@ -130,7 +136,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       console.log('🔍 [useAccountStatement] Após filtro de segurança:', {
         totalBefore: (outgoingTransactions?.length || 0) + (incomingTransfers?.length || 0),
         totalAfter: allTransactions.length,
-        filtered: allTransactions.map(t => ({ id: t.id, desc: t.description, user_id: t.user_id }))
+        userId: user.id,
+        filtered: allTransactions.map(t => ({ id: t.id, desc: t.description, user_id: t.user_id, date: t.date }))
       });
       // Ordenar por data e created_at
       allTransactions.sort((a, b) => {
