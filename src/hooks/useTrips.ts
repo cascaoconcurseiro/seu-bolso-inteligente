@@ -387,6 +387,7 @@ export function useTripTransactions(tripId: string | null) {
 export interface TripFinancialSummary {
   total_budget: number | null;
   total_spent: number;
+  total_settled: number; // Total de acertos feitos
   remaining: number;
   percentage_used: number;
   currency: string;

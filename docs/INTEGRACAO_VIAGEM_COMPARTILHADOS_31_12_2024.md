@@ -192,7 +192,64 @@ const adjustTripBudget = async (tripId: string, settledAmount: number) => {
 ✅ Integração básica implementada
 ✅ Saldos sincronizados
 ✅ Acertos refletem automaticamente
-⏳ Ajuste de orçamento (próxima fase)
+✅ Função get_trip_financial_summary atualizada com total_settled
+✅ Trigger criado para monitorar acertos
+✅ View trip_budget_summary criada
+
+## Implementação Completa
+
+### 1. Banco de Dados ✅
+
+**Arquivos**:
+- `supabase/migrations/20251231200000_add_trip_budget_adjustment_trigger.sql`
+- `supabase/migrations/20251231201000_update_trip_financial_summary_with_settlements.sql`
+
+**Mudanças**:
+1. Trigger `adjust_trip_budget_on_settlement` - Monitora quando splits são marcados como pagos
+2. View `trip_budget_summary` - Calcula resumo completo incluindo acertos
+3. Function `get_trip_financial_summary` - Retorna dados incluindo `total_settled`
+
+### 2. TypeScript ✅
+
+**Arquivo**: `src/hooks/useTrips.ts`
+
+**Mudança**: Interface atualizada
+
+```typescript
+export interface TripFinancialSummary {
+  total_budget: number | null;
+  total_spent: number;
+  total_settled: number; // ✅ NOVO: Total de acertos feitos
+  remaining: number;
+  percentage_used: number;
+  currency: string;
+  participants_count: number;
+  transactions_count: number;
+}
+```
+
+### 3. Dados Disponíveis
+
+Agora `tripFinancialSummary` retorna:
+- `total_budget`: $ 500 (orçamento planejado)
+- `total_spent`: $ 10 (total gasto)
+- `total_settled`: $ 0 (acertos feitos) ← **NOVO**
+- `remaining`: $ 490 (orçamento restante)
+- `percentage_used`: 2% (percentual usado)
+
+### 4. Como Usar na UI
+
+```typescript
+const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
+
+// Mostrar informações
+<div>
+  <p>Orçamento: {formatCurrency(tripFinancialSummary.total_budget)}</p>
+  <p>Gasto: {formatCurrency(tripFinancialSummary.total_spent)}</p>
+  <p>Acertado: {formatCurrency(tripFinancialSummary.total_settled)}</p>
+  <p>Restante: {formatCurrency(tripFinancialSummary.remaining)}</p>
+</div>
+```
 
 ## Notas Técnicas
 
