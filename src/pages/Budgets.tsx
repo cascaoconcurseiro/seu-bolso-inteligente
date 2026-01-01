@@ -149,9 +149,10 @@ export function Budgets() {
             Controle seus gastos por categoria - {format(currentDate, "MMMM yyyy", { locale: ptBR })}
           </p>
         </div>
-        <Button onClick={() => setShowNewBudgetDialog(true)} className="gap-2">
+        <Button onClick={() => setShowNewBudgetDialog(true)} className="gap-2 h-11 md:h-10">
           <Plus className="h-4 w-4" />
-          Novo Orçamento
+          <span className="hidden sm:inline">Novo Orçamento</span>
+          <span className="sm:hidden">Novo</span>
         </Button>
       </div>
 
@@ -161,9 +162,10 @@ export function Budgets() {
           <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="font-display font-semibold text-lg mb-2">Nenhum orçamento</h3>
           <p className="text-muted-foreground mb-6">Crie orçamentos para controlar seus gastos</p>
-          <Button onClick={() => setShowNewBudgetDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Criar Orçamento
+          <Button onClick={() => setShowNewBudgetDialog(true)} className="h-11 md:h-10">
+            <Plus className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Criar Orçamento</span>
+            <span className="md:hidden">Criar</span>
           </Button>
         </div>
       ) : (

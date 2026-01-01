@@ -801,9 +801,10 @@ export function CreditCards() {
           <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="font-display font-semibold text-lg mb-2">Nenhum cartão cadastrado</h3>
           <p className="text-muted-foreground mb-6">Adicione seu primeiro cartão de crédito</p>
-          <Button onClick={() => setShowNewCardDialog(true)}>
-            <Plus className="h-5 w-5 mr-2" />
-            Novo cartão
+          <Button onClick={() => setShowNewCardDialog(true)} className="h-11 md:h-10">
+            <Plus className="h-5 w-5 md:mr-2" />
+            <span className="hidden md:inline">Novo cartão</span>
+            <span className="md:hidden">Novo</span>
           </Button>
         </div>
 

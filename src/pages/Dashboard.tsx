@@ -118,9 +118,10 @@ export function Dashboard() {
             Comece adicionando uma conta bancária ou criando sua primeira transação.
           </p>
           <Link to="/configuracoes">
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button size="lg" variant="outline" className="gap-2 h-12 md:h-11">
               <CreditCard className="h-5 w-5" />
-              Adicionar conta
+              <span className="hidden sm:inline">Adicionar conta</span>
+              <span className="sm:hidden">Conta</span>
             </Button>
           </Link>
         </div>

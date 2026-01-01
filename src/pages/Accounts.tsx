@@ -193,9 +193,10 @@ export function Accounts() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Contas</h1>
           <p className="text-muted-foreground mt-1">Gerencie suas contas bancárias</p>
         </div>
-        <Button size="lg" onClick={() => setShowAddDialog(true)} className="group">
+        <Button size="lg" onClick={() => setShowAddDialog(true)} className="group h-12 md:h-11">
           <Plus className="h-5 w-5 mr-2" />
-          Nova conta
+          <span className="hidden sm:inline">Nova conta</span>
+          <span className="sm:hidden">Nova</span>
         </Button>
       </div>
 
@@ -339,9 +340,10 @@ export function Accounts() {
           <div className="py-12 text-center border border-dashed border-border rounded-xl bg-blue-50/50 dark:bg-blue-950/20">
             <Globe className="h-10 w-10 mx-auto mb-3 text-blue-500" />
             <p className="text-muted-foreground mb-4">Nenhuma conta internacional cadastrada</p>
-            <Button variant="outline" onClick={() => { setIsInternational(true); setShowAddDialog(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar conta internacional
+            <Button variant="outline" onClick={() => { setIsInternational(true); setShowAddDialog(true); }} className="h-11 md:h-9">
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Adicionar conta internacional</span>
+              <span className="md:hidden">Adicionar</span>
             </Button>
           </div>
         ) : (
