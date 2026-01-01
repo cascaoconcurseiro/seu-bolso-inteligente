@@ -34,7 +34,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAccounts } from '@/hooks/useAccounts';
-import { useCategories, useCreateDefaultCategories } from '@/hooks/useCategories';
+import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
   useTransactions,
@@ -68,7 +68,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
-  const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const { data: categories, hierarchical, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
   const { data: familyMembers = [] } = useFamilyMembers();
   const { data: allTransactions = [] } = useTransactions();
@@ -193,6 +193,11 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     categories?.filter((c) =>
       activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
     ) || [];
+
+  // Filtrar categorias pai e filhos por tipo
+  const filteredParents = hierarchical.parents.filter((c) =>
+    activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
+  );
 
   // Membros disponíveis para divisão:
   // - Se tem viagem selecionada: usar membros da viagem (trip_members)
@@ -686,15 +691,32 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{cat.icon}</span>
-                        {cat.name}
+                <SelectContent className="max-h-[400px]">
+                  {filteredParents.map((parent) => {
+                    const children = hierarchical.children.get(parent.id) || [];
+                    const childrenOfType = children.filter((c) =>
+                      activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
+                    );
+                    
+                    return (
+                      <div key={parent.id}>
+                        {/* Categoria Pai (não selecionável, apenas visual) */}
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                          {parent.icon} {parent.name}
+                        </div>
+                        
+                        {/* Subcategorias (selecionáveis) */}
+                        {childrenOfType.map((child) => (
+                          <SelectItem key={child.id} value={child.id} className="pl-6">
+                            <div className="flex items-center gap-2">
+                              <span>{child.icon}</span>
+                              {child.name}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </div>
-                    </SelectItem>
-                  ))}
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
