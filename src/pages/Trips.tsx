@@ -57,6 +57,7 @@ import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Pencil, Wallet, ArrowRightLeft, User, Coins } from "lucide-react";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
@@ -65,6 +66,7 @@ type TripTab = "summary" | "expenses" | "shopping" | "exchange" | "itinerary" | 
 
 export function Trips() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [view, setView] = useState<TripView>("list");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TripTab>("expenses");
@@ -636,18 +638,43 @@ export function Trips() {
               <DialogDescription>Selecione um membro da família</DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-2">
-              {familyMembers.map((member) => {
-                const isAdded = participants.some(p => p.member_id === member.id);
-                return (
+              {(() => {
+                // Filtrar membros: remover quem já está na viagem E o próprio usuário
+                const availableMembers = familyMembers.filter(member => {
+                  // Não mostrar se já está na viagem
+                  const isAlreadyInTrip = participants.some(p => p.member_id === member.id);
+                  // Não mostrar o próprio usuário (linked_user_id é o ID do usuário logado)
+                  const isCurrentUser = member.linked_user_id === user?.id;
+                  return !isAlreadyInTrip && !isCurrentUser;
+                });
+
+                if (availableMembers.length === 0) {
+                  return (
+                    <div className="py-8 text-center">
+                      <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">Nenhum membro disponível</p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Todos os membros da família já estão nesta viagem.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setShowAddParticipantDialog(false);
+                          navigate("/familia");
+                        }}
+                      >
+                        Adicionar Novos Membros
+                      </Button>
+                    </div>
+                  );
+                }
+
+                return availableMembers.map((member) => (
                   <div
                     key={member.id}
-                    className={cn(
-                      "flex items-center justify-between p-3 rounded-xl border transition-colors",
-                      isAdded 
-                        ? "border-foreground/20 bg-muted/50 opacity-50" 
-                        : "border-border hover:border-foreground/20 cursor-pointer"
-                    )}
-                    onClick={() => !isAdded && handleAddParticipant(member.id, member.name)}
+                    className="flex items-center justify-between p-3 rounded-xl border border-border hover:border-foreground/20 cursor-pointer transition-colors"
+                    onClick={() => handleAddParticipant(member.id, member.name)}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
@@ -655,10 +682,9 @@ export function Trips() {
                       </div>
                       <span className="font-medium">{member.name}</span>
                     </div>
-                    {isAdded && <span className="text-xs text-muted-foreground">Adicionado</span>}
                   </div>
-                );
-              })}
+                ));
+              })()}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddParticipantDialog(false)}>

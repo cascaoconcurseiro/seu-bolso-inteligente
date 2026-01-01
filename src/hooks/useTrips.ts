@@ -128,14 +128,46 @@ export function useTripParticipants(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return [];
 
+      // CORREÇÃO: Usar trip_members ao invés de trip_participants
+      // trip_members é a tabela real com os membros da viagem
       const { data, error } = await supabase
-        .from("trip_participants")
-        .select("*")
+        .from("trip_members")
+        .select(`
+          id,
+          trip_id,
+          user_id,
+          role,
+          personal_budget,
+          created_at
+        `)
         .eq("trip_id", tripId)
-        .order("name");
+        .order("created_at");
 
       if (error) throw error;
-      return data as TripParticipant[];
+      
+      // Buscar informações dos usuários para cada membro
+      const participantsWithNames = await Promise.all(
+        (data || []).map(async (member) => {
+          // Buscar nome do usuário
+          const { data: userData } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", member.user_id)
+            .single();
+          
+          return {
+            id: member.id,
+            trip_id: member.trip_id,
+            user_id: member.user_id,
+            member_id: null, // trip_members não tem member_id
+            name: userData?.full_name || "Usuário",
+            personal_budget: member.personal_budget,
+            created_at: member.created_at,
+          } as TripParticipant;
+        })
+      );
+      
+      return participantsWithNames;
     },
     enabled: !!user && !!tripId,
   });
