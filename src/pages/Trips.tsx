@@ -450,59 +450,81 @@ export function Trips() {
 
           {/* Summary Tab */}
           <TabsContent value="summary" className="space-y-6 mt-6">
-            {/* Hero Card - Orçamento Principal */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-6 md:p-8 text-white">
-              <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                  <div>
-                    <p className="text-sm opacity-90 mb-2">Orçamento Total da Viagem</p>
-                    <p className="font-mono text-4xl md:text-5xl font-bold">
-                      {formatCurrency(selectedTrip.budget || 0, selectedTrip.currency)}
-                    </p>
+            {/* Meu Orçamento Individual - Hero Card */}
+            {myPersonalBudget && (
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-6 md:p-8 text-white">
+                <div className="relative z-10">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                    <div>
+                      <p className="text-sm opacity-90 mb-2">Meu Orçamento Individual</p>
+                      <p className="font-mono text-4xl md:text-5xl font-bold">
+                        {formatCurrency(myPersonalBudget, selectedTrip.currency)}
+                      </p>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <p className="text-sm opacity-90 mb-2">Meus Gastos</p>
+                      <p className="font-mono text-2xl md:text-3xl font-bold">
+                        {formatCurrency(myTotalSpent, selectedTrip.currency)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-left sm:text-right">
-                    <p className="text-sm opacity-90 mb-2">Total Gasto</p>
-                    <p className="font-mono text-2xl md:text-3xl font-bold">
-                      {formatCurrency(totalExpenses, selectedTrip.currency)}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Barra de Progresso */}
-                <div className="space-y-2">
-                  <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden backdrop-blur-sm">
-                    <div
-                      className={cn(
-                        "h-full transition-all duration-500 rounded-full",
-                        totalExpenses > (selectedTrip.budget || 0)
-                          ? "bg-red-400"
-                          : totalExpenses > (selectedTrip.budget || 0) * 0.8
-                          ? "bg-yellow-400"
-                          : "bg-green-400"
-                      )}
-                      style={{ width: `${Math.min((totalExpenses / (selectedTrip.budget || 1)) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="opacity-90">
-                      {((totalExpenses / (selectedTrip.budget || 1)) * 100).toFixed(1)}% utilizado
-                    </span>
-                    <span className="font-semibold">
-                      {totalExpenses > (selectedTrip.budget || 0) ? (
-                        <>🔴 Acima do orçamento</>
-                      ) : (
-                        <>✓ Restam {formatCurrency((selectedTrip.budget || 0) - totalExpenses, selectedTrip.currency)}</>
-                      )}
-                    </span>
+                  {/* Barra de Progresso */}
+                  <div className="space-y-2">
+                    <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden backdrop-blur-sm">
+                      <div
+                        className={cn(
+                          "h-full transition-all duration-500 rounded-full",
+                          myTotalSpent > myPersonalBudget
+                            ? "bg-red-400"
+                            : myTotalSpent > myPersonalBudget * 0.8
+                            ? "bg-yellow-400"
+                            : "bg-green-400"
+                        )}
+                        style={{ width: `${Math.min((myTotalSpent / myPersonalBudget) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="opacity-90">
+                        {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
+                      </span>
+                      <span className="font-semibold">
+                        {myTotalSpent > myPersonalBudget ? (
+                          <>🔴 Acima do orçamento</>
+                        ) : (
+                          <>✓ Restam {formatCurrency(myPersonalBudget - myTotalSpent, selectedTrip.currency)}</>
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24" />
+                </div>
               </div>
-              
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24" />
+            )}
+
+            {/* Média Diária Individual */}
+            <div className="p-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-lg">Minha Média Diária Individual</h3>
               </div>
+              <p className="font-mono text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                {formatCurrency(
+                  tripTransactions
+                    .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
+                    .reduce((sum, t) => sum + t.amount, 0) / 
+                  Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                  selectedTrip.currency
+                )}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Baseado em {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id).length} transações individuais
+              </p>
             </div>
 
             {/* Grid de Informações Principais */}
@@ -557,60 +579,6 @@ export function Trips() {
               </div>
             </div>
 
-            {/* Meu Orçamento Pessoal */}
-            {myPersonalBudget && (
-              <div className="p-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
-                <div className="flex items-center gap-2 mb-4">
-                  <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="font-semibold text-lg">Meu Orçamento Pessoal</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Meu Orçamento</p>
-                    <p className="font-mono text-xl font-bold text-blue-600 dark:text-blue-400">
-                      {formatCurrency(myPersonalBudget, selectedTrip.currency)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Meus Gastos</p>
-                    <p className="font-mono text-xl font-bold">
-                      {formatCurrency(myTotalSpent, selectedTrip.currency)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {myTotalSpent > myPersonalBudget ? "Acima do Orçamento" : "Restante"}
-                    </p>
-                    <p className={cn(
-                      "font-mono text-xl font-bold",
-                      myTotalSpent > myPersonalBudget ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
-                    )}>
-                      {myTotalSpent > myPersonalBudget ? "+" : ""}
-                      {formatCurrency(Math.abs(myPersonalBudget - myTotalSpent), selectedTrip.currency)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500 rounded-full",
-                      myTotalSpent > myPersonalBudget
-                        ? "bg-red-500"
-                        : myTotalSpent > myPersonalBudget * 0.8
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                    )}
-                    style={{ width: `${Math.min((myTotalSpent / myPersonalBudget) * 100, 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% do meu orçamento utilizado
-                </p>
-              </div>
-            )}
-
             {/* Breakdown: Compartilhado vs Individual */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Despesas Compartilhadas */}
@@ -660,18 +628,6 @@ export function Trips() {
                 <p className="text-sm text-muted-foreground">
                   {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id).length} transações individuais
                 </p>
-                <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-muted-foreground mb-1">Média por dia</p>
-                  <p className="font-mono text-lg font-semibold text-blue-600 dark:text-blue-400">
-                    {formatCurrency(
-                      tripTransactions
-                        .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
-                        .reduce((sum, t) => sum + t.amount, 0) / 
-                      Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
-                      selectedTrip.currency
-                    )}
-                  </p>
-                </div>
               </div>
             </div>
 
