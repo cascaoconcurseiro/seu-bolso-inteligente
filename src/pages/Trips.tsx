@@ -436,40 +436,43 @@ export function Trips() {
               </section>
             )}
 
-            {/* Participants Summary */}
-            {participants.length > 0 && (
-              <section className="space-y-4">
-                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                  Participantes
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {balances.map((balance) => (
-                    <div key={balance.participantId} className="p-4 rounded-xl border border-border">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
-                          {getInitials(balance.name)}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium">{balance.name}</p>
-                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid, selectedTrip.currency)}</p>
-                        </div>
+            {/* Participants Summary - Apenas usuário atual */}
+            {participants.length > 0 && (() => {
+              // Filtrar apenas o balance do usuário atual
+              const myBalance = balances.find(b => b.participantId === user?.id);
+              
+              if (!myBalance) return null;
+              
+              return (
+                <section className="space-y-4">
+                  <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                    Meu Resumo
+                  </h2>
+                  <div className="p-4 rounded-xl border border-border">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                        {getInitials(myBalance.name)}
                       </div>
-                      <div className="pt-3 border-t border-border">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Saldo</span>
-                          <span className={cn(
-                            "font-mono font-semibold",
-                            balance.balance >= 0 ? "text-positive" : "text-negative"
-                          )}>
-                            {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance, selectedTrip.currency)}
-                          </span>
-                        </div>
+                      <div className="flex-1">
+                        <p className="font-medium">{myBalance.name}</p>
+                        <p className="text-xs text-muted-foreground">Pagou {formatCurrency(myBalance.paid, selectedTrip.currency)}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
-            )}
+                    <div className="pt-3 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Saldo</span>
+                        <span className={cn(
+                          "font-mono font-semibold",
+                          myBalance.balance >= 0 ? "text-positive" : "text-negative"
+                        )}>
+                          {myBalance.balance >= 0 ? "+" : ""}{formatCurrency(myBalance.balance, selectedTrip.currency)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              );
+            })()}
 
             {/* Quick Stats */}
             <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -560,8 +563,9 @@ export function Trips() {
                     const payer = participants.find(p => 
                       p.user_id === expense.payer_id || p.member_id === expense.payer_id
                     );
+                    // Usar categoria real da transação, sem fallback para "Outros"
                     const categoryIcon = expense.category?.icon || "💸";
-                    const categoryName = expense.category?.name || "Outros";
+                    const categoryName = expense.category?.name || "Sem categoria";
                     const payerName = payer?.name || expense.account?.name || "Conta";
                     
                     return (
