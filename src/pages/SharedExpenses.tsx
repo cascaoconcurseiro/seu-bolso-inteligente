@@ -798,6 +798,7 @@ export function SharedExpenses() {
                   variant={iOwe ? "destructive" : "default"}
                   size="sm"
                   className={cn(
+                    "h-11 md:h-9",
                     !iOwe && "bg-green-600 hover:bg-green-700"
                   )}
                   onClick={(e) => {
@@ -809,8 +810,8 @@ export function SharedExpenses() {
                     );
                   }}
                 >
-                  <Wallet className="h-4 w-4 mr-2" />
-                  {iOwe ? "Pagar" : "Receber"}
+                  <Wallet className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">{iOwe ? "Pagar" : "Receber"}</span>
                 </Button>
               )}
             </div>
@@ -1190,6 +1191,7 @@ export function SharedExpenses() {
                       variant={memberNet < 0 ? "destructive" : "default"}
                       size="sm"
                       className={cn(
+                        "h-11 md:h-9",
                         memberNet > 0 && "bg-green-600 hover:bg-green-700"
                       )}
                       onClick={() => {
@@ -1201,8 +1203,8 @@ export function SharedExpenses() {
                         );
                       }}
                     >
-                      <Wallet className="h-4 w-4 mr-2" />
-                      {memberNet < 0 ? "Pagar" : "Receber"}
+                      <Wallet className="h-4 w-4 md:mr-2" />
+                      <span className="hidden md:inline">{memberNet < 0 ? "Pagar" : "Receber"}</span>
                     </Button>
                   </div>
                 )}
@@ -1592,17 +1594,17 @@ export function SharedExpenses() {
                 {/* Seleção de itens */}
                 {pendingMemberItems.length > 0 && (
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <Label className="text-sm font-medium">Itens para acertar</Label>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleSelectAll}
-                        className="text-xs h-7"
+                        className="text-xs h-7 shrink-0"
                       >
                         {selectedItems.length === pendingMemberItems.length 
-                          ? "Desmarcar todos" 
-                          : "Selecionar todos (pagar tudo)"}
+                          ? "Desmarcar" 
+                          : <><span className="hidden sm:inline">Selecionar todos</span><span className="sm:hidden">Todos</span></>}
                       </Button>
                     </div>
                     <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">

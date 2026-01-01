@@ -371,10 +371,10 @@ export function Trips() {
                       goBack();
                     }
                   }}
-                  className="gap-2 text-destructive hover:text-destructive"
+                  className="w-full sm:w-auto gap-2 h-11 md:h-9 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Excluir
+                  <span className="hidden sm:inline">Excluir</span>
                 </Button>
               </>
             )}
