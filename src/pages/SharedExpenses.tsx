@@ -59,6 +59,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { useMonth } from "@/contexts/MonthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +74,7 @@ type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
   const { currentDate } = useMonth();
   const [showSettleDialog, setShowSettleDialog] = useState(false);
@@ -280,6 +282,15 @@ export function SharedExpenses() {
         ? `Pagamento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`
         : `Recebimento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`;
 
+      // Buscar categoria "Acerto Financeiro"
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('name', 'Acerto Financeiro')
+        .eq('type', settleType === "PAY" ? 'expense' : 'income')
+        .single();
+
       // Create settlement transaction
       const result = await createTransaction.mutateAsync({
         amount,
@@ -287,6 +298,7 @@ export function SharedExpenses() {
         date: new Date().toISOString().split("T")[0],
         type: settleType === "PAY" ? "EXPENSE" : "INCOME",
         account_id: settleAccountId,
+        category_id: categoryData?.id || undefined, // Usar categoria se encontrada
         domain: "SHARED",
         is_shared: false,
         related_member_id: selectedMember,

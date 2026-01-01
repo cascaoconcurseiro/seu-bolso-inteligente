@@ -185,6 +185,7 @@ export function useCreateDefaultCategories() {
         { name: "Taxas Bancárias", icon: "🏦", type: "expense" },
         { name: "Empréstimo", icon: "💳", type: "expense" },
         { name: "Doações", icon: "❤️", type: "expense" },
+        { name: "Acerto Financeiro", icon: "🤝", type: "expense" }, // Para pagamentos de acerto
         
         // VIAGEM
         { name: "Passagem Aérea", icon: "✈️", type: "expense" },
@@ -217,6 +218,8 @@ export function useCreateDefaultCategories() {
         { name: "Reembolso", icon: "💳", type: "income" },
         { name: "Prêmio", icon: "🏆", type: "income" },
         { name: "Venda", icon: "🏷️", type: "income" },
+        { name: "Saldo Inicial", icon: "💰", type: "income" }, // Para saldo inicial de contas
+        { name: "Acerto Financeiro", icon: "🤝", type: "income" }, // Para recebimentos de acerto
         { name: "Outros", icon: "💵", type: "income" },
       ];
 

@@ -93,6 +93,15 @@ export function useCreateAccount() {
       // Se tem saldo inicial e não é cartão de crédito, criar transação de saldo inicial
       // O trigger vai atualizar o saldo da conta automaticamente
       if (input.balance && input.balance > 0 && input.type !== 'CREDIT_CARD') {
+        // Buscar categoria "Saldo Inicial"
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('name', 'Saldo Inicial')
+          .eq('type', 'income')
+          .single();
+        
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
         const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
@@ -104,6 +113,7 @@ export function useCreateAccount() {
           type: 'INCOME',
           amount: input.balance,
           description: 'Saldo inicial',
+          category_id: categoryData?.id || null, // Usar categoria se encontrada
           date: dateStr,
           competence_date: competenceStr,
           domain: 'PERSONAL',

@@ -558,11 +558,15 @@ export function Trips() {
                     const payer = participants.find(p => 
                       p.user_id === expense.payer_id || p.member_id === expense.payer_id
                     );
+                    const categoryIcon = expense.category?.icon || "💸";
+                    const categoryName = expense.category?.name || "Outros";
+                    const payerName = payer?.name || expense.account?.name || "Conta";
+                    
                     return (
                       <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                            {payer ? getInitials(payer.name) : "?"}
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-lg">
+                            {categoryIcon}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -574,7 +578,7 @@ export function Trips() {
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              {expense.category?.name || "Sem categoria"} · {payer?.name || "Desconhecido"} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
+                              {categoryName} · {payerName} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
                             </p>
                           </div>
                         </div>
