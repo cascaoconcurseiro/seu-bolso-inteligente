@@ -43,6 +43,7 @@ import {
 } from "@/hooks/useTrips";
 import { usePendingTripInvitations } from "@/hooks/useTripInvitations";
 import { useFamilyMembers } from "@/hooks/useFamily";
+import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TripShopping } from "@/components/trips/TripShopping";
@@ -93,6 +94,12 @@ export function Trips() {
   const { data: tripMembers = [] } = useTripMembers(selectedTripId);
   const { data: permissions } = useTripPermissions(selectedTripId);
   const { data: pendingInvitations = [] } = usePendingTripInvitations();
+  
+  // INTEGRAÇÃO COM COMPARTILHADOS: Buscar saldos de viagem
+  const { invoices: sharedInvoices, getFilteredInvoice, getTotals } = useSharedFinances({
+    currentDate: new Date(),
+    activeTab: 'TRAVEL',
+  });
   
   // SINGLE SOURCE OF TRUTH: Usar dados calculados pelo banco de dados
   const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
@@ -193,32 +200,61 @@ export function Trips() {
   };
 
   const calculateBalances = () => {
-    if (!participants.length) return [];
+    if (!participants.length || !selectedTripId) return [];
     
-    const totalExpenses = tripTransactions.reduce((sum, t) => 
-      t.type === "EXPENSE" ? sum + t.amount : sum, 0
-    );
-    const perPerson = totalExpenses / participants.length;
-    
-    const paid: Record<string, number> = {};
-    participants.forEach((p) => { paid[p.id] = 0; });
-    
-    tripTransactions.forEach((t) => {
-      if (t.type === "EXPENSE" && t.payer_id) {
-        const participant = participants.find(p => p.user_id === t.payer_id || p.member_id === t.payer_id);
-        if (participant) {
-          paid[participant.id] = (paid[participant.id] || 0) + t.amount;
-        }
+    // INTEGRAÇÃO COM COMPARTILHADOS: Usar saldos reais de compartilhados
+    // Isso garante que quando um acerto é feito, o saldo é atualizado automaticamente
+    return participants.map((p) => {
+      // Buscar membro da família correspondente
+      const familyMember = familyMembers.find(fm => fm.linked_user_id === p.user_id);
+      
+      if (!familyMember) {
+        // Se não encontrar membro, calcular manualmente (fallback)
+        const totalExpenses = tripTransactions.reduce((sum, t) => 
+          t.type === "EXPENSE" ? sum + t.amount : sum, 0
+        );
+        const perPerson = totalExpenses / participants.length;
+        const paid = tripTransactions
+          .filter(t => t.type === "EXPENSE" && (t.payer_id === p.user_id || t.payer_id === p.member_id))
+          .reduce((sum, t) => sum + t.amount, 0);
+        
+        return {
+          participantId: p.user_id || p.id,
+          name: p.name,
+          paid: paid,
+          owes: perPerson,
+          balance: paid - perPerson,
+        };
       }
+      
+      // Buscar itens compartilhados desta viagem para este membro
+      const memberItems = getFilteredInvoice(familyMember.id).filter(item => item.tripId === selectedTripId);
+      const totals = getTotals(memberItems);
+      const currency = selectedTrip?.currency || 'BRL';
+      
+      // Calcular quanto pagou (CREDIT = me devem = eu paguei)
+      const paid = memberItems
+        .filter(i => i.type === 'CREDIT')
+        .reduce((sum, i) => sum + i.amount, 0);
+      
+      // Calcular quanto deve (DEBIT = eu devo = não paguei)
+      const owes = memberItems
+        .filter(i => i.type === 'DEBIT')
+        .reduce((sum, i) => sum + i.amount, 0);
+      
+      // Saldo = quanto pagou - quanto deve
+      // Se positivo: outros devem para mim
+      // Se negativo: eu devo para outros
+      const balance = totals[currency]?.net || 0;
+      
+      return {
+        participantId: p.user_id || p.id,
+        name: p.name,
+        paid: paid,
+        owes: owes,
+        balance: balance,
+      };
     });
-
-    return participants.map((p) => ({
-      participantId: p.id,
-      name: p.name,
-      paid: paid[p.id] || 0,
-      owes: perPerson,
-      balance: (paid[p.id] || 0) - perPerson,
-    }));
   };
 
   // Loading state
