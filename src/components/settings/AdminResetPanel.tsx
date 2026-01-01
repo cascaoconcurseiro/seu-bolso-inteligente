@@ -119,39 +119,87 @@ export function AdminResetPanel() {
   };
 
   const resetAllUsers = async () => {
-    // Ordem de exclusão respeitando FKs - deletar TUDO
+    // ⚠️ IMPORTANTE: Este método deleta APENAS DADOS (registros), NÃO estrutura do banco
+    // ✅ PRESERVADO: Tabelas, triggers, funções, índices, políticas RLS, foreign keys
+    // ❌ DELETADO: Apenas registros inseridos pelos usuários
+    
+    // Ordem de exclusão respeitando Foreign Keys
+    // Tabelas filhas ANTES de tabelas pais para evitar violação de FK
     const tables = [
-      'transaction_splits',
-      'shared_transaction_mirrors',
-      'transactions',
-      'trip_checklist',
-      'trip_exchange_purchases',
-      'trip_itinerary',
-      'trip_invitations',
-      'trip_members',
-      'trip_participants',
-      'trips',
-      'family_invitations',
-      'family_members',
-      'families',
-      'accounts',
-      'budgets',
-      'notifications',
+      // Transações e relacionados
+      'transaction_splits',           // Filho de transactions
+      'shared_transaction_mirrors',   // Filho de transactions
+      'transaction_audit',            // Filho de transactions (auditoria)
+      'financial_ledger',             // Filho de transactions
+      'pending_operations',           // Operações pendentes
+      'transactions',                 // Filho de accounts, profiles
+      
+      // Viagens e relacionados
+      'trip_checklist',               // Filho de trips
+      'trip_exchange_purchases',      // Filho de trips
+      'trip_itinerary',               // Filho de trips
+      'trip_invitations',             // Filho de trips
+      'trip_members',                 // Filho de trips
+      'trip_participants',            // Filho de trips
+      'trips',                        // Filho de profiles
+      
+      // Família e relacionados
+      'family_invitations',           // Filho de families
+      'family_members',               // Filho de families
+      'families',                     // Filho de profiles
+      
+      // Contas e finanças
+      'accounts',                     // Filho de profiles
+      'budgets',                      // Filho de profiles
+      'goals',                        // Metas financeiras
+      'assets',                       // Ativos/investimentos
+      'financial_snapshots',          // Snapshots financeiros
+      
+      // Categorias
+      'categories',                   // Categorias personalizadas
+      
+      // Notificações
+      'notifications',                // Notificações
+      'notification_preferences',     // Preferências de notificação
+      
+      // Sistema de compartilhamento
+      'shared_transaction_requests',  // Requests de compartilhamento
+      'shared_system_audit_logs',     // Logs de auditoria
+      'shared_operation_queue',       // Fila de operações
+      'shared_circuit_breaker',       // Circuit breaker
+      
+      // Auditoria (se implementado)
+      'audit_log',                    // Audit log geral
     ];
 
     for (const table of tables) {
-      const { error } = await supabase
-        .from(table as any)
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-      
-      if (error) {
-        console.warn(`Erro ao limpar ${table}:`, error.message);
+      try {
+        // DELETE FROM: Remove registros, preserva estrutura da tabela
+        // NÃO usa DROP TABLE (que deletaria a tabela inteira)
+        const { error } = await supabase
+          .from(table as any)
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        if (error) {
+          console.warn(`Erro ao limpar ${table}:`, error.message);
+        } else {
+          console.log(`✅ Tabela ${table} limpa com sucesso`);
+        }
+      } catch (err) {
+        console.warn(`Erro ao limpar ${table}:`, err);
       }
     }
   };
 
   const resetSingleUser = async (userId: string) => {
+    // ⚠️ IMPORTANTE: Este método deleta APENAS DADOS do usuário específico
+    // ✅ PRESERVADO: Estrutura do banco (tabelas, triggers, funções, etc.)
+    // ✅ PRESERVADO: Dados de outros usuários
+    // ❌ DELETADO: TODOS os registros deste usuário
+    
+    console.log(`🗑️ Iniciando reset do usuário: ${userId}`);
+    
     // 1. Buscar famílias onde o usuário é membro
     const { data: userFamilyMemberships } = await supabase
       .from('family_members')
@@ -184,7 +232,7 @@ export function AdminResetPanel() {
           user_id: member.user_id,
           type: 'family_member_left',
           title: 'Membro saiu da família',
-          message: `${userName} saiu do grupo familiar. Se quiser resincronizar as transações, adicione-o novamente.`,
+          message: `${userName} saiu do grupo familiar. Todos os dados foram removidos.`,
           read: false,
         }));
 
@@ -192,12 +240,16 @@ export function AdminResetPanel() {
       }
     }
 
-    // 3. Deletar dados do usuário na ordem correta (respeitando FKs)
+    // 3. Deletar TODOS os dados do usuário na ordem correta (respeitando FKs)
+    // ⚠️ NOTA: Usa DELETE FROM (deleta registros), NÃO DROP TABLE (deletaria estrutura)
     
-    // Transações e relacionados
+    console.log('🗑️ Deletando transações e relacionados...');
+    
+    // 3.1 Transações e relacionados (ordem: filhos antes de pais)
     await supabase.from('transaction_splits').delete().eq('user_id', userId);
+    console.log('✅ transaction_splits deletados');
     
-    // Buscar transações do usuário para deletar mirrors
+    // Buscar transações do usuário para deletar mirrors e ledger
     const { data: userTransactions } = await supabase
       .from('transactions')
       .select('id')
@@ -205,19 +257,41 @@ export function AdminResetPanel() {
     
     if (userTransactions && userTransactions.length > 0) {
       const txIds = userTransactions.map(t => t.id);
+      
+      // Deletar mirrors
       await supabase.from('shared_transaction_mirrors').delete().in('source_transaction_id', txIds);
+      console.log('✅ shared_transaction_mirrors deletados');
+      
+      // Deletar ledger entries
+      await supabase.from('financial_ledger').delete().in('transaction_id', txIds);
+      console.log('✅ financial_ledger deletados');
+      
+      // Deletar audit
+      await supabase.from('transaction_audit').delete().in('transaction_id', txIds);
+      console.log('✅ transaction_audit deletados');
     }
     
     // Deletar mirrors onde o usuário é o dono
     await supabase.from('shared_transaction_mirrors').delete().eq('user_id', userId);
     
+    // Deletar ledger entries do usuário
+    await supabase.from('financial_ledger').delete().eq('user_id', userId);
+    
+    // Deletar operações pendentes
+    await supabase.from('pending_operations').delete().eq('user_id', userId);
+    console.log('✅ pending_operations deletados');
+    
+    // Deletar transações
     await supabase.from('transactions').delete().eq('user_id', userId);
+    console.log('✅ transactions deletados');
 
-    // Viagens - deletar participações e viagens criadas pelo usuário
+    console.log('🗑️ Deletando viagens e relacionados...');
+    
+    // 3.2 Viagens - deletar participações e viagens criadas pelo usuário
     const { data: userTrips } = await supabase
       .from('trips')
       .select('id')
-      .eq('created_by', userId);
+      .eq('owner_id', userId);
 
     if (userTrips && userTrips.length > 0) {
       const tripIds = userTrips.map(t => t.id);
@@ -228,18 +302,44 @@ export function AdminResetPanel() {
       await supabase.from('trip_members').delete().in('trip_id', tripIds);
       await supabase.from('trip_participants').delete().in('trip_id', tripIds);
       await supabase.from('trips').delete().in('id', tripIds);
+      console.log(`✅ ${tripIds.length} viagens e relacionados deletados`);
     }
 
     // Remover participações em viagens de outros
     await supabase.from('trip_members').delete().eq('user_id', userId);
     await supabase.from('trip_participants').delete().eq('user_id', userId);
-    await supabase.from('trip_invitations').delete().eq('invited_user_id', userId);
+    await supabase.from('trip_invitations').delete().eq('invitee_id', userId);
+    console.log('✅ Participações em viagens removidas');
 
-    // Família - remover membro e convites
+    console.log('🗑️ Deletando família e relacionados...');
+    
+    // 3.3 Família - remover membro e convites
     await supabase.from('family_invitations').delete().eq('invited_user_id', userId);
+    await supabase.from('family_invitations').delete().eq('from_user_id', userId);
     await supabase.from('family_members').delete().eq('user_id', userId);
+    console.log('✅ Membros e convites de família deletados');
 
-    // Verificar se o usuário é o único admin de alguma família e deletar a família
+    // Verificar se o usuário é owner de alguma família e deletar a família
+    const { data: ownedFamilies } = await supabase
+      .from('families')
+      .select('id')
+      .eq('owner_id', userId);
+    
+    if (ownedFamilies && ownedFamilies.length > 0) {
+      const ownedFamilyIds = ownedFamilies.map(f => f.id);
+      
+      // Deletar membros das famílias
+      await supabase.from('family_members').delete().in('family_id', ownedFamilyIds);
+      
+      // Deletar convites das famílias
+      await supabase.from('family_invitations').delete().in('family_id', ownedFamilyIds);
+      
+      // Deletar famílias
+      await supabase.from('families').delete().in('id', ownedFamilyIds);
+      console.log(`✅ ${ownedFamilyIds.length} famílias (owner) deletadas`);
+    }
+
+    // Verificar famílias vazias e deletar
     for (const familyId of familyIds) {
       const { data: remainingMembers } = await supabase
         .from('family_members')
@@ -250,15 +350,66 @@ export function AdminResetPanel() {
         // Família ficou vazia, deletar
         await supabase.from('family_invitations').delete().eq('family_id', familyId);
         await supabase.from('families').delete().eq('id', familyId);
+        console.log(`✅ Família vazia ${familyId} deletada`);
       }
     }
 
-    // Contas e orçamentos
+    console.log('🗑️ Deletando contas, orçamentos e finanças...');
+    
+    // 3.4 Contas e orçamentos
     await supabase.from('accounts').delete().eq('user_id', userId);
+    console.log('✅ accounts deletados');
+    
     await supabase.from('budgets').delete().eq('user_id', userId);
+    console.log('✅ budgets deletados');
+    
+    // Metas financeiras
+    await supabase.from('goals').delete().eq('user_id', userId);
+    console.log('✅ goals deletados');
+    
+    // Ativos/investimentos
+    await supabase.from('assets').delete().eq('user_id', userId);
+    console.log('✅ assets deletados');
+    
+    // Snapshots financeiros
+    await supabase.from('financial_snapshots').delete().eq('user_id', userId);
+    console.log('✅ financial_snapshots deletados');
 
-    // Notificações do usuário
+    console.log('🗑️ Deletando categorias...');
+    
+    // 3.5 Categorias personalizadas
+    await supabase.from('categories').delete().eq('user_id', userId);
+    console.log('✅ categories deletados');
+
+    console.log('🗑️ Deletando notificações...');
+    
+    // 3.6 Notificações do usuário
     await supabase.from('notifications').delete().eq('user_id', userId);
+    console.log('✅ notifications deletados');
+    
+    await supabase.from('notification_preferences').delete().eq('user_id', userId);
+    console.log('✅ notification_preferences deletados');
+
+    console.log('🗑️ Deletando dados de compartilhamento...');
+    
+    // 3.7 Sistema de compartilhamento
+    await supabase.from('shared_transaction_requests').delete().eq('from_user_id', userId);
+    await supabase.from('shared_transaction_requests').delete().eq('to_user_id', userId);
+    console.log('✅ shared_transaction_requests deletados');
+    
+    await supabase.from('shared_operation_queue').delete().eq('user_id', userId);
+    console.log('✅ shared_operation_queue deletados');
+
+    console.log('🗑️ Deletando audit logs...');
+    
+    // 3.8 Audit logs
+    await supabase.from('audit_log').delete().eq('user_id', userId);
+    console.log('✅ audit_log deletados');
+    
+    await supabase.from('shared_system_audit_logs').delete().eq('user_id', userId);
+    console.log('✅ shared_system_audit_logs deletados');
+
+    console.log('✅ Reset do usuário concluído com sucesso!');
   };
 
   const handleLogout = () => {

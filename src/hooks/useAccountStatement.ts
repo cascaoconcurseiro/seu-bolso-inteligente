@@ -60,10 +60,10 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       const currentBalance = accountData?.balance || 0;
 
       // Buscar transações da conta
-      // REGRA: Mostrar apenas transações que REALMENTE afetaram o saldo da conta
-      // 1. Transações individuais (is_shared = false) com account_id
-      // 2. Transações compartilhadas onde EU SOU O PAGADOR (creator_user_id = user.id e account_id preenchido)
-      // 3. Transações de acerto (settlements) - sempre aparecem
+      // REGRA: Mostrar TODAS as transações vinculadas a esta conta
+      // 1. Transações onde account_id = conta (despesas e receitas)
+      // 2. Transações espelhadas (source_transaction_id preenchido) também aparecem
+      // 3. Transferências de saída (account_id = conta)
       const { data: outgoingTransactions, error: outError } = await supabase
         .from("transactions")
         .select(`
@@ -71,7 +71,6 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
           category:categories(name, icon),
           transaction_splits(id, amount, user_id, member_id)
         `)
-        .eq("user_id", user.id)
         .eq("account_id", accountId)
         .gte("date", effectiveStartDate)
         .lte("date", effectiveEndDate)
@@ -88,7 +87,6 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
           category:categories(name, icon),
           transaction_splits(id, amount, user_id, member_id)
         `)
-        .eq("user_id", user.id)
         .eq("destination_account_id", accountId)
         .eq("type", "TRANSFER")
         .gte("date", effectiveStartDate)
@@ -99,11 +97,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       if (inError) throw inError;
 
       // Combinar e processar transações
-      // Apenas transações que realmente afetaram o saldo da conta
+      // Filtrar apenas transações de contas do usuário (segurança)
       const allTransactions = [
         ...(outgoingTransactions || []), 
         ...(incomingTransfers || [])
-      ];
+      ].filter(tx => tx.user_id === user.id); // Garantir que só vê suas próprias transações
       
       // Ordenar por data e created_at
       allTransactions.sort((a, b) => {
