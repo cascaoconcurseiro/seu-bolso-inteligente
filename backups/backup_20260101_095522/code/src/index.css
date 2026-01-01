@@ -1,0 +1,904 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+ * Finance App — Minimal Design System
+ * Palette: Black + White + subtle grays
+ * Typography: Space Grotesk (display), Inter (body), JetBrains Mono (numbers)
+ */
+
+@layer base {
+  :root {
+    /* Pure Minimal - Light Mode */
+    --background: 0 0% 100%;              /* Pure white */
+    --foreground: 0 0% 8%;                /* Near black */
+
+    --card: 0 0% 99%;                     /* Subtle off-white */
+    --card-foreground: 0 0% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 0 0% 8%;                   /* Black as primary */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;                /* Light gray */
+    --secondary-foreground: 0 0% 8%;
+
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 8%;
+
+    --destructive: 0 72% 51%;             /* Red for errors */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;               /* Green for positive */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;                /* Amber for warnings */
+    --warning-foreground: 0 0% 8%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 8%;
+
+    --radius: 0.75rem;
+
+    /* Financial semantics */
+    --positive: 142 71% 45%;              /* Green */
+    --negative: 0 72% 51%;                /* Red */
+    --neutral: 0 0% 45%;                  /* Gray */
+  }
+
+  .dark {
+    /* Pure Minimal - Dark Mode */
+    --background: 0 0% 4%;                /* Near black */
+    --foreground: 0 0% 95%;               /* Off white */
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 100%;                 /* White as primary */
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 61% 50%;
+    --success-foreground: 0 0% 4%;
+
+    --warning: 38 82% 55%;
+    --warning-foreground: 0 0% 4%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 100%;
+
+    --positive: 142 61% 50%;
+    --negative: 0 62% 55%;
+    --neutral: 0 0% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Typography hierarchy */
+  h1, .h1 {
+    @apply font-display font-semibold text-4xl md:text-5xl tracking-tight;
+  }
+
+  h2, .h2 {
+    @apply font-display font-semibold text-2xl md:text-3xl tracking-tight;
+  }
+
+  h3, .h3 {
+    @apply font-display font-medium text-xl md:text-2xl;
+  }
+
+  h4, .h4 {
+    @apply font-sans font-semibold text-lg;
+  }
+
+  /* Financial values */
+  .value-display {
+    @apply font-mono font-medium tabular-nums;
+  }
+
+  .value-positive {
+    @apply text-positive;
+  }
+
+  .value-negative {
+    @apply text-negative;
+  }
+
+  .value-neutral {
+    @apply text-muted-foreground;
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-status-success {
+    @apply border-l-4 border-l-positive;
+  }
+
+  .card-status-warning {
+    @apply border-l-4 border-l-warning;
+  }
+
+  .card-status-danger {
+    @apply border-l-4 border-l-negative;
+  }
+
+  .balance-container {
+    @apply bg-card rounded-xl p-6;
+  }
+
+  .installment-progress {
+    @apply h-1.5 rounded-full bg-muted overflow-hidden;
+  }
+
+  .installment-progress-fill {
+    @apply h-full bg-foreground rounded-full transition-all duration-500;
+  }
+}
+
+/* ===== ANIMAÇÕES ===== */
+
+/* Fade in básico */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fade in com slide de baixo */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in com slide da esquerda */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade in com slide da direita */
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Fade in com slide de cima */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale in suave */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scale in com bounce */
+@keyframes scaleInBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Shimmer effect para highlights */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Pulse suave */
+@keyframes softPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Bounce suave */
+@keyframes softBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Wiggle para atenção */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+/* Contagem de números */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animation para listas */
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in from bottom com spring */
+@keyframes slideInBottom {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  60% {
+    transform: translateY(-5%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Rotate in */
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+/* Flip in */
+@keyframes flipIn {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateX(0);
+  }
+}
+
+/* Blur in */
+@keyframes blurIn {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Gradient shift */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Heartbeat */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* Shake */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Swing */
+@keyframes swing {
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Rubber band */
+@keyframes rubberBand {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scaleX(1.25) scaleY(0.75);
+  }
+  40% {
+    transform: scaleX(0.75) scaleY(1.25);
+  }
+  50% {
+    transform: scaleX(1.15) scaleY(0.85);
+  }
+  65% {
+    transform: scaleX(0.95) scaleY(1.05);
+  }
+  75% {
+    transform: scaleX(1.05) scaleY(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Jello */
+@keyframes jello {
+  0%, 100% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+}
+
+/* Tada */
+@keyframes tada {
+  0% {
+    transform: scale(1);
+  }
+  10%, 20% {
+    transform: scale(0.9) rotate(-3deg);
+  }
+  30%, 50%, 70%, 90% {
+    transform: scale(1.1) rotate(3deg);
+  }
+  40%, 60%, 80% {
+    transform: scale(1.1) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Glow pulse */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(var(--primary) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 30px hsl(var(--primary) / 0.2);
+  }
+}
+
+/* Border glow */
+@keyframes borderGlow {
+  0%, 100% {
+    border-color: hsl(var(--border));
+  }
+  50% {
+    border-color: hsl(var(--primary) / 0.5);
+  }
+}
+
+/* Typing cursor */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Classes de animação */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 0.5s ease-out forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in-bounce {
+  animation: scaleInBounce 0.6s ease-out forwards;
+}
+
+.animate-soft-pulse {
+  animation: softPulse 2s ease-in-out infinite;
+}
+
+.animate-soft-bounce {
+  animation: softBounce 2s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-count-up {
+  animation: countUp 0.6s ease-out forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-rotate-in {
+  animation: rotateIn 0.5s ease-out forwards;
+}
+
+.animate-flip-in {
+  animation: flipIn 0.6s ease-out forwards;
+}
+
+.animate-blur-in {
+  animation: blurIn 0.5s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-swing {
+  animation: swing 1s ease-in-out;
+  transform-origin: top center;
+}
+
+.animate-rubber-band {
+  animation: rubberBand 1s ease-in-out;
+}
+
+.animate-jello {
+  animation: jello 1s ease-in-out;
+}
+
+.animate-tada {
+  animation: tada 1s ease-in-out;
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* Stagger delays para listas */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+.stagger-9 { animation-delay: 0.45s; }
+.stagger-10 { animation-delay: 0.5s; }
+
+/* Animação inicial invisível (para stagger) */
+.animate-stagger {
+  opacity: 0;
+  animation: staggerFadeIn 0.5s ease-out forwards;
+}
+
+/* Hover animations */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+}
+
+.hover-rotate {
+  transition: transform 0.3s ease-out;
+}
+
+.hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+.hover-shake:hover {
+  animation: shake 0.5s ease-in-out;
+}
+
+.hover-bounce:hover {
+  animation: softBounce 0.5s ease-in-out;
+}
+
+.hover-wiggle:hover {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.hover-rubber:hover {
+  animation: rubberBand 0.8s ease-in-out;
+}
+
+/* Active animations */
+.active-scale:active {
+  transform: scale(0.95);
+}
+
+.active-press:active {
+  transform: translateY(2px);
+}
+
+/* Shimmer background para loading */
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius);
+}
+
+/* Glow effect */
+.glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+}
+
+.glow-success {
+  box-shadow: 0 0 20px hsl(var(--positive) / 0.3);
+}
+
+.glow-warning {
+  box-shadow: 0 0 20px hsl(var(--warning) / 0.3);
+}
+
+.glow-danger {
+  box-shadow: 0 0 20px hsl(var(--negative) / 0.3);
+}
+
+/* Transições suaves para cards */
+.card-animated {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-animated:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.15);
+}
+
+/* Card com borda animada */
+.card-border-animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-border-animated::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    45deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 0.5),
+    hsl(var(--primary))
+  );
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-border-animated:hover::before {
+  opacity: 1;
+}
+
+/* Number counter animation */
+.number-animate {
+  display: inline-block;
+  transition: all 0.3s ease-out;
+}
+
+/* Progress bar animation */
+.progress-animated {
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ripple effect */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+.ripple:active::after {
+  transform: scale(2);
+  opacity: 1;
+  transition: transform 0s, opacity 0s;
+}
+
+/* Text gradient animation */
+.text-gradient-animated {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--foreground)),
+    hsl(var(--primary)),
+    hsl(var(--foreground))
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s linear infinite;
+}
+
+/* Icon spin on hover */
+.icon-spin-hover {
+  transition: transform 0.3s ease;
+}
+
+.icon-spin-hover:hover {
+  transform: rotate(360deg);
+}
+
+/* Underline animation */
+.underline-animated {
+  position: relative;
+}
+
+.underline-animated::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.underline-animated:hover::after {
+  width: 100%;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
