@@ -48,7 +48,17 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
   return useQuery({
     queryKey: ["account-statement", accountId, effectiveStartDate, effectiveEndDate, user?.id],
     queryFn: async () => {
-      if (!user || !accountId) return { transactions: [], initialBalance: 0 };
+      console.log('🔍 [useAccountStatement] INÍCIO DA QUERY', {
+        accountId,
+        user: user?.id,
+        startDate: effectiveStartDate,
+        endDate: effectiveEndDate
+      });
+
+      if (!user || !accountId) {
+        console.log('❌ [useAccountStatement] User ou accountId não definido');
+        return { transactions: [], initialBalance: 0 };
+      }
 
       // Buscar saldo inicial da conta
       const { data: accountData } = await supabase
@@ -64,6 +74,7 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       // 1. Transações onde account_id = conta (despesas e receitas)
       // 2. Transações espelhadas (source_transaction_id preenchido) também aparecem
       // 3. Transferências de saída (account_id = conta)
+      // TEMPORÁRIO: SEM FILTRO DE DATA para debug
       const { data: outgoingTransactions, error: outError } = await supabase
         .from("transactions")
         .select(`
@@ -72,8 +83,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
           transaction_splits(id, amount, user_id, member_id)
         `)
         .eq("account_id", accountId)
-        .gte("date", effectiveStartDate)
-        .lte("date", effectiveEndDate)
+        // .gte("date", effectiveStartDate)  // ← DESABILITADO TEMPORARIAMENTE
+        // .lte("date", effectiveEndDate)    // ← DESABILITADO TEMPORARIAMENTE
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
@@ -86,6 +97,7 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       });
 
       // Buscar transferências de entrada (destination_account_id = conta)
+      // TEMPORÁRIO: SEM FILTRO DE DATA para debug
       const { data: incomingTransfers, error: inError } = await supabase
         .from("transactions")
         .select(`
@@ -95,8 +107,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         `)
         .eq("destination_account_id", accountId)
         .eq("type", "TRANSFER")
-        .gte("date", effectiveStartDate)
-        .lte("date", effectiveEndDate)
+        // .gte("date", effectiveStartDate)  // ← DESABILITADO TEMPORARIAMENTE
+        // .lte("date", effectiveEndDate)    // ← DESABILITADO TEMPORARIAMENTE
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
