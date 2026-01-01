@@ -73,17 +73,6 @@ export function useCategoriesHierarchical() {
     hierarchical,
   };
 }
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-      return data as Category[];
-    },
-    enabled: !!user,
-    retry: false, // Não tentar novamente se falhar
-    staleTime: 300000, // Cache por 5 minutos (categorias mudam pouco)
-  });
-}
 
 export function useCreateCategory() {
   const { user } = useAuth();
