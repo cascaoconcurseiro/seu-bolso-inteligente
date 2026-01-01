@@ -546,19 +546,16 @@ export function Trips() {
                 <p className="text-xs text-muted-foreground mt-1">pessoas</p>
               </div>
 
-              {/* Minha Média/Dia - Apenas gastos do usuário logado */}
+              {/* Meus Gastos Individuais */}
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-orange-500" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Minha Média/Dia</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Gastos Individuais</p>
                 </div>
                 <p className="font-mono text-2xl font-bold">
-                  {formatCurrency(
-                    myTotalSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
-                    selectedTrip.currency
-                  )}
+                  {formatCurrency(myIndividualExpenses, selectedTrip.currency)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">meus gastos</p>
+                <p className="text-xs text-muted-foreground mt-1">só meus</p>
               </div>
             </div>
 
@@ -770,57 +767,6 @@ export function Trips() {
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-6 mt-6">
-            {/* Participants & Balances */}
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                  Participantes ({participants.length})
-                </h2>
-                {/* Botão de adicionar participante apenas para owners */}
-                {permissions?.isOwner && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowAddParticipantDialog(true)}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar
-                  </Button>
-                )}
-              </div>
-              {balances.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {balances.map((balance) => (
-                    <div key={balance.participantId} className="p-4 rounded-xl border border-border">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
-                          {getInitials(balance.name)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{balance.name}</p>
-                          <p className="text-xs text-muted-foreground">Pagou {formatCurrency(balance.paid, selectedTrip.currency)}</p>
-                        </div>
-                      </div>
-                      <div className="pt-3 border-t border-border flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Saldo</span>
-                        <span className={cn(
-                          "font-mono font-semibold",
-                          balance.balance >= 0 ? "text-positive" : "text-negative"
-                        )}>
-                          {balance.balance >= 0 ? "+" : ""}{formatCurrency(balance.balance, selectedTrip.currency)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-8 text-center border border-dashed border-border rounded-xl">
-                  <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Nenhum participante</p>
-                </div>
-              )}
-            </section>
-
             {/* Expenses List - Filtrado: Compartilhadas + Minhas Individuais */}
             <section className="space-y-4">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
