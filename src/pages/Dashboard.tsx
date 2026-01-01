@@ -138,18 +138,18 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       {/* Hero Section */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 animate-fade-in-up stagger-1">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 md:gap-6 animate-fade-in-up stagger-1">
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
             Saldo atual (BRL)
           </p>
           <h1 className={cn(
-            "font-display font-bold text-5xl md:text-6xl tracking-tight animate-count-up",
+            "font-display font-bold text-4xl sm:text-5xl md:text-6xl tracking-tight animate-count-up",
             balance >= 0 ? "text-foreground" : "text-destructive"
           )}>
             {formatCurrency(balance)}
           </h1>
-          <div className="flex items-center gap-6 text-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm">
             <span className="flex items-center gap-1.5 animate-stagger stagger-2">
               <ArrowUpRight className="h-4 w-4 text-green-500" />
               <span className="text-muted-foreground">Entradas</span>
@@ -165,7 +165,7 @@ export function Dashboard() {
         
         {/* Saldos em Moedas Estrangeiras */}
         {hasForeignBalances && (
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
             {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance], index) => (
               <div 
                 key={currency} 
@@ -175,12 +175,12 @@ export function Dashboard() {
                 )}
               >
                 <Globe className="h-4 w-4 text-blue-500 animate-soft-pulse" />
-                <div>
-                  <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider font-medium">
+                <div className="min-w-0">
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400 uppercase tracking-wider font-medium truncate">
                     {currency}
                   </p>
                   <p className={cn(
-                    "font-mono font-bold text-lg",
+                    "font-mono font-bold text-base sm:text-lg truncate",
                     currencyBalance >= 0 ? "text-foreground" : "text-destructive"
                   )}>
                     {formatCurrencyWithSymbol(currencyBalance, currency)}
@@ -193,9 +193,9 @@ export function Dashboard() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         {/* Left Column */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-6 md:space-y-8">
           {/* Faturas de Cartão */}
           {creditCardsWithBalance.length > 0 && (
             <div className="space-y-3 animate-fade-in-up stagger-4">
@@ -306,7 +306,7 @@ export function Dashboard() {
         </div>
 
         {/* Right Column - Sidebar */}
-        <aside className="lg:col-span-4 space-y-6 animate-fade-in-right stagger-6">
+        <aside className="lg:col-span-4 space-y-4 md:space-y-6 animate-fade-in-right stagger-6">
           {/* Acesso Rápido */}
           <div className="space-y-2">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">

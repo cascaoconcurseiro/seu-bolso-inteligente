@@ -105,11 +105,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen flex flex-col w-full bg-background">
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8">
+          <div className="flex h-14 md:h-16 items-center justify-between">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2">
-              <span className="font-display font-bold text-xl tracking-tight">
+              <span className="font-display font-bold text-lg md:text-xl tracking-tight">
                 pé de meia
               </span>
             </Link>
@@ -136,7 +136,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </nav>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2">
               {/* Notifications */}
               <NotificationButton />
 
@@ -145,25 +145,25 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
               >
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {isDark ? <Sun className="h-5 w-5 md:h-4 md:w-4" /> : <Moon className="h-5 w-5 md:h-4 md:w-4" />}
               </Button>
 
-              {/* Settings */}
-              <Link to="/configuracoes">
+              {/* Settings - Hidden on mobile */}
+              <Link to="/configuracoes" className="hidden md:block">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
               </Link>
 
-              {/* User Menu */}
+              {/* User Menu - Hidden on mobile */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild className="hidden md:flex">
                   <Button
                     variant="ghost"
                     className="relative h-9 w-9 rounded-full bg-foreground text-background font-medium text-sm"
@@ -190,7 +190,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden text-muted-foreground hover:text-foreground"
+                className="md:hidden h-10 w-10 text-muted-foreground hover:text-foreground"
               >
                 {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
@@ -201,7 +201,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border animate-slide-down">
-            <nav className="max-w-7xl mx-auto px-4 py-4 space-y-1">
+            <nav className="max-w-7xl mx-auto px-3 py-4 space-y-1">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -210,7 +210,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px]",
                       isActive
                         ? "bg-foreground text-background"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -221,6 +221,26 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 );
               })}
+              {/* Settings link in mobile menu */}
+              <Link
+                to="/configuracoes"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                <Settings className="h-5 w-5" />
+                <span className="font-medium">Configurações</span>
+              </Link>
+              {/* Logout in mobile menu */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Sair</span>
+              </button>
             </nav>
           </div>
         )}
@@ -229,17 +249,18 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}
         {location.pathname !== '/cartoes' && (
           <div className="border-t border-border bg-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-              <div className="flex-1" />
+            <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-2 md:py-3 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <div className="flex-1 w-full sm:w-auto" />
               <MonthSelector />
-              <div className="flex-1 flex justify-end">
+              <div className="flex-1 w-full sm:w-auto flex justify-end">
                 <Button 
                   size="sm"
                   onClick={handleNewTransaction}
-                  className="gap-2"
+                  className="w-full sm:w-auto gap-2 h-11 md:h-9"
                 >
                   <Plus className="h-4 w-4" />
-                  Nova transação
+                  <span className="hidden sm:inline">Nova transação</span>
+                  <span className="sm:hidden">Nova</span>
                 </Button>
               </div>
             </div>
@@ -249,7 +270,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
           {children}
         </div>
       </main>

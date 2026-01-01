@@ -83,19 +83,19 @@ export function MonthSelector() {
 
   return (
     <div
-      className={`flex items-center space-x-1 bg-muted rounded-full p-1 border mx-2 flex-1 justify-center max-w-[200px] md:max-w-[220px] transition-all duration-150 ${
+      className={`flex items-center space-x-1 bg-muted rounded-full p-1 border flex-1 justify-center max-w-[180px] sm:max-w-[200px] md:max-w-[220px] transition-all duration-150 ${
         isTransitioning ? "opacity-90" : "opacity-100"
       }`}
     >
       <button
         onClick={() => handleMonthChange("prev")}
         disabled={isTransitioning}
-        className="relative z-30 p-3 md:p-1.5 hover:bg-background hover:shadow-sm rounded-full transition-all text-muted-foreground active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="relative z-30 p-2 md:p-1.5 hover:bg-background hover:shadow-sm rounded-full transition-all text-muted-foreground active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="w-5 h-5 md:w-4 md:h-4" />
       </button>
 
-      <div className="flex items-center justify-center relative group cursor-pointer h-8 px-2 min-w-[70px]">
+      <div className="flex items-center justify-center relative group cursor-pointer h-10 md:h-8 px-2 min-w-[70px]">
         <span
           className={`text-xs sm:text-sm font-bold text-foreground pointer-events-none leading-none pt-0.5 truncate transition-opacity duration-150 ${
             isTransitioning ? "opacity-70" : "opacity-100"
@@ -119,9 +119,9 @@ export function MonthSelector() {
       <button
         onClick={() => handleMonthChange("next")}
         disabled={isTransitioning}
-        className="relative z-30 p-3 md:p-1.5 hover:bg-background hover:shadow-sm rounded-full transition-all text-muted-foreground active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="relative z-30 p-2 md:p-1.5 hover:bg-background hover:shadow-sm rounded-full transition-all text-muted-foreground active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0"
       >
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-5 h-5 md:w-4 md:h-4" />
       </button>
     </div>
   );
