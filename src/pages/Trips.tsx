@@ -387,14 +387,12 @@ export function Trips() {
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Total</p>
             <p className="font-mono text-2xl font-bold">{formatCurrency(totalExpenses, selectedTrip.currency)}</p>
           </div>
-          {participants.length > 0 && (
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por pessoa</p>
-              <p className="font-mono text-lg font-medium">
-                {formatCurrency(totalExpenses / participants.length, selectedTrip.currency)}
-              </p>
-            </div>
-          )}
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Individual</p>
+            <p className="font-mono text-lg font-medium">
+              {formatCurrency(myIndividualExpenses, selectedTrip.currency)}
+            </p>
+          </div>
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Período</p>
             <p className="text-sm">
