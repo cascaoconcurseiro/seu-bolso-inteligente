@@ -53,8 +53,8 @@ import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
 import { validateTransaction } from '@/services/validationService';
 import { getBankById } from '@/lib/banks';
-import { useCategoryPrediction } from '@/hooks/useCategoryPrediction';
-import { CategoryPredictionService } from '@/services/categoryPredictionService';
+// import { useCategoryPrediction } from '@/hooks/useCategoryPrediction';
+// import { CategoryPredictionService } from '@/services/categoryPredictionService';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -80,12 +80,14 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
-  // Predição automática de categoria
-  const { prediction, isLoading: isPredicting } = useCategoryPrediction(
-    description,
-    activeTab === 'TRANSFER' ? 'expense' : activeTab.toLowerCase() as 'expense' | 'income',
-    activeTab !== 'TRANSFER' // Só ativar se não for transferência
-  );
+  // Predição automática de categoria (TEMPORARIAMENTE DESABILITADA)
+  // const { prediction, isLoading: isPredicting } = useCategoryPrediction(
+  //   description,
+  //   activeTab === 'TRANSFER' ? 'expense' : activeTab.toLowerCase() as 'expense' | 'income',
+  //   activeTab !== 'TRANSFER' // Só ativar se não for transferência
+  // );
+  const prediction = null;
+  const isPredicting = false;
 
   // Form State
   const [activeTab, setActiveTab] = useState<TabType>('EXPENSE');
@@ -111,16 +113,16 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     }
   }, [context]);
 
-  // Aplicar sugestão de categoria automaticamente
-  useEffect(() => {
-    // Só aplicar se:
-    // 1. Tem predição
-    // 2. Não tem categoria selecionada ainda
-    // 3. Não é contexto inicial (que já define categoria)
-    if (prediction && !categoryId && !context?.categoryId) {
-      setCategoryId(prediction.categoryId);
-    }
-  }, [prediction, categoryId, context?.categoryId]);
+  // TEMPORARIAMENTE DESABILITADO - Aplicar sugestão de categoria automaticamente
+  // useEffect(() => {
+  //   // Só aplicar se:
+  //   // 1. Tem predição
+  //   // 2. Não tem categoria selecionada ainda
+  //   // 3. Não é contexto inicial (que já define categoria)
+  //   if (prediction && !categoryId && !context?.categoryId) {
+  //     setCategoryId(prediction.categoryId);
+  //   }
+  // }, [prediction, categoryId, context?.categoryId]);
 
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
@@ -402,16 +404,16 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const performSubmit = async (transactionData: any) => {
     await createTransaction.mutateAsync(transactionData);
 
-    // Registrar aprendizado de categoria (se tiver categoria e não for transferência)
-    if (user && categoryId && description && activeTab !== 'TRANSFER') {
-      const wasCorrection = prediction && prediction.categoryId !== categoryId;
-      await CategoryPredictionService.learnFromUser(
-        description,
-        categoryId,
-        user.id,
-        wasCorrection
-      );
-    }
+    // TEMPORARIAMENTE DESABILITADO - Registrar aprendizado de categoria
+    // if (user && categoryId && description && activeTab !== 'TRANSFER') {
+    //   const wasCorrection = prediction && prediction.categoryId !== categoryId;
+    //   await CategoryPredictionService.learnFromUser(
+    //     description,
+    //     categoryId,
+    //     user.id,
+    //     wasCorrection
+    //   );
+    // }
 
     if (onSuccess) {
       onSuccess();
