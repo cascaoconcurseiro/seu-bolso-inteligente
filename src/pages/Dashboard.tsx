@@ -117,7 +117,7 @@ export function Dashboard() {
           <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
             Comece adicionando uma conta bancária ou criando sua primeira transação.
           </p>
-          <Link to="/configuracoes">
+          <Link to="/contas">
             <Button size="lg" variant="outline" className="gap-2 h-12 md:h-11">
               <CreditCard className="h-5 w-5" />
               <span className="hidden sm:inline">Adicionar conta</span>
