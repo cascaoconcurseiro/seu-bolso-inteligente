@@ -390,7 +390,7 @@ export function Trips() {
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Individual</p>
             <p className="font-mono text-lg font-medium">
-              {formatCurrency(myIndividualExpenses, selectedTrip.currency)}
+              {formatCurrency(myTotalSpent, selectedTrip.currency)}
             </p>
           </div>
           <div>
@@ -544,16 +544,16 @@ export function Trips() {
                 <p className="text-xs text-muted-foreground mt-1">pessoas</p>
               </div>
 
-              {/* Meus Gastos Individuais */}
+              {/* Meus Gastos Totais (Individual + Parte dos Compartilhados) */}
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-orange-500" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Gastos Individuais</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Meus Gastos</p>
                 </div>
                 <p className="font-mono text-2xl font-bold">
-                  {formatCurrency(myIndividualExpenses, selectedTrip.currency)}
+                  {formatCurrency(myTotalSpent, selectedTrip.currency)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">só meus</p>
+                <p className="text-xs text-muted-foreground mt-1">total</p>
               </div>
             </div>
 
