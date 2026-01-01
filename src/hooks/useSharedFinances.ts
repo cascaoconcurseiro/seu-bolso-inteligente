@@ -22,6 +22,7 @@ export interface InvoiceItem {
   installmentNumber?: number | null;
   totalInstallments?: number | null;
   creatorUserId?: string;
+  creatorName?: string; // Nome de quem pagou/criou a transação
 }
 
 interface UseSharedFinancesProps {
@@ -256,6 +257,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           
           const member = members.find(m => m.id === memberId);
           
+          // Buscar nome do criador (quem pagou)
+          const creator = members.find(m => m.linked_user_id === tx.user_id);
+          const creatorName = creator?.name || (tx.user_id === user?.id ? 'Você' : 'Outro membro');
+          
           if (!invoiceMap[memberId]) {
             console.warn('⚠️ [CASO 1A] Member não encontrado no invoiceMap:', memberId);
             invoiceMap[memberId] = [];
@@ -279,7 +284,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             currency: txCurrency,
             installmentNumber: tx.current_installment,
             totalInstallments: tx.total_installments,
-            creatorUserId: tx.user_id
+            creatorUserId: tx.user_id,
+            creatorName: creatorName
           });
 
           console.log('✅ [CASO 1A] CRÉDITO criado:', {
@@ -313,6 +319,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               
               console.log('🔍 [CASO 1B] Criando DÉBITO com tripId:', tx.trip_id);
               
+              // Buscar nome do criador (quem pagou) - neste caso é o próprio usuário logado
+              const creatorName = 'Você'; // Eu devo para o criador, então o criador sou eu
+              
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
                 originalTxId: tx.id,
@@ -329,7 +338,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 currency: txCurrency,
                 installmentNumber: tx.current_installment,
                 totalInstallments: tx.total_installments,
-                creatorUserId: tx.user_id
+                creatorUserId: tx.user_id,
+                creatorName: creatorMember.name // Quem pagou foi o criador
               });
 
               console.log('✅ [CASO 1B] DÉBITO criado:', {
@@ -382,7 +392,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         currency: txCurrency,
         installmentNumber: tx.current_installment,
         totalInstallments: tx.total_installments,
-        creatorUserId: tx.user_id
+        creatorUserId: tx.user_id,
+        creatorName: payer.name // Quem pagou foi o payer
       });
     });
 

@@ -140,14 +140,26 @@ export function useTransactions(filters?: TransactionFilters) {
 
       if (error) throw error;
       
-      // Filtrar transações de contas internacionais (não-BRL)
-      // Essas transações só devem aparecer:
-      // - No extrato da própria conta
-      // - Na aba Viagem (se trip_id)
-      // - Na aba Compartilhados > Viagem (se is_shared e trip_id)
+      // CORREÇÃO: Não filtrar transações de contas internacionais
+      // Settlement transactions (domain: SHARED) devem aparecer mesmo em contas internacionais
+      // Apenas filtrar transações de viagens não-compartilhadas em contas internacionais
       const filteredData = (data || []).filter(tx => {
         const accountCurrency = tx.account?.currency || 'BRL';
-        return accountCurrency === 'BRL';
+        
+        // Sempre mostrar transações BRL
+        if (accountCurrency === 'BRL') return true;
+        
+        // Sempre mostrar transações de acerto (domain: SHARED)
+        if (tx.domain === 'SHARED') return true;
+        
+        // Sempre mostrar transações compartilhadas
+        if (tx.is_shared) return true;
+        
+        // Sempre mostrar transações de viagem
+        if (tx.trip_id) return true;
+        
+        // Filtrar outras transações de contas internacionais
+        return false;
       });
       
       return filteredData as Transaction[];

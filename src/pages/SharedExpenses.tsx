@@ -870,12 +870,19 @@ export function SharedExpenses() {
 
                         {/* Descrição e Categoria */}
                         <div className="col-span-5">
-                          <p className={cn(
-                            "text-sm font-medium",
-                            item.isPaid && "line-through text-muted-foreground"
-                          )}>
-                            {item.description}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={cn(
+                              "text-sm font-medium",
+                              item.isPaid && "line-through text-muted-foreground"
+                            )}>
+                              {item.description}
+                            </p>
+                            {item.creatorName && (
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                💳 {item.creatorName}
+                              </span>
+                            )}
+                          </div>
                           {item.category && (
                             <p className="text-xs text-muted-foreground">
                               📁 {item.category}
@@ -1115,12 +1122,19 @@ export function SharedExpenses() {
 
                         {/* Descrição */}
                         <div className="col-span-5">
-                          <p className={cn(
-                            "font-medium",
-                            item.isPaid && "text-muted-foreground line-through"
-                          )}>
-                            {item.description}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={cn(
+                              "font-medium",
+                              item.isPaid && "text-muted-foreground line-through"
+                            )}>
+                              {item.description}
+                            </p>
+                            {item.creatorName && (
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                💳 {item.creatorName}
+                              </span>
+                            )}
+                          </div>
                           {item.category && (
                             <p className="text-xs text-muted-foreground">{item.category}</p>
                           )}
