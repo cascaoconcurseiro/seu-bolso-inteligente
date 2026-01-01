@@ -27,6 +27,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -698,23 +700,26 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                       activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
                     );
                     
+                    // Só renderizar grupo se tiver filhos
+                    if (childrenOfType.length === 0) return null;
+                    
                     return (
-                      <div key={parent.id}>
-                        {/* Categoria Pai (não selecionável, apenas visual) */}
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                      <SelectGroup key={parent.id}>
+                        {/* Categoria Pai como Label */}
+                        <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
                           {parent.icon} {parent.name}
-                        </div>
+                        </SelectLabel>
                         
-                        {/* Subcategorias (selecionáveis) */}
+                        {/* Subcategorias */}
                         {childrenOfType.map((child) => (
-                          <SelectItem key={child.id} value={child.id} className="pl-6">
+                          <SelectItem key={child.id} value={child.id} className="pl-8">
                             <div className="flex items-center gap-2">
                               <span>{child.icon}</span>
-                              {child.name}
+                              <span>{child.name}</span>
                             </div>
                           </SelectItem>
                         ))}
-                      </div>
+                      </SelectGroup>
                     );
                   })}
                 </SelectContent>
