@@ -258,16 +258,16 @@ export function Transactions() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-bold text-3xl tracking-tight">Transações</h1>
+          <h1 className="font-display font-bold text-2xl md:text-3xl tracking-tight">Transações</h1>
           <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9">
               <Download className="h-4 w-4" />
-              Exportar
+              <span className="hidden sm:inline">Exportar</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -296,19 +296,19 @@ export function Transactions() {
       </div>
 
       {/* Summary */}
-      <div className="flex items-center gap-8 py-4 border-y border-border">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 py-4 border-y border-border">
+        <div className="flex-1">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Entradas</p>
-          <p className="font-mono text-lg font-medium text-positive">+{formatCurrency(totalIncome)}</p>
+          <p className="font-mono text-base sm:text-lg font-medium text-positive">+{formatCurrency(totalIncome)}</p>
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Saídas</p>
-          <p className="font-mono text-lg font-medium text-negative">-{formatCurrency(totalExpense)}</p>
+          <p className="font-mono text-base sm:text-lg font-medium text-negative">-{formatCurrency(totalExpense)}</p>
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Resultado</p>
           <p className={cn(
-            "font-mono text-lg font-medium",
+            "font-mono text-base sm:text-lg font-medium",
             totalIncome - totalExpense >= 0 ? "text-positive" : "text-negative"
           )}>
             {totalIncome - totalExpense >= 0 ? "+" : "-"}{formatCurrency(Math.abs(totalIncome - totalExpense))}
@@ -318,23 +318,23 @@ export function Transactions() {
 
       {/* Search & Filters */}
       <div className="space-y-4">
-        <div className="flex gap-3">
+        <div className="flex gap-2 md:gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar transações..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-11 md:h-10"
             />
           </div>
           <Button
             variant={showFilters ? "default" : "outline"}
             onClick={() => setShowFilters(!showFilters)}
-            className="gap-2"
+            className="gap-2 h-11 md:h-10 min-w-[44px]"
           >
             <Filter className="h-4 w-4" />
-            Filtros
+            <span className="hidden sm:inline">Filtros</span>
             {hasFilters && (
               <span className="w-2 h-2 rounded-full bg-background" />
             )}
@@ -342,11 +342,11 @@ export function Transactions() {
         </div>
 
         {showFilters && (
-          <div className="flex flex-wrap gap-3 p-4 rounded-xl border border-border animate-fade-in">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-xl border border-border animate-fade-in">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tipo</label>
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-full h-11 md:h-10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -360,7 +360,7 @@ export function Transactions() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoria</label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full h-11 md:h-10">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
@@ -380,7 +380,7 @@ export function Transactions() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Conta</label>
               <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full h-11 md:h-10">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
@@ -397,7 +397,7 @@ export function Transactions() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Período</label>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-full h-11 md:h-10">
                   <SelectValue placeholder="Todo período" />
                 </SelectTrigger>
                 <SelectContent>
@@ -472,16 +472,16 @@ export function Transactions() {
                       )}
                       onClick={() => setDetailsTransaction(transaction)}
                     >
-                      <div className="flex items-start gap-4 flex-1 min-w-0">
+                      <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
                         <div className={cn(
-                          "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0",
+                          "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
                           transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
                         )}>
                           {transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
                         </div>
                         <div className="flex-1 min-w-0 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium truncate">{transaction.description}</p>
+                            <p className="font-medium text-sm md:text-base truncate">{transaction.description}</p>
                             {transaction.is_shared && (
                               <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
                                 Compartilhado
@@ -500,7 +500,7 @@ export function Transactions() {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap mt-1">
                             <span className="truncate">{transaction.category?.name || "Sem categoria"}</span>
                             {transaction.account?.name && (
                               <>
@@ -569,13 +569,13 @@ export function Transactions() {
                             {transaction.type === "INCOME" ? "Crédito" : "Débito"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>
                           {/* Botão Confirmar Ressarcimento - apenas para compartilhadas pendentes que eu paguei */}
                           {transaction.is_shared && pending && (isOwner || isCreator) && (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-positive hover:text-positive"
+                              className="h-10 w-10 md:h-8 md:w-8 text-positive hover:text-positive"
                               onClick={() => setSettlementTransaction(transaction)}
                               title="Confirmar ressarcimento"
                             >
@@ -587,7 +587,7 @@ export function Transactions() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-blue-600 hover:text-blue-600"
+                              className="h-10 w-10 md:h-8 md:w-8 text-blue-600 hover:text-blue-600"
                               onClick={() => handleAdvance(transaction)}
                               title="Adiantar parcelas"
                             >
@@ -598,7 +598,7 @@ export function Transactions() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-primary hover:text-primary"
+                              className="h-10 w-10 md:h-8 md:w-8 text-primary hover:text-primary"
                               onClick={() => handleEdit(transaction)}
                               title="Editar"
                             >
@@ -609,7 +609,7 @@ export function Transactions() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              className="h-10 w-10 md:h-8 md:w-8 text-destructive hover:text-destructive"
                               onClick={() => {
                                 // Se é parcela, perguntar se quer excluir série
                                 if (transaction.is_installment && transaction.series_id) {
