@@ -37,7 +37,6 @@ import {
   useTripParticipants, 
   useTripTransactions,
   useTripFinancialSummary,
-  useMyTripSpent,
   useCreateTrip,
   useUpdateTrip,
   useDeleteTrip,
@@ -106,7 +105,6 @@ export function Trips() {
   
   // SINGLE SOURCE OF TRUTH: Usar dados calculados pelo banco de dados
   const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
-  const { data: myTripSpent = 0 } = useMyTripSpent(selectedTripId);
   
   const createTrip = useCreateTrip();
   const updateTrip = useUpdateTrip();
@@ -281,6 +279,21 @@ export function Trips() {
     const totalExpenses = tripFinancialSummary?.total_spent || tripTransactions.reduce((sum, t) => 
       t.type === "EXPENSE" ? sum + t.amount : sum, 0
     );
+
+    // Calcular meus gastos totais na viagem (individuais + parte dos compartilhados)
+    const myIndividualExpenses = tripTransactions
+      .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const sharedExpensesTotal = tripTransactions
+      .filter(t => t.type === "EXPENSE" && t.is_shared)
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const myShareOfShared = participants.length > 0 
+      ? sharedExpensesTotal / participants.length 
+      : 0;
+    
+    const myTotalSpent = myIndividualExpenses + myShareOfShared;
 
     return (
       <div className="space-y-6 animate-fade-in">
@@ -541,7 +554,7 @@ export function Trips() {
                 </div>
                 <p className="font-mono text-2xl font-bold">
                   {formatCurrency(
-                    myTripSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                    myTotalSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
                     selectedTrip.currency
                   )}
                 </p>
@@ -567,19 +580,19 @@ export function Trips() {
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Meus Gastos</p>
                     <p className="font-mono text-xl font-bold">
-                      {formatCurrency(myTripSpent, selectedTrip.currency)}
+                      {formatCurrency(myTotalSpent, selectedTrip.currency)}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">
-                      {myTripSpent > myPersonalBudget ? "Acima do Orçamento" : "Restante"}
+                      {myTotalSpent > myPersonalBudget ? "Acima do Orçamento" : "Restante"}
                     </p>
                     <p className={cn(
                       "font-mono text-xl font-bold",
-                      myTripSpent > myPersonalBudget ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                      myTotalSpent > myPersonalBudget ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
                     )}>
-                      {myTripSpent > myPersonalBudget ? "+" : ""}
-                      {formatCurrency(Math.abs(myPersonalBudget - myTripSpent), selectedTrip.currency)}
+                      {myTotalSpent > myPersonalBudget ? "+" : ""}
+                      {formatCurrency(Math.abs(myPersonalBudget - myTotalSpent), selectedTrip.currency)}
                     </p>
                   </div>
                 </div>
@@ -588,17 +601,17 @@ export function Trips() {
                   <div
                     className={cn(
                       "h-full transition-all duration-500 rounded-full",
-                      myTripSpent > myPersonalBudget
+                      myTotalSpent > myPersonalBudget
                         ? "bg-red-500"
-                        : myTripSpent > myPersonalBudget * 0.8
+                        : myTotalSpent > myPersonalBudget * 0.8
                         ? "bg-yellow-500"
                         : "bg-green-500"
                     )}
-                    style={{ width: `${Math.min((myTripSpent / myPersonalBudget) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((myTotalSpent / myPersonalBudget) * 100, 100)}%` }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                  {((myTripSpent / myPersonalBudget) * 100).toFixed(1)}% do meu orçamento utilizado
+                  {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% do meu orçamento utilizado
                 </p>
               </div>
             )}
