@@ -868,7 +868,7 @@ export function SharedExpenses() {
                           )}
                         </div>
 
-                        {/* Descrição */}
+                        {/* Descrição e Categoria */}
                         <div className="col-span-5">
                           <p className={cn(
                             "text-sm font-medium",
@@ -876,6 +876,11 @@ export function SharedExpenses() {
                           )}>
                             {item.description}
                           </p>
+                          {item.category && (
+                            <p className="text-xs text-muted-foreground">
+                              📁 {item.category}
+                            </p>
+                          )}
                           {item.totalInstallments && item.totalInstallments > 1 && (
                             <p className="text-xs text-muted-foreground">
                               Parcela {item.installmentNumber}/{item.totalInstallments}

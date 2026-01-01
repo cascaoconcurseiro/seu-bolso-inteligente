@@ -418,6 +418,12 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       return;
     }
 
+    // ✅ VALIDAÇÃO: Categoria obrigatória para transações compartilhadas
+    if (isShared && !categoryId) {
+      toast.error('A categoria é obrigatória para transações compartilhadas (necessária para controle de orçamento)');
+      return;
+    }
+
     // Preparar dados da transação
     const transactionData = {
       amount: numericAmount,

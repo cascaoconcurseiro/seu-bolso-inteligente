@@ -59,7 +59,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // Buscar transações compartilhadas CRIADAS POR MIM
       const { data: myTransactions, error: myTxError } = await supabase
         .from('transactions')
-        .select('*')
+        .select(`
+          *,
+          category:categories(id, name, icon, color)
+        `)
         .eq('user_id', user.id)
         .eq('is_shared', true)
         .order('date', { ascending: false });
@@ -72,7 +75,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // Buscar transações compartilhadas onde EU FUI INCLUÍDO em um split
       const { data: mySplits, error: mySplitsError } = await supabase
         .from('transaction_splits')
-        .select('*, transaction:transactions!transaction_id(*)')
+        .select(`
+          *,
+          transaction:transactions!transaction_id(
+            *,
+            category:categories(id, name, icon, color)
+          )
+        `)
         .eq('user_id', user.id);
       
       if (mySplitsError) {
@@ -155,6 +164,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .from('transactions')
         .select(`
           *,
+          category:categories(id, name, icon, color),
           payer:family_members!payer_id (
             id,
             name,
@@ -259,6 +269,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             splitId: split.id,
             description: tx.description,
             date: tx.competence_date || tx.date,
+            category: tx.category?.name,
             amount: split.amount,
             type: 'CREDIT',
             isPaid: split.settled_by_creditor === true, // Credor: usa settled_by_creditor
@@ -308,6 +319,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 splitId: mySplit.id,
                 description: tx.description,
                 date: tx.competence_date || tx.date,
+                category: tx.category?.name,
                 amount: mySplit.amount,
                 type: 'DEBIT',
                 isPaid: mySplit.settled_by_debtor === true, // Devedor: usa settled_by_debtor
@@ -360,6 +372,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         originalTxId: tx.id,
         description: tx.description,
         date: tx.competence_date || tx.date,
+        category: tx.category?.name,
         amount: tx.amount,
         type: 'DEBIT',
         isPaid: tx.is_settled === true,
