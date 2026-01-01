@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Bell,
   Wallet,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -52,6 +54,8 @@ import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
 import { validateTransaction } from '@/services/validationService';
 import { getBankById } from '@/lib/banks';
+import { useCategoryPrediction } from '@/hooks/useCategoryPrediction';
+import { CategoryPredictionService } from '@/services/categoryPredictionService';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -77,6 +81,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
+  // Predição automática de categoria
+  const { prediction, isLoading: isPredicting } = useCategoryPrediction(
+    description,
+    activeTab === 'TRANSFER' ? 'expense' : activeTab.toLowerCase() as 'expense' | 'income',
+    activeTab !== 'TRANSFER' // Só ativar se não for transferência
+  );
+
   // Form State
   const [activeTab, setActiveTab] = useState<TabType>('EXPENSE');
   const [amount, setAmount] = useState('');
@@ -100,6 +111,17 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       setCategoryId(context.categoryId);
     }
   }, [context]);
+
+  // Aplicar sugestão de categoria automaticamente
+  useEffect(() => {
+    // Só aplicar se:
+    // 1. Tem predição
+    // 2. Não tem categoria selecionada ainda
+    // 3. Não é contexto inicial (que já define categoria)
+    if (prediction && !categoryId && !context?.categoryId) {
+      setCategoryId(prediction.categoryId);
+    }
+  }, [prediction, categoryId, context?.categoryId]);
 
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
@@ -380,6 +402,17 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const performSubmit = async (transactionData: any) => {
     await createTransaction.mutateAsync(transactionData);
+
+    // Registrar aprendizado de categoria (se tiver categoria e não for transferência)
+    if (user && categoryId && description && activeTab !== 'TRANSFER') {
+      const wasCorrection = prediction && prediction.categoryId !== categoryId;
+      await CategoryPredictionService.learnFromUser(
+        description,
+        categoryId,
+        user.id,
+        wasCorrection
+      );
+    }
 
     if (onSuccess) {
       onSuccess();
@@ -689,6 +722,23 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           {!isTransfer ? (
             <div className="space-y-2">
               <Label>Categoria</Label>
+              
+              {/* Badge de Sugestão */}
+              {prediction && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    <Sparkles className="h-3 w-3" />
+                    Sugestão: {prediction.categoryName}
+                    <span className="text-[10px] opacity-70">
+                      ({Math.round(prediction.confidence * 100)}%)
+                    </span>
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">
+                    {prediction.reason}
+                  </span>
+                </div>
+              )}
+              
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Selecione" />
