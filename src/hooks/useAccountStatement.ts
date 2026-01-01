@@ -79,6 +79,12 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
 
       if (outError) throw outError;
 
+      console.log('🔍 [useAccountStatement] Transações encontradas:', {
+        accountId,
+        outgoingCount: outgoingTransactions?.length || 0,
+        outgoing: outgoingTransactions?.map(t => ({ id: t.id, desc: t.description, amount: t.amount }))
+      });
+
       // Buscar transferências de entrada (destination_account_id = conta)
       const { data: incomingTransfers, error: inError } = await supabase
         .from("transactions")
@@ -96,6 +102,12 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
 
       if (inError) throw inError;
 
+      console.log('🔍 [useAccountStatement] Transferências de entrada:', {
+        accountId,
+        incomingCount: incomingTransfers?.length || 0,
+        incoming: incomingTransfers?.map(t => ({ id: t.id, desc: t.description, amount: t.amount }))
+      });
+
       // Combinar e processar transações
       // Filtrar apenas transações de contas do usuário (segurança)
       const allTransactions = [
@@ -103,6 +115,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         ...(incomingTransfers || [])
       ].filter(tx => tx.user_id === user.id); // Garantir que só vê suas próprias transações
       
+      console.log('🔍 [useAccountStatement] Após filtro de segurança:', {
+        totalBefore: (outgoingTransactions?.length || 0) + (incomingTransfers?.length || 0),
+        totalAfter: allTransactions.length,
+        filtered: allTransactions.map(t => ({ id: t.id, desc: t.description, user_id: t.user_id }))
+      });
       // Ordenar por data e created_at
       allTransactions.sort((a, b) => {
         const dateCompare = a.date.localeCompare(b.date);
@@ -176,6 +193,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       };
     },
     enabled: !!user && !!accountId,
-    staleTime: 30000,
+    staleTime: 0, // Sempre buscar dados frescos para debug
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 }
