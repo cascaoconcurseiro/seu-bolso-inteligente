@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { CategoryPredictionService, CategoryPrediction } from '@/services/categoryPredictionService';
+import { CategoryPredictionService } from '@/services/categoryPredictionService';
+import type { CategoryPrediction } from '@/types/categoryPrediction';
 import { useDebounce } from '@/hooks/useDebounce';
 
 /**
