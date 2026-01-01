@@ -234,30 +234,9 @@ export function SharedExpenses() {
         return;
       }
 
-      // VERIFICAR SE ALGUM ITEM JÁ FOI PAGO (prevenir duplicidade)
-      const alreadyPaidItems = itemsToSettle.filter(i => i.isPaid);
-      if (alreadyPaidItems.length > 0) {
-        toast.error(`${alreadyPaidItems.length} item(ns) já foram pagos anteriormente!`);
-        setIsSettling(false);
-        return;
-      }
-
-      // Verificar no banco se os splits já estão marcados como pagos
-      const splitIds = itemsToSettle.filter(i => i.splitId).map(i => i.splitId);
-      if (splitIds.length > 0) {
-        const { data: existingSplits } = await supabase
-          .from('transaction_splits')
-          .select('id, is_settled')
-          .in('id', splitIds);
-        
-        const alreadySettled = existingSplits?.filter(s => s.is_settled) || [];
-        if (alreadySettled.length > 0) {
-          toast.error(`${alreadySettled.length} item(ns) já foram pagos no banco de dados!`);
-          setIsSettling(false);
-          refetch();
-          return;
-        }
-      }
+      // NOTA: Não verificamos isPaid aqui porque cada pessoa tem seu próprio controle
+      // Wesley pode marcar como pago (settled_by_debtor) e Fran pode marcar separadamente (settled_by_creditor)
+      // A verificação específica por lado é feita mais abaixo no loop de processamento
 
       const amount = parseFloat(settleAmount.replace(".", "").replace(",", "."));
       if (isNaN(amount) || amount <= 0) {
