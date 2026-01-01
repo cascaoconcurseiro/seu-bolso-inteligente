@@ -479,53 +479,130 @@ export function Trips() {
               
               if (!myBalance) return null;
               
+              // Calcular se está tudo acertado
+              const isSettled = Math.abs(myBalance.balance) < 0.01; // Considera acertado se saldo < 1 centavo
+              
               return (
                 <section className="space-y-4">
                   <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                     Meu Resumo
                   </h2>
-                  <div className="p-4 rounded-xl border border-border">
+                  <div className={cn(
+                    "p-4 rounded-xl border-2",
+                    isSettled 
+                      ? "border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/20"
+                      : myBalance.balance >= 0
+                        ? "border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20"
+                        : "border-orange-200 dark:border-orange-900/50 bg-orange-50 dark:bg-orange-950/20"
+                  )}>
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center font-medium text-white",
+                        isSettled ? "bg-green-500" : myBalance.balance >= 0 ? "bg-blue-500" : "bg-orange-500"
+                      )}>
                         {getInitials(myBalance.name)}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{myBalance.name}</p>
                         <p className="text-xs text-muted-foreground">Pagou {formatCurrency(myBalance.paid, selectedTrip.currency)}</p>
                       </div>
+                      {isSettled && (
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-xs font-medium">Acertado</span>
+                        </div>
+                      )}
                     </div>
                     <div className="pt-3 border-t border-border">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Saldo</span>
                         <span className={cn(
                           "font-mono font-semibold",
+                          isSettled ? "text-green-600 dark:text-green-400" :
                           myBalance.balance >= 0 ? "text-positive" : "text-negative"
                         )}>
-                          {myBalance.balance >= 0 ? "+" : ""}{formatCurrency(myBalance.balance, selectedTrip.currency)}
+                          {isSettled ? "Em dia" : (
+                            <>
+                              {myBalance.balance >= 0 ? "+" : ""}{formatCurrency(myBalance.balance, selectedTrip.currency)}
+                            </>
+                          )}
                         </span>
                       </div>
+                      {!isSettled && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {myBalance.balance >= 0 
+                            ? "Outros participantes devem para você" 
+                            : "Acerte em Compartilhados > Viagem"}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </section>
               );
             })()}
 
-            {/* Quick Stats */}
-            <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Despesas</p>
-                <p className="font-mono text-2xl font-bold">{tripTransactions.filter(t => t.type === "EXPENSE").length}</p>
+            {/* Quick Stats - Separando gastos compartilhados e individuais */}
+            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {/* Despesas Compartilhadas */}
+              <div className="p-4 rounded-xl border-2 border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-950/20 text-center">
+                <p className="text-xs text-purple-700 dark:text-purple-300 uppercase tracking-widest mb-1 font-medium">Compartilhadas</p>
+                <p className="font-mono text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {tripTransactions.filter(t => t.type === "EXPENSE" && t.is_shared).length}
+                </p>
+                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                  {formatCurrency(
+                    tripTransactions
+                      .filter(t => t.type === "EXPENSE" && t.is_shared)
+                      .reduce((sum, t) => sum + t.amount, 0),
+                    selectedTrip.currency
+                  )}
+                </p>
               </div>
+
+              {/* Gastos Individuais */}
+              <div className="p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20 text-center">
+                <p className="text-xs text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1 font-medium">Individuais</p>
+                <p className="font-mono text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared).length}
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {formatCurrency(
+                    tripTransactions
+                      .filter(t => t.type === "EXPENSE" && !t.is_shared)
+                      .reduce((sum, t) => sum + t.amount, 0),
+                    selectedTrip.currency
+                  )}
+                </p>
+              </div>
+
+              {/* Acertos Feitos */}
+              <div className="p-4 rounded-xl border-2 border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/20 text-center">
+                <p className="text-xs text-green-700 dark:text-green-300 uppercase tracking-widest mb-1 font-medium">Acertado</p>
+                <p className="font-mono text-2xl font-bold text-green-600 dark:text-green-400">
+                  {tripFinancialSummary?.total_settled || 0 > 0 ? "✓" : "-"}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  {formatCurrency(tripFinancialSummary?.total_settled || 0, selectedTrip.currency)}
+                </p>
+              </div>
+
+              {/* Média/Dia */}
               <div className="p-4 rounded-xl border border-border text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Média/Dia</p>
                 <p className="font-mono text-lg font-medium">
                   {formatCurrency(totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))), selectedTrip.currency)}
                 </p>
               </div>
+
+              {/* Participantes */}
               <div className="p-4 rounded-xl border border-border text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Participantes</p>
                 <p className="font-mono text-2xl font-bold">{participants.length}</p>
               </div>
+
+              {/* Por Pessoa */}
               <div className="p-4 rounded-xl border border-border text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por Pessoa</p>
                 <p className="font-mono text-lg font-medium">
