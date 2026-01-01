@@ -22,7 +22,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -726,13 +725,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
               {/* Badge de Sugestão */}
               {prediction && (
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary" className="gap-1 text-xs">
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground border border-transparent">
                     <Sparkles className="h-3 w-3" />
                     Sugestão: {prediction.categoryName}
                     <span className="text-[10px] opacity-70">
                       ({Math.round(prediction.confidence * 100)}%)
                     </span>
-                  </Badge>
+                  </div>
                   <span className="text-[10px] text-muted-foreground">
                     {prediction.reason}
                   </span>
