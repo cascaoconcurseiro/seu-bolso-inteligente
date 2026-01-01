@@ -60,15 +60,19 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       const currentBalance = accountData?.balance || 0;
 
       // Buscar todas as transações da conta (incluindo transferências)
-      // Transações onde account_id = conta OU destination_account_id = conta
+      // IMPORTANTE: Excluir transações compartilhadas (is_shared = true)
+      // Transações compartilhadas só aparecem em "Compartilhados", não no extrato da conta
+      // Apenas os acertos (settlement transactions) aparecem na conta
       const { data: outgoingTransactions, error: outError } = await supabase
         .from("transactions")
         .select(`
           *,
-          category:categories(name, icon)
+          category:categories(name, icon),
+          transaction_splits(id, amount, user_id, member_id)
         `)
         .eq("user_id", user.id)
         .eq("account_id", accountId)
+        .eq("is_shared", false) // Excluir compartilhadas
         .gte("date", effectiveStartDate)
         .lte("date", effectiveEndDate)
         .order("date", { ascending: true })
@@ -81,7 +85,8 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         .from("transactions")
         .select(`
           *,
-          category:categories(name, icon)
+          category:categories(name, icon),
+          transaction_splits(id, amount, user_id, member_id)
         `)
         .eq("user_id", user.id)
         .eq("destination_account_id", accountId)
