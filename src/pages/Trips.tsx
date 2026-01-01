@@ -26,6 +26,9 @@ import {
   Trash2,
   TrendingUp,
   ShoppingCart,
+  User,
+  Wallet,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -436,132 +439,176 @@ export function Trips() {
 
           {/* Summary Tab */}
           <TabsContent value="summary" className="space-y-6 mt-6">
-            {/* Budget Progress */}
-            {myPersonalBudget && (
-              <section className="space-y-4">
-                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                  Meu Orçamento
-                </h2>
-                <div className="p-6 rounded-xl border border-border bg-muted/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Meus Gastos</p>
-                      {/* SINGLE SOURCE OF TRUTH: Usar valor calculado pelo banco */}
-                      <p className="font-mono text-3xl font-bold">{formatCurrency(myTripSpent, selectedTrip.currency)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Meu Orçamento</p>
-                      <p className="font-mono text-2xl font-medium">{formatCurrency(myPersonalBudget, selectedTrip.currency)}</p>
-                    </div>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full transition-all rounded-full",
-                        myTripSpent > myPersonalBudget
-                          ? "bg-destructive"
-                          : myTripSpent > myPersonalBudget * 0.8
-                          ? "bg-amber-500"
-                          : "bg-positive"
-                      )}
-                      style={{ width: `${Math.min((myTripSpent / myPersonalBudget) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      {((myTripSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
+            {/* Hero Card - Orçamento Principal */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 p-6 md:p-8 text-white">
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                  <div>
+                    <p className="text-sm opacity-90 mb-2">Orçamento Total da Viagem</p>
+                    <p className="font-mono text-4xl md:text-5xl font-bold">
+                      {formatCurrency(selectedTrip.budget || 0, selectedTrip.currency)}
                     </p>
-                    <p className={cn(
-                      "text-xs font-medium",
-                      myTripSpent > myPersonalBudget ? "text-destructive" : "text-positive"
-                    )}>
-                      {myTripSpent > myPersonalBudget ? "Acima" : "Me restam"} {formatCurrency(Math.abs(myPersonalBudget - myTripSpent), selectedTrip.currency)}
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="text-sm opacity-90 mb-2">Total Gasto</p>
+                    <p className="font-mono text-2xl md:text-3xl font-bold">
+                      {formatCurrency(totalExpenses, selectedTrip.currency)}
                     </p>
                   </div>
                 </div>
-              </section>
+
+                {/* Barra de Progresso */}
+                <div className="space-y-2">
+                  <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden backdrop-blur-sm">
+                    <div
+                      className={cn(
+                        "h-full transition-all duration-500 rounded-full",
+                        totalExpenses > (selectedTrip.budget || 0)
+                          ? "bg-red-400"
+                          : totalExpenses > (selectedTrip.budget || 0) * 0.8
+                          ? "bg-yellow-400"
+                          : "bg-green-400"
+                      )}
+                      style={{ width: `${Math.min((totalExpenses / (selectedTrip.budget || 1)) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="opacity-90">
+                      {((totalExpenses / (selectedTrip.budget || 1)) * 100).toFixed(1)}% utilizado
+                    </span>
+                    <span className="font-semibold">
+                      {totalExpenses > (selectedTrip.budget || 0) ? (
+                        <>🔴 Acima do orçamento</>
+                      ) : (
+                        <>✓ Restam {formatCurrency((selectedTrip.budget || 0) - totalExpenses, selectedTrip.currency)}</>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24" />
+              </div>
+            </div>
+
+            {/* Grid de Informações Principais */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Dias da Viagem */}
+              <div className="p-4 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Duração</p>
+                </div>
+                <p className="font-mono text-2xl font-bold">
+                  {Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">dias</p>
+              </div>
+
+              {/* Média por Dia */}
+              <div className="p-4 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-purple-500" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Média/Dia</p>
+                </div>
+                <p className="font-mono text-2xl font-bold">
+                  {formatCurrency(
+                    totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                    selectedTrip.currency
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">por dia</p>
+              </div>
+
+              {/* Participantes */}
+              <div className="p-4 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-4 w-4 text-green-500" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Participantes</p>
+                </div>
+                <p className="font-mono text-2xl font-bold">{participants.length}</p>
+                <p className="text-xs text-muted-foreground mt-1">pessoas</p>
+              </div>
+
+              {/* Por Pessoa */}
+              <div className="p-4 rounded-xl border border-border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="h-4 w-4 text-orange-500" />
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Por Pessoa</p>
+                </div>
+                <p className="font-mono text-2xl font-bold">
+                  {formatCurrency(totalExpenses / Math.max(1, participants.length), selectedTrip.currency)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">média</p>
+              </div>
+            </div>
+
+            {/* Meu Orçamento Pessoal */}
+            {myPersonalBudget && (
+              <div className="p-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="font-semibold text-lg">Meu Orçamento Pessoal</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Meu Orçamento</p>
+                    <p className="font-mono text-xl font-bold text-blue-600 dark:text-blue-400">
+                      {formatCurrency(myPersonalBudget, selectedTrip.currency)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Meus Gastos</p>
+                    <p className="font-mono text-xl font-bold">
+                      {formatCurrency(myTripSpent, selectedTrip.currency)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {myTripSpent > myPersonalBudget ? "Acima do Orçamento" : "Restante"}
+                    </p>
+                    <p className={cn(
+                      "font-mono text-xl font-bold",
+                      myTripSpent > myPersonalBudget ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+                    )}>
+                      {myTripSpent > myPersonalBudget ? "+" : ""}
+                      {formatCurrency(Math.abs(myPersonalBudget - myTripSpent), selectedTrip.currency)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full transition-all duration-500 rounded-full",
+                      myTripSpent > myPersonalBudget
+                        ? "bg-red-500"
+                        : myTripSpent > myPersonalBudget * 0.8
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    )}
+                    style={{ width: `${Math.min((myTripSpent / myPersonalBudget) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {((myTripSpent / myPersonalBudget) * 100).toFixed(1)}% do meu orçamento utilizado
+                </p>
+              </div>
             )}
 
-            {/* Participants Summary - Apenas usuário atual */}
-            {participants.length > 0 && (() => {
-              // Filtrar apenas o balance do usuário atual
-              const myBalance = balances.find(b => b.participantId === user?.id);
-              
-              if (!myBalance) return null;
-              
-              // Calcular se está tudo acertado
-              const isSettled = Math.abs(myBalance.balance) < 0.01; // Considera acertado se saldo < 1 centavo
-              
-              return (
-                <section className="space-y-4">
-                  <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                    Meu Resumo
-                  </h2>
-                  <div className={cn(
-                    "p-4 rounded-xl border-2",
-                    isSettled 
-                      ? "border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/20"
-                      : myBalance.balance >= 0
-                        ? "border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20"
-                        : "border-orange-200 dark:border-orange-900/50 bg-orange-50 dark:bg-orange-950/20"
-                  )}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center font-medium text-white",
-                        isSettled ? "bg-green-500" : myBalance.balance >= 0 ? "bg-blue-500" : "bg-orange-500"
-                      )}>
-                        {getInitials(myBalance.name)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{myBalance.name}</p>
-                        <p className="text-xs text-muted-foreground">Pagou {formatCurrency(myBalance.paid, selectedTrip.currency)}</p>
-                      </div>
-                      {isSettled && (
-                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span className="text-xs font-medium">Acertado</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="pt-3 border-t border-border">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Saldo</span>
-                        <span className={cn(
-                          "font-mono font-semibold",
-                          isSettled ? "text-green-600 dark:text-green-400" :
-                          myBalance.balance >= 0 ? "text-positive" : "text-negative"
-                        )}>
-                          {isSettled ? "Em dia" : (
-                            <>
-                              {myBalance.balance >= 0 ? "+" : ""}{formatCurrency(myBalance.balance, selectedTrip.currency)}
-                            </>
-                          )}
-                        </span>
-                      </div>
-                      {!isSettled && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {myBalance.balance >= 0 
-                            ? "Outros participantes devem para você" 
-                            : "Acerte em Compartilhados > Viagem"}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </section>
-              );
-            })()}
-
-            {/* Quick Stats - INDIVIDUAL do usuário logado */}
-            <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {/* Despesas Compartilhadas - Total da viagem (todos veem) */}
-              <div className="p-4 rounded-xl border-2 border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-950/20 text-center">
-                <p className="text-xs text-purple-700 dark:text-purple-300 uppercase tracking-widest mb-1 font-medium">Compartilhadas</p>
-                <p className="font-mono text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {tripTransactions.filter(t => t.type === "EXPENSE" && t.is_shared).length}
-                </p>
-                <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+            {/* Breakdown: Compartilhado vs Individual */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Despesas Compartilhadas */}
+              <div className="p-6 rounded-xl border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <h3 className="font-semibold">Despesas Compartilhadas</h3>
+                </div>
+                <p className="font-mono text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                   {formatCurrency(
                     tripTransactions
                       .filter(t => t.type === "EXPENSE" && t.is_shared)
@@ -569,15 +616,29 @@ export function Trips() {
                     selectedTrip.currency
                   )}
                 </p>
+                <p className="text-sm text-muted-foreground">
+                  {tripTransactions.filter(t => t.type === "EXPENSE" && t.is_shared).length} transações compartilhadas
+                </p>
+                <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-800">
+                  <p className="text-xs text-muted-foreground mb-1">Minha parte</p>
+                  <p className="font-mono text-lg font-semibold text-purple-600 dark:text-purple-400">
+                    {formatCurrency(
+                      tripTransactions
+                        .filter(t => t.type === "EXPENSE" && t.is_shared)
+                        .reduce((sum, t) => sum + t.amount, 0) / Math.max(1, participants.length),
+                      selectedTrip.currency
+                    )}
+                  </p>
+                </div>
               </div>
 
-              {/* Meus Gastos Individuais - Apenas do usuário logado */}
-              <div className="p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20 text-center">
-                <p className="text-xs text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1 font-medium">Meus Individuais</p>
-                <p className="font-mono text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id).length}
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              {/* Meus Gastos Individuais */}
+              <div className="p-6 rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="font-semibold">Meus Gastos Individuais</h3>
+                </div>
+                <p className="font-mono text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                   {formatCurrency(
                     tripTransactions
                       .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
@@ -585,44 +646,110 @@ export function Trips() {
                     selectedTrip.currency
                   )}
                 </p>
-              </div>
-
-              {/* Acertos Feitos */}
-              <div className="p-4 rounded-xl border-2 border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-950/20 text-center">
-                <p className="text-xs text-green-700 dark:text-green-300 uppercase tracking-widest mb-1 font-medium">Acertado</p>
-                <p className="font-mono text-2xl font-bold text-green-600 dark:text-green-400">
-                  {tripFinancialSummary?.total_settled || 0 > 0 ? "✓" : "-"}
+                <p className="text-sm text-muted-foreground">
+                  {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id).length} transações individuais
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                  {formatCurrency(tripFinancialSummary?.total_settled || 0, selectedTrip.currency)}
-                </p>
+                <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                  <p className="text-xs text-muted-foreground mb-1">Média por dia</p>
+                  <p className="font-mono text-lg font-semibold text-blue-600 dark:text-blue-400">
+                    {formatCurrency(
+                      tripTransactions
+                        .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
+                        .reduce((sum, t) => sum + t.amount, 0) / 
+                      Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                      selectedTrip.currency
+                    )}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              {/* Minha Média/Dia - Apenas gastos do usuário logado */}
-              <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Minha Média/Dia</p>
-                <p className="font-mono text-lg font-medium">
-                  {formatCurrency(
-                    myTripSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
-                    selectedTrip.currency
+            {/* Meu Saldo de Acertos */}
+            {participants.length > 0 && (() => {
+              const myBalance = balances.find(b => b.participantId === user?.id);
+              if (!myBalance) return null;
+              
+              const isSettled = Math.abs(myBalance.balance) < 0.01;
+              
+              return (
+                <div className={cn(
+                  "p-6 rounded-xl border-2",
+                  isSettled 
+                    ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20"
+                    : myBalance.balance >= 0
+                      ? "border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20"
+                      : "border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20"
+                )}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg",
+                      isSettled ? "bg-green-500" : myBalance.balance >= 0 ? "bg-blue-500" : "bg-orange-500"
+                    )}>
+                      {isSettled ? "✓" : myBalance.balance >= 0 ? "+" : "-"}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">Meu Saldo de Acertos</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isSettled ? "Tudo acertado!" : myBalance.balance >= 0 ? "Você receberá" : "Você deve"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Eu Paguei</p>
+                      <p className="font-mono text-xl font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(myBalance.paid, selectedTrip.currency)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Minha Parte</p>
+                      <p className="font-mono text-xl font-bold text-orange-600 dark:text-orange-400">
+                        {formatCurrency(myBalance.owes, selectedTrip.currency)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Saldo</p>
+                      <p className={cn(
+                        "font-mono text-xl font-bold",
+                        isSettled ? "text-green-600 dark:text-green-400" :
+                        myBalance.balance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"
+                      )}>
+                        {isSettled ? "R$ 0,00" : (
+                          <>{myBalance.balance >= 0 ? "+" : ""}{formatCurrency(myBalance.balance, selectedTrip.currency)}</>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!isSettled && (
+                    <div className="mt-4 pt-4 border-t border-border">
+                      <p className="text-sm text-muted-foreground text-center">
+                        💡 {myBalance.balance >= 0 
+                          ? "Outros participantes devem acertar com você" 
+                          : "Acerte em Compartilhados > Viagem"}
+                      </p>
+                    </div>
                   )}
+                </div>
+              );
+            })()}
+
+            {/* Acertos Realizados */}
+            {tripFinancialSummary?.total_settled && tripFinancialSummary.total_settled > 0 && (
+              <div className="p-6 rounded-xl border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <h3 className="font-semibold">Acertos Realizados</h3>
+                </div>
+                <p className="font-mono text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                  {formatCurrency(tripFinancialSummary.total_settled, selectedTrip.currency)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Total de valores já acertados entre os participantes
                 </p>
               </div>
-
-              {/* Participantes */}
-              <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Participantes</p>
-                <p className="font-mono text-2xl font-bold">{participants.length}</p>
-              </div>
-
-              {/* Meu Total Gasto - Apenas do usuário logado */}
-              <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu Total</p>
-                <p className="font-mono text-lg font-medium">
-                  {formatCurrency(myTripSpent, selectedTrip.currency)}
-                </p>
-              </div>
-            </section>
+            )}
           </TabsContent>
 
           {/* Expenses Tab */}
