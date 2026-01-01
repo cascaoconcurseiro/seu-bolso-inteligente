@@ -59,9 +59,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
 
       const currentBalance = accountData?.balance || 0;
 
-      // Buscar todas as transações da conta (incluindo transferências e compartilhadas)
-      // IMPORTANTE: Incluir TODAS as transações da conta, incluindo compartilhadas
-      // O extrato da conta deve mostrar tudo que afeta o saldo
+      // Buscar transações da conta
+      // REGRA: Mostrar apenas transações que REALMENTE afetaram o saldo da conta
+      // 1. Transações individuais (is_shared = false) com account_id
+      // 2. Transações compartilhadas onde EU SOU O PAGADOR (creator_user_id = user.id e account_id preenchido)
+      // 3. Transações de acerto (settlements) - sempre aparecem
       const { data: outgoingTransactions, error: outError } = await supabase
         .from("transactions")
         .select(`
@@ -71,7 +73,6 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         `)
         .eq("user_id", user.id)
         .eq("account_id", accountId)
-        // NÃO filtrar por is_shared - mostrar todas as transações da conta
         .gte("date", effectiveStartDate)
         .lte("date", effectiveEndDate)
         .order("date", { ascending: true })
@@ -98,7 +99,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       if (inError) throw inError;
 
       // Combinar e processar transações
-      const allTransactions = [...(outgoingTransactions || []), ...(incomingTransfers || [])];
+      // Apenas transações que realmente afetaram o saldo da conta
+      const allTransactions = [
+        ...(outgoingTransactions || []), 
+        ...(incomingTransfers || [])
+      ];
       
       // Ordenar por data e created_at
       allTransactions.sort((a, b) => {

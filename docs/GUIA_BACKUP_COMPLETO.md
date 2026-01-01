@@ -291,16 +291,35 @@ Write-Host "📊 Backups mantidos: últimos $KeepDays dias" -ForegroundColor Gra
 
 ## 📊 Status Atual
 
-**Último Backup**:
-- Data: 01/01/2026 09:56
+**Último Backup Completo**:
+- Data: 01/01/2026 13:00
 - Código: ✅ backups/backup_20260101_095522.zip (13.31 MB)
 - Migrations: ✅ 163 arquivos
-- Banco: ⚠️ Pendente (fazer via Dashboard)
+- Banco: ✅ backups/database/production_backup_20260101_130000.sql
+
+**Detalhes do Backup do Banco**:
+- Método: Extração via Supabase Power (MCP)
+- Formato: SQL com INSERT statements
+- Registros: 96 registros totais
+  - profiles: 2
+  - families: 2
+  - family_members: 4
+  - categories: 36
+  - accounts: 6 (apenas ativas)
+  - trips: 2
+  - trip_members: 4
+  - trip_invitations: 2
+  - transactions: 17
+  - transaction_splits: 4
+  - financial_ledger: 14
+  - notification_preferences: 2
+  - budgets: 1
 
 **Próximos Passos**:
-1. Fazer backup do banco via Dashboard
-2. Configurar backup agendado
-3. Testar restauração em ambiente local
+1. ✅ Backup do código completo
+2. ✅ Backup do banco de dados
+3. ⚠️ Configurar backup agendado
+4. ⚠️ Testar restauração em ambiente local
 
 ---
 
