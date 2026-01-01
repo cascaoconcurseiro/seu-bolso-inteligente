@@ -543,9 +543,9 @@ export function Trips() {
               );
             })()}
 
-            {/* Quick Stats - Separando gastos compartilhados e individuais */}
+            {/* Quick Stats - INDIVIDUAL do usuário logado */}
             <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {/* Despesas Compartilhadas */}
+              {/* Despesas Compartilhadas - Total da viagem (todos veem) */}
               <div className="p-4 rounded-xl border-2 border-purple-200 dark:border-purple-900/50 bg-purple-50 dark:bg-purple-950/20 text-center">
                 <p className="text-xs text-purple-700 dark:text-purple-300 uppercase tracking-widest mb-1 font-medium">Compartilhadas</p>
                 <p className="font-mono text-2xl font-bold text-purple-600 dark:text-purple-400">
@@ -561,16 +561,16 @@ export function Trips() {
                 </p>
               </div>
 
-              {/* Gastos Individuais */}
+              {/* Meus Gastos Individuais - Apenas do usuário logado */}
               <div className="p-4 rounded-xl border-2 border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-950/20 text-center">
-                <p className="text-xs text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1 font-medium">Individuais</p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1 font-medium">Meus Individuais</p>
                 <p className="font-mono text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared).length}
+                  {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id).length}
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   {formatCurrency(
                     tripTransactions
-                      .filter(t => t.type === "EXPENSE" && !t.is_shared)
+                      .filter(t => t.type === "EXPENSE" && !t.is_shared && t.user_id === user?.id)
                       .reduce((sum, t) => sum + t.amount, 0),
                     selectedTrip.currency
                   )}
@@ -588,11 +588,14 @@ export function Trips() {
                 </p>
               </div>
 
-              {/* Média/Dia */}
+              {/* Minha Média/Dia - Apenas gastos do usuário logado */}
               <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Média/Dia</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Minha Média/Dia</p>
                 <p className="font-mono text-lg font-medium">
-                  {formatCurrency(totalExpenses / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))), selectedTrip.currency)}
+                  {formatCurrency(
+                    myTripSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                    selectedTrip.currency
+                  )}
                 </p>
               </div>
 
@@ -602,11 +605,11 @@ export function Trips() {
                 <p className="font-mono text-2xl font-bold">{participants.length}</p>
               </div>
 
-              {/* Por Pessoa */}
+              {/* Meu Total Gasto - Apenas do usuário logado */}
               <div className="p-4 rounded-xl border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Por Pessoa</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Meu Total</p>
                 <p className="font-mono text-lg font-medium">
-                  {participants.length > 0 ? formatCurrency(totalExpenses / participants.length, selectedTrip.currency) : formatCurrency(0, selectedTrip.currency)}
+                  {formatCurrency(myTripSpent, selectedTrip.currency)}
                 </p>
               </div>
             </section>
@@ -665,46 +668,62 @@ export function Trips() {
               )}
             </section>
 
-            {/* Expenses List */}
+            {/* Expenses List - Filtrado: Compartilhadas + Minhas Individuais */}
             <section className="space-y-4">
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-                Despesas ({tripTransactions.filter(t => t.type === "EXPENSE").length})
+                Despesas ({tripTransactions.filter(t => 
+                  t.type === "EXPENSE" && 
+                  (t.is_shared || t.user_id === user?.id)
+                ).length})
               </h2>
-              {tripTransactions.filter(t => t.type === "EXPENSE").length > 0 ? (
+              {tripTransactions.filter(t => 
+                t.type === "EXPENSE" && 
+                (t.is_shared || t.user_id === user?.id)
+              ).length > 0 ? (
                 <div className="space-y-2">
-                  {tripTransactions.filter(t => t.type === "EXPENSE").map((expense) => {
-                    const payer = participants.find(p => 
-                      p.user_id === expense.payer_id || p.member_id === expense.payer_id
-                    );
-                    // Usar categoria real da transação, sem fallback para "Outros"
-                    const categoryIcon = expense.category?.icon || "💸";
-                    const categoryName = expense.category?.name || "Sem categoria";
-                    const payerName = payer?.name || expense.account?.name || "Conta";
-                    
-                    return (
-                      <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                        <div className="flex items-center gap-3 flex-1">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-lg">
-                            {categoryIcon}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-medium">{expense.description}</p>
-                              {expense.is_shared && (
-                                <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                  Compartilhado
-                                </span>
-                              )}
+                  {tripTransactions
+                    .filter(t => 
+                      t.type === "EXPENSE" && 
+                      (t.is_shared || t.user_id === user?.id)
+                    )
+                    .map((expense) => {
+                      const payer = participants.find(p => 
+                        p.user_id === expense.payer_id || p.member_id === expense.payer_id
+                      );
+                      // Usar categoria real da transação, sem fallback para "Outros"
+                      const categoryIcon = expense.category?.icon || "💸";
+                      const categoryName = expense.category?.name || "Sem categoria";
+                      const payerName = payer?.name || expense.account?.name || "Conta";
+                      
+                      return (
+                        <div key={expense.id} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-lg">
+                              {categoryIcon}
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {categoryName} · {payerName} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
-                            </p>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium">{expense.description}</p>
+                                {expense.is_shared && (
+                                  <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                    Compartilhado
+                                  </span>
+                                )}
+                                {!expense.is_shared && expense.user_id === user?.id && (
+                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                    Individual
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {categoryName} · {payerName} · {format(new Date(expense.date), "dd MMM", { locale: ptBR })}
+                              </p>
+                            </div>
                           </div>
+                          <span className="font-mono font-medium ml-2">{formatCurrency(expense.amount, selectedTrip.currency)}</span>
                         </div>
-                        <span className="font-mono font-medium ml-2">{formatCurrency(expense.amount, selectedTrip.currency)}</span>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="py-8 text-center border border-dashed border-border rounded-xl">
