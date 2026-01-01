@@ -53,8 +53,8 @@ import { SplitModal, TransactionSplitData } from './SplitModal';
 import { differenceInDays, parseISO } from 'date-fns';
 import { validateTransaction } from '@/services/validationService';
 import { getBankById } from '@/lib/banks';
-// Lazy load para evitar problemas de inicialização
-import type { CategoryPrediction } from '@/types/categoryPrediction';
+// CATEGORIZAÇÃO AUTOMÁTICA DESABILITADA - Causa erro em produção
+// import type { CategoryPrediction } from '@/types/categoryPrediction';
 
 type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
@@ -80,51 +80,9 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
-  // Predição automática de categoria (com lazy loading)
-  const [prediction, setPrediction] = useState<CategoryPrediction | null>(null);
-  const [isPredicting, setIsPredicting] = useState(false);
-
-  // Carregar predição de forma assíncrona
-  useEffect(() => {
-    if (activeTab === 'TRANSFER' || !description || description.length < 3) {
-      setPrediction(null);
-      setIsPredicting(false);
-      return;
-    }
-
-    let cancelled = false;
-    const timer = setTimeout(async () => {
-      if (!user) return;
-      
-      setIsPredicting(true);
-      try {
-        // Dynamic import para evitar problemas de inicialização
-        const { CategoryPredictionService } = await import('@/services/categoryPredictionService');
-        const result = await CategoryPredictionService.predictCategory(
-          description,
-          user.id,
-          activeTab.toLowerCase() as 'expense' | 'income'
-        );
-        if (!cancelled) {
-          setPrediction(result);
-        }
-      } catch (error) {
-        console.error('Erro ao predizer categoria:', error);
-        if (!cancelled) {
-          setPrediction(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsPredicting(false);
-        }
-      }
-    }, 500); // Debounce de 500ms
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [description, user, activeTab]);
+  // CATEGORIZAÇÃO AUTOMÁTICA DESABILITADA - Causa erro em produção
+  const prediction = null;
+  const isPredicting = false;
 
   // Form State
   const [activeTab, setActiveTab] = useState<TabType>('EXPENSE');
@@ -150,16 +108,12 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     }
   }, [context]);
 
-  // Aplicar sugestão de categoria automaticamente
-  useEffect(() => {
-    // Só aplicar se:
-    // 1. Tem predição
-    // 2. Não tem categoria selecionada ainda
-    // 3. Não é contexto inicial (que já define categoria)
-    if (prediction && !categoryId && !context?.categoryId) {
-      setCategoryId(prediction.categoryId);
-    }
-  }, [prediction, categoryId, context?.categoryId]);
+  // Aplicar sugestão de categoria automaticamente - DESABILITADO
+  // useEffect(() => {
+  //   if (prediction && !categoryId && !context?.categoryId) {
+  //     setCategoryId(prediction.categoryId);
+  //   }
+  // }, [prediction, categoryId, context?.categoryId]);
 
   // Now we can use tripId
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
@@ -441,21 +395,21 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const performSubmit = async (transactionData: any) => {
     await createTransaction.mutateAsync(transactionData);
 
-    // Registrar aprendizado de categoria (com dynamic import)
-    if (user && categoryId && description && activeTab !== 'TRANSFER') {
-      try {
-        const { CategoryPredictionService } = await import('@/services/categoryPredictionService');
-        const wasCorrection = prediction && prediction.categoryId !== categoryId;
-        await CategoryPredictionService.learnFromUser(
-          description,
-          categoryId,
-          user.id,
-          wasCorrection
-        );
-      } catch (error) {
-        console.error('Erro ao registrar aprendizado:', error);
-      }
-    }
+    // CATEGORIZAÇÃO AUTOMÁTICA DESABILITADA - Aprendizado desativado
+    // if (user && categoryId && description && activeTab !== 'TRANSFER') {
+    //   try {
+    //     const { CategoryPredictionService } = await import('@/services/categoryPredictionService');
+    //     const wasCorrection = prediction && prediction.categoryId !== categoryId;
+    //     await CategoryPredictionService.learnFromUser(
+    //       description,
+    //       categoryId,
+    //       user.id,
+    //       wasCorrection
+    //     );
+    //   } catch (error) {
+    //     console.error('Erro ao registrar aprendizado:', error);
+    //   }
+    // }
 
     if (onSuccess) {
       onSuccess();
