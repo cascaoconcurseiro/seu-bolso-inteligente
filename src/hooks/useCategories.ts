@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 export interface Category {
   id: string;
@@ -10,6 +11,7 @@ export interface Category {
   icon: string | null;
   type: "expense" | "income";
   color: string | null;
+  parent_category_id: string | null; // Para hierarquia
   created_at: string;
 }
 
@@ -18,6 +20,7 @@ export interface CreateCategoryInput {
   icon?: string;
   type: "expense" | "income";
   color?: string;
+  parent_category_id?: string | null; // Para hierarquia
 }
 
 export function useCategories() {
@@ -28,6 +31,48 @@ export function useCategories() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("name");
+
+      if (error) throw error;
+      return data as Category[];
+    },
+    enabled: !!user,
+  });
+}
+
+// Hook para buscar categorias organizadas hierarquicamente
+export function useCategoriesHierarchical() {
+  const { data: allCategories, ...rest } = useCategories();
+
+  const hierarchical = useMemo(() => {
+    if (!allCategories) return { parents: [], children: new Map() };
+
+    // Separar pais e filhos
+    const parents = allCategories.filter(cat => !cat.parent_category_id);
+    const children = new Map<string, Category[]>();
+
+    // Agrupar filhos por pai
+    allCategories
+      .filter(cat => cat.parent_category_id)
+      .forEach(cat => {
+        const parentId = cat.parent_category_id!;
+        if (!children.has(parentId)) {
+          children.set(parentId, []);
+        }
+        children.get(parentId)!.push(cat);
+      });
+
+    return { parents, children };
+  }, [allCategories]);
+
+  return {
+    ...rest,
+    data: allCategories,
+    hierarchical,
+  };
+}
         .select("*")
         .order("name");
 
@@ -101,136 +146,57 @@ export function useCreateDefaultCategories() {
     mutationFn: async () => {
       if (!user) throw new Error("User not authenticated");
 
-      const defaultCategories: CreateCategoryInput[] = [
-        // ALIMENTAÇÃO
-        { name: "Supermercado", icon: "🛒", type: "expense" },
-        { name: "Restaurante", icon: "🍽️", type: "expense" },
-        { name: "Lanche", icon: "🍔", type: "expense" },
-        { name: "Delivery", icon: "🍕", type: "expense" },
-        { name: "Padaria", icon: "🥖", type: "expense" },
-        { name: "Café", icon: "☕", type: "expense" },
-        { name: "Bar", icon: "🍺", type: "expense" },
-        
-        // MORADIA
-        { name: "Aluguel", icon: "🏠", type: "expense" },
-        { name: "Condomínio", icon: "🏢", type: "expense" },
-        { name: "Água", icon: "💧", type: "expense" },
-        { name: "Luz", icon: "💡", type: "expense" },
-        { name: "Gás", icon: "🔥", type: "expense" },
-        { name: "Internet", icon: "🌐", type: "expense" },
-        { name: "Telefone", icon: "📱", type: "expense" },
-        { name: "IPTU", icon: "🏘️", type: "expense" },
-        { name: "Manutenção", icon: "🔧", type: "expense" },
-        { name: "Móveis", icon: "🛋️", type: "expense" },
-        { name: "Decoração", icon: "🖼️", type: "expense" },
-        
-        // TRANSPORTE
-        { name: "Combustível", icon: "⛽", type: "expense" },
-        { name: "Uber/Taxi", icon: "🚕", type: "expense" },
-        { name: "Ônibus", icon: "🚌", type: "expense" },
-        { name: "Metrô", icon: "🚇", type: "expense" },
-        { name: "Estacionamento", icon: "🅿️", type: "expense" },
-        { name: "Pedágio", icon: "🛣️", type: "expense" },
-        { name: "Manutenção Veículo", icon: "🔧", type: "expense" },
-        { name: "IPVA", icon: "🚗", type: "expense" },
-        { name: "Seguro Veículo", icon: "🛡️", type: "expense" },
-        
-        // SAÚDE
-        { name: "Plano de Saúde", icon: "🏥", type: "expense" },
-        { name: "Médico", icon: "👨‍⚕️", type: "expense" },
-        { name: "Dentista", icon: "🦷", type: "expense" },
-        { name: "Farmácia", icon: "💊", type: "expense" },
-        { name: "Exames", icon: "🔬", type: "expense" },
-        { name: "Academia", icon: "💪", type: "expense" },
-        { name: "Terapia", icon: "🧠", type: "expense" },
-        
-        // EDUCAÇÃO
-        { name: "Mensalidade", icon: "🎓", type: "expense" },
-        { name: "Curso", icon: "📚", type: "expense" },
-        { name: "Livros", icon: "📖", type: "expense" },
-        { name: "Material Escolar", icon: "✏️", type: "expense" },
-        { name: "Idiomas", icon: "🗣️", type: "expense" },
-        
-        // LAZER E ENTRETENIMENTO
-        { name: "Cinema", icon: "🎬", type: "expense" },
-        { name: "Streaming", icon: "📺", type: "expense" },
-        { name: "Jogos", icon: "🎮", type: "expense" },
-        { name: "Shows", icon: "🎵", type: "expense" },
-        { name: "Esportes", icon: "⚽", type: "expense" },
-        { name: "Hobbies", icon: "🎨", type: "expense" },
-        { name: "Parque", icon: "🎡", type: "expense" },
-        
-        // COMPRAS
-        { name: "Roupas", icon: "👕", type: "expense" },
-        { name: "Calçados", icon: "👟", type: "expense" },
-        { name: "Acessórios", icon: "👜", type: "expense" },
-        { name: "Eletrônicos", icon: "📱", type: "expense" },
-        { name: "Cosméticos", icon: "💄", type: "expense" },
-        { name: "Presentes", icon: "🎁", type: "expense" },
-        
-        // PETS
-        { name: "Veterinário", icon: "🐕", type: "expense" },
-        { name: "Ração", icon: "🦴", type: "expense" },
-        { name: "Pet Shop", icon: "🐾", type: "expense" },
-        
-        // SERVIÇOS PESSOAIS
-        { name: "Cabeleireiro", icon: "💇", type: "expense" },
-        { name: "Manicure", icon: "💅", type: "expense" },
-        { name: "Barbeiro", icon: "✂️", type: "expense" },
-        { name: "Lavanderia", icon: "🧺", type: "expense" },
-        
-        // FINANCEIRO
-        { name: "Investimentos", icon: "📈", type: "expense" },
-        { name: "Seguros", icon: "🛡️", type: "expense" },
-        { name: "Taxas Bancárias", icon: "🏦", type: "expense" },
-        { name: "Empréstimo", icon: "💳", type: "expense" },
-        { name: "Doações", icon: "❤️", type: "expense" },
-        { name: "Acerto Financeiro", icon: "🤝", type: "expense" }, // Para pagamentos de acerto
-        
-        // VIAGEM
-        { name: "Passagem Aérea", icon: "✈️", type: "expense" },
-        { name: "Hotel", icon: "🏨", type: "expense" },
-        { name: "Hospedagem", icon: "🛏️", type: "expense" },
-        { name: "Turismo", icon: "🗺️", type: "expense" },
-        
-        // OUTROS
-        { name: "Outros", icon: "📦", type: "expense" },
-        
-        // ===== RECEITAS =====
-        
-        // TRABALHO
-        { name: "Salário", icon: "💰", type: "income" },
-        { name: "Freelance", icon: "💻", type: "income" },
-        { name: "Bônus", icon: "🎯", type: "income" },
-        { name: "Comissão", icon: "💼", type: "income" },
-        { name: "13º Salário", icon: "💵", type: "income" },
-        { name: "Férias", icon: "🏖️", type: "income" },
-        { name: "Hora Extra", icon: "⏰", type: "income" },
-        
-        // INVESTIMENTOS
-        { name: "Dividendos", icon: "📈", type: "income" },
-        { name: "Juros", icon: "💹", type: "income" },
-        { name: "Aluguel Recebido", icon: "🏠", type: "income" },
-        { name: "Venda de Ações", icon: "📊", type: "income" },
-        
-        // OUTROS
-        { name: "Presente Recebido", icon: "🎁", type: "income" },
-        { name: "Reembolso", icon: "💳", type: "income" },
-        { name: "Prêmio", icon: "🏆", type: "income" },
-        { name: "Venda", icon: "🏷️", type: "income" },
-        { name: "Saldo Inicial", icon: "💰", type: "income" }, // Para saldo inicial de contas
-        { name: "Acerto Financeiro", icon: "🤝", type: "income" }, // Para recebimentos de acerto
-        { name: "Outros", icon: "💵", type: "income" },
-      ];
+      // Importar categorias hierárquicas
+      const { DEFAULT_CATEGORIES } = await import("@/lib/defaultCategories");
 
-      const { error } = await supabase.from("categories").insert(
-        defaultCategories.map((cat) => ({
-          user_id: user.id,
-          ...cat,
-        }))
+      // Primeiro, criar todas as categorias pai
+      const parentCategories = DEFAULT_CATEGORIES.map(cat => ({
+        user_id: user.id,
+        name: cat.name,
+        icon: cat.icon,
+        type: cat.type,
+        parent_category_id: null, // Categoria pai não tem parent
+      }));
+
+      const { data: createdParents, error: parentError } = await supabase
+        .from("categories")
+        .insert(parentCategories)
+        .select();
+
+      if (parentError) throw parentError;
+
+      // Criar mapa de nome → id das categorias pai
+      const parentMap = new Map(
+        createdParents.map(cat => [cat.name, cat.id])
       );
 
-      if (error) throw error;
+      // Agora criar todas as subcategorias
+      const childCategories: any[] = [];
+      
+      DEFAULT_CATEGORIES.forEach(parent => {
+        const parentId = parentMap.get(parent.name);
+        if (parent.children && parentId) {
+          parent.children.forEach(child => {
+            childCategories.push({
+              user_id: user.id,
+              name: child.name,
+              icon: child.icon,
+              type: child.type,
+              parent_category_id: parentId, // Link para categoria pai
+            });
+          });
+        }
+      });
+
+      if (childCategories.length > 0) {
+        const { error: childError } = await supabase
+          .from("categories")
+          .insert(childCategories);
+
+        if (childError) throw childError;
+      }
+
+      console.log(`✅ Criadas ${createdParents.length} categorias pai e ${childCategories.length} subcategorias`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
