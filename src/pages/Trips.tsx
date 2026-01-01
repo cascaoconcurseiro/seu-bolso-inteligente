@@ -508,11 +508,11 @@ export function Trips() {
                 <p className="text-xs text-muted-foreground mt-1">dias</p>
               </div>
 
-              {/* Média por Dia */}
+              {/* Média por Dia - Geral da viagem */}
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="h-4 w-4 text-purple-500" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Média/Dia</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Média Geral/Dia</p>
                 </div>
                 <p className="font-mono text-2xl font-bold">
                   {formatCurrency(
@@ -520,7 +520,7 @@ export function Trips() {
                     selectedTrip.currency
                   )}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">por dia</p>
+                <p className="text-xs text-muted-foreground mt-1">todos gastos</p>
               </div>
 
               {/* Participantes */}
@@ -533,16 +533,19 @@ export function Trips() {
                 <p className="text-xs text-muted-foreground mt-1">pessoas</p>
               </div>
 
-              {/* Por Pessoa */}
+              {/* Minha Média/Dia - Apenas gastos do usuário logado */}
               <div className="p-4 rounded-xl border border-border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-orange-500" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Por Pessoa</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Minha Média/Dia</p>
                 </div>
                 <p className="font-mono text-2xl font-bold">
-                  {formatCurrency(totalExpenses / Math.max(1, participants.length), selectedTrip.currency)}
+                  {formatCurrency(
+                    myTripSpent / Math.max(1, Math.ceil((new Date(selectedTrip.end_date).getTime() - new Date(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24))),
+                    selectedTrip.currency
+                  )}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">média</p>
+                <p className="text-xs text-muted-foreground mt-1">meus gastos</p>
               </div>
             </div>
 
