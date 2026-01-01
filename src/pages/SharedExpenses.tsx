@@ -257,33 +257,55 @@ export function SharedExpenses() {
       // Considerar pagamento completo se o valor for >= 99% do total
       const isPartialSettlement = amount < Math.abs(itemsTotal) * 0.99;
 
-      const desc = settleType === "PAY"
-        ? `Pagamento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`
-        : `Recebimento ${isPartialSettlement ? 'Parcial ' : ''}Acerto - ${member?.name}`;
-
-      // Buscar categoria "Acerto Financeiro"
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('user_id', user?.id)
-        .eq('name', 'Acerto Financeiro')
-        .eq('type', settleType === "PAY" ? 'expense' : 'income')
-        .single();
-
-      // Create settlement transaction
-      const result = await createTransaction.mutateAsync({
-        amount,
-        description: desc,
-        date: new Date().toISOString().split("T")[0],
-        type: settleType === "PAY" ? "EXPENSE" : "INCOME",
-        account_id: settleAccountId,
-        category_id: categoryData?.id || undefined, // Usar categoria se encontrada
-        domain: "SHARED",
-        is_shared: false,
-        related_member_id: selectedMember,
-      });
-
-      const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
+      // NOVA ABORDAGEM: Criar transações individuais para cada item
+      // Ao invés de criar um "Acerto - Wesley" consolidado,
+      // criar transações individuais com descrição e categoria originais
+      // Isso mantém a integridade contábil e permite desfazer sem inconsistências
+      
+      // Buscar transações originais para obter descrição e categoria
+      const originalTxIds = itemsToSettle
+        .map(i => i.originalTxId)
+        .filter((id): id is string => !!id);
+      
+      const { data: originalTransactions } = await supabase
+        .from('transactions')
+        .select('id, description, category_id, category:categories(id, name, icon)')
+        .in('id', originalTxIds);
+      
+      // Criar mapa de transações originais
+      const originalTxMap = new Map(
+        originalTransactions?.map(tx => [tx.id, tx]) || []
+      );
+      
+      // Criar transações individuais para cada item
+      const settlementTxIds: string[] = [];
+      
+      for (const item of itemsToSettle) {
+        const originalTx = originalTxMap.get(item.originalTxId || '');
+        
+        // Usar descrição e categoria da transação original
+        const description = originalTx?.description || item.description;
+        const categoryId = originalTx?.category_id;
+        
+        // Criar transação individual
+        const result = await createTransaction.mutateAsync({
+          amount: item.amount,
+          description: description,
+          date: new Date().toISOString().split("T")[0],
+          type: settleType === "PAY" ? "EXPENSE" : "INCOME",
+          account_id: settleAccountId,
+          category_id: categoryId,
+          domain: "SHARED",
+          is_shared: false,
+          related_member_id: selectedMember,
+          notes: `Acerto de: ${description} (${member?.name})`,
+        });
+        
+        const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
+        if (settlementTxId) {
+          settlementTxIds.push(settlementTxId);
+        }
+      }
 
       // SEMPRE marcar items como settled
       let updateErrors: string[] = [];
@@ -291,7 +313,7 @@ export function SharedExpenses() {
       
       console.log('🔍 [handleSettle] Iniciando atualização de itens:', {
         totalItems: itemsToSettle.length,
-        settlementTxId,
+        settlementTxIds,
         items: itemsToSettle.map(i => ({
           id: i.id,
           type: i.type,
@@ -302,14 +324,18 @@ export function SharedExpenses() {
         }))
       });
       
-      for (const item of itemsToSettle) {
+      for (let i = 0; i < itemsToSettle.length; i++) {
+        const item = itemsToSettle[i];
+        const settlementTxId = settlementTxIds[i]; // Usar o ID correspondente
+        
         console.log('🔍 [handleSettle] Processando item:', {
           id: item.id,
           type: item.type,
           splitId: item.splitId,
           originalTxId: item.originalTxId,
           amount: item.amount,
-          description: item.description
+          description: item.description,
+          settlementTxId
         });
         
         // CORREÇÃO CRÍTICA: Para AMBOS os tipos (CREDIT e DEBIT), 
