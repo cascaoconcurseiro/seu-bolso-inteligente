@@ -71,20 +71,22 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
 
       // Buscar transações da conta
       // REGRA: Mostrar TODAS as transações vinculadas a esta conta
-      // 1. Transações onde account_id = conta (despesas e receitas)
-      // 2. Transações espelhadas (source_transaction_id preenchido) também aparecem
-      // 3. Transferências de saída (account_id = conta)
-      // TEMPORÁRIO: SEM FILTRO DE DATA para debug
+      // IMPORTANTE: Especificar FK explicitamente para evitar ambiguidade
+      // transaction_splits tem múltiplas FKs para transactions:
+      // - transaction_splits_transaction_id_fkey (a que queremos)
+      // - transaction_splits_settled_transaction_id_fkey
+      // - transaction_splits_debtor_settlement_tx_id_fkey
+      // - transaction_splits_creditor_settlement_tx_id_fkey
       const { data: outgoingTransactions, error: outError } = await supabase
         .from("transactions")
         .select(`
           *,
           category:categories(name, icon),
-          transaction_splits(id, amount, user_id, member_id)
+          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(id, amount, user_id, member_id)
         `)
         .eq("account_id", accountId)
-        // .gte("date", effectiveStartDate)  // ← DESABILITADO TEMPORARIAMENTE
-        // .lte("date", effectiveEndDate)    // ← DESABILITADO TEMPORARIAMENTE
+        .gte("date", effectiveStartDate)
+        .lte("date", effectiveEndDate)
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
@@ -100,18 +102,17 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       });
 
       // Buscar transferências de entrada (destination_account_id = conta)
-      // TEMPORÁRIO: SEM FILTRO DE DATA para debug
       const { data: incomingTransfers, error: inError } = await supabase
         .from("transactions")
         .select(`
           *,
           category:categories(name, icon),
-          transaction_splits(id, amount, user_id, member_id)
+          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(id, amount, user_id, member_id)
         `)
         .eq("destination_account_id", accountId)
         .eq("type", "TRANSFER")
-        // .gte("date", effectiveStartDate)  // ← DESABILITADO TEMPORARIAMENTE
-        // .lte("date", effectiveEndDate)    // ← DESABILITADO TEMPORARIAMENTE
+        .gte("date", effectiveStartDate)
+        .lte("date", effectiveEndDate)
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
