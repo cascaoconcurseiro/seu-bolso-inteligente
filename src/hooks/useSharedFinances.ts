@@ -21,6 +21,7 @@ export interface InvoiceItem {
   currency: string;
   installmentNumber?: number | null;
   totalInstallments?: number | null;
+  seriesId?: string | null; // ID da série de parcelas
   creatorUserId?: string;
   creatorName?: string; // Nome de quem pagou/criou a transação
 }
@@ -284,6 +285,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             currency: txCurrency,
             installmentNumber: tx.current_installment,
             totalInstallments: tx.total_installments,
+            seriesId: tx.series_id,
             creatorUserId: tx.user_id,
             creatorName: creatorName
           });
@@ -338,6 +340,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 currency: txCurrency,
                 installmentNumber: tx.current_installment,
                 totalInstallments: tx.total_installments,
+                seriesId: tx.series_id,
                 creatorUserId: tx.user_id,
                 creatorName: creatorMember.name // Quem pagou foi o criador
               });
@@ -392,6 +395,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         currency: txCurrency,
         installmentNumber: tx.current_installment,
         totalInstallments: tx.total_installments,
+        seriesId: tx.series_id,
         creatorUserId: tx.user_id,
         creatorName: payer.name // Quem pagou foi o payer
       });
