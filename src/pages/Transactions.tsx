@@ -146,6 +146,14 @@ export function Transactions() {
     const periodDates = getPeriodDates(selectedPeriod);
     
     return (transactions || []).filter((t) => {
+      // CORREÇÃO CRÍTICA: Excluir transações compartilhadas onde outra pessoa paga
+      // Essas transações só devem aparecer em "Despesas Compartilhadas" até serem acertadas
+      if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
+        // Esta é uma transação onde OUTRA PESSOA pagou
+        // Não deve aparecer aqui até ser acertada
+        return false;
+      }
+      
       const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = selectedType === "all" || t.type === selectedType;
       const matchesCategory = selectedCategory === "all" || t.category?.id === selectedCategory;
@@ -159,7 +167,7 @@ export function Transactions() {
       
       return matchesSearch && matchesType && matchesCategory && matchesAccount && matchesPeriod;
     });
-  }, [transactions, searchQuery, selectedType, selectedCategory, selectedAccount, selectedPeriod]);
+  }, [transactions, searchQuery, selectedType, selectedCategory, selectedAccount, selectedPeriod, user?.id]);
 
   // Agrupar transações por dia
   const dayGroups = useMemo(() => {

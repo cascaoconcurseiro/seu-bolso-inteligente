@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFinancialSummary, useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
+import { useAuth } from "@/contexts/AuthContext";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
@@ -41,6 +42,7 @@ const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
 };
 
 export function Dashboard() {
+  const { user } = useAuth();
   const { data: summary, isLoading: summaryLoading, isError: summaryError } = useFinancialSummary();
   const { data: transactions, isLoading: txLoading, isError: txError } = useTransactions();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
@@ -55,7 +57,16 @@ export function Dashboard() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  const recentTransactions = transactions?.slice(0, 5) || [];
+  // CORREÇÃO: Filtrar transações compartilhadas onde outra pessoa pagou
+  const recentTransactions = (transactions || [])
+    .filter(t => {
+      // Excluir transações onde outra pessoa pagou (ainda não acertadas)
+      if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
+        return false;
+      }
+      return true;
+    })
+    .slice(0, 5);
   
   // Se tiver erro, não ficar travado no loading
   const hasError = summaryError || txError || accountsError;
