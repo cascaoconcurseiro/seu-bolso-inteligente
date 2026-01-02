@@ -1,3 +1,0 @@
-?? backups/
-?? scripts/backup-full.ps1
-?? scripts/restore-backup.ps1

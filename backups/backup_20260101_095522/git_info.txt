@@ -1,4 +1,0 @@
-Commit: b8f05a4cf406c435f9372602f735e5b3b1dbd255
-Author: Wesley Cascão
-Date: Thu Jan 1 09:51:33 2026 -0300
-Message: docs: add individual settlements improvement documentation
