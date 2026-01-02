@@ -604,6 +604,13 @@ export function SharedExpenses() {
     try {
       console.log('🗑️ [handleDeleteTransaction] Excluindo transação:', item.originalTxId);
       
+      // VALIDAÇÃO: Verificar se o usuário atual é o criador
+      if (item.creatorUserId && item.creatorUserId !== user?.id) {
+        toast.error("Apenas o criador da transação pode excluí-la");
+        setDeleteConfirm({ isOpen: false, item: null });
+        return;
+      }
+      
       // Excluir a transação (cascade vai excluir splits automaticamente)
       const { error } = await supabase
         .from('transactions')
@@ -634,6 +641,13 @@ export function SharedExpenses() {
 
     try {
       console.log('🗑️ [handleDeleteSeries] Excluindo série:', item.seriesId);
+      
+      // VALIDAÇÃO: Verificar se o usuário atual é o criador
+      if (item.creatorUserId && item.creatorUserId !== user?.id) {
+        toast.error("Apenas o criador da série pode excluí-la");
+        setDeleteSeriesConfirm({ isOpen: false, item: null });
+        return;
+      }
       
       // Usar função RPC que garante exclusão completa
       const { data, error } = await supabase
@@ -1062,22 +1076,25 @@ export function SharedExpenses() {
                                   Desfazer acerto
                                 </DropdownMenuItem>
                               )}
-                              {item.totalInstallments && item.totalInstallments > 1 ? (
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir série ({item.totalInstallments}x)
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir transação
-                                </DropdownMenuItem>
+                              {/* Apenas o criador pode excluir */}
+                              {item.creatorUserId === user?.id && (
+                                item.totalInstallments && item.totalInstallments > 1 ? (
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir série ({item.totalInstallments}x)
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir transação
+                                  </DropdownMenuItem>
+                                )
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1322,22 +1339,25 @@ export function SharedExpenses() {
                                   Desfazer acerto
                                 </DropdownMenuItem>
                               )}
-                              {item.totalInstallments && item.totalInstallments > 1 ? (
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir série ({item.totalInstallments}x)
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir transação
-                                </DropdownMenuItem>
+                              {/* Apenas o criador pode excluir */}
+                              {item.creatorUserId === user?.id && (
+                                item.totalInstallments && item.totalInstallments > 1 ? (
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir série ({item.totalInstallments}x)
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir transação
+                                  </DropdownMenuItem>
+                                )
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
