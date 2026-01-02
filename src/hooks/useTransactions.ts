@@ -34,11 +34,21 @@ export interface Transaction {
   source_transaction_id: string | null;
   external_id: string | null;
   notes: string | null;
+  creator_user_id: string | null; // Quem criou a transação
   created_at: string;
   updated_at: string;
   // Joined data
   account?: { id: string; name: string; currency?: string };
   category?: { name: string; icon: string | null };
+  transaction_splits?: Array<{
+    id: string;
+    member_id: string;
+    user_id: string;
+    percentage: number;
+    amount: number;
+    is_settled: boolean;
+    name?: string;
+  }>;
 }
 
 export interface TransactionSplit {

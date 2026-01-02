@@ -146,19 +146,27 @@ export function Transactions() {
     const periodDates = getPeriodDates(selectedPeriod);
     
     return (transactions || []).filter((t) => {
-      // CORREÇÃO CRÍTICA: Excluir transações compartilhadas de outros usuários
-      // Caso 1: payer_id diferente do usuário atual (outra pessoa pagou)
-      // Caso 2: user_id diferente do usuário atual E is_shared=true (transação espelhada)
-      if (t.is_shared && t.user_id !== user?.id) {
-        // Esta é uma transação espelhada de outra pessoa
-        // Não deve aparecer aqui até ser acertada
-        return false;
-      }
-      
-      if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
-        // Esta é uma transação onde OUTRA PESSOA pagou
-        // Não deve aparecer aqui até ser acertada
-        return false;
+      // CORREÇÃO CRÍTICA: Excluir transações compartilhadas onde outra pessoa deve pagar
+      // Regra: Transações compartilhadas só aparecem aqui se o usuário atual for quem pagou
+      if (t.is_shared || t.domain === 'SHARED') {
+        // Se não tem splits, não mostrar (transação incompleta)
+        if (!t.transaction_splits || t.transaction_splits.length === 0) {
+          return false;
+        }
+        
+        // Verificar se TODOS os splits foram acertados (is_settled = true)
+        const allSettled = t.transaction_splits.every((s: any) => s.is_settled);
+        
+        // Se não foram todos acertados, não mostrar na lista de transações
+        if (!allSettled) {
+          return false;
+        }
+        
+        // Se foram acertados, verificar se o usuário atual é o criador/pagador
+        // (quem criou a transação e recebeu o ressarcimento)
+        if (t.creator_user_id !== user?.id && t.user_id !== user?.id) {
+          return false;
+        }
       }
       
       const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());

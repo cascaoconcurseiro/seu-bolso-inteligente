@@ -57,16 +57,30 @@ export function Dashboard() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  // CORREÇÃO: Filtrar transações compartilhadas de outros usuários
+  // CORREÇÃO: Filtrar transações compartilhadas não acertadas
   const recentTransactions = (transactions || [])
     .filter(t => {
-      // Excluir transações compartilhadas de outros usuários (espelhadas)
-      if (t.is_shared && t.user_id !== user?.id) {
-        return false;
-      }
-      // Excluir transações onde outra pessoa pagou (ainda não acertadas)
-      if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
-        return false;
+      // Excluir transações compartilhadas onde outra pessoa deve pagar
+      if (t.is_shared || t.domain === 'SHARED') {
+        // Se não tem splits, não mostrar
+        const splits = (t as any).transaction_splits;
+        if (!splits || splits.length === 0) {
+          return false;
+        }
+        
+        // Verificar se TODOS os splits foram acertados
+        const allSettled = splits.every((s: any) => s.is_settled);
+        
+        // Se não foram todos acertados, não mostrar no dashboard
+        if (!allSettled) {
+          return false;
+        }
+        
+        // Se foram acertados, verificar se o usuário atual é o criador/pagador
+        const creatorUserId = (t as any).creator_user_id;
+        if (creatorUserId !== user?.id && t.user_id !== user?.id) {
+          return false;
+        }
       }
       return true;
     })
