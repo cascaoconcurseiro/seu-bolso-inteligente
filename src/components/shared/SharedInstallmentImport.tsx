@@ -125,7 +125,6 @@ export function SharedInstallmentImport({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Permitir digitar valores com vírgula (ex: 95,00)
     let value = e.target.value;
     
     // Remover tudo exceto números e vírgula
@@ -159,10 +158,10 @@ export function SharedInstallmentImport({
       const totalInstallmentsNum = parseInt(installments);
       const parcelAmount = parseAmount(amount);
 
-      // CORREÇÃO: Deixar o hook useCreateTransaction criar as parcelas
-      // NÃO fazer loop manual aqui
+      // CORREÇÃO CRÍTICA: Passar o valor TOTAL, não o valor da parcela
+      // O hook useCreateTransaction divide o total pelo número de parcelas
       await createTransaction.mutateAsync({
-        amount: parcelAmount,
+        amount: totalAmount, // ← CORREÇÃO: passar total, não parcela
         description: description.trim(),
         date: format(baseDate, 'yyyy-MM-dd'),
         competence_date: format(
@@ -179,7 +178,7 @@ export function SharedInstallmentImport({
         splits: [{
           member_id: assigneeId,
           percentage: 100,
-          amount: parcelAmount,
+          amount: totalAmount, // ← CORREÇÃO: passar total, não parcela
         }],
       });
 
@@ -205,7 +204,11 @@ export function SharedInstallmentImport({
             Importar Parcelado Compartilhado
           </DialogTitle>
           <DialogDescription>
-            Crie múltiplas parcelas para outro membro pagar
+            Crie múltiplas parcelas para outro membro pagar.
+            <br />
+            <span className="text-xs text-muted-foreground">
+              💡 Digite o valor de cada parcela (ex: 95,00 para 10x = R$ 950,00 total)
+            </span>
           </DialogDescription>
         </DialogHeader>
 
