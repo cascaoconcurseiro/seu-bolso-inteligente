@@ -158,6 +158,13 @@ export function SharedInstallmentImport({
       const totalInstallmentsNum = parseInt(installments);
       const parcelAmount = parseAmount(amount);
 
+      console.log('🔍 DEBUG IMPORTAÇÃO:');
+      console.log('  - Valor digitado (amount):', amount);
+      console.log('  - Valor parseado (parcelAmount):', parcelAmount);
+      console.log('  - Número de parcelas:', totalInstallmentsNum);
+      console.log('  - Valor TOTAL calculado:', totalAmount);
+      console.log('  - Valor que será enviado ao hook:', totalAmount);
+
       // CORREÇÃO CRÍTICA: Passar o valor TOTAL, não o valor da parcela
       // O hook useCreateTransaction divide o total pelo número de parcelas
       await createTransaction.mutateAsync({
