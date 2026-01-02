@@ -57,9 +57,13 @@ export function Dashboard() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  // CORREÇÃO: Filtrar transações compartilhadas onde outra pessoa pagou
+  // CORREÇÃO: Filtrar transações compartilhadas de outros usuários
   const recentTransactions = (transactions || [])
     .filter(t => {
+      // Excluir transações compartilhadas de outros usuários (espelhadas)
+      if (t.is_shared && t.user_id !== user?.id) {
+        return false;
+      }
       // Excluir transações onde outra pessoa pagou (ainda não acertadas)
       if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
         return false;

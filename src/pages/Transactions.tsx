@@ -146,8 +146,15 @@ export function Transactions() {
     const periodDates = getPeriodDates(selectedPeriod);
     
     return (transactions || []).filter((t) => {
-      // CORREÇÃO CRÍTICA: Excluir transações compartilhadas onde outra pessoa paga
-      // Essas transações só devem aparecer em "Despesas Compartilhadas" até serem acertadas
+      // CORREÇÃO CRÍTICA: Excluir transações compartilhadas de outros usuários
+      // Caso 1: payer_id diferente do usuário atual (outra pessoa pagou)
+      // Caso 2: user_id diferente do usuário atual E is_shared=true (transação espelhada)
+      if (t.is_shared && t.user_id !== user?.id) {
+        // Esta é uma transação espelhada de outra pessoa
+        // Não deve aparecer aqui até ser acertada
+        return false;
+      }
+      
       if (t.is_shared && t.payer_id && t.payer_id !== user?.id) {
         // Esta é uma transação onde OUTRA PESSOA pagou
         // Não deve aparecer aqui até ser acertada
