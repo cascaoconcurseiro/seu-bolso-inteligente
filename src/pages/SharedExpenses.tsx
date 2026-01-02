@@ -51,6 +51,7 @@ import {
   ArrowRight,
   Globe,
   CreditCard,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -90,6 +91,18 @@ export function SharedExpenses() {
 
   // Undo settlement state
   const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
+    isOpen: false,
+    item: null,
+  });
+
+  // Delete transaction state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
+    isOpen: false,
+    item: null,
+  });
+
+  // Delete series state
+  const [deleteSeriesConfirm, setDeleteSeriesConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
     isOpen: false,
     item: null,
   });
@@ -583,6 +596,75 @@ export function SharedExpenses() {
     }
   };
 
+  // Função para excluir transação única
+  const handleDeleteTransaction = async () => {
+    const item = deleteConfirm.item;
+    if (!item || !item.originalTxId) return;
+
+    try {
+      console.log('🗑️ [handleDeleteTransaction] Excluindo transação:', item.originalTxId);
+      
+      // Excluir a transação (cascade vai excluir splits automaticamente)
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', item.originalTxId);
+      
+      if (error) throw error;
+      
+      console.log('✅ [handleDeleteTransaction] Transação excluída com sucesso');
+      
+      // Fechar dialog
+      setDeleteConfirm({ isOpen: false, item: null });
+      
+      // Atualizar lista
+      await refetch();
+      
+      toast.success("Transação excluída com sucesso!");
+    } catch (error) {
+      console.error('❌ [handleDeleteTransaction] Erro:', error);
+      toast.error("Erro ao excluir transação");
+    }
+  };
+
+  // Função para excluir série de parcelas
+  const handleDeleteSeries = async () => {
+    const item = deleteSeriesConfirm.item;
+    if (!item || !item.seriesId) return;
+
+    try {
+      console.log('🗑️ [handleDeleteSeries] Excluindo série:', item.seriesId);
+      
+      // Usar função RPC que garante exclusão completa
+      const { data, error } = await supabase
+        .rpc('delete_installment_series', { p_series_id: item.seriesId });
+
+      if (error) throw error;
+
+      const deletedCount = data?.[0]?.deleted_count || 0;
+      
+      console.log('✅ [handleDeleteSeries] Série excluída:', {
+        seriesId: item.seriesId,
+        deletedCount
+      });
+
+      if (deletedCount === 0) {
+        throw new Error("Nenhuma parcela foi excluída. Verifique se a série existe.");
+      }
+
+      // Fechar dialog
+      setDeleteSeriesConfirm({ isOpen: false, item: null });
+      
+      // Atualizar lista
+      await refetch();
+      
+      toast.success(`${deletedCount} parcelas excluídas com sucesso!`);
+    } catch (error: any) {
+      console.error('❌ [handleDeleteSeries] Erro:', error);
+      toast.error("Erro ao excluir série: " + error.message);
+    }
+  };
+
   // Group items by trip
   const getGroupedItems = (memberId: string) => {
     const items = getFilteredInvoice(memberId);
@@ -964,23 +1046,41 @@ export function SharedExpenses() {
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
-                          {item.isPaid && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                          {/* Menu de ações - sempre mostrar */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {item.isPaid && (
                                 <DropdownMenuItem
                                   onClick={() => setUndoConfirm({ isOpen: true, item })}
                                 >
                                   <Undo2 className="h-4 w-4 mr-2" />
                                   Desfazer acerto
                                 </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
+                              )}
+                              {item.totalInstallments && item.totalInstallments > 1 ? (
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir série ({item.totalInstallments}x)
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir transação
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     );
@@ -1206,23 +1306,41 @@ export function SharedExpenses() {
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
-                          {item.isPaid && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                          {/* Menu de ações - sempre mostrar */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {item.isPaid && (
                                 <DropdownMenuItem
                                   onClick={() => setUndoConfirm({ isOpen: true, item })}
                                 >
                                   <Undo2 className="h-4 w-4 mr-2" />
                                   Desfazer acerto
                                 </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
+                              )}
+                              {item.totalInstallments && item.totalInstallments > 1 ? (
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir série ({item.totalInstallments}x)
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir transação
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     );
@@ -1824,6 +1942,49 @@ export function SharedExpenses() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleUndoSettlement}>
               Desfazer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Transaction Confirm */}
+      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, item: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja excluir a transação "{deleteConfirm.item?.description}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteTransaction}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Series Confirm */}
+      <AlertDialog open={deleteSeriesConfirm.isOpen} onOpenChange={(open) => !open && setDeleteSeriesConfirm({ isOpen: false, item: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Série de Parcelas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja excluir toda a série de parcelas "{deleteSeriesConfirm.item?.description}"? 
+              Todas as {deleteSeriesConfirm.item?.totalInstallments} parcelas serão excluídas. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteSeries}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir Série
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
