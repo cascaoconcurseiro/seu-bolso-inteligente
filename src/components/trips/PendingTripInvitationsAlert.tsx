@@ -15,11 +15,11 @@ export function PendingTripInvitationsAlert() {
   const rejectInvitation = useRejectTripInvitation();
 
   // console.log('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
-    invitations, 
-    isLoading, 
-    error,
-    hasInvitations: invitations && invitations.length > 0 
-  });
+  //   invitations, 
+  //   isLoading, 
+  //   error,
+  //   hasInvitations: invitations && invitations.length > 0 
+  // });
 
   if (isLoading) {
     // console.log('🟣 [PendingTripInvitationsAlert] Carregando...');

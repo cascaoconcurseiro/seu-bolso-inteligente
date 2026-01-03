@@ -72,8 +72,8 @@ export function usePendingTripInvitations() {
             .in("id", inviterIds)
         ]);
 
-        if (tripsResult.error) // console.error("🟣 [usePendingTripInvitations] Erro ao buscar viagens:", tripsResult.error);
-        if (profilesResult.error) // console.error("🟣 [usePendingTripInvitations] Erro ao buscar perfis:", profilesResult.error);
+        // if (tripsResult.error) console.error("🟣 [usePendingTripInvitations] Erro ao buscar viagens:", tripsResult.error);
+        // if (profilesResult.error) console.error("🟣 [usePendingTripInvitations] Erro ao buscar perfis:", profilesResult.error);
 
         const tripsMap = new Map(tripsResult.data?.map(t => [t.id, t]) || []);
         const profilesMap = new Map(profilesResult.data?.map(p => [p.id, p]) || []);
