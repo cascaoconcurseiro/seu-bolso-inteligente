@@ -75,29 +75,34 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
-  console.log('🔵 [SharedExpenses] Componente iniciando...');
+  console.log('🔵 [SharedExpenses] ========== COMPONENTE INICIANDO ==========');
   
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
-  const { currentDate } = useMonth();
-  const [showSettleDialog, setShowSettleDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
-  const [settleAmount, setSettleAmount] = useState("");
-  const [settleAccountId, setSettleAccountId] = useState("");
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [isSettling, setIsSettling] = useState(false);
-  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  try {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    console.log('🔵 [SharedExpenses] User:', user?.id);
+    
+    const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
+    const { currentDate } = useMonth();
+    console.log('🔵 [SharedExpenses] CurrentDate:', currentDate);
+    
+    const [showSettleDialog, setShowSettleDialog] = useState(false);
+    const [showImportDialog, setShowImportDialog] = useState(false);
+    const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+    const [selectedMember, setSelectedMember] = useState<string | null>(null);
+    const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
+    const [settleAmount, setSettleAmount] = useState("");
+    const [settleAccountId, setSettleAccountId] = useState("");
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [isSettling, setIsSettling] = useState(false);
+    const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
 
-  console.log('🔵 [SharedExpenses] Estados inicializados');
+    console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
-  // Undo settlement state
-  const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
-    isOpen: false,
-    item: null,
+    // Undo settlement state
+    const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
+      isOpen: false,
+      item: null,
   });
 
   // Delete transaction state
@@ -113,22 +118,26 @@ export function SharedExpenses() {
   });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
-  console.log('🔵 [SharedExpenses] Members carregados:', members?.length);
+  console.log('🔵 [SharedExpenses] ✅ Members carregados:', { count: members?.length, membersLoading });
   
   const { data: accounts = [] } = useAccounts();
-  console.log('🔵 [SharedExpenses] Accounts carregadas:', accounts?.length);
+  console.log('🔵 [SharedExpenses] ✅ Accounts carregadas:', { count: accounts?.length });
   
   const { data: trips = [] } = useTrips();
-  console.log('🔵 [SharedExpenses] Trips carregadas:', trips?.length);
+  console.log('🔵 [SharedExpenses] ✅ Trips carregadas:', { count: trips?.length });
   
   const createTransaction = useCreateTransaction();
 
-  console.log('🔵 [SharedExpenses] Chamando useSharedFinances...');
+  console.log('🔵 [SharedExpenses] 🔄 Chamando useSharedFinances...');
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
     currentDate,
     activeTab,
   });
-  console.log('🔵 [SharedExpenses] useSharedFinances retornou, invoices:', Object.keys(invoices || {}).length);
+  console.log('🔵 [SharedExpenses] ✅ useSharedFinances retornou:', { 
+    invoicesCount: Object.keys(invoices || {}).length,
+    transactionsCount: transactions?.length,
+    sharedLoading 
+  });
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
     if (currency === "BRL") {
@@ -998,15 +1007,28 @@ export function SharedExpenses() {
                 {/* Items */}
                 <div className="divide-y divide-border">
                   {group.items.map(item => {
-                    const isCredit = item.type === "CREDIT";
-                    return (
-                      <div
-                        key={item.id}
-                        className={cn(
-                          "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
-                          item.isPaid && "opacity-60"
-                        )}
-                      >
+                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item:', { 
+                      id: item.id, 
+                      description: item.description,
+                      type: item.type,
+                      isPaid: item.isPaid,
+                      creatorUserId: item.creatorUserId,
+                      currentUserId: user?.id
+                    });
+                    
+                    try {
+                      const isCredit = item.type === "CREDIT";
+                      const hasActions = item.isPaid || item.creatorUserId === user?.id;
+                      console.log('🔵 [SharedExpenses] Item hasActions:', hasActions);
+                      
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
+                            item.isPaid && "opacity-60"
+                          )}
+                        >
                         {/* Status */}
                         <div className="col-span-1">
                           {item.isPaid ? (
@@ -1089,47 +1111,59 @@ export function SharedExpenses() {
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
-                          {/* Menu de ações - sempre mostrar */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {item.isPaid && (
-                                <DropdownMenuItem
-                                  onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                >
-                                  <Undo2 className="h-4 w-4 mr-2" />
-                                  Desfazer acerto
-                                </DropdownMenuItem>
-                              )}
-                              {/* Apenas o criador pode excluir */}
-                              {item.creatorUserId === user?.id && (
-                                item.totalInstallments && item.totalInstallments > 1 ? (
+                          {/* Menu de ações - só mostrar se houver ações disponíveis */}
+                          {(item.isPaid || item.creatorUserId === user?.id) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
+                                  <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {item.isPaid && (
                                   <DropdownMenuItem
-                                    onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => setUndoConfirm({ isOpen: true, item })}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir série ({item.totalInstallments}x)
+                                    <Undo2 className="h-4 w-4 mr-2" />
+                                    Desfazer acerto
                                   </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                    className="text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir transação
-                                  </DropdownMenuItem>
-                                )
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                )}
+                                {/* Apenas o criador pode excluir */}
+                                {item.creatorUserId === user?.id && (
+                                  item.totalInstallments && item.totalInstallments > 1 ? (
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir série ({item.totalInstallments}x)
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir transação
+                                    </DropdownMenuItem>
+                                  )
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                       </div>
                     );
+                    } catch (error) {
+                      console.error('❌ [SharedExpenses] ERRO ao renderizar item REGULAR:', error);
+                      console.error('❌ Item data:', item);
+                      console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+                      return (
+                        <div key={item.id} className="px-4 py-3 bg-red-50 dark:bg-red-950/20">
+                          <p className="text-sm text-red-600">Erro ao renderizar item: {item.description}</p>
+                        </div>
+                      );
+                    }
                   })}
                 </div>
               </div>
@@ -1274,12 +1308,26 @@ export function SharedExpenses() {
                 {/* Itens do membro */}
                 <div className="divide-y divide-border">
                   {memberItems.map(item => {
-                    const isCredit = item.type === 'CREDIT';
-                    return (
-                      <div
-                        key={item.id}
-                        className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
-                      >
+                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', { 
+                      id: item.id, 
+                      description: item.description,
+                      type: item.type,
+                      isPaid: item.isPaid,
+                      creatorUserId: item.creatorUserId,
+                      currentUserId: user?.id,
+                      tripId: item.tripId
+                    });
+                    
+                    try {
+                      const isCredit = item.type === 'CREDIT';
+                      const hasActions = item.isPaid || item.creatorUserId === user?.id;
+                      console.log('🔵 [SharedExpenses] Item TRAVEL hasActions:', hasActions);
+                      
+                      return (
+                        <div
+                          key={item.id}
+                          className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
+                        >
                         {/* Status */}
                         <div className="col-span-1">
                           {item.isPaid ? (
@@ -1352,47 +1400,59 @@ export function SharedExpenses() {
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
-                          {/* Menu de ações - sempre mostrar */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {item.isPaid && (
-                                <DropdownMenuItem
-                                  onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                >
-                                  <Undo2 className="h-4 w-4 mr-2" />
-                                  Desfazer acerto
-                                </DropdownMenuItem>
-                              )}
-                              {/* Apenas o criador pode excluir */}
-                              {item.creatorUserId === user?.id && (
-                                item.totalInstallments && item.totalInstallments > 1 ? (
+                          {/* Menu de ações - só mostrar se houver ações disponíveis */}
+                          {(item.isPaid || item.creatorUserId === user?.id) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
+                                  <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {item.isPaid && (
                                   <DropdownMenuItem
-                                    onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => setUndoConfirm({ isOpen: true, item })}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir série ({item.totalInstallments}x)
+                                    <Undo2 className="h-4 w-4 mr-2" />
+                                    Desfazer acerto
                                   </DropdownMenuItem>
-                                ) : (
-                                  <DropdownMenuItem
-                                    onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                    className="text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Excluir transação
-                                  </DropdownMenuItem>
-                                )
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                )}
+                                {/* Apenas o criador pode excluir */}
+                                {item.creatorUserId === user?.id && (
+                                  item.totalInstallments && item.totalInstallments > 1 ? (
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir série ({item.totalInstallments}x)
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Excluir transação
+                                    </DropdownMenuItem>
+                                  )
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
                       </div>
                     );
+                    } catch (error) {
+                      console.error('❌ [SharedExpenses] ERRO ao renderizar item TRAVEL:', error);
+                      console.error('❌ Item data:', item);
+                      console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+                      return (
+                        <div key={item.id} className="px-4 py-3 bg-red-50 dark:bg-red-950/20">
+                          <p className="text-sm text-red-600">Erro ao renderizar item: {item.description}</p>
+                        </div>
+                      );
+                    }
                   })}
                 </div>
 
@@ -1429,44 +1489,58 @@ export function SharedExpenses() {
   };
 
   console.log('🔵 [SharedExpenses] Antes do return principal');
+  console.log('🔵 [SharedExpenses] ========== PREPARANDO RENDER ==========');
   console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
   console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
   console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
   console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
 
-  return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
-          <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
+  // Wrapper de erro para todo o render
+  try {
+    console.log('🔵 [SharedExpenses] 🎨 Iniciando render principal...');
+    
+    return (
+      <div className="space-y-8 animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
+            <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
+              <Layers className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Importar Parcelas</span>
+              <span className="md:hidden">Importar</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
-            <Layers className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Importar Parcelas</span>
-            <span className="md:hidden">Importar</span>
-          </Button>
-        </div>
-      </div>
 
-      {/* Balance Evolution Chart */}
-      {(() => {
-        console.log('🔵 [SharedExpenses] Renderizando SharedBalanceChart');
-        try {
-          return (
-            <SharedBalanceChart 
-              transactions={transactions} 
-              invoices={invoices} 
-              currentDate={currentDate} 
-            />
-          );
-        } catch (error) {
-          console.error('❌ [SharedExpenses] Erro no SharedBalanceChart:', error);
-          return null;
-        }
-      })()}
+        {/* Balance Evolution Chart */}
+        {(() => {
+          console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
+          try {
+            const chart = (
+              <SharedBalanceChart 
+                transactions={transactions} 
+                invoices={invoices} 
+                currentDate={currentDate} 
+              />
+            );
+            console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
+            return chart;
+          } catch (error) {
+            console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
+            console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+            return (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Erro ao carregar gráfico: {error instanceof Error ? error.message : 'Erro desconhecido'}
+                </AlertDescription>
+              </Alert>
+            );
+          }
+        })()}
 
       {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
       <div className="space-y-4">
@@ -2061,4 +2135,33 @@ export function SharedExpenses() {
       />
     </div>
   );
+  } catch (error) {
+    console.error('❌❌❌ [SharedExpenses] ERRO CRÍTICO NO COMPONENTE:', error);
+    console.error('❌ Stack completo:', error instanceof Error ? error.stack : 'N/A');
+    console.error('❌ Error name:', error instanceof Error ? error.name : 'N/A');
+    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+    
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
+            <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
+          </div>
+        </div>
+        
+        <Alert variant="destructive">
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-semibold">Erro ao carregar página de compartilhados</p>
+              <p className="text-sm">{error instanceof Error ? error.message : 'Erro desconhecido'}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Verifique o console do navegador (F12) para mais detalhes
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 }
