@@ -75,6 +75,8 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
+  console.log('🔵 [SharedExpenses] Componente iniciando...');
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
@@ -89,6 +91,8 @@ export function SharedExpenses() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSettling, setIsSettling] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+
+  console.log('🔵 [SharedExpenses] Estados inicializados');
 
   // Undo settlement state
   const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
@@ -109,14 +113,22 @@ export function SharedExpenses() {
   });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  console.log('🔵 [SharedExpenses] Members carregados:', members?.length);
+  
   const { data: accounts = [] } = useAccounts();
+  console.log('🔵 [SharedExpenses] Accounts carregadas:', accounts?.length);
+  
   const { data: trips = [] } = useTrips();
+  console.log('🔵 [SharedExpenses] Trips carregadas:', trips?.length);
+  
   const createTransaction = useCreateTransaction();
 
+  console.log('🔵 [SharedExpenses] Chamando useSharedFinances...');
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
     currentDate,
     activeTab,
   });
+  console.log('🔵 [SharedExpenses] useSharedFinances retornou, invoices:', Object.keys(invoices || {}).length);
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
     if (currency === "BRL") {
@@ -1415,6 +1427,10 @@ export function SharedExpenses() {
       </div>
     );
   };
+
+  console.log('🔵 [SharedExpenses] Antes do return principal');
+  console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
+  console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
 
   return (
     <div className="space-y-8 animate-fade-in">
