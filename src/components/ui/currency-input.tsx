@@ -1,4 +1,4 @@
-import { forwardRef, useState, useEffect } from "react";
+import { forwardRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -10,20 +10,7 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, currency = "BRL", className, ...props }, ref) => {
-    const [internalValue, setInternalValue] = useState("");
-
-    // Sincronizar com valor externo
-    useEffect(() => {
-      if (value === "" || value === "0") {
-        setInternalValue("");
-      } else {
-        // Formatar o valor externo para exibição
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue)) {
-          setInternalValue(numValue.toFixed(2).replace(".", ","));
-        }
-      }
-    }, [value]);
+    const [displayValue, setDisplayValue] = useState("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value;
@@ -43,7 +30,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       }
       
       // Atualizar valor interno (o que o usuário vê)
-      setInternalValue(inputValue);
+      setDisplayValue(inputValue);
       
       // Converter para número e enviar para o pai
       if (!inputValue || inputValue === ",") {
@@ -63,12 +50,14 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleBlur = () => {
       // Ao sair do campo, garantir formato com 2 casas decimais
-      if (internalValue && internalValue !== ",") {
-        const normalizedValue = internalValue.replace(",", ".");
+      if (displayValue && displayValue !== ",") {
+        const normalizedValue = displayValue.replace(",", ".");
         const numericValue = parseFloat(normalizedValue);
         
         if (!isNaN(numericValue)) {
-          setInternalValue(numericValue.toFixed(2).replace(".", ","));
+          const formatted = numericValue.toFixed(2).replace(".", ",");
+          setDisplayValue(formatted);
+          onChange(numericValue.toString());
         }
       }
     };
@@ -78,7 +67,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         ref={ref}
         type="text"
         inputMode="decimal"
-        value={internalValue}
+        value={displayValue}
         onChange={handleChange}
         onBlur={handleBlur}
         className={cn("font-mono", className)}
