@@ -729,7 +729,7 @@ export function CreditCards() {
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
-      </div >
+      </div>
     );
 }
 

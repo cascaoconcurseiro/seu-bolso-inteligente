@@ -194,21 +194,13 @@ export function SharedExpenses() {
         const selectedTotal = items
           .filter(i => newItems.includes(i.id))
           .reduce((sum, item) => {
-            // Sum logic:
-            // Regardless of type (PAY/RECEIVE), we summing magnitude of selected items.
-            // Items relevant to settlement are those matching the flow.
-            // But getFilteredInvoice returns mixed CREDIT/DEBIT.
-
-            // If I am Paying (PAY), I am settling my DEBITS.
-            // If I am Receiving (RECEIVE), I am settling CREDITS.
-
-            // However, simply summing the magnitude (amount) of selected items is usually what the user expects 
-            // when selecting items to "clear".
-            return sum + item.amount;
+            // Use same logic as getSelectedTotal
+            if (item.type === "CREDIT") return sum + item.amount;
+            return sum - item.amount;
           }, 0);
 
-        // Update the input field with the new total
-        setSettleAmount(selectedTotal.toFixed(2).replace(".", ","));
+        // Update the input field with the new total (absolute value)
+        setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
       }
 
       return newItems;
