@@ -48,7 +48,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value;
       
-      // Permitir apenas números, vírgula e ponto
+      // Permitir apenas números e vírgula
       inputValue = inputValue.replace(/[^\d,]/g, "");
       
       // Substituir vírgula por ponto para cálculos
@@ -73,16 +73,19 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         return;
       }
       
-      // Atualizar raw value
-      setRawValue(normalizedValue);
-      
       // Atualizar display (manter o que o usuário está digitando)
       setDisplayValue(inputValue);
+      
+      // Atualizar raw value
+      setRawValue(normalizedValue);
       
       // Retornar valor numérico
       const numericValue = parseFloat(normalizedValue);
       if (!isNaN(numericValue)) {
         onChange(numericValue.toString());
+      } else if (inputValue.endsWith(",")) {
+        // Permitir vírgula no final (usuário ainda está digitando)
+        onChange(parts[0] || "0");
       } else {
         onChange("");
       }
