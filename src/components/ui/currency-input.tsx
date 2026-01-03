@@ -11,27 +11,23 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, currency = "BRL", className, ...props }, ref) => {
     const [displayValue, setDisplayValue] = useState("");
+    const [rawValue, setRawValue] = useState("");
 
     // Formata o valor para exibição
-    const formatDisplay = (numericValue: string) => {
-      if (!numericValue) return "";
+    const formatDisplay = (val: string) => {
+      if (!val) return "";
       
-      // Remove tudo que não é número
-      const numbers = numericValue.replace(/\D/g, "");
-      if (!numbers) return "";
-
-      // Converte para número (últimos 2 dígitos são centavos)
-      const cents = parseInt(numbers, 10);
-      const reais = cents / 100;
+      const numericValue = parseFloat(val);
+      if (isNaN(numericValue)) return "";
 
       // Formata com separadores
       if (currency === "BRL") {
-        return reais.toLocaleString("pt-BR", {
+        return numericValue.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
       } else {
-        return reais.toLocaleString("en-US", {
+        return numericValue.toLocaleString("en-US", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
@@ -40,36 +36,76 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     // Atualiza display quando value externo muda
     useEffect(() => {
-      if (value === "") {
+      if (value === "" || value === "0") {
         setDisplayValue("");
+        setRawValue("");
       } else {
-        const numbers = value.replace(/\D/g, "");
-        if (numbers) {
-          setDisplayValue(formatDisplay(numbers));
-        }
+        setRawValue(value);
+        setDisplayValue(formatDisplay(value));
       }
     }, [value, currency]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value;
+      let inputValue = e.target.value;
       
-      // Remove tudo que não é número
-      const numbers = inputValue.replace(/\D/g, "");
+      // Permitir apenas números, vírgula e ponto
+      inputValue = inputValue.replace(/[^\d,]/g, "");
       
-      if (!numbers) {
+      // Substituir vírgula por ponto para cálculos
+      const normalizedValue = inputValue.replace(",", ".");
+      
+      // Validar formato (apenas um ponto decimal)
+      const parts = normalizedValue.split(".");
+      if (parts.length > 2) {
+        return; // Mais de um ponto decimal, ignorar
+      }
+      
+      // Limitar casas decimais a 2
+      if (parts.length === 2 && parts[1].length > 2) {
+        return;
+      }
+      
+      // Se está vazio, limpar tudo
+      if (!inputValue) {
         setDisplayValue("");
+        setRawValue("");
         onChange("");
         return;
       }
+      
+      // Atualizar raw value
+      setRawValue(normalizedValue);
+      
+      // Atualizar display (manter o que o usuário está digitando)
+      setDisplayValue(inputValue);
+      
+      // Retornar valor numérico
+      const numericValue = parseFloat(normalizedValue);
+      if (!isNaN(numericValue)) {
+        onChange(numericValue.toString());
+      } else {
+        onChange("");
+      }
+    };
 
-      // Atualiza display formatado
-      const formatted = formatDisplay(numbers);
-      setDisplayValue(formatted);
+    const handleBlur = () => {
+      // Ao sair do campo, formatar o valor
+      if (rawValue) {
+        const formatted = formatDisplay(rawValue);
+        setDisplayValue(formatted);
+      }
+    };
 
-      // Retorna o valor numérico puro (em reais)
-      const cents = parseInt(numbers, 10);
-      const reais = cents / 100;
-      onChange(reais.toString());
+    const handleFocus = () => {
+      // Ao focar, mostrar valor editável (com vírgula)
+      if (rawValue) {
+        const numericValue = parseFloat(rawValue);
+        if (!isNaN(numericValue)) {
+          // Mostrar com vírgula para edição
+          const editableValue = numericValue.toFixed(2).replace(".", ",");
+          setDisplayValue(editableValue);
+        }
+      }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -85,6 +121,10 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       if (e.keyCode >= 35 && e.keyCode <= 39) {
         return;
       }
+      // Permite vírgula (188, 194)
+      if ([188, 194].includes(e.keyCode)) {
+        return;
+      }
       // Bloqueia se não for número
       if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
         e.preventDefault();
@@ -95,9 +135,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       <Input
         ref={ref}
         type="text"
-        inputMode="numeric"
+        inputMode="decimal"
         value={displayValue}
         onChange={handleChange}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         className={cn("font-mono", className)}
         {...props}
