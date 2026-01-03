@@ -831,7 +831,7 @@ export function SharedExpenses() {
     // CORREÇÃO: Na aba TRAVEL não renderizar cards de membros (será por viagem)
     // Nas abas REGULAR e HISTORY usar BRL
     if (activeTab === 'TRAVEL') {
-      return null; // Não renderizar na aba TRAVEL
+      return undefined; // Não renderizar na aba TRAVEL - será filtrado
     }
 
     const primaryCurrency = 'BRL';
@@ -854,7 +854,7 @@ export function SharedExpenses() {
 
     // Não mostrar membros sem itens
     if (items.length === 0) {
-      return null;
+      return undefined; // Será filtrado pelo .filter(Boolean)
     }
 
     // Determinar se eu devo (PAGAR - vermelho) ou me devem (RECEBER - verde)
@@ -1204,7 +1204,7 @@ export function SharedExpenses() {
       tripItems.push(...memberItems);
     });
 
-    if (tripItems.length === 0) return null;
+    if (tripItems.length === 0) return undefined; // Será filtrado pelo .filter(Boolean)
 
     // Calcular totais por moeda
     const totals = getTotals(tripItems);
@@ -1282,7 +1282,7 @@ export function SharedExpenses() {
         <div className="border-t border-border">
           {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
             const member = members.find(m => m.id === memberId);
-            if (!member) return null;
+            if (!member) return undefined; // Será filtrado
 
             const memberTotals = getTotals(memberItems);
             const memberNet = memberTotals[tripCurrency]?.net || 0;
@@ -1786,14 +1786,14 @@ export function SharedExpenses() {
                             return renderMemberInvoiceCard(member);
                           } catch (error) {
                             console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
-                            return null;
+                            return undefined;
                           }
                         }).filter(Boolean);
                         console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
                         return <>{memberCards}</>;
                       }
                       console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
-                      return null;
+                      return <></>;
                     })()}
 
                     {/* Lista de viagens (TRAVEL) */}
@@ -1815,14 +1815,14 @@ export function SharedExpenses() {
                               return renderTripCard(trip);
                             } catch (error) {
                               console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
-                              return null;
+                              return undefined;
                             }
-                          });
+                          }).filter(Boolean);
                           return <>{tripCards}</>;
                         }
                       }
                       console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
-                      return null;
+                      return <></>;
                     })()}
 
                     {/* Mensagem se não houver itens */}
