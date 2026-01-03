@@ -1773,10 +1773,10 @@ export function SharedExpenses() {
               </div>
 
               {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
-              {activeTab !== 'TRAVEL' && members.map(member => renderMemberInvoiceCard(member))}
+              {activeTab !== 'TRAVEL' && members.length > 0 && members.map(member => renderMemberInvoiceCard(member))}
 
               {/* Lista de viagens (TRAVEL) */}
-              {activeTab === 'TRAVEL' && trips
+              {activeTab === 'TRAVEL' && trips.length > 0 && trips
                 .filter(trip => {
                   // Verificar se há itens desta viagem no mês atual
                   return members.some(member => {
