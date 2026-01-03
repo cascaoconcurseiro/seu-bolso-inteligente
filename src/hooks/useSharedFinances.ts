@@ -129,9 +129,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
       
       // console.log('✅ [Query Result - Splits]:', {
-        count: splits?.length || 0,
-        splits: splits
-      });
+      //   count: splits?.length || 0,
+      //   splits: splits
+      // });
       
       // Combinar transações com seus splits
       const transactionsWithSplitsData = uniqueTransactions.map(tx => ({
@@ -140,15 +140,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }));
       
       // console.log('✅ [Query Result] Transações com splits:', {
-        count: transactionsWithSplitsData.length,
-        transactions: transactionsWithSplitsData.map(t => ({
-          id: t.id,
-          description: t.description,
-          user_id: t.user_id,
-          splits: t.transaction_splits?.length || 0,
-          splitsData: t.transaction_splits
-        }))
-      });
+      //   count: transactionsWithSplitsData.length,
+      //   transactions: transactionsWithSplitsData.map(t => ({
+      //     id: t.id,
+      //     description: t.description,
+      //     user_id: t.user_id,
+      //     splits: t.transaction_splits?.length || 0,
+      //     splitsData: t.transaction_splits
+      //   }))
+      // });
       
       return transactionsWithSplitsData;
     },
@@ -190,15 +190,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const processedTxIds = new Set<string>();
     
     // console.log('🔍 [useMemo] Iniciando processamento:', {
-      membersCount: members.length,
-      membersData: members.map(m => ({ id: m.id, name: m.name })),
-      transactionsCount: transactionsWithSplits.length,
-      transactionsData: transactionsWithSplits.map(t => ({
-        id: t.id,
-        description: t.description,
-        splits: t.transaction_splits?.length || 0
-      }))
-    });
+    //   membersCount: members.length,
+    //   membersData: members.map(m => ({ id: m.id, name: m.name })),
+    //   transactionsCount: transactionsWithSplits.length,
+    //   transactionsData: transactionsWithSplits.map(t => ({
+    //     id: t.id,
+    //     description: t.description,
+    //     splits: t.transaction_splits?.length || 0
+    //   }))
+    // });
     
     // Initialize map for each member
     members.forEach(m => {
@@ -208,12 +208,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
     // DEBUG: Log dados recebidos
     // console.log('🔍 [useSharedFinances] DEBUG:', {
-      transactionsWithSplits: transactionsWithSplits.length,
-      paidByOthersTransactions: paidByOthersTransactions.length,
-      members: members.length,
-      activeTab,
-      currentDate
-    });
+    //   transactionsWithSplits: transactionsWithSplits.length,
+    //   paidByOthersTransactions: paidByOthersTransactions.length,
+    //   members: members.length,
+    //   activeTab,
+    //   currentDate
+    // });
 
     // LÓGICA CORRETA (SEM ESPELHAMENTO):
     
@@ -291,12 +291,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           });
 
           // console.log('✅ [CASO 1A] CRÉDITO criado:', {
-            memberId,
-            memberName: member?.name,
-            amount: split.amount,
-            date: tx.competence_date || tx.date,
-            tripId: tx.trip_id
-          });
+          //   memberId,
+          //   memberName: member?.name,
+          //   amount: split.amount,
+          //   date: tx.competence_date || tx.date,
+          //   tripId: tx.trip_id
+          // });
         });
       } else {
         // CASO 1B: OUTRO PAGOU e me incluiu em um split - DÉBITO (eu devo)
@@ -346,12 +346,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               });
 
               // console.log('✅ [CASO 1B] DÉBITO criado:', {
-                memberId: creatorMember.id,
-                memberName: creatorMember.name,
-                amount: mySplit.amount,
-                date: tx.competence_date || tx.date,
-                tripId: tx.trip_id
-              });
+              //   memberId: creatorMember.id,
+              //   memberName: creatorMember.name,
+              //   amount: mySplit.amount,
+              //   date: tx.competence_date || tx.date,
+              //   tripId: tx.trip_id
+              // });
             }
           } else {
             console.warn('⚠️ [CASO 1B] Criador da transação não encontrado nos membros:', tx.user_id);
@@ -402,13 +402,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
 
     // console.log('📊 [useSharedFinances] Invoice Map Final:', {
-      totalMembers: Object.keys(invoiceMap).length,
-      itemsPerMember: Object.entries(invoiceMap).map(([id, items]) => ({
-        memberId: id,
-        memberName: members.find(m => m.id === id)?.name,
-        itemCount: items.length
-      }))
-    });
+    //   totalMembers: Object.keys(invoiceMap).length,
+    //   itemsPerMember: Object.entries(invoiceMap).map(([id, items]) => ({
+    //     memberId: id,
+    //     memberName: members.find(m => m.id === id)?.name,
+    //     itemCount: items.length
+    //   }))
+    // });
 
     return invoiceMap;
   }, [transactionsWithSplits, paidByOthersTransactions, members]);
@@ -417,19 +417,19 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const allItems = invoices[memberId] || [];
     
     // console.log('🔍 [getFilteredInvoice] Filtrando para membro:', {
-      memberId,
-      memberName: members.find(m => m.id === memberId)?.name,
-      allItemsCount: allItems.length,
-      allItems: allItems.map(i => ({
-        description: i.description,
-        date: i.date,
-        tripId: i.tripId,
-        type: i.type,
-        isPaid: i.isPaid
-      })),
-      activeTab,
-      currentDate: currentDate.toISOString()
-    });
+    //   memberId,
+    //   memberName: members.find(m => m.id === memberId)?.name,
+    //   allItemsCount: allItems.length,
+    //   allItems: allItems.map(i => ({
+    //     description: i.description,
+    //     date: i.date,
+    //     tripId: i.tripId,
+    //     type: i.type,
+    //     isPaid: i.isPaid
+    //   })),
+    //   activeTab,
+    //   currentDate: currentDate.toISOString()
+    // });
     
     // Buscar configuração de escopo do membro
     const member = members.find(m => m.id === memberId);
@@ -475,27 +475,27 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           }
           
           // console.log('🔍 [TRAVEL Filter] Item com tripId:', {
-            description: i.description,
-            date: i.date,
-            tripId: i.tripId,
-            type: i.type,
-            isPaid: i.isPaid
-          });
+          //   description: i.description,
+          //   date: i.date,
+          //   tripId: i.tripId,
+          //   type: i.type,
+          //   isPaid: i.isPaid
+          // });
           
           return true; // Mostrar TODOS os itens de viagem
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
       // console.log('✅ [getFilteredInvoice] Resultado TRAVEL:', {
-        filteredCount: filtered.length,
-        items: filtered.map(i => ({
-          description: i.description,
-          date: i.date,
-          tripId: i.tripId,
-          type: i.type,
-          isPaid: i.isPaid
-        }))
-      });
+      //   filteredCount: filtered.length,
+      //   items: filtered.map(i => ({
+      //     description: i.description,
+      //     date: i.date,
+      //     tripId: i.tripId,
+      //     type: i.type,
+      //     isPaid: i.isPaid
+      //   }))
+      // });
       
       return filtered;
     } else if (activeTab === 'HISTORY') {
