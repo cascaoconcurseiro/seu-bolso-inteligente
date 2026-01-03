@@ -202,8 +202,13 @@ export function SharedInstallmentImport({
   };
 
   // Filtrar apenas categorias de despesa
-  const expenseParents = hierarchical.parents.filter(c => c.type === 'expense');
-  const expenseChildren = hierarchical.children.filter(c => c.type === 'expense');
+  // CORREÇÃO: Garantir que parents e children são arrays válidos
+  const expenseParents = Array.isArray(hierarchical?.parents)
+    ? hierarchical.parents.filter(c => c.type === 'expense')
+    : [];
+  const expenseChildren = Array.isArray(hierarchical?.children)
+    ? hierarchical.children.filter(c => c.type === 'expense')
+    : [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -314,14 +319,14 @@ export function SharedInstallmentImport({
               <SelectContent className="max-h-[300px]">
                 {expenseParents.map((parent) => {
                   const childrenOfParent = expenseChildren.filter(c => c.parent_category_id === parent.id);
-                  
+
                   return (
                     <SelectGroup key={parent.id}>
                       {/* Categoria Pai como Label */}
                       <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
                         {parent.icon} {parent.name}
                       </SelectLabel>
-                      
+
                       {/* Subcategorias */}
                       {childrenOfParent.map((child) => (
                         <SelectItem key={child.id} value={child.id} className="pl-8">
