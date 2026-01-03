@@ -35,6 +35,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { format, addMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface SharedInstallmentImportProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ export function SharedInstallmentImport({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [installments, setInstallments] = useState('2');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [categoryId, setCategoryId] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,12 +71,21 @@ export function SharedInstallmentImport({
   // Filter out current user from assignee list
   const availableMembers = members.filter(m => m.linked_user_id !== user?.id);
 
+  // Gerar lista de meses (12 meses: atual + 11 próximos)
+  const availableMonths = Array.from({ length: 12 }, (_, i) => {
+    const date = addMonths(new Date(), i);
+    return {
+      value: format(date, 'yyyy-MM'),
+      label: format(date, 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase()),
+    };
+  });
+
   useEffect(() => {
     if (isOpen) {
       setDescription('');
       setAmount(''); // Iniciar vazio para o usuário digitar
       setInstallments('2');
-      setDate(format(new Date(), 'yyyy-MM-dd'));
+      setSelectedMonth(format(new Date(), 'yyyy-MM'));
       setCategoryId('');
       setIsSubmitting(false);
       setErrors([]);
@@ -117,8 +127,8 @@ export function SharedInstallmentImport({
       newErrors.push('Selecione quem vai pagar as parcelas');
     }
 
-    if (!date) {
-      newErrors.push('Data da primeira parcela é obrigatória');
+    if (!selectedMonth) {
+      newErrors.push('Selecione o mês da primeira parcela');
     }
 
     setErrors(newErrors);
@@ -139,11 +149,15 @@ export function SharedInstallmentImport({
       const selectedMember = members.find(m => m.id === assigneeId);
       if (!selectedMember) throw new Error('Membro não encontrado');
 
-      const baseDate = new Date(date);
+      // Usar o primeiro dia do mês selecionado
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const baseDate = new Date(year, month - 1, 1);
       const totalInstallmentsNum = parseInt(installments);
       const parcelAmount = parseAmount(amount);
 
       console.log('🔍 DEBUG IMPORTAÇÃO:');
+      console.log('  - Mês selecionado:', selectedMonth);
+      console.log('  - Data base (1º dia do mês):', format(baseDate, 'dd/MM/yyyy'));
       console.log('  - Valor digitado (amount):', amount);
       console.log('  - Valor parseado (parcelAmount):', parcelAmount);
       console.log('  - Número de parcelas:', totalInstallmentsNum);
@@ -266,19 +280,24 @@ export function SharedInstallmentImport({
             </div>
           )}
 
-          {/* Date */}
+          {/* Month Selector */}
           <div className="space-y-2">
-            <Label>Data 1ª Parcela *</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="pl-9"
-                disabled={isSubmitting}
-              />
-            </div>
+            <Label>Mês da 1ª Parcela *</Label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={isSubmitting}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              💡 As parcelas serão criadas no dia 1º de cada mês
+            </p>
           </div>
 
           {/* Category */}
