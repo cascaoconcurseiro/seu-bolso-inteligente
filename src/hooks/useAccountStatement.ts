@@ -81,8 +81,9 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         .from("transactions")
         .select(`
           *,
+          account:accounts!transactions_account_id_fkey(id, name, currency),
           category:categories(name, icon),
-          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(id, amount, user_id, member_id)
+          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(*)
         `)
         .eq("account_id", accountId)
         .gte("date", effectiveStartDate)
@@ -106,8 +107,9 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         .from("transactions")
         .select(`
           *,
+          account:accounts!transactions_account_id_fkey(id, name, currency),
           category:categories(name, icon),
-          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(id, amount, user_id, member_id)
+          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(*)
         `)
         .eq("destination_account_id", accountId)
         .eq("type", "TRANSFER")
@@ -130,10 +132,10 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       // Combinar e processar transações
       // Filtrar apenas transações de contas do usuário (segurança)
       const allTransactions = [
-        ...(outgoingTransactions || []), 
+        ...(outgoingTransactions || []),
         ...(incomingTransfers || [])
       ].filter(tx => tx.user_id === user.id); // Garantir que só vê suas próprias transações
-      
+
       console.log('🔍 [useAccountStatement] Após filtro de segurança:', {
         totalBefore: (outgoingTransactions?.length || 0) + (incomingTransfers?.length || 0),
         totalAfter: allTransactions.length,
@@ -164,7 +166,7 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
           }
         }
       }
-      
+
       const initialBalance = currentBalance - periodSum;
 
       // Calcular running balance

@@ -107,9 +107,9 @@ export function TransactionItem({
             <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
                 <div className={cn(
                     "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
-                    transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
+                    (transaction.isIncoming || transaction.type === "INCOME") ? "bg-positive/10" : "bg-muted"
                 )}>
-                    {transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
+                    {transaction.category?.icon || (transaction.type === "TRANSFER" ? "⇄" : transaction.type === "INCOME" ? "💰" : "💸")}
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -189,16 +189,16 @@ export function TransactionItem({
                 <div className="flex flex-col items-end gap-0.5">
                     <span className={cn(
                         "font-mono font-medium text-right whitespace-nowrap",
-                        transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                        (transaction.isIncoming || transaction.type === "INCOME") ? "text-positive" : "text-negative"
                     )}>
-                        {transaction.type === "INCOME" ? "+" : "-"}
+                        {(transaction.isIncoming || transaction.type === "INCOME") ? "+" : "-"}
                         {formatMoney(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
                     </span>
                     <span className={cn(
                         "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-                        transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                        (transaction.isIncoming || transaction.type === "INCOME") ? "text-positive" : "text-negative"
                     )}>
-                        {transaction.type === "INCOME" ? "Crédito" : "Débito"}
+                        {transaction.type === "TRANSFER" ? "Transferência" : (transaction.isIncoming || transaction.type === "INCOME") ? "Crédito" : "Débito"}
                     </span>
                 </div>
 
