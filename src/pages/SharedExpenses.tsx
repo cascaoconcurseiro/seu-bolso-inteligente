@@ -2030,14 +2030,8 @@ export function SharedExpenses() {
                         ) : (
                           filteredSettleAccounts.map((account) => (
                             <SelectItem key={account.id} value={account.id}>
-                              <div className="flex items-center gap-2">
-                                {account.name}
-                                {account.is_international && (
-                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                                    {account.currency}
-                                  </span>
-                                )}
-                              </div>
+                              {account.name}
+                              {account.is_international && ` (${account.currency})`}
                             </SelectItem>
                           ))
                         )}
