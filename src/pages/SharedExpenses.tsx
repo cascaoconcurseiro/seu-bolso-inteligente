@@ -1788,30 +1788,31 @@ export function SharedExpenses() {
               }
 
               {/* Mensagem se não houver itens */}
-              {activeTab === 'TRAVEL' 
-                ? trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
-                    <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                      <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                      <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
-                      <p className="text-muted-foreground">
-                        Não há despesas de viagens neste período
-                      </p>
-                    </div>
-                  )
-                : members.every(m => getFilteredInvoice(m.id).length === 0) && (
-                    <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                      <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                      <h3 className="font-display font-semibold text-lg mb-2">
-                        {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                      </h3>
-                      <p className="text-muted-foreground">
-                        {activeTab === "HISTORY" 
-                          ? "Nenhum acerto foi realizado ainda" 
-                          : "Não há despesas pendentes neste período"}
-                      </p>
-                    </div>
-                  )
-              }
+              {activeTab === 'TRAVEL' ? (
+                trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
+                  <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                    <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                    <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
+                    <p className="text-muted-foreground">
+                      Não há despesas de viagens neste período
+                    </p>
+                  </div>
+                )
+              ) : (
+                members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                  <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                    <h3 className="font-display font-semibold text-lg mb-2">
+                      {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {activeTab === "HISTORY" 
+                        ? "Nenhum acerto foi realizado ainda" 
+                        : "Não há despesas pendentes neste período"}
+                    </p>
+                  </div>
+                )
+              )}
             </div>
           )}
         </TabsContent>
