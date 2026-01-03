@@ -692,9 +692,9 @@ export function Trips() {
                   {!isSettled && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-sm text-muted-foreground text-center">
-                        💡 {myBalance.balance >= 0 
-                          ? "Outros participantes devem acertar com você" 
-                          : "Acerte em Compartilhados > Viagem"}
+                        {myBalance.balance >= 0 
+                          ? "💰 Outros participantes devem acertar com você" 
+                          : "💳 Acerte em Compartilhados > Viagem"}
                       </p>
                     </div>
                   )}

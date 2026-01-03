@@ -1251,7 +1251,7 @@ function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDi
 
         {/* Info Banner */}
         <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-          💡 Após importar, navegue até o mês da fatura usando as setas no detalhe do cartão.
+          📅 Após importar, navegue pelos meses usando as setas no detalhe do cartão
         </div>
 
         {/* Months List */}

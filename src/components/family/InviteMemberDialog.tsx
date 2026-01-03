@@ -327,7 +327,7 @@ export function InviteMemberDialog({
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    💡 Transações antigas do período permanecerão visíveis. Novas transações fora do período não aparecerão.
+                    📆 Transações antigas do período permanecerão visíveis
                   </p>
                 </>
               )}
@@ -361,7 +361,7 @@ export function InviteMemberDialog({
                   )}
                   {trips.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      💡 Apenas transações desta viagem serão compartilhadas.
+                      🧳 Apenas transações desta viagem serão compartilhadas
                     </p>
                   )}
                 </div>
@@ -369,7 +369,7 @@ export function InviteMemberDialog({
 
               {sharingScope === "trips_only" && (
                 <p className="text-xs text-muted-foreground">
-                  💡 Apenas transações vinculadas a viagens serão compartilhadas.
+                  ✈️ Apenas transações vinculadas a viagens serão compartilhadas
                 </p>
               )}
             </CollapsibleContent>

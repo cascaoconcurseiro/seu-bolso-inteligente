@@ -18,6 +18,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select';
 import {
   Calendar,
@@ -31,7 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 import { FamilyMember } from '@/hooks/useFamily';
 import { useCreateTransaction } from '@/hooks/useTransactions';
-import { useCategories } from '@/hooks/useCategories';
+import { useCategoriesHierarchical } from '@/hooks/useCategories';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { format, addMonths } from 'date-fns';
@@ -56,7 +58,7 @@ export function SharedInstallmentImport({
 }: SharedInstallmentImportProps) {
   const { user } = useAuth();
   const createTransaction = useCreateTransaction();
-  const { data: categories = [] } = useCategories();
+  const { hierarchical } = useCategoriesHierarchical();
   const navigate = useNavigate();
 
   const [description, setDescription] = useState('');
@@ -199,7 +201,9 @@ export function SharedInstallmentImport({
     }
   };
 
-  const expenseCategories = categories.filter(c => c.type === 'expense');
+  // Filtrar apenas categorias de despesa
+  const expenseParents = hierarchical.parents.filter(c => c.type === 'expense');
+  const expenseChildren = hierarchical.children.filter(c => c.type === 'expense');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -213,7 +217,7 @@ export function SharedInstallmentImport({
             Crie múltiplas parcelas para outro membro pagar.
             <br />
             <span className="text-xs text-muted-foreground">
-              💡 Digite o valor de cada parcela (ex: 95,00 para 10x = R$ 950,00 total)
+              💰 Informe o valor de cada parcela - o total será calculado automaticamente
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -296,7 +300,7 @@ export function SharedInstallmentImport({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              💡 As parcelas serão criadas no dia 1º de cada mês
+              📅 Parcelas criadas automaticamente no primeiro dia de cada mês
             </p>
           </div>
 
@@ -307,14 +311,34 @@ export function SharedInstallmentImport({
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma categoria" />
               </SelectTrigger>
-              <SelectContent>
-                {expenseCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
+              <SelectContent className="max-h-[300px]">
+                {expenseParents.map((parent) => {
+                  const childrenOfParent = expenseChildren.filter(c => c.parent_category_id === parent.id);
+                  
+                  return (
+                    <SelectGroup key={parent.id}>
+                      {/* Categoria Pai como Label */}
+                      <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
+                        {parent.icon} {parent.name}
+                      </SelectLabel>
+                      
+                      {/* Subcategorias */}
+                      {childrenOfParent.map((child) => (
+                        <SelectItem key={child.id} value={child.id} className="pl-8">
+                          <span className="flex items-center gap-2">
+                            {child.icon && <span>{child.icon}</span>}
+                            <span>{child.name}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              🏷️ Ajuda a organizar e controlar seus gastos mensais
+            </p>
           </div>
 
           {/* Assignee */}

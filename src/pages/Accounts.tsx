@@ -523,7 +523,7 @@ export function Accounts() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  💡 A conta será criada em <strong>{currency}</strong>
+                  🌍 Conta criada em moeda estrangeira: <strong>{currency}</strong>
                 </p>
               </div>
             )}
@@ -552,7 +552,7 @@ export function Accounts() {
               />
               {!isInternational && (
                 <p className="text-xs text-muted-foreground">
-                  💡 Conta nacional em BRL (Real Brasileiro)
+                  🇧🇷 Conta nacional em Real Brasileiro (BRL)
                 </p>
               )}
             </div>
