@@ -1776,16 +1776,16 @@ export function SharedExpenses() {
               {activeTab !== 'TRAVEL' && members.length > 0 && members.map(member => renderMemberInvoiceCard(member))}
 
               {/* Lista de viagens (TRAVEL) */}
-              {activeTab === 'TRAVEL' && trips.length > 0 && trips
-                .filter(trip => {
+              {activeTab === 'TRAVEL' && (() => {
+                const filteredTrips = trips.filter(trip => {
                   // Verificar se há itens desta viagem no mês atual
                   return members.some(member => {
                     const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
                     return memberItems.length > 0;
                   });
-                })
-                .map(trip => renderTripCard(trip))
-              }
+                });
+                return filteredTrips.length > 0 ? filteredTrips.map(trip => renderTripCard(trip)) : null;
+              })()}
 
               {/* Mensagem se não houver itens */}
               {activeTab === 'TRAVEL' ? (
