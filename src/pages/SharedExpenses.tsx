@@ -1773,7 +1773,7 @@ export function SharedExpenses() {
               </div>
 
               {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
-              {activeTab !== 'TRAVEL' && members.length > 0 && members.map(member => renderMemberInvoiceCard(member))}
+              {activeTab !== 'TRAVEL' && members.length > 0 && members.map(member => renderMemberInvoiceCard(member)).filter(Boolean)}
 
               {/* Lista de viagens (TRAVEL) */}
               {activeTab === 'TRAVEL' && (() => {
