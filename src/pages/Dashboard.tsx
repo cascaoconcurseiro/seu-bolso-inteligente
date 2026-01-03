@@ -144,7 +144,7 @@ export function Dashboard() {
             Bem-vindo ao Pé de Meia
           </h1>
           <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
-            Comece adicionando uma conta bancária ou criando sua primeira transação.
+            💰 Comece sua jornada financeira adicionando uma conta ou registrando sua primeira movimentação
           </p>
           <Link to="/contas">
             <Button size="lg" variant="outline" className="gap-2 h-12 md:h-11">
@@ -251,7 +251,7 @@ export function Dashboard() {
                       <div className="flex items-center gap-4">
                         <BankIcon bankId={card.bank_id} size="md" />
                         <div>
-                          <p className="font-medium">Fatura {card.name}</p>
+                          <p className="font-medium">💳 Fatura {card.name}</p>
                           <p className="text-sm text-muted-foreground">
                             Vence em {daysUntilDue} dia{daysUntilDue !== 1 ? 's' : ''}
                           </p>
@@ -286,7 +286,7 @@ export function Dashboard() {
 
             {recentTransactions.length === 0 ? (
               <div className="p-8 text-center border border-dashed border-border rounded-xl animate-fade-in">
-                <p className="text-muted-foreground">Nenhuma transação ainda</p>
+                <p className="text-muted-foreground">📊 Suas transações aparecerão aqui</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -368,9 +368,9 @@ export function Dashboard() {
 
           {/* Insight Card - Saldo do Mês */}
           <div className="p-4 rounded-xl border border-border bg-muted/30 animate-scale-in hover-glow">
-            <p className="text-xs text-muted-foreground mb-1">Saldo do mês</p>
+            <p className="text-xs text-muted-foreground mb-1">💵 Resultado do mês</p>
             <p className="font-semibold">
-              {savings >= 0 ? "Positivo" : "Negativo"}
+              {savings >= 0 ? "Economizando" : "No vermelho"}
             </p>
             <p className={cn(
               "text-sm flex items-center gap-1",
@@ -383,7 +383,7 @@ export function Dashboard() {
 
           {/* Projeção do Mês */}
           <div className="p-4 rounded-xl bg-foreground text-background animate-scale-in-bounce hover-lift">
-            <p className="text-xs opacity-70 mb-1">Projeção fim do mês</p>
+            <p className="text-xs opacity-70 mb-1">🔮 Previsão para fim do mês</p>
             <p className="font-mono text-2xl font-bold animate-count-up">
               {formatCurrency(projectedBalance)}
             </p>
@@ -398,25 +398,25 @@ export function Dashboard() {
               <div className="mt-3 pt-3 border-t border-background/20 space-y-1 text-xs opacity-80">
                 {projection.future_income > 0 && (
                   <div className="flex justify-between">
-                    <span>+ Receitas futuras</span>
+                    <span>💰 Receitas futuras</span>
                     <span>{formatCurrency(projection.future_income)}</span>
                   </div>
                 )}
                 {projection.future_expenses > 0 && (
                   <div className="flex justify-between">
-                    <span>- Despesas futuras</span>
+                    <span>💸 Despesas futuras</span>
                     <span>{formatCurrency(projection.future_expenses)}</span>
                   </div>
                 )}
                 {projection.credit_card_invoices > 0 && (
                   <div className="flex justify-between">
-                    <span>- Faturas cartão</span>
+                    <span>💳 Faturas cartão</span>
                     <span>{formatCurrency(projection.credit_card_invoices)}</span>
                   </div>
                 )}
                 {projection.shared_debts > 0 && (
                   <div className="flex justify-between">
-                    <span>- Compartilhados</span>
+                    <span>👥 Compartilhados</span>
                     <span>{formatCurrency(projection.shared_debts)}</span>
                   </div>
                 )}
