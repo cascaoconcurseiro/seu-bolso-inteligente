@@ -1898,9 +1898,9 @@ export function SharedExpenses() {
                       </SelectTrigger>
                       <SelectContent>
                         {filteredSettleAccounts.length === 0 ? (
-                          <div className="p-2 text-sm text-muted-foreground text-center">
+                          <SelectItem value="no-accounts" disabled>
                             Nenhuma conta em {settlementCurrency} disponível
-                          </div>
+                          </SelectItem>
                         ) : (
                           filteredSettleAccounts.map((account) => (
                             <SelectItem key={account.id} value={account.id}>
