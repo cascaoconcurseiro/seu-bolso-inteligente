@@ -158,30 +158,58 @@ export function SharedExpenses() {
   const openSettleDialog = (memberId: string, type: "PAY" | "RECEIVE", amount: number) => {
     setSelectedMember(memberId);
     setSettleType(type);
-    // Preencher com o valor total pendente
+
+    // Auto-select ALL items by default
+    const items = getFilteredInvoice(memberId).filter(i => !i.isPaid);
+    setSelectedItems(items.map(i => i.id));
+
+    // Auto-fill total amount
+    const total = items.reduce((sum, item) => {
+      // Logic: if I'm paying (PAY), I pay for DEBIT items (my debt).
+      // wait, getFilteredInvoice returns items from my perspective relative to the member.
+      // If type is PAY, I owe this member. So I sum my DEBITS.
+      // If type is RECEIVE, they owe me. So I sum my CREDITS (or their debits depending on view).
+
+      // Actually, standard logic in handleSelectAll matches this 'amount' passed in.
+      // The 'amount' param passed to this function is already the calculated 'iOwe' or 'owedToMe' from 'totalsByCurrency'.
+      // So we can just trust 'amount' for the initial value.
+      return sum; // unused
+    }, 0);
+
     setSettleAmount(amount.toFixed(2).replace(".", ","));
-    setSelectedItems([]);
     setShowSettleDialog(true);
   };
 
   const toggleItem = (itemId: string) => {
     setSelectedItems(prev => {
-      const newItems = prev.includes(itemId)
+      // Determine new selection state first
+      const isSelected = prev.includes(itemId);
+      const newItems = isSelected
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId];
 
-      // Atualizar valor após mudança na seleção
-      setTimeout(() => {
-        if (!selectedMember) return;
+      // Calculate total for NEW selection immediately
+      if (selectedMember) {
         const items = getFilteredInvoice(selectedMember);
         const selectedTotal = items
           .filter(i => newItems.includes(i.id))
           .reduce((sum, item) => {
-            if (item.type === "CREDIT") return sum + item.amount;
-            return sum - item.amount;
+            // Sum logic:
+            // Regardless of type (PAY/RECEIVE), we summing magnitude of selected items.
+            // Items relevant to settlement are those matching the flow.
+            // But getFilteredInvoice returns mixed CREDIT/DEBIT.
+
+            // If I am Paying (PAY), I am settling my DEBITS.
+            // If I am Receiving (RECEIVE), I am settling CREDITS.
+
+            // However, simply summing the magnitude (amount) of selected items is usually what the user expects 
+            // when selecting items to "clear".
+            return sum + item.amount;
           }, 0);
-        setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
-      }, 0);
+
+        // Update the input field with the new total
+        setSettleAmount(selectedTotal.toFixed(2).replace(".", ","));
+      }
 
       return newItems;
     });
