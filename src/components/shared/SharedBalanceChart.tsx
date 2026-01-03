@@ -27,7 +27,14 @@ interface SharedBalanceChartProps {
 }
 
 export function SharedBalanceChart({ transactions, invoices, currentDate }: SharedBalanceChartProps) {
+  console.log('🟢 [SharedBalanceChart] Renderizando com:', {
+    transactions: transactions?.length,
+    invoices: Object.keys(invoices || {}).length,
+    currentDate
+  });
+
   const chartData = useMemo(() => {
+    console.log('🟢 [SharedBalanceChart] Calculando chartData...');
     const data: ChartDataPoint[] = [];
     const now = new Date();
 

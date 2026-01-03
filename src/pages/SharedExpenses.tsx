@@ -1431,6 +1431,8 @@ export function SharedExpenses() {
   console.log('🔵 [SharedExpenses] Antes do return principal');
   console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
   console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
+  console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
+  console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -1450,11 +1452,21 @@ export function SharedExpenses() {
       </div>
 
       {/* Balance Evolution Chart */}
-      <SharedBalanceChart 
-        transactions={transactions} 
-        invoices={invoices} 
-        currentDate={currentDate} 
-      />
+      {(() => {
+        console.log('🔵 [SharedExpenses] Renderizando SharedBalanceChart');
+        try {
+          return (
+            <SharedBalanceChart 
+              transactions={transactions} 
+              invoices={invoices} 
+              currentDate={currentDate} 
+            />
+          );
+        } catch (error) {
+          console.error('❌ [SharedExpenses] Erro no SharedBalanceChart:', error);
+          return null;
+        }
+      })()}
 
       {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
       <div className="space-y-4">
