@@ -77,27 +77,26 @@ type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 export function SharedExpenses() {
   console.log('🔵 [SharedExpenses] ========== COMPONENTE INICIANDO ==========');
   
-  try {
-    const navigate = useNavigate();
-    const { user } = useAuth();
-    console.log('🔵 [SharedExpenses] User:', user?.id);
-    
-    const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
-    const { currentDate } = useMonth();
-    console.log('🔵 [SharedExpenses] CurrentDate:', currentDate);
-    
-    const [showSettleDialog, setShowSettleDialog] = useState(false);
-    const [showImportDialog, setShowImportDialog] = useState(false);
-    const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
-    const [selectedMember, setSelectedMember] = useState<string | null>(null);
-    const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
-    const [settleAmount, setSettleAmount] = useState("");
-    const [settleAccountId, setSettleAccountId] = useState("");
-    const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [isSettling, setIsSettling] = useState(false);
-    const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  console.log('🔵 [SharedExpenses] User:', user?.id);
+  
+  const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
+  const { currentDate } = useMonth();
+  console.log('🔵 [SharedExpenses] CurrentDate:', currentDate);
+  
+  const [showSettleDialog, setShowSettleDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
+  const [settleAmount, setSettleAmount] = useState("");
+  const [settleAccountId, setSettleAccountId] = useState("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isSettling, setIsSettling] = useState(false);
+  const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
 
-    console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
+  console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
     // Undo settlement state
     const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
@@ -1495,52 +1494,48 @@ export function SharedExpenses() {
   console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
   console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
 
-  // Wrapper de erro para todo o render
-  try {
-    console.log('🔵 [SharedExpenses] 🎨 Iniciando render principal...');
-    
-    return (
-      <div className="space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
-            <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
-              <Layers className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Importar Parcelas</span>
-              <span className="md:hidden">Importar</span>
-            </Button>
-          </div>
+  return (
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
+          <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
+            <Layers className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Importar Parcelas</span>
+            <span className="md:hidden">Importar</span>
+          </Button>
+        </div>
+      </div>
 
-        {/* Balance Evolution Chart */}
-        {(() => {
-          console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
-          try {
-            const chart = (
-              <SharedBalanceChart 
-                transactions={transactions} 
-                invoices={invoices} 
-                currentDate={currentDate} 
-              />
-            );
-            console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
-            return chart;
-          } catch (error) {
-            console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
-            console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-            return (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  Erro ao carregar gráfico: {error instanceof Error ? error.message : 'Erro desconhecido'}
-                </AlertDescription>
-              </Alert>
-            );
-          }
-        })()}
+      {/* Balance Evolution Chart */}
+      {(() => {
+        console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
+        try {
+          const chart = (
+            <SharedBalanceChart 
+              transactions={transactions} 
+              invoices={invoices} 
+              currentDate={currentDate} 
+            />
+          );
+          console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
+          return chart;
+        } catch (error) {
+          console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
+          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+          return (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Erro ao carregar gráfico: {error instanceof Error ? error.message : 'Erro desconhecido'}
+              </AlertDescription>
+            </Alert>
+          );
+        }
+      })()}
 
       {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
       <div className="space-y-4">
@@ -2135,33 +2130,4 @@ export function SharedExpenses() {
       />
     </div>
   );
-  } catch (error) {
-    console.error('❌❌❌ [SharedExpenses] ERRO CRÍTICO NO COMPONENTE:', error);
-    console.error('❌ Stack completo:', error instanceof Error ? error.stack : 'N/A');
-    console.error('❌ Error name:', error instanceof Error ? error.name : 'N/A');
-    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
-    
-    return (
-      <div className="space-y-8 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
-            <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
-          </div>
-        </div>
-        
-        <Alert variant="destructive">
-          <AlertDescription>
-            <div className="space-y-2">
-              <p className="font-semibold">Erro ao carregar página de compartilhados</p>
-              <p className="text-sm">{error instanceof Error ? error.message : 'Erro desconhecido'}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Verifique o console do navegador (F12) para mais detalhes
-              </p>
-            </div>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
 }
