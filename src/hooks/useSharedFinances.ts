@@ -37,10 +37,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const queryClient = useQueryClient();
 
   // DEBUG: Log members
-  console.log('🔍 [useSharedFinances] Members from useFamilyMembers:', {
-    count: members.length,
-    members: members.map(m => ({ id: m.id, name: m.name, linked_user_id: m.linked_user_id }))
-  });
+  // // console.log('🔍 [useSharedFinances] Members from useFamilyMembers:', {
+  //   count: members.length,
+  //   members: members.map(m => ({ id: m.id, name: m.name, linked_user_id: m.linked_user_id }))
+  // });
 
   // Função para invalidar todas as queries relacionadas
   const refetchAll = async () => {
@@ -91,10 +91,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         throw mySplitsError;
       }
       
-      console.log('✅ [Query Result - My Splits]:', {
-        count: mySplits?.length || 0,
-        splits: mySplits
-      });
+      // // console.log('✅ [Query Result - My Splits]:', {
+      //   count: mySplits?.length || 0,
+      //   splits: mySplits
+      // });
       
       // Extrair transações dos splits (transações criadas por outros)
       const othersTransactions = (mySplits || [])
@@ -110,13 +110,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       );
       
       if (uniqueTransactions.length === 0) {
-        console.log('ℹ️ [Query Result] Nenhuma transação compartilhada encontrada');
+        // // console.log('ℹ️ [Query Result] Nenhuma transação compartilhada encontrada');
         return [];
       }
       
       // Buscar splits para todas as transações
       const transactionIds = uniqueTransactions.map(t => t.id);
-      console.log('🔍 [Query] Buscando splits para transactionIds:', transactionIds);
+      // // console.log('🔍 [Query] Buscando splits para transactionIds:', transactionIds);
       
       const { data: splits, error: splitsError } = await supabase
         .from('transaction_splits')
@@ -128,7 +128,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         throw splitsError;
       }
       
-      console.log('✅ [Query Result - Splits]:', {
+      // console.log('✅ [Query Result - Splits]:', {
         count: splits?.length || 0,
         splits: splits
       });
@@ -139,7 +139,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         transaction_splits: splits?.filter(s => s.transaction_id === tx.id) || []
       }));
       
-      console.log('✅ [Query Result] Transações com splits:', {
+      // console.log('✅ [Query Result] Transações com splits:', {
         count: transactionsWithSplitsData.length,
         transactions: transactionsWithSplitsData.map(t => ({
           id: t.id,
@@ -189,7 +189,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const invoiceMap: Record<string, InvoiceItem[]> = {};
     const processedTxIds = new Set<string>();
     
-    console.log('🔍 [useMemo] Iniciando processamento:', {
+    // console.log('🔍 [useMemo] Iniciando processamento:', {
       membersCount: members.length,
       membersData: members.map(m => ({ id: m.id, name: m.name })),
       transactionsCount: transactionsWithSplits.length,
@@ -203,11 +203,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     // Initialize map for each member
     members.forEach(m => {
       invoiceMap[m.id] = [];
-      console.log('✅ [useMemo] Inicializando invoiceMap para membro:', m.id, m.name);
+      // console.log('✅ [useMemo] Inicializando invoiceMap para membro:', m.id, m.name);
     });
 
     // DEBUG: Log dados recebidos
-    console.log('🔍 [useSharedFinances] DEBUG:', {
+    // console.log('🔍 [useSharedFinances] DEBUG:', {
       transactionsWithSplits: transactionsWithSplits.length,
       paidByOthersTransactions: paidByOthersTransactions.length,
       members: members.length,
@@ -225,23 +225,23 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       const splits = tx.transaction_splits || [];
       const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação
 
-      console.log('🔍 [CASO 1] Processando tx:', {
-        id: tx.id,
-        description: tx.description,
-        user_id: tx.user_id,
-        current_user_id: user?.id,
-        is_my_transaction: tx.user_id === user?.id,
-        splits: splits.length,
-        splitsData: splits,
-        date: tx.date,
-        competence_date: tx.competence_date,
-        currency: txCurrency
-      });
+      // // console.log('🔍 [CASO 1] Processando tx:', {
+      //   id: tx.id,
+      //   description: tx.description,
+      //   user_id: tx.user_id,
+      //   current_user_id: user?.id,
+      //   is_my_transaction: tx.user_id === user?.id,
+      //   splits: splits.length,
+      //   splitsData: splits,
+      //   date: tx.date,
+      //   competence_date: tx.competence_date,
+      //   currency: txCurrency
+      // });
 
       // Se EU criei a transação, os splits são CRÉDITOS (me devem)
       if (tx.user_id === user?.id) {
         splits.forEach((split: any) => {
-          console.log('🔍 [CASO 1A - EU PAGUEI] Processando split:', split);
+          // // console.log('🔍 [CASO 1A - EU PAGUEI] Processando split:', split);
           
           const memberId = split.member_id;
           if (!memberId) {
@@ -267,7 +267,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             invoiceMap[memberId] = [];
           }
           
-          console.log('🔍 [CASO 1A] Criando CRÉDITO com tripId:', tx.trip_id);
+          // console.log('🔍 [CASO 1A] Criando CRÉDITO com tripId:', tx.trip_id);
           
           invoiceMap[memberId].push({
             id: uniqueKey,
@@ -290,7 +290,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             creatorName: creatorName
           });
 
-          console.log('✅ [CASO 1A] CRÉDITO criado:', {
+          // console.log('✅ [CASO 1A] CRÉDITO criado:', {
             memberId,
             memberName: member?.name,
             amount: split.amount,
@@ -304,8 +304,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         const mySplit = splits.find((s: any) => s.user_id === user?.id);
         
         if (mySplit) {
-          console.log('🔍 [CASO 1B - OUTRO PAGOU] Encontrei meu split:', mySplit);
-          console.log('🔍 [CASO 1B] Transação completa:', tx);
+          // console.log('🔍 [CASO 1B - OUTRO PAGOU] Encontrei meu split:', mySplit);
+          // console.log('🔍 [CASO 1B] Transação completa:', tx);
           
           // Encontrar o membro que representa o criador da transação
           const creatorMember = members.find(m => m.linked_user_id === tx.user_id);
@@ -319,7 +319,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 invoiceMap[creatorMember.id] = [];
               }
               
-              console.log('🔍 [CASO 1B] Criando DÉBITO com tripId:', tx.trip_id);
+              // console.log('🔍 [CASO 1B] Criando DÉBITO com tripId:', tx.trip_id);
               
               // Buscar nome do criador (quem pagou) - neste caso é o próprio usuário logado
               const creatorName = 'Você'; // Eu devo para o criador, então o criador sou eu
@@ -345,7 +345,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 creatorName: creatorMember.name // Quem pagou foi o criador
               });
 
-              console.log('✅ [CASO 1B] DÉBITO criado:', {
+              // console.log('✅ [CASO 1B] DÉBITO criado:', {
                 memberId: creatorMember.id,
                 memberName: creatorMember.name,
                 amount: mySplit.amount,
@@ -401,7 +401,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
     });
 
-    console.log('📊 [useSharedFinances] Invoice Map Final:', {
+    // console.log('📊 [useSharedFinances] Invoice Map Final:', {
       totalMembers: Object.keys(invoiceMap).length,
       itemsPerMember: Object.entries(invoiceMap).map(([id, items]) => ({
         memberId: id,
@@ -416,7 +416,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
     
-    console.log('🔍 [getFilteredInvoice] Filtrando para membro:', {
+    // console.log('🔍 [getFilteredInvoice] Filtrando para membro:', {
       memberId,
       memberName: members.find(m => m.id === memberId)?.name,
       allItemsCount: allItems.length,
@@ -470,11 +470,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       const filtered = scopeFilteredItems
         .filter(i => {
           if (!i.tripId) {
-            console.log('🔍 [TRAVEL Filter] Item sem tripId:', i);
+            // console.log('🔍 [TRAVEL Filter] Item sem tripId:', i);
             return false;
           }
           
-          console.log('🔍 [TRAVEL Filter] Item com tripId:', {
+          // console.log('🔍 [TRAVEL Filter] Item com tripId:', {
             description: i.description,
             date: i.date,
             tripId: i.tripId,
@@ -486,7 +486,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      console.log('✅ [getFilteredInvoice] Resultado TRAVEL:', {
+      // console.log('✅ [getFilteredInvoice] Resultado TRAVEL:', {
         filteredCount: filtered.length,
         items: filtered.map(i => ({
           description: i.description,
@@ -539,23 +539,23 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           
           const matches = itemMonth === currentMonth && itemYear === currentYear;
           
-          console.log('🔍 [REGULAR Filter] Item:', {
-            description: i.description,
-            date: i.date,
-            itemMonth,
-            itemYear,
-            currentMonth,
-            currentYear,
-            matches
-          });
+          // // console.log('🔍 [REGULAR Filter] Item:', {
+          //   description: i.description,
+          //   date: i.date,
+          //   itemMonth,
+          //   itemYear,
+          //   currentMonth,
+          //   currentYear,
+          //   matches
+          // });
           
           return matches;
         })
         .sort((a, b) => b.date.localeCompare(a.date));
       
-      console.log('✅ [getFilteredInvoice] Resultado REGULAR:', {
-        filteredCount: filtered.length
-      });
+      // // console.log('✅ [getFilteredInvoice] Resultado REGULAR:', {
+      //   filteredCount: filtered.length
+      // });
       
       return filtered;
     }
