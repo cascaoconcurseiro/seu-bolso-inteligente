@@ -707,7 +707,7 @@ export function CreditCards() {
     </DialogContent>
   </Dialog>
 
-  {/* Delete Card Confirm */ }
+  {/* Delete Card Confirm */}
   <AlertDialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
     <AlertDialogContent>
       <AlertDialogHeader>
