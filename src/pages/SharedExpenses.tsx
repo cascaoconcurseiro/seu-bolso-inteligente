@@ -1777,20 +1777,52 @@ export function SharedExpenses() {
                     </div>
 
                     {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
-                    {activeTab !== 'TRAVEL' && members.length > 0 && (
-                      <>{members.map(member => renderMemberInvoiceCard(member)).filter(Boolean)}</>
-                    )}
+                    {(() => {
+                      console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
+                      if (activeTab !== 'TRAVEL' && members.length > 0) {
+                        const memberCards = members.map(member => {
+                          console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
+                          try {
+                            return renderMemberInvoiceCard(member);
+                          } catch (error) {
+                            console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
+                            return null;
+                          }
+                        }).filter(Boolean);
+                        console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
+                        return <>{memberCards}</>;
+                      }
+                      console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
+                      return null;
+                    })()}
 
                     {/* Lista de viagens (TRAVEL) */}
-                    {activeTab === 'TRAVEL' && (() => {
-                      const filteredTrips = trips.filter(trip => {
-                        // Verificar se há itens desta viagem no mês atual
-                        return members.some(member => {
-                          const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
-                          return memberItems.length > 0;
+                    {(() => {
+                      console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
+                      if (activeTab === 'TRAVEL') {
+                        const filteredTrips = trips.filter(trip => {
+                          // Verificar se há itens desta viagem no mês atual
+                          return members.some(member => {
+                            const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+                            return memberItems.length > 0;
+                          });
                         });
-                      });
-                      return filteredTrips.length > 0 ? <>{filteredTrips.map(trip => renderTripCard(trip))}</> : <></>;
+                        console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
+                        if (filteredTrips.length > 0) {
+                          const tripCards = filteredTrips.map(trip => {
+                            console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
+                            try {
+                              return renderTripCard(trip);
+                            } catch (error) {
+                              console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
+                              return null;
+                            }
+                          });
+                          return <>{tripCards}</>;
+                        }
+                      }
+                      console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
+                      return null;
                     })()}
 
                     {/* Mensagem se não houver itens */}
