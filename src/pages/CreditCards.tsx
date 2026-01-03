@@ -513,22 +513,17 @@ export function CreditCards() {
             </div>
           </div>
         )}
-      </div>
-    )
-  }
 
-  {
-    invoiceData.transactions.length === 0 && (
-      <div className="py-12 text-center border border-dashed border-border rounded-xl">
-        <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-        <p className="text-muted-foreground">Nenhum lançamento nesta fatura</p>
-      </div>
-    )
-  }
+        {/* Empty State */}
+        {invoiceData.transactions.length === 0 && (
+          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+            <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground">Nenhum lançamento nesta fatura</p>
+          </div>
+        )}
 
-  {/* Installments */ }
-  {
-    installments.length > 0 && (
+        {/* Installments */}
+        {installments.length > 0 && (
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           Parcelas ativas ({installments.length})
@@ -561,11 +556,10 @@ export function CreditCards() {
           ))}
         </div>
       </div>
-    )
-  }
+    )}
 
-  {/* Card Info */ }
-  <div className="p-4 rounded-xl border border-border">
+    {/* Card Info */}
+    <div className="p-4 rounded-xl border border-border">
     <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">
       Informações
     </h3>
@@ -579,10 +573,9 @@ export function CreditCards() {
         <p className="font-medium">Dia {selectedCard.due_day || "-"}</p>
       </div>
     </div>
-  </div>
 
-  {/* Import Dialog */ }
-  <ImportBillsDialog
+    {/* Import Dialog */}
+    <ImportBillsDialog
     isOpen={showImportDialog}
     onClose={() => setShowImportDialog(false)}
     account={selectedCard}
@@ -595,7 +588,7 @@ export function CreditCards() {
     }}
   />
 
-  {/* Pay Invoice Dialog */ }
+  {/* Pay Invoice Dialog */}
   <PayInvoiceDialog
     isOpen={showPayDialog}
     onClose={() => setShowPayDialog(false)}
@@ -617,7 +610,7 @@ export function CreditCards() {
     }}
   />
 
-  {/* Transaction Modal for editing */ }
+  {/* Transaction Modal for editing */}
   <TransactionModal
     isOpen={showTransactionModal}
     onClose={() => {
@@ -628,7 +621,7 @@ export function CreditCards() {
     editTransaction={editingTransaction}
   />
 
-  {/* Delete Transaction Confirm */ }
+  {/* Delete Transaction Confirm */}
   <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
     <AlertDialogContent>
       <AlertDialogHeader>
@@ -646,7 +639,7 @@ export function CreditCards() {
     </AlertDialogContent>
   </AlertDialog>
 
-  {/* Edit Card Dialog */ }
+  {/* Edit Card Dialog */}
   <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
     <DialogContent>
       <DialogHeader>
@@ -729,11 +722,10 @@ export function CreditCards() {
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
-      </div>
     );
-}
+  }
 
-// Empty State
+  // Empty State
 if (creditCards.length === 0) {
   return (
     <div className="space-y-8 animate-fade-in">
