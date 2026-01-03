@@ -76,15 +76,15 @@ type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
   console.log('🔵 [SharedExpenses] ========== COMPONENTE INICIANDO ==========');
-  
+
   const navigate = useNavigate();
   const { user } = useAuth();
   console.log('🔵 [SharedExpenses] User:', user?.id);
-  
+
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
   const { currentDate } = useMonth();
   console.log('🔵 [SharedExpenses] CurrentDate:', currentDate);
-  
+
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
@@ -98,10 +98,10 @@ export function SharedExpenses() {
 
   console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
-    // Undo settlement state
-    const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
-      isOpen: false,
-      item: null,
+  // Undo settlement state
+  const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
+    isOpen: false,
+    item: null,
   });
 
   // Delete transaction state
@@ -118,13 +118,13 @@ export function SharedExpenses() {
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
   console.log('🔵 [SharedExpenses] ✅ Members carregados:', { count: members?.length, membersLoading });
-  
+
   const { data: accounts = [] } = useAccounts();
   console.log('🔵 [SharedExpenses] ✅ Accounts carregadas:', { count: accounts?.length });
-  
+
   const { data: trips = [] } = useTrips();
   console.log('🔵 [SharedExpenses] ✅ Trips carregadas:', { count: trips?.length });
-  
+
   const createTransaction = useCreateTransaction();
 
   console.log('🔵 [SharedExpenses] 🔄 Chamando useSharedFinances...');
@@ -132,10 +132,10 @@ export function SharedExpenses() {
     currentDate,
     activeTab,
   });
-  console.log('🔵 [SharedExpenses] ✅ useSharedFinances retornou:', { 
+  console.log('🔵 [SharedExpenses] ✅ useSharedFinances retornou:', {
     invoicesCount: Object.keys(invoices || {}).length,
     transactionsCount: transactions?.length,
-    sharedLoading 
+    sharedLoading
   });
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
@@ -169,7 +169,7 @@ export function SharedExpenses() {
       const newItems = prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId];
-      
+
       // Atualizar valor após mudança na seleção
       setTimeout(() => {
         if (!selectedMember) return;
@@ -182,7 +182,7 @@ export function SharedExpenses() {
           }, 0);
         setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
       }, 0);
-      
+
       return newItems;
     });
   };
@@ -246,7 +246,7 @@ export function SharedExpenses() {
     try {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
-      
+
       console.log('🔍 [handleSettle] Dados do membro:', {
         member,
         totalItems: items.length,
@@ -260,7 +260,7 @@ export function SharedExpenses() {
           description: i.description
         }))
       });
-      
+
       const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
@@ -303,7 +303,7 @@ export function SharedExpenses() {
         if (item.type === "CREDIT") return sum + item.amount;
         return sum - item.amount;
       }, 0);
-      
+
       // Considerar pagamento completo se o valor for >= 99% do total
       const isPartialSettlement = amount < Math.abs(itemsTotal) * 0.99;
 
@@ -311,32 +311,32 @@ export function SharedExpenses() {
       // Ao invés de criar um "Acerto - Wesley" consolidado,
       // criar transações individuais com descrição e categoria originais
       // Isso mantém a integridade contábil e permite desfazer sem inconsistências
-      
+
       // Buscar transações originais para obter descrição e categoria
       const originalTxIds = itemsToSettle
         .map(i => i.originalTxId)
         .filter((id): id is string => !!id);
-      
+
       const { data: originalTransactions } = await supabase
         .from('transactions')
         .select('id, description, category_id, category:categories(id, name, icon)')
         .in('id', originalTxIds);
-      
+
       // Criar mapa de transações originais
       const originalTxMap = new Map(
         originalTransactions?.map(tx => [tx.id, tx]) || []
       );
-      
+
       // Criar transações individuais para cada item
       const settlementTxIds: string[] = [];
-      
+
       for (const item of itemsToSettle) {
         const originalTx = originalTxMap.get(item.originalTxId || '');
-        
+
         // Usar descrição e categoria da transação original
         const description = originalTx?.description || item.description;
         const categoryId = originalTx?.category_id;
-        
+
         // Criar transação individual
         const result = await createTransaction.mutateAsync({
           amount: item.amount,
@@ -350,7 +350,7 @@ export function SharedExpenses() {
           related_member_id: selectedMember,
           notes: `Acerto de: ${description} (${member?.name})`,
         });
-        
+
         const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
         if (settlementTxId) {
           settlementTxIds.push(settlementTxId);
@@ -360,7 +360,7 @@ export function SharedExpenses() {
       // SEMPRE marcar items como settled
       let updateErrors: string[] = [];
       let successCount = 0;
-      
+
       console.log('🔍 [handleSettle] Iniciando atualização de itens:', {
         totalItems: itemsToSettle.length,
         settlementTxIds,
@@ -373,11 +373,11 @@ export function SharedExpenses() {
           description: i.description
         }))
       });
-      
+
       for (let i = 0; i < itemsToSettle.length; i++) {
         const item = itemsToSettle[i];
         const settlementTxId = settlementTxIds[i]; // Usar o ID correspondente
-        
+
         console.log('🔍 [handleSettle] Processando item:', {
           id: item.id,
           type: item.type,
@@ -387,11 +387,11 @@ export function SharedExpenses() {
           description: item.description,
           settlementTxId
         });
-        
+
         // CORREÇÃO CRÍTICA: Para AMBOS os tipos (CREDIT e DEBIT), 
         // devemos atualizar o SPLIT se ele existir!
         // O split representa a dívida/crédito do usuário
-        
+
         if (item.splitId) {
           // Verificar se o split existe antes de atualizar
           const { data: existingSplit, error: checkError } = await supabase
@@ -399,36 +399,36 @@ export function SharedExpenses() {
             .select('id, is_settled, settled_by_debtor, settled_by_creditor, user_id')
             .eq('id', item.splitId)
             .single();
-          
+
           if (checkError) {
             console.error('❌ [handleSettle] Erro ao verificar split:', checkError);
             updateErrors.push(`Split ${item.splitId}: ${checkError.message}`);
             continue;
           }
-          
+
           if (!existingSplit) {
             console.error('❌ [handleSettle] Split não encontrado:', item.splitId);
             updateErrors.push(`Split ${item.splitId}: Not found`);
             continue;
           }
-          
+
           // Verificar se já foi marcado como pago pelo lado correto
-          const alreadySettled = settleType === 'PAY' 
-            ? existingSplit.settled_by_debtor 
+          const alreadySettled = settleType === 'PAY'
+            ? existingSplit.settled_by_debtor
             : existingSplit.settled_by_creditor;
-          
+
           if (alreadySettled) {
             console.warn('⚠️ [handleSettle] Split já está settled por este lado:', item.splitId);
             continue;
           }
-          
+
           console.log('✅ [handleSettle] Split encontrado, atualizando:', existingSplit);
-          
+
           // Determinar qual flag atualizar baseado no tipo de acerto
           const updateFields: any = {
             settled_at: new Date().toISOString(),
           };
-          
+
           if (settleType === 'PAY') {
             // Devedor está pagando
             updateFields.settled_by_debtor = true;
@@ -438,21 +438,21 @@ export function SharedExpenses() {
             updateFields.settled_by_creditor = true;
             updateFields.creditor_settlement_tx_id = settlementTxId;
           }
-          
+
           // Manter is_settled como true se ambos marcaram
           if (settleType === 'PAY' && existingSplit.settled_by_creditor) {
             updateFields.is_settled = true;
           } else if (settleType === 'RECEIVE' && existingSplit.settled_by_debtor) {
             updateFields.is_settled = true;
           }
-          
+
           // Atualizar o split
           const { error, data } = await supabase
             .from('transaction_splits')
             .update(updateFields)
             .eq('id', item.splitId)
             .select();
-          
+
           if (error) {
             console.error('❌ [handleSettle] Erro ao atualizar split:', error);
             updateErrors.push(`Split ${item.splitId}: ${error.message}`);
@@ -467,7 +467,7 @@ export function SharedExpenses() {
           // Fallback: Se não tem splitId mas tem originalTxId, tentar atualizar a transaction
           // (caso antigo, não deveria acontecer mais)
           console.warn('⚠️ [handleSettle] Item DEBIT sem splitId, tentando atualizar transaction:', item.originalTxId);
-          
+
           const { error, data } = await supabase
             .from('transactions')
             .update({
@@ -476,7 +476,7 @@ export function SharedExpenses() {
             })
             .eq('id', item.originalTxId)
             .select();
-          
+
           if (error) {
             console.error('❌ [handleSettle] Erro ao atualizar transaction:', error);
             updateErrors.push(`Transaction ${item.originalTxId}: ${error.message}`);
@@ -492,7 +492,7 @@ export function SharedExpenses() {
           updateErrors.push(`Item ${item.id}: Missing splitId and originalTxId`);
         }
       }
-      
+
       console.log('📊 [handleSettle] Resultado final:', {
         totalItems: itemsToSettle.length,
         successCount,
@@ -503,7 +503,7 @@ export function SharedExpenses() {
       if (updateErrors.length > 0) {
         console.error('❌ [handleSettle] Erros de atualização:', updateErrors);
         toast.error(`Alguns itens não foram atualizados: ${updateErrors.length} erros. Verifique o console para detalhes.`);
-        
+
         // Mesmo com erros, se algum item foi atualizado, considerar sucesso parcial
         if (successCount > 0) {
           toast.success(`${successCount} item(ns) atualizado(s) com sucesso!`);
@@ -523,10 +523,10 @@ export function SharedExpenses() {
       setSettleAmount("");
       setSettleAccountId("");
       setSelectedItems([]);
-      
+
       // Aguardar refetch para atualizar a UI
       await refetch();
-      
+
       toast.success(`Acerto de ${formatCurrency(amount, settlementCurrency)} realizado!`);
     } catch (error) {
       console.error('Settlement error:', error);
@@ -542,7 +542,7 @@ export function SharedExpenses() {
 
     try {
       console.log('🔍 [handleUndoSettlement] Desfazendo acerto:', item);
-      
+
       if (item.splitId) {
         // Buscar o split para pegar os IDs das transações de acerto
         const { data: split, error: fetchError } = await supabase
@@ -550,15 +550,15 @@ export function SharedExpenses() {
           .select('settled_by_debtor, settled_by_creditor, debtor_settlement_tx_id, creditor_settlement_tx_id')
           .eq('id', item.splitId)
           .single();
-        
+
         if (fetchError) throw fetchError;
-        
+
         console.log('🔍 [handleUndoSettlement] Split encontrado:', split);
-        
+
         // Determinar qual lado está desfazendo
         const isDebtor = item.type === 'DEBIT';
         const settlementTxId = isDebtor ? split.debtor_settlement_tx_id : split.creditor_settlement_tx_id;
-        
+
         // Deletar a transação de acerto
         if (settlementTxId) {
           console.log('🔍 [handleUndoSettlement] Deletando transação de acerto:', settlementTxId);
@@ -566,19 +566,19 @@ export function SharedExpenses() {
             .from('transactions')
             .delete()
             .eq('id', settlementTxId);
-          
+
           if (deleteError) {
             console.error('❌ [handleUndoSettlement] Erro ao deletar transação:', deleteError);
             throw deleteError;
           }
           console.log('✅ [handleUndoSettlement] Transação deletada com sucesso');
         }
-        
+
         // Atualizar o split
         const updateFields: any = {
           settled_at: null,
         };
-        
+
         if (isDebtor) {
           updateFields.settled_by_debtor = false;
           updateFields.debtor_settlement_tx_id = null;
@@ -596,16 +596,16 @@ export function SharedExpenses() {
             updateFields.settled_transaction_id = null;
           }
         }
-        
+
         console.log('🔍 [handleUndoSettlement] Atualizando split:', updateFields);
-        
+
         const { error: updateError } = await supabase
           .from('transaction_splits')
           .update(updateFields)
           .eq('id', item.splitId);
-        
+
         if (updateError) throw updateError;
-        
+
         console.log('✅ [handleUndoSettlement] Split atualizado com sucesso');
       } else if (item.type === 'DEBIT' && item.originalTxId) {
         // Fallback para caso antigo
@@ -616,16 +616,16 @@ export function SharedExpenses() {
             settled_at: null
           })
           .eq('id', item.originalTxId);
-        
+
         if (error) throw error;
       }
 
       // Fechar dialog primeiro
       setUndoConfirm({ isOpen: false, item: null });
-      
+
       // Aguardar um pouco e então atualizar
       await refetch();
-      
+
       toast.success("Acerto desfeito com sucesso!");
     } catch (error) {
       console.error('❌ [handleUndoSettlement] Erro:', error);
@@ -640,30 +640,30 @@ export function SharedExpenses() {
 
     try {
       console.log('🗑️ [handleDeleteTransaction] Excluindo transação:', item.originalTxId);
-      
+
       // VALIDAÇÃO: Verificar se o usuário atual é o criador
       if (item.creatorUserId && item.creatorUserId !== user?.id) {
         toast.error("Apenas o criador da transação pode excluí-la");
         setDeleteConfirm({ isOpen: false, item: null });
         return;
       }
-      
+
       // Excluir a transação (cascade vai excluir splits automaticamente)
       const { error } = await supabase
         .from('transactions')
         .delete()
         .eq('id', item.originalTxId);
-      
+
       if (error) throw error;
-      
+
       console.log('✅ [handleDeleteTransaction] Transação excluída com sucesso');
-      
+
       // Fechar dialog
       setDeleteConfirm({ isOpen: false, item: null });
-      
+
       // Atualizar lista
       await refetch();
-      
+
       toast.success("Transação excluída com sucesso!");
     } catch (error) {
       console.error('❌ [handleDeleteTransaction] Erro:', error);
@@ -678,14 +678,14 @@ export function SharedExpenses() {
 
     try {
       console.log('🗑️ [handleDeleteSeries] Excluindo série:', item.seriesId);
-      
+
       // VALIDAÇÃO: Verificar se o usuário atual é o criador
       if (item.creatorUserId && item.creatorUserId !== user?.id) {
         toast.error("Apenas o criador da série pode excluí-la");
         setDeleteSeriesConfirm({ isOpen: false, item: null });
         return;
       }
-      
+
       // Usar função RPC que garante exclusão completa
       const { data, error } = await supabase
         .rpc('delete_installment_series', { p_series_id: item.seriesId });
@@ -693,7 +693,7 @@ export function SharedExpenses() {
       if (error) throw error;
 
       const deletedCount = data?.[0]?.deleted_count || 0;
-      
+
       console.log('✅ [handleDeleteSeries] Série excluída:', {
         seriesId: item.seriesId,
         deletedCount
@@ -705,10 +705,10 @@ export function SharedExpenses() {
 
       // Fechar dialog
       setDeleteSeriesConfirm({ isOpen: false, item: null });
-      
+
       // Atualizar lista
       await refetch();
-      
+
       toast.success(`${deletedCount} parcelas excluídas com sucesso!`);
     } catch (error: any) {
       console.error('❌ [handleDeleteSeries] Erro:', error);
@@ -745,18 +745,18 @@ export function SharedExpenses() {
 
   members.forEach(member => {
     const items = getFilteredInvoice(member.id);
-    
+
     // Separar itens REGULAR (sem tripId) de TRAVEL (com tripId)
     const regularItems = items.filter(i => !i.tripId);
     const travelItems = items.filter(i => i.tripId);
-    
+
     // Calcular totais REGULAR (incluindo acertados)
     regularItems.forEach(item => {
       const curr = item.currency || 'BRL';
       if (!totalsByCurrency[curr]) {
         totalsByCurrency[curr] = { owedToMe: 0, iOwe: 0, balance: 0, settled: 0 };
       }
-      
+
       if (item.isPaid) {
         // Valores já acertados
         totalsByCurrency[curr].settled += item.amount;
@@ -769,14 +769,14 @@ export function SharedExpenses() {
         }
       }
     });
-    
+
     // Calcular totais TRAVEL (incluindo acertados)
     travelItems.forEach(item => {
       const curr = item.currency || 'BRL';
       if (!travelTotalsByCurrency[curr]) {
         travelTotalsByCurrency[curr] = { owedToMe: 0, iOwe: 0, balance: 0, settled: 0 };
       }
-      
+
       if (item.isPaid) {
         // Valores já acertados
         travelTotalsByCurrency[curr].settled += item.amount;
@@ -795,7 +795,7 @@ export function SharedExpenses() {
   Object.keys(totalsByCurrency).forEach(curr => {
     totalsByCurrency[curr].balance = totalsByCurrency[curr].owedToMe - totalsByCurrency[curr].iOwe;
   });
-  
+
   Object.keys(travelTotalsByCurrency).forEach(curr => {
     travelTotalsByCurrency[curr].balance = travelTotalsByCurrency[curr].owedToMe - travelTotalsByCurrency[curr].iOwe;
   });
@@ -827,28 +827,28 @@ export function SharedExpenses() {
   const renderMemberInvoiceCard = (member: any) => {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
-    
+
     // CORREÇÃO: Na aba TRAVEL não renderizar cards de membros (será por viagem)
     // Nas abas REGULAR e HISTORY usar BRL
     if (activeTab === 'TRAVEL') {
       return null; // Não renderizar na aba TRAVEL
     }
-    
+
     const primaryCurrency = 'BRL';
-    
+
     const net = totals[primaryCurrency]?.net || 0;
     const isExpanded = true; // Sempre expandido
     const groupedItems = getGroupedItems(member.id);
     const pendingCount = items.filter(i => !i.isPaid).length;
     const paidCount = items.filter(i => i.isPaid).length;
-    
+
     // CORREÇÃO CRÍTICA: Calcular totalPaidAmount POR MOEDA (nunca somar moedas diferentes!)
     const paidItemsByCurrency: Record<string, number> = {};
     items.filter(i => i.isPaid).forEach(i => {
       const curr = i.currency || 'BRL';
       paidItemsByCurrency[curr] = (paidItemsByCurrency[curr] || 0) + i.amount;
     });
-    
+
     // Para HISTORY, usar apenas BRL
     const totalPaidAmount = paidItemsByCurrency[primaryCurrency] || 0;
 
@@ -868,9 +868,9 @@ export function SharedExpenses() {
         className={cn(
           "rounded-xl border-2 overflow-hidden transition-all",
           isHistory ? "border-gray-200 dark:border-gray-800" :
-          iOwe ? "border-red-200 dark:border-red-900/50" : 
-          theyOweMe ? "border-green-200 dark:border-green-900/50" : 
-          "border-border"
+            iOwe ? "border-red-200 dark:border-red-900/50" :
+              theyOweMe ? "border-green-200 dark:border-green-900/50" :
+                "border-border"
         )}
       >
         {/* Header estilo fatura */}
@@ -878,9 +878,9 @@ export function SharedExpenses() {
           className={cn(
             "p-4",
             isHistory ? "bg-gray-50 dark:bg-gray-950/20" :
-            iOwe ? "bg-red-50 dark:bg-red-950/20" :
-            theyOweMe ? "bg-green-50 dark:bg-green-950/20" :
-            "bg-muted/30"
+              iOwe ? "bg-red-50 dark:bg-red-950/20" :
+                theyOweMe ? "bg-green-50 dark:bg-green-950/20" :
+                  "bg-muted/30"
           )}
         >
           <div className="flex items-center justify-between">
@@ -889,30 +889,30 @@ export function SharedExpenses() {
               <div className={cn(
                 "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white",
                 isHistory ? "bg-gray-500" :
-                iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
+                  iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
               )}>
                 {getInitials(member.name)}
               </div>
-              
+
               {/* Info */}
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-display font-semibold text-lg">{member.name}</p>
                   {/* Badge de status */}
                   {isHistory ? (
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className="text-xs font-medium border-gray-300 text-gray-700 bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:bg-gray-900/50"
                     >
                       HISTÓRICO
                     </Badge>
                   ) : net !== 0 && (
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={cn(
                         "text-xs font-medium",
                         iOwe ? "border-red-300 text-red-700 bg-red-100 dark:border-red-800 dark:text-red-300 dark:bg-red-950/50" :
-                        "border-green-300 text-green-700 bg-green-100 dark:border-green-800 dark:text-green-300 dark:bg-green-950/50"
+                          "border-green-300 text-green-700 bg-green-100 dark:border-green-800 dark:text-green-300 dark:bg-green-950/50"
                       )}
                     >
                       {iOwe ? "PAGAR" : "RECEBER"}
@@ -920,7 +920,7 @@ export function SharedExpenses() {
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {isHistory 
+                  {isHistory
                     ? `${paidCount} ${paidCount === 1 ? "item acertado" : "itens acertados"}`
                     : `${pendingCount} ${pendingCount === 1 ? "item pendente" : "itens pendentes"}`
                   }
@@ -934,9 +934,9 @@ export function SharedExpenses() {
                 <div className="text-right">
                   <p className={cn(
                     "font-mono font-bold text-xl",
-                    net === 0 ? "text-muted-foreground" : 
-                    iOwe ? "text-red-600 dark:text-red-400" : 
-                    "text-green-600 dark:text-green-400"
+                    net === 0 ? "text-muted-foreground" :
+                      iOwe ? "text-red-600 dark:text-red-400" :
+                        "text-green-600 dark:text-green-400"
                   )}>
                     {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), primaryCurrency)}
                   </p>
@@ -1006,20 +1006,20 @@ export function SharedExpenses() {
                 {/* Items */}
                 <div className="divide-y divide-border">
                   {group.items.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item:', { 
-                      id: item.id, 
+                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item:', {
+                      id: item.id,
                       description: item.description,
                       type: item.type,
                       isPaid: item.isPaid,
                       creatorUserId: item.creatorUserId,
                       currentUserId: user?.id
                     });
-                    
+
                     try {
                       const isCredit = item.type === "CREDIT";
                       const hasActions = item.isPaid || item.creatorUserId === user?.id;
                       console.log('🔵 [SharedExpenses] Item hasActions:', hasActions);
-                      
+
                       return (
                         <div
                           key={item.id}
@@ -1028,131 +1028,133 @@ export function SharedExpenses() {
                             item.isPaid && "opacity-60"
                           )}
                         >
-                        {/* Status */}
-                        <div className="col-span-1">
-                          {item.isPaid ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          ) : (
-                            <div className={cn(
-                              "w-3 h-3 rounded-full",
-                              isCredit ? "bg-green-500" : "bg-red-500"
-                            )} />
-                          )}
-                        </div>
-
-                        {/* Descrição e Categoria */}
-                        <div className="col-span-5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className={cn(
-                              "text-sm font-medium",
-                              item.isPaid && "line-through text-muted-foreground"
-                            )}>
-                              {item.description}
-                            </p>
-                            {item.creatorName && (
-                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                💳 {item.creatorName}
-                              </span>
+                          {/* Status */}
+                          <div className="col-span-1">
+                            {item.isPaid ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <div className={cn(
+                                "w-3 h-3 rounded-full",
+                                isCredit ? "bg-green-500" : "bg-red-500"
+                              )} />
                             )}
                           </div>
-                          {item.category && (
-                            <p className="text-xs text-muted-foreground">
-                              📁 {item.category}
-                            </p>
-                          )}
-                          {item.totalInstallments && item.totalInstallments > 1 && (
-                            <p className="text-xs text-muted-foreground">
-                              Parcela {item.installmentNumber}/{item.totalInstallments}
-                            </p>
-                          )}
-                        </div>
 
-                        {/* Data */}
-                        <div className="col-span-2">
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
-                          </p>
-                        </div>
-
-                        {/* Valor */}
-                        <div className="col-span-2 text-right">
-                          <span className={cn(
-                            "font-mono text-sm font-medium",
-                            item.isPaid ? "text-muted-foreground" :
-                            isCredit ? "text-green-600 dark:text-green-400" : 
-                            "text-red-600 dark:text-red-400"
-                          )}>
-                            {formatCurrency(item.amount, item.currency)}
-                          </span>
-                        </div>
-
-                        {/* Tipo + Ações */}
-                        <div className="col-span-2 flex items-center justify-end gap-2">
-                          {/* Tag PAGO - mais visível */}
-                          {item.isPaid && (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
-                            >
-                              PAGO
-                            </Badge>
-                          )}
-                          
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-xs font-bold",
-                              item.isPaid ? "border-gray-300 text-gray-500" :
-                              isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
-                              "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                          {/* Descrição e Categoria */}
+                          <div className="col-span-5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className={cn(
+                                "text-sm font-medium",
+                                item.isPaid && "line-through text-muted-foreground"
+                              )}>
+                                {item.description}
+                              </p>
+                              {item.creatorName && (
+                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                  💳 {item.creatorName}
+                                </span>
+                              )}
+                            </div>
+                            {item.category && (
+                              <p className="text-xs text-muted-foreground">
+                                📁 {item.category}
+                              </p>
                             )}
-                          >
-                            {isCredit ? "CRÉDITO" : "DÉBITO"}
-                          </Badge>
+                            {item.totalInstallments && item.totalInstallments > 1 && (
+                              <p className="text-xs text-muted-foreground">
+                                Parcela {item.installmentNumber}/{item.totalInstallments}
+                              </p>
+                            )}
+                          </div>
 
-                          {/* Menu de ações - só mostrar se houver ações disponíveis */}
-                          {(item.isPaid || item.creatorUserId === user?.id) && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                  <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {item.isPaid && (
-                                  <DropdownMenuItem
-                                    onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                  >
-                                    <Undo2 className="h-4 w-4 mr-2" />
-                                    Desfazer acerto
-                                  </DropdownMenuItem>
-                                )}
-                                {/* Apenas o criador pode excluir */}
-                                {item.creatorUserId === user?.id && (
-                                  item.totalInstallments && item.totalInstallments > 1 ? (
+                          {/* Data */}
+                          <div className="col-span-2">
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                            </p>
+                          </div>
+
+                          {/* Valor */}
+                          <div className="col-span-2 text-right">
+                            <span className={cn(
+                              "font-mono text-sm font-medium",
+                              item.isPaid ? "text-muted-foreground" :
+                                isCredit ? "text-green-600 dark:text-green-400" :
+                                  "text-red-600 dark:text-red-400"
+                            )}>
+                              {formatCurrency(item.amount, item.currency)}
+                            </span>
+                          </div>
+
+                          {/* Tipo + Ações */}
+                          <div className="col-span-2 flex items-center justify-end gap-2">
+                            {/* Tag PAGO - mais visível */}
+                            {item.isPaid && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                              >
+                                PAGO
+                              </Badge>
+                            )}
+
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-xs font-bold",
+                                item.isPaid ? "border-gray-300 text-gray-500" :
+                                  isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                                    "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                              )}
+                            >
+                              {isCredit ? "CRÉDITO" : "DÉBITO"}
+                            </Badge>
+
+                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
+                            {(item.isPaid || item.creatorUserId === user?.id) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
+                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {item.isPaid && (
                                     <DropdownMenuItem
-                                      onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
                                     >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Excluir série ({item.totalInstallments}x)
+                                      <Undo2 className="h-4 w-4 mr-2" />
+                                      Desfazer acerto
                                     </DropdownMenuItem>
-                                  ) : (
-                                    <DropdownMenuItem
-                                      onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Excluir transação
-                                    </DropdownMenuItem>
-                                  )
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
+                                  )}
+                                  {/* Apenas o criador pode excluir */}
+                                  {item.creatorUserId === user?.id && (
+                                    <>
+                                      {item.totalInstallments && item.totalInstallments > 1 ? (
+                                        <DropdownMenuItem
+                                          onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Excluir série ({item.totalInstallments}x)
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem
+                                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Excluir transação
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
+                      );
                     } catch (error) {
                       console.error('❌ [SharedExpenses] ERRO ao renderizar item REGULAR:', error);
                       console.error('❌ Item data:', item);
@@ -1173,8 +1175,8 @@ export function SharedExpenses() {
               <div className={cn(
                 "px-4 py-3 border-t-2",
                 iOwe ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
-                theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
-                "bg-muted/50 border-border"
+                  theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
+                    "bg-muted/50 border-border"
               )}>
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total Pendente</span>
@@ -1234,13 +1236,13 @@ export function SharedExpenses() {
               <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white bg-blue-500">
                 <Plane className="h-6 w-6" />
               </div>
-              
+
               {/* Info */}
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-display font-semibold text-lg">{trip.name}</p>
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className="text-xs font-medium border-blue-300 text-blue-700 bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-900/50"
                   >
                     {tripCurrency}
@@ -1257,9 +1259,9 @@ export function SharedExpenses() {
               <div className="text-right">
                 <p className={cn(
                   "font-mono font-bold text-xl",
-                  net === 0 ? "text-muted-foreground" : 
-                  net < 0 ? "text-red-600 dark:text-red-400" : 
-                  "text-green-600 dark:text-green-400"
+                  net === 0 ? "text-muted-foreground" :
+                    net < 0 ? "text-red-600 dark:text-red-400" :
+                      "text-green-600 dark:text-green-400"
                 )}>
                   {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
                 </p>
@@ -1298,7 +1300,7 @@ export function SharedExpenses() {
                   <span className={cn(
                     "font-mono font-semibold",
                     memberNet === 0 ? "text-muted-foreground" :
-                    memberNet < 0 ? "text-red-600" : "text-green-600"
+                      memberNet < 0 ? "text-red-600" : "text-green-600"
                   )}>
                     {formatCurrency(Math.abs(memberNet), tripCurrency)}
                   </span>
@@ -1307,8 +1309,8 @@ export function SharedExpenses() {
                 {/* Itens do membro */}
                 <div className="divide-y divide-border">
                   {memberItems.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', { 
-                      id: item.id, 
+                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', {
+                      id: item.id,
                       description: item.description,
                       type: item.type,
                       isPaid: item.isPaid,
@@ -1316,132 +1318,134 @@ export function SharedExpenses() {
                       currentUserId: user?.id,
                       tripId: item.tripId
                     });
-                    
+
                     try {
                       const isCredit = item.type === 'CREDIT';
                       const hasActions = item.isPaid || item.creatorUserId === user?.id;
                       console.log('🔵 [SharedExpenses] Item TRAVEL hasActions:', hasActions);
-                      
+
                       return (
                         <div
                           key={item.id}
                           className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
                         >
-                        {/* Status */}
-                        <div className="col-span-1">
-                          {item.isPaid ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          ) : (
-                            <div className={cn(
-                              "h-5 w-5 rounded-full border-2",
-                              isCredit ? "border-green-500" : "border-red-500"
-                            )} />
-                          )}
-                        </div>
-
-                        {/* Descrição */}
-                        <div className="col-span-5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className={cn(
-                              "font-medium",
-                              item.isPaid && "text-muted-foreground line-through"
-                            )}>
-                              {item.description}
-                            </p>
-                            {item.creatorName && (
-                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                💳 {item.creatorName}
-                              </span>
+                          {/* Status */}
+                          <div className="col-span-1">
+                            {item.isPaid ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <div className={cn(
+                                "h-5 w-5 rounded-full border-2",
+                                isCredit ? "border-green-500" : "border-red-500"
+                              )} />
                             )}
                           </div>
-                          {item.category && (
-                            <p className="text-xs text-muted-foreground">{item.category}</p>
-                          )}
-                        </div>
 
-                        {/* Data */}
-                        <div className="col-span-2 text-muted-foreground">
-                          {format(new Date(item.date), "dd/MM/yyyy")}
-                        </div>
-
-                        {/* Valor */}
-                        <div className="col-span-2 text-right">
-                          <span className={cn(
-                            "font-mono text-sm font-medium",
-                            item.isPaid ? "text-muted-foreground" :
-                            isCredit ? "text-green-600 dark:text-green-400" : 
-                            "text-red-600 dark:text-red-400"
-                          )}>
-                            {formatCurrency(item.amount, tripCurrency)}
-                          </span>
-                        </div>
-
-                        {/* Tipo */}
-                        <div className="col-span-2 flex items-center justify-end gap-2">
-                          {item.isPaid && (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
-                            >
-                              PAGO
-                            </Badge>
-                          )}
-                          
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-xs font-bold",
-                              item.isPaid ? "border-gray-300 text-gray-500" :
-                              isCredit ? "border-green-300 text-green-700 bg-green-50" :
-                              "border-red-300 text-red-700 bg-red-50"
+                          {/* Descrição */}
+                          <div className="col-span-5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className={cn(
+                                "font-medium",
+                                item.isPaid && "text-muted-foreground line-through"
+                              )}>
+                                {item.description}
+                              </p>
+                              {item.creatorName && (
+                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                  💳 {item.creatorName}
+                                </span>
+                              )}
+                            </div>
+                            {item.category && (
+                              <p className="text-xs text-muted-foreground">{item.category}</p>
                             )}
-                          >
-                            {isCredit ? "CRÉDITO" : "DÉBITO"}
-                          </Badge>
+                          </div>
 
-                          {/* Menu de ações - só mostrar se houver ações disponíveis */}
-                          {(item.isPaid || item.creatorUserId === user?.id) && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                  <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {item.isPaid && (
-                                  <DropdownMenuItem
-                                    onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                  >
-                                    <Undo2 className="h-4 w-4 mr-2" />
-                                    Desfazer acerto
-                                  </DropdownMenuItem>
-                                )}
-                                {/* Apenas o criador pode excluir */}
-                                {item.creatorUserId === user?.id && (
-                                  item.totalInstallments && item.totalInstallments > 1 ? (
+                          {/* Data */}
+                          <div className="col-span-2 text-muted-foreground">
+                            {format(new Date(item.date), "dd/MM/yyyy")}
+                          </div>
+
+                          {/* Valor */}
+                          <div className="col-span-2 text-right">
+                            <span className={cn(
+                              "font-mono text-sm font-medium",
+                              item.isPaid ? "text-muted-foreground" :
+                                isCredit ? "text-green-600 dark:text-green-400" :
+                                  "text-red-600 dark:text-red-400"
+                            )}>
+                              {formatCurrency(item.amount, tripCurrency)}
+                            </span>
+                          </div>
+
+                          {/* Tipo */}
+                          <div className="col-span-2 flex items-center justify-end gap-2">
+                            {item.isPaid && (
+                              <Badge
+                                variant="outline"
+                                className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                              >
+                                PAGO
+                              </Badge>
+                            )}
+
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "text-xs font-bold",
+                                item.isPaid ? "border-gray-300 text-gray-500" :
+                                  isCredit ? "border-green-300 text-green-700 bg-green-50" :
+                                    "border-red-300 text-red-700 bg-red-50"
+                              )}
+                            >
+                              {isCredit ? "CRÉDITO" : "DÉBITO"}
+                            </Badge>
+
+                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
+                            {(item.isPaid || item.creatorUserId === user?.id) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
+                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {item.isPaid && (
                                     <DropdownMenuItem
-                                      onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
                                     >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Excluir série ({item.totalInstallments}x)
+                                      <Undo2 className="h-4 w-4 mr-2" />
+                                      Desfazer acerto
                                     </DropdownMenuItem>
-                                  ) : (
-                                    <DropdownMenuItem
-                                      onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Excluir transação
-                                    </DropdownMenuItem>
-                                  )
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
+                                  )}
+                                  {/* Apenas o criador pode excluir */}
+                                  {item.creatorUserId === user?.id && (
+                                    <>
+                                      {item.totalInstallments && item.totalInstallments > 1 ? (
+                                        <DropdownMenuItem
+                                          onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Excluir série ({item.totalInstallments}x)
+                                        </DropdownMenuItem>
+                                      ) : (
+                                        <DropdownMenuItem
+                                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                          className="text-destructive focus:text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Excluir transação
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
+                      );
                     } catch (error) {
                       console.error('❌ [SharedExpenses] ERRO ao renderizar item TRAVEL:', error);
                       console.error('❌ Item data:', item);
@@ -1516,10 +1520,10 @@ export function SharedExpenses() {
         console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
         try {
           const chart = (
-            <SharedBalanceChart 
-              transactions={transactions} 
-              invoices={invoices} 
-              currentDate={currentDate} 
+            <SharedBalanceChart
+              transactions={transactions}
+              invoices={invoices}
+              currentDate={currentDate}
             />
           );
           console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
@@ -1552,169 +1556,169 @@ export function SharedExpenses() {
                     <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
                       <div className="flex items-center gap-2 mb-3">
                         <CreditCard className="h-5 w-5 text-muted-foreground" />
-                  <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(totalsByCurrency).map(([currency, data]) => (
-                    <div key={currency}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className={cn(
-                          "font-mono text-lg font-bold",
-                          data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        )}>
-                          {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                        </p>
+                        <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
                       </div>
-                      {data.settled > 0 && (
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">Acertado</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            {formatCurrency(data.settled, currency)}
-                          </span>
-                        </div>
-                      )}
+                      <div className="space-y-2">
+                        {Object.entries(totalsByCurrency).map(([currency, data]) => (
+                          <div key={currency}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className={cn(
+                                "font-mono text-lg font-bold",
+                                data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                              )}>
+                                {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                              </p>
+                            </div>
+                            {data.settled > 0 && (
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-[10px] text-muted-foreground">Acertado</span>
+                                <span className="text-[10px] text-muted-foreground font-mono">
+                                  {formatCurrency(data.settled, currency)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* A Receber - REGULAR */}
-              <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                  <p className="text-sm font-medium text-muted-foreground">A Receber</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(totalsByCurrency)
-                    .filter(([_, data]) => data.owedToMe > 0)
-                    .map(([currency, data]) => (
-                      <div key={currency} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
-                          {formatCurrency(data.owedToMe, currency)}
-                        </p>
+                    {/* A Receber - REGULAR */}
+                    <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                        <p className="text-sm font-medium text-muted-foreground">A Receber</p>
                       </div>
-                    ))}
-                  {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
-                    <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
-                  )}
-                </div>
-              </div>
-
-              {/* A Pagar - REGULAR */}
-              <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowRight className="h-5 w-5 text-red-600" />
-                  <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(totalsByCurrency)
-                    .filter(([_, data]) => data.iOwe > 0)
-                    .map(([currency, data]) => (
-                      <div key={currency} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
-                          {formatCurrency(data.iOwe, currency)}
-                        </p>
+                      <div className="space-y-2">
+                        {Object.entries(totalsByCurrency)
+                          .filter(([_, data]) => data.owedToMe > 0)
+                          .map(([currency, data]) => (
+                            <div key={currency} className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                                {formatCurrency(data.owedToMe, currency)}
+                              </p>
+                            </div>
+                          ))}
+                        {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
+                          <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                        )}
                       </div>
-                    ))}
-                  {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
-                    <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cards TRAVEL */}
-        {Object.keys(travelTotalsByCurrency).length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-2">
-              <Plane className="h-4 w-4" />
-              Viagens
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Meu Saldo - TRAVEL */}
-              <div className="p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <CreditCard className="h-5 w-5 text-blue-600" />
-                  <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
-                    <div key={currency}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className={cn(
-                          "font-mono text-lg font-bold",
-                          data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                        )}>
-                          {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                        </p>
-                      </div>
-                      {data.settled > 0 && (
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">Acertado</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            {formatCurrency(data.settled, currency)}
-                          </span>
-                        </div>
-                      )}
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* A Receber - TRAVEL */}
-              <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                  <p className="text-sm font-medium text-muted-foreground">A Receber</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(travelTotalsByCurrency)
-                    .filter(([_, data]) => data.owedToMe > 0)
-                    .map(([currency, data]) => (
-                      <div key={currency} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
-                          {formatCurrency(data.owedToMe, currency)}
-                        </p>
+                    {/* A Pagar - REGULAR */}
+                    <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ArrowRight className="h-5 w-5 text-red-600" />
+                        <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
                       </div>
-                    ))}
-                  {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
-                    <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
-                  )}
+                      <div className="space-y-2">
+                        {Object.entries(totalsByCurrency)
+                          .filter(([_, data]) => data.iOwe > 0)
+                          .map(([currency, data]) => (
+                            <div key={currency} className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                                {formatCurrency(data.iOwe, currency)}
+                              </p>
+                            </div>
+                          ))}
+                        {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
+                          <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* A Pagar - TRAVEL */}
-              <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <ArrowRight className="h-5 w-5 text-red-600" />
-                  <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
-                </div>
-                <div className="space-y-2">
-                  {Object.entries(travelTotalsByCurrency)
-                    .filter(([_, data]) => data.iOwe > 0)
-                    .map(([currency, data]) => (
-                      <div key={currency} className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                        <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
-                          {formatCurrency(data.iOwe, currency)}
-                        </p>
+              {/* Cards TRAVEL */}
+              {Object.keys(travelTotalsByCurrency).length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-2">
+                    <Plane className="h-4 w-4" />
+                    Viagens
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Meu Saldo - TRAVEL */}
+                    <div className="p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
                       </div>
-                    ))}
-                  {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
-                    <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
-                  )}
+                      <div className="space-y-2">
+                        {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
+                          <div key={currency}>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className={cn(
+                                "font-mono text-lg font-bold",
+                                data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                              )}>
+                                {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                              </p>
+                            </div>
+                            {data.settled > 0 && (
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-[10px] text-muted-foreground">Acertado</span>
+                                <span className="text-[10px] text-muted-foreground font-mono">
+                                  {formatCurrency(data.settled, currency)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* A Receber - TRAVEL */}
+                    <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                        <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                      </div>
+                      <div className="space-y-2">
+                        {Object.entries(travelTotalsByCurrency)
+                          .filter(([_, data]) => data.owedToMe > 0)
+                          .map(([currency, data]) => (
+                            <div key={currency} className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                                {formatCurrency(data.owedToMe, currency)}
+                              </p>
+                            </div>
+                          ))}
+                        {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
+                          <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* A Pagar - TRAVEL */}
+                    <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <ArrowRight className="h-5 w-5 text-red-600" />
+                        <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                      </div>
+                      <div className="space-y-2">
+                        {Object.entries(travelTotalsByCurrency)
+                          .filter(([_, data]) => data.iOwe > 0)
+                          .map(([currency, data]) => (
+                            <div key={currency} className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                              <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                                {formatCurrency(data.iOwe, currency)}
+                              </p>
+                            </div>
+                          ))}
+                        {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
+                          <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+              )}
             </div>
           );
         } catch (error) {
@@ -1734,88 +1738,94 @@ export function SharedExpenses() {
                 <TabsList className="inline-flex w-auto min-w-full md:w-full">
                   <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
                     <Users className="h-4 w-4" />
-              Regular
-            </TabsTrigger>
-            <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
-              <Plane className="h-4 w-4" />
-              Viagens
-            </TabsTrigger>
-            <TabsTrigger value="HISTORY" className="flex-1 min-w-[100px] gap-2">
-              <History className="h-4 w-4" />
-              Histórico
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        <TabsContent value={activeTab} className="mt-6">
-          {members.length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-border rounded-xl">
-              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
-              <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
-              <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
-                <span className="hidden sm:inline">Gerenciar Família</span>
-                <span className="sm:hidden">Família</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Legenda */}
-              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span>Pagar (você deve)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span>Receber (devem a você)</span>
-                </div>
+                    Regular
+                  </TabsTrigger>
+                  <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
+                    <Plane className="h-4 w-4" />
+                    Viagens
+                  </TabsTrigger>
+                  <TabsTrigger value="HISTORY" className="flex-1 min-w-[100px] gap-2">
+                    <History className="h-4 w-4" />
+                    Histórico
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
-              {activeTab !== 'TRAVEL' && members.length > 0 && members.map(member => renderMemberInvoiceCard(member)).filter(Boolean)}
-
-              {/* Lista de viagens (TRAVEL) */}
-              {activeTab === 'TRAVEL' && (() => {
-                const filteredTrips = trips.filter(trip => {
-                  // Verificar se há itens desta viagem no mês atual
-                  return members.some(member => {
-                    const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
-                    return memberItems.length > 0;
-                  });
-                });
-                return filteredTrips.length > 0 ? filteredTrips.map(trip => renderTripCard(trip)) : null;
-              })()}
-
-              {/* Mensagem se não houver itens */}
-              {activeTab === 'TRAVEL' ? (
-                trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
-                  <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                    <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                    <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
-                    <p className="text-muted-foreground">
-                      Não há despesas de viagens neste período
-                    </p>
+              <TabsContent value={activeTab} className="mt-6">
+                {members.length === 0 ? (
+                  <div className="py-16 text-center border border-dashed border-border rounded-xl">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
+                    <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
+                    <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
+                      <span className="hidden sm:inline">Gerenciar Família</span>
+                      <span className="sm:hidden">Família</span>
+                    </Button>
                   </div>
-                )
-              ) : (
-                members.every(m => getFilteredInvoice(m.id).length === 0) && (
-                  <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                    <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                    <h3 className="font-display font-semibold text-lg mb-2">
-                      {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {activeTab === "HISTORY" 
-                        ? "Nenhum acerto foi realizado ainda" 
-                        : "Não há despesas pendentes neste período"}
-                    </p>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Legenda */}
+                    <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500" />
+                        <span>Pagar (você deve)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500" />
+                        <span>Receber (devem a você)</span>
+                      </div>
+                    </div>
+
+                    {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
+                    {activeTab !== 'TRAVEL' && members.length > 0 && (
+                      <>{members.map(member => renderMemberInvoiceCard(member)).filter(Boolean)}</>
+                    )}
+
+                    {/* Lista de viagens (TRAVEL) */}
+                    {activeTab === 'TRAVEL' && (() => {
+                      const filteredTrips = trips.filter(trip => {
+                        // Verificar se há itens desta viagem no mês atual
+                        return members.some(member => {
+                          const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+                          return memberItems.length > 0;
+                        });
+                      });
+                      return filteredTrips.length > 0 ? <>{filteredTrips.map(trip => renderTripCard(trip))}</> : <></>;
+                    })()}
+
+                    {/* Mensagem se não houver itens */}
+                    {activeTab === 'TRAVEL' ? (
+                      <>
+                        {trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
+                          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                            <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                            <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
+                            <p className="text-muted-foreground">
+                              Não há despesas de viagens neste período
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                          <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                            <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                            <h3 className="font-display font-semibold text-lg mb-2">
+                              {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                            </h3>
+                            <p className="text-muted-foreground">
+                              {activeTab === "HISTORY"
+                                ? "Nenhum acerto foi realizado ainda"
+                                : "Não há despesas pendentes neste período"}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                )
-              )}
-            </div>
-          )}
-        </TabsContent>
+                )}
+              </TabsContent>
             </Tabs>
           );
         } catch (error) {
@@ -1840,26 +1850,26 @@ export function SharedExpenses() {
               {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
             </DialogTitle>
             <DialogDescription>
-              {settleType === "PAY" 
-                ? "Registre o pagamento da sua dívida" 
+              {settleType === "PAY"
+                ? "Registre o pagamento da sua dívida"
                 : "Registre o recebimento do valor devido"}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedMember && (() => {
             const member = members.find(m => m.id === selectedMember);
             const itemsToConsider = selectedItems.length > 0
               ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
               : pendingMemberItems;
-            
+
             const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
-            const internationalTrip = tripIds.length > 0 
+            const internationalTrip = tripIds.length > 0
               ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
               : null;
-            
+
             const settlementCurrency = internationalTrip?.currency || "BRL";
             const isInternationalSettlement = settlementCurrency !== "BRL";
-            
+
             const filteredSettleAccounts = (accounts || []).filter(a => {
               if (a.type === "CREDIT_CARD") return false;
               if (isInternationalSettlement) {
@@ -1883,8 +1893,8 @@ export function SharedExpenses() {
                 {/* Visual de transferência */}
                 <div className={cn(
                   "flex items-center justify-center gap-6 p-4 rounded-xl",
-                  settleType === "PAY" 
-                    ? "bg-red-50 dark:bg-red-950/20" 
+                  settleType === "PAY"
+                    ? "bg-red-50 dark:bg-red-950/20"
                     : "bg-green-50 dark:bg-green-950/20"
                 )}>
                   <div className="text-center">
@@ -1930,8 +1940,8 @@ export function SharedExpenses() {
                         onClick={handleSelectAll}
                         className="text-xs h-7 shrink-0"
                       >
-                        {selectedItems.length === pendingMemberItems.length 
-                          ? "Desmarcar" 
+                        {selectedItems.length === pendingMemberItems.length
+                          ? "Desmarcar"
                           : <><span className="hidden sm:inline">Selecionar todos</span><span className="sm:hidden">Todos</span></>}
                       </Button>
                     </div>
@@ -2015,7 +2025,7 @@ export function SharedExpenses() {
                       Altere o valor para fazer um acerto parcial
                     </p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
                     <Select value={settleAccountId} onValueChange={setSettleAccountId}>
@@ -2047,7 +2057,7 @@ export function SharedExpenses() {
               </div>
             );
           })()}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
               Cancelar
@@ -2056,8 +2066,8 @@ export function SharedExpenses() {
               onClick={handleSettle}
               disabled={isSettling || !settleAccountId}
               className={cn(
-                settleType === "PAY" 
-                  ? "bg-red-600 hover:bg-red-700" 
+                settleType === "PAY"
+                  ? "bg-red-600 hover:bg-red-700"
                   : "bg-green-600 hover:bg-green-700"
               )}
             >
@@ -2106,7 +2116,7 @@ export function SharedExpenses() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteTransaction}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -2122,13 +2132,13 @@ export function SharedExpenses() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Série de Parcelas</AlertDialogTitle>
             <AlertDialogDescription>
-              Deseja excluir toda a série de parcelas "{deleteSeriesConfirm.item?.description}"? 
+              Deseja excluir toda a série de parcelas "{deleteSeriesConfirm.item?.description}"?
               Todas as {deleteSeriesConfirm.item?.totalInstallments} parcelas serão excluídas. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteSeries}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
