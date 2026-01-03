@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
@@ -251,13 +252,12 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     });
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCurrency(e.target.value);
-    setAmount(formatted);
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
   };
 
   const getNumericAmount = () => {
-    return parseFloat(amount.replace(/\./g, '').replace(',', '.')) || 0;
+    return parseFloat(amount) || 0;
   };
 
   const isLoading = accountsLoading || categoriesLoading;
@@ -642,12 +642,11 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
               {getCurrencySymbol(transactionCurrency)}
             </span>
-            <Input
-              type="text"
-              inputMode="numeric"
+            <CurrencyInput
               placeholder="0,00"
               value={amount}
               onChange={handleAmountChange}
+              currency={transactionCurrency}
               className={cn(
                 'pl-12 h-16 text-3xl font-mono font-bold text-center',
                 isExpense && 'text-destructive',

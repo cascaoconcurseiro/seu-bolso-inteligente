@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -543,7 +544,12 @@ export function Accounts() {
 
             <div className="space-y-2">
               <Label>Saldo inicial {isInternational && `(${currency})`}</Label>
-              <Input type="number" placeholder="0,00" value={balance} onChange={(e) => setBalance(e.target.value)} />
+              <CurrencyInput 
+                placeholder="0,00" 
+                value={balance} 
+                onChange={setBalance}
+                currency={isInternational ? currency : "BRL"}
+              />
               {!isInternational && (
                 <p className="text-xs text-muted-foreground">
                   💡 Conta nacional em BRL (Real Brasileiro)
@@ -580,12 +586,11 @@ export function Accounts() {
             </div>
             <div className="space-y-2">
               <Label>Saldo atual</Label>
-              <Input 
-                type="number"
-                step="0.01"
+              <CurrencyInput 
                 value={editBalance} 
-                onChange={(e) => setEditBalance(e.target.value)} 
+                onChange={setEditBalance} 
                 placeholder="0,00"
+                currency={editingAccount?.currency || "BRL"}
               />
               <p className="text-xs text-muted-foreground">
                 Ajuste o saldo se necessário. Isso não cria transação.

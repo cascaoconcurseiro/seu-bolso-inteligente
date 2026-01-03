@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Loader2, Banknote } from "lucide-react";
 import { useWithdrawal } from "@/hooks/useWithdrawal";
 
@@ -26,22 +27,12 @@ export function WithdrawalModal({
 
   const withdrawal = useWithdrawal();
 
-  const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    const cents = parseInt(numbers || "0") / 100;
-    return cents.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCurrency(e.target.value);
-    setAmount(formatted);
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
   };
 
   const getNumericAmount = () => {
-    return parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
+    return parseFloat(amount) || 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,13 +93,11 @@ export function WithdrawalModal({
           <div className="space-y-2">
             <Label htmlFor="amount">Valor do saque</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
                 R$
               </span>
-              <Input
+              <CurrencyInput
                 id="amount"
-                type="text"
-                inputMode="numeric"
                 placeholder="0,00"
                 value={amount}
                 onChange={handleAmountChange}

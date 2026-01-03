@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -95,15 +96,14 @@ export function ExchangePurchaseDialog({
           <div className="space-y-2">
             <Label>Valor em {currency} *</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
                 {currencySymbol}
               </span>
-              <Input
-                type="number"
-                step="0.01"
+              <CurrencyInput
                 placeholder="1000.00"
                 value={foreignAmount}
-                onChange={(e) => setForeignAmount(e.target.value)}
+                onChange={setForeignAmount}
+                currency={currency}
                 className="pl-10"
               />
             </div>

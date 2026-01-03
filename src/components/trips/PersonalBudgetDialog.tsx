@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -76,11 +77,10 @@ export function PersonalBudgetDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Orçamento Pessoal {required && <span className="text-destructive">*</span>}</Label>
-            <Input
-              type="number"
+            <CurrencyInput
               placeholder="1000"
               value={budget}
-              onChange={(e) => setBudget(e.target.value)}
+              onChange={setBudget}
               autoFocus
             />
             <p className="text-xs text-muted-foreground">

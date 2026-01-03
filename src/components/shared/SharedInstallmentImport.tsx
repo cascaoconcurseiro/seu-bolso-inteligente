@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   Dialog,
   DialogContent,
@@ -85,7 +86,7 @@ export function SharedInstallmentImport({
   }, [isOpen, availableMembers.length]);
 
   const parseAmount = (val: string) => {
-    return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+    return parseFloat(val) || 0;
   };
 
   const installmentAmount = parseAmount(amount);
@@ -124,23 +125,7 @@ export function SharedInstallmentImport({
     return newErrors.length === 0;
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    
-    // Remover tudo exceto números e vírgula
-    value = value.replace(/[^\d,]/g, '');
-    
-    // Permitir apenas uma vírgula
-    const parts = value.split(',');
-    if (parts.length > 2) {
-      value = parts[0] + ',' + parts.slice(1).join('');
-    }
-    
-    // Limitar casas decimais a 2
-    if (parts.length === 2 && parts[1].length > 2) {
-      value = parts[0] + ',' + parts[1].substring(0, 2);
-    }
-    
+  const handleAmountChange = (value: string) => {
     setAmount(value);
   };
 
@@ -250,9 +235,8 @@ export function SharedInstallmentImport({
             <div className="space-y-2">
               <Label>Valor da Parcela *</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
+                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
+                <CurrencyInput
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder="0,00"

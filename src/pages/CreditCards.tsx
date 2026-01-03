@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -741,11 +742,11 @@ export function CreditCards() {
               </div>
               <div className="space-y-2">
                 <Label>Limite</Label>
-                <Input 
-                  type="number"
+                <CurrencyInput 
                   value={editLimit}
-                  onChange={(e) => setEditLimit(e.target.value)}
+                  onChange={setEditLimit}
                   placeholder="10000"
+                  currency={editingCard?.currency || "BRL"}
                 />
               </div>
             </div>
@@ -1141,10 +1142,11 @@ function NewCardDialog({
           </div>
           <div className="space-y-2">
             <Label>Limite {isInternational && `(${currency})`}</Label>
-            <Input 
+            <CurrencyInput 
               placeholder="10000"
               value={limit}
-              onChange={(e) => setLimit(e.target.value.replace(/\D/g, ""))}
+              onChange={setLimit}
+              currency={isInternational ? currency : "BRL"}
             />
           </div>
         </div>
@@ -1268,12 +1270,12 @@ function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDi
                   <span className="text-xs text-muted-foreground">Encerrado</span>
                 ) : (
                   <div className="relative">
-                    <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="number"
+                    <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <CurrencyInput
                       placeholder="0,00"
                       value={month.amount}
-                      onChange={(e) => handleAmountChange(index, e.target.value)}
+                      onChange={(value) => handleAmountChange(index, value)}
+                      currency={account.currency || "BRL"}
                       className="pl-7 h-8 text-sm"
                     />
                   </div>

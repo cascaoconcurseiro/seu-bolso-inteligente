@@ -3,6 +3,7 @@ import { Loader2, Plus, Trash2, ShoppingCart, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
@@ -32,22 +33,12 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
   const [newCost, setNewCost] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    const cents = parseInt(numbers || '0') / 100;
-    return cents.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-  };
-
-  const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCurrency(e.target.value);
-    setNewCost(formatted);
+  const handleCostChange = (value: string) => {
+    setNewCost(value);
   };
 
   const getNumericCost = () => {
-    return parseFloat(newCost.replace(/\./g, '').replace(',', '.')) || 0;
+    return parseFloat(newCost) || 0;
   };
 
   const handleAddItem = async () => {
@@ -176,15 +167,14 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
             <Label>Custo Estimado ({trip.currency})</Label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
                   {trip.currency}
                 </span>
-                <Input
-                  type="text"
-                  inputMode="numeric"
+                <CurrencyInput
                   placeholder="0,00"
                   value={newCost}
                   onChange={handleCostChange}
+                  currency={trip.currency}
                   className="pl-16"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {

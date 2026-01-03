@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -341,11 +342,11 @@ export function Budgets() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Valor Limite</Label>
-                <Input
-                  type="number"
+                <CurrencyInput
                   placeholder="1000"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={setAmount}
+                  currency={currency}
                 />
               </div>
               <div className="space-y-2">

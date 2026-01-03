@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -1859,20 +1860,13 @@ export function SharedExpenses() {
                   <div className="space-y-2">
                     <Label>Valor do acerto ({settlementCurrency})</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
                         {getCurrencySymbol(settlementCurrency)}
                       </span>
-                      <Input
-                        type="text"
+                      <CurrencyInput
                         value={settleAmount}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "");
-                          const cents = parseInt(val) / 100;
-                          setSettleAmount(cents.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          }));
-                        }}
+                        onChange={setSettleAmount}
+                        currency={settlementCurrency}
                         className="font-mono text-lg pl-10"
                         placeholder="0,00"
                       />
