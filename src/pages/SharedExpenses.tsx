@@ -1538,16 +1538,20 @@ export function SharedExpenses() {
       })()}
 
       {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
-      <div className="space-y-4">
-        {/* Cards REGULAR */}
-        {Object.keys(totalsByCurrency).length > 0 && (
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Meu Saldo - REGULAR */}
-              <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
-                <div className="flex items-center gap-2 mb-3">
-                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+      {(() => {
+        console.log('🔵 [SharedExpenses] 📊 Renderizando Summary Cards...');
+        try {
+          return (
+            <div className="space-y-4">
+              {/* Cards REGULAR */}
+              {Object.keys(totalsByCurrency).length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Meu Saldo - REGULAR */}
+                    <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
+                      <div className="flex items-center gap-2 mb-3">
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
                   <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
                 </div>
                 <div className="space-y-2">
@@ -1711,14 +1715,25 @@ export function SharedExpenses() {
             </div>
           </div>
         )}
-      </div>
+            </div>
+          );
+        } catch (error) {
+          console.error('❌ [SharedExpenses] ERRO nos Summary Cards:', error);
+          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+          return null;
+        }
+      })()}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
-        <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
-          <TabsList className="inline-flex w-auto min-w-full md:w-full">
-            <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
-              <Users className="h-4 w-4" />
+      {(() => {
+        console.log('🔵 [SharedExpenses] 📑 Renderizando Tabs...');
+        try {
+          return (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
+              <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+                <TabsList className="inline-flex w-auto min-w-full md:w-full">
+                  <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
+                    <Users className="h-4 w-4" />
               Regular
             </TabsTrigger>
             <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
@@ -1800,7 +1815,20 @@ export function SharedExpenses() {
             </div>
           )}
         </TabsContent>
-      </Tabs>
+            </Tabs>
+          );
+        } catch (error) {
+          console.error('❌ [SharedExpenses] ERRO nas Tabs:', error);
+          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+          return (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Erro ao carregar abas: {error instanceof Error ? error.message : 'Erro desconhecido'}
+              </AlertDescription>
+            </Alert>
+          );
+        }
+      })()}
 
       {/* Settle Dialog - Estilo Fatura */}
       <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
