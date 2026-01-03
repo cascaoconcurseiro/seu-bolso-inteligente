@@ -14,7 +14,7 @@ export function PendingTripInvitationsAlert() {
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
-  console.log('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
+  // console.log('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
     invitations, 
     isLoading, 
     error,
@@ -22,21 +22,21 @@ export function PendingTripInvitationsAlert() {
   });
 
   if (isLoading) {
-    console.log('🟣 [PendingTripInvitationsAlert] Carregando...');
+    // console.log('🟣 [PendingTripInvitationsAlert] Carregando...');
     return null;
   }
 
   if (error) {
-    console.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
+    // console.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
     return null;
   }
   
   if (!invitations || invitations.length === 0) {
-    console.log('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
+    // console.log('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
     return null;
   }
 
-  console.log('🟣 [PendingTripInvitationsAlert] Renderizando', invitations.length, 'convite(s)');
+  // console.log('🟣 [PendingTripInvitationsAlert] Renderizando', invitations.length, 'convite(s)');
 
   return (
     <div className="space-y-3">

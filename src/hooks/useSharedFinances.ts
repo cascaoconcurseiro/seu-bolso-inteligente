@@ -245,13 +245,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           
           const memberId = split.member_id;
           if (!memberId) {
-            console.warn('⚠️ [CASO 1A] Split sem member_id!', split);
+            // console.warn('⚠️ [CASO 1A] Split sem member_id!', split);
             return;
           }
           
           const uniqueKey = `${tx.id}-credit-${memberId}`;
           if (processedTxIds.has(uniqueKey)) {
-            console.warn('⚠️ [CASO 1A] Item já processado:', uniqueKey);
+            // console.warn('⚠️ [CASO 1A] Item já processado:', uniqueKey);
             return;
           }
           processedTxIds.add(uniqueKey);
@@ -263,7 +263,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           const creatorName = creator?.name || (tx.user_id === user?.id ? 'Você' : 'Outro membro');
           
           if (!invoiceMap[memberId]) {
-            console.warn('⚠️ [CASO 1A] Member não encontrado no invoiceMap:', memberId);
+            // console.warn('⚠️ [CASO 1A] Member não encontrado no invoiceMap:', memberId);
             invoiceMap[memberId] = [];
           }
           
@@ -354,7 +354,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               // });
             }
           } else {
-            console.warn('⚠️ [CASO 1B] Criador da transação não encontrado nos membros:', tx.user_id);
+            // // console.warn('⚠️ [CASO 1B] Criador da transação não encontrado nos membros:', tx.user_id);
           }
         }
       }
