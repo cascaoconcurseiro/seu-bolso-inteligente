@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,17 +138,33 @@ export function SharedExpenses() {
   const openSettleDialog = (memberId: string, type: "PAY" | "RECEIVE", amount: number) => {
     setSelectedMember(memberId);
     setSettleType(type);
+    // Preencher com o valor total pendente
     setSettleAmount(amount.toFixed(2).replace(".", ","));
     setSelectedItems([]);
     setShowSettleDialog(true);
   };
 
   const toggleItem = (itemId: string) => {
-    setSelectedItems(prev =>
-      prev.includes(itemId)
+    setSelectedItems(prev => {
+      const newItems = prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
+        : [...prev, itemId];
+      
+      // Atualizar valor após mudança na seleção
+      setTimeout(() => {
+        if (!selectedMember) return;
+        const items = getFilteredInvoice(selectedMember);
+        const selectedTotal = items
+          .filter(i => newItems.includes(i.id))
+          .reduce((sum, item) => {
+            if (item.type === "CREDIT") return sum + item.amount;
+            return sum - item.amount;
+          }, 0);
+        setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
+      }, 0);
+      
+      return newItems;
+    });
   };
 
   const getSelectedTotal = () => {
@@ -191,26 +207,6 @@ export function SharedExpenses() {
       }, 0);
     setSettleAmount(Math.abs(selectedTotal).toFixed(2).replace(".", ","));
   };
-
-  // useEffect para atualizar valor automaticamente quando itens selecionados mudam
-  useEffect(() => {
-    if (showSettleDialog && selectedMember && selectedItems.length > 0) {
-      updateSettleAmountFromSelection();
-    }
-  }, [selectedItems, showSettleDialog, selectedMember]);
-
-  // useEffect para preencher valor total ao abrir o modal
-  useEffect(() => {
-    if (showSettleDialog && selectedMember && selectedItems.length === 0) {
-      // Ao abrir o modal sem itens selecionados, preencher com o total pendente
-      const items = getFilteredInvoice(selectedMember).filter(i => !i.isPaid);
-      const total = items.reduce((sum, item) => {
-        if (item.type === "CREDIT") return sum + item.amount;
-        return sum - item.amount;
-      }, 0);
-      setSettleAmount(Math.abs(total).toFixed(2).replace(".", ","));
-    }
-  }, [showSettleDialog, selectedMember]);
 
   const handleSettle = async () => {
     if (!selectedMember || !settleAccountId) {
