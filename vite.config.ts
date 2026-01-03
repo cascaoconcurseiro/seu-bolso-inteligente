@@ -15,4 +15,8 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    minify: false, // TEMPORÁRIO: Desabilitar minificação para debug
+    sourcemap: true, // Habilitar sourcemaps
+  },
 }));

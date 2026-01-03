@@ -1751,113 +1751,137 @@ export function SharedExpenses() {
                 </TabsList>
               </div>
 
-              <TabsContent value={activeTab} className="mt-6">
-                {members.length === 0 ? (
-                  <div className="py-16 text-center border border-dashed border-border rounded-xl">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
-                    <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
-                    <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
-                      <span className="hidden sm:inline">Gerenciar Família</span>
-                      <span className="sm:hidden">Família</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Legenda */}
-                    <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500" />
-                        <span>Pagar (você deve)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500" />
-                        <span>Receber (devem a você)</span>
-                      </div>
-                    </div>
+              {(() => {
+                console.log('🔵 [SharedExpenses] 🚨 ANTES DE RENDERIZAR TabsContent');
+                console.log('🔵 [SharedExpenses] activeTab:', activeTab);
+                console.log('🔵 [SharedExpenses] members.length:', members.length);
+                console.log('🔵 [SharedExpenses] members:', members);
 
-                    {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
+                const tabsContentProps = {
+                  value: activeTab,
+                  className: "mt-6"
+                };
+                console.log('🔵 [SharedExpenses] TabsContent props:', tabsContentProps);
+
+                return (
+                  <TabsContent {...tabsContentProps}>
                     {(() => {
-                      console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
-                      if (activeTab !== 'TRAVEL' && members.length > 0) {
-                        const memberCards = members.map(member => {
-                          console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
-                          try {
-                            return renderMemberInvoiceCard(member);
-                          } catch (error) {
-                            console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
-                            return undefined;
-                          }
-                        }).filter(Boolean);
-                        console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
-                        return <>{memberCards}</>;
+                      console.log('🔵 [SharedExpenses] 🚨 DENTRO DO TabsContent - renderizando children');
+                      if (members.length === 0) {
+                        console.log('🔵 [SharedExpenses] Renderizando: Nenhum membro');
+                        return (
+                          <div className="py-16 text-center border border-dashed border-border rounded-xl">
+                            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                            <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
+                            <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
+                            <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
+                              <span className="hidden sm:inline">Gerenciar Família</span>
+                              <span className="sm:hidden">Família</span>
+                            </Button>
+                          </div>
+                        );
                       }
-                      console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
-                      return <></>;
-                    })()}
 
-                    {/* Lista de viagens (TRAVEL) */}
-                    {(() => {
-                      console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
-                      if (activeTab === 'TRAVEL') {
-                        const filteredTrips = trips.filter(trip => {
-                          // Verificar se há itens desta viagem no mês atual
-                          return members.some(member => {
-                            const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
-                            return memberItems.length > 0;
-                          });
-                        });
-                        console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
-                        if (filteredTrips.length > 0) {
-                          const tripCards = filteredTrips.map(trip => {
-                            console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
-                            try {
-                              return renderTripCard(trip);
-                            } catch (error) {
-                              console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
-                              return undefined;
+                      console.log('🔵 [SharedExpenses] Renderizando: Com membros');
+                      return (
+                        <div className="space-y-4">
+                          {/* Legenda */}
+                          <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-red-500" />
+                              <span>Pagar (você deve)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-green-500" />
+                              <span>Receber (devem a você)</span>
+                            </div>
+                          </div>
+
+                          {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
+                          {(() => {
+                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
+                            if (activeTab !== 'TRAVEL' && members.length > 0) {
+                              const memberCards = members.map(member => {
+                                console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
+                                try {
+                                  return renderMemberInvoiceCard(member);
+                                } catch (error) {
+                                  console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
+                                  return undefined;
+                                }
+                              }).filter(Boolean);
+                              console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
+                              return <>{memberCards}</>;
                             }
-                          }).filter(Boolean);
-                          return <>{tripCards}</>;
-                        }
-                      }
-                      console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
-                      return <></>;
-                    })()}
+                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
+                            return <></>;
+                          })()}
 
-                    {/* Mensagem se não houver itens */}
-                    {activeTab === 'TRAVEL' ? (
-                      <>
-                        {trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
-                          <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                            <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                            <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
-                            <p className="text-muted-foreground">
-                              Não há despesas de viagens neste período
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {members.every(m => getFilteredInvoice(m.id).length === 0) && (
-                          <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                            <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                            <h3 className="font-display font-semibold text-lg mb-2">
-                              {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                            </h3>
-                            <p className="text-muted-foreground">
-                              {activeTab === "HISTORY"
-                                ? "Nenhum acerto foi realizado ainda"
-                                : "Não há despesas pendentes neste período"}
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
+                          {/* Lista de viagens (TRAVEL) */}
+                          {(() => {
+                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
+                            if (activeTab === 'TRAVEL') {
+                              const filteredTrips = trips.filter(trip => {
+                                // Verificar se há itens desta viagem no mês atual
+                                return members.some(member => {
+                                  const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+                                  return memberItems.length > 0;
+                                });
+                              });
+                              console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
+                              if (filteredTrips.length > 0) {
+                                const tripCards = filteredTrips.map(trip => {
+                                  console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
+                                  try {
+                                    return renderTripCard(trip);
+                                  } catch (error) {
+                                    console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
+                                    return undefined;
+                                  }
+                                }).filter(Boolean);
+                                return <>{tripCards}</>;
+                              }
+                            }
+                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
+                            return <></>;
+                          })()}
+
+                          {/* Mensagem se não houver itens */}
+                          {activeTab === 'TRAVEL' ? (
+                            <>
+                              {trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
+                                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                                  <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                                  <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
+                                  <p className="text-muted-foreground">
+                                    Não há despesas de viagens neste período
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                                <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                                  <h3 className="font-display font-semibold text-lg mb-2">
+                                    {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                                  </h3>
+                                  <p className="text-muted-foreground">
+                                    {activeTab === "HISTORY"
+                                      ? "Nenhum acerto foi realizado ainda"
+                                      : "Não há despesas pendentes neste período"}
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </TabsContent>
+                );
+              })()}
             </Tabs>
           );
         } catch (error) {
