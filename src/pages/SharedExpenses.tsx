@@ -2091,24 +2091,8 @@ export function SharedExpenses() {
 
                 {/* Valor e conta */}
                 <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label>Valor do acerto ({settlementCurrency})</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
-                        {getCurrencySymbol(settlementCurrency)}
-                      </span>
-                      <CurrencyInput
-                        value={settleAmount}
-                        onChange={setSettleAmount}
-                        currency={settlementCurrency}
-                        className="font-mono text-lg pl-10"
-                        placeholder="0,00"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Altere o valor para fazer um acerto parcial
-                    </p>
-                  </div>
+                  {/* Valor manual removido conforme solicitado */}
+                  {/* O valor total já é exibido no card de resumo acima */}
 
                   <div className="space-y-2">
                     <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
