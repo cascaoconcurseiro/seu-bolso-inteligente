@@ -51,6 +51,53 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const { data: members = [] } = useFamilyMembers();
   const queryClient = useQueryClient();
 
+  // Função para calcular a data de vencimento de uma transação de cartão de crédito
+  // Para transações compartilhadas, usamos o mês de VENCIMENTO da fatura
+  const calculateDueDate = (transactionDate: string, accountId: string, accounts: any[]): string => {
+    const account = accounts.find(a => a.id === accountId);
+    if (!account || account.type !== 'CREDIT_CARD') {
+      // Se não for cartão de crédito, usar a data original
+      return transactionDate;
+    }
+
+    const closingDay = account.closing_day || 1;
+    const dueDay = account.due_day || 10;
+    
+    const txDate = new Date(transactionDate + 'T00:00:00');
+    const txDay = txDate.getDate();
+    const txMonth = txDate.getMonth();
+    const txYear = txDate.getFullYear();
+
+    // Determinar em qual fatura a transação entra
+    let invoiceMonth = txMonth;
+    let invoiceYear = txYear;
+
+    if (txDay > closingDay) {
+      // Transação entra na fatura do próximo mês
+      invoiceMonth++;
+      if (invoiceMonth > 11) {
+        invoiceMonth = 0;
+        invoiceYear++;
+      }
+    }
+
+    // Calcular o mês de vencimento
+    let dueMonth = invoiceMonth;
+    let dueYear = invoiceYear;
+
+    if (dueDay <= closingDay) {
+      // Vencimento é no próximo mês
+      dueMonth++;
+      if (dueMonth > 11) {
+        dueMonth = 0;
+        dueYear++;
+      }
+    }
+
+    // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
+    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+  };
+
   // DEBUG: Log members
   // // console.log('🔍 [useSharedFinances] Members from useFamilyMembers:', {
   //   count: members.length,
@@ -72,6 +119,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryKey: ['shared-transactions-with-splits', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
+      // Buscar contas do usuário (necessário para calcular data de vencimento)
+      const { data: accounts, error: accountsError } = await supabase
+        .from('accounts')
+        .select('id, type, closing_day, due_day')
+        .eq('user_id', user.id);
+      
+      if (accountsError) {
+        console.error('❌ [Query Error - Accounts]:', accountsError);
+        throw accountsError;
+      }
       
       // Buscar transações compartilhadas CRIADAS POR MIM
       const { data: myTransactions, error: myTxError } = await supabase
@@ -165,7 +223,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       //   }))
       // });
       
-      return transactionsWithSplitsData;
+      return { transactions: transactionsWithSplitsData, accounts: accounts || [] };
     },
     enabled: !!user,
   });
@@ -204,11 +262,14 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const invoiceMap: Record<string, InvoiceItem[]> = {};
     const processedTxIds = new Set<string>();
     
+    const transactions = transactionsWithSplits?.transactions || [];
+    const accounts = transactionsWithSplits?.accounts || [];
+    
     // console.log('🔍 [useMemo] Iniciando processamento:', {
     //   membersCount: members.length,
     //   membersData: members.map(m => ({ id: m.id, name: m.name })),
-    //   transactionsCount: transactionsWithSplits.length,
-    //   transactionsData: transactionsWithSplits.map(t => ({
+    //   transactionsCount: transactions.length,
+    //   transactionsData: transactions.map(t => ({
     //     id: t.id,
     //     description: t.description,
     //     splits: t.transaction_splits?.length || 0
@@ -223,7 +284,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
     // DEBUG: Log dados recebidos
     // console.log('🔍 [useSharedFinances] DEBUG:', {
-    //   transactionsWithSplits: transactionsWithSplits.length,
+    //   transactionsCount: transactions.length,
     //   paidByOthersTransactions: paidByOthersTransactions.length,
     //   members: members.length,
     //   activeTab,
@@ -234,7 +295,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     
     // CASO 1: EU PAGUEI - Créditos (me devem)
     // Transações que EU criei e dividi com outros
-    transactionsWithSplits.forEach(tx => {
+    transactions.forEach(tx => {
       if (tx.type !== 'EXPENSE') return;
       
       const splits = tx.transaction_splits || [];
@@ -290,12 +351,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             split
           );
           
+          // Para transações de cartão de crédito compartilhadas, usar data de vencimento
+          const displayDate = tx.account_id 
+            ? calculateDueDate(tx.date, tx.account_id, accounts)
+            : (tx.competence_date || tx.date);
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
             splitId: split.id,
             description: tx.description,
-            date: tx.competence_date || tx.date,
+            date: displayDate,
             category: tx.category?.name,
             amount: split.amount,
             type: 'CREDIT',
@@ -361,12 +427,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 mySplit
               );
               
+              // Para transações de cartão de crédito compartilhadas, usar data de vencimento
+              const displayDate = tx.account_id 
+                ? calculateDueDate(tx.date, tx.account_id, accounts)
+                : (tx.competence_date || tx.date);
+              
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
                 originalTxId: tx.id,
                 splitId: mySplit.id,
                 description: tx.description,
-                date: tx.competence_date || tx.date,
+                date: displayDate,
                 category: tx.category?.name,
                 amount: mySplit.amount,
                 type: 'DEBIT',
@@ -678,7 +749,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     getTotals, 
     getSummary,
     members, 
-    transactions: transactionsWithSplits,
+    transactions: transactionsWithSplits?.transactions || [],
     isLoading,
     refetch: refetchAll // Usar refetchAll para invalidar todas as queries
   };
