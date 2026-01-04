@@ -888,7 +888,8 @@ export function CreditCards() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <BankIcon 
-                    bankId={card.bank_id} 
+                    bankId={card.bank_id}
+                    accountName={card.name}
                     size="lg" 
                     className="transition-transform duration-200 group-hover:scale-110" 
                   />
