@@ -1431,12 +1431,23 @@ export function SharedExpenses() {
                                   </p>
                                   {item.creatorName && (() => {
                                     const creator = members.find(m => m.linked_user_id === item.creatorUserId);
+                                    console.log('🔍 [Badge Creator]:', {
+                                      creatorName: item.creatorName,
+                                      creatorUserId: item.creatorUserId,
+                                      creator: creator,
+                                      avatar_url: creator?.avatar_url,
+                                      avatar_color: creator?.avatar_color,
+                                      avatar_icon: creator?.avatar_icon,
+                                      members: members.map(m => ({ id: m.id, name: m.name, linked_user_id: m.linked_user_id, avatar_url: m.avatar_url }))
+                                    });
                                     return (
                                       <div className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">
                                         <div className="w-4 h-4">
                                           <UserAvatar
                                             name={item.creatorName}
                                             avatarUrl={creator?.avatar_url}
+                                            colorId={creator?.avatar_color || "green"}
+                                            iconId={creator?.avatar_icon || "avatar_1"}
                                             size="sm"
                                             className="!w-4 !h-4 !text-[8px]"
                                           />
@@ -1581,12 +1592,22 @@ export function SharedExpenses() {
                                 </p>
                                 {item.creatorName && (() => {
                                   const creator = members.find(m => m.linked_user_id === item.creatorUserId);
+                                  console.log('🔍 [Badge Creator Desktop]:', {
+                                    creatorName: item.creatorName,
+                                    creatorUserId: item.creatorUserId,
+                                    creator: creator,
+                                    avatar_url: creator?.avatar_url,
+                                    avatar_color: creator?.avatar_color,
+                                    avatar_icon: creator?.avatar_icon
+                                  });
                                   return (
                                     <div className="inline-flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
                                       <div className="w-4 h-4">
                                         <UserAvatar
                                           name={item.creatorName}
                                           avatarUrl={creator?.avatar_url}
+                                          colorId={creator?.avatar_color || "green"}
+                                          iconId={creator?.avatar_icon || "avatar_1"}
                                           size="sm"
                                           className="!w-4 !h-4 !text-[8px]"
                                         />
