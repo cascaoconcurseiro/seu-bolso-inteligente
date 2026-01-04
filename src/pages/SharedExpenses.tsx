@@ -334,14 +334,14 @@ export function SharedExpenses() {
       // criar transações individuais com descrição e categoria originais
       // Isso mantém a integridade contábil e permite desfazer sem inconsistências
 
-      // Buscar transações originais para obter descrição e categoria
+      // Buscar transações originais para obter descrição, categoria E DATA DE COMPETÊNCIA
       const originalTxIds = itemsToSettle
         .map(i => i.originalTxId)
         .filter((id): id is string => !!id);
 
       const { data: originalTransactions } = await supabase
         .from('transactions')
-        .select('id, description, category_id, category:categories(id, name, icon)')
+        .select('id, description, category_id, competence_date, category:categories(id, name, icon)')
         .in('id', originalTxIds);
 
       // Criar mapa de transações originais
@@ -358,12 +358,25 @@ export function SharedExpenses() {
         // Usar descrição e categoria da transação original
         const description = originalTx?.description || item.description;
         const categoryId = originalTx?.category_id;
+        
+        // CORREÇÃO CRÍTICA: Usar a data de competência da transação original
+        // O acerto deve aparecer no mesmo mês da dívida, não no mês atual
+        const competenceDate = originalTx?.competence_date || format(currentDate, 'yyyy-MM-01');
+        const settlementDate = format(new Date(competenceDate), 'yyyy-MM-dd');
+
+        console.log('🔍 [handleSettle] Criando acerto:', {
+          originalTxId: item.originalTxId,
+          originalCompetenceDate: originalTx?.competence_date,
+          settlementDate,
+          competenceDate,
+          description
+        });
 
         // Criar transação individual
         const result = await createTransaction.mutateAsync({
           amount: item.amount,
           description: description,
-          date: new Date().toISOString().split("T")[0],
+          date: settlementDate, // Data do acerto = data de competência da dívida
           type: settleType === "PAY" ? "EXPENSE" : "INCOME",
           account_id: settleAccountId,
           category_id: categoryId,
