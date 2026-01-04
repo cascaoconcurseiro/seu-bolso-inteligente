@@ -106,16 +106,16 @@ export function TransactionItem({
             className="group flex items-center justify-between py-4 px-4 hover:bg-muted/30 transition-colors cursor-pointer border-b border-border last:border-0"
             onClick={() => onClick && onClick(transaction)}
         >
-            <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className={cn(
-                    "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
+                    "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0",
                     (transaction.isIncoming || transaction.type === "INCOME") ? "bg-positive/10" : "bg-muted"
                 )}>
                     {transaction.category?.icon || (transaction.type === "TRANSFER" ? "⇄" : transaction.type === "INCOME" ? "💰" : "💸")}
                 </div>
-                <div className="flex-1 min-w-0 pt-0.5">
+                <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-sm md:text-base truncate">{transaction.description}</p>
+                        <p className="font-medium truncate">{transaction.description}</p>
                         {transaction.is_shared && (
                             <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
                                 Compartilhado
@@ -134,7 +134,7 @@ export function TransactionItem({
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap mt-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-0.5">
                         <span className="truncate">{transaction.category?.name || "Sem categoria"}</span>
                         {transaction.account?.name && (
                             <>
@@ -187,31 +187,23 @@ export function TransactionItem({
                     </div>
                 </div>
             </div>
-            <div className="flex items-start gap-3 shrink-0 pt-0.5">
-                <div className="flex flex-col items-end gap-0.5">
-                    <span className={cn(
-                        "font-mono font-medium text-right whitespace-nowrap",
-                        (transaction.isIncoming || transaction.type === "INCOME") ? "text-positive" : "text-negative"
-                    )}>
-                        {(transaction.isIncoming || transaction.type === "INCOME") ? "+" : "-"}
-                        {formatMoney(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
-                    </span>
-                    <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-                        (transaction.isIncoming || transaction.type === "INCOME") ? "text-positive" : "text-negative"
-                    )}>
-                        {transaction.type === "TRANSFER" ? "Transferência" : (transaction.isIncoming || transaction.type === "INCOME") ? "Crédito" : "Débito"}
-                    </span>
-                </div>
+            <div className="flex items-center gap-3 shrink-0">
+                <span className={cn(
+                    "font-mono font-medium text-right min-w-[100px]",
+                    (transaction.isIncoming || transaction.type === "INCOME") ? "text-positive" : "text-negative"
+                )}>
+                    {(transaction.isIncoming || transaction.type === "INCOME") ? "+" : "-"}
+                    {formatMoney(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
+                </span>
 
                 {showActions && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                         {/* Settlement Confirm - only for pending shared paid by me */}
                         {transaction.is_shared && pending && (isOwner || isCreator) && onSettlement && (
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 md:h-8 md:w-8 text-positive hover:text-positive"
+                                className="h-8 w-8 text-positive hover:text-positive"
                                 onClick={() => onSettlement(transaction)}
                                 title="Confirmar ressarcimento"
                             >
@@ -223,7 +215,7 @@ export function TransactionItem({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 md:h-8 md:w-8 text-blue-600 hover:text-blue-600"
+                                className="h-8 w-8 text-blue-600 hover:text-blue-600"
                                 onClick={() => onAdvance(transaction)}
                                 title="Adiantar parcelas"
                             >
@@ -234,7 +226,7 @@ export function TransactionItem({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 md:h-8 md:w-8 text-primary hover:text-primary"
+                                className="h-8 w-8 text-primary hover:text-primary"
                                 onClick={() => onEdit(transaction)}
                                 title="Editar"
                             >
@@ -245,7 +237,7 @@ export function TransactionItem({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 md:h-8 md:w-8 text-destructive hover:text-destructive"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
                                 onClick={() => onDelete(transaction)}
                                 title="Excluir"
                             >
