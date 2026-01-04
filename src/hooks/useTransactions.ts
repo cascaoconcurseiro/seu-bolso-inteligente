@@ -102,7 +102,18 @@ export function useTransactions(filters?: TransactionFilters) {
         .select(`
           *,
           account:accounts!transactions_account_id_fkey(id, name, currency),
-          category:categories(id, name, icon)
+          category:categories(id, name, icon),
+          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(
+            id,
+            member_id,
+            user_id,
+            percentage,
+            amount,
+            is_settled,
+            settled_at,
+            settled_transaction_id,
+            name
+          )
         `)
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas
