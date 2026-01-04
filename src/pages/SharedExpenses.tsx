@@ -60,7 +60,7 @@ import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
-import { useSettleWithPayment, useUnsettleWithReversal, useUnsettleMultiple } from "@/hooks/useSettlement";
+import { useSettleWithPayment, useUnsettleWithReversal } from "@/hooks/useSettlement";
 import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -97,8 +97,6 @@ export function SharedExpenses() {
   const [isSettling, setIsSettling] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [undoAllConfirm, setUndoAllConfirm] = useState(false);
-
-  const { mutate: unsettleMultiple, isPending: isUnsettlingMultiple } = useUnsettleMultiple();
 
   console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
@@ -743,33 +741,148 @@ export function SharedExpenses() {
   const handleUndoAll = async () => {
     try {
       // Coletar todos os itens pagos de todos os membros (do mês atual)
-      const allPaidItemIds: string[] = [];
+      const allPaidItems: InvoiceItem[] = [];
 
       members.forEach(member => {
         const items = getFilteredInvoice(member.id);
         const paidItems = items.filter(i => i.isPaid && i.splitId);
-        paidItems.forEach(i => {
-          if (i.splitId) allPaidItemIds.push(i.splitId);
-        });
+        allPaidItems.push(...paidItems);
       });
 
-      if (allPaidItemIds.length === 0) {
+      if (allPaidItems.length === 0) {
         toast.info("Não há itens acertados para desfazer neste período.");
         setUndoAllConfirm(false);
         return;
       }
 
-      console.log('🔄 [handleUndoAll] Revertendo itens:', allPaidItemIds.length);
+      console.log('🔄 [handleUndoAll] Revertendo', allPaidItems.length, 'itens');
 
-      unsettleMultiple(allPaidItemIds, {
-        onSuccess: () => {
-          setUndoAllConfirm(false);
-          // O hook já faz invalidação e toast
+      let successCount = 0;
+      let errorCount = 0;
+
+      // USAR A MESMA LÓGICA DO INDIVIDUAL (handleUndoSettlement)
+      // Processar cada item individualmente
+      for (const item of allPaidItems) {
+        try {
+          console.log('🔍 [handleUndoAll] Desfazendo item:', item.id, item.splitId);
+
+          if (item.splitId) {
+            // Buscar o split para pegar os IDs das transações de acerto
+            const { data: split, error: fetchError } = await supabase
+              .from('transaction_splits')
+              .select('settled_by_debtor, settled_by_creditor, debtor_settlement_tx_id, creditor_settlement_tx_id')
+              .eq('id', item.splitId)
+              .single();
+
+            if (fetchError) {
+              console.error('❌ [handleUndoAll] Erro ao buscar split:', fetchError);
+              errorCount++;
+              continue;
+            }
+
+            console.log('🔍 [handleUndoAll] Split encontrado:', split);
+
+            // Determinar qual lado está desfazendo
+            const isDebtor = item.type === 'DEBIT';
+            const settlementTxId = isDebtor ? split.debtor_settlement_tx_id : split.creditor_settlement_tx_id;
+
+            // Deletar a transação de acerto
+            if (settlementTxId) {
+              console.log('🔍 [handleUndoAll] Deletando transação de acerto:', settlementTxId);
+              const { error: deleteError } = await supabase
+                .from('transactions')
+                .delete()
+                .eq('id', settlementTxId);
+
+              if (deleteError) {
+                console.error('❌ [handleUndoAll] Erro ao deletar transação:', deleteError);
+                errorCount++;
+                continue;
+              }
+              console.log('✅ [handleUndoAll] Transação deletada com sucesso');
+            }
+
+            // Atualizar o split
+            const updateFields: any = {
+              settled_at: null,
+            };
+
+            if (isDebtor) {
+              updateFields.settled_by_debtor = false;
+              updateFields.debtor_settlement_tx_id = null;
+              // Se o credor também não marcou, desmarcar is_settled
+              if (!split.settled_by_creditor) {
+                updateFields.is_settled = false;
+                updateFields.settled_transaction_id = null;
+              }
+            } else {
+              updateFields.settled_by_creditor = false;
+              updateFields.creditor_settlement_tx_id = null;
+              // Se o devedor também não marcou, desmarcar is_settled
+              if (!split.settled_by_debtor) {
+                updateFields.is_settled = false;
+                updateFields.settled_transaction_id = null;
+              }
+            }
+
+            console.log('🔍 [handleUndoAll] Atualizando split:', updateFields);
+
+            const { error: updateError } = await supabase
+              .from('transaction_splits')
+              .update(updateFields)
+              .eq('id', item.splitId);
+
+            if (updateError) {
+              console.error('❌ [handleUndoAll] Erro ao atualizar split:', updateError);
+              errorCount++;
+              continue;
+            }
+
+            console.log('✅ [handleUndoAll] Split atualizado com sucesso');
+            successCount++;
+          } else if (item.type === 'DEBIT' && item.originalTxId) {
+            // Fallback para caso antigo
+            const { error } = await supabase
+              .from('transactions')
+              .update({
+                is_settled: false,
+                settled_at: null
+              })
+              .eq('id', item.originalTxId);
+
+            if (error) {
+              console.error('❌ [handleUndoAll] Erro ao atualizar transaction:', error);
+              errorCount++;
+              continue;
+            }
+
+            successCount++;
+          }
+        } catch (error) {
+          console.error('❌ [handleUndoAll] Erro ao processar item:', error);
+          errorCount++;
         }
-      });
+      }
+
+      console.log('📊 [handleUndoAll] Resultado:', { successCount, errorCount, total: allPaidItems.length });
+
+      // Fechar dialog
+      setUndoAllConfirm(false);
+
+      // Atualizar lista
+      await refetch();
+
+      if (successCount > 0) {
+        toast.success(`${successCount} acerto(s) desfeito(s) com sucesso!`);
+      }
+
+      if (errorCount > 0) {
+        toast.error(`${errorCount} erro(s) ao desfazer acertos. Verifique o console.`);
+      }
     } catch (error) {
-      console.error('❌ [handleUndoAll] Erro:', error);
+      console.error('❌ [handleUndoAll] Erro geral:', error);
       toast.error("Erro ao desfazer acertos");
+      setUndoAllConfirm(false);
     }
   };
 
