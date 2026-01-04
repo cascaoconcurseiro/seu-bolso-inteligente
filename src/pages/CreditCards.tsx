@@ -345,7 +345,6 @@ export function CreditCards() {
             <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="lg" />
             <div>
               <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
-              <p className="text-muted-foreground">{bank.name}</p>
             </div>
           </div>
           {/* Menu de ações do cartão */}
