@@ -97,6 +97,7 @@ export function SharedExpenses() {
   const [isSettling, setIsSettling] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [undoAllConfirm, setUndoAllConfirm] = useState(false);
+  const [isUndoingAll, setIsUndoingAll] = useState(false);
 
   console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
@@ -751,6 +752,7 @@ export function SharedExpenses() {
   };
 
   const handleUndoAll = async () => {
+    setIsUndoingAll(true);
     try {
       // Coletar todos os itens pagos de todos os membros (do mês atual)
       const allPaidItems: InvoiceItem[] = [];
@@ -764,6 +766,7 @@ export function SharedExpenses() {
       if (allPaidItems.length === 0) {
         toast.info("Não há itens acertados para desfazer neste período.");
         setUndoAllConfirm(false);
+        setIsUndoingAll(false);
         return;
       }
 
@@ -895,6 +898,8 @@ export function SharedExpenses() {
       console.error('❌ [handleUndoAll] Erro geral:', error);
       toast.error("Erro ao desfazer acertos");
       setUndoAllConfirm(false);
+    } finally {
+      setIsUndoingAll(false);
     }
   };
 
@@ -2415,9 +2420,9 @@ export function SharedExpenses() {
             <AlertDialogAction
               onClick={handleUndoAll}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isUnsettlingMultiple}
+              disabled={isUndoingAll}
             >
-              {isUnsettlingMultiple ? (
+              {isUndoingAll ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Revertendo...
