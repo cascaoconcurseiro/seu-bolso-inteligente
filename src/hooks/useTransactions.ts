@@ -140,13 +140,31 @@ export function useTransactions(filters?: TransactionFilters) {
 
       if (error) throw error;
       
+      // FILTRO CRÍTICO: Remover transações compartilhadas não pagas
+      // Transações compartilhadas onde:
+      // 1. is_shared = true (é compartilhada)
+      // 2. creator_user_id != meu ID (foi criada por outro)
+      // 3. Tem splits pendentes (não foi totalmente acertada)
+      // 
+      // Essas transações aparecem APENAS em "Compartilhados"
+      const filteredByCreator = (data || []).filter(tx => {
+        // Se não é compartilhada, mostrar
+        if (!tx.is_shared) return true;
+        
+        // Se é compartilhada E foi criada por mim (ou creator_user_id é null), mostrar
+        if (!tx.creator_user_id || tx.creator_user_id === user!.id) return true;
+        
+        // Se é compartilhada E foi criada por OUTRO, NÃO mostrar
+        return false;
+      });
+      
       // CORREÇÃO: Filtrar transações de contas internacionais
       // Transações de viagem em moeda internacional NÃO devem aparecer na página "Transações"
       // Elas aparecem apenas:
       // - No extrato da própria conta
       // - Na aba Viagem
       // - Na aba Compartilhados > Viagem
-      const filteredData = (data || []).filter(tx => {
+      const filteredData = filteredByCreator.filter(tx => {
         const accountCurrency = tx.account?.currency || 'BRL';
         
         // Sempre mostrar transações BRL
