@@ -480,10 +480,12 @@ export function Transactions() {
 
       {/* Advance Installments Dialog */}
       <AdvanceInstallmentsDialog
-        isOpen={!!advanceSeriesId}
-        onClose={() => {
-          setAdvanceSeriesId(null);
-          setAdvanceDescription("");
+        open={!!advanceSeriesId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAdvanceSeriesId(null);
+            setAdvanceDescription("");
+          }
         }}
         seriesId={advanceSeriesId || ""}
         transactionDescription={advanceDescription}
@@ -491,16 +493,47 @@ export function Transactions() {
 
       {/* Settlement Confirm Dialog */}
       <SettlementConfirmDialog
-        isOpen={!!settlementTransaction}
-        onClose={() => setSettlementTransaction(null)}
-        transaction={settlementTransaction}
+        open={!!settlementTransaction}
+        onOpenChange={(open) => {
+          if (!open) setSettlementTransaction(null);
+        }}
+        transactionId={settlementTransaction?.id || ""}
+        transactionDescription={settlementTransaction?.description || ""}
+        transactionAmount={Number(settlementTransaction?.amount) || 0}
+        splits={settlementTransaction?.transaction_splits || []}
       />
 
       {/* Transaction Details Modal */}
       <TransactionDetailsModal
-        isOpen={!!detailsTransaction}
-        onClose={() => setDetailsTransaction(null)}
+        open={!!detailsTransaction}
+        onOpenChange={(open) => {
+          if (!open) setDetailsTransaction(null);
+        }}
         transaction={detailsTransaction}
+        onEdit={() => {
+          if (detailsTransaction) {
+            handleEdit(detailsTransaction);
+          }
+        }}
+        onDelete={() => {
+          if (detailsTransaction) {
+            if (detailsTransaction.is_installment && detailsTransaction.series_id) {
+              setDeleteSeriesId(detailsTransaction.series_id);
+            } else {
+              setDeleteId(detailsTransaction.id);
+            }
+          }
+        }}
+        onAdvance={() => {
+          if (detailsTransaction) {
+            handleAdvance(detailsTransaction);
+          }
+        }}
+        onSettlement={() => {
+          if (detailsTransaction) {
+            setSettlementTransaction(detailsTransaction);
+          }
+        }}
       />
 
       {/* Transaction Modal */}
