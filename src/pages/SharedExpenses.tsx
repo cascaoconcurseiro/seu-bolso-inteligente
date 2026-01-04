@@ -1261,7 +1261,7 @@ export function SharedExpenses() {
                           {/* Data */}
                           <div className="col-span-2">
                             <p className="text-sm text-muted-foreground">
-                              {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
+                              {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}
                             </p>
                           </div>
 
@@ -1554,7 +1554,7 @@ export function SharedExpenses() {
 
                           {/* Data */}
                           <div className="col-span-2 text-muted-foreground">
-                            {format(new Date(item.date), "dd/MM/yyyy")}
+                            {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}
                           </div>
 
                           {/* Valor */}
@@ -2226,7 +2226,7 @@ export function SharedExpenses() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm truncate">{item.description}</p>
                               <p className="text-xs text-muted-foreground">
-                                {format(new Date(item.date), "dd/MM/yyyy")}
+                                {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}
                               </p>
                             </div>
                             <div className="text-right">
@@ -2276,7 +2276,6 @@ export function SharedExpenses() {
                       type="date"
                       value={settleDate}
                       onChange={(e) => setSettleDate(e.target.value)}
-                      max={format(new Date(), 'yyyy-MM-dd')}
                     />
                     <p className="text-xs text-muted-foreground">
                       📅 O acerto aparecerá no mês desta data
