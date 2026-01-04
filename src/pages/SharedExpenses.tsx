@@ -361,13 +361,12 @@ export function SharedExpenses() {
         
         // CORREÇÃO CRÍTICA: Usar a data de competência da transação original
         // O acerto deve aparecer no mesmo mês da dívida, não no mês atual
+        // competence_date já está no formato 'yyyy-MM-01', usar diretamente
         const competenceDate = originalTx?.competence_date || format(currentDate, 'yyyy-MM-01');
-        const settlementDate = format(new Date(competenceDate), 'yyyy-MM-dd');
 
         console.log('🔍 [handleSettle] Criando acerto:', {
           originalTxId: item.originalTxId,
           originalCompetenceDate: originalTx?.competence_date,
-          settlementDate,
           competenceDate,
           description
         });
@@ -376,7 +375,7 @@ export function SharedExpenses() {
         const result = await createTransaction.mutateAsync({
           amount: item.amount,
           description: description,
-          date: settlementDate, // Data do acerto = data de competência da dívida
+          date: competenceDate, // Data do acerto = data de competência da dívida (sempre dia 1º)
           type: settleType === "PAY" ? "EXPENSE" : "INCOME",
           account_id: settleAccountId,
           category_id: categoryId,
