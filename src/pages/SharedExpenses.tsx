@@ -53,6 +53,7 @@ import {
   Globe,
   CreditCard,
   Trash2,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -74,6 +75,7 @@ import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
+import { AnticipateInstallmentsDialog } from "@/components/dialogs/AnticipateInstallmentsDialog";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -120,6 +122,19 @@ export function SharedExpenses() {
   const [deleteSeriesConfirm, setDeleteSeriesConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
     isOpen: false,
     item: null,
+  });
+
+  // Anticipate installments state
+  const [anticipateDialog, setAnticipateDialog] = useState<{
+    isOpen: boolean;
+    seriesId: string | null;
+    currentInstallment: number;
+    totalInstallments: number;
+  }>({
+    isOpen: false,
+    seriesId: null,
+    currentInstallment: 0,
+    totalInstallments: 0,
   });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
@@ -2752,6 +2767,23 @@ export function SharedExpenses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Anticipate Installments Dialog */}
+      {anticipateDialog.seriesId && (
+        <AnticipateInstallmentsDialog
+          isOpen={anticipateDialog.isOpen}
+          onClose={() => setAnticipateDialog({
+            isOpen: false,
+            seriesId: null,
+            currentInstallment: 0,
+            totalInstallments: 0
+          })}
+          seriesId={anticipateDialog.seriesId}
+          currentInstallment={anticipateDialog.currentInstallment}
+          totalInstallments={anticipateDialog.totalInstallments}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }
