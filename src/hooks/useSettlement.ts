@@ -301,14 +301,22 @@ export function useUnsettleMultiple() {
   return useMutation({
     mutationFn: async (splitIds: string[]) => {
       console.log('🔄 [useUnsettleMultiple] Chamando RPC undo_shared_settlements para', splitIds.length, 'itens');
+      console.log('🔄 [useUnsettleMultiple] Split IDs:', splitIds);
 
       const { data, error } = await supabase
         .rpc('undo_shared_settlements', { p_split_ids: splitIds });
 
-      if (error) throw error;
+      console.log('🔄 [useUnsettleMultiple] Resposta do RPC:', { data, error });
+
+      if (error) {
+        console.error('❌ [useUnsettleMultiple] Erro do Supabase:', error);
+        throw error;
+      }
 
       // O retorno do RPC é um JSON
       const result = data as any;
+      console.log('🔄 [useUnsettleMultiple] Resultado parseado:', result);
+      
       if (!result.success) {
         throw new Error(result.error || "Erro desconhecido ao reverter acertos");
       }
