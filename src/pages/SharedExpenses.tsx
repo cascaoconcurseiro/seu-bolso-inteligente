@@ -601,12 +601,17 @@ export function SharedExpenses() {
     }
   };
 
+  // TASK 14: Desfazer Acerto com Integridade
+  // Garante que:
+  // - Deleta settlement transaction corretamente
+  // - Recalcula is_settled baseado em settlements restantes
+  // - Invalida queries relacionadas para sincronização
   const handleUndoSettlement = async () => {
     const item = undoConfirm.item;
     if (!item) return;
 
     try {
-      console.log('🔍 [handleUndoSettlement] Desfazendo acerto:', item);
+      console.log('🔍 [handleUndoSettlement] TASK 14: Desfazendo acerto:', item);
 
       if (item.splitId) {
         // Buscar o split para pegar os IDs das transações de acerto
@@ -624,9 +629,9 @@ export function SharedExpenses() {
         const isDebtor = item.type === 'DEBIT';
         const settlementTxId = isDebtor ? split.debtor_settlement_tx_id : split.creditor_settlement_tx_id;
 
-        // Deletar a transação de acerto
+        // TASK 14.1: Deletar a transação de acerto
         if (settlementTxId) {
-          console.log('🔍 [handleUndoSettlement] Deletando transação de acerto:', settlementTxId);
+          console.log('🔍 [handleUndoSettlement] TASK 14.1: Deletando transação de acerto:', settlementTxId);
           const { error: deleteError } = await supabase
             .from('transactions')
             .delete()
@@ -636,10 +641,10 @@ export function SharedExpenses() {
             console.error('❌ [handleUndoSettlement] Erro ao deletar transação:', deleteError);
             throw deleteError;
           }
-          console.log('✅ [handleUndoSettlement] Transação deletada com sucesso');
+          console.log('✅ [handleUndoSettlement] TASK 14.1: Transação deletada com sucesso');
         }
 
-        // Atualizar o split
+        // TASK 14.2: Atualizar flags do split
         const updateFields: any = {
           settled_at: null,
         };
@@ -647,6 +652,7 @@ export function SharedExpenses() {
         if (isDebtor) {
           updateFields.settled_by_debtor = false;
           updateFields.debtor_settlement_tx_id = null;
+          // TASK 14.3: Recalcular is_settled baseado em settlements restantes
           // Se o credor também não marcou, desmarcar is_settled
           if (!split.settled_by_creditor) {
             updateFields.is_settled = false;
@@ -655,6 +661,7 @@ export function SharedExpenses() {
         } else {
           updateFields.settled_by_creditor = false;
           updateFields.creditor_settlement_tx_id = null;
+          // TASK 14.3: Recalcular is_settled baseado em settlements restantes
           // Se o devedor também não marcou, desmarcar is_settled
           if (!split.settled_by_debtor) {
             updateFields.is_settled = false;
@@ -662,7 +669,7 @@ export function SharedExpenses() {
           }
         }
 
-        console.log('🔍 [handleUndoSettlement] Atualizando split:', updateFields);
+        console.log('🔍 [handleUndoSettlement] TASK 14.2: Atualizando split:', updateFields);
 
         const { error: updateError } = await supabase
           .from('transaction_splits')
@@ -671,7 +678,7 @@ export function SharedExpenses() {
 
         if (updateError) throw updateError;
 
-        console.log('✅ [handleUndoSettlement] Split atualizado com sucesso');
+        console.log('✅ [handleUndoSettlement] TASK 14.2: Split atualizado com sucesso');
       } else if (item.type === 'DEBIT' && item.originalTxId) {
         // Fallback para caso antigo
         const { error } = await supabase
@@ -688,8 +695,9 @@ export function SharedExpenses() {
       // Fechar dialog primeiro
       setUndoConfirm({ isOpen: false, item: null });
 
-      // Invalidar queries relacionadas para sincronizar
+      // TASK 14.4: Invalidar queries relacionadas para sincronização
       if (item.originalTxId) {
+        console.log('🔍 [handleUndoSettlement] TASK 14.4: Invalidando queries relacionadas');
         await invalidateRelated(item.originalTxId);
       }
 
@@ -697,6 +705,7 @@ export function SharedExpenses() {
       await refetch();
 
       toast.success("Acerto desfeito com sucesso!");
+      console.log('✅ [handleUndoSettlement] TASK 14: Acerto desfeito com integridade completa');
     } catch (error) {
       console.error('❌ [handleUndoSettlement] Erro:', error);
       toast.error("Erro ao desfazer acerto");
