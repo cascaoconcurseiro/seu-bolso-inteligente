@@ -34,6 +34,9 @@ import { toast } from "sonner";
 import { TransactionItem } from "@/components/transactions/TransactionItem";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFamilyMembers } from "@/hooks/useFamily";
+import { AdvanceInstallmentsDialog } from "@/components/transactions/AdvanceInstallmentsDialog";
+import { SettlementConfirmDialog } from "@/components/transactions/SettlementConfirmDialog";
+import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +52,10 @@ export function AccountDetail() {
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [settlementTransaction, setSettlementTransaction] = useState<any>(null);
+  const [detailsTransaction, setDetailsTransaction] = useState<any>(null);
+  const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
+  const [advanceDescription, setAdvanceDescription] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
@@ -112,6 +119,21 @@ export function AccountDetail() {
     } catch (error) {
       toast.error("Erro ao excluir transação");
     }
+  };
+
+  const handleAdvance = (transaction: any) => {
+    if (transaction.series_id) {
+      setAdvanceSeriesId(transaction.series_id);
+      setAdvanceDescription(transaction.description.replace(/\s*\(\d+\/\d+\)$/, ''));
+    }
+  };
+
+  const handleSettlement = (transaction: any) => {
+    setSettlementTransaction(transaction);
+  };
+
+  const handleDetails = (transaction: any) => {
+    setDetailsTransaction(transaction);
   };
 
   if (!account) {
@@ -243,7 +265,9 @@ export function AccountDetail() {
                         familyMembers={familyMembers}
                         onEdit={handleEditTransaction}
                         onDelete={(t) => setDeleteConfirm({ isOpen: true, transaction: t })}
-                      // Optional handlers can be added later if needed context exists
+                        onAdvance={handleAdvance}
+                        onSettlement={handleSettlement}
+                        onClick={handleDetails}
                       />
                     ))}
                   </div>
@@ -301,6 +325,28 @@ export function AccountDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Advance Installments Dialog */}
+      <AdvanceInstallmentsDialog
+        isOpen={!!advanceSeriesId}
+        onClose={() => setAdvanceSeriesId(null)}
+        seriesId={advanceSeriesId || ""}
+        transactionDescription={advanceDescription}
+      />
+
+      {/* Settlement Confirm Dialog */}
+      <SettlementConfirmDialog
+        isOpen={!!settlementTransaction}
+        onClose={() => setSettlementTransaction(null)}
+        transaction={settlementTransaction}
+      />
+
+      {/* Transaction Details Modal */}
+      <TransactionDetailsModal
+        isOpen={!!detailsTransaction}
+        onClose={() => setDetailsTransaction(null)}
+        transaction={detailsTransaction}
+      />
     </div>
   );
 }
