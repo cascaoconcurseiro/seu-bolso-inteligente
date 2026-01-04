@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyMembers } from './useFamily';
+import { toast } from 'sonner';
 
 export interface InvoiceItem {
   id: string;
@@ -629,9 +630,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
 
 // Hook para confirmar ressarcimento de um split
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-
 export function useSettleSplit() {
   const queryClient = useQueryClient();
 
