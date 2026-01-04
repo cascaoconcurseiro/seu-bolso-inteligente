@@ -55,7 +55,12 @@ export function useUpdateUserProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: { name?: string; avatar_url?: string }) => {
+    mutationFn: async (input: { 
+      name?: string; 
+      avatar_url?: string;
+      avatar_color?: string;
+      avatar_icon?: string;
+    }) => {
       if (!user) throw new Error("Não autenticado");
 
       const updateData: any = {
@@ -67,6 +72,12 @@ export function useUpdateUserProfile() {
       }
       if (input.avatar_url !== undefined) {
         updateData.avatar_url = input.avatar_url;
+      }
+      if (input.avatar_color !== undefined) {
+        updateData.avatar_color = input.avatar_color;
+      }
+      if (input.avatar_icon !== undefined) {
+        updateData.avatar_icon = input.avatar_icon;
       }
 
       const { data, error } = await supabase
@@ -89,6 +100,7 @@ export function useUpdateUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Perfil atualizado!");
     },
     onError: (error) => {

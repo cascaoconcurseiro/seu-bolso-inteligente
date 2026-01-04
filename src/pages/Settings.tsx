@@ -51,6 +51,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { avatarIcons } from "@/lib/avatars";
 import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
@@ -303,11 +304,14 @@ export function Settings() {
                     </div>
                     <AvatarCustomizer
                       currentColor={profile?.avatar_color || "green"}
-                      currentIcon={profile?.avatar_icon || "user"}
+                      currentIcon={profile?.avatar_icon || "avatar_1"}
                       onSave={async (color, icon) => {
+                        // Buscar o path do avatar selecionado
+                        const selectedAvatar = avatarIcons.find(a => a.id === icon);
+                        const avatarPath = selectedAvatar?.path || null;
+                        
                         await updateProfile.mutateAsync({ 
-                          avatar_color: color, 
-                          avatar_icon: icon 
+                          avatar_url: avatarPath
                         });
                       }}
                       isSaving={updateProfile.isPending}
