@@ -102,8 +102,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .select(`
           *,
           account:accounts!transactions_account_id_fkey(id, name, currency),
-          category:categories(id, name, icon),
-          transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(*)
+          category:categories(id, name, icon)
         `)
         .eq("user_id", user!.id)
         .is("source_transaction_id", null) // Excluir transações espelhadas
@@ -140,6 +139,9 @@ export function useTransactions(filters?: TransactionFilters) {
 
       if (error) throw error;
       
+      console.log('🔍 [useTransactions] Total transações do banco:', data?.length);
+      console.log('🔍 [useTransactions] User ID:', user!.id);
+      
       // FILTRO CRÍTICO: Remover transações compartilhadas não pagas
       // Transações compartilhadas onde:
       // 1. is_shared = true (é compartilhada)
@@ -148,6 +150,18 @@ export function useTransactions(filters?: TransactionFilters) {
       // 
       // Essas transações aparecem APENAS em "Compartilhados"
       const filteredByCreator = (data || []).filter(tx => {
+        // Debug: Log de cada transação compartilhada
+        if (tx.is_shared) {
+          console.log('🔍 [Transação Compartilhada]:', {
+            description: tx.description,
+            is_shared: tx.is_shared,
+            creator_user_id: tx.creator_user_id,
+            user_id: tx.user_id,
+            meu_id: user!.id,
+            vai_mostrar: !tx.creator_user_id || tx.creator_user_id === user!.id
+          });
+        }
+        
         // Se não é compartilhada, mostrar
         if (!tx.is_shared) return true;
         
@@ -155,8 +169,11 @@ export function useTransactions(filters?: TransactionFilters) {
         if (!tx.creator_user_id || tx.creator_user_id === user!.id) return true;
         
         // Se é compartilhada E foi criada por OUTRO, NÃO mostrar
+        console.log('❌ [FILTRADO]:', tx.description, '- criado por:', tx.creator_user_id);
         return false;
       });
+      
+      console.log('🔍 [useTransactions] Após filtro creator:', filteredByCreator.length);
       
       // CORREÇÃO: Filtrar transações de contas internacionais
       // Transações de viagem em moeda internacional NÃO devem aparecer na página "Transações"
