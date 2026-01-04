@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -60,6 +62,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { data: profile } = useProfile();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const toggleTheme = () => {
@@ -166,9 +169,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuTrigger asChild className="hidden md:flex">
                   <Button
                     variant="ghost"
-                    className="relative h-9 w-9 rounded-full bg-foreground text-background font-medium text-sm"
+                    className="relative h-9 w-9 rounded-full p-0"
                   >
-                    {getInitials(user?.email || "U")}
+                    <UserAvatar
+                      name={profile?.full_name || user?.email || "User"}
+                      avatarUrl={profile?.avatar_url}
+                      size="sm"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
