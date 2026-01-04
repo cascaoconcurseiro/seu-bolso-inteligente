@@ -293,36 +293,98 @@ export function useUnsettleWithReversal() {
 
 /**
  * Hook para reverter múltiplos ressarcimentos de uma vez
- * USANDO RPC PARA SEGURANÇA E ATOMICIDADE
+ * USA A MESMA LÓGICA DO INDIVIDUAL, MAS EM LOOP
  */
 export function useUnsettleMultiple() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (splitIds: string[]) => {
-      console.log('🔄 [useUnsettleMultiple] Chamando RPC undo_shared_settlements para', splitIds.length, 'itens');
+      console.log('🔄 [useUnsettleMultiple] Revertendo', splitIds.length, 'itens');
       console.log('🔄 [useUnsettleMultiple] Split IDs:', splitIds);
 
-      const { data, error } = await supabase
-        .rpc('undo_shared_settlements', { p_split_ids: splitIds });
+      let successCount = 0;
+      let totalRevertedAmount = 0;
+      const processedAccounts = new Map<string, number>(); // accountId -> amount to revert
 
-      console.log('🔄 [useUnsettleMultiple] Resposta do RPC:', { data, error });
+      // Processar cada split individualmente (mesma lógica do individual)
+      for (const splitId of splitIds) {
+        try {
+          // 1. Buscar o split para obter a transação de pagamento
+          const { data: split, error: splitFetchError } = await supabase
+            .from("transaction_splits")
+            .select("*, settled_transaction_id")
+            .eq("id", splitId)
+            .single();
 
-      if (error) {
-        console.error('❌ [useUnsettleMultiple] Erro do Supabase:', error);
-        throw error;
+          if (splitFetchError) {
+            console.error('❌ Erro ao buscar split:', splitId, splitFetchError);
+            continue;
+          }
+
+          const paymentTxId = split.settled_transaction_id;
+
+          // 2. Se houver transação de pagamento, buscar e reverter
+          if (paymentTxId) {
+            const { data: paymentTx } = await supabase
+              .from("transactions")
+              .select("amount, account_id")
+              .eq("id", paymentTxId)
+              .single();
+
+            if (paymentTx && paymentTx.account_id) {
+              // Acumular valor a reverter por conta
+              const currentAmount = processedAccounts.get(paymentTx.account_id) || 0;
+              processedAccounts.set(paymentTx.account_id, currentAmount + Number(paymentTx.amount));
+              totalRevertedAmount += Number(paymentTx.amount);
+            }
+
+            // Excluir a transação de pagamento
+            await supabase.from("transactions").delete().eq("id", paymentTxId);
+          }
+
+          // 3. Marcar split como não pago
+          const { error: splitError } = await supabase
+            .from("transaction_splits")
+            .update({
+              is_settled: false,
+              settled_at: null,
+              settled_transaction_id: null,
+            })
+            .eq("id", splitId);
+
+          if (splitError) {
+            console.error('❌ Erro ao atualizar split:', splitId, splitError);
+            continue;
+          }
+
+          successCount++;
+          console.log('✅ Split revertido:', splitId);
+        } catch (error) {
+          console.error('❌ Erro ao processar split:', splitId, error);
+        }
       }
 
-      // O retorno do RPC é um JSON
-      const result = data as any;
-      console.log('🔄 [useUnsettleMultiple] Resultado parseado:', result);
-      
-      if (!result.success) {
-        throw new Error(result.error || "Erro desconhecido ao reverter acertos");
+      // 4. Reverter saldo das contas (uma vez por conta)
+      for (const [accountId, amountToRevert] of processedAccounts.entries()) {
+        const { data: account } = await supabase
+          .from("accounts")
+          .select("balance")
+          .eq("id", accountId)
+          .single();
+
+        if (account) {
+          await supabase
+            .from("accounts")
+            .update({ balance: Number(account.balance) - amountToRevert })
+            .eq("id", accountId);
+          
+          console.log('✅ Saldo revertido:', accountId, '-', amountToRevert);
+        }
       }
 
-      console.log('✅ [useUnsettleMultiple] Sucesso:', result);
-      return { count: result.updated_splits_count };
+      console.log('✅ [useUnsettleMultiple] Sucesso:', successCount, 'itens revertidos');
+      return { count: successCount, totalAmount: totalRevertedAmount };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
