@@ -342,7 +342,7 @@ export function CreditCards() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-4 flex-1">
-            <BankIcon bankId={selectedCard.bank_id} size="lg" />
+            <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="lg" />
             <div>
               <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
               <p className="text-muted-foreground">{bank.name}</p>

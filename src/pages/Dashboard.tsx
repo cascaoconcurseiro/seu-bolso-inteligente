@@ -220,7 +220,7 @@ export function Dashboard() {
                       )}
                     >
                       <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-                        <BankIcon bankId={card.bank_id} size="md" />
+                        <BankIcon bankId={card.bank_id} accountName={card.name} size="md" />
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-sm md:text-base truncate">Fatura {card.name}</p>
                           <p className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">

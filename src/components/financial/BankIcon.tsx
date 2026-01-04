@@ -5,11 +5,12 @@ import { cn } from "@/lib/utils";
 interface BankIconProps {
   bankId?: string | null;
   bankName?: string;
+  accountName?: string; // Nome personalizado da conta (ex: "Carrefour")
   size?: "sm" | "md" | "lg";
   className?: string;
 }
 
-export function BankIcon({ bankId, bankName, size = "md", className }: BankIconProps) {
+export function BankIcon({ bankId, bankName, accountName, size = "md", className }: BankIconProps) {
   const bank = bankId ? getBankById(bankId) : bankName ? getBankByName(bankName) : null;
   
   if (!bank) return null;
@@ -20,7 +21,19 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
     lg: "w-16 h-16 text-base",
   };
 
-  // Para cartões de crédito, usar apenas texto personalizado (sem logos)
+  // Função para pegar as iniciais do nome
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Se tiver accountName (nome personalizado), usar as iniciais dele
+  const displayText = accountName ? getInitials(accountName) : bank.icon;
+
   return (
     <div
       className={cn(
@@ -33,7 +46,7 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
         color: bank.textColor 
       }}
     >
-      {bank.icon}
+      {displayText}
     </div>
   );
 }
