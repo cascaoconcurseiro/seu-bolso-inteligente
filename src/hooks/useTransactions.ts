@@ -139,49 +139,13 @@ export function useTransactions(filters?: TransactionFilters) {
 
       if (error) throw error;
       
-      console.log('🔍 [useTransactions] Total transações do banco:', data?.length);
-      console.log('🔍 [useTransactions] User ID:', user!.id);
-      
-      // FILTRO CRÍTICO: Remover transações compartilhadas não pagas
-      // Transações compartilhadas onde:
-      // 1. is_shared = true (é compartilhada)
-      // 2. creator_user_id != meu ID (foi criada por outro)
-      // 3. Tem splits pendentes (não foi totalmente acertada)
-      // 
-      // Essas transações aparecem APENAS em "Compartilhados"
-      const filteredByCreator = (data || []).filter(tx => {
-        // Debug: Log de cada transação compartilhada
-        if (tx.is_shared) {
-          console.log('🔍 [Transação Compartilhada]:', {
-            description: tx.description,
-            is_shared: tx.is_shared,
-            creator_user_id: tx.creator_user_id,
-            user_id: tx.user_id,
-            meu_id: user!.id,
-            vai_mostrar: !tx.creator_user_id || tx.creator_user_id === user!.id
-          });
-        }
-        
-        // Se não é compartilhada, mostrar
-        if (!tx.is_shared) return true;
-        
-        // Se é compartilhada E foi criada por mim (ou creator_user_id é null), mostrar
-        if (!tx.creator_user_id || tx.creator_user_id === user!.id) return true;
-        
-        // Se é compartilhada E foi criada por OUTRO, NÃO mostrar
-        console.log('❌ [FILTRADO]:', tx.description, '- criado por:', tx.creator_user_id);
-        return false;
-      });
-      
-      console.log('🔍 [useTransactions] Após filtro creator:', filteredByCreator.length);
-      
       // CORREÇÃO: Filtrar transações de contas internacionais
       // Transações de viagem em moeda internacional NÃO devem aparecer na página "Transações"
       // Elas aparecem apenas:
       // - No extrato da própria conta
       // - Na aba Viagem
       // - Na aba Compartilhados > Viagem
-      const filteredData = filteredByCreator.filter(tx => {
+      const filteredData = (data || []).filter(tx => {
         const accountCurrency = tx.account?.currency || 'BRL';
         
         // Sempre mostrar transações BRL
