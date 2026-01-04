@@ -16,11 +16,11 @@ const sizeClasses = {
   xl: "w-16 h-16 text-2xl",
 };
 
-export function UserAvatar({ name, colorId = "green", iconId = "user", size = "md", className }: UserAvatarProps) {
+export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", size = "md", className }: UserAvatarProps) {
   const color = getAvatarColor(colorId);
   const icon = getAvatarIcon(iconId);
 
-  // Fallback para iniciais se não tiver emoji
+  // Fallback para iniciais se não tiver imagem
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -30,6 +30,37 @@ export function UserAvatar({ name, colorId = "green", iconId = "user", size = "m
       .slice(0, 2);
   };
 
+  // Se tiver path de imagem, usar a imagem
+  if (icon.path) {
+    return (
+      <div
+        className={cn(
+          "rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 border-2",
+          sizeClasses[size],
+          className
+        )}
+        style={{ borderColor: color.bg }}
+        title={name}
+      >
+        <img
+          src={icon.path}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback para iniciais se a imagem não carregar
+            const target = e.currentTarget;
+            const parent = target.parentElement;
+            if (parent) {
+              parent.innerHTML = `<span class="font-medium" style="color: ${color.text}">${getInitials(name)}</span>`;
+              parent.style.backgroundColor = color.bg;
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback para iniciais
   return (
     <div
       className={cn(
@@ -40,7 +71,7 @@ export function UserAvatar({ name, colorId = "green", iconId = "user", size = "m
       style={{ backgroundColor: color.bg, color: color.text }}
       title={name}
     >
-      {icon.emoji || getInitials(name)}
+      {getInitials(name)}
     </div>
   );
 }

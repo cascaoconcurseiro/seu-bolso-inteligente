@@ -15,49 +15,17 @@ export function BankIcon({ bankId, bankName, size = "md", className }: BankIconP
   if (!bank) return null;
 
   const sizeClasses = {
-    sm: "w-8 h-8",
-    md: "w-12 h-12",
-    lg: "w-16 h-16",
+    sm: "w-8 h-8 text-[10px]",
+    md: "w-12 h-12 text-sm",
+    lg: "w-16 h-16 text-base",
   };
 
-  // Tentar buscar logo real
-  const logoUrl = getBankLogo(bank.id);
-
-  // Se tiver logo, tentar carregar
-  if (logoUrl) {
-    return (
-      <div className={cn("shrink-0 flex items-center justify-center rounded-xl overflow-hidden", sizeClasses[size], className)}>
-        <img
-          src={logoUrl}
-          alt={bank.name}
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            // Fallback: substituir por ícone colorido se a imagem não carregar
-            const target = e.currentTarget;
-            const parent = target.parentElement;
-            if (parent) {
-              parent.innerHTML = `
-                <div class="w-full h-full rounded-xl flex items-center justify-center font-bold ${size === "sm" ? "text-[10px]" : size === "md" ? "text-sm" : "text-base"}" 
-                     style="background-color: ${bank.color}; color: ${bank.textColor}">
-                  ${bank.icon}
-                </div>
-              `;
-            }
-          }}
-        />
-      </div>
-    );
-  }
-
-  // Fallback: ícone colorido
+  // Para cartões de crédito, usar apenas texto personalizado (sem logos)
   return (
     <div
       className={cn(
         "rounded-xl flex items-center justify-center font-bold shrink-0",
         sizeClasses[size],
-        size === "sm" && "text-[10px]",
-        size === "md" && "text-sm",
-        size === "lg" && "text-base",
         className
       )}
       style={{ 

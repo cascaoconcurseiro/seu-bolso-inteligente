@@ -73,6 +73,7 @@ const accountTypeLabels = {
   SAVINGS: "Poupança",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
+  EMERGENCY_FUND: "Reserva de Emergência",
 };
 
 const internationalAccountTypes = [
@@ -84,6 +85,7 @@ const nationalAccountTypes = [
   { value: "SAVINGS", label: "Poupança" },
   { value: "INVESTMENT", label: "Investimento" },
   { value: "CASH", label: "Dinheiro" },
+  { value: "EMERGENCY_FUND", label: "Reserva de Emergência" },
 ];
 
 const currencies = [

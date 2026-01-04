@@ -1330,7 +1330,7 @@ export function SharedExpenses() {
                   variant={iOwe ? "destructive" : "default"}
                   size="sm"
                   className={cn(
-                    "h-11 md:h-9",
+                    "h-11 md:h-9 min-w-[100px] md:min-w-[120px]",
                     !iOwe && "bg-green-600 hover:bg-green-700"
                   )}
                   onClick={(e) => {
@@ -1342,8 +1342,8 @@ export function SharedExpenses() {
                     );
                   }}
                 >
-                  <Wallet className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">{iOwe ? "Pagar" : "Receber"}</span>
+                  <Wallet className="h-4 w-4 mr-2" />
+                  <span>{iOwe ? "Pagar" : "Receber"}</span>
                 </Button>
               )}
             </div>

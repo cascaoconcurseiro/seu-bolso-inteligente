@@ -31,10 +31,16 @@ export function AvatarCustomizer({ currentColor, currentIcon, onSave, isSaving }
       <div className="flex flex-col items-center gap-4 p-6 rounded-xl border border-border bg-muted/30">
         <Label className="text-sm font-medium">Pré-visualização</Label>
         <div
-          className="w-24 h-24 rounded-full flex items-center justify-center text-4xl transition-all duration-200 shadow-lg"
-          style={{ backgroundColor: color.bg, color: color.text }}
+          className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 shadow-lg border-4"
+          style={{ borderColor: color.bg }}
         >
-          {icon.emoji}
+          {icon.path ? (
+            <img src={icon.path} alt={icon.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-4xl" style={{ color: color.text, backgroundColor: color.bg }}>
+              {icon.name.slice(0, 2)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -63,19 +69,24 @@ export function AvatarCustomizer({ currentColor, currentIcon, onSave, isSaving }
 
       {/* Icon Picker */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium">Ícone</Label>
-        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2 max-h-[300px] overflow-y-auto p-2 border rounded-lg">
+        <Label className="text-sm font-medium">Avatar</Label>
+        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-[300px] overflow-y-auto p-2 border rounded-lg">
           {avatarIcons.map((i) => (
             <button
               key={i.id}
               onClick={() => setSelectedIcon(i.id)}
               className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center text-2xl transition-all duration-200 hover:bg-muted hover:scale-110",
-                selectedIcon === i.id && "bg-primary text-primary-foreground scale-110"
+                "w-12 h-12 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 hover:scale-110 border-2",
+                selectedIcon === i.id && "ring-2 ring-offset-2 ring-primary scale-110"
               )}
+              style={{ borderColor: selectedIcon === i.id ? color.bg : 'transparent' }}
               title={i.name}
             >
-              {i.emoji}
+              {i.path ? (
+                <img src={i.path} alt={i.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs">{i.name.slice(0, 2)}</span>
+              )}
             </button>
           ))}
         </div>

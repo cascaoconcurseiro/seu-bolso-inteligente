@@ -262,7 +262,10 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const isLoading = accountsLoading || categoriesLoading;
   const creditCards = (accounts || []).filter((a) => a.type === 'CREDIT_CARD');
-  const regularAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD');
+  // Filtrar contas regulares: excluir cartões de crédito E reserva de emergência
+  const regularAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD' && a.type !== 'EMERGENCY_FUND');
+  // Para transferências, incluir reserva de emergência
+  const transferAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD');
   const allAccounts = accounts || [];
   const isCreditCard = creditCards.some((c) => c.id === accountId);
   const isExpense = activeTab === 'EXPENSE';
@@ -922,9 +925,16 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   <SelectValue placeholder="De onde sai" />
                 </SelectTrigger>
                 <SelectContent>
-                  {regularAccounts.map((acc) => (
+                  {transferAccounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name}
+                      <div className="flex items-center gap-2">
+                        {acc.name}
+                        {acc.type === 'EMERGENCY_FUND' && (
+                          <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                            Reserva
+                          </span>
+                        )}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -940,11 +950,18 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   <SelectValue placeholder="Para onde vai" />
                 </SelectTrigger>
                 <SelectContent>
-                  {regularAccounts
+                  {transferAccounts
                     .filter((a) => a.id !== accountId)
                     .map((acc) => (
                       <SelectItem key={acc.id} value={acc.id}>
-                        {acc.name}
+                        <div className="flex items-center gap-2">
+                          {acc.name}
+                          {acc.type === 'EMERGENCY_FUND' && (
+                            <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                              Reserva
+                            </span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                 </SelectContent>

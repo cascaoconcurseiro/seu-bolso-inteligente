@@ -142,6 +142,7 @@ export function AccountDetail() {
             {account.type === "CREDIT_CARD" && "Cartão de Crédito"}
             {account.type === "INVESTMENT" && "Investimento"}
             {account.type === "CASH" && "Dinheiro"}
+            {account.type === "EMERGENCY_FUND" && "Reserva de Emergência"}
           </p>
         </div>
       </div>
