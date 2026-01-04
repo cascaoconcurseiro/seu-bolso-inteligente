@@ -61,7 +61,7 @@ import { TripChecklist } from "@/components/trips/TripChecklist";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Pencil, Wallet, ArrowRightLeft, User, Coins } from "lucide-react";
+import { Pencil, ArrowRightLeft, Coins } from "lucide-react";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 type TripView = "list" | "detail";
