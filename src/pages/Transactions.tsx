@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { TransactionItem } from "@/components/transactions/TransactionItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -101,7 +102,7 @@ export function Transactions() {
   const { categories, accounts } = useMemo(() => {
     const catMap = new Map<string, { id: string; name: string; icon: string }>();
     const accMap = new Map<string, { id: string; name: string }>();
-    
+
     (transactions || []).forEach(t => {
       if (t.category?.id && t.category?.name) {
         catMap.set(t.category.id, { id: t.category.id, name: t.category.name, icon: t.category.icon || "📁" });
@@ -110,7 +111,7 @@ export function Transactions() {
         accMap.set(t.account.id, { id: t.account.id, name: t.account.name });
       }
     });
-    
+
     return {
       categories: Array.from(catMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
       accounts: Array.from(accMap.values()).sort((a, b) => a.name.localeCompare(b.name)),
@@ -121,7 +122,7 @@ export function Transactions() {
   const getPeriodDates = (period: string) => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     switch (period) {
       case "today":
         return { start: today, end: today };
@@ -144,19 +145,19 @@ export function Transactions() {
   // Filtrar transações por busca, tipo, categoria, conta e período
   const filteredTransactions = useMemo(() => {
     const periodDates = getPeriodDates(selectedPeriod);
-    
+
     return (transactions || []).filter((t) => {
       const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = selectedType === "all" || t.type === selectedType;
       const matchesCategory = selectedCategory === "all" || t.category?.id === selectedCategory;
       const matchesAccount = selectedAccount === "all" || t.account?.id === selectedAccount;
-      
+
       let matchesPeriod = true;
       if (periodDates) {
         const txDate = new Date(t.date + "T12:00:00");
         matchesPeriod = txDate >= periodDates.start && txDate <= new Date(periodDates.end.getTime() + 86400000 - 1);
       }
-      
+
       return matchesSearch && matchesType && matchesCategory && matchesAccount && matchesPeriod;
     });
   }, [transactions, searchQuery, selectedType, selectedCategory, selectedAccount, selectedPeriod]);
@@ -212,7 +213,7 @@ export function Transactions() {
   const getCreatorName = (creatorUserId: string | null) => {
     if (!creatorUserId) return null;
     if (creatorUserId === user?.id) return null;
-    
+
     const member = familyMembers.find(
       m => m.user_id === creatorUserId || m.linked_user_id === creatorUserId
     );
@@ -221,16 +222,16 @@ export function Transactions() {
 
   const getPayerInfo = (transaction: any) => {
     if (!transaction.is_shared) return null;
-    
+
     if (!transaction.payer_id || transaction.payer_id === user?.id) {
       return { label: 'Você pagou', isMe: true };
     }
-    
+
     const payer = familyMembers.find(m => m.id === transaction.payer_id);
     if (payer) {
       return { label: `Pago por ${payer.name}`, isMe: false };
     }
-    
+
     return null;
   };
 
@@ -271,7 +272,7 @@ export function Transactions() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => {
                 exportTransactions(filteredTransactions, "csv");
                 toast.success("Transações exportadas em CSV");
@@ -281,7 +282,7 @@ export function Transactions() {
               <FileSpreadsheet className="h-4 w-4" />
               Exportar CSV
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => {
                 exportTransactions(filteredTransactions, "json");
                 toast.success("Transações exportadas em JSON");
@@ -356,7 +357,7 @@ export function Transactions() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoria</label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -376,7 +377,7 @@ export function Transactions() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Conta</label>
               <Select value={selectedAccount} onValueChange={setSelectedAccount}>
@@ -393,7 +394,7 @@ export function Transactions() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Período</label>
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -409,7 +410,7 @@ export function Transactions() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {hasFilters && (
               <div className="flex items-end">
                 <Button
@@ -447,7 +448,7 @@ export function Transactions() {
                   {group.balance >= 0 ? "+" : ""}{formatCurrency(group.balance)}
                 </span>
               </div>
-              
+
               {/* Day Transactions */}
               <div className="bg-card rounded-xl border border-border overflow-hidden">
                 {group.transactions.map((transaction, index) => {
@@ -462,7 +463,7 @@ export function Transactions() {
                   const payerInfo = getPayerInfo(transaction);
                   const pending = hasPendingSplits(transaction);
                   const settled = isFullySettled(transaction);
-                  
+
                   return (
                     <div
                       key={transaction.id}
@@ -521,9 +522,9 @@ export function Transactions() {
                                 <span>·</span>
                                 <span className={cn(
                                   "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium",
-                                  settled 
-                                    ? "bg-positive/10 text-positive" 
-                                    : pending 
+                                  settled
+                                    ? "bg-positive/10 text-positive"
+                                    : pending
                                       ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400"
                                       : "bg-muted"
                                 )}>
@@ -542,7 +543,7 @@ export function Transactions() {
                                 <span>·</span>
                                 <span className={cn(
                                   "text-xs px-1.5 py-0.5 rounded font-medium",
-                                  payerInfo.isMe 
+                                  payerInfo.isMe
                                     ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
                                     : "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
                                 )}>
@@ -669,8 +670,8 @@ export function Transactions() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteSeries} 
+            <AlertDialogAction
+              onClick={handleDeleteSeries}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Excluir toda a série
