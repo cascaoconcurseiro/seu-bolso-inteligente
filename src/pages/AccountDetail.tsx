@@ -31,12 +31,6 @@ import { WithdrawalModal } from "@/components/accounts/WithdrawalModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
-import { TransactionItem } from "@/components/transactions/TransactionItem";
-import { useAuth } from "@/contexts/AuthContext";
-import { useFamilyMembers } from "@/hooks/useFamily";
-import { AdvanceInstallmentsDialog } from "@/components/transactions/AdvanceInstallmentsDialog";
-import { SettlementConfirmDialog } from "@/components/transactions/SettlementConfirmDialog";
-import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -45,24 +39,18 @@ export function AccountDetail() {
   const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
   const deleteTransaction = useDeleteTransaction();
-  const { user } = useAuth();
-  const { data: familyMembers = [] } = useFamilyMembers();
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [settlementTransaction, setSettlementTransaction] = useState<any>(null);
-  const [detailsTransaction, setDetailsTransaction] = useState<any>(null);
-  const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
-  const [advanceDescription, setAdvanceDescription] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
   });
 
   const account = accounts.find(a => a.id === id);
-
+  
   // Usar transações do extrato (inclui transferências corretamente)
   const transactions = statementData?.transactions || [];
 
@@ -76,7 +64,7 @@ export function AccountDetail() {
     return groups;
   }, {} as Record<string, typeof transactions>);
 
-  const sortedDates = Object.keys(groupedTransactions).sort((a, b) =>
+  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => 
     new Date(b).getTime() - new Date(a).getTime()
   );
 
@@ -121,21 +109,6 @@ export function AccountDetail() {
     }
   };
 
-  const handleAdvance = (transaction: any) => {
-    if (transaction.series_id) {
-      setAdvanceSeriesId(transaction.series_id);
-      setAdvanceDescription(transaction.description.replace(/\s*\(\d+\/\d+\)$/, ''));
-    }
-  };
-
-  const handleSettlement = (transaction: any) => {
-    setSettlementTransaction(transaction);
-  };
-
-  const handleDetails = (transaction: any) => {
-    setDetailsTransaction(transaction);
-  };
-
   if (!account) {
     return (
       <div className="space-y-8 animate-fade-in">
@@ -174,14 +147,14 @@ export function AccountDetail() {
       </div>
 
       {/* Saldo Card */}
-      <div
+      <div 
         className="p-8 rounded-2xl border border-border"
         style={{ backgroundColor: bank?.color || '#6366f1' }}
       >
         <p className="text-sm mb-2" style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
           Saldo {isCredit ? "Atual" : "Disponível"}
         </p>
-        <p
+        <p 
           className="font-mono text-5xl font-bold mb-6"
           style={{ color: bank?.textColor || '#fff' }}
         >
@@ -241,7 +214,7 @@ export function AccountDetail() {
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           Extrato
         </h2>
-
+        
         {transactions.length === 0 ? (
           <div className="p-8 text-center border border-dashed border-border rounded-xl">
             <p className="text-muted-foreground">Nenhuma transação nesta conta</p>
@@ -250,26 +223,113 @@ export function AccountDetail() {
           <div className="space-y-6">
             {sortedDates.map((dateStr) => {
               const dayTransactions = groupedTransactions[dateStr];
-
+              
               return (
                 <div key={dateStr} className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground px-2">
                     {getDateLabel(dateStr)}
                   </h3>
-                  <div className="bg-card rounded-xl border border-border overflow-hidden">
-                    {dayTransactions.map((tx) => (
-                      <TransactionItem
-                        key={tx.id}
-                        transaction={tx}
-                        user={user}
-                        familyMembers={familyMembers}
-                        onEdit={handleEditTransaction}
-                        onDelete={(t) => setDeleteConfirm({ isOpen: true, transaction: t })}
-                        onAdvance={handleAdvance}
-                        onSettlement={handleSettlement}
-                        onClick={handleDetails}
-                      />
-                    ))}
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    {dayTransactions.map((tx, idx) => {
+                      const isIncome = tx.isIncoming;
+                      const txDate = new Date(tx.date);
+                      
+                      // Descrição especial para transferências
+                      let description = tx.description;
+                      if (tx.type === "TRANSFER") {
+                        if (tx.isIncoming) {
+                          description = `Transferência recebida - ${tx.description}`;
+                        } else {
+                          description = `Transferência enviada - ${tx.description}`;
+                        }
+                      }
+                      
+                      return (
+                        <div
+                          key={tx.id}
+                          className={cn(
+                            "flex items-center justify-between p-4 hover:bg-muted/50 transition-colors",
+                            idx !== dayTransactions.length - 1 && "border-b border-border"
+                          )}
+                        >
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className={cn(
+                              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                              isIncome ? "bg-positive/10" : "bg-negative/10"
+                            )}>
+                              {isIncome ? (
+                                <TrendingUp className="h-5 w-5 text-positive" />
+                              ) : (
+                                <TrendingDown className="h-5 w-5 text-negative" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium truncate">{description}</p>
+                                {/* Tag de Compartilhado */}
+                                {tx.is_shared && (
+                                  <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium shrink-0">
+                                    Compartilhado
+                                  </span>
+                                )}
+                                {/* Tag de Receita/Despesa */}
+                                <span className={cn(
+                                  "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",
+                                  isIncome 
+                                    ? "bg-positive/20 text-positive" 
+                                    : "bg-negative/20 text-negative"
+                                )}>
+                                  {isIncome ? "Receita" : "Despesa"}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {format(txDate, "HH:mm", { locale: ptBR })}
+                                {tx.category?.name && ` • ${tx.category.name}`}
+                                {tx.is_installment && tx.current_installment && tx.total_installments && (
+                                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-muted">
+                                    {tx.current_installment}/{tx.total_installments}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 ml-4 flex items-center gap-2">
+                            <div>
+                              <p className={cn(
+                                "font-mono text-lg font-semibold",
+                                isIncome ? "text-positive" : "text-negative"
+                              )}>
+                                {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-mono">
+                                Saldo: {tx.runningBalance >= 0 ? "" : "-"}{formatCurrency(tx.runningBalance, accountCurrency)}
+                              </p>
+                            </div>
+                            {/* Menu de ações */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => setDeleteConfirm({ isOpen: true, transaction: tx })}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -325,52 +385,6 @@ export function AccountDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Advance Installments Dialog */}
-      <AdvanceInstallmentsDialog
-        open={!!advanceSeriesId}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAdvanceSeriesId(null);
-            setAdvanceDescription("");
-          }
-        }}
-        seriesId={advanceSeriesId || ""}
-        transactionDescription={advanceDescription}
-      />
-
-      {/* Settlement Confirm Dialog */}
-      <SettlementConfirmDialog
-        open={!!settlementTransaction}
-        onOpenChange={(open) => {
-          if (!open) setSettlementTransaction(null);
-        }}
-        transactionId={settlementTransaction?.id || ""}
-        transactionDescription={settlementTransaction?.description || ""}
-        transactionAmount={Number(settlementTransaction?.amount) || 0}
-        splits={settlementTransaction?.transaction_splits || []}
-      />
-
-      {/* Transaction Details Modal */}
-      <TransactionDetailsModal
-        open={!!detailsTransaction}
-        onOpenChange={(open) => {
-          if (!open) setDetailsTransaction(null);
-        }}
-        transaction={detailsTransaction}
-        onEdit={() => {
-          if (detailsTransaction) handleEditTransaction(detailsTransaction);
-        }}
-        onDelete={() => {
-          if (detailsTransaction) setDeleteConfirm({ isOpen: true, transaction: detailsTransaction });
-        }}
-        onAdvance={() => {
-          if (detailsTransaction) handleAdvance(detailsTransaction);
-        }}
-        onSettlement={() => {
-          if (detailsTransaction) handleSettlement(detailsTransaction);
-        }}
-      />
     </div>
   );
 }
