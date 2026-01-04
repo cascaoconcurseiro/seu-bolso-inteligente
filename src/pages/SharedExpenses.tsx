@@ -758,13 +758,24 @@ export function SharedExpenses() {
   const handleUndoAll = async () => {
     setIsUndoingAll(true);
     try {
-      // Coletar todos os itens pagos de todos os membros (do mês atual)
+      // Coletar todos os itens pagos de todos os membros (do mês VISUALIZADO, não apenas atual)
       const allPaidItems: InvoiceItem[] = [];
 
       members.forEach(member => {
         const items = getFilteredInvoice(member.id);
         const paidItems = items.filter(i => i.isPaid && i.splitId);
         allPaidItems.push(...paidItems);
+      });
+
+      console.log('🔄 [handleUndoAll] Itens coletados:', {
+        totalItems: allPaidItems.length,
+        items: allPaidItems.map(i => ({
+          id: i.id,
+          description: i.description,
+          splitId: i.splitId,
+          type: i.type,
+          isPaid: i.isPaid
+        }))
       });
 
       if (allPaidItems.length === 0) {
