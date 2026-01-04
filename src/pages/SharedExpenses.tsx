@@ -2650,12 +2650,19 @@ export function SharedExpenses() {
                     : "bg-green-50 dark:bg-green-950/20"
                 )}>
                   <div className="text-center">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
-                      settleType === "PAY" ? "bg-red-500" : "bg-muted"
-                    )}>
-                      {settleType === "PAY" ? "EU" : getInitials(member?.name || "")}
-                    </div>
+                    {settleType === "PAY" ? (
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white bg-red-500">
+                        EU
+                      </div>
+                    ) : (
+                      <div className="mx-auto w-12 h-12">
+                        <UserAvatar
+                          name={member?.name || ""}
+                          avatarUrl={member?.avatar_url}
+                          size="md"
+                        />
+                      </div>
+                    )}
                     <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
                   </div>
                   <div className="text-center">
@@ -2671,12 +2678,19 @@ export function SharedExpenses() {
                     </p>
                   </div>
                   <div className="text-center">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
-                      settleType === "RECEIVE" ? "bg-green-500" : "bg-muted"
-                    )}>
-                      {settleType === "RECEIVE" ? "EU" : getInitials(member?.name || "")}
-                    </div>
+                    {settleType === "RECEIVE" ? (
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white bg-green-500">
+                        EU
+                      </div>
+                    ) : (
+                      <div className="mx-auto w-12 h-12">
+                        <UserAvatar
+                          name={member?.name || ""}
+                          avatarUrl={member?.avatar_url}
+                          size="md"
+                        />
+                      </div>
+                    )}
                     <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : member?.name}</p>
                   </div>
                 </div>
