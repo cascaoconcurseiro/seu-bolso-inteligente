@@ -34,21 +34,11 @@ export interface Transaction {
   source_transaction_id: string | null;
   external_id: string | null;
   notes: string | null;
-  creator_user_id: string | null; // Quem criou a transação
   created_at: string;
   updated_at: string;
   // Joined data
   account?: { id: string; name: string; currency?: string };
   category?: { name: string; icon: string | null };
-  transaction_splits?: Array<{
-    id: string;
-    member_id: string;
-    user_id: string;
-    percentage: number;
-    amount: number;
-    is_settled: boolean;
-    name?: string;
-  }>;
 }
 
 export interface TransactionSplit {
@@ -103,18 +93,10 @@ export function useTransactions(filters?: TransactionFilters) {
   return useQuery({
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
     queryFn: async () => {
-      // Buscar APENAS transações CRIADAS POR MIM ou SEM COMPARTILHAMENTO
+      // Buscar TODAS as transações do usuário (exceto espelhadas e transferências)
       // IMPORTANTE: Especificar TODAS as FKs para evitar erro 300 (ambiguidade)
       // - accounts tem 2 FKs: transactions_account_id_fkey e transactions_destination_account_id_fkey
       // - transaction_splits tem 2 FKs: transaction_splits_transaction_id_fkey e transaction_splits_settled_transaction_id_fkey
-      // 
-      // REGRA CRÍTICA: Página "Transações" mostra APENAS:
-      // 1. Transações NÃO compartilhadas (is_shared = false)
-      // 2. Transações compartilhadas criadas por MIM (creator_user_id = meu ID ou null)
-      // 3. Excluir mirrors (source_transaction_id = null)
-      // 4. Excluir transferências (type != TRANSFER)
-      //
-      // Parcelas importadas por OUTROS aparecem APENAS em "Compartilhados"
       let query = supabase
         .from("transactions")
         .select(`
@@ -128,12 +110,8 @@ export function useTransactions(filters?: TransactionFilters) {
         .neq("type", "TRANSFER") // Excluir transferências (aparecem no extrato)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
-      
-      // FILTRO CRÍTICO: Excluir parcelas importadas por outros
-      // Mostrar apenas:
-      // - Transações não compartilhadas (is_shared = false), OU
-      // - Transações compartilhadas criadas por mim (creator_user_id = null ou = meu ID)
-      query = query.or(`is_shared.eq.false,and(is_shared.eq.true,creator_user_id.is.null),and(is_shared.eq.true,creator_user_id.eq.${user!.id})`);
+
+      // NÃO filtrar por payer_id - mostrar todas as transações do usuário
 
       // Filtrar por competence_date (campo obrigatório após migration)
       if (effectiveFilters?.startDate) {
