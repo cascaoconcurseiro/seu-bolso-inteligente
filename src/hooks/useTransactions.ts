@@ -212,14 +212,27 @@ export function useCreateTransaction() {
           input.amount,
           input.total_installments
         );
-        const baseDate = new Date(input.date + 'T12:00:00'); // Fix timezone
-        const baseDay = baseDate.getDate();
+        
+        // CORREÇÃO CRÍTICA: Parsear data corretamente sem problemas de timezone
+        // input.date vem no formato 'yyyy-MM-dd'
+        const [year, month, day] = input.date.split('-').map(Number);
+        const baseDate = new Date(year, month - 1, day); // month - 1 porque Date usa 0-11
+        const baseDay = day; // Usar o dia diretamente do input
+        
+        console.log('🔍 [useCreateTransaction] Criando parcelas:', {
+          inputDate: input.date,
+          parsedYear: year,
+          parsedMonth: month,
+          parsedDay: day,
+          baseDate: baseDate.toISOString(),
+          baseDay
+        });
         
         const transactions = [];
         for (let i = 0; i < input.total_installments; i++) {
           // Calcula o mês e ano corretamente
-          const targetMonth = baseDate.getMonth() + i;
-          const targetYear = baseDate.getFullYear() + Math.floor(targetMonth / 12);
+          const targetMonth = (month - 1) + i; // month - 1 porque Date usa 0-11
+          const targetYear = year + Math.floor(targetMonth / 12);
           const finalMonth = targetMonth % 12;
           
           // Ajusta o dia para não ultrapassar o último dia do mês
@@ -231,6 +244,14 @@ export function useCreateTransaction() {
           
           // CORREÇÃO CRÍTICA: Adicionar competence_date (sempre 1º dia do mês)
           const competenceDate = `${targetYear}-${String(finalMonth + 1).padStart(2, '0')}-01`;
+          
+          console.log(`🔍 [useCreateTransaction] Parcela ${i + 1}/${input.total_installments}:`, {
+            targetMonth: finalMonth + 1,
+            targetYear,
+            targetDay,
+            formattedDate,
+            competenceDate
+          });
           
           transactions.push({
             user_id: user.id,
