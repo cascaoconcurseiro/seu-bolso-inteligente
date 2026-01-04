@@ -1370,7 +1370,7 @@ export function SharedExpenses() {
                                 </Badge>
 
                                 {/* Menu de ações */}
-                                {(item.isPaid || item.creatorUserId === user?.id) && (
+                                {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto">
@@ -1384,6 +1384,20 @@ export function SharedExpenses() {
                                         >
                                           <Undo2 className="h-4 w-4 mr-2" />
                                           Desfazer acerto
+                                        </DropdownMenuItem>
+                                      )}
+                                      {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
+                                        <DropdownMenuItem
+                                          onClick={() => setAnticipateDialog({
+                                            isOpen: true,
+                                            seriesId: item.seriesId,
+                                            currentInstallment: item.installmentNumber || 0,
+                                            totalInstallments: item.totalInstallments
+                                          })}
+                                          className="text-blue-600 focus:text-blue-600"
+                                        >
+                                          <Calendar className="h-4 w-4 mr-2" />
+                                          Antecipar Parcelas
                                         </DropdownMenuItem>
                                       )}
                                       {item.creatorUserId === user?.id && (
@@ -1497,7 +1511,7 @@ export function SharedExpenses() {
                                 {isCredit ? "CRÉDITO" : "DÉBITO"}
                               </Badge>
 
-                              {(item.isPaid || item.creatorUserId === user?.id) && (
+                              {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -1506,13 +1520,27 @@ export function SharedExpenses() {
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     {item.isPaid && (
-                                      <DropdownMenuItem
-                                        onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                      >
-                                        <Undo2 className="h-4 w-4 mr-2" />
-                                        Desfazer acerto
-                                      </DropdownMenuItem>
-                                    )}
+                                        <DropdownMenuItem
+                                          onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                        >
+                                          <Undo2 className="h-4 w-4 mr-2" />
+                                          Desfazer acerto
+                                        </DropdownMenuItem>
+                                      )}
+                                      {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
+                                        <DropdownMenuItem
+                                          onClick={() => setAnticipateDialog({
+                                            isOpen: true,
+                                            seriesId: item.seriesId,
+                                            currentInstallment: item.installmentNumber || 0,
+                                            totalInstallments: item.totalInstallments
+                                          })}
+                                          className="text-blue-600 focus:text-blue-600"
+                                        >
+                                          <Calendar className="h-4 w-4 mr-2" />
+                                          Antecipar Parcelas
+                                        </DropdownMenuItem>
+                                      )}
                                     {item.creatorUserId === user?.id && (
                                       <>
                                         {item.totalInstallments && item.totalInstallments > 1 ? (
@@ -1794,7 +1822,7 @@ export function SharedExpenses() {
                                 </Badge>
 
                                 {/* Menu de ações */}
-                                {(item.isPaid || item.creatorUserId === user?.id) && (
+                                {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto">
@@ -1808,6 +1836,20 @@ export function SharedExpenses() {
                                         >
                                           <Undo2 className="h-4 w-4 mr-2" />
                                           Desfazer acerto
+                                        </DropdownMenuItem>
+                                      )}
+                                      {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
+                                        <DropdownMenuItem
+                                          onClick={() => setAnticipateDialog({
+                                            isOpen: true,
+                                            seriesId: item.seriesId,
+                                            currentInstallment: item.installmentNumber || 0,
+                                            totalInstallments: item.totalInstallments
+                                          })}
+                                          className="text-blue-600 focus:text-blue-600"
+                                        >
+                                          <Calendar className="h-4 w-4 mr-2" />
+                                          Antecipar Parcelas
                                         </DropdownMenuItem>
                                       )}
                                       {item.creatorUserId === user?.id && (
@@ -1912,7 +1954,7 @@ export function SharedExpenses() {
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
                             </Badge>
 
-                            {(item.isPaid || item.creatorUserId === user?.id) && (
+                            {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -1921,13 +1963,27 @@ export function SharedExpenses() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   {item.isPaid && (
-                                    <DropdownMenuItem
-                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                    >
-                                      <Undo2 className="h-4 w-4 mr-2" />
-                                      Desfazer acerto
-                                    </DropdownMenuItem>
-                                  )}
+                                        <DropdownMenuItem
+                                          onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                        >
+                                          <Undo2 className="h-4 w-4 mr-2" />
+                                          Desfazer acerto
+                                        </DropdownMenuItem>
+                                      )}
+                                      {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
+                                        <DropdownMenuItem
+                                          onClick={() => setAnticipateDialog({
+                                            isOpen: true,
+                                            seriesId: item.seriesId,
+                                            currentInstallment: item.installmentNumber || 0,
+                                            totalInstallments: item.totalInstallments
+                                          })}
+                                          className="text-blue-600 focus:text-blue-600"
+                                        >
+                                          <Calendar className="h-4 w-4 mr-2" />
+                                          Antecipar Parcelas
+                                        </DropdownMenuItem>
+                                      )}
                                   {item.creatorUserId === user?.id && (
                                     <>
                                       {item.totalInstallments && item.totalInstallments > 1 ? (
