@@ -145,7 +145,7 @@ export function Family() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl tracking-tight">
-            {family?.name || "Família"}
+            {isOwner ? (family?.name || "Minha Família") : "Família"}
           </h1>
           <p className="text-muted-foreground mt-1">
             {isOwner 
