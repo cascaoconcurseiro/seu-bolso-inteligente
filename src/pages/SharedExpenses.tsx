@@ -7,6 +7,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   Dialog,
   DialogContent,
@@ -1259,13 +1260,13 @@ export function SharedExpenses() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {/* Avatar */}
-              <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center font-bold text-white",
-                isHistory ? "bg-gray-500" :
-                  iOwe ? "bg-red-500" : theyOweMe ? "bg-green-500" : "bg-gray-400"
-              )}>
-                {getInitials(member.name)}
-              </div>
+              <UserAvatar 
+                user={{ 
+                  name: member.name, 
+                  avatar_url: member.avatar_url 
+                }} 
+                size="lg"
+              />
 
               {/* Info */}
               <div>
