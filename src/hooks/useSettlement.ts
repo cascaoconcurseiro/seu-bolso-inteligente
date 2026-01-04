@@ -290,3 +290,93 @@ export function useUnsettleWithReversal() {
     },
   });
 }
+
+/**
+ * Hook para reverter múltiplos ressarcimentos de uma vez
+ */
+export function useUnsettleMultiple() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (splitIds: string[]) => {
+      // 1. Buscar os splits para obter as transações de pagamento
+      const { data: splits, error: splitFetchError } = await supabase
+        .from("transaction_splits")
+        .select("id, settled_transaction_id")
+        .in("id", splitIds);
+
+      if (splitFetchError) throw splitFetchError;
+
+      const paymentTxIds = splits
+        .map(s => s.settled_transaction_id)
+        .filter((id): id is string => !!id);
+
+      const uniquePaymentTxIds = [...new Set(paymentTxIds)];
+
+      // 2. Reverter transações de pagamento (se houver)
+      if (uniquePaymentTxIds.length > 0) {
+        // Buscar transações para ajustar saldos
+        const { data: transactions } = await supabase
+          .from("transactions")
+          .select("id, amount, account_id")
+          .in("id", uniquePaymentTxIds);
+
+        if (transactions && transactions.length > 0) {
+          // Agrupar ajustes por conta para otimizar
+          const accountAdjustments: Record<string, number> = {};
+
+          transactions.forEach(tx => {
+            if (tx.account_id) {
+              accountAdjustments[tx.account_id] = (accountAdjustments[tx.account_id] || 0) + Number(tx.amount);
+            }
+          });
+
+          // Aplicar ajustes nos saldos
+          for (const [accountId, amount] of Object.entries(accountAdjustments)) {
+            // Buscar saldo atual
+            const { data: account } = await supabase
+              .from("accounts")
+              .select("balance")
+              .eq("id", accountId)
+              .single();
+
+            if (account) {
+              await supabase
+                .from("accounts")
+                .update({ balance: Number(account.balance) - amount })
+                .eq("id", accountId);
+            }
+          }
+        }
+
+        // Excluir as transações de pagamento
+        await supabase.from("transactions").delete().in("id", uniquePaymentTxIds);
+      }
+
+      // 3. Marcar splits como não pagos
+      const { error: splitError } = await supabase
+        .from("transaction_splits")
+        .update({
+          is_settled: false,
+          settled_at: null,
+          settled_transaction_id: null,
+        })
+        .in("id", splitIds);
+
+      if (splitError) throw splitError;
+
+      return { count: splitIds.length };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["account-statement"] });
+      toast.success(`${data.count} ressarcimentos revertidos!`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao reverter ressarcimentos: " + error.message);
+    },
+  });
+}

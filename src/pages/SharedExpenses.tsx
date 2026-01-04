@@ -60,6 +60,7 @@ import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
+import { useSettleWithPayment, useUnsettleWithReversal, useUnsettleMultiple } from "@/hooks/useSettlement";
 import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -95,6 +96,9 @@ export function SharedExpenses() {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSettling, setIsSettling] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
+  const [undoAllConfirm, setUndoAllConfirm] = useState(false);
+
+  const { mutate: unsettleMultiple, isPending: isUnsettlingMultiple } = useUnsettleMultiple();
 
   console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
 
@@ -733,6 +737,39 @@ export function SharedExpenses() {
     } catch (error: any) {
       console.error('❌ [handleDeleteSeries] Erro:', error);
       toast.error("Erro ao excluir série: " + error.message);
+    }
+  };
+
+  const handleUndoAll = async () => {
+    try {
+      // Coletar todos os itens pagos de todos os membros (do mês atual)
+      const allPaidItemIds: string[] = [];
+
+      members.forEach(member => {
+        const items = getFilteredInvoice(member.id);
+        const paidItems = items.filter(i => i.isPaid && i.splitId);
+        paidItems.forEach(i => {
+          if (i.splitId) allPaidItemIds.push(i.splitId);
+        });
+      });
+
+      if (allPaidItemIds.length === 0) {
+        toast.info("Não há itens acertados para desfazer neste período.");
+        setUndoAllConfirm(false);
+        return;
+      }
+
+      console.log('🔄 [handleUndoAll] Revertendo itens:', allPaidItemIds.length);
+
+      unsettleMultiple(allPaidItemIds, {
+        onSuccess: () => {
+          setUndoAllConfirm(false);
+          // O hook já faz invalidação e toast
+        }
+      });
+    } catch (error) {
+      console.error('❌ [handleUndoAll] Erro:', error);
+      toast.error("Erro ao desfazer acertos");
     }
   };
 
@@ -1817,6 +1854,21 @@ export function SharedExpenses() {
                             </div>
                           </div>
 
+                          {/* Actions Bar for History */}
+                          {activeTab === 'HISTORY' && members.some(m => getFilteredInvoice(m.id).some(i => i.isPaid)) && (
+                            <div className="flex justify-end mb-4">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setUndoAllConfirm(true)}
+                                className="gap-2"
+                              >
+                                <Undo2 className="h-4 w-4" />
+                                Desfazer Todos os Acertos
+                              </Button>
+                            </div>
+                          )}
+
                           {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
                           {(() => {
                             console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
@@ -2221,6 +2273,37 @@ export function SharedExpenses() {
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
       />
+      <AlertDialog open={undoAllConfirm} onOpenChange={setUndoAllConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desfazer TODOS os acertos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá reverter <strong>todos</strong> os itens marcados como pagos neste mês/período para todos os membros.
+              <br /><br />
+              As transações de pagamento vinculadas serão excluídas e os saldos das contas serão revertidos.
+              <br /><br />
+              Esta ação não pode ser desfeita automaticamente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUndoAll}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isUnsettlingMultiple}
+            >
+              {isUnsettlingMultiple ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Revertendo...
+                </>
+              ) : (
+                "Sim, desfazer tudo"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
