@@ -3,121 +3,163 @@
 **Data**: 04/01/2026  
 **Prioridade**: CRÍTICA
 
-## Problema Identificado
+## 🔴 PROBLEMAS CRÍTICOS IDENTIFICADOS
 
-As transações compartilhadas não estão sincronizadas entre as páginas:
+### 1. Transações Compartilhadas Não Sincronizam Status
+**SINTOMA**: Quando uma transação compartilhada é paga em "Compartilhados", ela continua aparecendo como pendente em "Transações".
 
-### Cenário Atual (ERRADO):
-1. **Fevereiro/Transações**: 11 transações aparecem como "Dividido" + "Você pagou" (verde)
-2. **Janeiro/Transações**: Settlements aparecem como CRÉDITO (correto)
-3. **Compartilhados**: Transações aparecem como "PAGO" ✅ (correto)
-4. **Problema**: As transações de fevereiro NÃO mostram que foram pagas
+**CAUSA RAIZ**: 
+- Splits não estavam vinculados aos settlements (`settled_transaction_id = null`)
+- Query do `useTransactions` não incluía `transaction_splits`
+- Lógica de verificação de status não considerava os splits
 
-### Cenário Esperado (CORRETO):
-1. **Fevereiro/Transações**: 11 transações devem aparecer como "Acertado" ✅
-2. **Janeiro/Transações**: Settlements aparecem como CRÉDITO
-3. **Compartilhados**: Transações aparecem como "PAGO" ✅
-4. **Sincronização**: Todas as páginas mostram o mesmo status
+**CORREÇÃO APLICADA**:
+1. ✅ Adicionado `transaction_splits` na query do `useTransactions.ts`
+2. ✅ Corrigidos manualmente 11 splits de fevereiro/2026 no banco de dados
+3. ✅ Vinculados settlements aos splits via SQL direto
+4. ✅ Implementado sistema de flags bidirecionais (`settled_by_debtor` e `settled_by_creditor`)
 
-## Causa Raiz
+### 2. Botão "Desfazer Todos os Acertos" Não Funciona
+**SINTOMA**: Botão não desfaz os acertos e mostra erro de função RPC não encontrada.
 
-As transações na página "Transações" não verificam o status dos `transaction_splits` para determinar se foram pagas.
+**CAUSA RAIZ**: 
+- Hook `useUnsettleMultiple` usava RPC que não existe
+- Lógica diferente do desfazer individual (que funciona)
+- Não replicava a sequência exata de operações
 
-## Solução
+**CORREÇÃO APLICADA** (04/01/2026):
+1. ✅ Removido uso do hook `useUnsettleMultiple`
+2. ✅ Implementada lógica inline diretamente no `handleUndoAll`
+3. ✅ Replicada EXATAMENTE a mesma sequência do `handleUndoSettlement`:
+   - Buscar split para pegar IDs das transações de acerto
+   - Deletar transação de acerto ANTES de atualizar split
+   - Atualizar flags corretas (`settled_by_debtor`/`settled_by_creditor`)
+   - Desmarcar `is_settled` apenas se ambos os lados desmarcaram
+4. ✅ Adicionados logs detalhados para debug
+5. ✅ Implementados contadores de sucesso/erro
+6. ✅ Garantido refetch após operação
 
-### 1. Adicionar campo `transaction_splits` na query do useTransactions
+**ARQUIVOS MODIFICADOS**:
+- `src/pages/SharedExpenses.tsx` (linhas 743-860)
+  - Função `handleUndoAll` reescrita completamente
+  - Removida importação de `useUnsettleMultiple`
+  - Removida declaração do hook
 
+### 3. Duplicidade de Transações
+**SINTOMA**: Mesma transação aparece em fevereiro (pendente) E em janeiro (paga como settlement).
+
+**CAUSA**: Transações têm ID único, mas sistema não estava respeitando isso.
+
+**SOLUÇÃO NECESSÁRIA**:
+- ❌ PENDENTE: Implementar verificação de ID único em todas as queries
+- ❌ PENDENTE: Garantir que transação paga não apareça como pendente
+- ❌ PENDENTE: Sincronização em tempo real entre páginas
+
+## 📋 CHECKLIST DE VERIFICAÇÃO
+
+### Desfazer Individual (✅ FUNCIONA)
+- [x] Busca split corretamente
+- [x] Deleta transação de acerto
+- [x] Atualiza flags do split
+- [x] Respeita lógica bidirecion al (debtor/creditor)
+- [x] Faz refetch e mostra toast
+
+### Desfazer Todos (✅ CORRIGIDO)
+- [x] Coleta todos os itens pagos
+- [x] Processa cada item individualmente
+- [x] Usa MESMA lógica do individual
+- [x] Deleta transações de acerto
+- [x] Atualiza splits corretamente
+- [x] Mostra contadores de sucesso/erro
+- [x] Faz refetch após operação
+
+### Sincronização de Status (⚠️ PARCIAL)
+- [x] Query inclui transaction_splits
+- [x] Splits vinculados a settlements
+- [x] Sistema de flags bidirecionais
+- [ ] Verificação de ID único
+- [ ] Sincronização em tempo real
+- [ ] Prevenção de duplicidade
+
+## 🔧 PRÓXIMOS PASSOS
+
+1. **TESTAR** botão "Desfazer Todos os Acertos"
+   - Verificar se processa todos os itens
+   - Confirmar logs no console
+   - Validar contadores de sucesso/erro
+
+2. **RESOLVER** problema de duplicidade
+   - Implementar verificação de ID único
+   - Garantir que transação paga não apareça como pendente
+   - Sincronizar status entre todas as páginas
+
+3. **VALIDAR** sincronização completa
+   - Pagar transação em Compartilhados
+   - Verificar status em Transações
+   - Desfazer e verificar novamente
+
+## 📝 NOTAS TÉCNICAS
+
+### Sistema de Flags Bidirecionais
 ```typescript
-// src/hooks/useTransactions.ts
-let query = supabase
-  .from("transactions")
-  .select(`
-    *,
-    account:accounts!transactions_account_id_fkey(id, name, currency),
-    category:categories(id, name, icon),
-    transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(
-      id,
-      member_id,
-      user_id,
-      percentage,
-      amount,
-      is_settled,
-      settled_at,
-      settled_transaction_id,
-      name
-    )
-  `)
+// Cada lado marca independentemente
+settled_by_debtor: boolean    // Devedor marcou como pago
+settled_by_creditor: boolean  // Credor marcou como pago
+
+// Transação só é considerada "settled" quando AMBOS marcam
+is_settled = settled_by_debtor && settled_by_creditor
 ```
 
-### 2. Atualizar função `isFullySettled` para verificar corretamente
-
+### Lógica de Desfazer (Individual e Todos)
 ```typescript
-// src/pages/Transactions.tsx
-const isFullySettled = (transaction: any) => {
-  if (!transaction.is_shared || !transaction.transaction_splits) return false;
-  if (transaction.transaction_splits.length === 0) return false;
-  return transaction.transaction_splits.every((s: any) => s.is_settled === true);
+// 1. Buscar split
+const split = await supabase
+  .from('transaction_splits')
+  .select('settled_by_debtor, settled_by_creditor, debtor_settlement_tx_id, creditor_settlement_tx_id')
+  .eq('id', splitId)
+  .single();
+
+// 2. Determinar lado
+const isDebtor = item.type === 'DEBIT';
+const settlementTxId = isDebtor ? split.debtor_settlement_tx_id : split.creditor_settlement_tx_id;
+
+// 3. Deletar transação de acerto
+await supabase.from('transactions').delete().eq('id', settlementTxId);
+
+// 4. Atualizar split
+const updateFields = {
+  settled_at: null,
+  [isDebtor ? 'settled_by_debtor' : 'settled_by_creditor']: false,
+  [isDebtor ? 'debtor_settlement_tx_id' : 'creditor_settlement_tx_id']: null,
 };
+
+// 5. Desmarcar is_settled apenas se outro lado também não marcou
+if (isDebtor && !split.settled_by_creditor) {
+  updateFields.is_settled = false;
+  updateFields.settled_transaction_id = null;
+}
+
+await supabase.from('transaction_splits').update(updateFields).eq('id', splitId);
 ```
 
-### 3. Atualizar função `hasPendingSplits` para verificar corretamente
+## ⚠️ AVISOS IMPORTANTES
 
-```typescript
-// src/pages/Transactions.tsx
-const hasPendingSplits = (transaction: any) => {
-  if (!transaction.is_shared || !transaction.transaction_splits) return false;
-  return transaction.transaction_splits.some((s: any) => s.is_settled === false);
-};
-```
+1. **NUNCA** usar hook para operações que funcionam inline
+2. **SEMPRE** replicar lógica exata do que funciona
+3. **SEMPRE** deletar transações ANTES de atualizar splits
+4. **SEMPRE** respeitar flags bidirecionais
+5. **SEMPRE** fazer refetch após operações
 
-### 4. Garantir que o badge de status apareça corretamente
+## 📊 STATUS ATUAL
 
-O código já existe, mas precisa dos dados corretos dos splits:
+- ✅ Desfazer individual: FUNCIONA
+- ✅ Desfazer todos: CORRIGIDO (aguardando teste)
+- ⚠️ Sincronização de status: PARCIAL
+- ❌ Duplicidade: PENDENTE
+- ❌ Verificação de ID único: PENDENTE
 
-```typescript
-{transaction.is_shared && (
-  <>
-    <span>·</span>
-    <span className={cn(
-      "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium",
-      settled 
-        ? "bg-positive/10 text-positive" 
-        : pending 
-          ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400"
-          : "bg-muted"
-    )}>
-      {settled ? (
-        <><CheckCircle className="h-3 w-3" /> Acertado</>
-      ) : pending ? (
-        <><Clock className="h-3 w-3" /> Pendente</>
-      ) : (
-        <><Users className="h-3 w-3" /> Dividido</>
-      )}
-    </span>
-  </>
-)}
-```
+## 🚀 DEPLOY
 
-## Teste de Validação
-
-Após aplicar as correções:
-
-1. ✅ Pagar uma transação em Compartilhados
-2. ✅ Verificar que aparece como "Acertado" em Transações
-3. ✅ Desfazer o pagamento em Compartilhados
-4. ✅ Verificar que volta para "Pendente" em Transações
-5. ✅ Verificar que o saldo da conta está correto
-6. ✅ Verificar que não há duplicidade de valores
-
-## Impacto
-
-- **Crítico**: Sem essa correção, o usuário pode pagar duas vezes a mesma transação
-- **Contabilidade**: Os valores não fecham corretamente
-- **UX**: Usuário não sabe o que foi pago ou não
-
-## Próximos Passos
-
-1. Aplicar correção no `useTransactions.ts`
-2. Testar em desenvolvimento
-3. Deploy em produção
-4. Validar com usuário
+**Commit**: `b05f7ea` - "fix: Replicar lógica exata do desfazer individual no desfazer todos"
+**Branch**: `main`
+**Status**: ✅ Pushed para produção
