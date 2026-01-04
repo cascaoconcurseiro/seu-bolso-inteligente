@@ -54,6 +54,10 @@ import { groupTransactionsByDay, DayGroup } from "@/utils/transactionUtils";
 import { exportTransactions } from "@/services/exportService";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
+import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
+import { useTransactionValidation } from "@/hooks/useTransactionValidation";
+import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { ERROR_MESSAGES } from "@/services/settlementValidation";
 
 export function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +80,7 @@ export function Transactions() {
   const { data: familyMembers = [] } = useFamilyMembers();
   const deleteTransaction = useDeleteTransaction();
   const deleteInstallmentSeries = useDeleteInstallmentSeries();
+  const { invalidateRelated } = useTransactionSync();
 
   // Listen for global transaction modal event
   useEffect(() => {
@@ -185,14 +190,50 @@ export function Transactions() {
 
   const handleDelete = async () => {
     if (deleteId) {
+      // Buscar a transação para verificar se é compartilhada e acertada
+      const transaction = transactions?.find(t => t.id === deleteId);
+      
+      // Validar se está acertada
+      if (transaction?.is_shared && isFullySettled(transaction)) {
+        toast.error("Transação acertada não pode ser excluída");
+        toast.info("Desfaça o acerto primeiro na página Compartilhados");
+        setDeleteId(null);
+        return;
+      }
+      
       await deleteTransaction.mutateAsync(deleteId);
+      
+      // Se for compartilhada, invalidar queries relacionadas
+      if (transaction?.is_shared) {
+        await invalidateRelated(deleteId);
+      }
+      
       setDeleteId(null);
     }
   };
 
   const handleDeleteSeries = async () => {
     if (deleteSeriesId) {
+      // Buscar transações da série para verificar se alguma está acertada
+      const seriesTransactions = transactions?.filter(t => t.series_id === deleteSeriesId) || [];
+      const hasSettled = seriesTransactions.some(t => t.is_shared && isFullySettled(t));
+      
+      if (hasSettled) {
+        const settledCount = seriesTransactions.filter(t => isFullySettled(t)).length;
+        toast.error(`Série contém ${settledCount} parcela(s) acertada(s)`);
+        toast.info("Desfaça os acertos primeiro na página Compartilhados");
+        setDeleteSeriesId(null);
+        return;
+      }
+      
       await deleteInstallmentSeries.mutateAsync(deleteSeriesId);
+      
+      // Se for compartilhada, invalidar queries relacionadas
+      const seriesTransaction = seriesTransactions[0];
+      if (seriesTransaction?.is_shared && seriesTransaction?.id) {
+        await invalidateRelated(seriesTransaction.id);
+      }
+      
       setDeleteSeriesId(null);
     }
   };
@@ -205,6 +246,13 @@ export function Transactions() {
   };
 
   const handleEdit = (transaction: any) => {
+    // Validar se a transação está acertada
+    if (transaction.is_shared && isFullySettled(transaction)) {
+      toast.error("Transação acertada não pode ser editada");
+      toast.info("Desfaça o acerto primeiro na página Compartilhados");
+      return;
+    }
+    
     setEditingTransaction(transaction);
     setShowTransactionModal(true);
   };
@@ -456,12 +504,15 @@ export function Transactions() {
                   const isOwner = transaction.user_id === user?.id;
                   const isCreator = transaction.creator_user_id === user?.id;
                   const isMirror = !!transaction.source_transaction_id;
-                  // Dono ou criador pode editar (exceto mirrors) e excluir
-                  const canEdit = (isOwner || isCreator) && !isMirror;
-                  const canDelete = isOwner || isCreator;
-                  const payerInfo = getPayerInfo(transaction);
                   const pending = hasPendingSplits(transaction);
                   const settled = isFullySettled(transaction);
+                  
+                  // Dono ou criador pode editar (exceto mirrors e settled)
+                  const canEdit = (isOwner || isCreator) && !isMirror && !settled;
+                  // Dono ou criador pode excluir (exceto settled)
+                  const canDelete = (isOwner || isCreator) && !settled;
+                  
+                  const payerInfo = getPayerInfo(transaction);
                   
                   // CORREÇÃO: Para transações compartilhadas, determinar o tipo correto
                   // Se EU paguei (payer_id === user.id ou creator_user_id === user.id), é DÉBITO (saída)
@@ -474,7 +525,8 @@ export function Transactions() {
                       key={transaction.id}
                       className={cn(
                         "group flex items-center justify-between py-4 px-4 hover:bg-muted/30 transition-colors cursor-pointer",
-                        index !== group.transactions.length - 1 && "border-b border-border"
+                        index !== group.transactions.length - 1 && "border-b border-border",
+                        settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
                       )}
                       onClick={() => setDetailsTransaction(transaction)}
                     >
@@ -487,11 +539,20 @@ export function Transactions() {
                         </div>
                         <div className="flex-1 min-w-0 pt-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-sm md:text-base truncate">{transaction.description}</p>
+                            <p className={cn(
+                              "font-medium text-sm md:text-base truncate",
+                              settled && "line-through opacity-60"
+                            )}>
+                              {transaction.description}
+                            </p>
                             {transaction.is_shared && (
-                              <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                Compartilhado
-                              </span>
+                              <SharedTransactionBadge
+                                isShared={true}
+                                isSettled={settled}
+                                type={isPayer ? "DEBIT" : "CREDIT"}
+                                memberName={creatorName}
+                                compact={false}
+                              />
                             )}
                             {isMirror && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
