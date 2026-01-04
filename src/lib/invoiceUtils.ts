@@ -72,7 +72,9 @@ export const getInvoiceData = (
   
   const filteredTransactions = transactions.filter(t => {
     if (t.account_id !== account.id) return false;
-    return t.date >= startStr && t.date <= endStr;
+    // Use competence_date for credit card transactions to respect invoice cycles
+    const dateToCompare = t.competence_date || t.date;
+    return dateToCompare >= startStr && dateToCompare <= endStr;
   });
   
   // Calculate total
