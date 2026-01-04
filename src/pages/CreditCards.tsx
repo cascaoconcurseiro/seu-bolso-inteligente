@@ -69,6 +69,7 @@ import { toast } from "sonner";
 import { TransactionItem } from "@/components/transactions/TransactionItem";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFamilyMembers } from "@/hooks/useFamily";
+import { groupTransactionsByDay } from "@/utils/transactionUtils";
 
 // Lista de moedas para cartões internacionais
 const currencies = [
@@ -493,22 +494,40 @@ export function CreditCards() {
           </div>
         )}
 
+        import {groupTransactionsByDay} from "@/utils/transactionUtils";
+
+        // ... inside the component, before return
+        // const groupTransactionsByDayFunc = groupTransactionsByDay; // ensure imports are correct at top
+
         {/* Transactions List */}
         {invoiceData.transactions.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
               Lançamentos ({invoiceData.transactions.length})
             </h2>
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              {invoiceData.transactions.map((tx) => (
-                <TransactionItem
-                  key={tx.id}
-                  transaction={tx}
-                  user={user}
-                  familyMembers={familyMembers}
-                  onEdit={handleEditTransaction}
-                  onDelete={(t) => setDeleteConfirm({ isOpen: true, transaction: t })}
-                />
+            <div className="space-y-6">
+              {groupTransactionsByDay(invoiceData.transactions).map((group) => (
+                <div key={group.date} className="space-y-2">
+                  <div className="flex items-center justify-between py-2 px-1">
+                    <h3 className="font-medium text-sm text-muted-foreground">{group.label}</h3>
+                    <span className="font-mono text-sm font-medium text-muted-foreground">
+                      {/* Total do dia (opcional, pode ser removido se poluir) */}
+                      {/* {formatCurrency(group.totalExpense)} */}
+                    </span>
+                  </div>
+                  <div className="bg-card rounded-xl border border-border overflow-hidden">
+                    {group.transactions.map((tx) => (
+                      <TransactionItem
+                        key={tx.id}
+                        transaction={tx}
+                        user={user}
+                        familyMembers={familyMembers}
+                        onEdit={handleEditTransaction}
+                        onDelete={(t) => setDeleteConfirm({ isOpen: true, transaction: t })}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

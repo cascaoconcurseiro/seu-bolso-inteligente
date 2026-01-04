@@ -222,25 +222,25 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   // IMPORTANTE: NUNCA incluir o próprio usuário logado
   const availableMembers = tripId && tripMembers && tripMembers.length > 0
     ? (tripMembers || [])
-        .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
-        .map(tm => ({
-          id: tm.user_id, // Usar user_id como id para compatibilidade
-          name: tm.profiles?.full_name || tm.profiles?.email || 'Membro',
-          email: tm.profiles?.email || null,
-          linked_user_id: tm.user_id,
-          family_id: '', // Não relevante para viagens
-          user_id: null,
-          role: 'viewer' as const,
-          status: 'active',
-          invited_by: null,
-          created_at: tm.created_at,
-          updated_at: tm.updated_at,
-          avatar_url: null,
-          sharing_scope: 'all' as const,
-          scope_start_date: null,
-          scope_end_date: null,
-          scope_trip_id: null,
-        }))
+      .filter(tm => tm.user_id !== user?.id) // Excluir o próprio usuário
+      .map(tm => ({
+        id: tm.user_id, // Usar user_id como id para compatibilidade
+        name: tm.profiles?.full_name || tm.profiles?.email || 'Membro',
+        email: tm.profiles?.email || null,
+        linked_user_id: tm.user_id,
+        family_id: '', // Não relevante para viagens
+        user_id: null,
+        role: 'viewer' as const,
+        status: 'active',
+        invited_by: null,
+        created_at: tm.created_at,
+        updated_at: tm.updated_at,
+        avatar_url: null,
+        sharing_scope: 'all' as const,
+        scope_start_date: null,
+        scope_end_date: null,
+        scope_trip_id: null,
+      }))
     : (familyMembers || []).filter(m => m.linked_user_id !== user?.id); // Excluir o próprio usuário
 
   const formatCurrency = (value: string) => {
@@ -271,23 +271,23 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
-  
+
   // Desabilitar parcelamento se não for cartão de crédito
   useEffect(() => {
     if (!isCreditCard && isInstallment) {
       setIsInstallment(false);
     }
   }, [accountId, isCreditCard, isInstallment]);
-  
+
   // Verificar se a despesa é paga por outra pessoa
   const isPaidByOther = payerId !== 'me' && payerId !== '';
-  
+
   // Obter nome do pagador para exibição
   const getPayerName = (id: string) => {
     const member = familyMembers.find(m => m.id === id);
     return member?.name || 'outra pessoa';
   };
-  
+
   // Limpar accountId quando payerId mudar para outro
   useEffect(() => {
     if (isPaidByOther) {
@@ -302,24 +302,32 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   // 1. Se tem viagem selecionada → usa moeda da viagem
   // 2. Se tem conta internacional selecionada (sem viagem) → usa moeda da conta
   // 3. Caso contrário → BRL
-  const transactionCurrency = selectedTrip?.currency 
+  const transactionCurrency = selectedTrip?.currency
     || (selectedAccount?.is_international ? selectedAccount.currency : null)
     || 'BRL';
   const isInternationalTransaction = transactionCurrency !== 'BRL';
 
   // Filtrar contas por moeda:
   // - Se tem viagem: mostrar apenas contas na moeda da viagem
-  // - Se NÃO tem viagem: mostrar TODAS as contas (nacionais e internacionais)
+  // - Se NÃO tem viagem: mostrar APENAS contas nacionais (BRL), exceto se a conta global já estiver selecionada
   const filteredAccounts = accounts?.filter((acc) => {
+    // Manter conta selecionada visível (para edição ou contexto pré-definido)
+    if (acc.id === accountId) return true;
+
     // Se tem viagem selecionada, filtrar por moeda da viagem
     if (selectedTrip) {
       if (selectedTrip.currency === 'BRL') {
+        // Viagem nacional: esconder contas internacionais
         return !acc.is_international;
       }
+      // Viagem internacional: mostrar apenas contas da moeda da viagem (ex: USD)
       return acc.is_international && acc.currency === selectedTrip.currency;
     }
-    // Se NÃO tem viagem, mostrar todas as contas
-    return true;
+
+    // Se NÃO tem viagem (default):
+    // "A conta global só deve aparecer quando vinculada a uma viagem com aquela moeda internacional"
+    // Portanto, esconder contas internacionais por padrão.
+    return !acc.is_international;
   }) || [];
 
   // Separar cartões e contas regulares filtrados
@@ -373,12 +381,12 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
 
   const buildSplitsForSubmit = (): TransactionSplit[] => {
     console.log('🟢 [TransactionForm] buildSplitsForSubmit chamado. Splits atuais:', splits);
-    
+
     if (splits.length === 0) {
       console.log('🟢 [TransactionForm] Nenhum split para processar');
       return [];
     }
-    
+
     const numericAmount = getNumericAmount();
     console.log('🟢 [TransactionForm] Valor numérico:', numericAmount);
 
@@ -387,7 +395,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
       percentage: s.percentage,
       amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
     }));
-    
+
     console.log('🟢 [TransactionForm] Splits processados para submit:', result);
     return result;
   };
@@ -718,7 +726,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
           {!isTransfer ? (
             <div className="space-y-2">
               <Label>Categoria</Label>
-              
+
               {/* Badge de Sugestão */}
               {prediction && (
                 <div className="flex items-center gap-2 mb-2">
@@ -734,7 +742,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                   </span>
                 </div>
               )}
-              
+
               <Select value={categoryId} onValueChange={setCategoryId}>
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder="Selecione" />
@@ -745,17 +753,17 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                     const childrenOfType = children.filter((c) =>
                       activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
                     );
-                    
+
                     // Só renderizar grupo se tiver filhos
                     if (childrenOfType.length === 0) return null;
-                    
+
                     return (
                       <SelectGroup key={parent.id}>
                         {/* Categoria Pai como Label */}
                         <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
                           {parent.icon} {parent.name}
                         </SelectLabel>
-                        
+
                         {/* Subcategorias */}
                         {childrenOfType.map((child) => (
                           <SelectItem key={child.id} value={child.id} className="pl-8">
