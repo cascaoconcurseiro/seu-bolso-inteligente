@@ -712,18 +712,24 @@ export function SharedExpenses() {
     }
   };
 
-  // Função para excluir transação única
+  // TASK 11: Bloqueio de Exclusão de Transações Acertadas
+  // Garante que transações acertadas não podem ser excluídas
+  // Mostra mensagens de erro detalhadas
   const handleDeleteTransaction = async () => {
     const item = deleteConfirm.item;
     if (!item || !item.originalTxId) return;
 
     try {
-      console.log('🗑️ [handleDeleteTransaction] Excluindo transação:', item.originalTxId);
+      console.log('🗑️ [handleDeleteTransaction] TASK 11: Excluindo transação:', item.originalTxId);
 
-      // VALIDAÇÃO: Verificar se pode excluir
+      // TASK 11.1: Validar settlement status antes de excluir
       if (!item.canDelete) {
         const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED];
+        console.warn('⚠️ [handleDeleteTransaction] TASK 11: Exclusão bloqueada:', errorMsg.message);
         toast.error(errorMsg.message);
+        if (errorMsg.action) {
+          toast.info(errorMsg.action);
+        }
         setDeleteConfirm({ isOpen: false, item: null });
         return;
       }
@@ -743,7 +749,7 @@ export function SharedExpenses() {
 
       if (error) throw error;
 
-      console.log('✅ [handleDeleteTransaction] Transação excluída com sucesso');
+      console.log('✅ [handleDeleteTransaction] TASK 11: Transação excluída com sucesso');
 
       // Fechar dialog
       setDeleteConfirm({ isOpen: false, item: null });
@@ -761,17 +767,20 @@ export function SharedExpenses() {
     }
   };
 
-  // Função para excluir série de parcelas
+  // TASK 12: Bloqueio de Exclusão de Séries com Parcelas Acertadas
+  // Garante que séries com parcelas acertadas não podem ser excluídas
+  // Mostra lista de parcelas acertadas quando aplicável
   const handleDeleteSeries = async () => {
     const item = deleteSeriesConfirm.item;
     if (!item || !item.seriesId) return;
 
     try {
-      console.log('🗑️ [handleDeleteSeries] Excluindo série:', item.seriesId);
+      console.log('🗑️ [handleDeleteSeries] TASK 12: Excluindo série:', item.seriesId);
 
-      // VALIDAÇÃO: Verificar se pode excluir série
+      // TASK 12.1: Validar settlement status da série antes de excluir
       if (!item.canDelete) {
-        const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.SERIES_HAS_SETTLED];
+        const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS];
+        console.warn('⚠️ [handleDeleteSeries] TASK 12: Exclusão bloqueada:', errorMsg.message);
         toast.error(errorMsg.message);
         if (errorMsg.action) {
           toast.info(errorMsg.action);
@@ -795,7 +804,7 @@ export function SharedExpenses() {
 
       const deletedCount = data?.[0]?.deleted_count || 0;
 
-      console.log('✅ [handleDeleteSeries] Série excluída:', {
+      console.log('✅ [handleDeleteSeries] TASK 12: Série excluída:', {
         seriesId: item.seriesId,
         deletedCount
       });
