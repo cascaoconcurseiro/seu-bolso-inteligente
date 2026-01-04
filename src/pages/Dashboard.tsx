@@ -15,6 +15,7 @@ import { groupTransactionsByDay } from "@/utils/transactionUtils";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
+import { cn } from "@/lib/utils";
 
 // Helper para formatar moeda
 const formatCurrency = (value: number) => {
