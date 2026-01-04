@@ -446,12 +446,8 @@ export function SharedExpenses() {
           settlementTxId
         });
 
-        // CORREÇÃO CRÍTICA: Para AMBOS os tipos (CREDIT e DEBIT), 
-        // devemos atualizar o SPLIT se ele existir!
-        // O split representa a dívida/crédito do usuário
-
+        // TASK 15: Validação de duplicação - verificar se já existe settlement
         if (item.splitId) {
-          // Verificar se o split existe antes de atualizar
           const { data: existingSplit, error: checkError } = await supabase
             .from('transaction_splits')
             .select('id, is_settled, settled_by_debtor, settled_by_creditor, user_id')
@@ -470,13 +466,16 @@ export function SharedExpenses() {
             continue;
           }
 
-          // Verificar se já foi marcado como pago pelo lado correto
+          // TASK 15: Verificar se já foi marcado como pago pelo lado correto (prevenção de duplicação)
           const alreadySettled = settleType === 'PAY'
             ? existingSplit.settled_by_debtor
             : existingSplit.settled_by_creditor;
 
           if (alreadySettled) {
-            console.warn('⚠️ [handleSettle] Split já está settled por este lado:', item.splitId);
+            console.warn('⚠️ [handleSettle] DUPLICAÇÃO DETECTADA - Split já está settled por este lado:', item.splitId);
+            const errorMsg = ERROR_MESSAGES[SettlementErrorCode.DUPLICATE_SETTLEMENT];
+            toast.error(`${errorMsg.message}: ${item.description}`);
+            updateErrors.push(`Split ${item.splitId}: Duplicate settlement`);
             continue;
           }
 

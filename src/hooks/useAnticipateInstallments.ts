@@ -103,12 +103,13 @@ export function useAnticipateInstallments() {
         throw new Error(errorMsg.message + ` (${settledInstallments.length} parcela(s))`);
       }
 
-      // 4. Validar que newCompetenceDate não cria duplicatas
+      // 4. TASK 15: Validar que newCompetenceDate não cria duplicatas
       const { data: existingInstallments, error: duplicateError } = await supabase
         .from('transactions')
         .select('id')
         .eq('installment_series_id', seriesId)
-        .eq('competence_date', newCompetenceDate);
+        .eq('competence_date', newCompetenceDate)
+        .not('id', 'in', `(${installmentIds.join(',')})`); // Excluir as próprias parcelas sendo antecipadas
 
       if (duplicateError) {
         console.error('❌ [useAnticipateInstallments] Erro ao verificar duplicatas:', duplicateError);
@@ -116,9 +117,15 @@ export function useAnticipateInstallments() {
       }
 
       if (existingInstallments && existingInstallments.length > 0) {
-        console.error('❌ [useAnticipateInstallments] Duplicata encontrada:', existingInstallments);
-        throw new Error('Já existe uma parcela com esta data de competência');
+        console.error('❌ [useAnticipateInstallments] DUPLICAÇÃO DETECTADA - Já existe parcela com esta competence_date:', {
+          seriesId,
+          newCompetenceDate,
+          existingInstallments
+        });
+        throw new Error(`Já existe uma parcela com a data de competência ${newCompetenceDate}. Escolha outra data para evitar duplicação.`);
       }
+
+      console.log('✅ [useAnticipateInstallments] Validação de duplicação passou - nenhuma duplicata encontrada');
 
       // 5. Atualizar competence_date das parcelas (mantém transaction_date)
       const { error: updateError } = await supabase
