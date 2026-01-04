@@ -93,6 +93,7 @@ export function SharedExpenses() {
   const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
   const [settleAmount, setSettleAmount] = useState("");
   const [settleAccountId, setSettleAccountId] = useState("");
+  const [settleDate, setSettleDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSettling, setIsSettling] = useState(false);
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
@@ -180,6 +181,7 @@ export function SharedExpenses() {
     }, 0);
 
     setSettleAmount(amount.toFixed(2).replace(".", ","));
+    setSettleDate(format(new Date(), 'yyyy-MM-dd')); // Resetar para hoje
     setShowSettleDialog(true);
   };
 
@@ -360,14 +362,15 @@ export function SharedExpenses() {
         const description = originalTx?.description || item.description;
         const categoryId = originalTx?.category_id;
         
-        // CORREÇÃO CRÍTICA: Usar a data de competência da transação original
-        // O acerto deve aparecer no mesmo mês da dívida, não no mês atual
-        // competence_date já está no formato 'yyyy-MM-01', usar diretamente
-        const competenceDate = originalTx?.competence_date || format(currentDate, 'yyyy-MM-01');
+        // CORREÇÃO CRÍTICA: Usar a data selecionada pelo usuário no formulário
+        // O acerto deve aparecer no mês escolhido pelo usuário
+        // Calcular competence_date a partir da data selecionada (sempre dia 1º do mês)
+        const [year, month] = settleDate.split('-').map(Number);
+        const competenceDate = `${year}-${String(month).padStart(2, '0')}-01`;
 
         console.log('🔍 [handleSettle] Criando acerto:', {
           originalTxId: item.originalTxId,
-          originalCompetenceDate: originalTx?.competence_date,
+          settleDateSelected: settleDate,
           competenceDate,
           description
         });
@@ -376,7 +379,7 @@ export function SharedExpenses() {
         const result = await createTransaction.mutateAsync({
           amount: item.amount,
           description: description,
-          date: competenceDate, // Data do acerto = data de competência da dívida (sempre dia 1º)
+          date: settleDate, // Data escolhida pelo usuário
           type: settleType === "PAY" ? "EXPENSE" : "INCOME",
           account_id: settleAccountId,
           category_id: categoryId,
@@ -557,6 +560,7 @@ export function SharedExpenses() {
       setSelectedMember(null);
       setSettleAmount("");
       setSettleAccountId("");
+      setSettleDate(format(new Date(), 'yyyy-MM-dd'));
       setSelectedItems([]);
 
       // Aguardar refetch para atualizar a UI
@@ -2265,8 +2269,19 @@ export function SharedExpenses() {
 
                 {/* Valor e conta */}
                 <div className="grid gap-4">
-                  {/* Valor manual removido conforme solicitado */}
-                  {/* O valor total já é exibido no card de resumo acima */}
+                  {/* Data do pagamento */}
+                  <div className="space-y-2">
+                    <Label>Data do {settleType === "PAY" ? "Pagamento" : "Recebimento"}</Label>
+                    <Input
+                      type="date"
+                      value={settleDate}
+                      onChange={(e) => setSettleDate(e.target.value)}
+                      max={format(new Date(), 'yyyy-MM-dd')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      📅 O acerto aparecerá no mês desta data
+                    </p>
+                  </div>
 
                   <div className="space-y-2">
                     <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
