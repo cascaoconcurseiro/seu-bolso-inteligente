@@ -463,6 +463,12 @@ export function Transactions() {
                   const pending = hasPendingSplits(transaction);
                   const settled = isFullySettled(transaction);
                   
+                  // CORREÇÃO: Para transações compartilhadas, determinar o tipo correto
+                  // Se EU paguei (payer_id === user.id ou creator_user_id === user.id), é DÉBITO (saída)
+                  // Se OUTRO pagou (payer_id !== user.id), é CRÉDITO (a receber)
+                  const isPayer = transaction.payer_id === user?.id || transaction.creator_user_id === user?.id;
+                  const displayType = transaction.is_shared && !isPayer ? 'INCOME' : transaction.type;
+                  
                   return (
                     <div
                       key={transaction.id}
@@ -557,16 +563,16 @@ export function Transactions() {
                         <div className="flex flex-col items-end gap-0.5">
                           <span className={cn(
                             "font-mono font-medium text-right whitespace-nowrap",
-                            transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                            displayType === "INCOME" ? "text-positive" : "text-negative"
                           )}>
-                            {transaction.type === "INCOME" ? "+" : "-"}
+                            {displayType === "INCOME" ? "+" : "-"}
                             {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
                           </span>
                           <span className={cn(
                             "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-                            transaction.type === "INCOME" ? "text-positive" : "text-negative"
+                            displayType === "INCOME" ? "text-positive" : "text-negative"
                           )}>
-                            {transaction.type === "INCOME" ? "Crédito" : "Débito"}
+                            {displayType === "INCOME" ? "Crédito" : "Débito"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>
