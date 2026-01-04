@@ -1427,11 +1427,24 @@ export function SharedExpenses() {
                                   )}>
                                     {item.description}
                                   </p>
-                                  {item.creatorName && (
-                                    <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
-                                      💳 {item.creatorName}
-                                    </span>
-                                  )}
+                                  {item.creatorName && (() => {
+                                    const creator = members.find(m => m.linked_user_id === item.creatorUserId);
+                                    return (
+                                      <div className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">
+                                        <div className="w-4 h-4">
+                                          <UserAvatar
+                                            name={item.creatorName}
+                                            avatarUrl={creator?.avatar_url}
+                                            size="sm"
+                                            className="!w-4 !h-4 !text-[8px]"
+                                          />
+                                        </div>
+                                        <span className="text-[9px] uppercase tracking-wider font-medium">
+                                          {item.creatorName}
+                                        </span>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                                 
                                 {/* Valor - destaque no mobile */}
@@ -1564,11 +1577,24 @@ export function SharedExpenses() {
                                 )}>
                                   {item.description}
                                 </p>
-                                {item.creatorName && (
-                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                    💳 {item.creatorName}
-                                  </span>
-                                )}
+                                {item.creatorName && (() => {
+                                  const creator = members.find(m => m.linked_user_id === item.creatorUserId);
+                                  return (
+                                    <div className="inline-flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                                      <div className="w-4 h-4">
+                                        <UserAvatar
+                                          name={item.creatorName}
+                                          avatarUrl={creator?.avatar_url}
+                                          size="sm"
+                                          className="!w-4 !h-4 !text-[8px]"
+                                        />
+                                      </div>
+                                      <span className="text-[10px] uppercase tracking-wider font-medium">
+                                        {item.creatorName}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                               {item.category && (
                                 <p className="text-xs text-muted-foreground">

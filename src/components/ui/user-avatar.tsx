@@ -5,6 +5,7 @@ interface UserAvatarProps {
   name: string;
   colorId?: string;
   iconId?: string;
+  avatarUrl?: string | null;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
@@ -16,7 +17,7 @@ const sizeClasses = {
   xl: "w-16 h-16 text-2xl",
 };
 
-export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", size = "md", className }: UserAvatarProps) {
+export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", avatarUrl, size = "md", className }: UserAvatarProps) {
   const color = getAvatarColor(colorId);
   const icon = getAvatarIcon(iconId);
 
@@ -30,8 +31,11 @@ export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", size 
       .slice(0, 2);
   };
 
+  // Prioridade: avatarUrl > icon.path > iniciais
+  const imageSrc = avatarUrl || icon.path;
+
   // Se tiver path de imagem, usar a imagem
-  if (icon.path) {
+  if (imageSrc) {
     return (
       <div
         className={cn(
@@ -43,7 +47,7 @@ export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", size 
         title={name}
       >
         <img
-          src={icon.path}
+          src={imageSrc}
           alt={name}
           className="w-full h-full object-cover"
           onError={(e) => {
