@@ -894,6 +894,19 @@ export function SharedExpenses() {
       if (deletedCount === 0) {
         throw new Error("Nenhuma parcela foi excluída. Verifique se a série existe.");
       }
+      
+      // TASK 20: Log series deletion
+      if (user?.id && item.seriesId) {
+        await logSeriesDeleted(
+          user.id,
+          item.seriesId,
+          {
+            deletedCount,
+            description: item.description,
+            totalInstallments: item.totalInstallments
+          }
+        );
+      }
 
       // Fechar dialog
       setDeleteSeriesConfirm({ isOpen: false, item: null });
