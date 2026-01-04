@@ -174,6 +174,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                     <UserAvatar
                       name={profile?.full_name || user?.email || "User"}
                       avatarUrl={profile?.avatar_url}
+                      colorId={profile?.avatar_color || "green"}
+                      iconId={profile?.avatar_icon || "avatar_1"}
                       size="sm"
                     />
                   </Button>

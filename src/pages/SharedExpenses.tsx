@@ -2683,6 +2683,8 @@ export function SharedExpenses() {
                         <UserAvatar
                           name={profile?.full_name || user?.email || "Eu"}
                           avatarUrl={profile?.avatar_url}
+                          colorId={profile?.avatar_color || "green"}
+                          iconId={profile?.avatar_icon || "avatar_1"}
                           size="md"
                         />
                       </div>
@@ -2715,6 +2717,8 @@ export function SharedExpenses() {
                         <UserAvatar
                           name={profile?.full_name || user?.email || "Eu"}
                           avatarUrl={profile?.avatar_url}
+                          colorId={profile?.avatar_color || "green"}
+                          iconId={profile?.avatar_icon || "avatar_1"}
                           size="md"
                         />
                       </div>

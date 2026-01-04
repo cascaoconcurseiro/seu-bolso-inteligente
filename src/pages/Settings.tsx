@@ -311,7 +311,9 @@ export function Settings() {
                         const avatarPath = selectedAvatar?.path || null;
                         
                         await updateProfile.mutateAsync({ 
-                          avatar_url: avatarPath
+                          avatar_url: avatarPath,
+                          avatar_color: color,
+                          avatar_icon: icon
                         });
                       }}
                       isSaving={updateProfile.isPending}
