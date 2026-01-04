@@ -65,6 +65,7 @@ import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { useSettleWithPayment, useUnsettleWithReversal } from "@/hooks/useSettlement";
 import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,6 +147,7 @@ export function SharedExpenses() {
   });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: profile } = useProfile();
   console.log('🔵 [SharedExpenses] ✅ Members carregados:', { count: members?.length, membersLoading });
 
   const { data: accounts = [] } = useAccounts();
@@ -2677,8 +2679,12 @@ export function SharedExpenses() {
                 )}>
                   <div className="text-center">
                     {settleType === "PAY" ? (
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white bg-red-500">
-                        EU
+                      <div className="mx-auto w-12 h-12">
+                        <UserAvatar
+                          name={profile?.full_name || user?.email || "Eu"}
+                          avatarUrl={profile?.avatar_url}
+                          size="md"
+                        />
                       </div>
                     ) : (
                       <div className="mx-auto w-12 h-12">
@@ -2705,8 +2711,12 @@ export function SharedExpenses() {
                   </div>
                   <div className="text-center">
                     {settleType === "RECEIVE" ? (
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white bg-green-500">
-                        EU
+                      <div className="mx-auto w-12 h-12">
+                        <UserAvatar
+                          name={profile?.full_name || user?.email || "Eu"}
+                          avatarUrl={profile?.avatar_url}
+                          size="md"
+                        />
                       </div>
                     ) : (
                       <div className="mx-auto w-12 h-12">
