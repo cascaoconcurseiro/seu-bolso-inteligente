@@ -23,6 +23,7 @@ interface TransactionItemProps {
     onSettlement?: (t: any) => void;
     onClick?: (t: any) => void;
     showActions?: boolean;
+    customActions?: React.ReactNode;
 }
 
 export function TransactionItem({
@@ -35,6 +36,7 @@ export function TransactionItem({
     onSettlement,
     onClick,
     showActions = true,
+    customActions,
 }: TransactionItemProps) {
 
     // Helper to format currency (copied logic locally if import fails, but ideally shared)
@@ -250,7 +252,8 @@ export function TransactionItem({
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         )}
-                        {!canEdit && !canDelete && (
+                        {customActions}
+                        {!customActions && !canEdit && !canDelete && (
                             <div className="h-8 w-8 flex items-center justify-center text-muted-foreground" title="Somente leitura">
                                 <Lock className="h-4 w-4" />
                             </div>

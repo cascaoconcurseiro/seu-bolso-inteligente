@@ -10,7 +10,9 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
-import { cn } from "@/lib/utils";
+import { TransactionItem } from "@/components/transactions/TransactionItem";
+import { groupTransactionsByDay } from "@/utils/transactionUtils";
+import { useFamilyMembers } from "@/hooks/useFamily";
 import { getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 
@@ -33,21 +35,22 @@ const formatCurrencyWithSymbol = (value: number, currency: string = 'BRL') => {
     'MXN': 'MX$',
   };
   const symbol = symbols[currency] || currency;
-  
+
   if (currency === 'BRL') {
     return formatCurrency(value);
   }
-  
+
   return `${symbol} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { data: familyMembers = [] } = useFamilyMembers();
   const { data: summary, isLoading: summaryLoading, isError: summaryError } = useFinancialSummary();
   const { data: transactions, isLoading: txLoading, isError: txError } = useTransactions();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: projection, isLoading: projectionLoading } = useMonthlyProjection();
-  
+
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   // Listen for global transaction modal event
@@ -67,15 +70,15 @@ export function Dashboard() {
         if (!splits || splits.length === 0) {
           return false;
         }
-        
+
         // Verificar se TODOS os splits foram acertados
         const allSettled = splits.every((s: any) => s.is_settled);
-        
+
         // Se não foram todos acertados, não mostrar no dashboard
         if (!allSettled) {
           return false;
         }
-        
+
         // Se foram acertados, verificar se o usuário atual é o criador/pagador
         const creatorUserId = (t as any).creator_user_id;
         if (creatorUserId !== user?.id && t.user_id !== user?.id) {
@@ -85,7 +88,7 @@ export function Dashboard() {
       return true;
     })
     .slice(0, 5);
-  
+
   // Se tiver erro, não ficar travado no loading
   const hasError = summaryError || txError || accountsError;
   const isLoading = (summaryLoading || txLoading || accountsLoading) && !hasError;
@@ -94,7 +97,7 @@ export function Dashboard() {
   const income = summary?.income || 0;
   const expenses = summary?.expenses || 0;
   const savings = income - expenses;
-  
+
   // PROJEÇÃO CORRETA: usar a função que considera tudo do mês
   const projectedBalance = projection?.projected_balance ?? balance;
 
@@ -102,13 +105,13 @@ export function Dashboard() {
   const balancesByForeignCurrency = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return {};
     const grouped: Record<string, number> = {};
-    
+
     const foreignAccounts = (accounts || []).filter(a => a.is_international && a.type !== 'CREDIT_CARD');
     foreignAccounts.forEach(acc => {
       const currency = acc.currency || 'USD';
       grouped[currency] = (grouped[currency] || 0) + Number(acc.balance);
     });
-    
+
     return grouped;
   }, [accounts]);
 
@@ -138,7 +141,7 @@ export function Dashboard() {
         {/* Pending Invitations Alert - SEMPRE mostrar */}
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
-        
+
         <div className="text-center py-16">
           <h1 className="font-display font-bold text-4xl tracking-tight mb-4">
             Bem-vindo ao Pé de Meia
@@ -192,13 +195,13 @@ export function Dashboard() {
             </span>
           </div>
         </div>
-        
+
         {/* Saldos em Moedas Estrangeiras */}
         {hasForeignBalances && (
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-4">
             {Object.entries(balancesByForeignCurrency).map(([currency, currencyBalance], index) => (
-              <div 
-                key={currency} 
+              <div
+                key={currency}
                 className={cn(
                   "flex items-center gap-2 p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 hover-lift animate-stagger",
                   `stagger-${index + 4}`
@@ -238,7 +241,7 @@ export function Dashboard() {
                   const dueDay = card.due_day || 10;
                   const today = new Date().getDate();
                   const daysUntilDue = dueDay >= today ? dueDay - today : 30 - today + dueDay;
-                  
+
                   return (
                     <Link
                       key={card.id}
@@ -276,60 +279,52 @@ export function Dashboard() {
               <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
                 Atividade recente
               </h2>
-              <Link 
-                to="/transacoes" 
+              <Link
+                to="/transacoes"
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-animated"
               >
                 Ver todas
               </Link>
             </div>
 
+            {/* Dashboard Transactions List - Standardized */}
             {recentTransactions.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-border rounded-xl animate-fade-in">
-                <p className="text-muted-foreground">📊 Suas transações aparecerão aqui</p>
+              <div className="p-8 text-center border border-dashed border-border rounded-xl">
+                <p className="text-muted-foreground">Nenhuma transação recente</p>
               </div>
             ) : (
-              <div className="space-y-1">
-                {recentTransactions.map((tx, index) => {
-                  const txDate = new Date(tx.date);
-                  const today = new Date();
-                  const yesterday = new Date(today);
-                  yesterday.setDate(yesterday.getDate() - 1);
-                  
-                  let dateLabel = txDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-                  if (txDate.toDateString() === today.toDateString()) dateLabel = "Hoje";
-                  else if (txDate.toDateString() === yesterday.toDateString()) dateLabel = "Ontem";
-                  
-                  return (
-                    <div
-                      key={tx.id}
-                      className={cn(
-                        "flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-all hover-lift animate-stagger",
-                        `stagger-${index + 1}`
-                      )}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium">{tx.description}</p>
-                          {tx.is_shared && (
-                            <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                              Compartilhado
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {tx.category?.name || "Sem categoria"} • {dateLabel}
-                        </p>
-                      </div>
-                      <p className={cn(
-                        "font-mono font-semibold",
-                        tx.type === "INCOME" ? "text-green-500" : "text-red-500"
-                      )}>
-                        {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(Number(tx.amount))}
-                      </p>
+              <div className="space-y-6">
+                {groupTransactionsByDay(recentTransactions).map((group) => (
+                  <div key={group.date} className="space-y-2">
+                    <h3 className="text-sm font-medium text-muted-foreground px-2">
+                      {group.label}
+                    </h3>
+                    <div className="bg-card rounded-xl border border-border overflow-hidden">
+                      {group.transactions.map((tx) => (
+                        <TransactionItem
+                          key={tx.id}
+                          transaction={tx}
+                          user={user}
+                          familyMembers={familyMembers}
+                          // Dashboard usually read-only or quick edit? user didn't specify, but safer to enable edits if they want "consistency"
+                          // For now, I'll enable click but maybe not full buttons if space is tight? 
+                          // TransactionItem handles space well (flex).
+                          onClick={() => {
+                            // Assuming Dashboard has a way to view details or navigate.
+                            // Current Dashboard had no onClick handler in the inline code!
+                            // I will leave onClick empty or navigate?
+                            // Better: Add navigation or Modal support if Dashboard has it.
+                            // Dashboard.tsx has TransactionModal support (lines 430+).
+                            // No "Edit Transaction" state in Dashboard?
+                            // Line 430: <TransactionModal isOpen={showTransactionModal} ... />
+                            // It seems Dashboard ONLY allows Creating New, not Editing existing.
+                            // So I will render Read-Only for now or add basic 'view' support if I see `setEditingTransaction`.
+                          }}
+                        />
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -342,7 +337,7 @@ export function Dashboard() {
             <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
               Acesso rápido
             </h2>
-            
+
             <Link
               to="/cartoes"
               className="group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 card-animated hover-lift"
@@ -387,41 +382,41 @@ export function Dashboard() {
             <p className="font-mono text-2xl font-bold animate-count-up">
               {formatCurrency(projectedBalance)}
             </p>
-            
+
             {/* Detalhamento da Projeção */}
             {projection && (
-              projection.future_income > 0 || 
-              projection.future_expenses > 0 || 
-              projection.credit_card_invoices > 0 || 
+              projection.future_income > 0 ||
+              projection.future_expenses > 0 ||
+              projection.credit_card_invoices > 0 ||
               projection.shared_debts > 0
             ) && (
-              <div className="mt-3 pt-3 border-t border-background/20 space-y-1 text-xs opacity-80">
-                {projection.future_income > 0 && (
-                  <div className="flex justify-between">
-                    <span>💰 Receitas futuras</span>
-                    <span>{formatCurrency(projection.future_income)}</span>
-                  </div>
-                )}
-                {projection.future_expenses > 0 && (
-                  <div className="flex justify-between">
-                    <span>💸 Despesas futuras</span>
-                    <span>{formatCurrency(projection.future_expenses)}</span>
-                  </div>
-                )}
-                {projection.credit_card_invoices > 0 && (
-                  <div className="flex justify-between">
-                    <span>💳 Faturas cartão</span>
-                    <span>{formatCurrency(projection.credit_card_invoices)}</span>
-                  </div>
-                )}
-                {projection.shared_debts > 0 && (
-                  <div className="flex justify-between">
-                    <span>👥 Compartilhados</span>
-                    <span>{formatCurrency(projection.shared_debts)}</span>
-                  </div>
-                )}
-              </div>
-            )}
+                <div className="mt-3 pt-3 border-t border-background/20 space-y-1 text-xs opacity-80">
+                  {projection.future_income > 0 && (
+                    <div className="flex justify-between">
+                      <span>💰 Receitas futuras</span>
+                      <span>{formatCurrency(projection.future_income)}</span>
+                    </div>
+                  )}
+                  {projection.future_expenses > 0 && (
+                    <div className="flex justify-between">
+                      <span>💸 Despesas futuras</span>
+                      <span>{formatCurrency(projection.future_expenses)}</span>
+                    </div>
+                  )}
+                  {projection.credit_card_invoices > 0 && (
+                    <div className="flex justify-between">
+                      <span>💳 Faturas cartão</span>
+                      <span>{formatCurrency(projection.credit_card_invoices)}</span>
+                    </div>
+                  )}
+                  {projection.shared_debts > 0 && (
+                    <div className="flex justify-between">
+                      <span>👥 Compartilhados</span>
+                      <span>{formatCurrency(projection.shared_debts)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
         </aside>
       </div>

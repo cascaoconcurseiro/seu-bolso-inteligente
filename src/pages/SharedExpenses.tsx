@@ -71,6 +71,7 @@ import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { TransactionItem } from "@/components/transactions/TransactionItem";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -1024,1203 +1025,1127 @@ export function SharedExpenses() {
                 )}
 
                 {/* Items */}
-                <div className="divide-y divide-border">
-                  {group.items.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item:', {
-                      id: item.id,
-                      description: item.description,
-                      type: item.type,
-                      isPaid: item.isPaid,
-                      creatorUserId: item.creatorUserId,
-                      currentUserId: user?.id
-                    });
+                {group.items.map(item => {
+                  const isCredit = item.type === "CREDIT";
+                  const hasActions = item.isPaid || item.creatorUserId === user?.id;
 
-                    try {
-                      const isCredit = item.type === "CREDIT";
-                      const hasActions = item.isPaid || item.creatorUserId === user?.id;
-                      console.log('🔵 [SharedExpenses] Item hasActions:', hasActions);
+                  // Adapt InvoiceItem to Transaction interface for display
+                  const displayTransaction: any = {
+                    id: item.id,
+                    description: item.description,
+                    amount: item.amount,
+                    date: item.date,
+                    type: isCredit ? "INCOME" : "EXPENSE",
+                    category: { name: item.category || "Geral", icon: null },
+                    is_shared: true,
+                    currency: item.currency,
+                    created_at: item.date, // fallback
+                    user_id: item.creatorUserId, // show avatar of creator?
+                    // Trick to force visual status in TransactionItem (which uses complex helpers)
+                    // We'll rely on our Custom Badges via customActions or just let TransactionItem render basic info
+                    // and overlay status if needed?
+                    // Actually TransactionItem renders "Compartilhado [Icon]" etc.
+                    // For Shared Expenses, the "Status" column (bullets) was useful.
+                    // TransactionItem has "settled/pending" logic based on splits.
+                    transaction_splits: [{ is_settled: item.isPaid }],
+                    account: { name: "Compartilhado" }
+                  };
 
-                      return (
-                        <div
-                          key={item.id}
-                          className={cn(
-                            "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
-                            item.isPaid && "opacity-60"
+                  return (
+                    <TransactionItem
+                      key={item.id}
+                      transaction={displayTransaction}
+                      user={user}
+                      familyMembers={members}
+                      showActions={true}
+                      customActions={
+                        <div className="flex items-center gap-2">
+                          {/* Status Badge from original code */}
+                          {item.isPaid && (
+                            <Badge variant="outline" className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50">
+                              PAGO
+                            </Badge>
                           )}
-                        >
-                          {/* Status */}
-                          <div className="col-span-1">
-                            {item.isPaid ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <div className={cn(
-                                "w-3 h-3 rounded-full",
-                                isCredit ? "bg-green-500" : "bg-red-500"
-                              )} />
-                            )}
-                          </div>
+                          {!item.isPaid && (
+                            <Badge variant="outline" className={cn("text-xs font-bold", isCredit ? "border-green-300 text-green-700 bg-green-50" : "border-red-300 text-red-700 bg-red-50")}>
+                              {isCredit ? "A RECEBER" : "A PAGAR"}
+                            </Badge>
+                          )}
 
-                          {/* Descrição e Categoria */}
-                          <div className="col-span-5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                item.isPaid && "line-through text-muted-foreground"
-                              )}>
-                                {item.description}
-                              </p>
-                              {item.creatorName && (
-                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                  💳 {item.creatorName}
-                                </span>
-                              )}
-                            </div>
-                            {item.category && (
-                              <p className="text-xs text-muted-foreground">
-                                📁 {item.category}
-                              </p>
-                            )}
-                            {item.totalInstallments && item.totalInstallments > 1 && (
-                              <p className="text-xs text-muted-foreground">
-                                Parcela {item.installmentNumber}/{item.totalInstallments}
-                              </p>
-                            )}
-                          </div>
+                          {/* Action Menu */}
+                          {hasActions && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {item.isPaid && (
+                                  <DropdownMenuItem onClick={() => setUndoConfirm({ isOpen: true, item })}>
+                                    <Undo2 className="h-4 w-4 mr-2" />
+                                    Desfazer acerto
+                                  </DropdownMenuItem>
+                                )}
+                                {item.creatorUserId === user?.id && (
+                                  <>
+                                    {item.totalInstallments && item.totalInstallments > 1 ? (
+                                      <DropdownMenuItem onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })} className="text-destructive">
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir série
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => setDeleteConfirm({ isOpen: true, item })} className="text-destructive">
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir
+                                      </DropdownMenuItem>
+                                    )}
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </div>
+              </div>
+        ))}
 
-                          {/* Data */}
-                          <div className="col-span-2">
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(item.date), "dd/MM/yyyy", { locale: ptBR })}
-                            </p>
-                          </div>
+        {/* Resumo no rodapé */}
+        {!isHistory && items.filter(i => !i.isPaid).length > 0 && (
+          <div className={cn(
+            "px-4 py-3 border-t-2",
+            iOwe ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
+              theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
+                "bg-muted/50 border-border"
+          )}>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Total Pendente</span>
+              <span className={cn(
+                "font-mono font-bold text-lg",
+                iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
+              )}>
+                {formatCurrency(Math.abs(net), primaryCurrency)}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+      </div >
+    );
+};
 
-                          {/* Valor */}
-                          <div className="col-span-2 text-right">
-                            <span className={cn(
-                              "font-mono text-sm font-medium",
-                              item.isPaid ? "text-muted-foreground" :
-                                isCredit ? "text-green-600 dark:text-green-400" :
-                                  "text-red-600 dark:text-red-400"
+// Função para renderizar card de viagem (usado na aba TRAVEL)
+const renderTripCard = (trip: any) => {
+  // Buscar todos os itens desta viagem de todos os membros
+  const tripItems: InvoiceItem[] = [];
+  members.forEach(member => {
+    const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+    tripItems.push(...memberItems);
+  });
+
+  if (tripItems.length === 0) return undefined; // Será filtrado pelo .filter(Boolean)
+
+  // Calcular totais por moeda
+  const totals = getTotals(tripItems);
+  const tripCurrency = trip.currency || 'BRL';
+  const net = totals[tripCurrency]?.net || 0;
+
+  // Agrupar itens por membro
+  const itemsByMember: Record<string, InvoiceItem[]> = {};
+  tripItems.forEach(item => {
+    if (!itemsByMember[item.memberId]) {
+      itemsByMember[item.memberId] = [];
+    }
+    itemsByMember[item.memberId].push(item);
+  });
+
+  const pendingCount = tripItems.filter(i => !i.isPaid).length;
+  const paidCount = tripItems.filter(i => i.isPaid).length;
+
+  return (
+    <div
+      key={trip.id}
+      className="rounded-xl border-2 border-blue-200 dark:border-blue-900/50 overflow-hidden transition-all"
+    >
+      {/* Header da viagem */}
+      <div className="p-4 bg-blue-50 dark:bg-blue-950/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* Ícone da viagem */}
+            <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white bg-blue-500">
+              <Plane className="h-6 w-6" />
+            </div>
+
+            {/* Info */}
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-display font-semibold text-lg">{trip.name}</p>
+                <Badge
+                  variant="outline"
+                  className="text-xs font-medium border-blue-300 text-blue-700 bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-900/50"
+                >
+                  {tripCurrency}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {pendingCount} {pendingCount === 1 ? "item pendente" : "itens pendentes"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Valor total */}
+            <div className="text-right">
+              <p className={cn(
+                "font-mono font-bold text-xl",
+                net === 0 ? "text-muted-foreground" :
+                  net < 0 ? "text-red-600 dark:text-red-400" :
+                    "text-green-600 dark:text-green-400"
+              )}>
+                {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
+              </p>
+              {net !== 0 && (
+                <p className={cn(
+                  "text-xs font-medium",
+                  net < 0 ? "text-red-500" : "text-green-500"
+                )}>
+                  {net < 0 ? "Você deve" : "Devem a você"}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Lista de itens por membro */}
+      <div className="border-t border-border">
+        {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
+          const member = members.find(m => m.id === memberId);
+          if (!member) return undefined; // Será filtrado
+
+          const memberTotals = getTotals(memberItems);
+          const memberNet = memberTotals[tripCurrency]?.net || 0;
+
+          return (
+            <div key={memberId} className="border-b border-border last:border-0">
+              {/* Header do membro */}
+              <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white bg-gray-500 text-sm">
+                    {getInitials(member.name)}
+                  </div>
+                  <span className="font-medium">{member.name}</span>
+                </div>
+                <span className={cn(
+                  "font-mono font-semibold",
+                  memberNet === 0 ? "text-muted-foreground" :
+                    memberNet < 0 ? "text-red-600" : "text-green-600"
+                )}>
+                  {formatCurrency(Math.abs(memberNet), tripCurrency)}
+                </span>
+              </div>
+
+              {/* Itens do membro */}
+              <div className="divide-y divide-border">
+                {memberItems.map(item => {
+                  console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', {
+                    id: item.id,
+                    description: item.description,
+                    type: item.type,
+                    isPaid: item.isPaid,
+                    creatorUserId: item.creatorUserId,
+                    currentUserId: user?.id,
+                    tripId: item.tripId
+                  });
+
+                  try {
+                    const isCredit = item.type === 'CREDIT';
+                    const hasActions = item.isPaid || item.creatorUserId === user?.id;
+                    console.log('🔵 [SharedExpenses] Item TRAVEL hasActions:', hasActions);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
+                      >
+                        {/* Status */}
+                        <div className="col-span-1">
+                          {item.isPaid ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <div className={cn(
+                              "h-5 w-5 rounded-full border-2",
+                              isCredit ? "border-green-500" : "border-red-500"
+                            )} />
+                          )}
+                        </div>
+
+                        {/* Descrição */}
+                        <div className="col-span-5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className={cn(
+                              "font-medium",
+                              item.isPaid && "text-muted-foreground line-through"
                             )}>
-                              {formatCurrency(item.amount, item.currency)}
-                            </span>
-                          </div>
-
-                          {/* Tipo + Ações */}
-                          <div className="col-span-2 flex items-center justify-end gap-2">
-                            {/* Tag PAGO - mais visível */}
-                            {item.isPaid && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
-                              >
-                                PAGO
-                              </Badge>
+                              {item.description}
+                            </p>
+                            {item.creatorName && (
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                💳 {item.creatorName}
+                              </span>
                             )}
+                          </div>
+                          {item.category && (
+                            <p className="text-xs text-muted-foreground">{item.category}</p>
+                          )}
+                        </div>
 
+                        {/* Data */}
+                        <div className="col-span-2 text-muted-foreground">
+                          {format(new Date(item.date), "dd/MM/yyyy")}
+                        </div>
+
+                        {/* Valor */}
+                        <div className="col-span-2 text-right">
+                          <span className={cn(
+                            "font-mono text-sm font-medium",
+                            item.isPaid ? "text-muted-foreground" :
+                              isCredit ? "text-green-600 dark:text-green-400" :
+                                "text-red-600 dark:text-red-400"
+                          )}>
+                            {formatCurrency(item.amount, tripCurrency)}
+                          </span>
+                        </div>
+
+                        {/* Tipo */}
+                        <div className="col-span-2 flex items-center justify-end gap-2">
+                          {item.isPaid && (
                             <Badge
                               variant="outline"
-                              className={cn(
-                                "text-xs font-bold",
-                                item.isPaid ? "border-gray-300 text-gray-500" :
-                                  isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
-                                    "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
-                              )}
+                              className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
                             >
-                              {isCredit ? "CRÉDITO" : "DÉBITO"}
+                              PAGO
                             </Badge>
+                          )}
 
-                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
-                            {(item.isPaid || item.creatorUserId === user?.id) && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {item.isPaid && (
-                                    <DropdownMenuItem
-                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                    >
-                                      <Undo2 className="h-4 w-4 mr-2" />
-                                      Desfazer acerto
-                                    </DropdownMenuItem>
-                                  )}
-                                  {/* Apenas o criador pode excluir */}
-                                  {item.creatorUserId === user?.id && (
-                                    <>
-                                      {item.totalInstallments && item.totalInstallments > 1 ? (
-                                        <DropdownMenuItem
-                                          onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir série ({item.totalInstallments}x)
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem
-                                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir transação
-                                        </DropdownMenuItem>
-                                      )}
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-xs font-bold",
+                              item.isPaid ? "border-gray-300 text-gray-500" :
+                                isCredit ? "border-green-300 text-green-700 bg-green-50" :
+                                  "border-red-300 text-red-700 bg-red-50"
                             )}
+                          >
+                            {isCredit ? "CRÉDITO" : "DÉBITO"}
+                          </Badge>
+
+                          {/* Menu de ações - só mostrar se houver ações disponíveis */}
+                          {(item.isPaid || item.creatorUserId === user?.id) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
+                                  <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {item.isPaid && (
+                                  <DropdownMenuItem
+                                    onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                  >
+                                    <Undo2 className="h-4 w-4 mr-2" />
+                                    Desfazer acerto
+                                  </DropdownMenuItem>
+                                )}
+                                {/* Apenas o criador pode excluir */}
+                                {item.creatorUserId === user?.id && (
+                                  <>
+                                    {item.totalInstallments && item.totalInstallments > 1 ? (
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir série ({item.totalInstallments}x)
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Excluir transação
+                                      </DropdownMenuItem>
+                                    )}
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  } catch (error) {
+                    console.error('❌ [SharedExpenses] ERRO ao renderizar item TRAVEL:', error);
+                    console.error('❌ Item data:', item);
+                    console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+                    return (
+                      <div key={item.id} className="px-4 py-3 bg-red-50 dark:bg-red-950/20">
+                        <p className="text-sm text-red-600">Erro ao renderizar item: {item.description}</p>
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+
+              {/* Botão de acertar para este membro nesta viagem */}
+              {memberNet !== 0 && memberItems.filter(i => !i.isPaid).length > 0 && (
+                <div className="px-4 py-3 bg-muted/20 flex justify-end">
+                  <Button
+                    variant={memberNet < 0 ? "destructive" : "default"}
+                    size="sm"
+                    className={cn(
+                      "h-11 md:h-9",
+                      memberNet > 0 && "bg-green-600 hover:bg-green-700"
+                    )}
+                    onClick={() => {
+                      setSelectedMember(memberId);
+                      openSettleDialog(
+                        memberId,
+                        memberNet < 0 ? "PAY" : "RECEIVE",
+                        Math.abs(memberNet)
+                      );
+                    }}
+                  >
+                    <Wallet className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">{memberNet < 0 ? "Pagar" : "Receber"}</span>
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+console.log('🔵 [SharedExpenses] Antes do return principal');
+console.log('🔵 [SharedExpenses] ========== PREPARANDO RENDER ==========');
+console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
+console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
+console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
+console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
+
+return (
+  <div className="space-y-8 animate-fade-in">
+    {/* Header */}
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
+        <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
+      </div>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
+          <Layers className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">Importar Parcelas</span>
+          <span className="md:hidden">Importar</span>
+        </Button>
+      </div>
+    </div>
+
+    {/* Balance Evolution Chart */}
+    {(() => {
+      console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
+      try {
+        const chart = (
+          <SharedBalanceChart
+            transactions={transactions}
+            invoices={invoices}
+            currentDate={currentDate}
+          />
+        );
+        console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
+        return chart;
+      } catch (error) {
+        console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
+        console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+        return (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Erro ao carregar gráfico: {error instanceof Error ? error.message : 'Erro desconhecido'}
+            </AlertDescription>
+          </Alert>
+        );
+      }
+    })()}
+
+    {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
+    {(() => {
+      console.log('🔵 [SharedExpenses] 📊 Renderizando Summary Cards...');
+      try {
+        return (
+          <div className="space-y-4">
+            {/* Cards REGULAR */}
+            {Object.keys(totalsByCurrency).length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Meu Saldo - REGULAR */}
+                  <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CreditCard className="h-5 w-5 text-muted-foreground" />
+                      <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(totalsByCurrency).map(([currency, data]) => (
+                        <div key={currency}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className={cn(
+                              "font-mono text-lg font-bold",
+                              data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                            )}>
+                              {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                            </p>
                           </div>
+                          {data.settled > 0 && (
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-[10px] text-muted-foreground">Acertado</span>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {formatCurrency(data.settled, currency)}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      );
-                    } catch (error) {
-                      console.error('❌ [SharedExpenses] ERRO ao renderizar item REGULAR:', error);
-                      console.error('❌ Item data:', item);
-                      console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-                      return (
-                        <div key={item.id} className="px-4 py-3 bg-red-50 dark:bg-red-950/20">
-                          <p className="text-sm text-red-600">Erro ao renderizar item: {item.description}</p>
-                        </div>
-                      );
-                    }
-                  })}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* A Receber - REGULAR */}
+                  <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                      <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(totalsByCurrency)
+                        .filter(([_, data]) => data.owedToMe > 0)
+                        .map(([currency, data]) => (
+                          <div key={currency} className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                              {formatCurrency(data.owedToMe, currency)}
+                            </p>
+                          </div>
+                        ))}
+                      {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
+                        <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* A Pagar - REGULAR */}
+                  <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowRight className="h-5 w-5 text-red-600" />
+                      <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(totalsByCurrency)
+                        .filter(([_, data]) => data.iOwe > 0)
+                        .map(([currency, data]) => (
+                          <div key={currency} className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                              {formatCurrency(data.iOwe, currency)}
+                            </p>
+                          </div>
+                        ))}
+                      {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
+                        <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
 
-            {/* Resumo no rodapé */}
-            {!isHistory && items.filter(i => !i.isPaid).length > 0 && (
-              <div className={cn(
-                "px-4 py-3 border-t-2",
-                iOwe ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" :
-                  theyOweMe ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" :
-                    "bg-muted/50 border-border"
-              )}>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Total Pendente</span>
-                  <span className={cn(
-                    "font-mono font-bold text-lg",
-                    iOwe ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
-                  )}>
-                    {formatCurrency(Math.abs(net), primaryCurrency)}
-                  </span>
+            {/* Cards TRAVEL */}
+            {Object.keys(travelTotalsByCurrency).length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-2">
+                  <Plane className="h-4 w-4" />
+                  Viagens
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Meu Saldo - TRAVEL */}
+                  <div className="p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CreditCard className="h-5 w-5 text-blue-600" />
+                      <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
+                        <div key={currency}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className={cn(
+                              "font-mono text-lg font-bold",
+                              data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                            )}>
+                              {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
+                            </p>
+                          </div>
+                          {data.settled > 0 && (
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-[10px] text-muted-foreground">Acertado</span>
+                              <span className="text-[10px] text-muted-foreground font-mono">
+                                {formatCurrency(data.settled, currency)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* A Receber - TRAVEL */}
+                  <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
+                      <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(travelTotalsByCurrency)
+                        .filter(([_, data]) => data.owedToMe > 0)
+                        .map(([currency, data]) => (
+                          <div key={currency} className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
+                              {formatCurrency(data.owedToMe, currency)}
+                            </p>
+                          </div>
+                        ))}
+                      {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
+                        <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* A Pagar - TRAVEL */}
+                  <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowRight className="h-5 w-5 text-red-600" />
+                      <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                    </div>
+                    <div className="space-y-2">
+                      {Object.entries(travelTotalsByCurrency)
+                        .filter(([_, data]) => data.iOwe > 0)
+                        .map(([currency, data]) => (
+                          <div key={currency} className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                            <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
+                              {formatCurrency(data.iOwe, currency)}
+                            </p>
+                          </div>
+                        ))}
+                      {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
+                        <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
-        )}
-      </div>
-    );
-  };
-
-  // Função para renderizar card de viagem (usado na aba TRAVEL)
-  const renderTripCard = (trip: any) => {
-    // Buscar todos os itens desta viagem de todos os membros
-    const tripItems: InvoiceItem[] = [];
-    members.forEach(member => {
-      const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
-      tripItems.push(...memberItems);
-    });
-
-    if (tripItems.length === 0) return undefined; // Será filtrado pelo .filter(Boolean)
-
-    // Calcular totais por moeda
-    const totals = getTotals(tripItems);
-    const tripCurrency = trip.currency || 'BRL';
-    const net = totals[tripCurrency]?.net || 0;
-
-    // Agrupar itens por membro
-    const itemsByMember: Record<string, InvoiceItem[]> = {};
-    tripItems.forEach(item => {
-      if (!itemsByMember[item.memberId]) {
-        itemsByMember[item.memberId] = [];
+        );
+      } catch (error) {
+        console.error('❌ [SharedExpenses] ERRO nos Summary Cards:', error);
+        console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+        return null;
       }
-      itemsByMember[item.memberId].push(item);
-    });
+    })()}
 
-    const pendingCount = tripItems.filter(i => !i.isPaid).length;
-    const paidCount = tripItems.filter(i => i.isPaid).length;
-
-    return (
-      <div
-        key={trip.id}
-        className="rounded-xl border-2 border-blue-200 dark:border-blue-900/50 overflow-hidden transition-all"
-      >
-        {/* Header da viagem */}
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {/* Ícone da viagem */}
-              <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white bg-blue-500">
-                <Plane className="h-6 w-6" />
-              </div>
-
-              {/* Info */}
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-display font-semibold text-lg">{trip.name}</p>
-                  <Badge
-                    variant="outline"
-                    className="text-xs font-medium border-blue-300 text-blue-700 bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-900/50"
-                  >
-                    {tripCurrency}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {pendingCount} {pendingCount === 1 ? "item pendente" : "itens pendentes"}
-                </p>
-              </div>
+    {/* Tabs */}
+    {(() => {
+      console.log('🔵 [SharedExpenses] 📑 Renderizando Tabs...');
+      try {
+        return (
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
+            <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+              <TabsList className="inline-flex w-auto min-w-full md:w-full">
+                <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
+                  <Users className="h-4 w-4" />
+                  Regular
+                </TabsTrigger>
+                <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
+                  <Plane className="h-4 w-4" />
+                  Viagens
+                </TabsTrigger>
+                <TabsTrigger value="HISTORY" className="flex-1 min-w-[100px] gap-2">
+                  <History className="h-4 w-4" />
+                  Histórico
+                </TabsTrigger>
+              </TabsList>
             </div>
 
-            <div className="flex items-center gap-4">
-              {/* Valor total */}
-              <div className="text-right">
-                <p className={cn(
-                  "font-mono font-bold text-xl",
-                  net === 0 ? "text-muted-foreground" :
-                    net < 0 ? "text-red-600 dark:text-red-400" :
-                      "text-green-600 dark:text-green-400"
-                )}>
-                  {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
-                </p>
-                {net !== 0 && (
-                  <p className={cn(
-                    "text-xs font-medium",
-                    net < 0 ? "text-red-500" : "text-green-500"
-                  )}>
-                    {net < 0 ? "Você deve" : "Devem a você"}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+            {(() => {
+              console.log('🔵 [SharedExpenses] 🚨 ANTES DE RENDERIZAR TabsContent');
+              console.log('🔵 [SharedExpenses] activeTab:', activeTab);
+              console.log('🔵 [SharedExpenses] members.length:', members.length);
+              console.log('🔵 [SharedExpenses] members:', members);
 
-        {/* Lista de itens por membro */}
-        <div className="border-t border-border">
-          {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
-            const member = members.find(m => m.id === memberId);
-            if (!member) return undefined; // Será filtrado
+              const tabsContentProps = {
+                value: activeTab,
+                className: "mt-6"
+              };
+              console.log('🔵 [SharedExpenses] TabsContent props:', tabsContentProps);
 
-            const memberTotals = getTotals(memberItems);
-            const memberNet = memberTotals[tripCurrency]?.net || 0;
-
-            return (
-              <div key={memberId} className="border-b border-border last:border-0">
-                {/* Header do membro */}
-                <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white bg-gray-500 text-sm">
-                      {getInitials(member.name)}
-                    </div>
-                    <span className="font-medium">{member.name}</span>
-                  </div>
-                  <span className={cn(
-                    "font-mono font-semibold",
-                    memberNet === 0 ? "text-muted-foreground" :
-                      memberNet < 0 ? "text-red-600" : "text-green-600"
-                  )}>
-                    {formatCurrency(Math.abs(memberNet), tripCurrency)}
-                  </span>
-                </div>
-
-                {/* Itens do membro */}
-                <div className="divide-y divide-border">
-                  {memberItems.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', {
-                      id: item.id,
-                      description: item.description,
-                      type: item.type,
-                      isPaid: item.isPaid,
-                      creatorUserId: item.creatorUserId,
-                      currentUserId: user?.id,
-                      tripId: item.tripId
-                    });
-
-                    try {
-                      const isCredit = item.type === 'CREDIT';
-                      const hasActions = item.isPaid || item.creatorUserId === user?.id;
-                      console.log('🔵 [SharedExpenses] Item TRAVEL hasActions:', hasActions);
-
+              return (
+                <TabsContent {...tabsContentProps}>
+                  {(() => {
+                    console.log('🔵 [SharedExpenses] 🚨 DENTRO DO TabsContent - renderizando children');
+                    if (members.length === 0) {
+                      console.log('🔵 [SharedExpenses] Renderizando: Nenhum membro');
                       return (
-                        <div
-                          key={item.id}
-                          className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
-                        >
-                          {/* Status */}
-                          <div className="col-span-1">
-                            {item.isPaid ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <div className={cn(
-                                "h-5 w-5 rounded-full border-2",
-                                isCredit ? "border-green-500" : "border-red-500"
-                              )} />
-                            )}
-                          </div>
-
-                          {/* Descrição */}
-                          <div className="col-span-5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className={cn(
-                                "font-medium",
-                                item.isPaid && "text-muted-foreground line-through"
-                              )}>
-                                {item.description}
-                              </p>
-                              {item.creatorName && (
-                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                  💳 {item.creatorName}
-                                </span>
-                              )}
-                            </div>
-                            {item.category && (
-                              <p className="text-xs text-muted-foreground">{item.category}</p>
-                            )}
-                          </div>
-
-                          {/* Data */}
-                          <div className="col-span-2 text-muted-foreground">
-                            {format(new Date(item.date), "dd/MM/yyyy")}
-                          </div>
-
-                          {/* Valor */}
-                          <div className="col-span-2 text-right">
-                            <span className={cn(
-                              "font-mono text-sm font-medium",
-                              item.isPaid ? "text-muted-foreground" :
-                                isCredit ? "text-green-600 dark:text-green-400" :
-                                  "text-red-600 dark:text-red-400"
-                            )}>
-                              {formatCurrency(item.amount, tripCurrency)}
-                            </span>
-                          </div>
-
-                          {/* Tipo */}
-                          <div className="col-span-2 flex items-center justify-end gap-2">
-                            {item.isPaid && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
-                              >
-                                PAGO
-                              </Badge>
-                            )}
-
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-xs font-bold",
-                                item.isPaid ? "border-gray-300 text-gray-500" :
-                                  isCredit ? "border-green-300 text-green-700 bg-green-50" :
-                                    "border-red-300 text-red-700 bg-red-50"
-                              )}
-                            >
-                              {isCredit ? "CRÉDITO" : "DÉBITO"}
-                            </Badge>
-
-                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
-                            {(item.isPaid || item.creatorUserId === user?.id) && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {item.isPaid && (
-                                    <DropdownMenuItem
-                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                    >
-                                      <Undo2 className="h-4 w-4 mr-2" />
-                                      Desfazer acerto
-                                    </DropdownMenuItem>
-                                  )}
-                                  {/* Apenas o criador pode excluir */}
-                                  {item.creatorUserId === user?.id && (
-                                    <>
-                                      {item.totalInstallments && item.totalInstallments > 1 ? (
-                                        <DropdownMenuItem
-                                          onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir série ({item.totalInstallments}x)
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem
-                                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir transação
-                                        </DropdownMenuItem>
-                                      )}
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    } catch (error) {
-                      console.error('❌ [SharedExpenses] ERRO ao renderizar item TRAVEL:', error);
-                      console.error('❌ Item data:', item);
-                      console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-                      return (
-                        <div key={item.id} className="px-4 py-3 bg-red-50 dark:bg-red-950/20">
-                          <p className="text-sm text-red-600">Erro ao renderizar item: {item.description}</p>
+                        <div className="py-16 text-center border border-dashed border-border rounded-xl">
+                          <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                          <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
+                          <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
+                          <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
+                            <span className="hidden sm:inline">Gerenciar Família</span>
+                            <span className="sm:hidden">Família</span>
+                          </Button>
                         </div>
                       );
                     }
-                  })}
-                </div>
 
-                {/* Botão de acertar para este membro nesta viagem */}
-                {memberNet !== 0 && memberItems.filter(i => !i.isPaid).length > 0 && (
-                  <div className="px-4 py-3 bg-muted/20 flex justify-end">
-                    <Button
-                      variant={memberNet < 0 ? "destructive" : "default"}
-                      size="sm"
-                      className={cn(
-                        "h-11 md:h-9",
-                        memberNet > 0 && "bg-green-600 hover:bg-green-700"
-                      )}
-                      onClick={() => {
-                        setSelectedMember(memberId);
-                        openSettleDialog(
-                          memberId,
-                          memberNet < 0 ? "PAY" : "RECEIVE",
-                          Math.abs(memberNet)
-                        );
-                      }}
-                    >
-                      <Wallet className="h-4 w-4 md:mr-2" />
-                      <span className="hidden md:inline">{memberNet < 0 ? "Pagar" : "Receber"}</span>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  console.log('🔵 [SharedExpenses] Antes do return principal');
-  console.log('🔵 [SharedExpenses] ========== PREPARANDO RENDER ==========');
-  console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
-  console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
-  console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
-  console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
-
-  return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
-          <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
-            <Layers className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Importar Parcelas</span>
-            <span className="md:hidden">Importar</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Balance Evolution Chart */}
-      {(() => {
-        console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
-        try {
-          const chart = (
-            <SharedBalanceChart
-              transactions={transactions}
-              invoices={invoices}
-              currentDate={currentDate}
-            />
-          );
-          console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
-          return chart;
-        } catch (error) {
-          console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
-          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-          return (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Erro ao carregar gráfico: {error instanceof Error ? error.message : 'Erro desconhecido'}
-              </AlertDescription>
-            </Alert>
-          );
-        }
-      })()}
-
-      {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
-      {(() => {
-        console.log('🔵 [SharedExpenses] 📊 Renderizando Summary Cards...');
-        try {
-          return (
-            <div className="space-y-4">
-              {/* Cards REGULAR */}
-              {Object.keys(totalsByCurrency).length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Meu Saldo - REGULAR */}
-                    <div className="p-6 rounded-xl border-2 bg-muted/30 border-border">
-                      <div className="flex items-center gap-2 mb-3">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                        <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(totalsByCurrency).map(([currency, data]) => (
-                          <div key={currency}>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className={cn(
-                                "font-mono text-lg font-bold",
-                                data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                              )}>
-                                {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                              </p>
-                            </div>
-                            {data.settled > 0 && (
-                              <div className="flex items-center justify-between mt-1">
-                                <span className="text-[10px] text-muted-foreground">Acertado</span>
-                                <span className="text-[10px] text-muted-foreground font-mono">
-                                  {formatCurrency(data.settled, currency)}
-                                </span>
-                              </div>
-                            )}
+                    console.log('🔵 [SharedExpenses] Renderizando: Com membros');
+                    return (
+                      <div className="space-y-4">
+                        {/* Legenda */}
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-red-500" />
+                            <span>Pagar (você deve)</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* A Receber - REGULAR */}
-                    <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                        <p className="text-sm font-medium text-muted-foreground">A Receber</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(totalsByCurrency)
-                          .filter(([_, data]) => data.owedToMe > 0)
-                          .map(([currency, data]) => (
-                            <div key={currency} className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
-                                {formatCurrency(data.owedToMe, currency)}
-                              </p>
-                            </div>
-                          ))}
-                        {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
-                          <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* A Pagar - REGULAR */}
-                    <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ArrowRight className="h-5 w-5 text-red-600" />
-                        <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(totalsByCurrency)
-                          .filter(([_, data]) => data.iOwe > 0)
-                          .map(([currency, data]) => (
-                            <div key={currency} className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
-                                {formatCurrency(data.iOwe, currency)}
-                              </p>
-                            </div>
-                          ))}
-                        {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
-                          <p className="text-muted-foreground text-center text-sm">R$ 0,00</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Cards TRAVEL */}
-              {Object.keys(travelTotalsByCurrency).length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-2">
-                    <Plane className="h-4 w-4" />
-                    Viagens
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {/* Meu Saldo - TRAVEL */}
-                    <div className="p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <CreditCard className="h-5 w-5 text-blue-600" />
-                        <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
-                          <div key={currency}>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className={cn(
-                                "font-mono text-lg font-bold",
-                                data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                              )}>
-                                {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
-                              </p>
-                            </div>
-                            {data.settled > 0 && (
-                              <div className="flex items-center justify-between mt-1">
-                                <span className="text-[10px] text-muted-foreground">Acertado</span>
-                                <span className="text-[10px] text-muted-foreground font-mono">
-                                  {formatCurrency(data.settled, currency)}
-                                </span>
-                              </div>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-green-500" />
+                            <span>Receber (devem a você)</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* A Receber - TRAVEL */}
-                    <div className="p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                        <p className="text-sm font-medium text-muted-foreground">A Receber</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(travelTotalsByCurrency)
-                          .filter(([_, data]) => data.owedToMe > 0)
-                          .map(([currency, data]) => (
-                            <div key={currency} className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className="font-mono text-lg font-bold text-green-600 dark:text-green-400">
-                                {formatCurrency(data.owedToMe, currency)}
-                              </p>
-                            </div>
-                          ))}
-                        {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
-                          <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
-                        )}
-                      </div>
-                    </div>
+                        {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
+                        {(() => {
+                          console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
+                          if (activeTab !== 'TRAVEL' && members.length > 0) {
+                            const memberCards = members.map(member => {
+                              console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
+                              try {
+                                return renderMemberInvoiceCard(member);
+                              } catch (error) {
+                                console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
+                                return undefined;
+                              }
+                            }).filter(Boolean);
+                            console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
+                            return <>{memberCards}</>;
+                          }
+                          console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
+                          return <></>;
+                        })()}
 
-                    {/* A Pagar - TRAVEL */}
-                    <div className="p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <ArrowRight className="h-5 w-5 text-red-600" />
-                        <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
-                      </div>
-                      <div className="space-y-2">
-                        {Object.entries(travelTotalsByCurrency)
-                          .filter(([_, data]) => data.iOwe > 0)
-                          .map(([currency, data]) => (
-                            <div key={currency} className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                              <p className="font-mono text-lg font-bold text-red-600 dark:text-red-400">
-                                {formatCurrency(data.iOwe, currency)}
-                              </p>
-                            </div>
-                          ))}
-                        {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
-                          <p className="text-muted-foreground text-center text-sm">$ 0.00</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        } catch (error) {
-          console.error('❌ [SharedExpenses] ERRO nos Summary Cards:', error);
-          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-          return null;
-        }
-      })()}
-
-      {/* Tabs */}
-      {(() => {
-        console.log('🔵 [SharedExpenses] 📑 Renderizando Tabs...');
-        try {
-          return (
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
-              <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
-                <TabsList className="inline-flex w-auto min-w-full md:w-full">
-                  <TabsTrigger value="REGULAR" className="flex-1 min-w-[100px] gap-2">
-                    <Users className="h-4 w-4" />
-                    Regular
-                  </TabsTrigger>
-                  <TabsTrigger value="TRAVEL" className="flex-1 min-w-[100px] gap-2">
-                    <Plane className="h-4 w-4" />
-                    Viagens
-                  </TabsTrigger>
-                  <TabsTrigger value="HISTORY" className="flex-1 min-w-[100px] gap-2">
-                    <History className="h-4 w-4" />
-                    Histórico
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-
-              {(() => {
-                console.log('🔵 [SharedExpenses] 🚨 ANTES DE RENDERIZAR TabsContent');
-                console.log('🔵 [SharedExpenses] activeTab:', activeTab);
-                console.log('🔵 [SharedExpenses] members.length:', members.length);
-                console.log('🔵 [SharedExpenses] members:', members);
-
-                const tabsContentProps = {
-                  value: activeTab,
-                  className: "mt-6"
-                };
-                console.log('🔵 [SharedExpenses] TabsContent props:', tabsContentProps);
-
-                return (
-                  <TabsContent {...tabsContentProps}>
-                    {(() => {
-                      console.log('🔵 [SharedExpenses] 🚨 DENTRO DO TabsContent - renderizando children');
-                      if (members.length === 0) {
-                        console.log('🔵 [SharedExpenses] Renderizando: Nenhum membro');
-                        return (
-                          <div className="py-16 text-center border border-dashed border-border rounded-xl">
-                            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                            <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
-                            <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
-                            <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
-                              <span className="hidden sm:inline">Gerenciar Família</span>
-                              <span className="sm:hidden">Família</span>
-                            </Button>
-                          </div>
-                        );
-                      }
-
-                      console.log('🔵 [SharedExpenses] Renderizando: Com membros');
-                      return (
-                        <div className="space-y-4">
-                          {/* Legenda */}
-                          <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-red-500" />
-                              <span>Pagar (você deve)</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full bg-green-500" />
-                              <span>Receber (devem a você)</span>
-                            </div>
-                          </div>
-
-                          {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
-                          {(() => {
-                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
-                            if (activeTab !== 'TRAVEL' && members.length > 0) {
-                              const memberCards = members.map(member => {
-                                console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
+                        {/* Lista de viagens (TRAVEL) */}
+                        {(() => {
+                          console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
+                          if (activeTab === 'TRAVEL') {
+                            const filteredTrips = trips.filter(trip => {
+                              // Verificar se há itens desta viagem no mês atual
+                              return members.some(member => {
+                                const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+                                return memberItems.length > 0;
+                              });
+                            });
+                            console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
+                            if (filteredTrips.length > 0) {
+                              const tripCards = filteredTrips.map(trip => {
+                                console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
                                 try {
-                                  return renderMemberInvoiceCard(member);
+                                  return renderTripCard(trip);
                                 } catch (error) {
-                                  console.error('❌ [SharedExpenses] ERRO ao renderizar card do membro:', member.name, error);
+                                  console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
                                   return undefined;
                                 }
                               }).filter(Boolean);
-                              console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
-                              return <>{memberCards}</>;
+                              return <>{tripCards}</>;
                             }
-                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
-                            return <></>;
-                          })()}
+                          }
+                          console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
+                          return <></>;
+                        })()}
 
-                          {/* Lista de viagens (TRAVEL) */}
-                          {(() => {
-                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
-                            if (activeTab === 'TRAVEL') {
-                              const filteredTrips = trips.filter(trip => {
-                                // Verificar se há itens desta viagem no mês atual
-                                return members.some(member => {
-                                  const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
-                                  return memberItems.length > 0;
-                                });
-                              });
-                              console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
-                              if (filteredTrips.length > 0) {
-                                const tripCards = filteredTrips.map(trip => {
-                                  console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
-                                  try {
-                                    return renderTripCard(trip);
-                                  } catch (error) {
-                                    console.error('❌ [SharedExpenses] ERRO ao renderizar card de viagem:', trip.name, error);
-                                    return undefined;
-                                  }
-                                }).filter(Boolean);
-                                return <>{tripCards}</>;
-                              }
-                            }
-                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
-                            return <></>;
-                          })()}
-
-                          {/* Mensagem se não houver itens */}
-                          {activeTab === 'TRAVEL' ? (
-                            <>
-                              {trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
-                                <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                                  <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                                  <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
-                                  <p className="text-muted-foreground">
-                                    Não há despesas de viagens neste período
-                                  </p>
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              {members.every(m => getFilteredInvoice(m.id).length === 0) && (
-                                <div className="py-12 text-center border border-dashed border-border rounded-xl">
-                                  <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                                  <h3 className="font-display font-semibold text-lg mb-2">
-                                    {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
-                                  </h3>
-                                  <p className="text-muted-foreground">
-                                    {activeTab === "HISTORY"
-                                      ? "Nenhum acerto foi realizado ainda"
-                                      : "Não há despesas pendentes neste período"}
-                                  </p>
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </TabsContent>
-                );
-              })()}
-            </Tabs>
-          );
-        } catch (error) {
-          console.error('❌ [SharedExpenses] ERRO nas Tabs:', error);
-          console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
-          return (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Erro ao carregar abas: {error instanceof Error ? error.message : 'Erro desconhecido'}
-              </AlertDescription>
-            </Alert>
-          );
-        }
-      })()}
-
-      {/* Settle Dialog - Estilo Fatura */}
-      <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
-              {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
-            </DialogTitle>
-            <DialogDescription>
-              {settleType === "PAY"
-                ? "Registre o pagamento da sua dívida"
-                : "Registre o recebimento do valor devido"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedMember && (() => {
-            const member = members.find(m => m.id === selectedMember);
-            const itemsToConsider = selectedItems.length > 0
-              ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
-              : pendingMemberItems;
-
-            const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
-            const internationalTrip = tripIds.length > 0
-              ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
-              : null;
-
-            const settlementCurrency = internationalTrip?.currency || "BRL";
-            const isInternationalSettlement = settlementCurrency !== "BRL";
-
-            const filteredSettleAccounts = (accounts || []).filter(a => {
-              if (a.type === "CREDIT_CARD") return false;
-              if (isInternationalSettlement) {
-                return a.is_international && a.currency === settlementCurrency;
-              }
-              return !a.is_international;
-            });
-
-            return (
-              <div className="py-4 space-y-6">
-                {/* Alerta internacional */}
-                {isInternationalSettlement && (
-                  <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                    <Globe className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
-                      Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Visual de transferência */}
-                <div className={cn(
-                  "flex items-center justify-center gap-6 p-4 rounded-xl",
-                  settleType === "PAY"
-                    ? "bg-red-50 dark:bg-red-950/20"
-                    : "bg-green-50 dark:bg-green-950/20"
-                )}>
-                  <div className="text-center">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
-                      settleType === "PAY" ? "bg-red-500" : "bg-muted"
-                    )}>
-                      {settleType === "PAY" ? "EU" : getInitials(member?.name || "")}
-                    </div>
-                    <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
-                  </div>
-                  <div className="text-center">
-                    <ArrowRight className={cn(
-                      "h-5 w-5",
-                      settleType === "PAY" ? "text-red-500" : "text-green-500"
-                    )} />
-                    <p className={cn(
-                      "font-mono font-bold mt-1",
-                      settleType === "PAY" ? "text-red-600" : "text-green-600"
-                    )}>
-                      {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
-                      settleType === "RECEIVE" ? "bg-green-500" : "bg-muted"
-                    )}>
-                      {settleType === "RECEIVE" ? "EU" : getInitials(member?.name || "")}
-                    </div>
-                    <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : member?.name}</p>
-                  </div>
-                </div>
-
-                {/* Seleção de itens */}
-                {pendingMemberItems.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <Label className="text-sm font-medium">Itens para acertar</Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleSelectAll}
-                        className="text-xs h-7 shrink-0"
-                      >
-                        {selectedItems.length === pendingMemberItems.length
-                          ? "Desmarcar"
-                          : <><span className="hidden sm:inline">Selecionar todos</span><span className="sm:hidden">Todos</span></>}
-                      </Button>
-                    </div>
-                    <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
-                      {pendingMemberItems.map(item => {
-                        const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
-                        const itemCurrency = itemTrip?.currency || "BRL";
-                        const isCredit = item.type === "CREDIT";
-                        return (
-                          <label
-                            key={item.id}
-                            className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
-                          >
-                            <Checkbox
-                              checked={selectedItems.includes(item.id)}
-                              onCheckedChange={() => {
-                                toggleItem(item.id);
-                              }}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm truncate">{item.description}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {format(new Date(item.date), "dd/MM/yyyy")}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <span className={cn(
-                                "font-mono text-sm font-medium",
-                                isCredit ? "text-green-600" : "text-red-600"
-                              )}>
-                                {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                              </span>
-                              {itemCurrency !== "BRL" && (
-                                <p className="text-[10px] text-blue-600">{itemCurrency}</p>
-                              )}
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    {selectedItems.length > 0 && (
-                      <div className={cn(
-                        "p-2 rounded-lg text-sm",
-                        settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
-                      )}>
-                        <div className="flex justify-between">
-                          <span>Itens selecionados:</span>
-                          <span className="font-medium">{selectedItems.length}</span>
-                        </div>
-                        <div className="flex justify-between font-medium">
-                          <span>Total:</span>
-                          <span className={cn(
-                            "font-mono",
-                            settleType === "PAY" ? "text-red-600" : "text-green-600"
-                          )}>
-                            {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Valor e conta */}
-                <div className="grid gap-4">
-                  {/* Valor manual removido conforme solicitado */}
-                  {/* O valor total já é exibido no card de resumo acima */}
-
-                  <div className="space-y-2">
-                    <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
-                    <Select value={settleAccountId} onValueChange={setSettleAccountId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a conta" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredSettleAccounts.length === 0 ? (
-                          <SelectItem value="no-accounts" disabled>
-                            Nenhuma conta em {settlementCurrency} disponível
-                          </SelectItem>
+                        {/* Mensagem se não houver itens */}
+                        {activeTab === 'TRAVEL' ? (
+                          <>
+                            {trips.filter(trip => members.some(member => getFilteredInvoice(member.id).filter(i => i.tripId === trip.id).length > 0)).length === 0 && (
+                              <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                                <Plane className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                                <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem</h3>
+                                <p className="text-muted-foreground">
+                                  Não há despesas de viagens neste período
+                                </p>
+                              </div>
+                            )}
+                          </>
                         ) : (
-                          filteredSettleAccounts.map((account) => (
-                            <SelectItem key={account.id} value={account.id}>
-                              {account.name}
-                              {account.is_international && ` (${account.currency})`}
-                            </SelectItem>
-                          ))
+                          <>
+                            {members.every(m => getFilteredInvoice(m.id).length === 0) && (
+                              <div className="py-12 text-center border border-dashed border-border rounded-xl">
+                                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                                <h3 className="font-display font-semibold text-lg mb-2">
+                                  {activeTab === "HISTORY" ? "Nenhum histórico" : "Tudo em dia!"}
+                                </h3>
+                                <p className="text-muted-foreground">
+                                  {activeTab === "HISTORY"
+                                    ? "Nenhum acerto foi realizado ainda"
+                                    : "Não há despesas pendentes neste período"}
+                                </p>
+                              </div>
+                            )}
+                          </>
                         )}
-                      </SelectContent>
-                    </Select>
-                    {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400">
-                        ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
-                      </p>
-                    )}
+                      </div>
+                    );
+                  })()}
+                </TabsContent>
+              );
+            })()}
+          </Tabs>
+        );
+      } catch (error) {
+        console.error('❌ [SharedExpenses] ERRO nas Tabs:', error);
+        console.error('❌ Stack:', error instanceof Error ? error.stack : 'N/A');
+        return (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Erro ao carregar abas: {error instanceof Error ? error.message : 'Erro desconhecido'}
+            </AlertDescription>
+          </Alert>
+        );
+      }
+    })()}
+
+    {/* Settle Dialog - Estilo Fatura */}
+    <Dialog open={showSettleDialog} onOpenChange={setShowSettleDialog}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
+          </DialogTitle>
+          <DialogDescription>
+            {settleType === "PAY"
+              ? "Registre o pagamento da sua dívida"
+              : "Registre o recebimento do valor devido"}
+          </DialogDescription>
+        </DialogHeader>
+
+        {selectedMember && (() => {
+          const member = members.find(m => m.id === selectedMember);
+          const itemsToConsider = selectedItems.length > 0
+            ? pendingMemberItems.filter(i => selectedItems.includes(i.id))
+            : pendingMemberItems;
+
+          const tripIds = [...new Set(itemsToConsider.filter(i => i.tripId).map(i => i.tripId))];
+          const internationalTrip = tripIds.length > 0
+            ? trips.find(t => tripIds.includes(t.id) && t.currency !== "BRL")
+            : null;
+
+          const settlementCurrency = internationalTrip?.currency || "BRL";
+          const isInternationalSettlement = settlementCurrency !== "BRL";
+
+          const filteredSettleAccounts = (accounts || []).filter(a => {
+            if (a.type === "CREDIT_CARD") return false;
+            if (isInternationalSettlement) {
+              return a.is_international && a.currency === settlementCurrency;
+            }
+            return !a.is_international;
+          });
+
+          return (
+            <div className="py-4 space-y-6">
+              {/* Alerta internacional */}
+              {isInternationalSettlement && (
+                <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <Globe className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+                    Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Visual de transferência */}
+              <div className={cn(
+                "flex items-center justify-center gap-6 p-4 rounded-xl",
+                settleType === "PAY"
+                  ? "bg-red-50 dark:bg-red-950/20"
+                  : "bg-green-50 dark:bg-green-950/20"
+              )}>
+                <div className="text-center">
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                    settleType === "PAY" ? "bg-red-500" : "bg-muted"
+                  )}>
+                    {settleType === "PAY" ? "EU" : getInitials(member?.name || "")}
                   </div>
+                  <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
+                </div>
+                <div className="text-center">
+                  <ArrowRight className={cn(
+                    "h-5 w-5",
+                    settleType === "PAY" ? "text-red-500" : "text-green-500"
+                  )} />
+                  <p className={cn(
+                    "font-mono font-bold mt-1",
+                    settleType === "PAY" ? "text-red-600" : "text-green-600"
+                  )}>
+                    {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center font-medium mx-auto text-white",
+                    settleType === "RECEIVE" ? "bg-green-500" : "bg-muted"
+                  )}>
+                    {settleType === "RECEIVE" ? "EU" : getInitials(member?.name || "")}
+                  </div>
+                  <p className="text-sm mt-2">{settleType === "RECEIVE" ? "Eu" : member?.name}</p>
                 </div>
               </div>
-            );
-          })()}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSettle}
-              disabled={isSettling || !settleAccountId}
-              className={cn(
-                settleType === "PAY"
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-green-600 hover:bg-green-700"
+              {/* Seleção de itens */}
+              {pendingMemberItems.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-sm font-medium">Itens para acertar</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSelectAll}
+                      className="text-xs h-7 shrink-0"
+                    >
+                      {selectedItems.length === pendingMemberItems.length
+                        ? "Desmarcar"
+                        : <><span className="hidden sm:inline">Selecionar todos</span><span className="sm:hidden">Todos</span></>}
+                    </Button>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                    {pendingMemberItems.map(item => {
+                      const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
+                      const itemCurrency = itemTrip?.currency || "BRL";
+                      const isCredit = item.type === "CREDIT";
+                      return (
+                        <label
+                          key={item.id}
+                          className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={selectedItems.includes(item.id)}
+                            onCheckedChange={() => {
+                              toggleItem(item.id);
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm truncate">{item.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(item.date), "dd/MM/yyyy")}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className={cn(
+                              "font-mono text-sm font-medium",
+                              isCredit ? "text-green-600" : "text-red-600"
+                            )}>
+                              {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            </span>
+                            {itemCurrency !== "BRL" && (
+                              <p className="text-[10px] text-blue-600">{itemCurrency}</p>
+                            )}
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {selectedItems.length > 0 && (
+                    <div className={cn(
+                      "p-2 rounded-lg text-sm",
+                      settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
+                    )}>
+                      <div className="flex justify-between">
+                        <span>Itens selecionados:</span>
+                        <span className="font-medium">{selectedItems.length}</span>
+                      </div>
+                      <div className="flex justify-between font-medium">
+                        <span>Total:</span>
+                        <span className={cn(
+                          "font-mono",
+                          settleType === "PAY" ? "text-red-600" : "text-green-600"
+                        )}>
+                          {getCurrencySymbol(settlementCurrency)} {Math.abs(getSelectedTotal()).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
-            >
-              {isSettling ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  {settleType === "PAY" ? "Confirmar Pagamento" : "Confirmar Recebimento"}
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Undo Settlement Confirm */}
-      <AlertDialog open={undoConfirm.isOpen} onOpenChange={(open) => !open && setUndoConfirm({ isOpen: false, item: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Desfazer Acerto</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja desfazer o acerto de "{undoConfirm.item?.description}"? Ele voltará a aparecer como pendente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleUndoSettlement}>
-              Desfazer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {/* Valor e conta */}
+              <div className="grid gap-4">
+                {/* Valor manual removido conforme solicitado */}
+                {/* O valor total já é exibido no card de resumo acima */}
 
-      {/* Delete Transaction Confirm */}
-      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, item: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja excluir a transação "{deleteConfirm.item?.description}"? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteTransaction}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                <div className="space-y-2">
+                  <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
+                  <Select value={settleAccountId} onValueChange={setSettleAccountId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a conta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSettleAccounts.length === 0 ? (
+                        <SelectItem value="no-accounts" disabled>
+                          Nenhuma conta em {settlementCurrency} disponível
+                        </SelectItem>
+                      ) : (
+                        filteredSettleAccounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.name}
+                            {account.is_international && ` (${account.currency})`}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {isInternationalSettlement && filteredSettleAccounts.length === 0 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      ⚠️ Crie uma conta em {settlementCurrency} para fazer este acerto
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
-      {/* Delete Series Confirm */}
-      <AlertDialog open={deleteSeriesConfirm.isOpen} onOpenChange={(open) => !open && setDeleteSeriesConfirm({ isOpen: false, item: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Série de Parcelas</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja excluir toda a série de parcelas "{deleteSeriesConfirm.item?.description}"?
-              Todas as {deleteSeriesConfirm.item?.totalInstallments} parcelas serão excluídas. Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteSeries}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Excluir Série
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowSettleDialog(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSettle}
+            disabled={isSettling || !settleAccountId}
+            className={cn(
+              settleType === "PAY"
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-green-600 hover:bg-green-700"
+            )}
+          >
+            {isSettling ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processando...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                {settleType === "PAY" ? "Confirmar Pagamento" : "Confirmar Recebimento"}
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-      {/* Import Dialog */}
-      <SharedInstallmentImport
-        isOpen={showImportDialog}
-        onClose={() => setShowImportDialog(false)}
-        members={members}
-        onSuccess={() => refetch()}
-      />
+    {/* Undo Settlement Confirm */}
+    <AlertDialog open={undoConfirm.isOpen} onOpenChange={(open) => !open && setUndoConfirm({ isOpen: false, item: null })}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Desfazer Acerto</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deseja desfazer o acerto de "{undoConfirm.item?.description}"? Ele voltará a aparecer como pendente.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleUndoSettlement}>
+            Desfazer
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
-      {/* Transaction Modal */}
-      <TransactionModal
-        isOpen={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
-      />
-    </div>
-  );
+    {/* Delete Transaction Confirm */}
+    <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, item: null })}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deseja excluir a transação "{deleteConfirm.item?.description}"? Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteTransaction}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Delete Series Confirm */}
+    <AlertDialog open={deleteSeriesConfirm.isOpen} onOpenChange={(open) => !open && setDeleteSeriesConfirm({ isOpen: false, item: null })}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir Série de Parcelas</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deseja excluir toda a série de parcelas "{deleteSeriesConfirm.item?.description}"?
+            Todas as {deleteSeriesConfirm.item?.totalInstallments} parcelas serão excluídas. Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteSeries}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Excluir Série
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Import Dialog */}
+    <SharedInstallmentImport
+      isOpen={showImportDialog}
+      onClose={() => setShowImportDialog(false)}
+      members={members}
+      onSuccess={() => refetch()}
+    />
+
+    {/* Transaction Modal */}
+    <TransactionModal
+      isOpen={showTransactionModal}
+      onClose={() => setShowTransactionModal(false)}
+    />
+  </div>
+);
 }
