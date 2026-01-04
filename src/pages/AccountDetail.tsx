@@ -328,24 +328,48 @@ export function AccountDetail() {
 
       {/* Advance Installments Dialog */}
       <AdvanceInstallmentsDialog
-        isOpen={!!advanceSeriesId}
-        onClose={() => setAdvanceSeriesId(null)}
+        open={!!advanceSeriesId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAdvanceSeriesId(null);
+            setAdvanceDescription("");
+          }
+        }}
         seriesId={advanceSeriesId || ""}
         transactionDescription={advanceDescription}
       />
 
       {/* Settlement Confirm Dialog */}
       <SettlementConfirmDialog
-        isOpen={!!settlementTransaction}
-        onClose={() => setSettlementTransaction(null)}
-        transaction={settlementTransaction}
+        open={!!settlementTransaction}
+        onOpenChange={(open) => {
+          if (!open) setSettlementTransaction(null);
+        }}
+        transactionId={settlementTransaction?.id || ""}
+        transactionDescription={settlementTransaction?.description || ""}
+        transactionAmount={Number(settlementTransaction?.amount) || 0}
+        splits={settlementTransaction?.transaction_splits || []}
       />
 
       {/* Transaction Details Modal */}
       <TransactionDetailsModal
-        isOpen={!!detailsTransaction}
-        onClose={() => setDetailsTransaction(null)}
+        open={!!detailsTransaction}
+        onOpenChange={(open) => {
+          if (!open) setDetailsTransaction(null);
+        }}
         transaction={detailsTransaction}
+        onEdit={() => {
+          if (detailsTransaction) handleEditTransaction(detailsTransaction);
+        }}
+        onDelete={() => {
+          if (detailsTransaction) setDeleteConfirm({ isOpen: true, transaction: detailsTransaction });
+        }}
+        onAdvance={() => {
+          if (detailsTransaction) handleAdvance(detailsTransaction);
+        }}
+        onSettlement={() => {
+          if (detailsTransaction) handleSettlement(detailsTransaction);
+        }}
       />
     </div>
   );
