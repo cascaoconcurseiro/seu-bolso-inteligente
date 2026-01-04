@@ -76,6 +76,13 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
 import { AnticipateInstallmentsDialog } from "@/components/dialogs/AnticipateInstallmentsDialog";
+import { 
+  logSettlementCreated, 
+  logSettlementUndone, 
+  logOperationBlocked,
+  logTransactionDeleted,
+  logSeriesDeleted
+} from "@/services/auditLog";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -519,6 +526,22 @@ export function SharedExpenses() {
           } else {
             console.log('✅ [handleSettle] Split atualizado com sucesso:', data);
             successCount++;
+            
+            // TASK 20: Log settlement creation
+            if (user?.id) {
+              await logSettlementCreated(
+                user.id,
+                item.originalTxId || '',
+                item.splitId,
+                item.amount,
+                item.currency || 'BRL',
+                {
+                  settleType,
+                  description: item.description,
+                  memberName: member?.name
+                }
+              );
+            }
           }
         } else if (item.type === 'DEBIT' && item.originalTxId) {
           // Fallback: Se não tem splitId mas tem originalTxId, tentar atualizar a transaction
@@ -679,6 +702,21 @@ export function SharedExpenses() {
         if (updateError) throw updateError;
 
         console.log('✅ [handleUndoSettlement] TASK 14.2: Split atualizado com sucesso');
+      
+      // TASK 20: Log settlement undo
+      if (user?.id && item.originalTxId && item.splitId) {
+        await logSettlementUndone(
+          user.id,
+          item.originalTxId,
+          item.splitId,
+          'User requested undo',
+          {
+            description: item.description,
+            amount: item.amount,
+            currency: item.currency
+          }
+        );
+      }
       } else if (item.type === 'DEBIT' && item.originalTxId) {
         // Fallback para caso antigo
         const { error } = await supabase
@@ -726,6 +764,21 @@ export function SharedExpenses() {
       if (!item.canDelete) {
         const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED];
         console.warn('⚠️ [handleDeleteTransaction] TASK 11: Exclusão bloqueada:', errorMsg.message);
+        
+        // TASK 20: Log blocked operation
+        if (user?.id && item.originalTxId) {
+          await logOperationBlocked(
+            user.id,
+            item.originalTxId,
+            SettlementErrorCode.TRANSACTION_SETTLED,
+            errorMsg.message,
+            {
+              operation: 'delete',
+              description: item.description
+            }
+          );
+        }
+        
         toast.error(errorMsg.message);
         if (errorMsg.action) {
           toast.info(errorMsg.action);
@@ -750,6 +803,19 @@ export function SharedExpenses() {
       if (error) throw error;
 
       console.log('✅ [handleDeleteTransaction] TASK 11: Transação excluída com sucesso');
+      
+      // TASK 20: Log transaction deletion
+      if (user?.id) {
+        await logTransactionDeleted(
+          user.id,
+          item.originalTxId,
+          {
+            description: item.description,
+            amount: item.amount,
+            currency: item.currency
+          }
+        );
+      }
 
       // Fechar dialog
       setDeleteConfirm({ isOpen: false, item: null });
@@ -781,6 +847,22 @@ export function SharedExpenses() {
       if (!item.canDelete) {
         const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS];
         console.warn('⚠️ [handleDeleteSeries] TASK 12: Exclusão bloqueada:', errorMsg.message);
+        
+        // TASK 20: Log blocked operation
+        if (user?.id && item.seriesId) {
+          await logOperationBlocked(
+            user.id,
+            item.originalTxId || '',
+            SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS,
+            errorMsg.message,
+            {
+              operation: 'delete_series',
+              seriesId: item.seriesId,
+              description: item.description
+            }
+          );
+        }
+        
         toast.error(errorMsg.message);
         if (errorMsg.action) {
           toast.info(errorMsg.action);
