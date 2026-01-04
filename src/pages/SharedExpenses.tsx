@@ -1819,9 +1819,11 @@ export function SharedExpenses() {
                 {/* Header do membro */}
                 <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white bg-gray-500 text-sm">
-                      {getInitials(member.name)}
-                    </div>
+                    <UserAvatar
+                      name={member.name}
+                      avatarUrl={member.avatar_url}
+                      size="sm"
+                    />
                     <span className="font-medium">{member.name}</span>
                   </div>
                   <span className={cn(
