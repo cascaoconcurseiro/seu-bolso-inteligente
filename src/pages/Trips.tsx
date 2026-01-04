@@ -13,6 +13,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Plane,
   Plus,
   Calendar,
@@ -29,6 +36,9 @@ import {
   User,
   Wallet,
   CheckCircle,
+  Archive,
+  ArchiveRestore,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -42,6 +52,8 @@ import {
   useDeleteTrip,
   useAddTripParticipant,
   useRemoveTripParticipant,
+  useArchiveTrip,
+  useUnarchiveTrip,
 } from "@/hooks/useTrips";
 import { usePendingTripInvitations } from "@/hooks/useTripInvitations";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -66,6 +78,7 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 
 type TripView = "list" | "detail";
 type TripTab = "summary" | "expenses" | "shopping" | "exchange" | "itinerary" | "checklist";
+type TripFilter = "active" | "archived";
 
 export function Trips() {
   const { user } = useAuth();
@@ -73,6 +86,7 @@ export function Trips() {
   const [view, setView] = useState<TripView>("list");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TripTab>("expenses");
+  const [tripFilter, setTripFilter] = useState<TripFilter>("active");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEditTripDialog, setShowEditTripDialog] = useState(false);
   const [showPersonalBudgetDialog, setShowPersonalBudgetDialog] = useState(false);
@@ -109,6 +123,8 @@ export function Trips() {
   const createTrip = useCreateTrip();
   const updateTrip = useUpdateTrip();
   const deleteTrip = useDeleteTrip();
+  const archiveTrip = useArchiveTrip();
+  const unarchiveTrip = useUnarchiveTrip();
   const addParticipant = useAddTripParticipant();
   const removeParticipant = useRemoveTripParticipant();
   const updatePersonalBudget = useUpdatePersonalBudget();
@@ -116,6 +132,15 @@ export function Trips() {
   // Buscar orçamento pessoal do usuário atual
   const myMembership = tripMembers.find(m => m.user_id === user?.id);
   const myPersonalBudget = myMembership?.personal_budget ?? null;
+
+  // Filtrar viagens baseado no estado de arquivamento
+  const filteredTrips = trips.filter(trip => {
+    if (tripFilter === "active") {
+      return !trip.is_archived;
+    } else {
+      return trip.is_archived;
+    }
+  });
 
   // Scroll automático para convites quando a página carrega
   useEffect(() => {
@@ -198,6 +223,17 @@ export function Trips() {
       personalBudget: budget,
     });
     setShowPersonalBudgetDialog(false);
+  };
+
+  const handleArchiveTrip = async (tripId: string) => {
+    await archiveTrip.mutateAsync(tripId);
+    if (view === "detail" && selectedTripId === tripId) {
+      goBack();
+    }
+  };
+
+  const handleUnarchiveTrip = async (tripId: string) => {
+    await unarchiveTrip.mutateAsync(tripId);
   };
 
   const calculateBalances = () => {
@@ -305,6 +341,11 @@ export function Trips() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 md:gap-3 flex-wrap">
               <h1 className="font-display font-bold text-xl md:text-2xl tracking-tight truncate">{selectedTrip.name}</h1>
+              {selectedTrip.is_archived && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
+                  Arquivada
+                </span>
+              )}
               <span className={cn(
                 "text-xs px-2 py-0.5 rounded-full shrink-0",
                 selectedTrip.status === "ACTIVE" || selectedTrip.status === "PLANNING" 
@@ -362,20 +403,51 @@ export function Trips() {
                   <span className="hidden sm:inline">Editar Viagem</span>
                   <span className="sm:hidden">Editar</span>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm("Tem certeza que deseja excluir esta viagem?")) {
-                      deleteTrip.mutate(selectedTripId!);
-                      goBack();
-                    }
-                  }}
-                  className="w-full sm:w-auto gap-2 h-11 md:h-9 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Excluir</span>
-                </Button>
+                
+                {/* Menu dropdown com mais ações */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto h-11 md:h-9"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {selectedTrip.is_archived ? (
+                      <DropdownMenuItem
+                        onClick={() => handleUnarchiveTrip(selectedTripId!)}
+                        className="gap-2"
+                      >
+                        <ArchiveRestore className="h-4 w-4" />
+                        Desarquivar viagem
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() => handleArchiveTrip(selectedTripId!)}
+                        className="gap-2"
+                      >
+                        <Archive className="h-4 w-4" />
+                        Arquivar viagem
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        if (confirm("Tem certeza que deseja excluir esta viagem?")) {
+                          deleteTrip.mutate(selectedTripId!);
+                          goBack();
+                        }
+                      }}
+                      className="gap-2 text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir viagem
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
           </div>
@@ -971,62 +1043,155 @@ export function Trips() {
         <PendingTripInvitationsAlert />
       </div>
 
-      {/* Trips List */}
-      <div className="space-y-3">
-        {trips.map((trip) => (
-          <div
-            key={trip.id}
-            onClick={() => openTripDetail(trip.id)}
-            className="group p-5 rounded-xl border border-border hover:border-foreground/20 transition-all cursor-pointer"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <Plane className="h-5 w-5 text-muted-foreground" />
-                  <h3 className="font-display font-semibold text-lg">{trip.name}</h3>
-                  <span className={cn(
-                    "text-xs px-2 py-0.5 rounded-full",
-                    trip.status === "ACTIVE" || trip.status === "PLANNING" 
-                      ? "bg-foreground text-background" 
-                      : "bg-muted text-muted-foreground"
-                  )}>
-                    {trip.status === "PLANNING" ? "Planejando" :
-                     trip.status === "ACTIVE" ? "Em andamento" :
-                     trip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
-                  </span>
-                </div>
-                {trip.destination && (
-                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {trip.destination}
-                  </p>
-                )}
-                <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    {format(new Date(trip.start_date), "dd MMM", { locale: ptBR })}
-                    {" - "}
-                    {format(new Date(trip.end_date), "dd MMM", { locale: ptBR })}
+      {/* Tabs de filtro */}
+      <Tabs value={tripFilter} onValueChange={(v) => setTripFilter(v as TripFilter)}>
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="active" className="flex-1 sm:flex-none gap-2">
+            <Plane className="h-4 w-4" />
+            Ativas ({trips.filter(t => !t.is_archived).length})
+          </TabsTrigger>
+          <TabsTrigger value="archived" className="flex-1 sm:flex-none gap-2">
+            <Archive className="h-4 w-4" />
+            Arquivadas ({trips.filter(t => t.is_archived).length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active" className="mt-6">
+          {/* Trips List - Ativas */}
+          <div className="space-y-3">
+            {filteredTrips.length > 0 ? (
+              filteredTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  onClick={() => openTripDetail(trip.id)}
+                  className="group p-5 rounded-xl border border-border hover:border-foreground/20 transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <Plane className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="font-display font-semibold text-lg">{trip.name}</h3>
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full",
+                          trip.status === "ACTIVE" || trip.status === "PLANNING" 
+                            ? "bg-foreground text-background" 
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {trip.status === "PLANNING" ? "Planejando" :
+                           trip.status === "ACTIVE" ? "Em andamento" :
+                           trip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
+                        </span>
+                      </div>
+                      {trip.destination && (
+                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {trip.destination}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          {format(new Date(trip.start_date), "dd MMM", { locale: ptBR })}
+                          {" - "}
+                          {format(new Date(trip.end_date), "dd MMM", { locale: ptBR })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {trip.my_personal_budget ? (
+                        <div className="text-right">
+                          <p className="font-mono font-semibold">{formatCurrency(trip.my_personal_budget, trip.currency)}</p>
+                          <p className="text-xs text-muted-foreground">Meu Orçamento</p>
+                        </div>
+                      ) : (
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">Orçamento não definido</p>
+                        </div>
+                      )}
+                      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="py-16 text-center border border-dashed border-border rounded-xl">
+                <Plane className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem ativa</h3>
+                <p className="text-muted-foreground mb-6">Crie uma nova viagem ou verifique as arquivadas</p>
               </div>
-              <div className="flex items-center gap-4">
-                {trip.my_personal_budget ? (
-                  <div className="text-right">
-                    <p className="font-mono font-semibold">{formatCurrency(trip.my_personal_budget, trip.currency)}</p>
-                    <p className="text-xs text-muted-foreground">Meu Orçamento</p>
-                  </div>
-                ) : (
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Orçamento não definido</p>
-                  </div>
-                )}
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </div>
-            </div>
+            )}
           </div>
-        ))}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="archived" className="mt-6">
+          {/* Trips List - Arquivadas */}
+          <div className="space-y-3">
+            {filteredTrips.length > 0 ? (
+              filteredTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  className="group p-5 rounded-xl border border-border bg-muted/30"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <Archive className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="font-display font-semibold text-lg">{trip.name}</h3>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          Arquivada
+                        </span>
+                      </div>
+                      {trip.destination && (
+                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {trip.destination}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          {format(new Date(trip.start_date), "dd MMM", { locale: ptBR })}
+                          {" - "}
+                          {format(new Date(trip.end_date), "dd MMM", { locale: ptBR })}
+                        </div>
+                        {trip.archived_at && (
+                          <div className="text-xs text-muted-foreground">
+                            Arquivada em {format(new Date(trip.archived_at), "dd/MM/yyyy", { locale: ptBR })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUnarchiveTrip(trip.id)}
+                        className="gap-2"
+                      >
+                        <ArchiveRestore className="h-4 w-4" />
+                        <span className="hidden sm:inline">Desarquivar</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openTripDetail(trip.id)}
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-16 text-center border border-dashed border-border rounded-xl">
+                <Archive className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem arquivada</h3>
+                <p className="text-muted-foreground">Viagens arquivadas aparecerão aqui</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <NewTripDialog
         open={showNewTripDialog}

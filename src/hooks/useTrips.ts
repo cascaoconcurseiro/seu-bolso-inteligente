@@ -17,6 +17,8 @@ export interface Trip {
   status: TripStatus;
   cover_image: string | null;
   notes: string | null;
+  is_archived: boolean | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -282,6 +284,62 @@ export function useDeleteTrip() {
     },
     onError: (error) => {
       toast.error("Erro ao remover viagem: " + error.message);
+    },
+  });
+}
+
+export function useArchiveTrip() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from("trips")
+        .update({ 
+          is_archived: true,
+          archived_at: new Date().toISOString()
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      toast.success("Viagem arquivada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao arquivar viagem: " + error.message);
+    },
+  });
+}
+
+export function useUnarchiveTrip() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from("trips")
+        .update({ 
+          is_archived: false,
+          archived_at: null
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      toast.success("Viagem desarquivada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao desarquivar viagem: " + error.message);
     },
   });
 }

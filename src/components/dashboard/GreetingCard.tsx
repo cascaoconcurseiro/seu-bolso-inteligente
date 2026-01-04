@@ -1,15 +1,15 @@
 /**
  * Componente de Saudação Animada
  * 
- * Exibe uma saudação personalizada com animações suaves
+ * Exibe uma frase motivacional financeira do dia com animações suaves
  */
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { getPersonalizedGreeting, getSimpleGreeting } from "@/services/greetingService";
+import { getQuoteOfTheDay } from "@/lib/financialQuotes";
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Quote } from "lucide-react";
 
 interface GreetingCardProps {
   className?: string;
@@ -18,15 +18,14 @@ interface GreetingCardProps {
 export function GreetingCard({ className }: GreetingCardProps) {
   const { user } = useAuth();
   const { data: profile } = useProfile();
-  const [greeting, setGreeting] = useState("");
+  const [quoteData, setQuoteData] = useState<{ quote: string; author: string } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showSparkle, setShowSparkle] = useState(false);
 
   useEffect(() => {
-    // Gera a saudação quando o componente monta ou profile carrega
-    const userName = profile?.full_name || user?.email?.split('@')[0] || 'Usuário';
-    const personalGreeting = getPersonalizedGreeting(userName);
-    setGreeting(personalGreeting);
+    // Obtém a frase motivacional do dia
+    const dailyQuote = getQuoteOfTheDay();
+    setQuoteData(dailyQuote);
     
     // Animação de entrada
     const timer1 = setTimeout(() => setIsVisible(true), 100);
@@ -40,7 +39,7 @@ export function GreetingCard({ className }: GreetingCardProps) {
     };
   }, [user, profile]);
 
-  if (!greeting) {
+  if (!quoteData) {
     return null;
   }
 
@@ -69,14 +68,29 @@ export function GreetingCard({ className }: GreetingCardProps) {
       
       {/* Content */}
       <div className="relative">
+        {/* Quote icon */}
+        <Quote className="h-8 w-8 text-primary/30 mb-3" />
+        
+        {/* Quote text */}
         <p 
           className={cn(
-            "text-lg md:text-xl font-medium text-foreground/90 leading-relaxed",
+            "text-base md:text-lg font-medium text-foreground/90 leading-relaxed mb-4",
             "transition-all duration-500 delay-200",
             isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
           )}
         >
-          {greeting}
+          "{quoteData.quote}"
+        </p>
+        
+        {/* Author */}
+        <p 
+          className={cn(
+            "text-sm text-muted-foreground font-medium",
+            "transition-all duration-500 delay-300",
+            isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+          )}
+        >
+          — {quoteData.author}
         </p>
       </div>
       

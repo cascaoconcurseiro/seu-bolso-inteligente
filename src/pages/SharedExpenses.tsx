@@ -72,6 +72,8 @@ import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
 
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
@@ -130,6 +132,9 @@ export function SharedExpenses() {
   console.log('🔵 [SharedExpenses] ✅ Trips carregadas:', { count: trips?.length });
 
   const createTransaction = useCreateTransaction();
+
+  // Initialize transaction sync hook
+  const { invalidateRelated, isSyncing } = useTransactionSync();
 
   console.log('🔵 [SharedExpenses] 🔄 Chamando useSharedFinances...');
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
@@ -563,6 +568,13 @@ export function SharedExpenses() {
       setSettleDate(format(new Date(), 'yyyy-MM-dd'));
       setSelectedItems([]);
 
+      // Invalidar queries relacionadas para sincronizar
+      for (const item of itemsToSettle) {
+        if (item.originalTxId) {
+          await invalidateRelated(item.originalTxId);
+        }
+      }
+
       // Aguardar refetch para atualizar a UI
       await refetch();
 
@@ -662,6 +674,11 @@ export function SharedExpenses() {
       // Fechar dialog primeiro
       setUndoConfirm({ isOpen: false, item: null });
 
+      // Invalidar queries relacionadas para sincronizar
+      if (item.originalTxId) {
+        await invalidateRelated(item.originalTxId);
+      }
+
       // Aguardar um pouco e então atualizar
       await refetch();
 
@@ -679,6 +696,14 @@ export function SharedExpenses() {
 
     try {
       console.log('🗑️ [handleDeleteTransaction] Excluindo transação:', item.originalTxId);
+
+      // VALIDAÇÃO: Verificar se pode excluir
+      if (!item.canDelete) {
+        const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED];
+        toast.error(errorMsg.message);
+        setDeleteConfirm({ isOpen: false, item: null });
+        return;
+      }
 
       // VALIDAÇÃO: Verificar se o usuário atual é o criador
       if (item.creatorUserId && item.creatorUserId !== user?.id) {
@@ -700,6 +725,9 @@ export function SharedExpenses() {
       // Fechar dialog
       setDeleteConfirm({ isOpen: false, item: null });
 
+      // Invalidar queries relacionadas para sincronizar
+      await invalidateRelated(item.originalTxId);
+
       // Atualizar lista
       await refetch();
 
@@ -717,6 +745,17 @@ export function SharedExpenses() {
 
     try {
       console.log('🗑️ [handleDeleteSeries] Excluindo série:', item.seriesId);
+
+      // VALIDAÇÃO: Verificar se pode excluir série
+      if (!item.canDelete) {
+        const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.SERIES_HAS_SETTLED];
+        toast.error(errorMsg.message);
+        if (errorMsg.action) {
+          toast.info(errorMsg.action);
+        }
+        setDeleteSeriesConfirm({ isOpen: false, item: null });
+        return;
+      }
 
       // VALIDAÇÃO: Verificar se o usuário atual é o criador
       if (item.creatorUserId && item.creatorUserId !== user?.id) {
@@ -744,6 +783,11 @@ export function SharedExpenses() {
 
       // Fechar dialog
       setDeleteSeriesConfirm({ isOpen: false, item: null });
+
+      // Invalidar queries relacionadas para sincronizar
+      if (item.originalTxId) {
+        await invalidateRelated(item.originalTxId);
+      }
 
       // Atualizar lista
       await refetch();
@@ -1182,8 +1226,8 @@ export function SharedExpenses() {
         {/* Lista de itens expandida - estilo extrato de fatura */}
         {isExpanded && items.length > 0 && (
           <div className="border-t border-border">
-            {/* Cabeçalho da lista */}
-            <div className="px-4 py-2 bg-muted/50 border-b border-border grid grid-cols-12 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            {/* Cabeçalho da lista - apenas desktop */}
+            <div className="hidden md:grid px-4 py-2 bg-muted/50 border-b border-border grid-cols-12 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div className="col-span-1">Status</div>
               <div className="col-span-5">Descrição</div>
               <div className="col-span-2">Data</div>
@@ -1226,134 +1270,259 @@ export function SharedExpenses() {
                         <div
                           key={item.id}
                           className={cn(
-                            "px-4 py-3 grid grid-cols-12 items-center hover:bg-muted/20 transition-colors",
-                            item.isPaid && "opacity-60"
+                            "px-3 md:px-4 py-3 flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-0 md:items-center hover:bg-muted/20 transition-colors",
+                            item.isPaid && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
                           )}
                         >
-                          {/* Status */}
-                          <div className="col-span-1">
-                            {item.isPaid ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <div className={cn(
-                                "w-3 h-3 rounded-full",
-                                isCredit ? "bg-green-500" : "bg-red-500"
-                              )} />
-                            )}
-                          </div>
-
-                          {/* Descrição e Categoria */}
-                          <div className="col-span-5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                item.isPaid && "line-through text-muted-foreground"
-                              )}>
-                                {item.description}
-                              </p>
-                              {item.creatorName && (
-                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                  💳 {item.creatorName}
-                                </span>
+                          {/* Mobile: Layout em coluna */}
+                          <div className="flex md:hidden items-start gap-3">
+                            {/* Status */}
+                            <div className="shrink-0 pt-0.5">
+                              {item.isPaid ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <div className={cn(
+                                  "w-3 h-3 rounded-full",
+                                  isCredit ? "bg-green-500" : "bg-red-500"
+                                )} />
                               )}
                             </div>
-                            {item.category && (
-                              <p className="text-xs text-muted-foreground">
-                                📁 {item.category}
-                              </p>
-                            )}
-                            {item.totalInstallments && item.totalInstallments > 1 && (
-                              <p className="text-xs text-muted-foreground">
-                                Parcela {item.installmentNumber}/{item.totalInstallments}
-                              </p>
-                            )}
-                          </div>
 
-                          {/* Data */}
-                          <div className="col-span-2">
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}
-                            </p>
-                          </div>
-
-                          {/* Valor */}
-                          <div className="col-span-2 text-right">
-                            <span className={cn(
-                              "font-mono text-sm font-medium",
-                              item.isPaid ? "text-muted-foreground" :
-                                isCredit ? "text-green-600 dark:text-green-400" :
-                                  "text-red-600 dark:text-red-400"
-                            )}>
-                              {formatCurrency(item.amount, item.currency)}
-                            </span>
-                          </div>
-
-                          {/* Tipo + Ações */}
-                          <div className="col-span-2 flex items-center justify-end gap-2">
-                            {/* Tag PAGO - mais visível */}
-                            {item.isPaid && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
-                              >
-                                PAGO
-                              </Badge>
-                            )}
-
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-xs font-bold",
-                                item.isPaid ? "border-gray-300 text-gray-500" :
-                                  isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
-                                    "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
-                              )}
-                            >
-                              {isCredit ? "CRÉDITO" : "DÉBITO"}
-                            </Badge>
-
-                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
-                            {(item.isPaid || item.creatorUserId === user?.id) && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  {item.isPaid && (
-                                    <DropdownMenuItem
-                                      onClick={() => setUndoConfirm({ isOpen: true, item })}
-                                    >
-                                      <Undo2 className="h-4 w-4 mr-2" />
-                                      Desfazer acerto
-                                    </DropdownMenuItem>
+                            {/* Conteúdo principal */}
+                            <div className="flex-1 min-w-0">
+                              {/* Linha 1: Descrição e badges */}
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <p className={cn(
+                                    "text-sm font-medium truncate",
+                                    item.isPaid && "line-through text-muted-foreground"
+                                  )}>
+                                    {item.description}
+                                  </p>
+                                  {item.creatorName && (
+                                    <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
+                                      💳 {item.creatorName}
+                                    </span>
                                   )}
-                                  {/* Apenas o criador pode excluir */}
-                                  {item.creatorUserId === user?.id && (
-                                    <>
-                                      {item.totalInstallments && item.totalInstallments > 1 ? (
+                                </div>
+                                
+                                {/* Valor - destaque no mobile */}
+                                <span className={cn(
+                                  "font-mono text-sm font-bold shrink-0 whitespace-nowrap",
+                                  item.isPaid ? "text-muted-foreground" :
+                                    isCredit ? "text-green-600 dark:text-green-400" :
+                                      "text-red-600 dark:text-red-400"
+                                )}>
+                                  {formatCurrency(item.amount, item.currency)}
+                                </span>
+                              </div>
+
+                              {/* Linha 2: Categoria e data */}
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                {item.category && (
+                                  <span className="truncate">📁 {item.category}</span>
+                                )}
+                                <span className="whitespace-nowrap">
+                                  {format(new Date(item.date + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}
+                                </span>
+                                {item.totalInstallments && item.totalInstallments > 1 && (
+                                  <span className="whitespace-nowrap">
+                                    {item.installmentNumber}/{item.totalInstallments}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Linha 3: Badges de status */}
+                              <div className="flex items-center gap-1.5 mt-2">
+                                {item.isPaid && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                                  >
+                                    PAGO
+                                  </Badge>
+                                )}
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[10px] font-bold",
+                                    item.isPaid ? "border-gray-300 text-gray-500" :
+                                      isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                                        "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                                  )}
+                                >
+                                  {isCredit ? "CRÉDITO" : "DÉBITO"}
+                                </Badge>
+
+                                {/* Menu de ações */}
+                                {(item.isPaid || item.creatorUserId === user?.id) && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {item.isPaid && (
                                         <DropdownMenuItem
-                                          onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
+                                          onClick={() => setUndoConfirm({ isOpen: true, item })}
                                         >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir série ({item.totalInstallments}x)
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem
-                                          onClick={() => setDeleteConfirm({ isOpen: true, item })}
-                                          className="text-destructive focus:text-destructive"
-                                        >
-                                          <Trash2 className="h-4 w-4 mr-2" />
-                                          Excluir transação
+                                          <Undo2 className="h-4 w-4 mr-2" />
+                                          Desfazer acerto
                                         </DropdownMenuItem>
                                       )}
-                                    </>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
+                                      {item.creatorUserId === user?.id && (
+                                        <>
+                                          {item.totalInstallments && item.totalInstallments > 1 ? (
+                                            <DropdownMenuItem
+                                              onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                              className="text-destructive focus:text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Excluir série ({item.totalInstallments}x)
+                                            </DropdownMenuItem>
+                                          ) : (
+                                            <DropdownMenuItem
+                                              onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                              className="text-destructive focus:text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Excluir transação
+                                            </DropdownMenuItem>
+                                          )}
+                                        </>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Desktop: Layout em grid (original) */}
+                          <div className="hidden md:contents">
+                            {/* Status */}
+                            <div className="col-span-1">
+                              {item.isPaid ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <div className={cn(
+                                  "w-3 h-3 rounded-full",
+                                  isCredit ? "bg-green-500" : "bg-red-500"
+                                )} />
+                              )}
+                            </div>
+
+                            {/* Descrição e Categoria */}
+                            <div className="col-span-5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={cn(
+                                  "text-sm font-medium",
+                                  item.isPaid && "line-through text-muted-foreground"
+                                )}>
+                                  {item.description}
+                                </p>
+                                {item.creatorName && (
+                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                    💳 {item.creatorName}
+                                  </span>
+                                )}
+                              </div>
+                              {item.category && (
+                                <p className="text-xs text-muted-foreground">
+                                  📁 {item.category}
+                                </p>
+                              )}
+                              {item.totalInstallments && item.totalInstallments > 1 && (
+                                <p className="text-xs text-muted-foreground">
+                                  Parcela {item.installmentNumber}/{item.totalInstallments}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Data */}
+                            <div className="col-span-2">
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+
+                            {/* Valor */}
+                            <div className="col-span-2 text-right">
+                              <span className={cn(
+                                "font-mono text-sm font-medium",
+                                item.isPaid ? "text-muted-foreground" :
+                                  isCredit ? "text-green-600 dark:text-green-400" :
+                                    "text-red-600 dark:text-red-400"
+                              )}>
+                                {formatCurrency(item.amount, item.currency)}
+                              </span>
+                            </div>
+
+                            {/* Tipo + Ações */}
+                            <div className="col-span-2 flex items-center justify-end gap-2">
+                              {item.isPaid && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                                >
+                                  PAGO
+                                </Badge>
+                              )}
+
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-xs font-bold",
+                                  item.isPaid ? "border-gray-300 text-gray-500" :
+                                    isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                                      "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                                )}
+                              >
+                                {isCredit ? "CRÉDITO" : "DÉBITO"}
+                              </Badge>
+
+                              {(item.isPaid || item.creatorUserId === user?.id) && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    {item.isPaid && (
+                                      <DropdownMenuItem
+                                        onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                      >
+                                        <Undo2 className="h-4 w-4 mr-2" />
+                                        Desfazer acerto
+                                      </DropdownMenuItem>
+                                    )}
+                                    {item.creatorUserId === user?.id && (
+                                      <>
+                                        {item.totalInstallments && item.totalInstallments > 1 ? (
+                                          <DropdownMenuItem
+                                            onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                            className="text-destructive focus:text-destructive"
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Excluir série ({item.totalInstallments}x)
+                                          </DropdownMenuItem>
+                                        ) : (
+                                          <DropdownMenuItem
+                                            onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                            className="text-destructive focus:text-destructive"
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Excluir transação
+                                          </DropdownMenuItem>
+                                        )}
+                                      </>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -1529,58 +1698,183 @@ export function SharedExpenses() {
                       return (
                         <div
                           key={item.id}
-                          className="px-4 py-3 hover:bg-muted/30 transition-colors grid grid-cols-12 gap-2 items-center text-sm"
+                          className={cn(
+                            "px-3 md:px-4 py-3 hover:bg-muted/30 transition-colors flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-2 md:items-center text-sm",
+                            item.isPaid && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
+                          )}
                         >
-                          {/* Status */}
-                          <div className="col-span-1">
-                            {item.isPaid ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <div className={cn(
-                                "h-5 w-5 rounded-full border-2",
-                                isCredit ? "border-green-500" : "border-red-500"
-                              )} />
-                            )}
-                          </div>
-
-                          {/* Descrição */}
-                          <div className="col-span-5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className={cn(
-                                "font-medium",
-                                item.isPaid && "text-muted-foreground line-through"
-                              )}>
-                                {item.description}
-                              </p>
-                              {item.creatorName && (
-                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
-                                  💳 {item.creatorName}
-                                </span>
+                          {/* Mobile: Layout em coluna */}
+                          <div className="flex md:hidden items-start gap-3">
+                            {/* Status */}
+                            <div className="shrink-0 pt-0.5">
+                              {item.isPaid ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <div className={cn(
+                                  "h-5 w-5 rounded-full border-2",
+                                  isCredit ? "border-green-500" : "border-red-500"
+                                )} />
                               )}
                             </div>
-                            {item.category && (
-                              <p className="text-xs text-muted-foreground">{item.category}</p>
-                            )}
+
+                            {/* Conteúdo principal */}
+                            <div className="flex-1 min-w-0">
+                              {/* Linha 1: Descrição e valor */}
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <p className={cn(
+                                    "text-sm font-medium truncate",
+                                    item.isPaid && "text-muted-foreground line-through"
+                                  )}>
+                                    {item.description}
+                                  </p>
+                                  {item.creatorName && (
+                                    <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
+                                      💳 {item.creatorName}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Valor */}
+                                <span className={cn(
+                                  "font-mono text-sm font-bold shrink-0 whitespace-nowrap",
+                                  item.isPaid ? "text-muted-foreground" :
+                                    isCredit ? "text-green-600 dark:text-green-400" :
+                                      "text-red-600 dark:text-red-400"
+                                )}>
+                                  {formatCurrency(item.amount, item.currency)}
+                                </span>
+                              </div>
+
+                              {/* Linha 2: Categoria e data */}
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                {item.category && (
+                                  <span className="truncate">{item.category}</span>
+                                )}
+                                <span className="whitespace-nowrap">
+                                  {format(new Date(item.date + 'T12:00:00'), "dd/MM/yy")}
+                                </span>
+                              </div>
+
+                              {/* Linha 3: Badges */}
+                              <div className="flex items-center gap-1.5 mt-2">
+                                {item.isPaid && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                                  >
+                                    PAGO
+                                  </Badge>
+                                )}
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    "text-[10px] font-bold",
+                                    item.isPaid ? "border-gray-300 text-gray-500" :
+                                      isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                                        "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                                  )}
+                                >
+                                  {isCredit ? "CRÉDITO" : "DÉBITO"}
+                                </Badge>
+
+                                {/* Menu de ações */}
+                                {(item.isPaid || item.creatorUserId === user?.id) && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {item.isPaid && (
+                                        <DropdownMenuItem
+                                          onClick={() => setUndoConfirm({ isOpen: true, item })}
+                                        >
+                                          <Undo2 className="h-4 w-4 mr-2" />
+                                          Desfazer acerto
+                                        </DropdownMenuItem>
+                                      )}
+                                      {item.creatorUserId === user?.id && (
+                                        <>
+                                          {item.totalInstallments && item.totalInstallments > 1 ? (
+                                            <DropdownMenuItem
+                                              onClick={() => setDeleteSeriesConfirm({ isOpen: true, item })}
+                                              className="text-destructive focus:text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Excluir série ({item.totalInstallments}x)
+                                            </DropdownMenuItem>
+                                          ) : (
+                                            <DropdownMenuItem
+                                              onClick={() => setDeleteConfirm({ isOpen: true, item })}
+                                              className="text-destructive focus:text-destructive"
+                                            >
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Excluir transação
+                                            </DropdownMenuItem>
+                                          )}
+                                        </>
+                                      )}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                )}
+                              </div>
+                            </div>
                           </div>
 
-                          {/* Data */}
-                          <div className="col-span-2 text-muted-foreground">
-                            {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}
-                          </div>
+                          {/* Desktop: Layout em grid (original) */}
+                          <div className="hidden md:contents">
+                            {/* Status */}
+                            <div className="col-span-1">
+                              {item.isPaid ? (
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                              ) : (
+                                <div className={cn(
+                                  "h-5 w-5 rounded-full border-2",
+                                  isCredit ? "border-green-500" : "border-red-500"
+                                )} />
+                              )}
+                            </div>
 
-                          {/* Valor */}
-                          <div className="col-span-2 text-right">
-                            <span className={cn(
-                              "font-mono text-sm font-medium",
-                              item.isPaid ? "text-muted-foreground" :
+                            {/* Descrição */}
+                            <div className="col-span-5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={cn(
+                                  "font-medium",
+                                  item.isPaid && "text-muted-foreground line-through"
+                                )}>
+                                  {item.description}
+                                </p>
+                                {item.creatorName && (
+                                  <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                                    💳 {item.creatorName}
+                                  </span>
+                                )}
+                              </div>
+                              {item.category && (
+                                <p className="text-xs text-muted-foreground">{item.category}</p>
+                              )}
+                            </div>
+
+                            {/* Data */}
+                            <div className="col-span-2 text-muted-foreground">
+                              {format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}
+                            </div>
+
+                            {/* Valor */}
+                            <div className="col-span-2 text-right">
+                              <span className={cn(
+                                "font-mono text-sm font-medium",
+                                item.isPaid ? "text-muted-foreground" :
                                 isCredit ? "text-green-600 dark:text-green-400" :
                                   "text-red-600 dark:text-red-400"
                             )}>
-                              {formatCurrency(item.amount, tripCurrency)}
+                              {formatCurrency(item.amount, item.currency)}
                             </span>
                           </div>
 
-                          {/* Tipo */}
+                          {/* Tipo + Ações */}
                           <div className="col-span-2 flex items-center justify-end gap-2">
                             {item.isPaid && (
                               <Badge
@@ -1596,19 +1890,18 @@ export function SharedExpenses() {
                               className={cn(
                                 "text-xs font-bold",
                                 item.isPaid ? "border-gray-300 text-gray-500" :
-                                  isCredit ? "border-green-300 text-green-700 bg-green-50" :
-                                    "border-red-300 text-red-700 bg-red-50"
+                                  isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
+                                    "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
                               )}
                             >
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
                             </Badge>
 
-                            {/* Menu de ações - só mostrar se houver ações disponíveis */}
                             {(item.isPaid || item.creatorUserId === user?.id) && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8">
-                                    <MoreHorizontal className="h-5 w-5 md:h-4 md:w-4" />
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
@@ -1620,7 +1913,6 @@ export function SharedExpenses() {
                                       Desfazer acerto
                                     </DropdownMenuItem>
                                   )}
-                                  {/* Apenas o criador pode excluir */}
                                   {item.creatorUserId === user?.id && (
                                     <>
                                       {item.totalInstallments && item.totalInstallments > 1 ? (
@@ -1647,6 +1939,7 @@ export function SharedExpenses() {
                             )}
                           </div>
                         </div>
+                      </div>
                       );
                     } catch (error) {
                       console.error('❌ [SharedExpenses] ERRO ao renderizar item TRAVEL:', error);

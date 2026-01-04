@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyMembers } from './useFamily';
 import { toast } from 'sonner';
+import { SettlementValidator } from '@/services/settlementValidation';
 
 export interface InvoiceItem {
   id: string;
@@ -25,6 +26,19 @@ export interface InvoiceItem {
   seriesId?: string | null; // ID da série de parcelas
   creatorUserId?: string;
   creatorName?: string; // Nome de quem pagou/criou a transação
+  
+  // NEW: Settlement status fields
+  isSettled: boolean;
+  settledByDebtor: boolean;
+  settledByCreditor: boolean;
+  
+  // NEW: Validation flags
+  canEdit: boolean;
+  canDelete: boolean;
+  canAnticipate: boolean;
+  
+  // NEW: Block reason (if operation is blocked)
+  blockReason?: string;
 }
 
 interface UseSharedFinancesProps {
@@ -270,6 +284,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           
           // console.log('🔍 [CASO 1A] Criando CRÉDITO com tripId:', tx.trip_id);
           
+          // Calculate validation flags
+          const settlementStatus = SettlementValidator.getSettlementStatus(
+            { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled },
+            split
+          );
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -288,7 +308,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             totalInstallments: tx.total_installments,
             seriesId: tx.series_id,
             creatorUserId: tx.user_id,
-            creatorName: creatorName
+            creatorName: creatorName,
+            // NEW: Settlement status fields
+            isSettled: settlementStatus.isSettled,
+            settledByDebtor: split.settled_by_debtor || false,
+            settledByCreditor: split.settled_by_creditor || false,
+            // NEW: Validation flags
+            canEdit: settlementStatus.canEdit,
+            canDelete: settlementStatus.canDelete,
+            canAnticipate: settlementStatus.canAnticipate,
+            // NEW: Block reason
+            blockReason: settlementStatus.blockReason,
           });
 
           // console.log('✅ [CASO 1A] CRÉDITO criado:', {
@@ -325,6 +355,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               // Buscar nome do criador (quem pagou) - neste caso é o próprio usuário logado
               const creatorName = 'Você'; // Eu devo para o criador, então o criador sou eu
               
+              // Calculate validation flags
+              const settlementStatus = SettlementValidator.getSettlementStatus(
+                { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled },
+                mySplit
+              );
+              
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
                 originalTxId: tx.id,
@@ -343,7 +379,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 totalInstallments: tx.total_installments,
                 seriesId: tx.series_id,
                 creatorUserId: tx.user_id,
-                creatorName: creatorMember.name // Quem pagou foi o criador
+                creatorName: creatorMember.name, // Quem pagou foi o criador
+                // NEW: Settlement status fields
+                isSettled: settlementStatus.isSettled,
+                settledByDebtor: mySplit.settled_by_debtor || false,
+                settledByCreditor: mySplit.settled_by_creditor || false,
+                // NEW: Validation flags
+                canEdit: settlementStatus.canEdit,
+                canDelete: settlementStatus.canDelete,
+                canAnticipate: settlementStatus.canAnticipate,
+                // NEW: Block reason
+                blockReason: settlementStatus.blockReason,
               });
 
               // console.log('✅ [CASO 1B] DÉBITO criado:', {
@@ -398,7 +444,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         totalInstallments: tx.total_installments,
         seriesId: tx.series_id,
         creatorUserId: tx.user_id,
-        creatorName: payer.name // Quem pagou foi o payer
+        creatorName: payer.name, // Quem pagou foi o payer
+        // NEW: Settlement status fields
+        isSettled: tx.is_settled === true,
+        settledByDebtor: false, // No split info available for this case
+        settledByCreditor: false,
+        // NEW: Validation flags
+        canEdit: !tx.is_settled,
+        canDelete: !tx.is_settled,
+        canAnticipate: !tx.is_settled,
+        // NEW: Block reason
+        blockReason: tx.is_settled ? 'Esta transação já foi acertada e não pode ser modificada' : undefined,
       });
     });
 

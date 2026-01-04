@@ -88,12 +88,37 @@ const nationalAccountTypes = [
 
 const currencies = [
   { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
-  { value: "CAD", label: "CAD - Dólar Canadense", symbol: "C$" },
   { value: "EUR", label: "EUR - Euro", symbol: "€" },
   { value: "GBP", label: "GBP - Libra Esterlina", symbol: "£" },
-  { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
+  { value: "CAD", label: "CAD - Dólar Canadense", symbol: "C$" },
   { value: "AUD", label: "AUD - Dólar Australiano", symbol: "A$" },
+  { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
   { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
+  { value: "CNY", label: "CNY - Yuan Chinês", symbol: "¥" },
+  { value: "MXN", label: "MXN - Peso Mexicano", symbol: "$" },
+  { value: "ARS", label: "ARS - Peso Argentino", symbol: "$" },
+  { value: "CLP", label: "CLP - Peso Chileno", symbol: "$" },
+  { value: "COP", label: "COP - Peso Colombiano", symbol: "$" },
+  { value: "PEN", label: "PEN - Sol Peruano", symbol: "S/" },
+  { value: "UYU", label: "UYU - Peso Uruguaio", symbol: "$" },
+  { value: "NZD", label: "NZD - Dólar Neozelandês", symbol: "NZ$" },
+  { value: "SGD", label: "SGD - Dólar de Singapura", symbol: "S$" },
+  { value: "HKD", label: "HKD - Dólar de Hong Kong", symbol: "HK$" },
+  { value: "KRW", label: "KRW - Won Sul-Coreano", symbol: "₩" },
+  { value: "INR", label: "INR - Rúpia Indiana", symbol: "₹" },
+  { value: "THB", label: "THB - Baht Tailandês", symbol: "฿" },
+  { value: "ZAR", label: "ZAR - Rand Sul-Africano", symbol: "R" },
+  { value: "TRY", label: "TRY - Lira Turca", symbol: "₺" },
+  { value: "RUB", label: "RUB - Rublo Russo", symbol: "₽" },
+  { value: "PLN", label: "PLN - Zloty Polonês", symbol: "zł" },
+  { value: "SEK", label: "SEK - Coroa Sueca", symbol: "kr" },
+  { value: "NOK", label: "NOK - Coroa Norueguesa", symbol: "kr" },
+  { value: "DKK", label: "DKK - Coroa Dinamarquesa", symbol: "kr" },
+  { value: "CZK", label: "CZK - Coroa Tcheca", symbol: "Kč" },
+  { value: "HUF", label: "HUF - Forint Húngaro", symbol: "Ft" },
+  { value: "ILS", label: "ILS - Shekel Israelense", symbol: "₪" },
+  { value: "AED", label: "AED - Dirham dos Emirados", symbol: "د.إ" },
+  { value: "SAR", label: "SAR - Riyal Saudita", symbol: "﷼" },
 ];
 
 const getCurrencySymbol = (currency: string) => {
@@ -238,45 +263,8 @@ export function Accounts() {
               return (
                 <div
                   key={account.id}
-                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden relative"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  <div className="absolute top-2 right-2 z-10">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 bg-white/20 hover:bg-white/40"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" style={{ color: bank.textColor }} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingAccount(account);
-                          setEditName(account.name);
-                          setEditBalance(String(account.balance));
-                          setShowEditDialog(true);
-                        }}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(account.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
                   <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
                     <div className="p-4" style={{ backgroundColor: bank.color }}>
                       <div className="flex items-center gap-3">
@@ -357,49 +345,8 @@ export function Accounts() {
               return (
                 <div
                   key={account.id}
-                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden relative"
+                  className="group flex flex-col rounded-xl border border-border hover:border-foreground/20 transition-all duration-200 hover:shadow-md overflow-hidden"
                 >
-                  <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
-                    <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
-                      <Globe className="h-3 w-3" />
-                      {account.currency}
-                    </span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6 bg-white/20 hover:bg-white/40"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-3 w-3" style={{ color: bank.textColor }} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingAccount(account);
-                          setEditName(account.name);
-                          setEditBalance(String(account.balance));
-                          setShowEditDialog(true);
-                        }}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(account.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
                   <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
                     <div className="p-4 relative" style={{ backgroundColor: bank.color }}>
                       <div className="flex items-center gap-3">
@@ -410,6 +357,12 @@ export function Accounts() {
                           </p>
                           <p className="text-xs opacity-80" style={{ color: bank.textColor }}>Conta Global</p>
                         </div>
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-medium flex items-center gap-1" style={{ color: bank.textColor }}>
+                          <Globe className="h-3 w-3" />
+                          {account.currency}
+                        </span>
                       </div>
                       <div className="mt-4">
                         <p className="text-xs opacity-70" style={{ color: bank.textColor }}>Saldo</p>

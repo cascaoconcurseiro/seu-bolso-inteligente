@@ -59,6 +59,7 @@ import { useUserProfile, useUpdateUserProfile, useUpdatePassword, useDeleteAccou
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { AdminResetPanel } from "@/components/settings/AdminResetPanel";
+import { AvatarCustomizer } from "@/components/settings/AvatarCustomizer";
 
 type SettingsSection = "account" | "categories" | "people" | "appearance" | "notifications" | "maintenance";
 
@@ -292,6 +293,25 @@ export function Settings() {
                         </p>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Avatar Customization */}
+                  <div className="p-4 rounded-xl border border-border">
+                    <div className="mb-4">
+                      <p className="font-medium mb-1">Personalizar Avatar</p>
+                      <p className="text-sm text-muted-foreground">Escolha uma cor e ícone para seu perfil</p>
+                    </div>
+                    <AvatarCustomizer
+                      currentColor={profile?.avatar_color || "green"}
+                      currentIcon={profile?.avatar_icon || "user"}
+                      onSave={async (color, icon) => {
+                        await updateProfile.mutateAsync({ 
+                          avatar_color: color, 
+                          avatar_icon: icon 
+                        });
+                      }}
+                      isSaving={updateProfile.isPending}
+                    />
                   </div>
 
                   {/* Change Password */}

@@ -87,7 +87,7 @@ export function TransactionItem({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-center gap-4 p-4 bg-card rounded-lg transition-all duration-200",
+        "flex items-center gap-2 md:gap-4 p-3 md:p-4 bg-card rounded-lg transition-all duration-200",
         onClick && "cursor-pointer hover:shadow-md hover:bg-card/80",
         className
       )}
@@ -95,31 +95,31 @@ export function TransactionItem({
       {/* Ícone da categoria */}
       <div
         className={cn(
-          "flex items-center justify-center w-10 h-10 rounded-full",
+          "flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full shrink-0",
           type === "income" ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
         )}
       >
-        <Icon className="h-5 w-5" />
+        <Icon className="h-4 w-4 md:h-5 md:w-5" />
       </div>
 
       {/* Descrição e metadados */}
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-foreground truncate">{description}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-muted-foreground">{formattedDate}</span>
-          <span className="text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground">{categoryLabels[category]}</span>
+        <p className="font-medium text-foreground truncate text-sm md:text-base">{description}</p>
+        <div className="flex items-center gap-1.5 md:gap-2 mt-1 flex-wrap">
+          <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">{formattedDate}</span>
+          <span className="text-muted-foreground hidden md:inline">•</span>
+          <span className="text-[10px] md:text-xs text-muted-foreground truncate">{categoryLabels[category]}</span>
           {installment && (
             <>
-              <span className="text-muted-foreground">•</span>
-              <Badge variant="muted" className="text-xs">
+              <span className="text-muted-foreground hidden md:inline">•</span>
+              <Badge variant="muted" className="text-[10px] md:text-xs px-1 py-0">
                 {installment.current}/{installment.total}
               </Badge>
             </>
           )}
           {isShared && (
-            <Badge variant="secondary" className="text-xs gap-1">
-              <Users className="h-3 w-3" />
+            <Badge variant="secondary" className="text-[10px] md:text-xs gap-1 px-1 py-0">
+              <Users className="h-2.5 w-2.5 md:h-3 md:w-3" />
               {sharedWith?.length || 0}
             </Badge>
           )}
@@ -127,17 +127,19 @@ export function TransactionItem({
       </div>
 
       {/* Valor */}
-      <div className="text-right">
-        <CurrencyDisplay value={displayValue} size="md" showSign />
-        <div className="flex items-center justify-end gap-1 mt-1">
+      <div className="text-right shrink-0">
+        <div className="text-sm md:text-base font-mono font-semibold">
+          <CurrencyDisplay value={displayValue} size="md" showSign />
+        </div>
+        <div className="flex items-center justify-end gap-0.5 md:gap-1 mt-1">
           <TypeIcon
             className={cn(
-              "h-3 w-3",
+              "h-2.5 w-2.5 md:h-3 md:w-3",
               type === "income" ? "text-positive" : "text-muted-foreground"
             )}
           />
-          <span className="text-xs text-muted-foreground">
-            {type === "income" ? "Entrada" : type === "expense" ? "Saída" : "Transferência"}
+          <span className="text-[9px] md:text-xs text-muted-foreground whitespace-nowrap">
+            {type === "income" ? "Entrada" : type === "expense" ? "Saída" : "Transf."}
           </span>
         </div>
       </div>

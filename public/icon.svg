@@ -1,0 +1,40 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#10b981"/>
+  
+  <!-- Piggy bank body -->
+  <ellipse cx="256" cy="280" rx="140" ry="110" fill="white"/>
+  
+  <!-- Piggy bank head -->
+  <circle cx="256" cy="200" r="80" fill="white"/>
+  
+  <!-- Ear left -->
+  <ellipse cx="210" cy="160" rx="20" ry="35" fill="white"/>
+  
+  <!-- Ear right -->
+  <ellipse cx="302" cy="160" rx="20" ry="35" fill="white"/>
+  
+  <!-- Snout -->
+  <ellipse cx="256" cy="220" rx="35" ry="25" fill="#f0f0f0"/>
+  <circle cx="245" cy="220" r="6" fill="#10b981"/>
+  <circle cx="267" cy="220" r="6" fill="#10b981"/>
+  
+  <!-- Eyes -->
+  <circle cx="230" cy="190" r="8" fill="#1f2937"/>
+  <circle cx="282" cy="190" r="8" fill="#1f2937"/>
+  
+  <!-- Legs -->
+  <rect x="190" y="360" width="30" height="50" rx="15" fill="white"/>
+  <rect x="292" y="360" width="30" height="50" rx="15" fill="white"/>
+  
+  <!-- Tail -->
+  <path d="M 380 260 Q 400 240 390 220" stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+  
+  <!-- Coin slot -->
+  <rect x="240" y="240" width="32" height="6" rx="3" fill="#10b981"/>
+  
+  <!-- Coin -->
+  <circle cx="320" cy="180" r="35" fill="#fbbf24"/>
+  <circle cx="320" cy="180" r="28" fill="#f59e0b"/>
+  <text x="320" y="195" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#fbbf24" text-anchor="middle">$</text>
+</svg>

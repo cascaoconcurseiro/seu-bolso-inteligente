@@ -219,17 +219,17 @@ export function Dashboard() {
                         `stagger-${index + 1}`
                       )}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
                         <BankIcon bankId={card.bank_id} size="md" />
-                        <div>
-                          <p className="font-medium">Fatura {card.name}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm md:text-base truncate">Fatura {card.name}</p>
+                          <p className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                             Vence em {daysUntilDue} dia{daysUntilDue !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-red-500 font-mono font-semibold">
+                      <div className="flex items-center gap-1 md:gap-2 shrink-0">
+                        <span className="text-red-500 font-mono font-semibold text-sm md:text-base whitespace-nowrap">
                           -{formatCurrency(Math.abs(Number(card.balance)))}
                         </span>
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
@@ -275,25 +275,25 @@ export function Dashboard() {
                     <div
                       key={tx.id}
                       className={cn(
-                        "flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-all hover-lift animate-stagger",
+                        "flex items-center justify-between py-3 border-b border-border last:border-0 hover:bg-muted/30 px-2 -mx-2 rounded-lg transition-all hover-lift animate-stagger gap-2 md:gap-4",
                         `stagger-${index + 1}`
                       )}
                     >
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium">{tx.description}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                          <p className="font-medium text-sm md:text-base truncate">{tx.description}</p>
                           {tx.is_shared && (
-                            <span className="text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                            <span className="text-[9px] md:text-[10px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1 md:px-1.5 py-0.5 rounded uppercase tracking-wider font-medium whitespace-nowrap">
                               Compartilhado
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs md:text-sm text-muted-foreground truncate">
                           {tx.category?.name || "Sem categoria"} • {dateLabel}
                         </p>
                       </div>
                       <p className={cn(
-                        "font-mono font-semibold",
+                        "font-mono font-semibold text-sm md:text-base shrink-0 whitespace-nowrap",
                         tx.type === "INCOME" ? "text-green-500" : "text-red-500"
                       )}>
                         {tx.type === "INCOME" ? "+" : "-"}{formatCurrency(Number(tx.amount))}
