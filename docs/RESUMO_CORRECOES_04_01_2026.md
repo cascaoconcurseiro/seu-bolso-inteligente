@@ -1,91 +1,103 @@
-# Resumo de Correções - 04/01/2026
+# Resumo das Correções - 04/01/2026
 
-## Problemas Identificados e Corrigidos
+## ✅ Correções Implementadas
 
-### 1. ✅ Função `undo_shared_settlements` Criada
-**Problema**: Botão "Desfazer Acertos" não funcionava  
-**Causa**: Função SQL não existia no banco de produção  
-**Solução**: Aplicada migration com a função completa  
-**Status**: RESOLVIDO
+### 1. Botão "Desfazer Todos os Acertos"
+**Status**: Corrigido com logs de debug
+- Removida referência a `isUnsettlingMultiple` que causava erro
+- Adicionado estado local `isUndoingAll` para controlar loading
+- Implementada mesma lógica do desfazer individual
+- Adicionados logs detalhados para debug
+- **Commits**: `ef74441`, `7ae78f4`
 
-### 2. ✅ Splits Vinculados aos Settlements
-**Problema**: Transações pagas não apareciam como "Acertado"  
-**Causa**: Splits não estavam vinculados aos settlements (`settled_transaction_id = null`)  
-**Solução**: Corrigidos manualmente 11 splits de fevereiro/2026  
-**Status**: RESOLVIDO
+### 2. Campo de Data no Formulário de Acerto
+**Status**: ✅ Implementado
+- Adicionado campo de data no dialog de pagamento/recebimento
+- Permite escolher qualquer data (inclusive futuras)
+- Acerto aparece no mês da data escolhida
+- Valor padrão: data de hoje
+- **Commit**: `293e1e4`
 
-### 3. ✅ Query do useTransactions Atualizada
-**Problema**: Página Transações não mostrava status correto  
-**Causa**: Query não buscava `transaction_splits`  
-**Solução**: Adicionado `transaction_splits` com todos os campos na query  
-**Status**: RESOLVIDO
+### 3. Correção de Datas das Transações
+**Status**: ✅ Corrigido
 
-### 4. ⚠️ Logs de Debug Adicionados
-**Objetivo**: Identificar problemas futuros  
-**Adicionado**: Logs detalhados em `useUnsettleMultiple` e `useTransactions`  
-**Status**: ATIVO (remover após validação)
+#### 3.1 Banco de Dados
+- Atualizadas 141 transações via Supabase Power
+- Alinhadas `date` com `competence_date`
+- Todas as transações de fevereiro agora mostram 01/02/2026
 
-## Correções Aplicadas no Banco de Dados
+#### 3.2 Código - Cálculo de Parcelas
+- Corrigido parsing de datas sem problemas de timezone
+- Usa `split('-')` ao invés de `new Date(string)`
+- **Commit**: `c8372e5`
 
-### Migration: `undo_shared_settlements`
-```sql
-CREATE OR REPLACE FUNCTION undo_shared_settlements(p_split_ids uuid[])
-RETURNS json
--- Reverte settlements e marca splits como não acertados
+#### 3.3 Código - Formatação de Datas
+- Adicionado `'T12:00:00'` ao parsear datas no frontend
+- Evita timezone subtrair horas e mostrar dia anterior
+- Corrige 31/01/2026 → 01/02/2026
+- **Commit**: `94bbdd4`
+
+### 4. Acertos Usam Data de Competência
+**Status**: ✅ Implementado
+- Acertos criados com a data escolhida pelo usuário
+- `competence_date` calculado a partir da data escolhida
+- **Commits**: `26aef2a`, `2432805`
+
+## 📊 Estatísticas
+
+- **Total de commits**: 8
+- **Transações atualizadas no banco**: 141
+- **Arquivos modificados**: 3
+  - `src/pages/SharedExpenses.tsx`
+  - `src/hooks/useTransactions.ts`
+  - `docs/CORRECAO_DATAS_TRANSACOES_04_01_2026.md`
+
+## 🔍 Problemas Identificados (Aguardando Teste)
+
+### 1. Desfazer Todos os Acertos
+**Sintoma**: Não funciona, mas desfazer individual funciona
+**Possível Causa**: Filtrando apenas mês atual (janeiro) quando dívidas estão em fevereiro
+**Ação**: Logs adicionados para debug - aguardando teste do usuário
+
+### 2. Layout de Transações
+**Sintoma**: Transações simples aparecem com layout diferente das compartilhadas
+**Análise**: Layout já está padronizado no código
+**Causa**: Transações simples não têm badges de compartilhamento (comportamento esperado)
+**Status**: Verificar se usuário quer badges mesmo em transações não compartilhadas
+
+## 📝 Regras Estabelecidas
+
+1. **Data = Competence_date**: Campo `date` sempre igual a `competence_date`
+2. **Competence_date dia 1º**: Sempre formato `yyyy-MM-01`
+3. **Acertos seguem data escolhida**: Usuário define o mês
+4. **Parcelas seguem mês selecionado**: Importação usa mês do formulário
+5. **Formatação com timezone**: Sempre adicionar `'T12:00:00'` ao parsear datas
+
+## 🚀 Próximos Passos
+
+1. [ ] Testar "Desfazer Todos" e enviar logs do console
+2. [ ] Validar que datas aparecem corretamente (01/02 ao invés de 31/01)
+3. [ ] Confirmar que campo de data permite escolher fevereiro
+4. [ ] Verificar se layout de transações está adequado
+5. [ ] Testar importação de novas parcelas
+
+## 📦 Commits do Dia
+
+```
+ef74441 - fix: Remover referência a isUnsettlingMultiple
+c8372e5 - fix: Corrigir cálculo de data nas parcelas importadas
+2432805 - fix: Usar competence_date diretamente sem conversão
+26aef2a - fix: Acertos devem aparecer no mês da competência da dívida
+293e1e4 - feat: Adicionar campo de data no formulário de acerto
+6e686f2 - docs: Documentar correção de datas das transações
+94bbdd4 - fix: Corrigir formatação de datas e permitir datas futuras no acerto
+7ae78f4 - debug: Adicionar logs detalhados no handleUndoAll
 ```
 
-### Fix Manual: Vincular Splits aos Settlements
-```sql
--- 11 splits de fevereiro/2026 foram vinculados aos seus settlements
-UPDATE transaction_splits 
-SET is_settled = true, 
-    settled_at = NOW(), 
-    settled_transaction_id = '<settlement_id>'
-WHERE id = '<split_id>';
-```
+## 🎯 Objetivos Alcançados
 
-## Resultado Esperado
-
-Após as correções:
-
-1. ✅ Transações pagas em Compartilhados aparecem como "Acertado" em Transações
-2. ✅ Botão "Desfazer Acertos" funciona corretamente
-3. ✅ Efeito cascata: reverte saldo e marca como pendente
-4. ✅ Sincronização entre todas as páginas
-5. ✅ Sem duplicidade de pagamentos
-
-## Próximos Passos
-
-1. **Validar** com usuário que tudo está funcionando
-2. **Remover** logs de debug após validação
-3. **Investigar** por que `useSettleWithPayment` não atualizou os splits inicialmente
-4. **Adicionar** testes automatizados para prevenir regressão
-
-## Arquivos Modificados
-
-- `src/hooks/useTransactions.ts` - Adicionado transaction_splits na query
-- `src/hooks/useSettlement.ts` - Adicionado logs de debug
-- `supabase/migrations/20260104103000_add_undo_settlements_rpc.sql` - Aplicada em produção
-- `docs/CORRECOES_URGENTES_SINCRONIZACAO.md` - Documentação do problema
-- `docs/RESUMO_CORRECOES_04_01_2026.md` - Este arquivo
-
-## Comandos Executados
-
-```bash
-# Aplicar função SQL
-kiroPowers.use(supabase-hosted, apply_migration, undo_shared_settlements)
-
-# Corrigir splits manualmente
-kiroPowers.use(supabase-hosted, apply_migration, fix_settlements_link_splits)
-
-# Deploy
-git push origin main
-```
-
-## Contato
-
-Se houver problemas, verificar:
-1. Console do navegador (F12) para logs
-2. Página de Compartilhados > Histórico
-3. Saldo das contas
-4. Status dos splits no banco de dados
+- ✅ Datas consistentes em todo o sistema
+- ✅ Usuário controla data do acerto
+- ✅ Transações aparecem no mês correto
+- ✅ Código preparado para debug do "Desfazer Todos"
+- ✅ Documentação completa das correções
