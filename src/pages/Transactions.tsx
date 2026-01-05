@@ -151,7 +151,19 @@ export function Transactions() {
     const periodDates = getPeriodDates(selectedPeriod);
     
     return (transactions || []).filter((t) => {
-      // 🔧 FILTRO CRÍTICO: Não mostrar transações pagas por outra pessoa (payer_id preenchido)
+      // 🔧 FILTRO CRÍTICO 1: Não mostrar transações compartilhadas (is_shared = true)
+      // Transações compartilhadas devem aparecer APENAS no Compartilhados
+      if (t.is_shared === true) {
+        return false;
+      }
+      
+      // 🔧 FILTRO CRÍTICO 2: Não mostrar transações espelhadas (source_transaction_id preenchido)
+      // Transações espelhadas são criadas automaticamente e devem aparecer APENAS no Compartilhados
+      if (t.source_transaction_id && t.source_transaction_id !== null) {
+        return false;
+      }
+      
+      // 🔧 FILTRO CRÍTICO 3: Não mostrar transações pagas por outra pessoa (payer_id preenchido)
       // Essas transações devem aparecer APENAS no Compartilhados
       if (t.payer_id && t.payer_id !== null) {
         return false;
