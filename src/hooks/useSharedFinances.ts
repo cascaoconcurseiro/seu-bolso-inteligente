@@ -52,66 +52,53 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const queryClient = useQueryClient();
 
   // Função para calcular a data de vencimento de uma transação de cartão de crédito
-  // Função para calcular a data de exibição no Compartilhados
-  // REGRA: Usar competence_date se existir (transações já têm a data correta)
+  // Função EXCLUSIVA para calcular data de exibição no Compartilhados
+  // REGRA: Calcular mês de VENCIMENTO baseado no competence_date (mês de fechamento)
   const calculateSharedDisplayDate = (
     transactionDate: string, 
     competenceDate: string | null,
     accountId: string | null, 
     accounts: any[]
   ): string => {
-    // PRIORIDADE 1: Se tem competence_date, usar ele (transações importadas/antigas já estão corretas)
-    if (competenceDate) {
-      return competenceDate;
+    // Se não tem account_id, usar competence_date ou date
+    if (!accountId) {
+      return competenceDate || transactionDate;
     }
 
-    // PRIORIDADE 2: Se tem account_id e é cartão de crédito, calcular mês de vencimento
-    if (accountId) {
-      const account = accounts.find(a => a.id === accountId);
-      
-      if (account && account.type === 'CREDIT_CARD') {
-        // É cartão de crédito → calcular mês de vencimento
-        const closingDay = account.closing_day || 1;
-        const dueDay = account.due_day || 10;
-        
-        const txDate = new Date(transactionDate + 'T00:00:00');
-        const txDay = txDate.getDate();
-        const txMonth = txDate.getMonth();
-        const txYear = txDate.getFullYear();
+    // Buscar a conta
+    const account = accounts.find(a => a.id === accountId);
+    
+    // Se não encontrou a conta ou não é cartão de crédito, usar competence_date ou date
+    if (!account || account.type !== 'CREDIT_CARD') {
+      return competenceDate || transactionDate;
+    }
 
-        // Determinar em qual fatura a transação entra
-        let invoiceMonth = txMonth;
-        let invoiceYear = txYear;
-
-        if (txDay > closingDay) {
-          // Transação entra na fatura do próximo mês
-          invoiceMonth++;
-          if (invoiceMonth > 11) {
-            invoiceMonth = 0;
-            invoiceYear++;
-          }
-        }
-
-        // Calcular o mês de vencimento
-        let dueMonth = invoiceMonth;
-        let dueYear = invoiceYear;
-
-        if (dueDay <= closingDay) {
-          // Vencimento é no próximo mês
-          dueMonth++;
-          if (dueMonth > 11) {
-            dueMonth = 0;
-            dueYear++;
-          }
-        }
-
-        // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-        return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    // É cartão de crédito → calcular mês de VENCIMENTO
+    // competence_date = mês de FECHAMENTO da fatura
+    // Precisamos calcular o mês de VENCIMENTO
+    
+    const closingDay = account.closing_day || 1;
+    const dueDay = account.due_day || 10;
+    
+    // Usar competence_date como base (mês de fechamento)
+    const closingMonth = new Date((competenceDate || transactionDate) + 'T00:00:00');
+    
+    // Calcular mês de vencimento
+    let dueMonth = closingMonth.getMonth();
+    let dueYear = closingMonth.getFullYear();
+    
+    if (dueDay <= closingDay) {
+      // Vencimento é no próximo mês após o fechamento
+      dueMonth++;
+      if (dueMonth > 11) {
+        dueMonth = 0;
+        dueYear++;
       }
     }
-
-    // PRIORIDADE 3: Usar a data da transação
-    return transactionDate;
+    // Se dueDay > closingDay, vencimento é no mesmo mês do fechamento
+    
+    // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
+    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
   };
 
   // DEBUG: Log members
