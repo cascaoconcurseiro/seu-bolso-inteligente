@@ -260,13 +260,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }))
       });
       
-      console.table(accounts?.map(a => ({
-        id: a.id,
-        type: a.type,
-        closing_day: a.closing_day,
-        due_day: a.due_day,
-        user_id: a.user_id
-      })));
+      // Log individual de cada conta
+      accounts?.forEach((a, index) => {
+        console.log(`📋 Conta ${index + 1}:`, {
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        });
+      });
       
       // Filtrar apenas cartões de crédito
       const creditCardAccounts = accounts?.filter(a => a.type === 'CREDIT_CARD') || [];
@@ -282,13 +285,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }))
       });
       
-      console.table(creditCardAccounts?.map(a => ({
-        id: a.id,
-        type: a.type,
-        closing_day: a.closing_day,
-        due_day: a.due_day,
-        user_id: a.user_id
-      })));
+      // Log individual de cada cartão
+      creditCardAccounts?.forEach((a, index) => {
+        console.log(`💳 Cartão ${index + 1}:`, {
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        });
+      });
       
       console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
         count: creditCardAccounts?.length,
