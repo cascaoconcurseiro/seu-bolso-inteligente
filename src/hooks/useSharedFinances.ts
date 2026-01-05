@@ -242,17 +242,30 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       const { data: accounts, error: accountsError } = await supabase
         .from('accounts')
         .select('id, type, closing_day, due_day, user_id')
-        .in('user_id', transactionUserIds) // Buscar contas de TODOS os criadores de transações
-        .eq('type', 'CREDIT_CARD'); // Apenas cartões de crédito
+        .in('user_id', transactionUserIds); // Buscar TODAS as contas (não apenas CREDIT_CARD)
       
       if (accountsError) {
         console.error('❌ [Query Error - Accounts]:', accountsError);
         throw accountsError;
       }
       
-      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
+      console.log('🔍 [useSharedFinances] TODAS as contas encontradas:', {
         count: accounts?.length,
         accounts: accounts?.map(a => ({
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        }))
+      });
+      
+      // Filtrar apenas cartões de crédito
+      const creditCardAccounts = accounts?.filter(a => a.type === 'CREDIT_CARD') || [];
+      
+      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
+        count: creditCardAccounts?.length,
+        accounts: creditCardAccounts?.map(a => ({
           id: a.id,
           type: a.type,
           closing_day: a.closing_day,
@@ -305,7 +318,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       //   }))
       // });
       
-      return { transactions: transactionsWithSplitsData, accounts: accounts || [] };
+      return { transactions: transactionsWithSplitsData, accounts: creditCardAccounts || [] };
     },
     enabled: !!user,
   });
