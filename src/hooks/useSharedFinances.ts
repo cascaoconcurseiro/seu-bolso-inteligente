@@ -236,13 +236,19 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       console.log('🔍 [useSharedFinances] transactionUserIds (criadores):', transactionUserIds);
       
+      // Coletar TODOS os account_ids únicos das transações
+      const transactionAccountIds = Array.from(
+        new Set(allTransactions.map(tx => tx.account_id).filter(Boolean))
+      );
+      
+      console.log('🔍 [useSharedFinances] transactionAccountIds:', transactionAccountIds);
+      
       // Buscar contas de TODOS os usuários que criaram transações compartilhadas
-      // IMPORTANTE: Buscar TODAS as contas, incluindo arquivadas, pois precisamos calcular
-      // a data de vencimento mesmo para transações antigas
+      // E também buscar contas específicas pelos IDs encontrados nas transações
       const { data: accounts, error: accountsError } = await supabase
         .from('accounts')
         .select('id, type, closing_day, due_day, user_id')
-        .in('user_id', transactionUserIds); // Buscar TODAS as contas (não apenas CREDIT_CARD)
+        .or(`user_id.in.(${transactionUserIds.join(',')}),id.in.(${transactionAccountIds.join(',')})`);
       
       if (accountsError) {
         console.error('❌ [Query Error - Accounts]:', accountsError);
