@@ -60,17 +60,35 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     accountId: string | null, 
     accounts: any[]
   ): string => {
+    console.log('🔍 [calculateSharedDisplayDate] Input:', {
+      transactionDate,
+      competenceDate,
+      accountId,
+      accountsCount: accounts.length
+    });
+
     // Se não tem account_id, usar competence_date ou date
     if (!accountId) {
-      return competenceDate || transactionDate;
+      const result = competenceDate || transactionDate;
+      console.log('⚠️ [calculateSharedDisplayDate] No account_id, result:', result);
+      return result;
     }
 
     // Buscar a conta
     const account = accounts.find(a => a.id === accountId);
     
+    console.log('🔍 [calculateSharedDisplayDate] Account:', {
+      found: !!account,
+      type: account?.type,
+      closingDay: account?.closing_day,
+      dueDay: account?.due_day
+    });
+    
     // Se não encontrou a conta ou não é cartão de crédito, usar competence_date ou date
     if (!account || account.type !== 'CREDIT_CARD') {
-      return competenceDate || transactionDate;
+      const result = competenceDate || transactionDate;
+      console.log('⚠️ [calculateSharedDisplayDate] Not credit card, result:', result);
+      return result;
     }
 
     // É cartão de crédito → calcular mês de VENCIMENTO
@@ -83,6 +101,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     // Usar competence_date como base (mês de fechamento)
     const closingMonth = new Date((competenceDate || transactionDate) + 'T00:00:00');
     
+    console.log('🔍 [calculateSharedDisplayDate] Calculation:', {
+      closingMonth: closingMonth.toISOString(),
+      closingDay,
+      dueDay,
+      condition: `dueDay (${dueDay}) <= closingDay (${closingDay})`
+    });
+    
     // Calcular mês de vencimento
     let dueMonth = closingMonth.getMonth();
     let dueYear = closingMonth.getFullYear();
@@ -94,11 +119,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         dueMonth = 0;
         dueYear++;
       }
+      console.log('✅ [calculateSharedDisplayDate] Due next month');
+    } else {
+      console.log('✅ [calculateSharedDisplayDate] Due same month');
     }
     // Se dueDay > closingDay, vencimento é no mesmo mês do fechamento
     
+    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    console.log('✅ [calculateSharedDisplayDate] Final result:', result);
+    
     // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    return result;
   };
 
   // DEBUG: Log members
