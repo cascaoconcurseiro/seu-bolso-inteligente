@@ -151,6 +151,12 @@ export function Transactions() {
     const periodDates = getPeriodDates(selectedPeriod);
     
     return (transactions || []).filter((t) => {
+      // 🔧 FILTRO CRÍTICO: Não mostrar transações pagas por outra pessoa (payer_id preenchido)
+      // Essas transações devem aparecer APENAS no Compartilhados
+      if (t.payer_id && t.payer_id !== null) {
+        return false;
+      }
+      
       const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = selectedType === "all" || t.type === selectedType;
       const matchesCategory = selectedCategory === "all" || t.category?.id === selectedCategory;
