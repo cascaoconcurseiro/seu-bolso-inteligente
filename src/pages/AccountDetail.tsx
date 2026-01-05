@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
@@ -18,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAccounts, useDeleteAccount } from "@/hooks/useAccounts";
+import { useAccounts, useDeleteAccount, useUpdateAccount } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { cn } from "@/lib/utils";
@@ -38,12 +48,15 @@ export function AccountDetail() {
   const { data: accounts = [] } = useAccounts();
   const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
+  const updateAccount = useUpdateAccount();
   const deleteTransaction = useDeleteTransaction();
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [editAccountName, setEditAccountName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
@@ -88,6 +101,21 @@ export function AccountDetail() {
       await deleteAccount.mutateAsync(id!);
       navigate("/contas");
     }
+  };
+
+  const handleEditAccount = () => {
+    if (!account) return;
+    setEditAccountName(account.name);
+    setShowEditDialog(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!account || !editAccountName.trim()) return;
+    await updateAccount.mutateAsync({
+      id: account.id,
+      name: editAccountName.trim(),
+    });
+    setShowEditDialog(false);
   };
 
   const handleEditTransaction = (tx: any) => {
@@ -194,10 +222,7 @@ export function AccountDetail() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={() => {
-                // TODO: Implementar edição de conta
-                toast.info("Funcionalidade de edição em desenvolvimento");
-              }}
+              onClick={handleEditAccount}
             >
               <Pencil className="h-4 w-4" />
               Editar
@@ -390,6 +415,37 @@ export function AccountDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Account Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Conta</DialogTitle>
+            <DialogDescription>
+              Altere o nome da conta
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="account-name">Nome da Conta</Label>
+              <Input
+                id="account-name"
+                value={editAccountName}
+                onChange={(e) => setEditAccountName(e.target.value)}
+                placeholder="Digite o nome da conta"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={!editAccountName.trim()}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
