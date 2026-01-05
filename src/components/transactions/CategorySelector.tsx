@@ -105,8 +105,17 @@ export function CategorySelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <div className="max-h-[400px] overflow-y-auto p-2">
+      <PopoverContent 
+        className="w-[400px] p-0" 
+        align="start"
+        onWheel={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        <div 
+          className="max-h-[400px] overflow-y-auto p-2"
+          style={{ overscrollBehavior: 'contain' }}
+        >
           {parents.map((parent) => {
             const children = childrenMap.get(parent.id) || [];
             if (children.length === 0) return null;
