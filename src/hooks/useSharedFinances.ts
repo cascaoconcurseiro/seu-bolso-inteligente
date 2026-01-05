@@ -438,10 +438,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 mySplit
               );
               
-              // Para transações de cartão de crédito compartilhadas, usar data de vencimento
-              const displayDate = tx.account_id 
-                ? calculateDueDate(tx.date, tx.account_id, accounts)
-                : (tx.competence_date || tx.date);
+              // CRÍTICO: Para transações criadas por OUTROS, sempre usar competence_date
+              // Não tentar recalcular porque não temos acesso ao cartão do criador
+              const displayDate = tx.competence_date || tx.date;
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
