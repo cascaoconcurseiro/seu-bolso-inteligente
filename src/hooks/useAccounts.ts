@@ -255,3 +255,27 @@ export function useDeleteAccount() {
     },
   });
 }
+
+export function useArchiveAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Arquivar conta (is_active = false, mas deleted = false)
+      // Transações são preservadas
+      const { error } = await supabase
+        .from("accounts")
+        .update({ is_active: false, deleted: false })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      toast.success("Conta arquivada! As transações foram preservadas.");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao arquivar conta");
+    },
+  });
+}

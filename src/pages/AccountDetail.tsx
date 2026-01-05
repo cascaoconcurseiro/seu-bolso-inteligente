@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, TrendingUp, TrendingDown, ArrowLeftRight, Banknote, MoreHorizontal, Archive } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAccounts, useDeleteAccount, useUpdateAccount } from "@/hooks/useAccounts";
+import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,7 @@ export function AccountDetail() {
   const { data: accounts = [] } = useAccounts();
   const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
+  const archiveAccount = useArchiveAccount();
   const updateAccount = useUpdateAccount();
   const deleteTransaction = useDeleteTransaction();
 
@@ -55,6 +56,7 @@ export function AccountDetail() {
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [editAccountName, setEditAccountName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
@@ -96,11 +98,19 @@ export function AccountDetail() {
   };
 
   const handleDelete = async () => {
+    setShowDeleteConfirmDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
     if (!account) return;
-    if (confirm(`Tem certeza que deseja excluir a conta "${account.name}"?`)) {
-      await deleteAccount.mutateAsync(id!);
-      navigate("/contas");
-    }
+    await deleteAccount.mutateAsync(id!);
+    navigate("/contas");
+  };
+
+  const handleConfirmArchive = async () => {
+    if (!account) return;
+    await archiveAccount.mutateAsync(id!);
+    navigate("/contas");
   };
 
   const handleEditAccount = () => {
@@ -442,6 +452,85 @@ export function AccountDetail() {
             </Button>
             <Button onClick={handleSaveEdit} disabled={!editAccountName.trim()}>
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remover conta "{account?.name}"?</DialogTitle>
+            <DialogDescription className="space-y-4 pt-4">
+              <p className="text-sm">
+                Escolha como deseja remover esta conta:
+              </p>
+              
+              <div className="space-y-3">
+                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                  <div className="flex items-start gap-3">
+                    <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
+                        Arquivar (Recomendado)
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                        • A conta não aparecerá mais nos formulários<br />
+                        • Todas as transações serão preservadas<br />
+                        • Histórico mantido para relatórios
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                  <div className="flex items-start gap-3">
+                    <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm text-red-900 dark:text-red-100">
+                        Excluir Permanentemente
+                      </p>
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        • A conta será removida do sistema<br />
+                        • Todas as transações serão deletadas<br />
+                        • Esta ação não pode ser desfeita
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteConfirmDialog(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setShowDeleteConfirmDialog(false);
+                handleConfirmArchive();
+              }}
+              className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20"
+            >
+              <Archive className="h-4 w-4" />
+              Arquivar
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                setShowDeleteConfirmDialog(false);
+                handleConfirmDelete();
+              }}
+              className="w-full sm:w-auto gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir
             </Button>
           </DialogFooter>
         </DialogContent>
