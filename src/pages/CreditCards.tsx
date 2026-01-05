@@ -54,11 +54,12 @@ import {
   Pencil,
   Trash2,
   Settings,
+  Archive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { banks, cardBrands, getBankById, internationalBanks } from "@/lib/banks";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
-import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from "@/hooks/useAccounts";
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount } from "@/hooks/useAccounts";
 import { useTransactions, useCreateTransaction, useDeleteTransaction } from "@/hooks/useTransactions";
 import { format, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -115,6 +116,7 @@ export function CreditCards() {
   const createAccount = useCreateAccount();
   const updateAccount = useUpdateAccount();
   const deleteAccountMutation = useDeleteAccount();
+  const archiveAccountMutation = useArchiveAccount();
   const createTransaction = useCreateTransaction();
   const deleteTransaction = useDeleteTransaction();
   const { toast: toastHook } = useToast();
@@ -760,27 +762,87 @@ export function CreditCards() {
         </Dialog>
 
         {/* Delete Card Confirm */}
-        <AlertDialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Cartão</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o cartão "{deleteCardConfirm.card?.name}"? 
-                Esta ação não pode ser desfeita e todas as transações vinculadas precisam ser migradas primeiro.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDeleteCard} 
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+        <Dialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</DialogTitle>
+              <DialogDescription className="space-y-4 pt-4">
+                <p className="text-sm">
+                  Escolha como deseja remover este cartão:
+                </p>
+                
+                <div className="space-y-3">
+                  <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+                    <div className="flex items-start gap-3">
+                      <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
+                          Arquivar (Recomendado)
+                        </p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                          • O cartão não aparecerá mais nos formulários<br />
+                          • Todas as transações serão preservadas<br />
+                          • Histórico mantido para relatórios
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                    <div className="flex items-start gap-3">
+                      <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm text-red-900 dark:text-red-100">
+                          Excluir Permanentemente
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          • O cartão será removido do sistema<br />
+                          • Todas as transações serão deletadas<br />
+                          • Esta ação não pode ser desfeita
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setDeleteCardConfirm({ isOpen: false, card: null })}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={async () => {
+                  if (deleteCardConfirm.card) {
+                    await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id);
+                    setDeleteCardConfirm({ isOpen: false, card: null });
+                  }
+                }}
+                className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20"
+                disabled={archiveAccountMutation.isPending}
+              >
+                <Archive className="h-4 w-4" />
+                {archiveAccountMutation.isPending ? "Arquivando..." : "Arquivar"}
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={async () => {
+                  await handleDeleteCard();
+                  setDeleteCardConfirm({ isOpen: false, card: null });
+                }}
+                className="w-full sm:w-auto gap-2"
                 disabled={deleteAccountMutation.isPending}
               >
+                <Trash2 className="h-4 w-4" />
                 {deleteAccountMutation.isPending ? "Excluindo..." : "Excluir"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
