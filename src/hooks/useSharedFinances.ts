@@ -77,17 +77,25 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     // Buscar a conta
     const account = accounts.find(a => a.id === accountId);
     
-    console.log('🔍 [calculateSharedDisplayDate] Account:', {
+    console.log('🔍 [calculateSharedDisplayDate] Account FULL OBJECT:', JSON.stringify({
       found: !!account,
+      accountObject: account,
       type: account?.type,
+      typeOf: typeof account?.type,
+      typeComparison: account?.type !== 'CREDIT_CARD',
+      typeEquals: account?.type === 'CREDIT_CARD',
       closingDay: account?.closing_day,
       dueDay: account?.due_day
-    });
+    }, null, 2));
     
     // Se não encontrou a conta ou não é cartão de crédito, usar competence_date ou date
     if (!account || account.type !== 'CREDIT_CARD') {
       const result = competenceDate || transactionDate;
-      console.log('⚠️ [calculateSharedDisplayDate] Not credit card, result:', result);
+      console.log('⚠️ [calculateSharedDisplayDate] Not credit card, result:', result, JSON.stringify({
+        hasAccount: !!account,
+        accountType: account?.type,
+        checkResult: account?.type !== 'CREDIT_CARD'
+      }, null, 2));
       return result;
     }
 
