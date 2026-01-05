@@ -135,6 +135,8 @@ export function useSentTripInvitations(tripId: string | null) {
       return data;
     },
     enabled: !!user && !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

@@ -54,6 +54,8 @@ export function useInstallmentSeries(seriesId: string | null) {
       return data as Installment[];
     },
     enabled: !!user && !!seriesId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -92,6 +94,8 @@ export function useFutureInstallments(seriesId: string | null) {
       return data as Installment[];
     },
     enabled: !!user && !!seriesId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

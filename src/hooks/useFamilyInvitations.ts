@@ -96,6 +96,8 @@ export function useSentInvitations() {
       return data as FamilyInvitation[];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

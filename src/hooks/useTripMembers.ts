@@ -162,6 +162,8 @@ export function useTripPermissions(tripId: string | null) {
       };
     },
     enabled: !!tripId && !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

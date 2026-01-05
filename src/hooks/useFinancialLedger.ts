@@ -63,6 +63,8 @@ export function useLedgerEntries(filters?: {
       return data as LedgerEntry[];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -85,6 +87,8 @@ export function useBalanceBetweenUsers(otherUserId: string | null, currency: str
       return data?.[0] as BalanceBetweenUsers;
     },
     enabled: !!user && !!otherUserId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -166,6 +170,8 @@ export function useBalancesWithAllMembers() {
       return balances.filter(b => b !== null);
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -221,5 +227,7 @@ export function useSharedTransactionsWithMember(memberUserId: string | null) {
       return allTransactions;
     },
     enabled: !!user && !!memberUserId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }

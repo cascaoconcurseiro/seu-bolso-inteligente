@@ -32,6 +32,8 @@ export function useTripExchangePurchases(tripId: string | null) {
       return data as ExchangePurchase[];
     },
     enabled: !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

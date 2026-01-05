@@ -210,6 +210,8 @@ export function useNotificationPreferences() {
       return data;
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   const updateMutation = useMutation({

@@ -120,6 +120,8 @@ export function useTrip(id: string | null) {
       return data as Trip;
     },
     enabled: !!user && !!id,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -173,6 +175,8 @@ export function useTripParticipants(tripId: string | null) {
       return participantsWithNames;
     },
     enabled: !!user && !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -439,6 +443,8 @@ export function useTripTransactions(tripId: string | null) {
       return data;
     },
     enabled: !!user && !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -472,6 +478,8 @@ export function useTripFinancialSummary(tripId: string | null) {
       return data?.[0] as TripFinancialSummary | null;
     },
     enabled: !!user && !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -493,5 +501,7 @@ export function useMyTripSpent(tripId: string | null) {
       return data as number;
     },
     enabled: !!user && !!tripId,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
