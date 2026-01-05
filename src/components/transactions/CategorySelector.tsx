@@ -35,16 +35,8 @@ export function CategorySelector({
   const [open, setOpen] = useState(false);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
-  console.log('🔍 [CategorySelector] Props:', {
-    categoriesLength: categories?.length,
-    value,
-    type,
-    categories: categories?.slice(0, 3) // Primeiras 3 para debug
-  });
-
   // Validação: se categories não existe ou está vazio, retornar componente vazio
   if (!categories || categories.length === 0) {
-    console.warn('⚠️ [CategorySelector] Categories vazio ou undefined');
     return (
       <Button
         variant="outline"
@@ -67,12 +59,6 @@ export function CategorySelector({
       }
       childrenMap.get(cat.parent_category_id)!.push(cat);
     }
-  });
-
-  console.log('🔍 [CategorySelector] Hierarquia:', {
-    parentsCount: parents.length,
-    childrenMapSize: childrenMap.size,
-    parents: parents.map(p => ({ id: p.id, name: p.name, type: p.type }))
   });
 
   // Encontrar categoria selecionada

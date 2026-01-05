@@ -747,13 +747,23 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                 </div>
               )}
 
-              <CategorySelector
-                categories={hierarchical.data || []}
-                value={categoryId}
-                onValueChange={setCategoryId}
-                type={activeTab === 'INCOME' ? 'income' : 'expense'}
-                placeholder="Selecione uma categoria"
-              />
+              {categoriesLoading ? (
+                <Button
+                  variant="outline"
+                  disabled
+                  className="h-12 w-full justify-between font-normal"
+                >
+                  <span className="text-muted-foreground">Carregando categorias...</span>
+                </Button>
+              ) : (
+                <CategorySelector
+                  categories={categories || []}
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                  type={activeTab === 'INCOME' ? 'income' : 'expense'}
+                  placeholder="Selecione uma categoria"
+                />
+              )}
             </div>
           ) : (
             <div className="space-y-2">
