@@ -53,22 +53,65 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   // Função para calcular a data de vencimento de uma transação de cartão de crédito
   // Função EXCLUSIVA para calcular data de exibição no Compartilhados
-  // REGRA SIMPLES: Usar o competence_date da transação original
-  // Isso garante que todos vejam a transação no MESMO mês
+  // REGRA: Para cartões de crédito, calcular mês de VENCIMENTO a partir do competence_date (mês de fechamento)
+  // Para outras contas, usar competence_date diretamente
   const calculateSharedDisplayDate = (
     transactionDate: string, 
     competenceDate: string | null,
     accountId: string | null, 
     accounts: any[]
   ): string => {
-    // SEMPRE usar competence_date se disponível, senão usar date
-    // Isso garante que a transação apareça no mesmo mês para todos
-    const result = competenceDate || transactionDate;
+    // Se não tem competence_date, usar date
+    if (!competenceDate) {
+      console.log('⚠️ [calculateSharedDisplayDate] No competence_date, using date:', transactionDate);
+      return transactionDate;
+    }
     
-    console.log('🔍 [calculateSharedDisplayDate] SIMPLIFIED:', {
-      transactionDate,
+    // Se não tem account_id, usar competence_date
+    if (!accountId) {
+      console.log('⚠️ [calculateSharedDisplayDate] No account_id, using competence_date:', competenceDate);
+      return competenceDate;
+    }
+
+    // Buscar a conta
+    const account = accounts.find(a => a.id === accountId);
+    
+    // Se não encontrou a conta ou não é cartão de crédito, usar competence_date
+    if (!account || account.type !== 'CREDIT_CARD') {
+      console.log('⚠️ [calculateSharedDisplayDate] Not credit card, using competence_date:', competenceDate);
+      return competenceDate;
+    }
+
+    // É CARTÃO DE CRÉDITO → calcular mês de VENCIMENTO
+    // competence_date = mês de FECHAMENTO da fatura
+    // Precisamos calcular o mês de VENCIMENTO
+    
+    const closingDay = account.closing_day || 1;
+    const dueDay = account.due_day || 10;
+    
+    // Usar competence_date como base (mês de fechamento)
+    const closingMonth = new Date(competenceDate + 'T00:00:00');
+    
+    // Calcular mês de vencimento
+    let dueMonth = closingMonth.getMonth();
+    let dueYear = closingMonth.getFullYear();
+    
+    // Se due_day <= closing_day, o vencimento é no próximo mês
+    if (dueDay <= closingDay) {
+      dueMonth++;
+      if (dueMonth > 11) {
+        dueMonth = 0;
+        dueYear++;
+      }
+    }
+    // Se due_day > closing_day, o vencimento é no mesmo mês do fechamento
+    
+    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    
+    console.log('✅ [calculateSharedDisplayDate] Credit card due month:', {
       competenceDate,
-      accountId,
+      closingDay,
+      dueDay,
       result
     });
     
