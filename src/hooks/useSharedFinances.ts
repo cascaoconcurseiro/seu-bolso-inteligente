@@ -78,6 +78,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const account = accounts.find(a => a.id === accountId);
     
     console.log('🔍 [calculateSharedDisplayDate] Account FULL OBJECT:', JSON.stringify({
+      searchingFor: accountId,
       found: !!account,
       accountObject: account,
       type: account?.type,
@@ -85,7 +86,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       typeComparison: account?.type !== 'CREDIT_CARD',
       typeEquals: account?.type === 'CREDIT_CARD',
       closingDay: account?.closing_day,
-      dueDay: account?.due_day
+      dueDay: account?.due_day,
+      availableAccountIds: accounts.map(a => a.id)
     }, null, 2));
     
     // Se não encontrou a conta ou não é cartão de crédito, usar competence_date ou date
@@ -183,6 +185,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             .filter((id): id is string => id !== null);
         }
       }
+      
+      console.log('🔍 [useSharedFinances] familyUserIds para buscar contas:', familyUserIds);
       
       // Buscar contas de TODOS os membros da família (necessário para calcular data de vencimento)
       // IMPORTANTE: Buscar TODAS as contas, incluindo arquivadas, pois precisamos calcular
