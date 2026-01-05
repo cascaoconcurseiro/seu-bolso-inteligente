@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,33 @@ export function CategorySelector({
 }: CategorySelectorProps) {
   const [open, setOpen] = useState(false);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+
+  // Prevenir scroll da página quando o popover está aberto (mobile)
+  React.useEffect(() => {
+    if (open) {
+      // Salvar posição atual do scroll
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      // Restaurar scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // Cleanup ao desmontar
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [open]);
 
   // Validação: se categories não existe ou está vazio, retornar componente vazio
   if (!categories || categories.length === 0) {
@@ -111,10 +138,19 @@ export function CategorySelector({
         onWheel={(e) => {
           e.stopPropagation();
         }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation();
+        }}
       >
         <div 
-          className="max-h-[400px] overflow-y-auto p-2"
-          style={{ overscrollBehavior: 'contain' }}
+          className="max-h-[400px] overflow-y-auto p-2 overscroll-contain touch-pan-y"
+          style={{ 
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
           {parents.map((parent) => {
             const children = childrenMap.get(parent.id) || [];
