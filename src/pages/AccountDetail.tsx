@@ -211,7 +211,7 @@ export function AccountDetail() {
         )}
 
         {/* Action Buttons */}
-        {!isCredit && (
+        {!isCredit ? (
           <div className="flex items-center gap-3 mt-6 pt-6 border-t border-border">
             <Button
               onClick={() => setShowTransferModal(true)}
@@ -241,6 +241,25 @@ export function AccountDetail() {
               variant="outline"
               onClick={handleDelete}
               className="gap-2 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-border">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={handleEditAccount}
+            >
+              <Pencil className="h-4 w-4" />
+              Editar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDelete}
+              className="flex-1 gap-2 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
               Excluir
