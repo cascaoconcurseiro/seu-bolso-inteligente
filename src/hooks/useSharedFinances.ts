@@ -53,102 +53,65 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   // Função para calcular a data de vencimento de uma transação de cartão de crédito
   // Função para calcular a data de exibição no Compartilhados
-  // REGRA: Cartão de crédito = mês de vencimento | Dinheiro/Débito = usar competence_date se existir, senão usar date
+  // REGRA: Usar competence_date se existir (transações já têm a data correta)
   const calculateSharedDisplayDate = (
     transactionDate: string, 
     competenceDate: string | null,
     accountId: string | null, 
     accounts: any[]
   ): string => {
-    console.log('🔍 [calculateSharedDisplayDate] Input:', {
-      transactionDate,
-      competenceDate,
-      accountId,
-      accountsCount: accounts.length
-    });
-
-    // Se não tem account_id, é dinheiro/débito
-    if (!accountId) {
-      console.log('⚠️ [calculateSharedDisplayDate] No account_id, using competence_date or date');
-      // Se já tem competence_date definido (transações importadas/antigas), usar ele
-      if (competenceDate) {
-        return competenceDate;
-      }
-      // Senão, usar a data da transação
-      return transactionDate;
+    // PRIORIDADE 1: Se tem competence_date, usar ele (transações importadas/antigas já estão corretas)
+    if (competenceDate) {
+      return competenceDate;
     }
 
-    // Buscar a conta
-    const account = accounts.find(a => a.id === accountId);
-    
-    console.log('🔍 [calculateSharedDisplayDate] Account found:', {
-      found: !!account,
-      accountType: account?.type,
-      closingDay: account?.closing_day,
-      dueDay: account?.due_day
-    });
-    
-    // Se não encontrou a conta ou não é cartão de crédito
-    if (!account || account.type !== 'CREDIT_CARD') {
-      console.log('⚠️ [calculateSharedDisplayDate] Not a credit card, using competence_date or date');
-      // Se já tem competence_date definido, usar ele
-      if (competenceDate) {
-        return competenceDate;
-      }
-      // Senão, usar a data da transação
-      return transactionDate;
-    }
+    // PRIORIDADE 2: Se tem account_id e é cartão de crédito, calcular mês de vencimento
+    if (accountId) {
+      const account = accounts.find(a => a.id === accountId);
+      
+      if (account && account.type === 'CREDIT_CARD') {
+        // É cartão de crédito → calcular mês de vencimento
+        const closingDay = account.closing_day || 1;
+        const dueDay = account.due_day || 10;
+        
+        const txDate = new Date(transactionDate + 'T00:00:00');
+        const txDay = txDate.getDate();
+        const txMonth = txDate.getMonth();
+        const txYear = txDate.getFullYear();
 
-    // É cartão de crédito → calcular mês de vencimento
-    const closingDay = account.closing_day || 1;
-    const dueDay = account.due_day || 10;
-    
-    const txDate = new Date(transactionDate + 'T00:00:00');
-    const txDay = txDate.getDate();
-    const txMonth = txDate.getMonth();
-    const txYear = txDate.getFullYear();
+        // Determinar em qual fatura a transação entra
+        let invoiceMonth = txMonth;
+        let invoiceYear = txYear;
 
-    console.log('🔍 [calculateSharedDisplayDate] Credit card calculation:', {
-      txDay,
-      txMonth,
-      txYear,
-      closingDay,
-      dueDay
-    });
+        if (txDay > closingDay) {
+          // Transação entra na fatura do próximo mês
+          invoiceMonth++;
+          if (invoiceMonth > 11) {
+            invoiceMonth = 0;
+            invoiceYear++;
+          }
+        }
 
-    // Determinar em qual fatura a transação entra
-    let invoiceMonth = txMonth;
-    let invoiceYear = txYear;
+        // Calcular o mês de vencimento
+        let dueMonth = invoiceMonth;
+        let dueYear = invoiceYear;
 
-    if (txDay > closingDay) {
-      // Transação entra na fatura do próximo mês
-      invoiceMonth++;
-      if (invoiceMonth > 11) {
-        invoiceMonth = 0;
-        invoiceYear++;
+        if (dueDay <= closingDay) {
+          // Vencimento é no próximo mês
+          dueMonth++;
+          if (dueMonth > 11) {
+            dueMonth = 0;
+            dueYear++;
+          }
+        }
+
+        // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
+        return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
       }
     }
 
-    console.log('🔍 [calculateSharedDisplayDate] Invoice month:', { invoiceMonth, invoiceYear });
-
-    // Calcular o mês de vencimento
-    let dueMonth = invoiceMonth;
-    let dueYear = invoiceYear;
-
-    if (dueDay <= closingDay) {
-      // Vencimento é no próximo mês
-      dueMonth++;
-      if (dueMonth > 11) {
-        dueMonth = 0;
-        dueYear++;
-      }
-    }
-
-    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
-    console.log('✅ [calculateSharedDisplayDate] Result:', result);
-
-    // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-    return result;
+    // PRIORIDADE 3: Usar a data da transação
+    return transactionDate;
   };
 
   // DEBUG: Log members
@@ -443,15 +406,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Para Compartilhados: usar data de exibição calculada
           const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
           
-          console.log('🔍 [CASO 1A] Display date calculated:', {
-            description: tx.description,
-            originalDate: tx.date,
-            competenceDate: tx.competence_date,
-            accountId: tx.account_id,
-            displayDate,
-            hasAccount: !!tx.account_id
-          });
-          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -525,17 +479,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               
               // Para Compartilhados: usar data de exibição calculada
               const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-              
-              console.log('🔍 [CASO 1B] Display date calculated:', {
-                description: tx.description,
-                originalDate: tx.date,
-                competenceDate: tx.competence_date,
-                accountId: tx.account_id,
-                displayDate,
-                hasAccount: !!tx.account_id,
-                creatorMemberId: creatorMember.id,
-                creatorMemberName: creatorMember.name
-              });
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
