@@ -420,6 +420,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Para Compartilhados: usar data de exibição calculada
           const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
           
+          console.log('🔍 [CASO 1A - CRÉDITO] Data calculada:', {
+            txId: tx.id,
+            description: tx.description,
+            txDate: tx.date,
+            competenceDate: tx.competence_date,
+            accountId: tx.account_id,
+            displayDate,
+            accountsCount: accounts.length
+          });
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -493,6 +503,16 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               
               // Para Compartilhados: usar data de exibição calculada
               const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+              
+              console.log('🔍 [CASO 1B - DÉBITO] Data calculada:', {
+                txId: tx.id,
+                description: tx.description,
+                txDate: tx.date,
+                competenceDate: tx.competence_date,
+                accountId: tx.account_id,
+                displayDate,
+                accountsCount: accounts.length
+              });
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
