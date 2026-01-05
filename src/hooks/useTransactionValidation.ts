@@ -77,7 +77,8 @@ export function useTransactionValidation(
       return data as Transaction;
     },
     enabled: !!transactionId,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Fetch split data if splitId is provided
@@ -96,7 +97,8 @@ export function useTransactionValidation(
       return data as TransactionSplit;
     },
     enabled: !!splitId,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Calculate validation flags

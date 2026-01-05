@@ -68,6 +68,7 @@ export function useFamilyUsers() {
       return uniqueUsers;
     },
     enabled: !!user && !!family,
-    staleTime: 60000, // Cache por 1 minuto
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }

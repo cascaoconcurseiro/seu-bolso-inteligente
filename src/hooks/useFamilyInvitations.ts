@@ -72,7 +72,8 @@ export function usePendingInvitations() {
     },
     enabled: !!user,
     retry: 1,
-    staleTime: 30000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

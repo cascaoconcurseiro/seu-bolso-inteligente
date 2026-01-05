@@ -78,6 +78,8 @@ export function useFamily() {
     },
     enabled: !!user,
     retry: false,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

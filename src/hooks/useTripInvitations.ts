@@ -91,10 +91,11 @@ export function usePendingTripInvitations() {
       return data as TripInvitation[];
     },
     enabled: !!user,
-    retry: 1, // Limitar retentativas para evitar looping agressivo
-    staleTime: 60000, // Cache por 1 minuto para evitar re-buscas imediatas
-    refetchOnMount: true,
-    refetchOnWindowFocus: false, // Desativar para evitar loops ao trocar de aba/janela
+    retry: 1,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+  });
   });
 }
 

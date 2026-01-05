@@ -37,6 +37,7 @@ export function useProfile() {
       return data as Profile;
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }

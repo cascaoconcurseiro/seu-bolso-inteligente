@@ -57,7 +57,8 @@ export function useExpensesByCategory() {
       return data as CategoryExpense[];
     },
     enabled: !!user,
-    staleTime: 30000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -82,7 +83,8 @@ export function useMonthlyEvolution(months: number = 12) {
       return data as MonthlyEvolution[];
     },
     enabled: !!user,
-    staleTime: 60000, // Cache por 1 minuto
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -112,7 +114,8 @@ export function useMonthlyFinancialSummary() {
       return data?.[0] as MonthlyFinancialSummary | null;
     },
     enabled: !!user,
-    staleTime: 30000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 
@@ -143,6 +146,7 @@ export function useCategorySpent(categoryId: string | null) {
       return data as number;
     },
     enabled: !!user && !!categoryId,
-    staleTime: 30000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }

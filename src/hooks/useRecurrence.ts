@@ -26,7 +26,8 @@ export function usePendingRecurrences() {
     enabled: !!user,
     // Verificar a cada 5 minutos
     refetchInterval: 5 * 60 * 1000,
-    staleTime: 60 * 1000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

@@ -47,6 +47,8 @@ export function useUserProfile() {
       return { ...data, name: data.full_name } as UserProfile;
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

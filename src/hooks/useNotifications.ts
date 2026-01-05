@@ -26,6 +26,8 @@ export function useNotifications() {
     },
     enabled: !!user,
     refetchInterval: 30000, // Refetch a cada 30 segundos
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Calcular notificações não lidas
