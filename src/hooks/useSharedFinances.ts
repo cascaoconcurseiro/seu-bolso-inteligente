@@ -188,13 +188,61 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       console.log('🔍 [useSharedFinances] familyUserIds para buscar contas:', familyUserIds);
       
-      // Buscar contas de TODOS os membros da família (necessário para calcular data de vencimento)
+      // Buscar transações compartilhadas CRIADAS POR MIM
+      const { data: myTransactions, error: myTxError } = await supabase
+        .from('transactions')
+        .select(`
+          *,
+          category:categories(id, name, icon, color)
+        `)
+        .eq('user_id', user.id)
+        .eq('is_shared', true)
+        .order('date', { ascending: false });
+      
+      if (myTxError) {
+        console.error('❌ [Query Error - My Transactions]:', myTxError);
+        throw myTxError;
+      }
+      
+      // Buscar transações compartilhadas onde EU FUI INCLUÍDO em um split
+      const { data: mySplits, error: mySplitsError } = await supabase
+        .from('transaction_splits')
+        .select(`
+          *,
+          transaction:transactions!transaction_id(
+            *,
+            category:categories(id, name, icon, color)
+          )
+        `)
+        .eq('user_id', user.id);
+      
+      if (mySplitsError) {
+        console.error('❌ [Query Error - My Splits]:', mySplitsError);
+        throw mySplitsError;
+      }
+      
+      // Extrair transações dos splits (transações criadas por outros)
+      const othersTransactions = (mySplits || [])
+        .map((split: any) => split.transaction)
+        .filter((tx: any) => tx && tx.user_id !== user.id);
+      
+      // Combinar minhas transações + transações de outros
+      const allTransactions = [...(myTransactions || []), ...othersTransactions];
+      
+      // Coletar TODOS os user_ids únicos das transações (criadores)
+      const transactionUserIds = Array.from(
+        new Set(allTransactions.map(tx => tx.user_id).filter(Boolean))
+      );
+      
+      console.log('🔍 [useSharedFinances] transactionUserIds (criadores):', transactionUserIds);
+      
+      // Buscar contas de TODOS os usuários que criaram transações compartilhadas
       // IMPORTANTE: Buscar TODAS as contas, incluindo arquivadas, pois precisamos calcular
       // a data de vencimento mesmo para transações antigas
       const { data: accounts, error: accountsError } = await supabase
         .from('accounts')
         .select('id, type, closing_day, due_day, user_id')
-        .in('user_id', familyUserIds)
+        .in('user_id', transactionUserIds) // Buscar contas de TODOS os criadores de transações
         .eq('type', 'CREDIT_CARD'); // Apenas cartões de crédito
       
       if (accountsError) {
@@ -213,23 +261,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }))
       });
       
-      // Buscar transações compartilhadas CRIADAS POR MIM
-      const { data: myTransactions, error: myTxError } = await supabase
-        .from('transactions')
-        .select(`
-          *,
-          category:categories(id, name, icon, color)
-        `)
-        .eq('user_id', user.id)
-        .eq('is_shared', true)
-        .order('date', { ascending: false });
+      // Remover duplicatas das transações
+      const uniqueTransactions = Array.from(
+        new Map(allTransactions.map(tx => [tx.id, tx])).values()
+      );
       
-      if (myTxError) {
-        console.error('❌ [Query Error - My Transactions]:', myTxError);
-        throw myTxError;
+      if (uniqueTransactions.length === 0) {
+        return [];
       }
       
-      // Buscar transações compartilhadas onde EU FUI INCLUÍDO em um split
+      // Buscar splits para todas as transações
+      const transactionIds = uniqueTransactions.map(t => t.id);
       const { data: mySplits, error: mySplitsError } = await supabase
         .from('transaction_splits')
         .select(`
