@@ -96,7 +96,8 @@ export function useTrips() {
     },
     enabled: !!user,
     retry: false,
-    staleTime: 30000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
 }

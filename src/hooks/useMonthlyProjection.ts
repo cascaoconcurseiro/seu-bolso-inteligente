@@ -58,6 +58,7 @@ export function useMonthlyProjection() {
     },
     enabled: !!user,
     retry: false,
-    staleTime: 30000, // Cache por 30 segundos
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }

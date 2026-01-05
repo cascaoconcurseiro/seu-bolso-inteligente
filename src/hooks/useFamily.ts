@@ -104,7 +104,8 @@ export function useFamilyMembers() {
     },
     enabled: !!user && !!family,
     retry: false,
-    staleTime: 60000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

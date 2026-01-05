@@ -56,7 +56,8 @@ export function useAccounts() {
       return data as Account[];
     },
     enabled: !!user,
-    staleTime: 60000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
     retry: false,
   });
 }
@@ -328,7 +329,8 @@ export function useArchivedAccounts() {
       return data as Account[];
     },
     enabled: !!user,
-    staleTime: 60000,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
     retry: false,
   });
 }
