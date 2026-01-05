@@ -123,12 +123,13 @@ export function useTransactions(filters?: TransactionFilters) {
 
       // NÃO filtrar por payer_id - mostrar todas as transações do usuário
 
-      // Filtrar por competence_date (campo obrigatório após migration)
+      // CRÍTICO: Filtrar por DATE (data real da transação), não competence_date
+      // competence_date é usado apenas para Compartilhados e Cartões (mês de vencimento)
       if (effectiveFilters?.startDate) {
-        query = query.gte("competence_date", effectiveFilters.startDate);
+        query = query.gte("date", effectiveFilters.startDate);
       }
       if (effectiveFilters?.endDate) {
-        query = query.lte("competence_date", effectiveFilters.endDate);
+        query = query.lte("date", effectiveFilters.endDate);
       }
       if (effectiveFilters?.type) {
         query = query.eq("type", effectiveFilters.type);
