@@ -35,6 +35,19 @@ export function CategorySelector({
   const [open, setOpen] = useState(false);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
 
+  // Validação: se categories não existe ou está vazio, retornar componente vazio
+  if (!categories || categories.length === 0) {
+    return (
+      <Button
+        variant="outline"
+        disabled
+        className="h-12 w-full justify-between font-normal"
+      >
+        <span className="text-muted-foreground">Carregando categorias...</span>
+      </Button>
+    );
+  }
+
   // Organizar categorias em hierarquia
   const parents = categories.filter(c => !c.parent_id && c.type === type);
   const childrenMap = new Map<string, Category[]>();
