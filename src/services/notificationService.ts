@@ -367,7 +367,8 @@ export async function createInvoiceDueNotification(
   cardName: string,
   cardId: string,
   amount: number,
-  daysUntilDue: number
+  daysUntilDue: number,
+  invoiceKey?: string
 ): Promise<void> {
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -383,6 +384,7 @@ export async function createInvoiceDueNotification(
     related_id: cardId,
     related_type: 'credit_card',
     priority: daysUntilDue <= 1 ? 'HIGH' : 'NORMAL',
+    metadata: invoiceKey ? { invoice_key: invoiceKey } : undefined,
   });
 }
 

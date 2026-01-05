@@ -94,60 +94,87 @@ async function generateInvoiceDueNotifications(
     if (error || !cards) return 0;
 
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    const currentDay = today.getDate();
+    today.setHours(0, 0, 0, 0);
 
     for (const card of cards) {
       const dueDay = card.due_day || 10;
       const closingDay = card.closing_day || 1;
 
-      // Calcular a data de vencimento correta
-      let dueDate: Date;
-      
-      // Se o dia de fechamento já passou neste mês, a fatura vence no próximo mês
-      if (currentDay > closingDay) {
-        // Fatura do mês atual vence no próximo mês
-        dueDate = new Date(currentYear, currentMonth + 1, dueDay);
-      } else {
-        // Fatura do mês anterior vence neste mês
-        dueDate = new Date(currentYear, currentMonth, dueDay);
-      }
+      // REGRA: Notificar apenas no dia do FECHAMENTO da fatura
+      // Não notificar antes, não notificar depois
+      if (today.getDate() !== closingDay) continue;
+
+      // A fatura que FECHOU HOJE vence no próximo mês
+      const dueDate = new Date(today);
+      dueDate.setMonth(dueDate.getMonth() + 1);
+      dueDate.setDate(dueDay);
 
       // Calcular dias até o vencimento
       const diffTime = dueDate.getTime() - today.getTime();
       const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      // Buscar transações da fatura atual para calcular o valor correto
-      const startDate = new Date(currentYear, currentMonth, closingDay + 1);
-      startDate.setMonth(startDate.getMonth() - 1); // Mês anterior
-      const endDate = new Date(currentYear, currentMonth, closingDay);
+      // Calcular período da fatura FECHADA (do fechamento anterior até hoje)
+      const billingStart = new Date(today);
+      billingStart.setMonth(billingStart.getMonth() - 1);
+      billingStart.setDate(closingDay);
+      
+      const billingEnd = new Date(today);
+      billingEnd.setDate(closingDay);
 
+      // Buscar transações da fatura FECHADA
       const { data: transactions } = await supabase
         .from('transactions')
         .select('amount')
         .eq('account_id', card.id)
         .eq('type', 'EXPENSE')
-        .gte('date', startDate.toISOString().split('T')[0])
-        .lte('date', endDate.toISOString().split('T')[0]);
+        .gt('date', billingStart.toISOString().split('T')[0])
+        .lte('date', billingEnd.toISOString().split('T')[0]);
 
       const invoiceAmount = (transactions || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
 
       // Só notificar se houver valor a pagar
       if (invoiceAmount <= 0) continue;
 
-      // Se está dentro do período de alerta
-      if (daysUntilDue <= daysBefore && daysUntilDue >= 0) {
-        // Verificar se já existe notificação não dispensada para este cartão HOJE
-        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-        const { data: existingNotification } = await (supabase as any)
-          .from('notifications')
-          .select('id, created_at')
-          .eq('user_id', userId)
-          .eq('related_id', card.id)
-          .eq('related_type', 'credit_card')
-          .eq('type', 'INVOICE_DUE')
-          .eq('is_dismissed', false)
+      // Criar identificador único para esta fatura (cartão + mês/ano de vencimento)
+      const invoiceKey = `${card.id}_${dueDate.getFullYear()}_${dueDate.getMonth()}`;
+
+      // Verificar se já existe notificação para ESTA FATURA ESPECÍFICA
+      const { data: existingNotification } = await (supabase as any)
+        .from('notifications')
+        .select('id, metadata')
+        .eq('user_id', userId)
+        .eq('related_id', card.id)
+        .eq('related_type', 'credit_card')
+        .eq('type', 'INVOICE_DUE')
+        .eq('is_dismissed', false)
+        .maybeSingle();
+
+      // Se já existe notificação para esta fatura, pular
+      if (existingNotification) {
+        const metadata = existingNotification.metadata as any;
+        if (metadata?.invoice_key === invoiceKey) {
+          console.log(`Notificação já existe para fatura ${invoiceKey}`);
+          continue;
+        }
+      }
+
+      // Criar notificação com metadata para identificar a fatura
+      await createInvoiceDueNotification(
+        userId,
+        card.name,
+        card.id,
+        invoiceAmount,
+        daysUntilDue,
+        invoiceKey
+      );
+      count++;
+    }
+  } catch (error) {
+    console.error('Erro ao gerar notificações de fatura:', error);
+  }
+
+  return count;
+}
           .gte('created_at', todayStr) // Criada hoje ou depois
           .maybeSingle();
 
