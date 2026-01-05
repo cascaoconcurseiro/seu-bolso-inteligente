@@ -85,10 +85,22 @@ export function Dashboard() {
 
   const hasForeignBalances = Object.keys(balancesByForeignCurrency).length > 0;
 
-  // Cartões com fatura
+  // Cartões com fatura FECHADA (só mostrar faturas que já fecharam)
   const creditCardsWithBalance = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return [];
-    return (accounts || []).filter(a => a.type === "CREDIT_CARD" && Number(a.balance) !== 0);
+    const today = new Date();
+    const currentDay = today.getDate();
+    
+    return (accounts || []).filter(a => {
+      if (a.type !== "CREDIT_CARD" || Number(a.balance) === 0) return false;
+      
+      // Só mostrar se a fatura já fechou
+      const closingDay = a.closing_day || 1;
+      
+      // Se hoje é DEPOIS do dia de fechamento, a fatura fechou
+      // Se hoje é ANTES ou IGUAL ao dia de fechamento, a fatura ainda não fechou
+      return currentDay > closingDay;
+    });
   }, [accounts]);
 
   if (isLoading) {
