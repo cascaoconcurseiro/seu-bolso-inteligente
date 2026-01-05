@@ -96,7 +96,6 @@ export function usePendingTripInvitations() {
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
-  });
 }
 
 // Hook para buscar convites enviados
