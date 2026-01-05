@@ -52,30 +52,29 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const queryClient = useQueryClient();
 
   // Função para calcular a data de vencimento de uma transação de cartão de crédito
-  // Para transações compartilhadas, usamos o mês de VENCIMENTO da fatura
-  const calculateDueDate = (transactionDate: string, accountId: string, accounts: any[]): string => {
-    const account = accounts.find(a => a.id === accountId);
-    
-    console.log('🔍 [calculateDueDate] Input:', { 
-      transactionDate, 
-      accountId, 
-      accountFound: !!account,
-      accountDetails: account ? {
-        id: account.id,
-        type: account.type,
-        closing_day: account.closing_day,
-        due_day: account.due_day,
-        user_id: account.user_id
-      } : null,
-      totalAccounts: accounts.length
-    });
-    
-    if (!account || account.type !== 'CREDIT_CARD') {
-      // Se não for cartão de crédito, usar a data original
-      console.log('⚠️ [calculateDueDate] Not a credit card, returning original date');
-      return transactionDate;
+  // Função para calcular a data de exibição no Compartilhados
+  // REGRA: Cartão de crédito = mês de vencimento | Dinheiro/Débito = mês seguinte
+  const calculateSharedDisplayDate = (transactionDate: string, accountId: string | null, accounts: any[]): string => {
+    // Se não tem account_id, é dinheiro/débito → mostrar no mês seguinte
+    if (!accountId) {
+      const txDate = new Date(transactionDate + 'T00:00:00');
+      const nextMonth = new Date(txDate);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01`;
     }
 
+    // Buscar a conta
+    const account = accounts.find(a => a.id === accountId);
+    
+    // Se não encontrou a conta ou não é cartão de crédito → mostrar no mês seguinte
+    if (!account || account.type !== 'CREDIT_CARD') {
+      const txDate = new Date(transactionDate + 'T00:00:00');
+      const nextMonth = new Date(txDate);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01`;
+    }
+
+    // É cartão de crédito → calcular mês de vencimento
     const closingDay = account.closing_day || 1;
     const dueDay = account.due_day || 10;
     
@@ -83,8 +82,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const txDay = txDate.getDate();
     const txMonth = txDate.getMonth();
     const txYear = txDate.getFullYear();
-
-    console.log('🔍 [calculateDueDate] Transaction details:', { txDay, txMonth, txYear, closingDay, dueDay });
 
     // Determinar em qual fatura a transação entra
     let invoiceMonth = txMonth;
@@ -99,8 +96,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
     }
 
-    console.log('🔍 [calculateDueDate] Invoice month:', { invoiceMonth, invoiceYear });
-
     // Calcular o mês de vencimento
     let dueMonth = invoiceMonth;
     let dueYear = invoiceYear;
@@ -114,11 +109,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
     }
 
-    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
-    console.log('✅ [calculateDueDate] Result:', result);
-
     // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-    return result;
+    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
   };
 
   // DEBUG: Log members
@@ -410,10 +402,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             split
           );
           
-          // Para transações de cartão de crédito compartilhadas, usar data de vencimento
-          const displayDate = tx.account_id 
-            ? calculateDueDate(tx.date, tx.account_id, accounts)
-            : (tx.competence_date || tx.date);
+          // Para Compartilhados: usar data de exibição calculada
+          const displayDate = calculateSharedDisplayDate(tx.date, tx.account_id, accounts);
           
           console.log('🔍 [CASO 1A] Display date calculated:', {
             description: tx.description,
@@ -495,10 +485,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 mySplit
               );
               
-              // Para transações de cartão de crédito compartilhadas, usar data de vencimento
-              const displayDate = tx.account_id 
-                ? calculateDueDate(tx.date, tx.account_id, accounts)
-                : (tx.competence_date || tx.date);
+              // Para Compartilhados: usar data de exibição calculada
+              const displayDate = calculateSharedDisplayDate(tx.date, tx.account_id, accounts);
               
               console.log('🔍 [CASO 1B] Display date calculated:', {
                 description: tx.description,
