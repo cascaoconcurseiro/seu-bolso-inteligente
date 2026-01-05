@@ -333,25 +333,29 @@ export function useCreateTransaction() {
               throw new Error(`Erro ao criar splits: ${splitsError.message}`);
             }
             
-            // Validar payer_id antes de atualizar
+            // 🔧 CORREÇÃO: Validar payer_id ANTES de tentar atualizar
             let validPayerId = null;
             if (input.payer_id) {
+              console.log('🔍 Validando payer_id:', input.payer_id);
               // Verificar se o payer_id existe na tabela family_members
-              const { data: payerExists } = await supabase
+              const { data: payerExists, error: payerCheckError } = await supabase
                 .from('family_members')
                 .select('id')
                 .eq('id', input.payer_id)
-                .single();
+                .maybeSingle();
               
-              if (payerExists) {
+              if (payerCheckError) {
+                console.error('❌ Erro ao validar payer_id:', payerCheckError);
+              } else if (payerExists) {
                 validPayerId = input.payer_id;
+                console.log('✅ payer_id válido:', validPayerId);
               } else {
-                console.warn('⚠️ payer_id inválido, será ignorado:', input.payer_id);
+                console.warn('⚠️ payer_id não encontrado, será ignorado:', input.payer_id);
               }
             }
             
             // Marcar transação como compartilhada
-            await supabase
+            const { error: updateError } = await supabase
               .from("transactions")
               .update({ 
                 is_shared: true, 
@@ -359,6 +363,13 @@ export function useCreateTransaction() {
                 payer_id: validPayerId
               })
               .eq("id", transaction.id);
+            
+            if (updateError) {
+              console.error("❌ Erro ao atualizar parcela:", updateError);
+              throw new Error(`Erro ao atualizar parcela: ${updateError.message}`);
+            }
+            
+            console.log('✅ Parcela atualizada com sucesso');
           }
         }
 
@@ -447,25 +458,29 @@ export function useCreateTransaction() {
         } else {
           console.log('✅ Splits criados com sucesso');
           
-          // Validar payer_id antes de atualizar
+          // 🔧 CORREÇÃO: Validar payer_id ANTES de tentar atualizar
           let validPayerId = null;
           if (input.payer_id) {
+            console.log('🔍 Validando payer_id:', input.payer_id);
             // Verificar se o payer_id existe na tabela family_members
-            const { data: payerExists } = await supabase
+            const { data: payerExists, error: payerCheckError } = await supabase
               .from('family_members')
               .select('id')
               .eq('id', input.payer_id)
-              .single();
+              .maybeSingle();
             
-            if (payerExists) {
+            if (payerCheckError) {
+              console.error('❌ Erro ao validar payer_id:', payerCheckError);
+            } else if (payerExists) {
               validPayerId = input.payer_id;
+              console.log('✅ payer_id válido:', validPayerId);
             } else {
-              console.warn('⚠️ payer_id inválido, será ignorado:', input.payer_id);
+              console.warn('⚠️ payer_id não encontrado, será ignorado:', input.payer_id);
             }
           }
           
           // Atualizar transação para is_shared = true e disparar sync
-          await supabase
+          const { error: updateError } = await supabase
             .from("transactions")
             .update({ 
               is_shared: true, 
@@ -473,6 +488,13 @@ export function useCreateTransaction() {
               payer_id: validPayerId
             })
             .eq("id", data.id);
+          
+          if (updateError) {
+            console.error("❌ Erro ao atualizar transação:", updateError);
+            throw new Error(`Erro ao atualizar transação: ${updateError.message}`);
+          }
+          
+          console.log('✅ Transação atualizada com sucesso');
         }
       } else {
         console.warn('⚠️ Nenhum split para criar. Splits recebidos:', splits);
