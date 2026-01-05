@@ -175,7 +175,8 @@ export function useTransactions(filters?: TransactionFilters) {
     },
     enabled: !!user,
     retry: false,
-    staleTime: 30000,
+    staleTime: 0, // ✅ CORREÇÃO: Dados sempre considerados stale para refetch imediato
+    refetchOnMount: 'always', // ✅ CORREÇÃO: Sempre refetch ao montar
   });
 }
 
