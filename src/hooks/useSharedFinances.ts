@@ -60,21 +60,37 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     accountId: string | null, 
     accounts: any[]
   ): string => {
+    console.log('🔍 [calculateSharedDisplayDate] Input:', {
+      transactionDate,
+      competenceDate,
+      accountId,
+      accountsCount: accounts.length
+    });
+
     // Se não tem account_id, é dinheiro/débito
     if (!accountId) {
+      console.log('⚠️ [calculateSharedDisplayDate] No account_id, using competence_date or date');
       // Se já tem competence_date definido (transações importadas/antigas), usar ele
       if (competenceDate) {
         return competenceDate;
       }
-      // Senão, usar a data da transação (não adicionar +1 mês)
+      // Senão, usar a data da transação
       return transactionDate;
     }
 
     // Buscar a conta
     const account = accounts.find(a => a.id === accountId);
     
+    console.log('🔍 [calculateSharedDisplayDate] Account found:', {
+      found: !!account,
+      accountType: account?.type,
+      closingDay: account?.closing_day,
+      dueDay: account?.due_day
+    });
+    
     // Se não encontrou a conta ou não é cartão de crédito
     if (!account || account.type !== 'CREDIT_CARD') {
+      console.log('⚠️ [calculateSharedDisplayDate] Not a credit card, using competence_date or date');
       // Se já tem competence_date definido, usar ele
       if (competenceDate) {
         return competenceDate;
@@ -92,6 +108,14 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const txMonth = txDate.getMonth();
     const txYear = txDate.getFullYear();
 
+    console.log('🔍 [calculateSharedDisplayDate] Credit card calculation:', {
+      txDay,
+      txMonth,
+      txYear,
+      closingDay,
+      dueDay
+    });
+
     // Determinar em qual fatura a transação entra
     let invoiceMonth = txMonth;
     let invoiceYear = txYear;
@@ -104,6 +128,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         invoiceYear++;
       }
     }
+
+    console.log('🔍 [calculateSharedDisplayDate] Invoice month:', { invoiceMonth, invoiceYear });
 
     // Calcular o mês de vencimento
     let dueMonth = invoiceMonth;
@@ -118,8 +144,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
     }
 
+    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    console.log('✅ [calculateSharedDisplayDate] Result:', result);
+
     // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    return result;
   };
 
   // DEBUG: Log members
