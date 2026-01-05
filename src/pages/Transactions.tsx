@@ -279,7 +279,8 @@ export function Transactions() {
     setShowTransactionModal(true);
   };
 
-  const getCreatorName = (creatorUserId: string | null) => {
+  const getCreatorName = (transaction: any) => {
+    const creatorUserId = transaction.creator_user_id;
     if (!creatorUserId) return null;
     
     // Se foi o próprio usuário que criou, retornar "Você"
@@ -524,7 +525,7 @@ export function Transactions() {
               {/* Day Transactions */}
               <div className="bg-card rounded-xl border border-border overflow-hidden">
                 {group.transactions.map((transaction, index) => {
-                  const creatorName = getCreatorName(transaction.creator_user_id);
+                  const creatorName = getCreatorName(transaction);
                   // Verificar se é dono (user_id) ou criador (creator_user_id)
                   const isOwner = transaction.user_id === user?.id;
                   const isCreator = transaction.creator_user_id === user?.id;

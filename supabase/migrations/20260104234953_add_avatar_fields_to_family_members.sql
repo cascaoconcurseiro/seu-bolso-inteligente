@@ -1,0 +1,1 @@
+ALTER TABLE family_members ADD COLUMN IF NOT EXISTS avatar_color TEXT, ADD COLUMN IF NOT EXISTS avatar_icon TEXT;;

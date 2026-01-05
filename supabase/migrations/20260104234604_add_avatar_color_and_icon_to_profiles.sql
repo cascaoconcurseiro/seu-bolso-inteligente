@@ -1,0 +1,1 @@
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_color TEXT DEFAULT 'green', ADD COLUMN IF NOT EXISTS avatar_icon TEXT DEFAULT 'avatar_1';;

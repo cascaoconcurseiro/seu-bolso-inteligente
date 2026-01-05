@@ -747,41 +747,13 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
                 </div>
               )}
 
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[400px]">
-                  {filteredParents.map((parent) => {
-                    const children = hierarchical.children.get(parent.id) || [];
-                    const childrenOfType = children.filter((c) =>
-                      activeTab === 'INCOME' ? c.type === 'income' : c.type === 'expense'
-                    );
-
-                    // Só renderizar grupo se tiver filhos
-                    if (childrenOfType.length === 0) return null;
-
-                    return (
-                      <SelectGroup key={parent.id}>
-                        {/* Categoria Pai como Label */}
-                        <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
-                          {parent.icon} {parent.name}
-                        </SelectLabel>
-
-                        {/* Subcategorias */}
-                        {childrenOfType.map((child) => (
-                          <SelectItem key={child.id} value={child.id} className="pl-8">
-                            <div className="flex items-center gap-2">
-                              <span>{child.icon}</span>
-                              <span>{child.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              <CategorySelector
+                categories={hierarchical.data || []}
+                value={categoryId}
+                onValueChange={setCategoryId}
+                type={activeTab === 'INCOME' ? 'income' : 'expense'}
+                placeholder="Selecione uma categoria"
+              />
             </div>
           ) : (
             <div className="space-y-2">

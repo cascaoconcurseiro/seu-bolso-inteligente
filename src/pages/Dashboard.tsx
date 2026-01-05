@@ -55,7 +55,28 @@ export function Dashboard() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  const recentTransactions = transactions?.slice(0, 5) || [];
+  // 🔧 FILTRAR transações recentes: apenas as que EU criei e que NÃO são espelhadas
+  const recentTransactions = useMemo(() => {
+    if (!transactions) return [];
+    
+    return transactions
+      .filter(tx => {
+        // Não mostrar transações espelhadas (mirrors)
+        if (tx.source_transaction_id) return false;
+        
+        // 🔧 FILTRO: Não mostrar transações compartilhadas (is_shared = true)
+        // Transações compartilhadas devem aparecer APENAS no Compartilhados
+        if (tx.is_shared === true) return false;
+        
+        // 🔧 FILTRO: Não mostrar transações pagas por outra pessoa (payer_id preenchido)
+        if (tx.payer_id && tx.payer_id !== null) return false;
+        
+        // Mostrar apenas transações que EU criei
+        // (para compartilhadas, só mostrar se fui eu que lancei)
+        return true; // useTransactions já filtra por user_id
+      })
+      .slice(0, 5);
+  }, [transactions]);
   
   // Se tiver erro, não ficar travado no loading
   const hasError = summaryError || txError || accountsError;
@@ -86,22 +107,50 @@ export function Dashboard() {
   const hasForeignBalances = Object.keys(balancesByForeignCurrency).length > 0;
 
   // Cartões com fatura FECHADA (só mostrar faturas que já fecharam)
+  // 🔧 FILTRAR: Calcular saldo excluindo transações compartilhadas
   const creditCardsWithBalance = useMemo(() => {
-    if (!accounts || !Array.isArray(accounts)) return [];
+    if (!accounts || !Array.isArray(accounts) || !transactions) return [];
     const today = new Date();
     const currentDay = today.getDate();
     
     return (accounts || []).filter(a => {
-      if (a.type !== "CREDIT_CARD" || Number(a.balance) === 0) return false;
+      if (a.type !== "CREDIT_CARD") return false;
       
       // Só mostrar se a fatura já fechou
       const closingDay = a.closing_day || 1;
+      if (currentDay <= closingDay) return false;
       
-      // Se hoje é DEPOIS do dia de fechamento, a fatura fechou
-      // Se hoje é ANTES ou IGUAL ao dia de fechamento, a fatura ainda não fechou
-      return currentDay > closingDay;
+      // 🔧 Calcular saldo real excluindo transações compartilhadas e pagas por outros
+      const cardTransactions = transactions.filter(tx => 
+        tx.account_id === a.id && 
+        !tx.is_shared && // Excluir compartilhadas
+        !tx.payer_id // Excluir pagas por outros
+      );
+      
+      const realBalance = cardTransactions.reduce((sum, tx) => {
+        return sum + (tx.type === 'EXPENSE' ? -Number(tx.amount) : Number(tx.amount));
+      }, 0);
+      
+      // Só mostrar se tem saldo negativo (dívida)
+      return realBalance < 0;
+    }).map(a => {
+      // Recalcular balance para exibição
+      const cardTransactions = transactions.filter(tx => 
+        tx.account_id === a.id && 
+        !tx.is_shared && 
+        !tx.payer_id
+      );
+      
+      const realBalance = cardTransactions.reduce((sum, tx) => {
+        return sum + (tx.type === 'EXPENSE' ? -Number(tx.amount) : Number(tx.amount));
+      }, 0);
+      
+      return {
+        ...a,
+        balance: realBalance
+      };
     });
-  }, [accounts]);
+  }, [accounts, transactions]);
 
   if (isLoading) {
     return (
