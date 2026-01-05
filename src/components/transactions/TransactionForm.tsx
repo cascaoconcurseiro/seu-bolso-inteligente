@@ -748,7 +748,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
               )}
 
               <CategorySelector
-                categories={hierarchical.all}
+                categories={hierarchical.data || []}
                 value={categoryId}
                 onValueChange={setCategoryId}
                 type={activeTab === 'INCOME' ? 'income' : 'expense'}

@@ -14,7 +14,7 @@ interface Category {
   name: string;
   icon: string | null;
   type: string;
-  parent_id: string | null;
+  parent_category_id: string | null;
 }
 
 interface CategorySelectorProps {
@@ -49,22 +49,22 @@ export function CategorySelector({
   }
 
   // Organizar categorias em hierarquia
-  const parents = categories.filter(c => !c.parent_id && c.type === type);
+  const parents = categories.filter(c => !c.parent_category_id && c.type === type);
   const childrenMap = new Map<string, Category[]>();
   
   categories.forEach(cat => {
-    if (cat.parent_id && cat.type === type) {
-      if (!childrenMap.has(cat.parent_id)) {
-        childrenMap.set(cat.parent_id, []);
+    if (cat.parent_category_id && cat.type === type) {
+      if (!childrenMap.has(cat.parent_category_id)) {
+        childrenMap.set(cat.parent_category_id, []);
       }
-      childrenMap.get(cat.parent_id)!.push(cat);
+      childrenMap.get(cat.parent_category_id)!.push(cat);
     }
   });
 
   // Encontrar categoria selecionada
   const selectedCategory = categories.find(c => c.id === value);
-  const selectedParent = selectedCategory?.parent_id 
-    ? categories.find(c => c.id === selectedCategory.parent_id)
+  const selectedParent = selectedCategory?.parent_category_id 
+    ? categories.find(c => c.id === selectedCategory.parent_category_id)
     : null;
 
   const toggleParent = (parentId: string) => {
