@@ -56,8 +56,23 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const calculateDueDate = (transactionDate: string, accountId: string, accounts: any[]): string => {
     const account = accounts.find(a => a.id === accountId);
     
+    console.log('🔍 [calculateDueDate] Input:', { 
+      transactionDate, 
+      accountId, 
+      accountFound: !!account,
+      accountDetails: account ? {
+        id: account.id,
+        type: account.type,
+        closing_day: account.closing_day,
+        due_day: account.due_day,
+        user_id: account.user_id
+      } : null,
+      totalAccounts: accounts.length
+    });
+    
     if (!account || account.type !== 'CREDIT_CARD') {
       // Se não for cartão de crédito, usar a data original
+      console.log('⚠️ [calculateDueDate] Not a credit card, returning original date');
       return transactionDate;
     }
 
@@ -68,6 +83,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const txDay = txDate.getDate();
     const txMonth = txDate.getMonth();
     const txYear = txDate.getFullYear();
+
+    console.log('🔍 [calculateDueDate] Transaction details:', { txDay, txMonth, txYear, closingDay, dueDay });
 
     // Determinar em qual fatura a transação entra
     let invoiceMonth = txMonth;
@@ -82,6 +99,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
     }
 
+    console.log('🔍 [calculateDueDate] Invoice month:', { invoiceMonth, invoiceYear });
+
     // Calcular o mês de vencimento
     let dueMonth = invoiceMonth;
     let dueYear = invoiceYear;
@@ -95,8 +114,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
     }
 
+    const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    console.log('✅ [calculateDueDate] Result:', result);
+
     // Retornar sempre o dia 1 do mês de vencimento (formato YYYY-MM-01)
-    return `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
+    return result;
   };
 
   // DEBUG: Log members
@@ -156,6 +178,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         console.error('❌ [Query Error - Accounts]:', accountsError);
         throw accountsError;
       }
+      
+      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
+        count: accounts?.length,
+        accounts: accounts?.map(a => ({
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        }))
+      });
       
       // Buscar transações compartilhadas CRIADAS POR MIM
       const { data: myTransactions, error: myTxError } = await supabase
@@ -382,6 +415,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             ? calculateDueDate(tx.date, tx.account_id, accounts)
             : (tx.competence_date || tx.date);
           
+          console.log('🔍 [CASO 1A] Display date calculated:', {
+            description: tx.description,
+            originalDate: tx.date,
+            competenceDate: tx.competence_date,
+            accountId: tx.account_id,
+            displayDate,
+            hasAccount: !!tx.account_id
+          });
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -457,6 +499,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               const displayDate = tx.account_id 
                 ? calculateDueDate(tx.date, tx.account_id, accounts)
                 : (tx.competence_date || tx.date);
+              
+              console.log('🔍 [CASO 1B] Display date calculated:', {
+                description: tx.description,
+                originalDate: tx.date,
+                competenceDate: tx.competence_date,
+                accountId: tx.account_id,
+                displayDate,
+                hasAccount: !!tx.account_id,
+                creatorMemberId: creatorMember.id,
+                creatorMemberName: creatorMember.name
+              });
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
@@ -670,9 +723,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         })
         .sort((a, b) => b.date.localeCompare(a.date));
     } else {
-      // REGULAR: Mostrar apenas itens NÃO PAGOS não relacionados a viagens
-      // Para cartões de crédito, mostrar transações do mês atual E próximo mês
-      // (pois transações de janeiro podem vencer em fevereiro)
+      // REGULAR: Mostrar apenas itens NÃO PAGOS não relacionados a viagens, filtrados pelo mês atual
       const filtered = scopeFilteredItems
         .filter(i => {
           // Não mostrar itens de viagens
@@ -681,29 +732,37 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Não mostrar itens já pagos (devem ir para o histórico)
           if (i.isPaid) return false;
           
+          // CORREÇÃO CRÍTICA: Usar competence_date ao invés de date para filtrar parcelas
+          // Isso garante que cada parcela apareça apenas no seu mês de competência
+          const dateToUse = i.date; // Usar date pois é o que vem no InvoiceItem
+          
           // Parse date as YYYY-MM-DD to avoid timezone issues
-          const [year, month, day] = i.date.split('-').map(Number);
+          const [year, month, day] = dateToUse.split('-').map(Number);
           const itemMonth = month - 1; // JavaScript months are 0-indexed
           const itemYear = year;
           
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
           
-          // Calcular próximo mês
-          let nextMonth = currentMonth + 1;
-          let nextYear = currentYear;
-          if (nextMonth > 11) {
-            nextMonth = 0;
-            nextYear++;
-          }
+          const matches = itemMonth === currentMonth && itemYear === currentYear;
           
-          // Mostrar se é do mês atual OU do próximo mês
-          const isCurrentMonth = itemMonth === currentMonth && itemYear === currentYear;
-          const isNextMonth = itemMonth === nextMonth && itemYear === nextYear;
+          // // console.log('🔍 [REGULAR Filter] Item:', {
+          //   description: i.description,
+          //   date: i.date,
+          //   itemMonth,
+          //   itemYear,
+          //   currentMonth,
+          //   currentYear,
+          //   matches
+          // });
           
-          return isCurrentMonth || isNextMonth;
+          return matches;
         })
         .sort((a, b) => b.date.localeCompare(a.date));
+      
+      // // console.log('✅ [getFilteredInvoice] Resultado REGULAR:', {
+      //   filteredCount: filtered.length
+      // });
       
       return filtered;
     }
