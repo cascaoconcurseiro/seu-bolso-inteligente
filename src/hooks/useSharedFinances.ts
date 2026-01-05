@@ -131,11 +131,33 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     queryFn: async () => {
       if (!user) return [];
       
-      // Buscar contas do usuário (necessário para calcular data de vencimento)
+      // Buscar família do usuário
+      const { data: familyData } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      // Buscar IDs de todos os membros da família
+      let familyUserIds = [user.id];
+      if (familyData?.family_id) {
+        const { data: familyMembers } = await supabase
+          .from('family_members')
+          .select('user_id, linked_user_id')
+          .eq('family_id', familyData.family_id);
+        
+        if (familyMembers) {
+          familyUserIds = familyMembers
+            .map(m => m.linked_user_id || m.user_id)
+            .filter((id): id is string => id !== null);
+        }
+      }
+      
+      // Buscar contas de TODOS os membros da família (necessário para calcular data de vencimento)
       const { data: accounts, error: accountsError } = await supabase
         .from('accounts')
-        .select('id, type, closing_day, due_day')
-        .eq('user_id', user.id);
+        .select('id, type, closing_day, due_day, user_id')
+        .in('user_id', familyUserIds);
       
       if (accountsError) {
         console.error('❌ [Query Error - Accounts]:', accountsError);
@@ -438,9 +460,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
                 mySplit
               );
               
-              // CRÍTICO: Para transações criadas por OUTROS, sempre usar competence_date
-              // Não tentar recalcular porque não temos acesso ao cartão do criador
-              const displayDate = tx.competence_date || tx.date;
+              // Para transações de cartão de crédito compartilhadas, usar data de vencimento
+              const displayDate = tx.account_id 
+                ? calculateDueDate(tx.date, tx.account_id, accounts)
+                : (tx.competence_date || tx.date);
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
