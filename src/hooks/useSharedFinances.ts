@@ -272,48 +272,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       // Buscar splits para todas as transações
       const transactionIds = uniqueTransactions.map(t => t.id);
-      const { data: mySplits, error: mySplitsError } = await supabase
-        .from('transaction_splits')
-        .select(`
-          *,
-          transaction:transactions!transaction_id(
-            *,
-            category:categories(id, name, icon, color)
-          )
-        `)
-        .eq('user_id', user.id);
-      
-      if (mySplitsError) {
-        console.error('❌ [Query Error - My Splits]:', mySplitsError);
-        throw mySplitsError;
-      }
-      
-      // // console.log('✅ [Query Result - My Splits]:', {
-      //   count: mySplits?.length || 0,
-      //   splits: mySplits
-      // });
-      
-      // Extrair transações dos splits (transações criadas por outros)
-      const othersTransactions = (mySplits || [])
-        .map((split: any) => split.transaction)
-        .filter((tx: any) => tx && tx.user_id !== user.id); // Apenas transações de outros
-      
-      // Combinar minhas transações + transações de outros
-      const allTransactions = [...(myTransactions || []), ...othersTransactions];
-      
-      // Remover duplicatas
-      const uniqueTransactions = Array.from(
-        new Map(allTransactions.map(tx => [tx.id, tx])).values()
-      );
-      
-      if (uniqueTransactions.length === 0) {
-        // // console.log('ℹ️ [Query Result] Nenhuma transação compartilhada encontrada');
-        return [];
-      }
-      
-      // Buscar splits para todas as transações
-      const transactionIds = uniqueTransactions.map(t => t.id);
-      // // console.log('🔍 [Query] Buscando splits para transactionIds:', transactionIds);
       
       const { data: splits, error: splitsError } = await supabase
         .from('transaction_splits')
