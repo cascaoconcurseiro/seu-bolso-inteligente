@@ -333,13 +333,30 @@ export function useCreateTransaction() {
               throw new Error(`Erro ao criar splits: ${splitsError.message}`);
             }
             
+            // Validar payer_id antes de atualizar
+            let validPayerId = null;
+            if (input.payer_id) {
+              // Verificar se o payer_id existe na tabela family_members
+              const { data: payerExists } = await supabase
+                .from('family_members')
+                .select('id')
+                .eq('id', input.payer_id)
+                .single();
+              
+              if (payerExists) {
+                validPayerId = input.payer_id;
+              } else {
+                console.warn('⚠️ payer_id inválido, será ignorado:', input.payer_id);
+              }
+            }
+            
             // Marcar transação como compartilhada
             await supabase
               .from("transactions")
               .update({ 
                 is_shared: true, 
                 domain: input.trip_id ? "TRAVEL" : "SHARED",
-                payer_id: input.payer_id || null
+                payer_id: validPayerId
               })
               .eq("id", transaction.id);
           }
@@ -429,13 +446,31 @@ export function useCreateTransaction() {
           throw new Error(`Erro ao criar splits: ${splitsError.message}`);
         } else {
           console.log('✅ Splits criados com sucesso');
+          
+          // Validar payer_id antes de atualizar
+          let validPayerId = null;
+          if (input.payer_id) {
+            // Verificar se o payer_id existe na tabela family_members
+            const { data: payerExists } = await supabase
+              .from('family_members')
+              .select('id')
+              .eq('id', input.payer_id)
+              .single();
+            
+            if (payerExists) {
+              validPayerId = input.payer_id;
+            } else {
+              console.warn('⚠️ payer_id inválido, será ignorado:', input.payer_id);
+            }
+          }
+          
           // Atualizar transação para is_shared = true e disparar sync
           await supabase
             .from("transactions")
             .update({ 
               is_shared: true, 
               domain: input.trip_id ? "TRAVEL" : "SHARED",
-              payer_id: input.payer_id || null
+              payer_id: validPayerId
             })
             .eq("id", data.id);
         }
