@@ -83,39 +83,85 @@ async function generateInvoiceDueNotifications(
   let count = 0;
 
   try {
-    // Buscar cartões de crédito com saldo
+    // Buscar cartões de crédito ativos
     const { data: cards, error } = await supabase
       .from('accounts')
-      .select('id, name, balance, due_day')
+      .select('id, name, due_day, closing_day')
       .eq('user_id', userId)
       .eq('type', 'CREDIT_CARD')
-      .eq('is_active', true)
-      .lt('balance', 0); // Saldo negativo = fatura a pagar
+      .eq('is_active', true);
 
     if (error || !cards) return 0;
 
     const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
     const currentDay = today.getDate();
 
     for (const card of cards) {
       const dueDay = card.due_day || 10;
-      let daysUntilDue: number;
+      const closingDay = card.closing_day || 1;
 
-      if (dueDay >= currentDay) {
-        daysUntilDue = dueDay - currentDay;
+      // Calcular a data de vencimento correta
+      let dueDate: Date;
+      
+      // Se o dia de fechamento já passou neste mês, a fatura vence no próximo mês
+      if (currentDay > closingDay) {
+        // Fatura do mês atual vence no próximo mês
+        dueDate = new Date(currentYear, currentMonth + 1, dueDay);
       } else {
-        // Vencimento no próximo mês
-        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-        daysUntilDue = daysInMonth - currentDay + dueDay;
+        // Fatura do mês anterior vence neste mês
+        dueDate = new Date(currentYear, currentMonth, dueDay);
       }
+
+      // Calcular dias até o vencimento
+      const diffTime = dueDate.getTime() - today.getTime();
+      const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Buscar transações da fatura atual para calcular o valor correto
+      const startDate = new Date(currentYear, currentMonth, closingDay + 1);
+      startDate.setMonth(startDate.getMonth() - 1); // Mês anterior
+      const endDate = new Date(currentYear, currentMonth, closingDay);
+
+      const { data: transactions } = await supabase
+        .from('transactions')
+        .select('amount')
+        .eq('account_id', card.id)
+        .eq('type', 'EXPENSE')
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0]);
+
+      const invoiceAmount = (transactions || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+      // Só notificar se houver valor a pagar
+      if (invoiceAmount <= 0) continue;
 
       // Se está dentro do período de alerta
       if (daysUntilDue <= daysBefore && daysUntilDue >= 0) {
+        // Verificar se já existe notificação não dispensada para este cartão HOJE
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+        const { data: existingNotification } = await (supabase as any)
+          .from('notifications')
+          .select('id, created_at')
+          .eq('user_id', userId)
+          .eq('related_id', card.id)
+          .eq('related_type', 'credit_card')
+          .eq('type', 'INVOICE_DUE')
+          .eq('is_dismissed', false)
+          .gte('created_at', todayStr) // Criada hoje ou depois
+          .maybeSingle();
+
+        // Se já existe notificação ativa criada hoje, pular
+        if (existingNotification) {
+          console.log(`Notificação de fatura já existe hoje para cartão ${card.id}`);
+          continue;
+        }
+
         await createInvoiceDueNotification(
           userId,
           card.name,
           card.id,
-          Math.abs(Number(card.balance)),
+          invoiceAmount,
           daysUntilDue
         );
         count++;
@@ -276,6 +322,25 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     // Criar notificação para cada membro com pendência significativa
     for (const [memberId, data] of Object.entries(byMember)) {
       if (data.amount >= 10) { // Mínimo de R$ 10 para notificar
+        // Verificar se já existe notificação não dispensada para este membro HOJE
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const { data: existingNotification } = await (supabase as any)
+          .from('notifications')
+          .select('id, created_at')
+          .eq('user_id', userId)
+          .eq('related_id', memberId)
+          .eq('related_type', 'family_member')
+          .eq('type', 'SHARED_PENDING')
+          .eq('is_dismissed', false)
+          .gte('created_at', today) // Criada hoje ou depois
+          .maybeSingle();
+
+        // Se já existe notificação ativa criada hoje, pular
+        if (existingNotification) {
+          console.log(`Notificação de compartilhado já existe hoje para membro ${memberId}`);
+          continue;
+        }
+
         await createSharedPendingNotification(
           userId,
           data.name,
@@ -301,6 +366,23 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
     const pendingCount = await checkPendingRecurrences(userId);
 
     if (pendingCount > 0) {
+      // Verificar se já existe notificação não dispensada HOJE
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const { data: existingNotification } = await (supabase as any)
+        .from('notifications')
+        .select('id, created_at')
+        .eq('user_id', userId)
+        .eq('type', 'RECURRING_PENDING')
+        .eq('is_dismissed', false)
+        .gte('created_at', today) // Criada hoje ou depois
+        .maybeSingle();
+
+      // Se já existe notificação ativa criada hoje, pular
+      if (existingNotification) {
+        console.log(`Notificação de recorrência já existe hoje`);
+        return 0;
+      }
+
       await createRecurringPendingNotification(userId, pendingCount);
       return 1;
     }
