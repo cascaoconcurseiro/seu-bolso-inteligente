@@ -46,9 +46,11 @@ export async function generateAllNotifications(userId: string): Promise<Generati
 
     // Gerar notificações em paralelo
     const [invoices, budgets, shared, recurring] = await Promise.all([
-      prefs?.invoice_due_enabled !== false
-        ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
-        : 0,
+      // TEMPORARIAMENTE DESABILITADO - Corrigir lógica de cálculo de fatura
+      // prefs?.invoice_due_enabled !== false
+      //   ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
+      //   : 0,
+      0, // Desabilitado temporariamente
       prefs?.budget_warning_enabled !== false
         ? generateBudgetWarningNotifications(userId, prefs?.budget_warning_threshold || 80)
         : 0,
