@@ -194,6 +194,10 @@ export function AccountDetail() {
             <Button
               variant="outline"
               className="gap-2"
+              onClick={() => {
+                // TODO: Implementar edição de conta
+                toast.info("Funcionalidade de edição em desenvolvimento");
+              }}
             >
               <Pencil className="h-4 w-4" />
               Editar
