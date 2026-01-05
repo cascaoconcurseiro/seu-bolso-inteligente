@@ -86,21 +86,23 @@ Senão:
 
 ### 3B. DINHEIRO/DÉBITO (Compartilhado)
 
-**Regra**: Mostrar no mês SEGUINTE ao da transação
+**Regra**: Usar `competence_date` se existir, senão usar `date`
 
 **Comportamento**:
-- Compra em 04/01 com dinheiro → aparece em FEVEREIRO no compartilhados
-- Compra em 15/01 com débito → aparece em FEVEREIRO no compartilhados
-- Compra em 28/02 com dinheiro → aparece em MARÇO no compartilhados
+- **Transações importadas/antigas**: Usar `competence_date` (já definido na importação)
+- **Transações novas**: Usar `date` (data real da transação)
 
 **Cálculo**:
 ```
-display_date = transaction.date + 1 mês
+Se competence_date existe:
+  display_date = competence_date
+Senão:
+  display_date = transaction.date
 ```
 
 **Implementação**: Função `calculateSharedDisplayDate()` no frontend
-- Para cartão: calcular mês de vencimento usando `calculateDueDate()`
-- Para dinheiro/débito: adicionar 1 mês à data da transação
+- Para cartão: calcular mês de vencimento usando lógica de closing_day e due_day
+- Para dinheiro/débito: usar competence_date se existir, senão usar date
 - Filtro: `WHERE display_date = mes_selecionado`
 
 ---
