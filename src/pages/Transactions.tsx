@@ -277,8 +277,11 @@ export function Transactions() {
 
   const getCreatorName = (creatorUserId: string | null) => {
     if (!creatorUserId) return null;
-    if (creatorUserId === user?.id) return null;
     
+    // Se foi o próprio usuário que criou, retornar "Você"
+    if (creatorUserId === user?.id) return 'Você';
+    
+    // Buscar nome do membro que criou
     const member = familyMembers.find(
       m => m.user_id === creatorUserId || m.linked_user_id === creatorUserId
     );
@@ -578,10 +581,15 @@ export function Transactions() {
                                 Espelhada
                               </span>
                             )}
-                            {creatorName && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400">
+                            {transaction.is_shared && creatorName && (
+                              <span className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                                creatorName === 'Você' 
+                                  ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
+                                  : "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400"
+                              )}>
                                 <User className="h-3 w-3" />
-                                {creatorName}
+                                Criado por {creatorName}
                               </span>
                             )}
                           </div>
