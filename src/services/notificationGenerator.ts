@@ -46,11 +46,9 @@ export async function generateAllNotifications(userId: string): Promise<Generati
 
     // Gerar notificações em paralelo
     const [invoices, budgets, shared, recurring] = await Promise.all([
-      // TEMPORARIAMENTE DESABILITADO - Corrigir lógica de cálculo de fatura
-      // prefs?.invoice_due_enabled !== false
-      //   ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
-      //   : 0,
-      0, // Desabilitado temporariamente
+      prefs?.invoice_due_enabled !== false
+        ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
+        : 0,
       prefs?.budget_warning_enabled !== false
         ? generateBudgetWarningNotifications(userId, prefs?.budget_warning_threshold || 80)
         : 0,
@@ -97,45 +95,57 @@ async function generateInvoiceDueNotifications(
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayDay = today.getDate();
 
     for (const card of cards) {
       const dueDay = card.due_day || 10;
       const closingDay = card.closing_day || 1;
 
-      // REGRA: Notificar apenas no dia do FECHAMENTO da fatura
-      // Não notificar antes, não notificar depois
-      if (today.getDate() !== closingDay) continue;
+      // REGRA: Notificar APENAS no dia do FECHAMENTO
+      if (todayDay !== closingDay) continue;
 
       // A fatura que FECHOU HOJE vence no próximo mês
       const dueDate = new Date(today);
       dueDate.setMonth(dueDate.getMonth() + 1);
       dueDate.setDate(dueDay);
 
-      // Calcular dias até o vencimento
+      // Calcular dias até o vencimento (do fechamento até o vencimento)
       const diffTime = dueDate.getTime() - today.getTime();
       const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      // Calcular período da fatura FECHADA (do fechamento anterior até hoje)
+      // Calcular período da fatura que FECHOU HOJE
+      // Período: do dia seguinte ao fechamento anterior até hoje (inclusive)
       const billingStart = new Date(today);
       billingStart.setMonth(billingStart.getMonth() - 1);
       billingStart.setDate(closingDay);
+      // Adicionar 1 dia ao início (transações começam no dia seguinte ao fechamento)
+      billingStart.setDate(billingStart.getDate() + 1);
       
-      const billingEnd = new Date(today);
-      billingEnd.setDate(closingDay);
+      const billingEnd = new Date(today); // Até hoje (inclusive)
+
+      console.log(`[Notificação Fatura] Cartão: ${card.name}`);
+      console.log(`  Período: ${billingStart.toISOString().split('T')[0]} a ${billingEnd.toISOString().split('T')[0]}`);
+      console.log(`  Vencimento: ${dueDate.toISOString().split('T')[0]} (${daysUntilDue} dias)`);
 
       // Buscar transações da fatura FECHADA
       const { data: transactions } = await supabase
         .from('transactions')
-        .select('amount')
+        .select('amount, date, description')
         .eq('account_id', card.id)
         .eq('type', 'EXPENSE')
-        .gt('date', billingStart.toISOString().split('T')[0])
+        .gte('date', billingStart.toISOString().split('T')[0])
         .lte('date', billingEnd.toISOString().split('T')[0]);
 
       const invoiceAmount = (transactions || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
 
+      console.log(`  Transações: ${transactions?.length || 0}`);
+      console.log(`  Valor total: R$ ${invoiceAmount.toFixed(2)}`);
+
       // Só notificar se houver valor a pagar
-      if (invoiceAmount <= 0) continue;
+      if (invoiceAmount <= 0) {
+        console.log(`  ⚠️ Sem valor a pagar, pulando notificação`);
+        continue;
+      }
 
       // Criar identificador único para esta fatura (cartão + mês/ano de vencimento)
       const invoiceKey = `${card.id}_${dueDate.getFullYear()}_${dueDate.getMonth()}`;
@@ -155,12 +165,13 @@ async function generateInvoiceDueNotifications(
       if (existingNotification) {
         const metadata = existingNotification.metadata as any;
         if (metadata?.invoice_key === invoiceKey) {
-          console.log(`Notificação já existe para fatura ${invoiceKey}`);
+          console.log(`  ⚠️ Notificação já existe para fatura ${invoiceKey}`);
           continue;
         }
       }
 
       // Criar notificação com metadata para identificar a fatura
+      console.log(`  ✅ Criando notificação`);
       await createInvoiceDueNotification(
         userId,
         card.name,
