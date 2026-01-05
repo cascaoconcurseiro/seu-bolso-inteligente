@@ -39,6 +39,8 @@ export function useCategories() {
       return data as Category[];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 }
 

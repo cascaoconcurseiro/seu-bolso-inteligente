@@ -292,6 +292,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       return { transactions: transactionsWithSplitsData, accounts: creditCardAccounts };
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Fetch transactions paid by others (payer_id != user_id) - these are debts I owe
@@ -322,6 +324,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       return data || [];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   const invoices = useMemo(() => {

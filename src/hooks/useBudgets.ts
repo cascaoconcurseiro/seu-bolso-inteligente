@@ -48,6 +48,8 @@ export const useBudgets = () => {
       return data as BudgetWithProgress[];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Buscar orçamentos básicos (para edição/exclusão)
@@ -68,6 +70,8 @@ export const useBudgets = () => {
       return data as Budget[];
     },
     enabled: !!user,
+    staleTime: 0, // ✅ Dados sempre frescos
+    refetchOnMount: 'always',
   });
 
   // Buscar progresso de um orçamento específico (usa função do banco)
