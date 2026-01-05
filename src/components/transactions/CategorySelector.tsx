@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Category {
   id: string;
@@ -107,61 +106,59 @@ export function CategorySelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0" align="start">
-        <ScrollArea className="h-[400px]">
-          <div className="p-2">
-            {parents.map((parent) => {
-              const children = childrenMap.get(parent.id) || [];
-              if (children.length === 0) return null;
+        <div className="max-h-[400px] overflow-y-auto p-2">
+          {parents.map((parent) => {
+            const children = childrenMap.get(parent.id) || [];
+            if (children.length === 0) return null;
 
-              const isExpanded = expandedParents.has(parent.id);
+            const isExpanded = expandedParents.has(parent.id);
 
-              return (
-                <div key={parent.id} className="mb-1">
-                  {/* Categoria Pai - Clicável para expandir/recolher */}
-                  <button
-                    onClick={() => toggleParent(parent.id)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted/50 rounded-md transition-colors"
-                  >
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4 shrink-0" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 shrink-0" />
-                    )}
-                    <span>{parent.icon}</span>
-                    <span>{parent.name}</span>
-                    <span className="ml-auto text-xs opacity-60">
-                      {children.length}
-                    </span>
-                  </button>
-
-                  {/* Subcategorias - Mostrar apenas se expandido */}
-                  {isExpanded && (
-                    <div className="ml-6 mt-1 space-y-1">
-                      {children.map((child) => (
-                        <button
-                          key={child.id}
-                          onClick={() => handleSelect(child.id)}
-                          className={cn(
-                            "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-                            value === child.id
-                              ? "bg-primary text-primary-foreground"
-                              : "hover:bg-muted"
-                          )}
-                        >
-                          <span>{child.icon}</span>
-                          <span className="flex-1 text-left">{child.name}</span>
-                          {value === child.id && (
-                            <Check className="h-4 w-4 shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
+            return (
+              <div key={parent.id} className="mb-1">
+                {/* Categoria Pai - Clicável para expandir/recolher */}
+                <button
+                  onClick={() => toggleParent(parent.id)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted/50 rounded-md transition-colors"
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 shrink-0" />
                   )}
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+                  <span>{parent.icon}</span>
+                  <span>{parent.name}</span>
+                  <span className="ml-auto text-xs opacity-60">
+                    {children.length}
+                  </span>
+                </button>
+
+                {/* Subcategorias - Mostrar apenas se expandido */}
+                {isExpanded && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {children.map((child) => (
+                      <button
+                        key={child.id}
+                        onClick={() => handleSelect(child.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                          value === child.id
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-muted"
+                        )}
+                      >
+                        <span>{child.icon}</span>
+                        <span className="flex-1 text-left">{child.name}</span>
+                        {value === child.id && (
+                          <Check className="h-4 w-4 shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </PopoverContent>
     </Popover>
   );
