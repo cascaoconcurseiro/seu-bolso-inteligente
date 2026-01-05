@@ -76,8 +76,19 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     // Buscar a conta
     const account = accounts.find(a => a.id === accountId);
     
-    // Se não encontrou a conta ou não é cartão de crédito, usar competence_date
-    if (!account || account.type !== 'CREDIT_CARD') {
+    // 🔧 PROTEÇÃO: Log de warning se conta não for encontrada
+    if (!account) {
+      console.warn('⚠️ [calculateSharedDisplayDate] Conta não encontrada! Usando competence_date como fallback.', {
+        accountId,
+        transactionDate,
+        competenceDate,
+        availableAccounts: accounts.map(a => a.id)
+      });
+      return competenceDate;
+    }
+    
+    // Se não é cartão de crédito, usar competence_date
+    if (account.type !== 'CREDIT_CARD') {
       console.log('⚠️ [calculateSharedDisplayDate] Not credit card, using competence_date:', competenceDate);
       return competenceDate;
     }
@@ -109,6 +120,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const result = `${dueYear}-${String(dueMonth + 1).padStart(2, '0')}-01`;
     
     console.log('✅ [calculateSharedDisplayDate] Credit card due month:', {
+      accountId,
       competenceDate,
       closingDay,
       dueDay,
@@ -162,8 +174,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }
       }
       
-      console.log('🔍 [useSharedFinances] familyUserIds para buscar contas:', familyUserIds);
-      
       // Buscar transações compartilhadas CRIADAS POR MIM
       const { data: myTransactions, error: myTxError } = await supabase
         .from('transactions')
@@ -205,90 +215,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // Combinar minhas transações + transações de outros
       const allTransactions = [...(myTransactions || []), ...othersTransactions];
       
-      // Coletar TODOS os user_ids únicos das transações (criadores)
-      const transactionUserIds = Array.from(
-        new Set(allTransactions.map(tx => tx.user_id).filter(Boolean))
-      );
-      
-      console.log('🔍 [useSharedFinances] transactionUserIds (criadores):', transactionUserIds);
-      
-      // Coletar TODOS os account_ids únicos das transações
-      const transactionAccountIds = Array.from(
-        new Set(allTransactions.map(tx => tx.account_id).filter(Boolean))
-      );
-      
-      console.log('🔍 [useSharedFinances] transactionAccountIds:', transactionAccountIds);
-      
-      // Buscar contas de TODOS os usuários que criaram transações compartilhadas
-      // E também buscar contas específicas pelos IDs encontrados nas transações
-      const { data: accounts, error: accountsError } = await supabase
-        .from('accounts')
-        .select('id, type, closing_day, due_day, user_id')
-        .or(`user_id.in.(${transactionUserIds.join(',')}),id.in.(${transactionAccountIds.join(',')})`);
-      
-      if (accountsError) {
-        console.error('❌ [Query Error - Accounts]:', accountsError);
-        throw accountsError;
-      }
-      
-      console.log('🔍 [useSharedFinances] TODAS as contas encontradas:', {
-        count: accounts?.length,
-        accounts: accounts?.map(a => ({
-          id: a.id,
-          type: a.type,
-          closing_day: a.closing_day,
-          due_day: a.due_day,
-          user_id: a.user_id
-        }))
-      });
-      
-      // Log individual de cada conta
-      accounts?.forEach((a, index) => {
-        console.log(`📋 Conta ${index + 1}:`, {
-          id: a.id,
-          type: a.type,
-          closing_day: a.closing_day,
-          due_day: a.due_day,
-          user_id: a.user_id
-        });
-      });
-      
-      // Filtrar apenas cartões de crédito
-      const creditCardAccounts = accounts?.filter(a => a.type === 'CREDIT_CARD') || [];
-      
-      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
-        count: creditCardAccounts?.length,
-        accounts: creditCardAccounts?.map(a => ({
-          id: a.id,
-          type: a.type,
-          closing_day: a.closing_day,
-          due_day: a.due_day,
-          user_id: a.user_id
-        }))
-      });
-      
-      // Log individual de cada cartão
-      creditCardAccounts?.forEach((a, index) => {
-        console.log(`💳 Cartão ${index + 1}:`, {
-          id: a.id,
-          type: a.type,
-          closing_day: a.closing_day,
-          due_day: a.due_day,
-          user_id: a.user_id
-        });
-      });
-      
-      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
-        count: creditCardAccounts?.length,
-        accounts: creditCardAccounts?.map(a => ({
-          id: a.id,
-          type: a.type,
-          closing_day: a.closing_day,
-          due_day: a.due_day,
-          user_id: a.user_id
-        }))
-      });
-      
       // Remover duplicatas das transações
       const uniqueTransactions = Array.from(
         new Map(allTransactions.map(tx => [tx.id, tx])).values()
@@ -311,29 +237,59 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         throw splitsError;
       }
       
-      // console.log('✅ [Query Result - Splits]:', {
-      //   count: splits?.length || 0,
-      //   splits: splits
-      // });
-      
       // Combinar transações com seus splits
       const transactionsWithSplitsData = uniqueTransactions.map(tx => ({
         ...tx,
         transaction_splits: splits?.filter(s => s.transaction_id === tx.id) || []
       }));
       
-      // console.log('✅ [Query Result] Transações com splits:', {
-      //   count: transactionsWithSplitsData.length,
-      //   transactions: transactionsWithSplitsData.map(t => ({
-      //     id: t.id,
-      //     description: t.description,
-      //     user_id: t.user_id,
-      //     splits: t.transaction_splits?.length || 0,
-      //     splitsData: t.transaction_splits
-      //   }))
-      // });
+      // 🔧 CORREÇÃO DEFINITIVA: Buscar contas APENAS por account_id
+      // Não usar user_id porque a conta pode pertencer a outro usuário da família
+      const uniqueAccountIds = Array.from(
+        new Set(
+          transactionsWithSplitsData
+            .map(t => t.account_id)
+            .filter((id): id is string => id !== null && id !== undefined)
+        )
+      );
       
-      return { transactions: transactionsWithSplitsData, accounts: creditCardAccounts || [] };
+      console.log('🔍 [useSharedFinances] Buscando contas por IDs:', uniqueAccountIds);
+      
+      // Buscar TODAS as contas por ID (não por user_id)
+      const { data: accountsData, error: accountsError2 } = await supabase
+        .from('accounts')
+        .select('id, type, closing_day, due_day, user_id')
+        .in('id', uniqueAccountIds);
+      
+      if (accountsError2) {
+        console.error('❌ [Query Error - Accounts by ID]:', accountsError2);
+        throw accountsError2;
+      }
+      
+      console.log('✅ [useSharedFinances] Contas encontradas por ID:', {
+        count: accountsData?.length,
+        accounts: accountsData?.map(a => ({
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        }))
+      });
+      
+      // Filtrar apenas cartões de crédito
+      const creditCardAccounts = accountsData?.filter(a => a.type === 'CREDIT_CARD') || [];
+      
+      console.log('💳 [useSharedFinances] Cartões de crédito encontrados:', {
+        count: creditCardAccounts.length,
+        cards: creditCardAccounts.map(a => ({
+          id: a.id,
+          closing_day: a.closing_day,
+          due_day: a.due_day
+        }))
+      });
+      
+      return { transactions: transactionsWithSplitsData, accounts: creditCardAccounts };
     },
     enabled: !!user,
   });
