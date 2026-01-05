@@ -56,7 +56,19 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const calculateDueDate = (transactionDate: string, accountId: string, accounts: any[]): string => {
     const account = accounts.find(a => a.id === accountId);
     
-    console.log('🔍 [calculateDueDate] Input:', { transactionDate, accountId, account });
+    console.log('🔍 [calculateDueDate] Input:', { 
+      transactionDate, 
+      accountId, 
+      accountFound: !!account,
+      accountDetails: account ? {
+        id: account.id,
+        type: account.type,
+        closing_day: account.closing_day,
+        due_day: account.due_day,
+        user_id: account.user_id
+      } : null,
+      totalAccounts: accounts.length
+    });
     
     if (!account || account.type !== 'CREDIT_CARD') {
       // Se não for cartão de crédito, usar a data original
@@ -154,15 +166,29 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
       
       // Buscar contas de TODOS os membros da família (necessário para calcular data de vencimento)
+      // IMPORTANTE: Buscar TODAS as contas, incluindo arquivadas, pois precisamos calcular
+      // a data de vencimento mesmo para transações antigas
       const { data: accounts, error: accountsError } = await supabase
         .from('accounts')
         .select('id, type, closing_day, due_day, user_id')
-        .in('user_id', familyUserIds);
+        .in('user_id', familyUserIds)
+        .eq('type', 'CREDIT_CARD'); // Apenas cartões de crédito
       
       if (accountsError) {
         console.error('❌ [Query Error - Accounts]:', accountsError);
         throw accountsError;
       }
+      
+      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
+        count: accounts?.length,
+        accounts: accounts?.map(a => ({
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        }))
+      });
       
       // Buscar transações compartilhadas CRIADAS POR MIM
       const { data: myTransactions, error: myTxError } = await supabase
@@ -389,6 +415,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             ? calculateDueDate(tx.date, tx.account_id, accounts)
             : (tx.competence_date || tx.date);
           
+          console.log('🔍 [CASO 1A] Display date calculated:', {
+            description: tx.description,
+            originalDate: tx.date,
+            competenceDate: tx.competence_date,
+            accountId: tx.account_id,
+            displayDate,
+            hasAccount: !!tx.account_id
+          });
+          
           invoiceMap[memberId].push({
             id: uniqueKey,
             originalTxId: tx.id,
@@ -464,6 +499,17 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
               const displayDate = tx.account_id 
                 ? calculateDueDate(tx.date, tx.account_id, accounts)
                 : (tx.competence_date || tx.date);
+              
+              console.log('🔍 [CASO 1B] Display date calculated:', {
+                description: tx.description,
+                originalDate: tx.date,
+                competenceDate: tx.competence_date,
+                accountId: tx.account_id,
+                displayDate,
+                hasAccount: !!tx.account_id,
+                creatorMemberId: creatorMember.id,
+                creatorMemberName: creatorMember.name
+              });
               
               invoiceMap[creatorMember.id].push({
                 id: uniqueKey,
