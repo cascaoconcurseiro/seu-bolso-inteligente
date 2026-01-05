@@ -272,10 +272,63 @@ export function useArchiveAccount() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
       toast.success("Conta arquivada! As transações foram preservadas.");
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao arquivar conta");
     },
+  });
+}
+
+export function useUnarchiveAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Desarquivar conta (is_active = true, deleted = false)
+      const { error } = await supabase
+        .from("accounts")
+        .update({ is_active: true, deleted: false })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
+      toast.success("Conta desarquivada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao desarquivar conta");
+    },
+  });
+}
+
+export function useArchivedAccounts() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["archived-accounts", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from("accounts")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", false)
+        .eq("deleted", false)
+        .order("name");
+
+      if (error) {
+        console.error("Erro ao buscar contas arquivadas:", error);
+        throw error;
+      }
+      return data as Account[];
+    },
+    enabled: !!user,
+    staleTime: 60000,
+    retry: false,
   });
 }

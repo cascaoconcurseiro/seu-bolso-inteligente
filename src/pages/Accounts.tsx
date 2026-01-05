@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { ArchivedAccountsSection } from "@/components/accounts/ArchivedAccountsSection";
 import {
   Dialog,
   DialogContent,
@@ -590,6 +591,8 @@ export function Accounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ArchivedAccountsSection />
 
       <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
     </div>
