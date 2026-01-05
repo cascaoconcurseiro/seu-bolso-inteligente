@@ -260,8 +260,35 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }))
       });
       
+      console.table(accounts?.map(a => ({
+        id: a.id,
+        type: a.type,
+        closing_day: a.closing_day,
+        due_day: a.due_day,
+        user_id: a.user_id
+      })));
+      
       // Filtrar apenas cartões de crédito
       const creditCardAccounts = accounts?.filter(a => a.type === 'CREDIT_CARD') || [];
+      
+      console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
+        count: creditCardAccounts?.length,
+        accounts: creditCardAccounts?.map(a => ({
+          id: a.id,
+          type: a.type,
+          closing_day: a.closing_day,
+          due_day: a.due_day,
+          user_id: a.user_id
+        }))
+      });
+      
+      console.table(creditCardAccounts?.map(a => ({
+        id: a.id,
+        type: a.type,
+        closing_day: a.closing_day,
+        due_day: a.due_day,
+        user_id: a.user_id
+      })));
       
       console.log('🔍 [useSharedFinances] Contas de cartão encontradas:', {
         count: creditCardAccounts?.length,
