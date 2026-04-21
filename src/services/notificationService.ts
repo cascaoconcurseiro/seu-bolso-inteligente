@@ -6,6 +6,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export type NotificationType =
   | 'WELCOME'
@@ -89,7 +90,7 @@ export async function getActiveNotifications(userId: string): Promise<Notificati
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Erro ao buscar notificações:', error);
+    logger.error('Erro ao buscar notificações', error);
     return [];
   }
 
@@ -109,7 +110,7 @@ export async function getUnreadNotifications(userId: string): Promise<Notificati
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Erro ao buscar notificações não lidas:', error);
+    logger.error('Erro ao buscar notificações não lidas', error);
     return [];
   }
 
@@ -128,7 +129,7 @@ export async function countUnreadNotifications(userId: string): Promise<number> 
     .eq('is_dismissed', false);
 
   if (error) {
-    console.error('Erro ao contar notificações:', error);
+    logger.error('Erro ao contar notificações', error);
     return 0;
   }
 
@@ -165,7 +166,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
     .single();
 
   if (error) {
-    console.error('Erro ao criar notificação:', error);
+    logger.error('Erro ao criar notificação', error);
     return null;
   }
 
@@ -185,7 +186,7 @@ export async function markAsRead(notificationId: string): Promise<boolean> {
     .eq('id', notificationId);
 
   if (error) {
-    console.error('Erro ao marcar como lida:', error);
+    logger.error('Erro ao marcar como lida', error);
     return false;
   }
 
@@ -206,7 +207,7 @@ export async function markAllAsRead(userId: string): Promise<boolean> {
     .eq('is_read', false);
 
   if (error) {
-    console.error('Erro ao marcar todas como lidas:', error);
+    logger.error('Erro ao marcar todas como lidas', error);
     return false;
   }
 
@@ -226,7 +227,7 @@ export async function dismissNotification(notificationId: string): Promise<boole
     .eq('id', notificationId);
 
   if (error) {
-    console.error('Erro ao dispensar notificação:', error);
+    logger.error('Erro ao dispensar notificação', error);
     return false;
   }
 
@@ -248,7 +249,7 @@ export async function dismissAllRead(userId: string): Promise<boolean> {
     .eq('is_dismissed', false);
 
   if (error) {
-    console.error('Erro ao dispensar notificações lidas:', error);
+    logger.error('Erro ao dispensar notificações lidas', error);
     return false;
   }
 
@@ -271,7 +272,7 @@ export async function cleanupOldNotifications(userId: string): Promise<number> {
     .select('id');
 
   if (error) {
-    console.error('Erro ao limpar notificações antigas:', error);
+    logger.error('Erro ao limpar notificações antigas', error);
     return 0;
   }
 
@@ -291,7 +292,7 @@ export async function getNotificationPreferences(userId: string): Promise<Notifi
     .maybeSingle();
 
   if (error) {
-    console.error('Erro ao buscar preferências:', error);
+    logger.error('Erro ao buscar preferências', error);
     return null;
   }
 
@@ -314,7 +315,7 @@ async function createDefaultPreferences(userId: string): Promise<NotificationPre
     .single();
 
   if (error) {
-    console.error('Erro ao criar preferências:', error);
+    logger.error('Erro ao criar preferências', error);
     return null;
   }
 
@@ -334,7 +335,7 @@ export async function updateNotificationPreferences(
     .eq('user_id', userId);
 
   if (error) {
-    console.error('Erro ao atualizar preferências:', error);
+    logger.error('Erro ao atualizar preferências', error);
     return false;
   }
 
