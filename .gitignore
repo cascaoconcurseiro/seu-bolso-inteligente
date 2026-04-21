@@ -30,3 +30,14 @@ dist-ssr
 
 # PE copy (projeto de referência)
 PE copy/
+
+# Build artifacts
+dist/
+dist-ssr/
+
+# Backups
+backups/
+
+# Temporary files
+temp_*
+*.tmp
