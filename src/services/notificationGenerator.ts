@@ -189,31 +189,6 @@ async function generateInvoiceDueNotifications(
 
   return count;
 }
-          .gte('created_at', todayStr) // Criada hoje ou depois
-          .maybeSingle();
-
-        // Se já existe notificação ativa criada hoje, pular
-        if (existingNotification) {
-          logger.debug(`Notificação de fatura já existe hoje para cartão ${card.id}`);
-          continue;
-        }
-
-        await createInvoiceDueNotification(
-          userId,
-          card.name,
-          card.id,
-          invoiceAmount,
-          daysUntilDue
-        );
-        count++;
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao gerar notificações de fatura:', error);
-  }
-
-  return count;
-}
 
 /**
  * Gera notificações de orçamentos em alerta

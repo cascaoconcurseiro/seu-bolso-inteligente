@@ -2,9 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
-import { toast } from "sonner";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { startOfMonth, endOfMonth, format } from "date-fns";
+import { getMonthDateRange } from "@/utils/dateUtils";
+import { 
+  invalidateTransactionQueries, 
+  invalidateFinancialQueries,
+  invalidateSharedQueries 
+} from "@/utils/queryInvalidation";
+import { transactionToasts } from "@/utils/toastMessages";
+import { defaultQueryConfig } from "@/utils/queryConfig";
+import { format } from "date-fns";
 
 export type TransactionType = "EXPENSE" | "INCOME" | "TRANSFER";
 export type TransactionDomain = "PERSONAL" | "SHARED" | "TRAVEL";
@@ -86,8 +93,9 @@ export function useTransactions(filters?: TransactionFilters) {
   // Se não há filtros de data, usar o mês atual do contexto
   const effectiveFilters = filters || {};
   if (!effectiveFilters.startDate && !effectiveFilters.endDate) {
-    effectiveFilters.startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
-    effectiveFilters.endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+    const { startDate, endDate } = getMonthDateRange(currentDate);
+    effectiveFilters.startDate = startDate;
+    effectiveFilters.endDate = endDate;
   }
 
   return useQuery({
@@ -174,9 +182,7 @@ export function useTransactions(filters?: TransactionFilters) {
       return filteredData as Transaction[];
     },
     enabled: !!user,
-    retry: false,
-    staleTime: 0, // ✅ CORREÇÃO: Dados sempre considerados stale para refetch imediato
-    refetchOnMount: 'always', // ✅ CORREÇÃO: Sempre refetch ao montar
+    ...defaultQueryConfig,
   });
 }
 
@@ -517,17 +523,13 @@ export function useCreateTransaction() {
 
       return data as Transaction;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["account-statement"] }); // ✅ CRÍTICO: Invalidar extrato
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
-      queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] });
-      toast.success("Transação criada com sucesso!");
+    onSuccess: async () => {
+      await invalidateFinancialQueries(queryClient);
+      await invalidateSharedQueries(queryClient);
+      transactionToasts.created();
     },
     onError: (error) => {
-      toast.error("Erro ao criar transação: " + error.message);
+      transactionToasts.error('criar', error);
     },
   });
 }
@@ -544,16 +546,13 @@ export function useDeleteTransaction() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] });
-      queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] });
-      toast.success("Transação removida!");
+    onSuccess: async () => {
+      await invalidateFinancialQueries(queryClient);
+      await invalidateSharedQueries(queryClient);
+      transactionToasts.deleted();
     },
     onError: (error) => {
-      toast.error("Erro ao remover transação: " + error.message);
+      transactionToasts.error('remover', error);
     },
   });
 }
@@ -588,15 +587,13 @@ export function useDeleteInstallmentSeries() {
 
       return { deletedCount };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      toast.success(`${data.deletedCount} parcelas removidas com sucesso!`);
+    onSuccess: async (data) => {
+      await invalidateTransactionQueries(queryClient);
+      transactionToasts.seriesDeleted(data.deletedCount);
     },
     onError: (error) => {
       console.error('❌ [useDeleteInstallmentSeries] Erro final:', error);
-      toast.error("Erro ao remover parcelas: " + error.message);
+      transactionToasts.error('remover parcelas', error);
     },
   });
 }
@@ -645,14 +642,12 @@ export function useDeleteFutureInstallments() {
 
       return { deletedCount: transactions.length };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
-      toast.success(`${data.deletedCount} parcelas futuras removidas!`);
+    onSuccess: async (data) => {
+      await invalidateTransactionQueries(queryClient);
+      transactionToasts.futureDeleted(data.deletedCount);
     },
     onError: (error) => {
-      toast.error("Erro ao remover parcelas: " + error.message);
+      transactionToasts.error('remover parcelas', error);
     },
   });
 }
@@ -688,12 +683,12 @@ export function useUpdateInstallmentSeries() {
 
       return { updatedCount: data?.length || 0 };
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success(`${data.updatedCount} parcelas atualizadas!`);
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      transactionToasts.seriesUpdated(data.updatedCount);
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar parcelas: " + error.message);
+      transactionToasts.error('atualizar parcelas', error);
     },
   });
 }
@@ -703,12 +698,10 @@ export function useUpdateInstallmentSeries() {
 export function useFinancialSummary() {
   const { user } = useAuth();
   const { currentDate } = useMonth();
-  const currentMonth = format(currentDate, 'yyyy-MM');
-  const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
-  const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+  const { startDate, endDate, monthKey } = getMonthDateRange(currentDate);
 
   return useQuery({
-    queryKey: ["financial-summary", user?.id, currentMonth],
+    queryKey: ["financial-summary", user?.id, monthKey],
     queryFn: async () => {
       if (!user) return { balance: 0, income: 0, expenses: 0, savings: 0 };
 
@@ -734,8 +727,6 @@ export function useFinancialSummary() {
       };
     },
     enabled: !!user,
-    retry: false,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    ...defaultQueryConfig,
   });
 }

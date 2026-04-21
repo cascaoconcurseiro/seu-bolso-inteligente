@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { invalidateAccountQueries } from "@/utils/queryInvalidation";
+import { accountToasts } from "@/utils/toastMessages";
+import { defaultQueryConfig } from "@/utils/queryConfig";
 
 export type AccountType = "CHECKING" | "SAVINGS" | "CREDIT_CARD" | "INVESTMENT" | "CASH" | "EMERGENCY_FUND";
 
@@ -56,9 +58,7 @@ export function useAccounts() {
       return data as Account[];
     },
     enabled: !!user,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
-    retry: false,
+    ...defaultQueryConfig,
   });
 }
 
@@ -140,13 +140,12 @@ export function useCreateAccount() {
       if (fetchError) throw fetchError;
       return updatedAccount;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Conta criada com sucesso!");
+    onSuccess: async () => {
+      await invalidateAccountQueries(queryClient);
+      accountToasts.created();
     },
     onError: (error) => {
-      toast.error("Erro ao criar conta: " + error.message);
+      accountToasts.error('criar', error);
     },
   });
 }
@@ -223,13 +222,12 @@ export function useUpdateAccount() {
       if (error) throw error;
       return data as Account;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Conta atualizada!");
+    onSuccess: async () => {
+      await invalidateAccountQueries(queryClient);
+      accountToasts.updated();
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar conta: " + error.message);
+      accountToasts.error('atualizar', error);
     },
   });
 }
@@ -247,12 +245,12 @@ export function useDeleteAccount() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      toast.success("Conta removida!");
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      accountToasts.deleted();
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao remover conta");
+      accountToasts.error('remover', error);
     },
   });
 }
@@ -271,13 +269,13 @@ export function useArchiveAccount() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
-      toast.success("Conta arquivada! As transações foram preservadas.");
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
+      accountToasts.archived();
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao arquivar conta");
+      accountToasts.error('arquivar', error);
     },
   });
 }
@@ -295,13 +293,13 @@ export function useUnarchiveAccount() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
-      toast.success("Conta desarquivada com sucesso!");
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
+      accountToasts.unarchived();
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao desarquivar conta");
+      accountToasts.error('desarquivar', error);
     },
   });
 }
@@ -329,8 +327,6 @@ export function useArchivedAccounts() {
       return data as Account[];
     },
     enabled: !!user,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
-    retry: false,
+    ...defaultQueryConfig,
   });
 }

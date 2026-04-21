@@ -4,7 +4,10 @@ import { Budget, BudgetProgress } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMonth } from '@/contexts/MonthContext';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { getMonthDateRange } from '@/utils/dateUtils';
+import { invalidateBudgetQueries } from '@/utils/queryInvalidation';
+import { budgetToasts } from '@/utils/toastMessages';
+import { defaultQueryConfig } from '@/utils/queryConfig';
 
 // Interface para o progresso do orçamento retornado pelo banco
 export interface BudgetWithProgress {
@@ -28,8 +31,7 @@ export const useBudgets = () => {
   const queryClient = useQueryClient();
 
   // Calcular datas do período atual
-  const startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd');
-  const endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd');
+  const { startDate, endDate } = getMonthDateRange(currentDate);
 
   // Buscar todos os orçamentos COM progresso calculado pelo banco de dados
   // SINGLE SOURCE OF TRUTH: O gasto é calculado diretamente das transações
@@ -48,8 +50,7 @@ export const useBudgets = () => {
       return data as BudgetWithProgress[];
     },
     enabled: !!user,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    ...defaultQueryConfig,
   });
 
   // Buscar orçamentos básicos (para edição/exclusão)
@@ -70,8 +71,7 @@ export const useBudgets = () => {
       return data as Budget[];
     },
     enabled: !!user,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    ...defaultQueryConfig,
   });
 
   // Buscar progresso de um orçamento específico (usa função do banco)
@@ -108,20 +108,12 @@ export const useBudgets = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets-progress'] });
-      toast({
-        title: 'Orçamento criado',
-        description: 'Orçamento criado com sucesso!',
-      });
+    onSuccess: async () => {
+      await invalidateBudgetQueries(queryClient);
+      budgetToasts.created();
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Erro ao criar orçamento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      budgetToasts.error('criar', error);
     },
   });
 
@@ -138,20 +130,12 @@ export const useBudgets = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets-progress'] });
-      toast({
-        title: 'Orçamento atualizado',
-        description: 'Orçamento atualizado com sucesso!',
-      });
+    onSuccess: async () => {
+      await invalidateBudgetQueries(queryClient);
+      budgetToasts.updated();
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Erro ao atualizar orçamento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      budgetToasts.error('atualizar', error);
     },
   });
 
@@ -165,20 +149,12 @@ export const useBudgets = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      queryClient.invalidateQueries({ queryKey: ['budgets-progress'] });
-      toast({
-        title: 'Orçamento excluído',
-        description: 'Orçamento excluído com sucesso!',
-      });
+    onSuccess: async () => {
+      await invalidateBudgetQueries(queryClient);
+      budgetToasts.deleted();
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Erro ao excluir orçamento',
-        description: error.message,
-        variant: 'destructive',
-      });
+      budgetToasts.error('excluir', error);
     },
   });
 

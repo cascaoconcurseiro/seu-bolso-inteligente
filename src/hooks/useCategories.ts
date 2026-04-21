@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { useMemo } from "react";
+import { invalidateCategoryQueries } from "@/utils/queryInvalidation";
+import { categoryToasts } from "@/utils/toastMessages";
+import { defaultQueryConfig } from "@/utils/queryConfig";
 
 export interface Category {
   id: string;
@@ -39,8 +41,7 @@ export function useCategories() {
       return data as Category[];
     },
     enabled: !!user,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    ...defaultQueryConfig,
   });
 }
 
@@ -96,12 +97,12 @@ export function useCreateCategory() {
       if (error) throw error;
       return data as Category;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success("Categoria criada!");
+    onSuccess: async () => {
+      await invalidateCategoryQueries(queryClient);
+      categoryToasts.created();
     },
     onError: (error) => {
-      toast.error("Erro ao criar categoria: " + error.message);
+      categoryToasts.error('criar', error);
     },
   });
 }
@@ -118,12 +119,12 @@ export function useDeleteCategory() {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast.success("Categoria removida!");
+    onSuccess: async () => {
+      await invalidateCategoryQueries(queryClient);
+      categoryToasts.deleted();
     },
     onError: (error) => {
-      toast.error("Erro ao remover categoria: " + error.message);
+      categoryToasts.error('remover', error);
     },
   });
 }
@@ -189,8 +190,8 @@ export function useCreateDefaultCategories() {
 
       console.log(`✅ Criadas ${createdParents.length} categorias pai e ${childCategories.length} subcategorias`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    onSuccess: async () => {
+      await invalidateCategoryQueries(queryClient);
     },
   });
 }
