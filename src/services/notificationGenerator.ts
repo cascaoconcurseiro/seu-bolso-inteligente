@@ -9,6 +9,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import {
   createNotification,
   createWelcomeNotification,
@@ -68,7 +69,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
 
     return result;
   } catch (error) {
-    console.error('Erro ao gerar notificações:', error);
+    logger.error('Erro ao gerar notificações', error);
     return result;
   }
 }
@@ -123,9 +124,9 @@ async function generateInvoiceDueNotifications(
       
       const billingEnd = new Date(today); // Até hoje (inclusive)
 
-      console.log(`[Notificação Fatura] Cartão: ${card.name}`);
-      console.log(`  Período: ${billingStart.toISOString().split('T')[0]} a ${billingEnd.toISOString().split('T')[0]}`);
-      console.log(`  Vencimento: ${dueDate.toISOString().split('T')[0]} (${daysUntilDue} dias)`);
+      logger.debug(`Notificação Fatura - Cartão: ${card.name}`);
+      logger.debug(`  Período: ${billingStart.toISOString().split('T')[0]} a ${billingEnd.toISOString().split('T')[0]}`);
+      logger.debug(`  Vencimento: ${dueDate.toISOString().split('T')[0]} (${daysUntilDue} dias)`);
 
       // Buscar transações da fatura FECHADA
       const { data: transactions } = await supabase
@@ -138,12 +139,12 @@ async function generateInvoiceDueNotifications(
 
       const invoiceAmount = (transactions || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
 
-      console.log(`  Transações: ${transactions?.length || 0}`);
-      console.log(`  Valor total: R$ ${invoiceAmount.toFixed(2)}`);
+      logger.debug(`  Transações: ${transactions?.length || 0}`);
+      logger.debug(`  Valor total: R$ ${invoiceAmount.toFixed(2)}`);
 
       // Só notificar se houver valor a pagar
       if (invoiceAmount <= 0) {
-        console.log(`  ⚠️ Sem valor a pagar, pulando notificação`);
+        logger.debug(`  Sem valor a pagar, pulando notificação`);
         continue;
       }
 
@@ -165,13 +166,13 @@ async function generateInvoiceDueNotifications(
       if (existingNotification) {
         const metadata = existingNotification.metadata as any;
         if (metadata?.invoice_key === invoiceKey) {
-          console.log(`  ⚠️ Notificação já existe para fatura ${invoiceKey}`);
+          logger.debug(`  Notificação já existe para fatura ${invoiceKey}`);
           continue;
         }
       }
 
       // Criar notificação com metadata para identificar a fatura
-      console.log(`  ✅ Criando notificação`);
+      logger.debug(`  Criando notificação`);
       await createInvoiceDueNotification(
         userId,
         card.name,
@@ -193,7 +194,7 @@ async function generateInvoiceDueNotifications(
 
         // Se já existe notificação ativa criada hoje, pular
         if (existingNotification) {
-          console.log(`Notificação de fatura já existe hoje para cartão ${card.id}`);
+          logger.debug(`Notificação de fatura já existe hoje para cartão ${card.id}`);
           continue;
         }
 
@@ -280,7 +281,7 @@ async function generateBudgetWarningNotifications(
 
       // Se já existe notificação ativa criada hoje, pular
       if (existingNotification) {
-        console.log(`Notificação de orçamento já existe hoje para budget ${budget.id}`);
+        logger.debug(`Notificação de orçamento já existe hoje para budget ${budget.id}`);
         continue;
       }
 
@@ -377,7 +378,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
 
         // Se já existe notificação ativa criada hoje, pular
         if (existingNotification) {
-          console.log(`Notificação de compartilhado já existe hoje para membro ${memberId}`);
+          logger.debug(`Notificação de compartilhado já existe hoje para membro ${memberId}`);
           continue;
         }
 
@@ -419,7 +420,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
 
       // Se já existe notificação ativa criada hoje, pular
       if (existingNotification) {
-        console.log(`Notificação de recorrência já existe hoje`);
+        logger.debug(`Notificação de recorrência já existe hoje`);
         return 0;
       }
 
@@ -427,7 +428,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
       return 1;
     }
   } catch (error) {
-    console.error('Erro ao gerar notificações de recorrência:', error);
+    logger.error('Erro ao gerar notificações de recorrência', error);
   }
 
   return 0;
@@ -452,10 +453,10 @@ export async function checkAndCreateWelcomeNotification(
     if (checkError) {
       // Se for erro de tabela inexistente, apenas loga e ignora
       if (checkError.code === '42P01') {
-        console.warn('Tabela notifications não existe ainda');
+        logger.warn('Tabela notifications não existe ainda');
         return false;
       }
-      console.error('Erro ao verificar boas-vindas:', checkError);
+      logger.error('Erro ao verificar boas-vindas', checkError);
       return false;
     }
 
@@ -474,7 +475,7 @@ export async function checkAndCreateWelcomeNotification(
       return true;
     }
   } catch (error) {
-    console.error('Erro ao verificar boas-vindas:', error);
+    logger.error('Erro ao verificar boas-vindas', error);
   }
 
   return false;
@@ -501,6 +502,6 @@ export async function dismissRelatedNotifications(
       .eq('related_type', relatedType)
       .eq('is_dismissed', false);
   } catch (error) {
-    console.error('Erro ao dispensar notificações relacionadas:', error);
+    logger.error('Erro ao dispensar notificações relacionadas', error);
   }
 }

@@ -16,7 +16,17 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    minify: false, // TEMPORÁRIO: Desabilitar minificação para debug
-    sourcemap: true, // Habilitar sourcemaps
+    minify: 'terser', // ✅ Minificação habilitada para produção
+    sourcemap: false, // ✅ Sourcemaps desabilitados em produção
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select'],
+          'vendor-charts': ['recharts'],
+          'vendor-query': ['@tanstack/react-query'],
+        },
+      },
+    },
   },
 }));
