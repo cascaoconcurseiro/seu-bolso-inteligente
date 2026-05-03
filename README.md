@@ -1,122 +1,140 @@
-# 💰 Seu Bolso Inteligente
+# Seu Bolso Inteligente
 
-Sistema completo de gestão financeira pessoal com orçamentos, metas e investimentos.
+Uma aplicação web moderna para gerenciamento financeiro pessoal e compartilhado, com suporte a múltiplas contas, categorias, viagens e análises financeiras.
 
-## 🚀 Início Rápido
+## 🚀 Características
 
+- **Gerenciamento de Contas**: Crie e gerencie múltiplas contas bancárias
+- **Transações**: Registre despesas e receitas com categorização automática
+- **Compartilhamento**: Divida despesas com família e amigos
+- **Viagens**: Organize gastos compartilhados em viagens
+- **Orçamentos**: Defina e acompanhe orçamentos por categoria
+- **Projeções**: Visualize projeções financeiras futuras
+- **Relatórios**: Gere relatórios detalhados de gastos
+- **Responsivo**: Interface totalmente responsiva para desktop e mobile
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Components**: Shadcn/ui + Radix UI
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase (PostgreSQL)
+- **Autenticação**: Supabase Auth
+- **State Management**: React Query + Context API
+- **Deployment**: Vercel
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
+- npm ou bun
+- Conta Supabase
+- Conta Vercel (para deploy)
+
+## 🔧 Instalação
+
+1. Clone o repositório:
 ```bash
-# Instalar dependências
+git clone https://github.com/cascaoconcurseiro/seu-bolso-inteligente.git
+cd seu-bolso-inteligente
+```
+
+2. Instale as dependências:
+```bash
 npm install
+# ou
+bun install
+```
 
-# Configurar variáveis de ambiente
+3. Configure as variáveis de ambiente:
+```bash
 cp .env.example .env
-# Edite o .env com suas credenciais do Supabase
+```
 
-# Executar em desenvolvimento
+4. Adicione suas credenciais Supabase no `.env`:
+```
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
+```
+
+## 🚀 Desenvolvimento
+
+Inicie o servidor de desenvolvimento:
+```bash
 npm run dev
+# ou
+bun run dev
 ```
 
-Acesse: http://localhost:5173
+A aplicação estará disponível em `http://localhost:5173`
 
-## ✨ Funcionalidades
+## 📦 Build
 
-- 📊 **Dashboard** - Visão geral das finanças
-- 💰 **Transações** - Receitas, despesas e transferências
-- 🏦 **Contas** - Gestão de contas bancárias
-- 💳 **Cartões** - Controle de cartões de crédito
-- 🐷 **Orçamentos** - Controle de gastos por categoria
-- 🎯 **Metas** - Objetivos financeiros
-- 📈 **Investimentos** - Gestão de carteira
-- 👥 **Compartilhados** - Despesas compartilhadas
-- ✈️ **Viagens** - Controle de gastos em viagens
-- 👨‍👩‍👧 **Família** - Gestão familiar
-- 📊 **Relatórios** - Análises e gráficos
+Para criar uma build de produção:
+```bash
+npm run build
+# ou
+bun run build
+```
 
-## 🛠️ Tecnologias
+## 🧪 Linting
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **UI:** shadcn/ui + Tailwind CSS
-- **Backend:** Supabase (PostgreSQL)
-- **Estado:** React Query
-- **Formulários:** React Hook Form + Zod
-- **Gráficos:** Recharts
+Verifique a qualidade do código:
+```bash
+npm run lint
+# ou
+bun run lint
+```
 
-## 📚 Documentação
-
-Toda a documentação está na pasta [`docs/`](./docs/):
-
-### 🚀 Começar
-- [**Guia Rápido**](./docs/GUIA_RAPIDO.md) - Início em 3 passos
-- [**Configuração Supabase**](./docs/CONFIGURACAO_SUPABASE.md) - Usar o mesmo do PE
-- [**Deploy Vercel**](./docs/DEPLOY_VERCEL.md) - Colocar no ar
-
-### 📖 Referência
-- [**Implementação Completa**](./docs/IMPLEMENTACAO_COMPLETA.md) - Documentação técnica
-- [**Plano de Migração**](./docs/PLANO_MIGRACAO_PE_PARA_NOVO.md) - Plano detalhado
-- [**Status da Migração**](./docs/MIGRACAO_APLICADA.md) - O que foi feito
-
-### ✅ Verificação
-- [**Checklist**](./docs/CHECKLIST_VERIFICACAO.md) - Verificar implementação
-- [**Resumo Executivo**](./docs/RESUMO_EXECUTIVO.md) - Visão geral
-
-## 🎯 Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
-seu-bolso-inteligente/
-├── docs/                    # 📚 Documentação
-├── public/                  # Arquivos públicos
-├── src/
-│   ├── components/         # Componentes React
-│   │   ├── budgets/       # 🐷 Orçamentos
-│   │   ├── goals/         # 🎯 Metas
-│   │   ├── investments/   # 📈 Investimentos
-│   │   ├── layout/        # Layout
-│   │   └── ui/            # Componentes base
-│   ├── contexts/          # Contextos React
-│   ├── hooks/             # Hooks personalizados
-│   ├── pages/             # Páginas
-│   ├── types/             # Tipos TypeScript
-│   └── integrations/      # Integrações (Supabase)
-├── supabase/
-│   └── migrations/        # Migrations SQL
-└── ...
+src/
+├── components/      # Componentes React reutilizáveis
+├── contexts/        # Context API para estado global
+├── hooks/           # Custom hooks
+├── integrations/    # Integrações (Supabase, etc)
+├── lib/             # Utilitários e helpers
+├── pages/           # Páginas da aplicação
+├── services/        # Serviços de negócio
+├── styles/          # Estilos globais
+├── types/           # Tipos TypeScript
+└── utils/           # Funções utilitárias
 ```
 
 ## 🔐 Segurança
 
-- ✅ Autenticação obrigatória
-- ✅ Row Level Security (RLS)
-- ✅ Validações no banco e frontend
-- ✅ Auditoria de mudanças
-- ✅ HTTPS (em produção)
+- Autenticação via Supabase Auth
+- Row Level Security (RLS) no banco de dados
+- Variáveis de ambiente protegidas
+- Validação de entrada em formulários
+
+## 📱 Responsividade
+
+A aplicação é totalmente responsiva e funciona em:
+- Desktop (1920px+)
+- Tablet (768px - 1024px)
+- Mobile (320px - 767px)
 
 ## 🚀 Deploy
 
-### Vercel (Recomendado)
+### Vercel
 
-1. Conecte o repositório no GitHub
-2. Importe na Vercel
-3. Configure as variáveis de ambiente
-4. Deploy automático!
-
-[Ver guia completo](./docs/DEPLOY_VERCEL.md)
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'feat: adicionar nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+1. Conecte seu repositório GitHub ao Vercel
+2. Configure as variáveis de ambiente
+3. Deploy automático em cada push para `main`
 
 ## 📝 Licença
 
 Este projeto é privado.
 
-## 🆘 Suporte
+## 👥 Contribuidores
 
-Consulte a [documentação](./docs/) ou abra uma issue.
+- Wesley (Desenvolvedor Principal)
+
+## 📞 Suporte
+
+Para reportar bugs ou sugerir melhorias, abra uma issue no repositório.
 
 ---
 
-**Desenvolvido com ❤️ usando React + Supabase**
+**Última atualização**: Maio 2026
