@@ -2,7 +2,7 @@
 
 export interface InvoiceData {
   invoiceTotal: number;
-  transactions: any[];
+  transactions: unknown[];
   status: 'OPEN' | 'CLOSED';
   daysToClose: number;
   closingDate: Date;
@@ -44,7 +44,7 @@ export const getTargetDate = (date: Date, closingDay?: number): Date => {
  */
 export const getInvoiceData = (
   account: { id: string; closing_day: number | null; due_day: number | null },
-  transactions: any[],
+  transactions: unknown[],
   referenceDate: Date
 ): InvoiceData => {
   const year = referenceDate.getFullYear();

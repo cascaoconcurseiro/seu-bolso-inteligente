@@ -189,7 +189,7 @@ export function SharedInstallmentImport({
       toast.success(`${totalInstallmentsNum} parcelas importadas com sucesso!`);
       onSuccess?.();
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao importar:', error);
       toast.error('Erro ao importar parcelas');
     } finally {

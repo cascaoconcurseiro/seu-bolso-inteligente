@@ -139,7 +139,7 @@ export function Accounts() {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<any>(null);
+  const [editingAccount, setEditingAccount] = useState<unknown>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editBalance, setEditBalance] = useState("");
@@ -186,7 +186,7 @@ export function Accounts() {
     
     await createAccount.mutateAsync({
       name: accountName,
-      type: type as any,
+      type: type as unknown,
       bank_id: bankId || null,
       balance: parseFloat(balance) || 0,
       is_international: isInternational,

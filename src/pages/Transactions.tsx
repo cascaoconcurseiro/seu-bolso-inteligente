@@ -69,9 +69,9 @@ export function Transactions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteSeriesId, setDeleteSeriesId] = useState<string | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [settlementTransaction, setSettlementTransaction] = useState<any>(null);
-  const [detailsTransaction, setDetailsTransaction] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<unknown>(null);
+  const [settlementTransaction, setSettlementTransaction] = useState<unknown>(null);
+  const [detailsTransaction, setDetailsTransaction] = useState<unknown>(null);
   const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
   const [advanceDescription, setAdvanceDescription] = useState<string>("");
 
@@ -260,14 +260,14 @@ export function Transactions() {
     }
   };
 
-  const handleAdvance = (transaction: any) => {
+  const handleAdvance = (transaction: unknown) => {
     if (transaction.series_id) {
       setAdvanceSeriesId(transaction.series_id);
       setAdvanceDescription(transaction.description.replace(/\s*\(\d+\/\d+\)$/, ''));
     }
   };
 
-  const handleEdit = (transaction: any) => {
+  const handleEdit = (transaction: unknown) => {
     // Validar se a transação está acertada
     if (transaction.is_shared && isFullySettled(transaction)) {
       toast.error("Transação acertada não pode ser editada");
@@ -279,7 +279,7 @@ export function Transactions() {
     setShowTransactionModal(true);
   };
 
-  const getCreatorName = (transaction: any) => {
+  const getCreatorName = (transaction: unknown) => {
     const creatorUserId = transaction.creator_user_id;
     if (!creatorUserId) return null;
     
@@ -293,7 +293,7 @@ export function Transactions() {
     return member?.name || 'Outro membro';
   };
 
-  const getPayerInfo = (transaction: any) => {
+  const getPayerInfo = (transaction: unknown) => {
     if (!transaction.is_shared) return null;
     
     if (!transaction.payer_id || transaction.payer_id === user?.id) {
@@ -309,16 +309,16 @@ export function Transactions() {
   };
 
   // Verificar se transação compartilhada tem splits pendentes
-  const hasPendingSplits = (transaction: any) => {
+  const hasPendingSplits = (transaction: unknown) => {
     if (!transaction.is_shared || !transaction.transaction_splits) return false;
-    return transaction.transaction_splits.some((s: any) => !s.is_settled);
+    return transaction.transaction_splits.some((s: unknown) => !s.is_settled);
   };
 
   // Verificar se todos os splits foram acertados
-  const isFullySettled = (transaction: any) => {
+  const isFullySettled = (transaction: unknown) => {
     if (!transaction.is_shared || !transaction.transaction_splits) return false;
     if (transaction.transaction_splits.length === 0) return false;
-    return transaction.transaction_splits.every((s: any) => s.is_settled);
+    return transaction.transaction_splits.every((s: unknown) => s.is_settled);
   };
 
   if (isLoading) {

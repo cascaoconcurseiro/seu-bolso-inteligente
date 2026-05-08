@@ -30,7 +30,7 @@ import { ptBR } from "date-fns/locale";
 interface TransactionDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: any;
+  transaction: unknown;
   onEdit?: () => void;
   onDelete?: () => void;
   onAdvance?: () => void;
@@ -66,8 +66,8 @@ export function TransactionDetailsModal({
   const isShared = transaction.is_shared;
   const isInstallment = transaction.is_installment;
   const splits = transaction.transaction_splits || [];
-  const hasPendingSplits = splits.some((s: any) => !s.is_settled);
-  const isFullySettled = splits.length > 0 && splits.every((s: any) => s.is_settled);
+  const hasPendingSplits = splits.some((s: unknown) => !s.is_settled);
+  const isFullySettled = splits.length > 0 && splits.every((s: unknown) => s.is_settled);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -194,7 +194,7 @@ export function TransactionDetailsModal({
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Divisão</p>
               <div className="space-y-2">
-                {splits.map((split: any) => (
+                {splits.map((split: unknown) => (
                   <div
                     key={split.id}
                     className="flex items-center justify-between p-2 rounded-lg bg-muted/50"

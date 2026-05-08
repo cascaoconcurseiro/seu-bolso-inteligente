@@ -59,7 +59,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     transactionDate: string, 
     competenceDate: string | null,
     accountId: string | null, 
-    accounts: any[]
+    accounts: unknown[]
   ): string => {
     // Se não tem competence_date, usar date
     if (!competenceDate) {
@@ -209,8 +209,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       
       // Extrair transações dos splits (transações criadas por outros)
       const othersTransactions = (mySplits || [])
-        .map((split: any) => split.transaction)
-        .filter((tx: any) => tx && tx.user_id !== user.id);
+        .map((split: unknown) => split.transaction)
+        .filter((tx: unknown) => tx && tx.user_id !== user.id);
       
       // Combinar minhas transações + transações de outros
       const allTransactions = [...(myTransactions || []), ...othersTransactions];
@@ -386,7 +386,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
       // Se EU criei a transação, os splits são CRÉDITOS (me devem)
       if (tx.user_id === user?.id) {
-        splits.forEach((split: any) => {
+        splits.forEach((split: unknown) => {
           // // console.log('🔍 [CASO 1A - EU PAGUEI] Processando split:', split);
           
           const memberId = split.member_id;
@@ -476,7 +476,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       } else {
         // CASO 1B: OUTRO PAGOU e me incluiu em um split - DÉBITO (eu devo)
         // Encontrar o split onde EU sou o devedor
-        const mySplit = splits.find((s: any) => s.user_id === user?.id);
+        const mySplit = splits.find((s: unknown) => s.user_id === user?.id);
         
         if (mySplit) {
           // console.log('🔍 [CASO 1B - OUTRO PAGOU] Encontrei meu split:', mySplit);
@@ -566,7 +566,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
     // CASO 2: OUTRO PAGOU - Débitos (eu devo)
     // Transações onde payer_id indica que outro membro pagou por mim
-    paidByOthersTransactions.forEach((tx: any) => {
+    paidByOthersTransactions.forEach((tx: unknown) => {
       if (tx.type !== 'EXPENSE') return;
       
       const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação

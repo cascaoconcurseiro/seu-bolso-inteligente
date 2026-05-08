@@ -11,7 +11,7 @@ import { useTransactionModal } from '@/contexts/TransactionModalContext';
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialData?: any;
+  initialData?: unknown;
 }
 
 export function TransactionModal({ isOpen, onClose, initialData }: TransactionModalProps) {

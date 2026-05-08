@@ -22,13 +22,13 @@ interface SharedTransactionData {
 interface PendingOperation {
   id: string;
   type: 'CREATE' | 'UPDATE' | 'DELETE';
-  data: any;
+  data: unknown;
   retryCount: number;
   maxRetries: number;
 }
 
 export class SharedTransactionManager {
-  private cache = new Map<string, any>();
+  private cache = new Map<string, unknown>();
   private syncInterval: NodeJS.Timeout | null = null;
   private pendingOperations: PendingOperation[] = [];
   private listeners = new Map<string, Set<Function>>();
@@ -41,7 +41,7 @@ export class SharedTransactionManager {
   /**
    * Criar transação compartilhada com mirrors
    */
-  async createSharedTransaction(data: SharedTransactionData, payerId: string): Promise<any> {
+  async createSharedTransaction(data: SharedTransactionData, payerId: string): Promise<unknown> {
     try {
       // 1. Criar transação original
       const { data: originalTx, error: txError } = await supabase
@@ -261,7 +261,7 @@ export class SharedTransactionManager {
   /**
    * Executar criação de split pendente
    */
-  private async executePendingCreateSplit(payload: any): Promise<void> {
+  private async executePendingCreateSplit(payload: unknown): Promise<void> {
     const { error } = await supabase
       .from('transaction_splits')
       .insert(payload);
@@ -272,7 +272,7 @@ export class SharedTransactionManager {
   /**
    * Executar espelhamento pendente
    */
-  private async executePendingMirror(payload: any): Promise<void> {
+  private async executePendingMirror(payload: unknown): Promise<void> {
     const { error } = await supabase
       .from('transactions')
       .insert(payload);
@@ -359,7 +359,7 @@ export class SharedTransactionManager {
   /**
    * Event emitter - emitir evento
    */
-  private emit(event: string, data: any): void {
+  private emit(event: string, data: unknown): void {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.forEach(callback => callback(data));
@@ -376,7 +376,7 @@ export class SharedTransactionManager {
   /**
    * Obter do cache
    */
-  getFromCache(id: string): any {
+  getFromCache(id: string): unknown {
     return this.cache.get(id);
   }
 

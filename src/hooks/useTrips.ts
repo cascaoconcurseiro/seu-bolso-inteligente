@@ -303,7 +303,7 @@ export function useArchiveTrip() {
         .update({ 
           is_archived: true,
           archived_at: new Date().toISOString()
-        } as any)
+        } as unknown)
         .eq("id", id)
         .select()
         .single();
@@ -331,7 +331,7 @@ export function useUnarchiveTrip() {
         .update({ 
           is_archived: false,
           archived_at: null
-        } as any)
+        } as unknown)
         .eq("id", id)
         .select()
         .single();
@@ -470,7 +470,7 @@ export function useTripFinancialSummary(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return null;
 
-      const { data, error } = await (supabase.rpc as any)('get_trip_financial_summary', {
+      const { data, error } = await (supabase.rpc as unknown)('get_trip_financial_summary', {
         p_trip_id: tripId,
       });
 
@@ -492,7 +492,7 @@ export function useMyTripSpent(tripId: string | null) {
     queryFn: async () => {
       if (!tripId || !user) return 0;
 
-      const { data, error } = await (supabase.rpc as any)('calculate_trip_spent', {
+      const { data, error } = await (supabase.rpc as unknown)('calculate_trip_spent', {
         p_trip_id: tripId,
         p_user_id: user.id,
       });

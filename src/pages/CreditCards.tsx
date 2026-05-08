@@ -126,8 +126,8 @@ export function CreditCards() {
   const { toast: toastHook } = useToast();
 
   // Edit/Delete transaction state
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
+  const [editingTransaction, setEditingTransaction] = useState<unknown>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: unknown | null }>({
     isOpen: false,
     transaction: null,
   });
@@ -239,7 +239,7 @@ export function CreditCards() {
     : 0;
 
   // Edit/Delete handlers
-  const handleEditTransaction = (tx: any) => {
+  const handleEditTransaction = (tx: unknown) => {
     setEditingTransaction(tx);
     setShowTransactionModal(true);
   };
@@ -304,7 +304,7 @@ export function CreditCards() {
       setDeleteCardConfirm({ isOpen: false, card: null });
       goBack();
       refetchAccounts();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(error.message || "Erro ao excluir cartão");
     }
   };
@@ -646,7 +646,7 @@ export function CreditCards() {
           account={selectedCard}
           onImport={async (txs) => {
             for (const tx of txs) {
-              await createTransaction.mutateAsync(tx as any);
+              await createTransaction.mutateAsync(tx as unknown);
             }
             toastHook({ title: "Faturas importadas com sucesso!" });
             setShowImportDialog(false);
@@ -1287,7 +1287,7 @@ interface ImportBillsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   account: CreditCardAccount;
-  onImport: (transactions: any[]) => void;
+  onImport: (transactions: unknown[]) => void;
 }
 
 function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDialogProps) {
@@ -1427,7 +1427,7 @@ interface PayInvoiceDialogProps {
   onClose: () => void;
   card: CreditCardAccount & { currency?: string; is_international?: boolean };
   invoiceTotal: number;
-  accounts: any[];
+  accounts: unknown[];
   onPay: (fromAccountId: string, exchangeRate?: number) => void;
 }
 

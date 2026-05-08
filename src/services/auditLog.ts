@@ -32,7 +32,7 @@ export interface SettlementOperationLog {
   currency?: string;
   reason?: string;
   error_code?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AuditLogEntry {
@@ -46,7 +46,7 @@ export interface AuditLogEntry {
   currency?: string;
   reason?: string;
   error_code?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -141,7 +141,7 @@ export async function logSettlementCreated(
   splitId: string,
   amount: number,
   currency: string = 'BRL',
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'SETTLEMENT_CREATED',
@@ -168,7 +168,7 @@ export async function logSettlementUndone(
   transactionId: string,
   splitId: string,
   reason?: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'SETTLEMENT_UNDONE',
@@ -194,7 +194,7 @@ export async function logOperationBlocked(
   transactionId: string,
   errorCode: string,
   reason: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'OPERATION_BLOCKED',
@@ -216,7 +216,7 @@ export async function logOperationBlocked(
 export async function logTransactionDeleted(
   userId: string,
   transactionId: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'TRANSACTION_DELETED',
@@ -236,7 +236,7 @@ export async function logTransactionDeleted(
 export async function logSeriesDeleted(
   userId: string,
   seriesId: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'SERIES_DELETED',
@@ -256,7 +256,7 @@ export async function logSeriesDeleted(
 export async function logInstallmentAnticipated(
   userId: string,
   seriesId: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   await logSettlementOperation({
     operation_type: 'INSTALLMENT_ANTICIPATED',

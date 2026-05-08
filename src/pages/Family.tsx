@@ -199,7 +199,7 @@ export function Family() {
           </div>
         ) : (
           <div className="space-y-2">
-            {allActiveMembers.map((member: any) => {
+            {allActiveMembers.map((member: unknown) => {
               const isSelf = member.linked_user_id === user?.id;
               const memberIsOwner = false; // Membros nunca são owners da família que estão visualizando
               

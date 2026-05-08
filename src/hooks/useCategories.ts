@@ -163,7 +163,7 @@ export function useCreateDefaultCategories() {
       );
 
       // Agora criar todas as subcategorias
-      const childCategories: any[] = [];
+      const childCategories: unknown[] = [];
       
       DEFAULT_CATEGORIES.forEach(parent => {
         const parentId = parentMap.get(parent.name);

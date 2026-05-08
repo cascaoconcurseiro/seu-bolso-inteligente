@@ -15,7 +15,7 @@ export function useSharedTransactionManager() {
     setIsReady(true);
 
     // Listener para transações criadas
-    const handleTransactionCreated = (transaction: any) => {
+    const handleTransactionCreated = (transaction: unknown) => {
       toast.success('Transação compartilhada criada');
     };
 
@@ -38,7 +38,7 @@ export function useSharedTransactionManager() {
   }, []);
 
   const createSharedTransaction = useCallback(
-    async (data: any, payerId: string) => {
+    async (data: unknown, payerId: string) => {
       try {
         return await manager.createSharedTransaction(data, payerId);
       } catch (error) {

@@ -173,7 +173,7 @@ export function useCreateTripInvitation() {
       queryClient.invalidateQueries({ queryKey: ["sent-trip-invitations"] });
       toast.success("Convite enviado!");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // console.error("Erro ao enviar convite:", error);
       toast.error("Erro ao enviar convite: " + error.message);
     },
@@ -262,7 +262,7 @@ export function useAcceptTripInvitation() {
         }
       );
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // console.error("Erro ao aceitar convite:", error);
       toast.error("Erro ao aceitar convite: " + error.message);
     },
@@ -330,7 +330,7 @@ export function useRejectTripInvitation() {
         }
       );
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // console.error("Erro ao rejeitar convite:", error);
       toast.error("Erro ao rejeitar convite: " + error.message);
     },

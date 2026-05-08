@@ -21,7 +21,7 @@ interface ChartDataPoint {
 }
 
 interface SharedBalanceChartProps {
-  transactions: any[];
+  transactions: unknown[];
   invoices: Record<string, any[]>;
   currentDate: Date;
 }
@@ -49,7 +49,7 @@ export function SharedBalanceChart({ transactions, invoices, currentDate }: Shar
 
       // Process all invoices for this month
       Object.values(invoices).forEach((items) => {
-        items.forEach((item: any) => {
+        items.forEach((item: unknown) => {
           // Parse date as YYYY-MM-DD to avoid timezone issues
           const [year, month, day] = item.date.split('-').map(Number);
           const itemMonth = month - 1; // JavaScript months are 0-indexed
@@ -91,7 +91,7 @@ export function SharedBalanceChart({ transactions, invoices, currentDate }: Shar
     }).format(value);
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: unknown) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

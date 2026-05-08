@@ -108,7 +108,7 @@ export function SharedExpensesDebug() {
         {/* Raw Splits */}
         <div>
           <p className="text-cyan-400 font-bold">🔀 Raw Splits ({rawSplits?.length || 0}):</p>
-          {rawSplits?.slice(0, 5).map((s: any) => (
+          {rawSplits?.slice(0, 5).map((s: unknown) => (
             <div key={s.id} className="ml-2 border-l-2 border-cyan-600 pl-2 my-1">
               <p className="text-white">• Split Amount: {s.amount}</p>
               <p className="text-gray-400">Member ID: {s.member_id?.slice(0, 8) || 'null'}</p>

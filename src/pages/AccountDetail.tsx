@@ -57,9 +57,9 @@ export function AccountDetail() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<unknown>(null);
   const [editAccountName, setEditAccountName] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: unknown | null }>({
     isOpen: false,
     transaction: null,
   });
@@ -128,7 +128,7 @@ export function AccountDetail() {
     setShowEditDialog(false);
   };
 
-  const handleEditTransaction = (tx: any) => {
+  const handleEditTransaction = (tx: unknown) => {
     setEditingTransaction(tx);
     setShowTransactionModal(true);
   };

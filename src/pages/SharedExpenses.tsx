@@ -426,7 +426,7 @@ export function SharedExpenses() {
       }
 
       // SEMPRE marcar items como settled
-      let updateErrors: string[] = [];
+      const updateErrors: string[] = [];
       let successCount = 0;
 
       console.log('🔍 [handleSettle] Iniciando atualização de itens:', {
@@ -492,7 +492,7 @@ export function SharedExpenses() {
           console.log('✅ [handleSettle] Split encontrado, atualizando:', existingSplit);
 
           // Determinar qual flag atualizar baseado no tipo de acerto
-          const updateFields: any = {
+          const updateFields: unknown = {
             settled_at: new Date().toISOString(),
           };
 
@@ -671,7 +671,7 @@ export function SharedExpenses() {
         }
 
         // TASK 14.2: Atualizar flags do split
-        const updateFields: any = {
+        const updateFields: unknown = {
           settled_at: null,
         };
 
@@ -888,7 +888,7 @@ export function SharedExpenses() {
       }
 
       // Usar função RPC que garante exclusão completa
-      const { data, error } = await (supabase.rpc as any)('delete_installment_series', { p_series_id: item.seriesId });
+      const { data, error } = await (supabase.rpc as unknown)('delete_installment_series', { p_series_id: item.seriesId });
 
       if (error) throw error;
 
@@ -928,7 +928,7 @@ export function SharedExpenses() {
       await refetch();
 
       toast.success(`${deletedCount} parcelas excluídas com sucesso!`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ [handleDeleteSeries] Erro:', error);
       toast.error("Erro ao excluir série: " + error.message);
     }
@@ -1012,7 +1012,7 @@ export function SharedExpenses() {
             }
 
             // Atualizar o split
-            const updateFields: any = {
+            const updateFields: unknown = {
               settled_at: null,
             };
 
@@ -1205,7 +1205,7 @@ export function SharedExpenses() {
     : [];
 
   // Função para renderizar card de membro estilo fatura
-  const renderMemberInvoiceCard = (member: any) => {
+  const renderMemberInvoiceCard = (member: unknown) => {
     const items = getFilteredInvoice(member.id);
     const totals = getTotals(items);
 
@@ -1777,7 +1777,7 @@ export function SharedExpenses() {
   };
 
   // Função para renderizar card de viagem (usado na aba TRAVEL)
-  const renderTripCard = (trip: any) => {
+  const renderTripCard = (trip: unknown) => {
     // Buscar todos os itens desta viagem de todos os membros
     const tripItems: InvoiceItem[] = [];
     members.forEach(member => {

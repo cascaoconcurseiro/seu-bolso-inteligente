@@ -45,7 +45,7 @@ export interface Notification {
   created_at: string;
   read_at?: string;
   dismissed_at?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationPreferences {
@@ -75,7 +75,7 @@ export interface CreateNotificationInput {
   related_type?: string;
   priority?: NotificationPriority;
   expires_at?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // ===== CRUD de Notificações =====
@@ -84,7 +84,7 @@ export interface CreateNotificationInput {
  * Busca notificações ativas do usuário (não dispensadas)
  */
 export async function getActiveNotifications(userId: string): Promise<Notification[]> {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
@@ -103,7 +103,7 @@ export async function getActiveNotifications(userId: string): Promise<Notificati
  * Busca notificações não lidas
  */
 export async function getUnreadNotifications(userId: string): Promise<Notification[]> {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
@@ -123,7 +123,7 @@ export async function getUnreadNotifications(userId: string): Promise<Notificati
  * Conta notificações não lidas
  */
 export async function countUnreadNotifications(userId: string): Promise<number> {
-  const { count, error } = await (supabase as any)
+  const { count, error } = await (supabase as unknown)
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
@@ -144,7 +144,7 @@ export async function countUnreadNotifications(userId: string): Promise<number> 
 export async function createNotification(input: CreateNotificationInput): Promise<Notification | null> {
   // Verifica se já existe notificação similar não dispensada (evita duplicatas)
   if (input.related_id && input.type) {
-    const { data: existing } = await (supabase as any)
+    const { data: existing } = await (supabase as unknown)
       .from('notifications')
       .select('id')
       .eq('user_id', input.user_id)
@@ -158,7 +158,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
     }
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notifications')
     .insert({
       ...input,
@@ -179,7 +179,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
  * Marca notificação como lida
  */
 export async function markAsRead(notificationId: string): Promise<boolean> {
-  const { error } = await (supabase as any)
+  const { error } = await (supabase as unknown)
     .from('notifications')
     .update({
       is_read: true,
@@ -199,7 +199,7 @@ export async function markAsRead(notificationId: string): Promise<boolean> {
  * Marca todas as notificações como lidas
  */
 export async function markAllAsRead(userId: string): Promise<boolean> {
-  const { error } = await (supabase as any)
+  const { error } = await (supabase as unknown)
     .from('notifications')
     .update({
       is_read: true,
@@ -220,7 +220,7 @@ export async function markAllAsRead(userId: string): Promise<boolean> {
  * Dispensa (oculta) uma notificação
  */
 export async function dismissNotification(notificationId: string): Promise<boolean> {
-  const { error } = await (supabase as any)
+  const { error } = await (supabase as unknown)
     .from('notifications')
     .update({
       is_dismissed: true,
@@ -240,7 +240,7 @@ export async function dismissNotification(notificationId: string): Promise<boole
  * Dispensa todas as notificações lidas
  */
 export async function dismissAllRead(userId: string): Promise<boolean> {
-  const { error } = await (supabase as any)
+  const { error } = await (supabase as unknown)
     .from('notifications')
     .update({
       is_dismissed: true,
@@ -265,7 +265,7 @@ export async function cleanupOldNotifications(userId: string): Promise<number> {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notifications')
     .delete()
     .eq('user_id', userId)
@@ -287,7 +287,7 @@ export async function cleanupOldNotifications(userId: string): Promise<number> {
  * Busca preferências de notificação do usuário
  */
 export async function getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notification_preferences')
     .select('*')
     .eq('user_id', userId)
@@ -310,7 +310,7 @@ export async function getNotificationPreferences(userId: string): Promise<Notifi
  * Cria preferências padrão para novo usuário
  */
 async function createDefaultPreferences(userId: string): Promise<NotificationPreferences | null> {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (supabase as unknown)
     .from('notification_preferences')
     .insert({ user_id: userId })
     .select()
@@ -331,7 +331,7 @@ export async function updateNotificationPreferences(
   userId: string,
   updates: Partial<NotificationPreferences>
 ): Promise<boolean> {
-  const { error } = await (supabase as any)
+  const { error } = await (supabase as unknown)
     .from('notification_preferences')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('user_id', userId);

@@ -177,7 +177,7 @@ export function AdminResetPanel() {
         // DELETE FROM: Remove registros, preserva estrutura da tabela
         // NÃO usa DROP TABLE (que deletaria a tabela inteira)
         const { error } = await supabase
-          .from(table as any)
+          .from(table as unknown)
           .delete()
           .neq('id', '00000000-0000-0000-0000-000000000000');
         

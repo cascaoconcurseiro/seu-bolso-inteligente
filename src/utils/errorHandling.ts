@@ -11,7 +11,7 @@ import { logger } from './logger';
  * Logs error and throws it for React Query to handle
  */
 export const handleQueryError = (
-  error: any,
+  error: unknown,
   context: string
 ): never => {
   logger.error(`Erro ao ${context}`, { error });
@@ -23,7 +23,7 @@ export const handleQueryError = (
  * Logs error and shows toast message
  */
 export const handleMutationError = (
-  error: any,
+  error: unknown,
   action: string,
   entity: string
 ): void => {
@@ -37,7 +37,7 @@ export const handleMutationError = (
  * Provides user-friendly messages for common Supabase errors
  */
 export const handleSupabaseError = (
-  error: any,
+  error: unknown,
   context: string
 ): never => {
   logger.error(`Erro Supabase ao ${context}`, { error });
@@ -71,7 +71,7 @@ export const handleValidationError = (message: string): never => {
  * Handle network errors
  * Shows toast with network error message
  */
-export const handleNetworkError = (error: any): never => {
+export const handleNetworkError = (error: unknown): never => {
   logger.error('Erro de rede', { error });
   toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
   throw error;
@@ -82,7 +82,7 @@ export const handleNetworkError = (error: any): never => {
  * Catches all errors and provides fallback message
  */
 export const safeErrorHandler = (
-  error: any,
+  error: unknown,
   fallbackMessage: string = 'Ocorreu um erro inesperado'
 ): void => {
   logger.error('Erro não tratado', { error });
@@ -118,7 +118,7 @@ export const retryWithBackoff = async <T>(
   maxRetries: number = 3,
   baseDelay: number = 1000
 ): Promise<T> => {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -140,7 +140,7 @@ export const retryWithBackoff = async <T>(
 /**
  * Check if error is a network error
  */
-export const isNetworkError = (error: any): boolean => {
+export const isNetworkError = (error: unknown): boolean => {
   return (
     error.message === 'Network request failed' ||
     error.message === 'Failed to fetch' ||
@@ -151,7 +151,7 @@ export const isNetworkError = (error: any): boolean => {
 /**
  * Check if error is an authentication error
  */
-export const isAuthError = (error: any): boolean => {
+export const isAuthError = (error: unknown): boolean => {
   return (
     error.status === 401 ||
     error.code === 'PGRST301' ||
@@ -162,7 +162,7 @@ export const isAuthError = (error: any): boolean => {
 /**
  * Check if error is a permission error
  */
-export const isPermissionError = (error: any): boolean => {
+export const isPermissionError = (error: unknown): boolean => {
   return (
     error.status === 403 ||
     error.code === '42501'
@@ -173,7 +173,7 @@ export const isPermissionError = (error: any): boolean => {
  * Format error for display
  * Extracts user-friendly message from error object
  */
-export const formatErrorMessage = (error: any): string => {
+export const formatErrorMessage = (error: unknown): string => {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
   if (error.message) return error.message;

@@ -152,7 +152,7 @@ async function generateInvoiceDueNotifications(
       const invoiceKey = `${card.id}_${dueDate.getFullYear()}_${dueDate.getMonth()}`;
 
       // Verificar se já existe notificação para ESTA FATURA ESPECÍFICA
-      const { data: existingNotification } = await (supabase as any)
+      const { data: existingNotification } = await (supabase as unknown)
         .from('notifications')
         .select('id, metadata')
         .eq('user_id', userId)
@@ -164,7 +164,7 @@ async function generateInvoiceDueNotifications(
 
       // Se já existe notificação para esta fatura, pular
       if (existingNotification) {
-        const metadata = existingNotification.metadata as any;
+        const metadata = existingNotification.metadata as unknown;
         if (metadata?.invoice_key === invoiceKey) {
           logger.debug(`  Notificação já existe para fatura ${invoiceKey}`);
           continue;
@@ -201,7 +201,7 @@ async function generateBudgetWarningNotifications(
 
   try {
     // Buscar orçamentos ativos
-    const { data: budgets, error: budgetError } = await (supabase as any)
+    const { data: budgets, error: budgetError } = await (supabase as unknown)
       .from('budgets')
       .select('id, name, amount, currency, category_id')
       .eq('user_id', userId)
@@ -226,7 +226,7 @@ async function generateBudgetWarningNotifications(
     // Calcular gastos por categoria e moeda
     const spentByCategory: Record<string, Record<string, number>> = {};
 
-    (transactions || []).forEach((tx: any) => {
+    (transactions || []).forEach((tx: unknown) => {
       const catId = tx.category_id || 'all';
       const currency = tx.currency || 'BRL';
 
@@ -244,7 +244,7 @@ async function generateBudgetWarningNotifications(
 
       // Verificar se já existe notificação não dispensada para este orçamento HOJE
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      const { data: existingNotification } = await (supabase as any)
+      const { data: existingNotification } = await (supabase as unknown)
         .from('notifications')
         .select('id, created_date')
         .eq('user_id', userId)
@@ -316,14 +316,14 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     if (error || !pendingSplits) return 0;
 
     // Filtrar apenas splits onde o usuário é o pagador original
-    const userSplits = pendingSplits.filter((split: any) =>
+    const userSplits = pendingSplits.filter((split: unknown) =>
       split.transaction?.user_id === userId
     );
 
     // Agrupar por membro
     const byMember: Record<string, { name: string; amount: number; count: number }> = {};
 
-    userSplits.forEach((split: any) => {
+    userSplits.forEach((split: unknown) => {
       const memberId = split.member_id;
       const memberName = split.member?.name || 'Membro';
 
@@ -340,7 +340,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
       if (data.amount >= 10) { // Mínimo de R$ 10 para notificar
         // Verificar se já existe notificação não dispensada para este membro HOJE
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        const { data: existingNotification } = await (supabase as any)
+        const { data: existingNotification } = await (supabase as unknown)
           .from('notifications')
           .select('id, created_at')
           .eq('user_id', userId)
@@ -384,7 +384,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
     if (pendingCount > 0) {
       // Verificar se já existe notificação não dispensada HOJE
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      const { data: existingNotification } = await (supabase as any)
+      const { data: existingNotification } = await (supabase as unknown)
         .from('notifications')
         .select('id, created_at')
         .eq('user_id', userId)
@@ -418,7 +418,7 @@ export async function checkAndCreateWelcomeNotification(
 ): Promise<boolean> {
   try {
     // Verificar se já existe notificação de boas-vindas
-    const { data: existing, error: checkError } = await (supabase as any)
+    const { data: existing, error: checkError } = await (supabase as unknown)
       .from('notifications')
       .select('id')
       .eq('user_id', userId)
@@ -466,7 +466,7 @@ export async function dismissRelatedNotifications(
   relatedType: string
 ): Promise<void> {
   try {
-    await (supabase as any)
+    await (supabase as unknown)
       .from('notifications')
       .update({
         is_dismissed: true,

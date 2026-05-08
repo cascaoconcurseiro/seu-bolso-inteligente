@@ -199,7 +199,7 @@ export function useSharedTransactionsWithMember(memberUserId: string | null) {
 
       // Filtrar apenas transações que têm split com o membro
       const iPaidFiltered = (iPaid || []).filter(t => 
-        t.transaction_splits?.some((s: any) => s.user_id === memberUserId)
+        t.transaction_splits?.some((s: unknown) => s.user_id === memberUserId)
       );
 
       // Buscar transações onde o membro pagou e dividiu comigo
@@ -217,7 +217,7 @@ export function useSharedTransactionsWithMember(memberUserId: string | null) {
 
       // Filtrar apenas transações que têm split comigo
       const theyPaidFiltered = (theyPaid || []).filter(t => 
-        t.transaction_splits?.some((s: any) => s.user_id === user!.id)
+        t.transaction_splits?.some((s: unknown) => s.user_id === user!.id)
       );
 
       // Combinar e ordenar por data

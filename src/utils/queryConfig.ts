@@ -78,7 +78,7 @@ export const createDateQueryConfig = <T>(
  */
 export const createFilteredQueryConfig = <T>(
   baseKey: string[],
-  filters: Record<string, any>,
+  filters: Record<string, unknown>,
   userId: string | undefined,
   additionalConfig?: Partial<UseQueryOptions<T>>
 ): UseQueryOptions<T> => {

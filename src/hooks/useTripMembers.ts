@@ -99,7 +99,7 @@ export function useAddTripMember() {
       queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
       toast.success("Membro adicionado à viagem");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Erro ao adicionar membro: " + error.message);
     },
   });
@@ -128,7 +128,7 @@ export function useRemoveTripMember() {
       queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
       toast.success("Membro removido da viagem");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Erro ao remover membro: " + error.message);
     },
   });
@@ -197,7 +197,7 @@ export function useUpdatePersonalBudget() {
       queryClient.invalidateQueries({ queryKey: ["trips"] }); // Atualizar lista de viagens também
       toast.success("Orçamento pessoal atualizado!");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error("Erro ao atualizar orçamento: " + error.message);
     },
   });

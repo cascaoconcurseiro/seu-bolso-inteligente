@@ -11,7 +11,7 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 interface LogEntry {
   level: LogLevel;
   message: string;
-  data?: any;
+  data?: unknown;
   timestamp: Date;
 }
 
@@ -22,7 +22,7 @@ class Logger {
   /**
    * Log de debug - apenas em desenvolvimento
    */
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: unknown): void {
     if (this.isDev) {
       console.log(`🔍 [DEBUG] ${message}`, data !== undefined ? data : '');
     }
@@ -31,7 +31,7 @@ class Logger {
   /**
    * Log informativo - apenas em desenvolvimento
    */
-  info(message: string, data?: any): void {
+  info(message: string, data?: unknown): void {
     if (this.isDev) {
       console.info(`ℹ️ [INFO] ${message}`, data !== undefined ? data : '');
     }
@@ -40,7 +40,7 @@ class Logger {
   /**
    * Log de aviso - sempre exibido
    */
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: unknown): void {
     console.warn(`⚠️ [WARN] ${message}`, data !== undefined ? data : '');
     
     // TODO: Enviar para Sentry em produção
@@ -52,7 +52,7 @@ class Logger {
   /**
    * Log de erro - sempre exibido
    */
-  error(message: string, error?: any): void {
+  error(message: string, error?: unknown): void {
     console.error(`❌ [ERROR] ${message}`, error !== undefined ? error : '');
     
     // TODO: Enviar para Sentry em produção
@@ -64,7 +64,7 @@ class Logger {
   /**
    * Log de sucesso - apenas em desenvolvimento
    */
-  success(message: string, data?: any): void {
+  success(message: string, data?: unknown): void {
     if (this.isDev) {
       console.log(`✅ [SUCCESS] ${message}`, data !== undefined ? data : '');
     }
@@ -74,7 +74,7 @@ class Logger {
    * Enviar para serviço de monitoramento (Sentry, etc)
    * TODO: Implementar integração com Sentry
    */
-  private sendToMonitoring(level: LogLevel, message: string, data?: any): void {
+  private sendToMonitoring(level: LogLevel, message: string, data?: unknown): void {
     // Placeholder para integração futura com Sentry
     // Sentry.captureMessage(message, { level, extra: data });
   }

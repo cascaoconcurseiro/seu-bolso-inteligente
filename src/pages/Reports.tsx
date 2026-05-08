@@ -149,7 +149,7 @@ export function Reports() {
     // Processar transações compartilhadas
     periodTransactions.forEach(tx => {
       if (tx.is_shared && tx.transaction_splits) {
-        tx.transaction_splits.forEach((split: any) => {
+        tx.transaction_splits.forEach((split: unknown) => {
           const member = familyMembers.find(m => m.id === split.member_id);
           const memberName = member?.name || split.name || 'Desconhecido';
           
@@ -206,7 +206,7 @@ export function Reports() {
       .forEach(tx => {
         // Verificar splits da transação
         if (tx.is_shared && tx.transaction_splits) {
-          tx.transaction_splits.forEach((split: any) => {
+          tx.transaction_splits.forEach((split: unknown) => {
             const member = familyMembers.find(m => m.id === split.member_id);
             const memberName = member?.name || split.name || 'Desconhecido';
             

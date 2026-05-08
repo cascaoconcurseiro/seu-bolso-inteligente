@@ -25,7 +25,7 @@ export interface Transaction {
   updated_at: string;
   account?: { name: string; bank_id?: string | null };
   category?: { name: string; icon: string | null };
-  transaction_splits?: any[];
+  transaction_splits?: unknown[];
 }
 
 export interface DayGroup {

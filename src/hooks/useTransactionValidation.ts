@@ -135,7 +135,7 @@ export function useTransactionValidation(
         return {
           isValid: false,
           error: {
-            code: 'TRANSACTION_NOT_FOUND' as any,
+            code: 'TRANSACTION_NOT_FOUND' as unknown,
             message: 'Transação não encontrada',
           },
         };
@@ -152,7 +152,7 @@ export function useTransactionValidation(
           return {
             isValid: false,
             error: {
-              code: 'INVALID_OPERATION' as any,
+              code: 'INVALID_OPERATION' as unknown,
               message: 'Operação inválida',
             },
           };

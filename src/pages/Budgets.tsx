@@ -116,7 +116,7 @@ export function Budgets() {
       resetForm();
       setEditingBudget(null);
     } else {
-      createBudget(budgetData as any);
+      createBudget(budgetData as unknown);
       resetForm();
       setShowNewBudgetDialog(false);
     }

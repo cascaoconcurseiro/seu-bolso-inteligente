@@ -67,7 +67,7 @@ export function useUpdateUserProfile() {
     }) => {
       if (!user) throw new Error("Não autenticado");
 
-      const updateData: any = {
+      const updateData: unknown = {
         updated_at: new Date().toISOString(),
       };
       

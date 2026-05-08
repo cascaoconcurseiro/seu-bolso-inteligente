@@ -17,7 +17,7 @@ export const fetchUserData = async <T>(
     select?: string;
     orderBy?: string;
     ascending?: boolean;
-    filters?: Record<string, any>;
+    filters?: Record<string, unknown>;
     limit?: number;
   }
 ): Promise<T[]> => {
@@ -205,7 +205,7 @@ export const softDeleteRecord = async (
  */
 export const countRecords = async (
   table: string,
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 ): Promise<number> => {
   try {
     let query = supabase
@@ -237,7 +237,7 @@ export const countRecords = async (
  */
 export const recordExists = async (
   table: string,
-  filters: Record<string, any>
+  filters: Record<string, unknown>
 ): Promise<boolean> => {
   const count = await countRecords(table, filters);
   return count > 0;
@@ -256,7 +256,7 @@ export const fetchWithDateRange = async <T>(
     select?: string;
     orderBy?: string;
     ascending?: boolean;
-    additionalFilters?: Record<string, any>;
+    additionalFilters?: Record<string, unknown>;
   }
 ): Promise<T[]> => {
   try {
@@ -300,7 +300,7 @@ export const fetchWithDateRange = async <T>(
  */
 export const callRPC = async <T>(
   functionName: string,
-  params?: Record<string, any>
+  params?: Record<string, unknown>
 ): Promise<T> => {
   try {
     const { data, error } = await supabase.rpc(functionName, params);

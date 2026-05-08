@@ -83,7 +83,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Detectar contexto baseado na rota atual
   const handleNewTransaction = () => {
     // Extrair contexto da URL
-    const context: any = {};
+    const context: unknown = {};
     
     // Se estiver em uma viagem específica
     if (location.pathname.startsWith('/viagens/')) {

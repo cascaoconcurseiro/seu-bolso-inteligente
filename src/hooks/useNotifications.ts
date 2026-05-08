@@ -215,7 +215,7 @@ export function useNotificationPreferences() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updates: Partial<any>) => {
+    mutationFn: async (updates: Partial<unknown>) => {
       if (!user) throw new Error("User not authenticated");
 
       const { data, error } = await supabase

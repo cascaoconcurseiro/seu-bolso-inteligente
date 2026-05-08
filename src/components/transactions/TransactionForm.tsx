@@ -63,7 +63,7 @@ type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER';
 interface TransactionFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialData?: any;
+  initialData?: unknown;
   context?: {
     tripId?: string;
     accountId?: string;
@@ -156,7 +156,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const [pendingSubmit, setPendingSubmit] = useState<any>(null);
+  const [pendingSubmit, setPendingSubmit] = useState<unknown>(null);
 
   // Criar categorias padrão se não existirem (apenas uma vez)
   const [categoriesChecked, setCategoriesChecked] = useState(false);
@@ -404,7 +404,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
     return result;
   };
 
-  const performSubmit = async (transactionData: any) => {
+  const performSubmit = async (transactionData: unknown) => {
     await createTransaction.mutateAsync(transactionData);
 
     // CATEGORIZAÇÃO AUTOMÁTICA DESABILITADA - Aprendizado desativado
@@ -1079,7 +1079,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label>Frequência</Label>
-                <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
+                <Select value={frequency} onValueChange={(v: unknown) => setFrequency(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
