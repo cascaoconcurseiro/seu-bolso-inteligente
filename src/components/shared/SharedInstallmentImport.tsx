@@ -172,10 +172,6 @@ export function SharedInstallmentImport({
         amount: totalAmount, // ← CORREÇÃO: passar total, não parcela
         description: description.trim(),
         date: format(baseDate, 'yyyy-MM-dd'),
-        competence_date: format(
-          new Date(baseDate.getFullYear(), baseDate.getMonth(), 1),
-          'yyyy-MM-dd'
-        ),
         type: 'EXPENSE',
         category_id: categoryId || undefined,
         domain: 'SHARED',

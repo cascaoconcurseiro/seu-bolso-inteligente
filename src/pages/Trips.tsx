@@ -416,6 +416,14 @@ export function Trips() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => setShowAddParticipantDialog(true)}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Adicionar participante
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     {selectedTrip.is_archived ? (
                       <DropdownMenuItem
                         onClick={() => handleUnarchiveTrip(selectedTripId!)}
@@ -634,8 +642,23 @@ export function Trips() {
                   <Users className="h-4 w-4 text-green-500" />
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Participantes</p>
                 </div>
-                <p className="font-mono text-2xl font-bold">{participants.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">pessoas</p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="font-mono text-2xl font-bold">{participants.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">pessoas</p>
+                  </div>
+                  {permissions?.isOwner && (
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-full" 
+                      onClick={() => setShowAddParticipantDialog(true)}
+                      title="Adicionar Participante"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Meus Gastos Totais (Individual + Parte dos Compartilhados) */}

@@ -142,6 +142,7 @@ export function useSentTripInvitations(tripId: string | null) {
 // Hook para criar convite
 export function useCreateTripInvitation() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -157,6 +158,7 @@ export function useCreateTripInvitation() {
         .from("trip_invitations")
         .insert({
           trip_id: tripId,
+          inviter_id: user!.id,
           invitee_id: inviteeId,
           message: message || null,
           status: 'pending',

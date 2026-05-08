@@ -43,9 +43,10 @@ export interface Transaction {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  creator_user_id?: string | null;
   // Joined data
-  account?: { id: string; name: string; currency?: string };
-  category?: { name: string; icon: string | null };
+  account?: { id: string; name: string; currency?: string; bank_id?: string };
+  category?: { id: string; name: string; icon: string | null };
 }
 
 export interface TransactionSplit {

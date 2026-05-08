@@ -43,7 +43,7 @@ export interface Transaction {
 
 export interface Account {
   id: string;
-  type: 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'INVESTMENT' | 'CASH';
+  type: 'CHECKING' | 'SAVINGS' | 'CREDIT_CARD' | 'INVESTMENT' | 'CASH' | 'EMERGENCY_FUND';
   balance: number;
   credit_limit?: number;
   currency: string;

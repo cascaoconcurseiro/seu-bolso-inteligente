@@ -183,7 +183,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-sm truncate">{user?.email}</p>
+                      <p className="font-medium text-sm truncate">{profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />

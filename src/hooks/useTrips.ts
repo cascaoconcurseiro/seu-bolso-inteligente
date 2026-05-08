@@ -92,7 +92,7 @@ export function useTrips() {
       return trips.map(trip => ({
         ...trip,
         my_personal_budget: budgetMap.get(trip.id) || null,
-      })) as TripWithPersonalBudget[];
+      })) as unknown as TripWithPersonalBudget[];
     },
     enabled: !!user,
     retry: false,
@@ -117,7 +117,7 @@ export function useTrip(id: string | null) {
         .single();
 
       if (error) throw error;
-      return data as Trip;
+      return data as unknown as Trip;
     },
     enabled: !!user && !!id,
     staleTime: 0, // ✅ Dados sempre frescos
@@ -233,7 +233,7 @@ export function useCreateTrip() {
         toast.success("Viagem criada com sucesso!");
       }
 
-      return data as Trip;
+      return data as unknown as Trip;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
@@ -258,7 +258,7 @@ export function useUpdateTrip() {
         .single();
 
       if (error) throw error;
-      return data as Trip;
+      return data as unknown as Trip;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["trips"] });
@@ -303,7 +303,7 @@ export function useArchiveTrip() {
         .update({ 
           is_archived: true,
           archived_at: new Date().toISOString()
-        })
+        } as any)
         .eq("id", id)
         .select()
         .single();
@@ -331,7 +331,7 @@ export function useUnarchiveTrip() {
         .update({ 
           is_archived: false,
           archived_at: null
-        })
+        } as any)
         .eq("id", id)
         .select()
         .single();
@@ -470,7 +470,7 @@ export function useTripFinancialSummary(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return null;
 
-      const { data, error } = await supabase.rpc('get_trip_financial_summary', {
+      const { data, error } = await (supabase.rpc as any)('get_trip_financial_summary', {
         p_trip_id: tripId,
       });
 
@@ -492,13 +492,13 @@ export function useMyTripSpent(tripId: string | null) {
     queryFn: async () => {
       if (!tripId || !user) return 0;
 
-      const { data, error } = await supabase.rpc('calculate_trip_spent', {
+      const { data, error } = await (supabase.rpc as any)('calculate_trip_spent', {
         p_trip_id: tripId,
         p_user_id: user.id,
       });
 
       if (error) throw error;
-      return data as number;
+      return data as unknown as number;
     },
     enabled: !!user && !!tripId,
     staleTime: 0, // ✅ Dados sempre frescos

@@ -45,6 +45,7 @@ export interface Notification {
   created_at: string;
   read_at?: string;
   dismissed_at?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface NotificationPreferences {
@@ -74,6 +75,7 @@ export interface CreateNotificationInput {
   related_type?: string;
   priority?: NotificationPriority;
   expires_at?: string;
+  metadata?: Record<string, any>;
 }
 
 // ===== CRUD de Notificações =====
@@ -520,6 +522,7 @@ export function getNotificationIcon(type: NotificationType): string {
     BUDGET_EXCEEDED: '🚨',
     SHARED_PENDING: '👥',
     SHARED_SETTLED: '✅',
+    SHARED_EXPENSE: '💸',
     RECURRING_PENDING: '🔄',
     RECURRING_GENERATED: '✅',
     SAVINGS_GOAL: '🎯',

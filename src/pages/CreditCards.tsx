@@ -683,7 +683,7 @@ export function CreditCards() {
             setEditingTransaction(null);
             refetchTransactions();
           }}
-          editTransaction={editingTransaction}
+          initialData={editingTransaction}
         />
 
         {/* Delete Transaction Confirm */}

@@ -202,7 +202,7 @@ export function NewTripDialog({
                     >
                       <Checkbox
                         checked={selectedMembers.includes(member.linked_user_id!)}
-                        onCheckedChange={() => toggleMember(member.linked_user_id!)}
+                        className="pointer-events-none"
                       />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{member.name}</p>

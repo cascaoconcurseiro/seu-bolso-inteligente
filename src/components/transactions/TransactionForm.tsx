@@ -232,7 +232,7 @@ export function TransactionForm({ onSuccess, onCancel, initialData, context }: T
         family_id: '', // Não relevante para viagens
         user_id: null,
         role: 'viewer' as const,
-        status: 'active',
+        status: 'active' as const,
         invited_by: null,
         created_at: tm.created_at,
         updated_at: tm.updated_at,

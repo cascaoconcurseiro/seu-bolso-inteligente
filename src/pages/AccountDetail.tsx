@@ -424,7 +424,7 @@ export function AccountDetail() {
           setEditingTransaction(null);
           refetchStatement();
         }}
-        editTransaction={editingTransaction}
+        initialData={editingTransaction}
       />
 
       {/* Delete Transaction Confirm */}
