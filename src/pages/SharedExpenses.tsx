@@ -89,15 +89,15 @@ import {
 type SharedTab = "REGULAR" | "TRAVEL" | "HISTORY";
 
 export function SharedExpenses() {
-  console.log('🔵 [SharedExpenses] ========== COMPONENTE INICIANDO ==========');
+
 
   const navigate = useNavigate();
   const { user } = useAuth();
-  console.log('🔵 [SharedExpenses] User:', user?.id);
+
 
   const [activeTab, setActiveTab] = useState<SharedTab>("REGULAR");
   const { currentDate } = useMonth();
-  console.log('🔵 [SharedExpenses] CurrentDate:', currentDate);
+
 
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -113,7 +113,7 @@ export function SharedExpenses() {
   const [undoAllConfirm, setUndoAllConfirm] = useState(false);
   const [isUndoingAll, setIsUndoingAll] = useState(false);
 
-  console.log('🔵 [SharedExpenses] Estados inicializados com sucesso');
+
 
   // Undo settlement state
   const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
@@ -148,29 +148,25 @@ export function SharedExpenses() {
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
   const { data: profile } = useUserProfile();
-  console.log('🔵 [SharedExpenses] ✅ Members carregados:', { count: members?.length, membersLoading });
+
 
   const { data: accounts = [] } = useAccounts();
-  console.log('🔵 [SharedExpenses] ✅ Accounts carregadas:', { count: accounts?.length });
+
 
   const { data: trips = [] } = useTrips();
-  console.log('🔵 [SharedExpenses] ✅ Trips carregadas:', { count: trips?.length });
+
 
   const createTransaction = useCreateTransaction();
 
   // Initialize transaction sync hook
   const { invalidateRelated, isSyncing } = useTransactionSync();
 
-  console.log('🔵 [SharedExpenses] 🔄 Chamando useSharedFinances...');
+
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({
     currentDate,
     activeTab,
   });
-  console.log('🔵 [SharedExpenses] ✅ useSharedFinances retornou:', {
-    invoicesCount: Object.keys(invoices || {}).length,
-    transactionsCount: transactions?.length,
-    sharedLoading
-  });
+
 
   const formatCurrency = (value: number, currency: string = "BRL") => {
     if (currency === "BRL") {
@@ -289,49 +285,20 @@ export function SharedExpenses() {
       return;
     }
 
-    console.log('🔍 [handleSettle] Iniciando acerto:', {
-      selectedMember,
-      settleAccountId,
-      settleType,
-      settleAmount,
-      selectedItems: selectedItems.length
-    });
+
 
     setIsSettling(true);
     try {
       const member = members.find(m => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
 
-      console.log('🔍 [handleSettle] Dados do membro:', {
-        member,
-        totalItems: items.length,
-        items: items.map(i => ({
-          id: i.id,
-          type: i.type,
-          splitId: i.splitId,
-          originalTxId: i.originalTxId,
-          isPaid: i.isPaid,
-          amount: i.amount,
-          description: i.description
-        }))
-      });
+
 
       const itemsToSettle = selectedItems.length > 0
         ? items.filter(i => selectedItems.includes(i.id))
         : items.filter(i => !i.isPaid);
 
-      console.log('🔍 [handleSettle] Itens para acertar:', {
-        totalItems: itemsToSettle.length,
-        items: itemsToSettle.map(i => ({
-          id: i.id,
-          type: i.type,
-          splitId: i.splitId,
-          originalTxId: i.originalTxId,
-          isPaid: i.isPaid,
-          amount: i.amount,
-          description: i.description
-        }))
-      });
+
 
       if (itemsToSettle.length === 0) {
         toast.error("Nenhum item para acertar");
@@ -398,12 +365,7 @@ export function SharedExpenses() {
         const [year, month] = settleDate.split('-').map(Number);
         const competenceDate = `${year}-${String(month).padStart(2, '0')}-01`;
 
-        console.log('🔍 [handleSettle] Criando acerto:', {
-          originalTxId: item.originalTxId,
-          settleDateSelected: settleDate,
-          competenceDate,
-          description
-        });
+
 
         // Criar transação individual
         const result = await createTransaction.mutateAsync({
@@ -429,32 +391,13 @@ export function SharedExpenses() {
       const updateErrors: string[] = [];
       let successCount = 0;
 
-      console.log('🔍 [handleSettle] Iniciando atualização de itens:', {
-        totalItems: itemsToSettle.length,
-        settlementTxIds,
-        items: itemsToSettle.map(i => ({
-          id: i.id,
-          type: i.type,
-          splitId: i.splitId,
-          originalTxId: i.originalTxId,
-          amount: i.amount,
-          description: i.description
-        }))
-      });
+
 
       for (let i = 0; i < itemsToSettle.length; i++) {
         const item = itemsToSettle[i];
         const settlementTxId = settlementTxIds[i]; // Usar o ID correspondente
 
-        console.log('🔍 [handleSettle] Processando item:', {
-          id: item.id,
-          type: item.type,
-          splitId: item.splitId,
-          originalTxId: item.originalTxId,
-          amount: item.amount,
-          description: item.description,
-          settlementTxId
-        });
+
 
         // TASK 15: Validação de duplicação - verificar se já existe settlement
         if (item.splitId) {
@@ -489,7 +432,7 @@ export function SharedExpenses() {
             continue;
           }
 
-          console.log('✅ [handleSettle] Split encontrado, atualizando:', existingSplit);
+
 
           // Determinar qual flag atualizar baseado no tipo de acerto
           const updateFields: unknown = {
@@ -527,7 +470,7 @@ export function SharedExpenses() {
             console.error('❌ [handleSettle] Nenhuma linha atualizada (RLS?):', item.splitId);
             updateErrors.push(`Split ${item.splitId}: No rows updated (RLS or permission issue)`);
           } else {
-            console.log('✅ [handleSettle] Split atualizado com sucesso:', data);
+
             successCount++;
             
             // TASK 20: Log settlement creation
@@ -567,7 +510,7 @@ export function SharedExpenses() {
             console.warn('⚠️ [handleSettle] Nenhuma linha atualizada (pode pertencer a outro usuário)');
             updateErrors.push(`Transaction ${item.originalTxId}: No rows updated (may belong to another user)`);
           } else {
-            console.log('✅ [handleSettle] Transaction atualizada com sucesso:', data);
+
             successCount++;
           }
         } else {
@@ -576,12 +519,7 @@ export function SharedExpenses() {
         }
       }
 
-      console.log('📊 [handleSettle] Resultado final:', {
-        totalItems: itemsToSettle.length,
-        successCount,
-        errorCount: updateErrors.length,
-        errors: updateErrors
-      });
+
 
       if (updateErrors.length > 0) {
         console.error('❌ [handleSettle] Erros de atualização:', updateErrors);
@@ -597,7 +535,7 @@ export function SharedExpenses() {
         setIsSettling(false);
         return;
       } else {
-        console.log('✅ [handleSettle] Todos os itens atualizados com sucesso!');
+
       }
 
       // Fechar dialog e limpar estado
@@ -637,7 +575,7 @@ export function SharedExpenses() {
     if (!item) return;
 
     try {
-      console.log('🔍 [handleUndoSettlement] TASK 14: Desfazendo acerto:', item);
+
 
       if (item.splitId) {
         // Buscar o split para pegar os IDs das transações de acerto
@@ -649,7 +587,7 @@ export function SharedExpenses() {
 
         if (fetchError) throw fetchError;
 
-        console.log('🔍 [handleUndoSettlement] Split encontrado:', split);
+
 
         // Determinar qual lado está desfazendo
         const isDebtor = item.type === 'DEBIT';
@@ -657,7 +595,7 @@ export function SharedExpenses() {
 
         // TASK 14.1: Deletar a transação de acerto
         if (settlementTxId) {
-          console.log('🔍 [handleUndoSettlement] TASK 14.1: Deletando transação de acerto:', settlementTxId);
+
           const { error: deleteError } = await supabase
             .from('transactions')
             .delete()
@@ -667,7 +605,7 @@ export function SharedExpenses() {
             console.error('❌ [handleUndoSettlement] Erro ao deletar transação:', deleteError);
             throw deleteError;
           }
-          console.log('✅ [handleUndoSettlement] TASK 14.1: Transação deletada com sucesso');
+
         }
 
         // TASK 14.2: Atualizar flags do split
@@ -695,7 +633,7 @@ export function SharedExpenses() {
           }
         }
 
-        console.log('🔍 [handleUndoSettlement] TASK 14.2: Atualizando split:', updateFields);
+
 
         const { error: updateError } = await supabase
           .from('transaction_splits')
@@ -704,7 +642,7 @@ export function SharedExpenses() {
 
         if (updateError) throw updateError;
 
-        console.log('✅ [handleUndoSettlement] TASK 14.2: Split atualizado com sucesso');
+
       
       // TASK 20: Log settlement undo
       if (user?.id && item.originalTxId && item.splitId) {
@@ -738,7 +676,7 @@ export function SharedExpenses() {
 
       // TASK 14.4: Invalidar queries relacionadas para sincronização
       if (item.originalTxId) {
-        console.log('🔍 [handleUndoSettlement] TASK 14.4: Invalidando queries relacionadas');
+
         await invalidateRelated(item.originalTxId);
       }
 
@@ -746,7 +684,7 @@ export function SharedExpenses() {
       await refetch();
 
       toast.success("Acerto desfeito com sucesso!");
-      console.log('✅ [handleUndoSettlement] TASK 14: Acerto desfeito com integridade completa');
+
     } catch (error) {
       console.error('❌ [handleUndoSettlement] Erro:', error);
       toast.error("Erro ao desfazer acerto");
@@ -761,7 +699,7 @@ export function SharedExpenses() {
     if (!item || !item.originalTxId) return;
 
     try {
-      console.log('🗑️ [handleDeleteTransaction] TASK 11: Excluindo transação:', item.originalTxId);
+
 
       // TASK 11.1: Validar settlement status antes de excluir
       if (!item.canDelete) {
@@ -808,7 +746,7 @@ export function SharedExpenses() {
 
       if (error) throw error;
 
-      console.log('✅ [handleDeleteTransaction] TASK 11: Transação excluída com sucesso');
+
       
       // TASK 20: Log transaction deletion
       if (user?.id) {
@@ -847,7 +785,7 @@ export function SharedExpenses() {
     if (!item || !item.seriesId) return;
 
     try {
-      console.log('🗑️ [handleDeleteSeries] TASK 12: Excluindo série:', item.seriesId);
+
 
       // TASK 12.1: Validar settlement status da série antes de excluir
       if (!item.canDelete) {
@@ -894,10 +832,7 @@ export function SharedExpenses() {
 
       const deletedCount = data?.[0]?.deleted_count || 0;
 
-      console.log('✅ [handleDeleteSeries] TASK 12: Série excluída:', {
-        seriesId: item.seriesId,
-        deletedCount
-      });
+
 
       if (deletedCount === 0) {
         throw new Error("Nenhuma parcela foi excluída. Verifique se a série existe.");
@@ -946,16 +881,7 @@ export function SharedExpenses() {
         allPaidItems.push(...paidItems);
       });
 
-      console.log('🔄 [handleUndoAll] Itens coletados:', {
-        totalItems: allPaidItems.length,
-        items: allPaidItems.map(i => ({
-          id: i.id,
-          description: i.description,
-          splitId: i.splitId,
-          type: i.type,
-          isPaid: i.isPaid
-        }))
-      });
+
 
       if (allPaidItems.length === 0) {
         toast.info("Não há itens acertados para desfazer neste período.");
@@ -964,7 +890,7 @@ export function SharedExpenses() {
         return;
       }
 
-      console.log('🔄 [handleUndoAll] Revertendo', allPaidItems.length, 'itens');
+
 
       let successCount = 0;
       let errorCount = 0;
@@ -973,7 +899,7 @@ export function SharedExpenses() {
       // Processar cada item individualmente
       for (const item of allPaidItems) {
         try {
-          console.log('🔍 [handleUndoAll] Desfazendo item:', item.id, item.splitId);
+
 
           if (item.splitId) {
             // Buscar o split para pegar os IDs das transações de acerto
@@ -989,7 +915,7 @@ export function SharedExpenses() {
               continue;
             }
 
-            console.log('🔍 [handleUndoAll] Split encontrado:', split);
+
 
             // Determinar qual lado está desfazendo
             const isDebtor = item.type === 'DEBIT';
@@ -997,7 +923,7 @@ export function SharedExpenses() {
 
             // Deletar a transação de acerto
             if (settlementTxId) {
-              console.log('🔍 [handleUndoAll] Deletando transação de acerto:', settlementTxId);
+
               const { error: deleteError } = await supabase
                 .from('transactions')
                 .delete()
@@ -1008,7 +934,7 @@ export function SharedExpenses() {
                 errorCount++;
                 continue;
               }
-              console.log('✅ [handleUndoAll] Transação deletada com sucesso');
+
             }
 
             // Atualizar o split
@@ -1034,7 +960,7 @@ export function SharedExpenses() {
               }
             }
 
-            console.log('🔍 [handleUndoAll] Atualizando split:', updateFields);
+
 
             const { error: updateError } = await supabase
               .from('transaction_splits')
@@ -1047,7 +973,7 @@ export function SharedExpenses() {
               continue;
             }
 
-            console.log('✅ [handleUndoAll] Split atualizado com sucesso');
+
             successCount++;
           } else if (item.type === 'DEBIT' && item.originalTxId) {
             // Fallback para caso antigo
@@ -1073,7 +999,7 @@ export function SharedExpenses() {
         }
       }
 
-      console.log('📊 [handleUndoAll] Resultado:', { successCount, errorCount, total: allPaidItems.length });
+
 
       // Fechar dialog
       setUndoAllConfirm(false);
@@ -1387,19 +1313,12 @@ export function SharedExpenses() {
                 {/* Items */}
                 <div className="divide-y divide-border">
                   {group.items.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item:', {
-                      id: item.id,
-                      description: item.description,
-                      type: item.type,
-                      isPaid: item.isPaid,
-                      creatorUserId: item.creatorUserId,
-                      currentUserId: user?.id
-                    });
+
 
                     try {
                       const isCredit = item.type === "CREDIT";
                       const hasActions = item.isPaid || item.creatorUserId === user?.id;
-                      console.log('🔵 [SharedExpenses] Item hasActions:', hasActions);
+
 
                       return (
                         <div
@@ -1436,15 +1355,7 @@ export function SharedExpenses() {
                                   </p>
                                   {item.creatorName && (() => {
                                     const creator = members.find(m => m.linked_user_id === item.creatorUserId);
-                                    console.log('🔍 [Badge Creator]:', {
-                                      creatorName: item.creatorName,
-                                      creatorUserId: item.creatorUserId,
-                                      creator: creator,
-                                      avatar_url: creator?.avatar_url,
-                                      avatar_color: creator?.avatar_color,
-                                      avatar_icon: creator?.avatar_icon,
-                                      members: members.map(m => ({ id: m.id, name: m.name, linked_user_id: m.linked_user_id, avatar_url: m.avatar_url }))
-                                    });
+
                                     return (
                                       <div className="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded mt-1">
                                         <div className="w-4 h-4">
@@ -1597,14 +1508,7 @@ export function SharedExpenses() {
                                 </p>
                                 {item.creatorName && (() => {
                                   const creator = members.find(m => m.linked_user_id === item.creatorUserId);
-                                  console.log('🔍 [Badge Creator Desktop]:', {
-                                    creatorName: item.creatorName,
-                                    creatorUserId: item.creatorUserId,
-                                    creator: creator,
-                                    avatar_url: creator?.avatar_url,
-                                    avatar_color: creator?.avatar_color,
-                                    avatar_icon: creator?.avatar_icon
-                                  });
+
                                   return (
                                     <div className="inline-flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
                                       <div className="w-4 h-4">
@@ -1892,20 +1796,12 @@ export function SharedExpenses() {
                 {/* Itens do membro */}
                 <div className="divide-y divide-border">
                   {memberItems.map(item => {
-                    console.log('🔵 [SharedExpenses] 🔄 Renderizando item TRAVEL:', {
-                      id: item.id,
-                      description: item.description,
-                      type: item.type,
-                      isPaid: item.isPaid,
-                      creatorUserId: item.creatorUserId,
-                      currentUserId: user?.id,
-                      tripId: item.tripId
-                    });
+
 
                     try {
                       const isCredit = item.type === 'CREDIT';
                       const hasActions = item.isPaid || item.creatorUserId === user?.id;
-                      console.log('🔵 [SharedExpenses] Item TRAVEL hasActions:', hasActions);
+
 
                       return (
                         <div
@@ -2226,12 +2122,12 @@ export function SharedExpenses() {
     );
   };
 
-  console.log('🔵 [SharedExpenses] Antes do return principal');
-  console.log('🔵 [SharedExpenses] ========== PREPARANDO RENDER ==========');
-  console.log('🔵 [SharedExpenses] membersLoading:', membersLoading, 'sharedLoading:', sharedLoading);
-  console.log('🔵 [SharedExpenses] members:', members?.length, 'accounts:', accounts?.length, 'trips:', trips?.length);
-  console.log('🔵 [SharedExpenses] invoices keys:', Object.keys(invoices || {}));
-  console.log('🔵 [SharedExpenses] transactions:', transactions?.length);
+
+
+
+
+
+
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -2252,7 +2148,7 @@ export function SharedExpenses() {
 
       {/* Balance Evolution Chart */}
       {(() => {
-        console.log('🔵 [SharedExpenses] 📊 Renderizando SharedBalanceChart...');
+
         try {
           const chart = (
             <SharedBalanceChart
@@ -2261,7 +2157,7 @@ export function SharedExpenses() {
               currentDate={currentDate}
             />
           );
-          console.log('🔵 [SharedExpenses] ✅ SharedBalanceChart renderizado com sucesso');
+
           return chart;
         } catch (error) {
           console.error('❌ [SharedExpenses] ERRO no SharedBalanceChart:', error);
@@ -2278,7 +2174,7 @@ export function SharedExpenses() {
 
       {/* Summary Cards - Separado por moeda E por tipo (REGULAR vs TRAVEL) */}
       {(() => {
-        console.log('🔵 [SharedExpenses] 📊 Renderizando Summary Cards...');
+
         try {
           return (
             <div className="space-y-4">
@@ -2465,7 +2361,7 @@ export function SharedExpenses() {
 
       {/* Tabs */}
       {(() => {
-        console.log('🔵 [SharedExpenses] 📑 Renderizando Tabs...');
+
         try {
           return (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)}>
@@ -2487,23 +2383,23 @@ export function SharedExpenses() {
               </div>
 
               {(() => {
-                console.log('🔵 [SharedExpenses] 🚨 ANTES DE RENDERIZAR TabsContent');
-                console.log('🔵 [SharedExpenses] activeTab:', activeTab);
-                console.log('🔵 [SharedExpenses] members.length:', members.length);
-                console.log('🔵 [SharedExpenses] members:', members);
+
+
+
+
 
                 const tabsContentProps = {
                   value: activeTab,
                   className: "mt-6"
                 };
-                console.log('🔵 [SharedExpenses] TabsContent props:', tabsContentProps);
+
 
                 return (
                   <TabsContent {...tabsContentProps}>
                     {(() => {
-                      console.log('🔵 [SharedExpenses] 🚨 DENTRO DO TabsContent - renderizando children');
+
                       if (members.length === 0) {
-                        console.log('🔵 [SharedExpenses] Renderizando: Nenhum membro');
+
                         return (
                           <div className="py-16 text-center border border-dashed border-border rounded-xl">
                             <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -2517,7 +2413,7 @@ export function SharedExpenses() {
                         );
                       }
 
-                      console.log('🔵 [SharedExpenses] Renderizando: Com membros');
+
                       return (
                         <div className="space-y-4">
                           {/* Legenda */}
@@ -2549,10 +2445,10 @@ export function SharedExpenses() {
 
                           {/* Lista de membros estilo fatura (REGULAR e HISTORY) */}
                           {(() => {
-                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de membros...', { activeTab, membersCount: members.length });
+
                             if (activeTab !== 'TRAVEL' && members.length > 0) {
                               const memberCards = members.map(member => {
-                                console.log('🔵 [SharedExpenses] 🔄 Processando membro:', member.name);
+
                                 try {
                                   return renderMemberInvoiceCard(member);
                                 } catch (error) {
@@ -2560,16 +2456,16 @@ export function SharedExpenses() {
                                   return undefined;
                                 }
                               }).filter(Boolean);
-                              console.log('🔵 [SharedExpenses] ✅ Cards filtrados:', memberCards.length);
+
                               return <>{memberCards}</>;
                             }
-                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de membros');
+
                             return <></>;
                           })()}
 
                           {/* Lista de viagens (TRAVEL) */}
                           {(() => {
-                            console.log('🔵 [SharedExpenses] 🔄 Renderizando lista de viagens...', { activeTab });
+
                             if (activeTab === 'TRAVEL') {
                               const filteredTrips = trips.filter(trip => {
                                 // Verificar se há itens desta viagem no mês atual
@@ -2578,10 +2474,10 @@ export function SharedExpenses() {
                                   return memberItems.length > 0;
                                 });
                               });
-                              console.log('🔵 [SharedExpenses] ✅ Viagens filtradas:', filteredTrips.length);
+
                               if (filteredTrips.length > 0) {
                                 const tripCards = filteredTrips.map(trip => {
-                                  console.log('🔵 [SharedExpenses] 🔄 Renderizando trip:', trip.name);
+
                                   try {
                                     return renderTripCard(trip);
                                   } catch (error) {
@@ -2592,7 +2488,7 @@ export function SharedExpenses() {
                                 return <>{tripCards}</>;
                               }
                             }
-                            console.log('🔵 [SharedExpenses] ⏭️ Pulando lista de viagens');
+
                             return <></>;
                           })()}
 
