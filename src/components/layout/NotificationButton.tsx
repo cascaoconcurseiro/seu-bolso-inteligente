@@ -22,7 +22,7 @@ import {
   useDismissAllRead
 } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { 
   getNotificationIcon, 
   getPriorityColor, 
@@ -40,7 +40,7 @@ export function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useAuth();
-  const { data: profile } = useProfile();
+  const { data: profile } = useUserProfile();
   const { 
     data: notifications = [],
     unreadCount, 

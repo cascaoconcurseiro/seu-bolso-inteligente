@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { getQuoteOfTheDay } from "@/lib/financialQuotes";
 import { cn } from "@/lib/utils";
 import { Sparkles, Quote } from "lucide-react";
@@ -17,7 +17,7 @@ interface GreetingCardProps {
 
 export function GreetingCard({ className }: GreetingCardProps) {
   const { user } = useAuth();
-  const { data: profile } = useProfile();
+  const { data: profile } = useUserProfile();
   const [quoteData, setQuoteData] = useState<{ quote: string; author: string } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [showSparkle, setShowSparkle] = useState(false);

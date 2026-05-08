@@ -16,6 +16,8 @@ export interface FamilyMember {
   email: string | null;
   role: FamilyRole;
   avatar_url: string | null;
+  avatar_color?: string | null;
+  avatar_icon?: string | null;
   status: "pending" | "active";
   invited_by: string | null;
   sharing_scope: SharingScope;

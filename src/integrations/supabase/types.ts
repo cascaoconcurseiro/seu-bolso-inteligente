@@ -589,6 +589,10 @@ export type Database = {
           name: string
           percentage: number
           settled_at: string | null
+          settled_by_debtor: boolean | null
+          settled_by_creditor: boolean | null
+          debtor_settlement_tx_id: string | null
+          creditor_settlement_tx_id: string | null
           settled_transaction_id: string | null
           transaction_id: string
           user_id: string | null
@@ -602,6 +606,10 @@ export type Database = {
           name: string
           percentage: number
           settled_at?: string | null
+          settled_by_debtor?: boolean | null
+          settled_by_creditor?: boolean | null
+          debtor_settlement_tx_id?: string | null
+          creditor_settlement_tx_id?: string | null
           settled_transaction_id?: string | null
           transaction_id: string
           user_id?: string | null
@@ -615,6 +623,10 @@ export type Database = {
           name?: string
           percentage?: number
           settled_at?: string | null
+          settled_by_debtor?: boolean | null
+          settled_by_creditor?: boolean | null
+          debtor_settlement_tx_id?: string | null
+          creditor_settlement_tx_id?: string | null
           settled_transaction_id?: string | null
           transaction_id?: string
           user_id?: string | null

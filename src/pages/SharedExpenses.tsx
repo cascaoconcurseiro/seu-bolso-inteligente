@@ -65,7 +65,7 @@ import { useSharedFinances, InvoiceItem } from "@/hooks/useSharedFinances";
 import { useSettleWithPayment, useUnsettleWithReversal } from "@/hooks/useSettlement";
 import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,7 +147,7 @@ export function SharedExpenses() {
   });
 
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
-  const { data: profile } = useProfile();
+  const { data: profile } = useUserProfile();
   console.log('🔵 [SharedExpenses] ✅ Members carregados:', { count: members?.length, membersLoading });
 
   const { data: accounts = [] } = useAccounts();
@@ -766,7 +766,10 @@ export function SharedExpenses() {
       // TASK 11.1: Validar settlement status antes de excluir
       if (!item.canDelete) {
         const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED];
-        console.warn('⚠️ [handleDeleteTransaction] TASK 11: Exclusão bloqueada:', errorMsg.message);
+        const errorMessage = typeof errorMsg === 'string' ? errorMsg : errorMsg.message;
+        const errorAction = typeof errorMsg === 'string' ? undefined : errorMsg.action;
+
+        console.warn('⚠️ [handleDeleteTransaction] TASK 11: Exclusão bloqueada:', errorMessage);
         
         // TASK 20: Log blocked operation
         if (user?.id && item.originalTxId) {
@@ -774,7 +777,7 @@ export function SharedExpenses() {
             user.id,
             item.originalTxId,
             SettlementErrorCode.TRANSACTION_SETTLED,
-            errorMsg.message,
+            errorMessage,
             {
               operation: 'delete',
               description: item.description
@@ -782,9 +785,9 @@ export function SharedExpenses() {
           );
         }
         
-        toast.error(errorMsg.message);
-        if (errorMsg.action) {
-          toast.info(errorMsg.action);
+        toast.error(errorMessage);
+        if (errorAction) {
+          toast.info(errorAction);
         }
         setDeleteConfirm({ isOpen: false, item: null });
         return;
@@ -849,7 +852,10 @@ export function SharedExpenses() {
       // TASK 12.1: Validar settlement status da série antes de excluir
       if (!item.canDelete) {
         const errorMsg = item.blockReason || ERROR_MESSAGES[SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS];
-        console.warn('⚠️ [handleDeleteSeries] TASK 12: Exclusão bloqueada:', errorMsg.message);
+        const errorMessage = typeof errorMsg === 'string' ? errorMsg : errorMsg.message;
+        const errorAction = typeof errorMsg === 'string' ? undefined : errorMsg.action;
+
+        console.warn('⚠️ [handleDeleteSeries] TASK 12: Exclusão bloqueada:', errorMessage);
         
         // TASK 20: Log blocked operation
         if (user?.id && item.seriesId) {
@@ -857,7 +863,7 @@ export function SharedExpenses() {
             user.id,
             item.originalTxId || '',
             SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS,
-            errorMsg.message,
+            errorMessage,
             {
               operation: 'delete_series',
               seriesId: item.seriesId,
@@ -866,9 +872,9 @@ export function SharedExpenses() {
           );
         }
         
-        toast.error(errorMsg.message);
-        if (errorMsg.action) {
-          toast.info(errorMsg.action);
+        toast.error(errorMessage);
+        if (errorAction) {
+          toast.info(errorAction);
         }
         setDeleteSeriesConfirm({ isOpen: false, item: null });
         return;
@@ -882,8 +888,7 @@ export function SharedExpenses() {
       }
 
       // Usar função RPC que garante exclusão completa
-      const { data, error } = await supabase
-        .rpc('delete_installment_series', { p_series_id: item.seriesId });
+      const { data, error } = await (supabase.rpc as any)('delete_installment_series', { p_series_id: item.seriesId });
 
       if (error) throw error;
 
@@ -1263,10 +1268,10 @@ export function SharedExpenses() {
             <div className="flex items-center gap-4">
               {/* Avatar */}
               <UserAvatar 
-                user={{ 
-                  name: member.name, 
-                  avatar_url: member.avatar_url 
-                }} 
+                name={member.name}
+                avatarUrl={member.avatar_url}
+                colorId={member.avatar_color || "green"}
+                iconId={member.avatar_icon || "avatar_1"}
                 size="lg"
               />
 

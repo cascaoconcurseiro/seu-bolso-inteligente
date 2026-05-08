@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProfile } from "@/hooks/useProfile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   LayoutDashboard,
@@ -62,7 +62,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { data: profile } = useProfile();
+  const { data: profile } = useUserProfile();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const toggleTheme = () => {

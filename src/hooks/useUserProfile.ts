@@ -9,6 +9,8 @@ export interface UserProfile {
   full_name: string | null;
   name?: string | null; // Alias for compatibility
   avatar_url: string | null;
+  avatar_color?: string | null;
+  avatar_icon?: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
