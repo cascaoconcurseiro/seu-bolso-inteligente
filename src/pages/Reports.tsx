@@ -8,6 +8,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   TrendingUp,
   TrendingDown,
   Download,
@@ -26,6 +32,7 @@ import { ptBR } from "date-fns/locale";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { exportToCSV, exportToPDF } from "@/utils/exportData";
 
 export function Reports() {
   const { currentDate } = useMonth();
@@ -378,10 +385,22 @@ export function Reports() {
               </SelectContent>
             </Select>
           )}
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportToPDF(periodTransactions, totalIncome, totalExpense, `relatorio-${formatDate(currentDate, 'yyyy-MM')}.pdf`)}>
+                Exportar em PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportToCSV(periodTransactions, `relatorio-${formatDate(currentDate, 'yyyy-MM')}.csv`)}>
+                Exportar em Excel (CSV)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

@@ -20,6 +20,7 @@ import { Family } from "./pages/Family";
 import { Accounts } from "./pages/Accounts";
 import { AccountDetail } from "./pages/AccountDetail";
 import { Budgets } from "./pages/Budgets";
+import { GoalsAndInvestments } from "./pages/GoalsAndInvestments";
 import { Auth } from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -138,6 +139,16 @@ const App = () => (
                     <ProtectedRoute>
                       <AppLayout>
                         <Budgets />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/metas"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <GoalsAndInvestments />
                       </AppLayout>
                     </ProtectedRoute>
                   }

@@ -20,6 +20,7 @@ import {
   getNotificationPreferences,
 } from "./notificationService";
 import { checkPendingRecurrences } from "./recurrenceService";
+import { SafeFinancialCalculator } from "./SafeFinancialCalculator";
 
 interface GenerationResult {
   invoiceDue: number;
@@ -137,7 +138,7 @@ async function generateInvoiceDueNotifications(
         .gte('date', billingStart.toISOString().split('T')[0])
         .lte('date', billingEnd.toISOString().split('T')[0]);
 
-      const invoiceAmount = (transactions || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
+      const invoiceAmount = SafeFinancialCalculator.safeSum((transactions || []).map((tx: any) => Number(tx.amount)));
 
       logger.debug(`  Transações: ${transactions?.length || 0}`);
       logger.debug(`  Valor total: R$ ${invoiceAmount.toFixed(2)}`);
@@ -233,7 +234,7 @@ async function generateBudgetWarningNotifications(
       if (!spentByCategory[catId]) spentByCategory[catId] = {};
       if (!spentByCategory[catId][currency]) spentByCategory[catId][currency] = 0;
 
-      spentByCategory[catId][currency] += Number(tx.amount);
+      spentByCategory[catId][currency] = SafeFinancialCalculator.add(spentByCategory[catId][currency], Number(tx.amount));
     });
 
     // Verificar cada orçamento
@@ -331,7 +332,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
         byMember[memberId] = { name: memberName, amount: 0, count: 0 };
       }
 
-      byMember[memberId].amount += Number(split.amount);
+      byMember[memberId].amount = SafeFinancialCalculator.add(byMember[memberId].amount, Number(split.amount));
       byMember[memberId].count++;
     });
 

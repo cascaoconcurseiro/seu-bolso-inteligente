@@ -1,140 +1,78 @@
-# Seu Bolso Inteligente
+# 🪙 Seu Bolso Inteligente
 
-Uma aplicação web moderna para gerenciamento financeiro pessoal e compartilhado, com suporte a múltiplas contas, categorias, viagens e análises financeiras.
+> Um sistema moderno, rápido e seguro para gerenciamento financeiro pessoal e compartilhado. Criado para ser o seu "Pé de Meia" digital.
 
-## 🚀 Características
+![Status do Projeto](https://img.shields.io/badge/status-PRODUCTION%20READY-success)
+![Versão do React](https://img.shields.io/badge/React-18-blue)
+![Banco de Dados](https://img.shields.io/badge/Supabase-PostgreSQL-green)
 
-- **Gerenciamento de Contas**: Crie e gerencie múltiplas contas bancárias
-- **Transações**: Registre despesas e receitas com categorização automática
-- **Compartilhamento**: Divida despesas com família e amigos
-- **Viagens**: Organize gastos compartilhados em viagens
-- **Orçamentos**: Defina e acompanhe orçamentos por categoria
-- **Projeções**: Visualize projeções financeiras futuras
-- **Relatórios**: Gere relatórios detalhados de gastos
-- **Responsivo**: Interface totalmente responsiva para desktop e mobile
-
-## 🛠️ Stack Tecnológico
-
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI Components**: Shadcn/ui + Radix UI
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL)
-- **Autenticação**: Supabase Auth
-- **State Management**: React Query + Context API
-- **Deployment**: Vercel
-
-## 📋 Pré-requisitos
-
-- Node.js 18+
-- npm ou bun
-- Conta Supabase
-- Conta Vercel (para deploy)
-
-## 🔧 Instalação
-
-1. Clone o repositório:
-```bash
-git clone https://github.com/cascaoconcurseiro/seu-bolso-inteligente.git
-cd seu-bolso-inteligente
-```
-
-2. Instale as dependências:
-```bash
-npm install
-# ou
-bun install
-```
-
-3. Configure as variáveis de ambiente:
-```bash
-cp .env.example .env
-```
-
-4. Adicione suas credenciais Supabase no `.env`:
-```
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
-```
-
-## 🚀 Desenvolvimento
-
-Inicie o servidor de desenvolvimento:
-```bash
-npm run dev
-# ou
-bun run dev
-```
-
-A aplicação estará disponível em `http://localhost:5173`
-
-## 📦 Build
-
-Para criar uma build de produção:
-```bash
-npm run build
-# ou
-bun run build
-```
-
-## 🧪 Linting
-
-Verifique a qualidade do código:
-```bash
-npm run lint
-# ou
-bun run lint
-```
-
-## 📁 Estrutura do Projeto
-
-```
-src/
-├── components/      # Componentes React reutilizáveis
-├── contexts/        # Context API para estado global
-├── hooks/           # Custom hooks
-├── integrations/    # Integrações (Supabase, etc)
-├── lib/             # Utilitários e helpers
-├── pages/           # Páginas da aplicação
-├── services/        # Serviços de negócio
-├── styles/          # Estilos globais
-├── types/           # Tipos TypeScript
-└── utils/           # Funções utilitárias
-```
-
-## 🔐 Segurança
-
-- Autenticação via Supabase Auth
-- Row Level Security (RLS) no banco de dados
-- Variáveis de ambiente protegidas
-- Validação de entrada em formulários
-
-## 📱 Responsividade
-
-A aplicação é totalmente responsiva e funciona em:
-- Desktop (1920px+)
-- Tablet (768px - 1024px)
-- Mobile (320px - 767px)
-
-## 🚀 Deploy
-
-### Vercel
-
-1. Conecte seu repositório GitHub ao Vercel
-2. Configure as variáveis de ambiente
-3. Deploy automático em cada push para `main`
-
-## 📝 Licença
-
-Este projeto é privado.
-
-## 👥 Contribuidores
-
-- Wesley (Desenvolvedor Principal)
-
-## 📞 Suporte
-
-Para reportar bugs ou sugerir melhorias, abra uma issue no repositório.
+O **Seu Bolso Inteligente** une o controle financeiro pessoal com viagens do tipo *travel spend*, sem a necessidade de conexões bancárias arriscadas. Desenvolvido com uma arquitetura front-end de alto padrão e precisão matemática de nível bancário.
 
 ---
 
-**Última atualização**: Maio 2026
+## 🚀 Funcionalidades Principais
+
+- 🏦 **Gerenciamento de Contas:** Controle múltiplas contas (Corrente, Poupança, Cartão de Crédito) e suporte internacional (multimoedas).
+- 📊 **Transações & Categorização:** IA preditiva para categorias e lançamentos automatizados.
+- 👨‍👩‍👧 **Despesas Compartilhadas:** Divida contas com a família e realize os acertos ("settlements") direto no aplicativo, sem perder nenhum centavo.
+- ✈️ **Travel Spend (Viagens):** Controle rigoroso para viagens internacionais, com tracking de câmbio.
+- 🛡️ **Precisão Matemática:** Uso do `SafeFinancialCalculator` interno para lidar com cálculos em centavos, prevenindo perdas financeiras (erros de floating-point do Javascript).
+
+## 📱 Mobile First & UI/UX Premium
+
+Construído com **Shadcn/ui** e **Tailwind CSS**, com foco máximo em responsividade e design minimalista. 
+- Funcionalidade Dark Mode Nativo.
+- Proteção total de interface para dispositivos com Notch (configuração nativa de **safe-area-inset** para iOS e Android).
+- Zero "flickers" e "zooms" não intencionais no preenchimento de formulários via celular.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Camada | Tecnologia |
+| --- | --- |
+| **Frontend** | React 18 + TypeScript |
+| **UI/UX** | Shadcn/ui + Radix UI + Tailwind CSS |
+| **State & Cache** | React Query + Context API |
+| **Backend & DB** | Supabase (PostgreSQL) com RLS |
+| **Build & Deploy** | Vite + Vercel |
+
+## 📁 Estrutura de Documentação
+
+Nossa documentação completa está organizada na pasta `/docs`:
+- [`/docs/PROJECT_STATUS.md`](./docs/PROJECT_STATUS.md) - Status completo da última build.
+- [`/docs/DEVELOPMENT.md`](./docs/DEVELOPMENT.md) - Guias de como contribuir e arquitetura.
+- [`/docs/KEEP_ALIVE_SETUP.md`](./docs/KEEP_ALIVE_SETUP.md) - Regras de pipeline e cron.
+- [`/docs/CLEANUP_SUMMARY.md`](./docs/CLEANUP_SUMMARY.md) - Resumo das últimas limpezas de repositório.
+
+## 📦 Como rodar localmente
+
+Certifique-se de ter o **Node.js (18+)** e **npm/bun** instalados.
+
+1. Clone o projeto:
+```bash
+git clone https://github.com/cascaoconcurseiro/seu-bolso-inteligente.git
+```
+2. Instale as dependências:
+```bash
+npm install
+```
+3. Copie o `.env.example` para `.env` e configure as credenciais do Supabase:
+```bash
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
+```
+4. Inicie o app:
+```bash
+npm run dev
+```
+
+## 🤝 Como contribuir
+
+Este repositório possui templates padronizados para Issues e Pull Requests na pasta `.github/`.
+1. Para bugs: Utilize o template de **Bug Report** e especifique o seu dispositivo.
+2. Para features: Utilize o template de **Feature Request**.
+3. Sempre abra um Pull Request detalhando os testes manuais feitos.
+
+---
+*© 2026 Seu Bolso Inteligente.*

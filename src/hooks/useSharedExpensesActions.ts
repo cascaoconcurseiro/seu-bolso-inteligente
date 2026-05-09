@@ -10,6 +10,7 @@ import {
 } from "@/services/auditLog";
 import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
 import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useSharedExpensesActions(props: any) {
@@ -65,8 +66,8 @@ export function useSharedExpensesActions(props: any) {
 
       // Calculate total of selected items
       const itemsTotal = itemsToSettle.reduce((sum, item) => {
-        if (item.type === "CREDIT") return sum + item.amount;
-        return sum - item.amount;
+        if (item.type === "CREDIT") return SafeFinancialCalculator.add(sum, item.amount);
+        return SafeFinancialCalculator.subtract(sum, item.amount);
       }, 0);
 
       // Considerar pagamento completo se o valor for >= 99% do total
@@ -129,7 +130,6 @@ export function useSharedExpensesActions(props: any) {
 
 
       const updatePromises = itemsToSettle.map(async (item, i) => {
-        const item = itemsToSettle[i];
         const settlementTxId = settlementTxIds[i]; // Usar o ID correspondente
 
 
@@ -620,18 +620,6 @@ export function useSharedExpensesActions(props: any) {
       if (allPaidItems.length === 0) {
         toast.info("Não há itens acertados para desfazer neste período.");
         setUndoAllConfirm(false);
-        setIsUndoingAll(false);
-        return;
-      }
-
-
-
-      let successCount = 0;
-      let errorCount = 0;
-
-      // USAR A MESMA LÓGICA DO INDIVIDUAL (handleUndoSettlement)
-      // Processar cada item individualmente
-      setUndoAllConfirm(false);
         setIsUndoingAll(false);
         return;
       }

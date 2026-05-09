@@ -50,6 +50,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { AdvanceInstallmentsDialog } from "@/components/transactions/AdvanceInstallmentsDialog";
 import { SettlementConfirmDialog } from "@/components/transactions/SettlementConfirmDialog";
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
+import { OFXImportModal } from "@/components/modals/OFXImportModal";
 import { groupTransactionsByDay, DayGroup } from "@/utils/transactionUtils";
 import { exportTransactions } from "@/services/exportService";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
@@ -74,6 +75,7 @@ export function Transactions() {
   const [detailsTransaction, setDetailsTransaction] = useState<unknown>(null);
   const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
   const [advanceDescription, setAdvanceDescription] = useState<string>("");
+  const [showOfxModal, setShowOfxModal] = useState(false);
 
   const { user } = useAuth();
   const { data: transactions, isLoading } = useTransactions();
@@ -337,36 +339,42 @@ export function Transactions() {
           <h1 className="font-display font-bold text-2xl md:text-3xl tracking-tight">Transações</h1>
           <p className="text-muted-foreground mt-1">{filteredTransactions.length} registros</p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem 
-              onClick={() => {
-                exportTransactions(filteredTransactions, "csv");
-                toast.success("Transações exportadas em CSV");
-              }}
-              className="gap-2"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              Exportar CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => {
-                exportTransactions(filteredTransactions, "json");
-                toast.success("Transações exportadas em JSON");
-              }}
-              className="gap-2"
-            >
-              <FileJson className="h-4 w-4" />
-              Exportar JSON
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9" onClick={() => setShowOfxModal(true)}>
+            <FileSpreadsheet className="h-4 w-4" />
+            <span className="hidden sm:inline">Importar OFX</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => {
+                  exportTransactions(filteredTransactions, "csv");
+                  toast.success("Transações exportadas em CSV");
+                }}
+                className="gap-2"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => {
+                  exportTransactions(filteredTransactions, "json");
+                  toast.success("Transações exportadas em JSON");
+                }}
+                className="gap-2"
+              >
+                <FileJson className="h-4 w-4" />
+                Exportar JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Summary */}
@@ -843,6 +851,12 @@ export function Transactions() {
           setEditingTransaction(null);
         }}
         initialData={editingTransaction}
+      />
+
+      {/* OFX Import Modal */}
+      <OFXImportModal 
+        isOpen={showOfxModal} 
+        onClose={() => setShowOfxModal(false)} 
       />
     </div>
   );
