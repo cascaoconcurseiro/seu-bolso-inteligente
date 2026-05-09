@@ -1369,7 +1369,7 @@ export function SharedExpenses() {
                       variant={memberNet < 0 ? "destructive" : "default"}
                       size="sm"
                       className={cn(
-                        "h-11 md:h-9",
+                        "h-11 md:h-9 w-full md:w-auto",
                         memberNet > 0 && "bg-green-600 hover:bg-green-700"
                       )}
                       onClick={() => {
@@ -1381,8 +1381,8 @@ export function SharedExpenses() {
                         );
                       }}
                     >
-                      <Wallet className="h-4 w-4 md:mr-2" />
-                      <span className="hidden md:inline">{memberNet < 0 ? "Pagar" : "Receber"}</span>
+                      <Wallet className="h-4 w-4 mr-2" />
+                      <span>{memberNet < 0 ? "Pagar" : "Receber"}</span>
                     </Button>
                   </div>
                 )}
@@ -1409,11 +1409,10 @@ export function SharedExpenses() {
           <h1 className="font-display font-bold text-3xl tracking-tight">Compartilhados</h1>
           <p className="text-muted-foreground mt-1">Despesas divididas com família</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9">
-            <Layers className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Importar Parcelas</span>
-            <span className="md:hidden">Importar</span>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => setShowImportDialog(true)} className="h-11 md:h-9 w-full sm:w-auto">
+            <Layers className="h-4 w-4 mr-2" />
+            <span>Importar Parcelas</span>
           </Button>
         </div>
       </div>
@@ -1677,7 +1676,7 @@ export function SharedExpenses() {
                             <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                             <h3 className="font-display font-semibold text-lg mb-2">Nenhum membro</h3>
                             <p className="text-muted-foreground mb-6">Adicione membros na página Família</p>
-                            <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9">
+                            <Button variant="outline" onClick={() => navigate("/familia")} className="h-11 md:h-9 w-full sm:w-auto">
                               <span className="hidden sm:inline">Gerenciar Família</span>
                               <span className="sm:hidden">Família</span>
                             </Button>
