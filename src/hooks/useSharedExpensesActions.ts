@@ -95,26 +95,17 @@ export function useSharedExpensesActions(props: any) {
       // Criar transações individuais para cada item
       const settlementTxIds: string[] = [];
 
-      for (const item of itemsToSettle) {
+      const txPromises = itemsToSettle.map(async (item) => {
         const originalTx = originalTxMap.get(item.originalTxId || '');
-
-        // Usar descrição e categoria da transação original
         const description = originalTx?.description || item.description;
         const categoryId = originalTx?.category_id;
         
-        // CORREÇÃO CRÍTICA: Usar a data selecionada pelo usuário no formulário
-        // O acerto deve aparecer no mês escolhido pelo usuário
-        // Calcular competence_date a partir da data selecionada (sempre dia 1º do mês)
         const [year, month] = settleDate.split('-').map(Number);
-        const competenceDate = `${year}-${String(month).padStart(2, '0')}-01`;
 
-
-
-        // Criar transação individual
         const result = await createTransaction.mutateAsync({
           amount: item.amount,
           description: description,
-          date: settleDate, // Data escolhida pelo usuário
+          date: settleDate,
           type: settleType === "PAY" ? "EXPENSE" : "INCOME",
           account_id: settleAccountId,
           category_id: categoryId,
@@ -124,19 +115,20 @@ export function useSharedExpensesActions(props: any) {
           notes: `Acerto de: ${description} (${member?.name})`,
         });
 
-        const settlementTxId = Array.isArray(result) ? result[0]?.id : result?.id;
-        if (settlementTxId) {
-          settlementTxIds.push(settlementTxId);
-        }
-      }
+        return Array.isArray(result) ? result[0]?.id : result?.id;
+      });
 
-      // SEMPRE marcar items como settled
+      const resolvedTxIds = await Promise.all(txPromises);
+      resolvedTxIds.forEach(id => {
+        if (id) settlementTxIds.push(id);
+      });
+      
       const updateErrors: string[] = [];
       let successCount = 0;
 
 
 
-      for (let i = 0; i < itemsToSettle.length; i++) {
+      const updatePromises = itemsToSettle.map(async (item, i) => {
         const item = itemsToSettle[i];
         const settlementTxId = settlementTxIds[i]; // Usar o ID correspondente
 
@@ -153,13 +145,13 @@ export function useSharedExpensesActions(props: any) {
           if (checkError) {
             console.error('❌ [handleSettle] Erro ao verificar split:', checkError);
             updateErrors.push(`Split ${item.splitId}: ${checkError.message}`);
-            continue;
+            return;
           }
 
           if (!existingSplit) {
             console.error('❌ [handleSettle] Split não encontrado:', item.splitId);
             updateErrors.push(`Split ${item.splitId}: Not found`);
-            continue;
+            return;
           }
 
           // TASK 15: Verificar se já foi marcado como pago pelo lado correto (prevenção de duplicação)
@@ -172,7 +164,7 @@ export function useSharedExpensesActions(props: any) {
             const errorMsg = ERROR_MESSAGES[SettlementErrorCode.DUPLICATE_SETTLEMENT];
             toast.error(`${errorMsg.message}: ${item.description}`);
             updateErrors.push(`Split ${item.splitId}: Duplicate settlement`);
-            continue;
+            return;
           }
 
 
@@ -260,9 +252,8 @@ export function useSharedExpensesActions(props: any) {
           console.error('❌ [handleSettle] Item sem splitId nem originalTxId:', item);
           updateErrors.push(`Item ${item.id}: Missing splitId and originalTxId`);
         }
-      }
-
-
+      });
+      await Promise.all(updatePromises);
 
       if (updateErrors.length > 0) {
         console.error('❌ [handleSettle] Erros de atualização:', updateErrors);
@@ -629,6 +620,18 @@ export function useSharedExpensesActions(props: any) {
       if (allPaidItems.length === 0) {
         toast.info("Não há itens acertados para desfazer neste período.");
         setUndoAllConfirm(false);
+        setIsUndoingAll(false);
+        return;
+      }
+
+
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // USAR A MESMA LÓGICA DO INDIVIDUAL (handleUndoSettlement)
+      // Processar cada item individualmente
+      setUndoAllConfirm(false);
         setIsUndoingAll(false);
         return;
       }

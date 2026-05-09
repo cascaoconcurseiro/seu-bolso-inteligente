@@ -71,6 +71,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { exportToCSV } from "@/utils/exportUtils";
 import { SharedInstallmentImport } from "@/components/shared/SharedInstallmentImport";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { TransactionModal } from "@/components/modals/TransactionModal";
