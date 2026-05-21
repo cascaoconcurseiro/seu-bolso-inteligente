@@ -25,6 +25,7 @@ interface TripSummaryTabProps {
 export function TripSummaryTab({
   selectedTrip,
   totalExpenses,
+  myTotalSpent,
   myPersonalBudget,
   participants,
   balances,
@@ -88,7 +89,7 @@ export function TripSummaryTab({
       {/* ===== SEÇÃO DE GASTOS — 3 BLOCOS SEPARADOS ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* (A) Gastos Pessoais — apenas meus, privados */}
+        {/* (A) Gastos Pessoais — apenas meus, privados e impacto no orçamento */}
         <div className="p-6 rounded-3xl border border-border/50 bg-gradient-to-br from-card/50 to-muted/20 backdrop-blur-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
             <User className="w-32 h-32" />
@@ -96,19 +97,19 @@ export function TripSummaryTab({
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
               <User className="h-4 w-4 text-blue-500" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Meus Gastos Pessoais</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest">Meu Gasto (Orçamento)</h3>
             </div>
             <p className="font-mono text-3xl font-black tracking-tighter text-foreground mb-1">
-              {moneyUtils.format(myTotalPersonal, currency)}
+              {moneyUtils.format(myTotalSpent, currency)}
             </p>
             <p className="text-xs text-muted-foreground">
-              {tripTransactions.filter(t => t.type === "EXPENSE" && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id)).length} transações privadas + sua parte ({moneyUtils.format(myShareOfSharedExpenses, currency)})
+              Impacto real (caixa): privadas + adiantamentos pendentes em compartilhados
             </p>
             {myPersonalBudget && (
               <div className="mt-3 pt-3 border-t border-border/50">
                 <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Orçamento Pessoal</p>
                 <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
-                  {((myTotalPersonal / myPersonalBudget) * 100).toFixed(1)}% utilizado
+                  {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
                 </p>
               </div>
             )}

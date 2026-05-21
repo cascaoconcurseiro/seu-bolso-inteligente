@@ -12,6 +12,7 @@ interface TripExpensesTabProps {
   user: any;
   formatCurrency: (value: number, currency: string) => string;
   balances?: any[];
+  myTotalSpent?: number;
 }
 
 export function TripExpensesTab({
@@ -21,6 +22,7 @@ export function TripExpensesTab({
   user,
   formatCurrency,
   balances = [],
+  myTotalSpent,
 }: TripExpensesTabProps) {
   const navigate = useNavigate();
   const currency = selectedTrip.currency || "BRL";
@@ -43,6 +45,7 @@ export function TripExpensesTab({
   const totalShared = sharedExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
   const totalPersonalOnly = personalExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
   const totalPersonal = totalPersonalOnly + myShareOfShared;
+  const spentToDisplay = myTotalSpent !== undefined ? myTotalSpent : totalPersonal;
   const mySharedPaid = sharedExpenses
     .filter((t) => t.creator_user_id === user?.id || t.user_id === user?.id)
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -90,12 +93,16 @@ export function TripExpensesTab({
         </div>
         <div className="p-4 rounded-2xl border border-border/50 bg-card/50 text-center">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
-            Gastos Pessoais
+            Meu Gasto (Orçamento)
           </p>
           <p className="font-mono font-black text-xl text-foreground">
-            {formatCurrency(totalPersonal, currency)}
+            {formatCurrency(spentToDisplay, currency)}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">{personalExpenses.length} privadas + sua parte ({formatCurrency(myShareOfShared, currency)})</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {myTotalSpent !== undefined 
+              ? "Impacto real no seu orçamento" 
+              : `${personalExpenses.length} privadas + sua parte (${formatCurrency(myShareOfShared, currency)})`}
+          </p>
         </div>
       </div>
 

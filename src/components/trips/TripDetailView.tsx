@@ -100,7 +100,7 @@ export function TripDetailView({
         </div>
 
         <TabsContent value="summary"><TripSummaryTab selectedTrip={trip} totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} participants={participants} balances={balances} tripTransactions={tripTransactions} tripFinancialSummary={tripFinancialSummary} user={user} onAddParticipant={onAddParticipant} permissions={permissions} dateFns={dateFns} ptBR={ptBR} onRemoveClick={onRemoveParticipantClick} /></TabsContent>
-        <TabsContent value="expenses"><TripExpensesTab tripTransactions={tripTransactions} participants={participants} selectedTrip={trip} user={user} formatCurrency={formatCurrency} balances={balances} /></TabsContent>
+        <TabsContent value="expenses"><TripExpensesTab tripTransactions={tripTransactions} participants={participants} selectedTrip={trip} user={user} formatCurrency={formatCurrency} balances={balances} myTotalSpent={myTotalSpent} /></TabsContent>
         <TabsContent value="shopping"><TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} /></TabsContent>
         {trip.currency !== "BRL" && <TabsContent value="exchange"><TripExchange trip={trip} totalExpenses={totalExpenses} /></TabsContent>}
         <TabsContent value="itinerary"><TripItinerary tripId={trip.id} /></TabsContent>

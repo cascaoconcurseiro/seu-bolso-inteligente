@@ -447,7 +447,7 @@ export function useTripTransactions(tripId: string | null) {
         `)
         .eq("trip_id", tripId)
         .is("source_transaction_id", null)
-        .or(`is_shared.eq.true,user_id.eq."${user.id}"`)
+        .or(`is_shared.eq.true,user_id.eq.${user.id}`)
         .order("date", { ascending: false });
 
       if (error) throw error;
