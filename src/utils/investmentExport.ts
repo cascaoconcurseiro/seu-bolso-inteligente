@@ -32,42 +32,50 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
   return fallbackY;
 };
 
+// Retorna as transações de um ativo (reais do banco ou seed virtual)
+const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
+  const assetTxs = realTransactions.filter(tx => tx.asset_id === asset.id);
+  if (assetTxs.length === 0) {
+    // Se não há transações no banco, gera a transação virtual / seed baseada no ativo para retrocompatibilidade
+    const pDate = asset.purchase_date ? asset.purchase_date.split('T')[0] : (asset.created_at || '').split('T')[0];
+    return [{
+      id: `virtual-${asset.id}`,
+      asset_id: asset.id,
+      type: 'BUY',
+      quantity: Number(asset.quantity || 0),
+      price: Number(asset.purchase_price || 0),
+      date: pDate
+    }];
+  }
+  return assetTxs;
+};
 
 const getPositionAtDate = (asset: Asset, transactions: any[], cutoffDate: string) => {
-  const assetTxs = transactions.filter(tx => tx.asset_id === asset.id);
+  const assetTxs = getAssetTransactions(asset, transactions);
   
   let qty = 0;
   let totalCost = 0;
   let avgPrice = 0;
   
-  if (assetTxs.length === 0) {
-    const pDate = asset.purchase_date ? asset.purchase_date.split('T')[0] : (asset.created_at || '').split('T')[0];
-    if (pDate && pDate <= cutoffDate) {
-      qty = Number(asset.quantity || 0);
-      avgPrice = Number(asset.purchase_price || 0);
-      totalCost = qty * avgPrice;
-    }
-  } else {
-    for (const tx of assetTxs) {
-      if (tx.date > cutoffDate) continue;
-      
-      const txQty = Number(tx.quantity);
-      const txPrice = Number(tx.price);
-      
-      if (tx.type === 'BUY') {
-        totalCost += txQty * txPrice;
-        qty += txQty;
-      } else if (tx.type === 'SELL') {
-        if (qty > 0) {
-          const currentAvg = totalCost / qty;
-          const soldQty = Math.min(txQty, qty);
-          qty -= soldQty;
-          totalCost -= soldQty * currentAvg;
-        }
+  for (const tx of assetTxs) {
+    if (tx.date > cutoffDate) continue;
+    
+    const txQty = Number(tx.quantity);
+    const txPrice = Number(tx.price);
+    
+    if (tx.type === 'BUY') {
+      totalCost += txQty * txPrice;
+      qty += txQty;
+    } else if (tx.type === 'SELL') {
+      if (qty > 0) {
+        const currentAvg = totalCost / qty;
+        const soldQty = Math.min(txQty, qty);
+        qty -= soldQty;
+        totalCost -= soldQty * currentAvg;
       }
     }
-    if (qty > 0) avgPrice = totalCost / qty;
   }
+  if (qty > 0) avgPrice = totalCost / qty;
   
   return { quantity: qty, totalCost: qty > 0 ? totalCost : 0, avgPrice: qty > 0 ? avgPrice : 0 };
 };
@@ -85,11 +93,18 @@ export interface IRAssetDetails {
 /**
  * Mapeia e retorna os detalhes de imposto de renda (IR) de um ativo com base nos padrões da Receita Federal
  */
-export const getIRDetails = (asset: Asset, year: number): IRAssetDetails => {
+export const getIRDetails = (
+  asset: Asset, 
+  year: number,
+  calculatedPosAntCost?: number,
+  calculatedPosAtuCost?: number,
+  calculatedQty?: number,
+  calculatedAvgPrice?: number
+): IRAssetDetails => {
   const ticker = (asset.ticker || '').toUpperCase().trim();
-  const quantity = Number(asset.quantity || 0);
-  const purchasePrice = Number(asset.purchase_price || 0);
-  const totalCost = quantity * purchasePrice;
+  const quantity = calculatedQty !== undefined ? calculatedQty : Number(asset.quantity || 0);
+  const purchasePrice = calculatedAvgPrice !== undefined ? calculatedAvgPrice : Number(asset.purchase_price || 0);
+  const totalCost = calculatedPosAtuCost !== undefined ? calculatedPosAtuCost : (quantity * purchasePrice);
   
   // Determina se foi comprado no ano atual
   let purchasedThisYear = false;
@@ -102,7 +117,7 @@ export const getIRDetails = (asset: Asset, year: number): IRAssetDetails => {
     } catch (e) {}
   }
   
-  const situacaoAnterior = purchasedThisYear ? 0 : totalCost;
+  const situacaoAnterior = calculatedPosAntCost !== undefined ? calculatedPosAntCost : (purchasedThisYear ? 0 : totalCost);
   const situacaoAtual = totalCost;
 
   // Código de localização no IR (105 é Brasil, 249 é EUA)
@@ -217,7 +232,7 @@ export const getIRDetails = (asset: Asset, year: number): IRAssetDetails => {
   const originalCurrency = asset.currency || 'BRL';
 
   // Discriminação super detalhada aceita pela Receita Federal
-  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade consolidada: ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
+  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade consolidada em 31/12/${year}: ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
 
   return {
     grupo,
@@ -476,11 +491,26 @@ export const exportToCSV = (assets: Asset[]) => {
 /**
  * Exporta os ativos no formato PDF padrão da Receita Federal para declaração de Bens e Direitos do IR
  */
-export const exportToIRPDF = (assets: Asset[]) => {
+export const exportToIRPDF = async (assets: Asset[]) => {
+  if (!assets || assets.length === 0) return;
   const doc = new jsPDF();
   const today = new Date().toLocaleDateString('pt-BR');
   const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const year = new Date().getFullYear();
+
+  // Buscar todas as transações de ativos para os ativos em questão no Supabase
+  const { data: transactions, error } = await supabase
+    .from('asset_transactions')
+    .select('*')
+    .in('asset_id', assets.map(a => a.id))
+    .order('date', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar transações de ativos para IR PDF:", error);
+  }
+
+  const allTxs = transactions || [];
 
   // 1. Cabeçalho e Branding Premium
   doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
@@ -506,13 +536,21 @@ export const exportToIRPDF = (assets: Asset[]) => {
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(120);
-  doc.text('AVISO: Este relatório é um demonstrativo auxiliar e informativo com base no custo de aquisição. Use os informes oficiais.', 14, 55);
+  doc.text('AVISO: Este relatório é um demonstrativo auxiliar e informativo com base no custo histórico de aquisição. Use os informes oficiais.', 14, 55);
 
   let currentY = 62;
+  let declaredCount = 0;
 
-  assets.forEach((asset, index) => {
+  assets.forEach((asset) => {
     const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
     const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
+    
+    // Se a quantidade consolidada no final de ambos os anos for zero, não declaramos esse ativo na ficha de Bens e Direitos para não poluir
+    if (posAnt.quantity === 0 && posAtu.quantity === 0) {
+      return;
+    }
+
+    declaredCount++;
     const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
     
     // Verifica espaço na página
@@ -531,7 +569,7 @@ export const exportToIRPDF = (assets: Asset[]) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
-    doc.text(`${index + 1}. ${asset.ticker || asset.name} (${asset.type})`, 18, currentY + 7);
+    doc.text(`${declaredCount}. ${asset.ticker || asset.name} (${asset.type})`, 18, currentY + 7);
     
     // Grupo e Código
     doc.setFont('helvetica', 'bold');
@@ -556,6 +594,101 @@ export const exportToIRPDF = (assets: Asset[]) => {
     currentY += 50;
   });
 
+  if (declaredCount === 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Nenhum ativo com saldo para declarar nesta ficha no período selecionado.', 14, currentY + 10);
+    currentY += 20;
+  }
+
+  // --- OPERATIONS SECTION (RENDA VARIÁVEL / GANHOS DE CAPITAL) ---
+  doc.addPage();
+  
+  // Cabeçalho da página de operações
+  doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
+  doc.rect(0, 0, 210, 25, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('seu bolso inteligente', 14, 12);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Demonstrativo de Operações de Ativos — Ano-Calendário ${year - 1}`, 14, 19);
+
+  doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Histórico de Compras e Vendas (01/01/${year - 1} a 31/12/${year - 1})`, 14, 38);
+  
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'italic');
+  doc.setTextColor(120);
+  doc.text('Utilize esta tabela para auxiliar no preenchimento de suas declarações mensais ou anuais de Renda Variável.', 14, 43);
+
+  // Coletar transações ocorridas no ano-calendário
+  // Se a tabela de transações reais estava vazia para um ativo, nós incluímos o seed virtual dele na listagem se a data for no ano
+  const yearStart = `${year - 1}-01-01`;
+  const yearEnd = `${year - 1}-12-31`;
+  
+  const allTxsForListing: any[] = [];
+  assets.forEach(asset => {
+    const txs = getAssetTransactions(asset, allTxs);
+    txs.forEach(tx => {
+      if (tx.date >= yearStart && tx.date <= yearEnd) {
+        allTxsForListing.push({
+          ...tx,
+          ticker: asset.ticker || asset.name,
+          name: asset.name,
+          currency: asset.currency || 'BRL'
+        });
+      }
+    });
+  });
+
+  // Ordenar por data
+  allTxsForListing.sort((a, b) => a.date.localeCompare(b.date));
+
+  if (allTxsForListing.length === 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Nenhuma operação realizada de compra ou venda identificada para este ano-calendário.', 14, 53);
+  } else {
+    const opsData = allTxsForListing.map(tx => {
+      const total = Number(tx.quantity) * Number(tx.price);
+      const typeStr = tx.type === 'BUY' ? 'COMPRA' : 'VENDA';
+      const dateStr = tx.date.split('-').reverse().join('/');
+      return [
+        dateStr,
+        (tx.ticker || '').toUpperCase(),
+        tx.name || '',
+        typeStr,
+        Number(tx.quantity).toLocaleString('pt-BR', { maximumFractionDigits: 8 }),
+        formatCurrency(Number(tx.price), tx.currency),
+        formatCurrency(total, tx.currency)
+      ];
+    });
+
+    safeCallAutoTable(doc, {
+      head: [['Data', 'Ticker', 'Nome do Ativo', 'Operação', 'Quantidade', 'Preço Unit.', 'Valor Total']],
+      body: opsData,
+      startY: 48,
+      theme: 'striped',
+      headStyles: { fillColor: BRAND_COLOR, fontSize: 9, halign: 'center' },
+      bodyStyles: { fontSize: 8, halign: 'center' },
+      columnStyles: {
+        2: { halign: 'left' },
+        3: { fontStyle: 'bold' }
+      },
+      didParseCell: (cellData: any) => {
+        if (cellData.section === 'body' && cellData.column.index === 3) {
+          const val = cellData.cell.text[0];
+          if (val === 'COMPRA') cellData.cell.styles.textColor = [16, 185, 129];
+          else if (val === 'VENDA') cellData.cell.styles.textColor = [239, 68, 68];
+        }
+      }
+    });
+  }
+
   // Footer
   const pageCount = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
@@ -571,9 +704,24 @@ export const exportToIRPDF = (assets: Asset[]) => {
 /**
  * Exporta os ativos no formato Excel padrão da Receita Federal para declaração de Bens e Direitos do IR
  */
-export const exportToIRExcel = (assets: Asset[]) => {
+export const exportToIRExcel = async (assets: Asset[]) => {
+  if (!assets || assets.length === 0) return;
   const year = new Date().getFullYear();
   const today = new Date().toLocaleDateString('pt-BR');
+
+  // Buscar transações
+  const { data: transactions, error } = await supabase
+    .from('asset_transactions')
+    .select('*')
+    .in('asset_id', assets.map(a => a.id))
+    .order('date', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar transações de ativos para IR Excel:", error);
+  }
+
+  const allTxs = transactions || [];
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -613,8 +761,8 @@ export const exportToIRExcel = (assets: Asset[]) => {
       <tr>
         <td class="label-cell">Ano-Calendário:</td>
         <td colspan="2" class="value-cell text-cell">${year - 1}</td>
-        <td class="label-cell">Total de Ativos:</td>
-        <td colspan="2" class="value-cell text-cell">${assets.length} ativos declarados</td>
+        <td class="label-cell">Total de Ativos Declarados:</td>
+        <td colspan="2" class="value-cell text-cell" id="declared-count-placeholder">---</td>
         <td colspan="5" class="value-cell text-cell" style="color: #6b7280; font-style: italic;">Demonstrativo elaborado com base no custo histórico de aquisição.</td>
       </tr>
       <tr><td colspan="11" style="border:none; height: 15px;"></td></tr>
@@ -630,17 +778,25 @@ export const exportToIRExcel = (assets: Asset[]) => {
         <th class="th-premium text-cell" style="width: 60px;">Ticker</th>
         <th class="th-premium text-cell" style="width: 120px;">Nome do Ativo</th>
         <th class="th-premium text-cell" style="width: 400px;">Discriminação Oficial Receita Federal</th>
-        <th class="th-premium qty-cell" style="width: 80px;">Qtd</th>
+        <th class="th-premium qty-cell" style="width: 80px;">Qtd consolidada</th>
         <th class="th-premium number-cell" style="width: 90px;">Preço Médio</th>
         <th class="th-premium number-cell" style="width: 110px;">Posição em 31/12/${year - 2}</th>
         <th class="th-premium number-cell" style="width: 110px;">Posição em 31/12/${year - 1}</th>
       </tr>
   `;
 
-  assets.forEach((asset, index) => {
-    const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
+  let declaredCount = 0;
+  assets.forEach((asset) => {
     const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
     const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
+    
+    // Filtro para não poluir Bens e Direitos com ativos de saldo zero em ambos os marcos
+    if (posAnt.quantity === 0 && posAtu.quantity === 0) {
+      return;
+    }
+
+    declaredCount++;
+    const zebraClass = declaredCount % 2 === 1 ? 'class="tr-zebra"' : '';
     const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
 
     html += `
@@ -649,16 +805,86 @@ export const exportToIRExcel = (assets: Asset[]) => {
         <td class="text-cell">${ir.codigo}</td>
         <td class="text-cell">${ir.locationCode}</td>
         <td class="text-cell">${ir.cnpj || 'N/A'}</td>
-        <td class="text-cell" style="font-weight: bold;">${asset.ticker || ''}</td>
+        <td class="text-cell" style="font-weight: bold;">${(asset.ticker || '').toUpperCase()}</td>
         <td class="text-cell">${asset.name}</td>
         <td class="text-cell" style="font-size: 10px; color: #4b5563;">${ir.discriminacao}</td>
-        <td class="qty-cell">${asset.quantity || 0}</td>
-        <td class="number-cell">${asset.purchase_price || 0}</td>
-        <td class="number-cell" style="font-weight: bold;">${ir.situacaoAnterior}</td>
-        <td class="number-cell" style="font-weight: bold; color: #059669;">${ir.situacaoAtual}</td>
+        <td class="qty-cell">${posAtu.quantity}</td>
+        <td class="number-cell">${posAtu.avgPrice}</td>
+        <td class="number-cell" style="font-weight: bold;">${posAnt.totalCost}</td>
+        <td class="number-cell" style="font-weight: bold; color: #059669;">${posAtu.totalCost}</td>
       </tr>
     `;
   });
+
+  // Atualizar contagem no HTML
+  html = html.replace('id="declared-count-placeholder">---', `>${declaredCount} ativos declarados`);
+
+  html += `
+      <tr><td colspan="11" style="border:none; height: 20px;"></td></tr>
+      <tr>
+        <th colspan="11" class="section-title">3. MOVIMENTAÇÕES REALIZADAS NO ANO (RENDA VARIÁVEL / GANHOS DE CAPITAL)</th>
+      </tr>
+      <tr>
+        <th class="th-premium text-cell" style="width: 100px;">Data</th>
+        <th class="th-premium text-cell" style="width: 100px;">Ativo (Ticker)</th>
+        <th class="th-premium text-cell" style="width: 150px;">Nome do Ativo</th>
+        <th class="th-premium text-cell" style="width: 100px;">Operação</th>
+        <th class="th-premium qty-cell" style="width: 100px;">Quantidade</th>
+        <th class="th-premium number-cell" style="width: 100px;">Preço Unitário</th>
+        <th class="th-premium number-cell" style="width: 120px;">Valor Total</th>
+        <th colspan="4" style="border:none;"></th>
+      </tr>
+  `;
+
+  const yearStart = `${year - 1}-01-01`;
+  const yearEnd = `${year - 1}-12-31`;
+
+  const allTxsForListing: any[] = [];
+  assets.forEach(asset => {
+    const txs = getAssetTransactions(asset, allTxs);
+    txs.forEach(tx => {
+      if (tx.date >= yearStart && tx.date <= yearEnd) {
+        allTxsForListing.push({
+          ...tx,
+          ticker: asset.ticker || asset.name,
+          name: asset.name,
+          currency: asset.currency || 'BRL'
+        });
+      }
+    });
+  });
+
+  // Ordenar por data
+  allTxsForListing.sort((a, b) => a.date.localeCompare(b.date));
+
+  if (allTxsForListing.length === 0) {
+    html += `
+      <tr>
+        <td colspan="11" class="text-cell" style="color: #6b7280; font-style: italic;">Nenhuma movimentação realizada neste ano-calendário.</td>
+      </tr>
+    `;
+  } else {
+    allTxsForListing.forEach((tx, index) => {
+      const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
+      const total = Number(tx.quantity) * Number(tx.price);
+      const typeStr = tx.type === 'BUY' ? 'COMPRA' : 'VENDA';
+      const dateStr = tx.date.split('-').reverse().join('/');
+      const color = tx.type === 'BUY' ? '#059669' : '#dc2626';
+
+      html += `
+        <tr ${zebraClass}>
+          <td class="text-cell">${dateStr}</td>
+          <td class="text-cell" style="font-weight: bold;">${(tx.ticker || '').toUpperCase()}</td>
+          <td class="text-cell">${tx.name}</td>
+          <td class="text-cell" style="font-weight: bold; color: ${color};">${typeStr}</td>
+          <td class="qty-cell">${Number(tx.quantity)}</td>
+          <td class="number-cell">${Number(tx.price)}</td>
+          <td class="number-cell" style="font-weight: bold;">${total}</td>
+          <td colspan="4" style="border:none;"></td>
+        </tr>
+      `;
+    });
+  }
 
   html += `
     </table>
