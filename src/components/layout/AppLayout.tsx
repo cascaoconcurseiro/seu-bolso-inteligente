@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   LayoutDashboard,
@@ -70,6 +71,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+
+  // Ativa a escuta de Realtime global para toda a aplicação
+  useGlobalRealtime();
 
   const toggleTheme = () => {
     const newIsDark = !isDark;
