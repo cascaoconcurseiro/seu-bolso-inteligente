@@ -443,7 +443,7 @@ export function useTripTransactions(tripId: string | null) {
           *,
           account:accounts!account_id(name, bank_id),
           category:categories(name, icon),
-          transaction_splits(*)
+          transaction_splits:transaction_splits!transaction_id(*)
         `)
         .eq("trip_id", tripId)
         .is("source_transaction_id", null)
