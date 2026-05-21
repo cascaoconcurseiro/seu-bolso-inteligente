@@ -31,24 +31,16 @@ export const BANK_LOGOS = {
   xp: '/banks/xp.svg',
   
   // Bancos médios
-  pan: '/banks/banco-do-brasil.svg', // Fallback
   bv: '/banks/banco-bv-logo.svg',
   bmg: '/banks/banco-bmg-logo.svg',
   daycoval: '/banks/logo-Daycoval.svg',
   mercantil: '/banks/banco-mercantil-novo-azul.svg',
-  modal: '/banks/banco-do-brasil.svg', // Fallback
   sofisa: '/banks/logo-banco-sofisa.svg',
   pine: '/banks/banco-pine.svg',
   rendimento: '/banks/banco rendimento logo nova .svg',
-  fibra: '/banks/banco-do-brasil.svg', // Fallback
   paulista: '/banks/banco-paulista.svg',
   topazio: '/banks/logo-banco-topazio.svg',
-  votorantim: '/banks/banco-do-brasil.svg', // Fallback
-  industrial: '/banks/banco-do-brasil.svg', // Fallback
-  indusval: '/banks/banco-do-brasil.svg', // Fallback
-  master: '/banks/banco-do-brasil.svg', // Fallback
   abc: '/banks/logoabc.svg',
-  alfa: '/banks/banco-do-brasil.svg', // Fallback
   bs2: '/banks/Banco_BS2.svg',
   
   // Bancos regionais
@@ -65,11 +57,6 @@ export const BANK_LOGOS = {
   sicredi: '/banks/sicredi.svg',
   
   // Outros
-  genial: '/banks/banco-do-brasil.svg', // Fallback
-  agibank: '/banks/banco-do-brasil.svg', // Fallback
-  bndes: '/banks/banco-do-brasil.svg', // Fallback
-  citibank: '/banks/bankofamerica-logo.svg',
-  hsbc: '/banks/banco-do-brasil.svg', // Fallback
   ef: '/banks/logo-efi-bank-laranja.svg',
   
   // Bancos adicionais encontrados nas logos
