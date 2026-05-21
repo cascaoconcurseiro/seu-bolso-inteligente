@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Asset } from '@/types/database';
 import { formatCurrency } from './currencyFormatter';
+import { supabase } from '@/integrations/supabase/client';
 
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium do Seu Bolso Inteligente
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
@@ -29,6 +30,46 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
     return lastAutoTable.finalY + 12;
   }
   return fallbackY;
+};
+
+
+const getPositionAtDate = (asset: Asset, transactions: any[], cutoffDate: string) => {
+  const assetTxs = transactions.filter(tx => tx.asset_id === asset.id);
+  
+  let qty = 0;
+  let totalCost = 0;
+  let avgPrice = 0;
+  
+  if (assetTxs.length === 0) {
+    const pDate = asset.purchase_date ? asset.purchase_date.split('T')[0] : (asset.created_at || '').split('T')[0];
+    if (pDate && pDate <= cutoffDate) {
+      qty = Number(asset.quantity || 0);
+      avgPrice = Number(asset.purchase_price || 0);
+      totalCost = qty * avgPrice;
+    }
+  } else {
+    for (const tx of assetTxs) {
+      if (tx.date > cutoffDate) continue;
+      
+      const txQty = Number(tx.quantity);
+      const txPrice = Number(tx.price);
+      
+      if (tx.type === 'BUY') {
+        totalCost += txQty * txPrice;
+        qty += txQty;
+      } else if (tx.type === 'SELL') {
+        if (qty > 0) {
+          const currentAvg = totalCost / qty;
+          const soldQty = Math.min(txQty, qty);
+          qty -= soldQty;
+          totalCost -= soldQty * currentAvg;
+        }
+      }
+    }
+    if (qty > 0) avgPrice = totalCost / qty;
+  }
+  
+  return { quantity: qty, totalCost: qty > 0 ? totalCost : 0, avgPrice: qty > 0 ? avgPrice : 0 };
 };
 
 export interface IRAssetDetails {
@@ -176,7 +217,7 @@ export const getIRDetails = (asset: Asset, year: number): IRAssetDetails => {
   const originalCurrency = asset.currency || 'BRL';
 
   // Discriminação super detalhada aceita pela Receita Federal
-  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade: ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
+  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade consolidada: ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
 
   return {
     grupo,
@@ -470,7 +511,9 @@ export const exportToIRPDF = (assets: Asset[]) => {
   let currentY = 62;
 
   assets.forEach((asset, index) => {
-    const ir = getIRDetails(asset, year - 1);
+    const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
+    const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
+    const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
     
     // Verifica espaço na página
     if (currentY > 230) {
@@ -596,7 +639,9 @@ export const exportToIRExcel = (assets: Asset[]) => {
 
   assets.forEach((asset, index) => {
     const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
-    const ir = getIRDetails(asset, year - 1);
+    const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
+    const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
+    const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
 
     html += `
       <tr ${zebraClass}>

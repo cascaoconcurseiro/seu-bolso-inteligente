@@ -82,6 +82,21 @@ export const useAssets = () => {
           console.error("Erro ao gerar transação de ativo:", txError);
           // Não falhamos a criação do ativo se a transação falhar, mas avisamos
         }
+
+        // TAMBÉM INSERE NA asset_transactions PARA MANTER O HISTÓRICO CORRETO
+        const { error: assetTxError } = await supabase.from('asset_transactions').insert({
+          user_id: user.id,
+          asset_id: assetData.id,
+          account_id: assetData.account_id,
+          type: 'BUY',
+          quantity: asset.quantity,
+          price: asset.purchase_price,
+          date: purchaseDate
+        });
+
+        if (assetTxError) {
+          console.error("Erro ao gerar transação de histórico de ativo:", assetTxError);
+        }
       }
 
       return assetData;

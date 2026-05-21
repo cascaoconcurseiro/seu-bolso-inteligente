@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { exportPortfolioToPDF, exportToCSV, exportToIRPDF, exportToIRExcel } from '@/utils/investmentExport';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 import { GoalCard } from '@/components/goals/GoalCard';
 import { AssetCard } from '@/components/investments/AssetCard';
 import { InvestmentSummarySection } from '@/components/investments/InvestmentSummarySection';
@@ -191,10 +192,22 @@ export function GoalsAndInvestments() {
                 <DropdownMenuItem onClick={() => exportToCSV(assets)}>
                   <Download className="w-4 h-4 mr-2 text-emerald-600" /> Excel - Carteira
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportToIRPDF(assets)}>
+                <DropdownMenuItem onClick={() => {
+                  toast.promise(exportToIRPDF(assets), {
+                    loading: 'Gerando relatório de IR (PDF)...',
+                    success: 'Relatório gerado com sucesso!',
+                    error: 'Erro ao gerar relatório.'
+                  });
+                }}>
                   <ShieldCheck className="w-4 h-4 mr-2 text-blue-600" /> PDF - Auxiliar de IR (Receita Federal)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportToIRExcel(assets)}>
+                <DropdownMenuItem onClick={() => {
+                  toast.promise(exportToIRExcel(assets), {
+                    loading: 'Gerando planilha de IR (Excel)...',
+                    success: 'Planilha gerada com sucesso!',
+                    error: 'Erro ao gerar planilha.'
+                  });
+                }}>
                   <Download className="w-4 h-4 mr-2 text-blue-600" /> Excel - Auxiliar de IR (Receita Federal)
                 </DropdownMenuItem>
               </DropdownMenuContent>

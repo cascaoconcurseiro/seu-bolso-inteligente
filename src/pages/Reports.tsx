@@ -81,9 +81,7 @@ export function Reports() {
   };
 
   const periodTransactions = useMemo(() => {
-    const targetYear = safeCurrentDate.getFullYear();
-    const targetMonth = safeCurrentDate.getMonth();
-    
+    console.log('🟡 [DEBUG periodTransactions] allTransactions length:', allTransactions?.length, 'selectedCurrency:', selectedCurrency);
     return allTransactions.filter(tx => {
       let txDateStr = tx.date;
       
@@ -110,12 +108,19 @@ export function Reports() {
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
       
+      const targetYear = safeCurrentDate.getFullYear();
+      const targetMonth = safeCurrentDate.getMonth();
+      
       const isInPeriod = viewType === 'MONTH'
         ? txYear === targetYear && txMonth === targetMonth
         : txYear === targetYear;
         
       if (!isInPeriod) return false;
-      return selectedCurrency === 'ALL' || getTransactionCurrency(tx) === selectedCurrency;
+      const txCurr = getTransactionCurrency(tx);
+      if (txCurr === 'EUR') {
+        console.log('🟢 [DEBUG periodTransactions] Found EUR transaction in period:', tx.description, tx.amount, 'txCurr:', txCurr, 'selected:', selectedCurrency, 'tx.currency:', tx.currency, 'tx.account:', tx.account);
+      }
+      return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
     });
   }, [allTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
 
