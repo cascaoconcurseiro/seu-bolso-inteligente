@@ -164,7 +164,13 @@ export function TripExpensesTab({
                       : "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40 hover:bg-blue-500/8"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  {/* Determinar minha parte */}
+                  {(() => {
+                    const mySplit = expense.transaction_splits?.find((s: any) => s.user_id === user?.id);
+                    const mySplitAmount = mySplit ? Number(mySplit.amount) : 0;
+                    
+                    return (
+                      <div className="flex items-start justify-between gap-4">
                     {/* Lado esquerdo */}
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div
@@ -254,12 +260,35 @@ export function TripExpensesTab({
 
                     {/* Valor */}
                     <div className="text-right shrink-0">
-                      <p className="font-mono font-black text-base sm:text-lg text-foreground tracking-tight tabular-nums">
-                        {formatCurrency(Number(expense.amount), currency)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">valor total</p>
+                      {iPaid ? (
+                        <>
+                          <p className="font-mono font-black text-base sm:text-lg text-foreground tracking-tight tabular-nums">
+                            {formatCurrency(Number(expense.amount), currency)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">valor total pago</p>
+                          {expense.transaction_splits && (
+                            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-1">
+                              Sua parte: {formatCurrency(mySplitAmount, currency)}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-mono font-black text-base sm:text-lg text-orange-600 dark:text-orange-400 tracking-tight tabular-nums">
+                            {formatCurrency(mySplitAmount, currency)}
+                          </p>
+                          <p className="text-[10px] text-orange-600/70 dark:text-orange-400/70 mt-0.5 font-bold uppercase tracking-widest">
+                            Sua parte
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1.5">
+                            Total: {formatCurrency(Number(expense.amount), currency)}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
+                );
+              })()}
                 </div>
               );
             })}

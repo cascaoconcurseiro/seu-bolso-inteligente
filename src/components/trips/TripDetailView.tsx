@@ -44,43 +44,23 @@ export function TripDetailView({
   const relevantTransactions = tripTransactions.filter(t => t.type === "EXPENSE" && (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id));
   const totalExpenses = relevantTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
   
-  // IMPACTO REAL NO ORÇAMENTO (Cash Basis):
+  // IMPACTO REAL NO ORÇAMENTO (Accrual Basis - Regime de Competência):
   // 1. Gastos individuais (só meus)
   const myIndividualExpenses = tripTransactions
     .filter(t => t.type === "EXPENSE" && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id))
     .reduce((sum, t) => sum + Number(t.amount), 0);
   
-  // 2. Gastos compartilhados que eu paguei (saiu integral da minha conta)
-  const whatIPaidFromPocket = tripTransactions
-    .filter(t => t.type === "EXPENSE" && t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id))
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  // 3. O que os outros já me pagaram de volta (recebimentos de acerto de despesas que eu paguei)
-  const whatIReceivedFromSettlements = tripTransactions
-    .filter(t => t.type === "EXPENSE" && t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id))
+  // 2. Minha parte nos gastos compartilhados (mesmo que eu não tenha pago)
+  const myShareOfShared = tripTransactions
+    .filter(t => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => {
       if (!t.transaction_splits) return sum;
-      const othersSettledSplits = t.transaction_splits.filter(
-        (s: any) => s.user_id !== user?.id && s.is_settled === true
-      );
-      const settledAmount = othersSettledSplits.reduce((acc: number, s: any) => acc + Number(s.amount), 0);
-      return sum + settledAmount;
+      const mySplit = t.transaction_splits.find((s: any) => s.user_id === user?.id);
+      return sum + (mySplit ? Number(mySplit.amount) : 0);
     }, 0);
-
-  // 4. O que eu paguei para os outros (pagamentos de acerto de despesas que outros pagaram)
-  const whatIPaidToSettle = tripTransactions
-    .filter(t => t.type === "EXPENSE" && t.is_shared && !(t.creator_user_id === user?.id || t.user_id === user?.id))
-    .reduce((sum, t) => {
-      if (!t.transaction_splits) return sum;
-      const mySettledSplits = t.transaction_splits.filter(
-        (s: any) => s.user_id === user?.id && s.is_settled === true
-      );
-      const paidAmount = mySettledSplits.reduce((acc: number, s: any) => acc + Number(s.amount), 0);
-      return sum + paidAmount;
-    }, 0);
-  
-  // myTotalSpent = o que efetivamente saiu do meu bolso e ainda não voltou
-  const myTotalSpent = myIndividualExpenses + whatIPaidFromPocket - whatIReceivedFromSettlements + whatIPaidToSettle;
+    
+  // myTotalSpent = o impacto real no meu orçamento, independente de quem já pagou
+  const myTotalSpent = myIndividualExpenses + myShareOfShared;
 
   return (
     <div className="space-y-6 animate-fade-in">
