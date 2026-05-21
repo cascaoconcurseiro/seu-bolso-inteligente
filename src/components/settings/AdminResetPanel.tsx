@@ -380,13 +380,8 @@ export function AdminResetPanel() {
   const handlePurgeSoftDeleted = async () => {
     setIsPurging(true);
     try {
-      const { count: txCount, error: txErr } = await supabase
-        .from('transactions')
-        .delete({ count: 'exact' })
-        .eq('deleted', true);
-        
-      if (txErr) throw txErr;
-      
+      // Purgamos apenas as contas marcadas como deletadas (accounts.deleted = true).
+      // Como transactions não tem soft-delete, a exclusão da conta propaga a remoção das transações vinculadas via cascade trigger.
       const { count: accCount, error: accErr } = await supabase
         .from('accounts')
         .delete({ count: 'exact' })
@@ -394,7 +389,7 @@ export function AdminResetPanel() {
 
       if (accErr) throw accErr;
       
-      toast.success(`Limpeza concluída! ${txCount || 0} transações e ${accCount || 0} contas inativas deletadas definitivamente.`);
+      toast.success(`Limpeza concluída! ${accCount || 0} conta(s) inativa(s) deletada(s) definitivamente.`);
       loadSystemStats();
     } catch (error) {
       console.error('Error purging soft-deletes:', error);

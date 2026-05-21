@@ -43,8 +43,7 @@ export function OrphanTransactionsManager() {
           .eq("user_id", user.id)
           .is("account_id", null)
           .neq("type", "TRANSFER")
-          .or("payer_id.is.null,payer_id.eq.me")
-          .eq("deleted", false);
+          .or("payer_id.is.null,payer_id.eq.me");
 
         if (!error) {
           setOrphanCount(count || 0);
@@ -72,8 +71,7 @@ export function OrphanTransactionsManager() {
       .eq("user_id", user.id)
       .is("account_id", null)
       .neq("type", "TRANSFER")
-      .or("payer_id.is.null,payer_id.eq.me")
-      .eq("deleted", false);
+      .or("payer_id.is.null,payer_id.eq.me");
     
     setOrphanCount(count || 0);
   };
