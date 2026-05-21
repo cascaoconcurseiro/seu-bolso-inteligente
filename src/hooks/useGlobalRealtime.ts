@@ -3,14 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-import { 
-  invalidateFinancialQueries, 
-  invalidateSharedQueries, 
-  invalidateTripQueries, 
-  invalidateFamilyQueries, 
-  invalidateCategoryQueries,
-  invalidateBudgetQueries
-} from '@/utils/queryInvalidation';
+import { invalidateAllFinancialData } from '@/utils/queryInvalidation';
 
 /**
  * Escuta eventos de tempo real (Realtime) do Supabase globalmente.
@@ -36,37 +29,13 @@ export function useGlobalRealtime() {
           const { table } = payload;
           console.log(`⚡ Evento Realtime recebido na tabela: ${table}`);
 
-          // Invalida as queries de forma inteligente agrupando por domínio
-          switch (table) {
-            case 'transactions':
-            case 'transaction_splits':
-              invalidateFinancialQueries(queryClient);
-              invalidateSharedQueries(queryClient);
-              invalidateTripQueries(queryClient);
-              break;
-            case 'trips':
-            case 'trip_members':
-              invalidateTripQueries(queryClient);
-              break;
-            case 'accounts':
-              invalidateFinancialQueries(queryClient);
-              break;
-            case 'categories':
-              invalidateCategoryQueries(queryClient);
-              break;
-            case 'family_members':
-            case 'families':
-              invalidateFamilyQueries(queryClient);
-              break;
-            case 'budgets':
-              invalidateBudgetQueries(queryClient);
-              break;
-            case 'goals':
-              queryClient.invalidateQueries({ queryKey: ['goals'] });
-              break;
-            default:
-              break;
-          }
+          // O usuário solicitou que TODO o sistema seja em tempo real sem deixar nada de fora.
+          // Iniciar invalidação global de TUDO que estiver na tela do usuário.
+          // O React Query é inteligente o suficiente para recarregar apenas o que está visível.
+          queryClient.invalidateQueries();
+          
+          // E também chamar a função massiva por garantia para áreas financeiras:
+          invalidateAllFinancialData(queryClient);
         }
       )
       .subscribe((status) => {
