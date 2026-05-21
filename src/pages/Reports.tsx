@@ -19,7 +19,7 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
-import { useMonthlyEvolutionReport } from "@/hooks/useDashboard";
+import { useAuth } from "@/contexts/AuthContext";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { useMonth } from "@/contexts/MonthContext";
@@ -58,12 +58,18 @@ export function Reports() {
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
   const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
   
+  const { user } = useAuth();
   const { data: allTransactions = [], isLoading } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });
   const { data: categories = [] } = useCategories();
   const { data: accounts = [] } = useAccounts();
   const { data: familyMembers = [] } = useFamilyMembers();
-  const { data: monthlyEvolution = [] } = useMonthlyEvolutionReport(6, selectedCurrency);
   const { invoices, transactions: sharedTransactions } = useSharedFinances({ activeTab: 'REGULAR', currentDate: safeCurrentDate });
+
+  const myMember = useMemo(() => {
+    if (!user || !familyMembers) return null;
+    return familyMembers.find(m => m.linked_user_id === user.id);
+  }, [user, familyMembers]);
+  const myMemberId = myMember?.id;
 
   const availableCurrencies = useMemo(() => {
     const currencies = new Set<string>(['BRL']);
@@ -71,18 +77,126 @@ export function Reports() {
       const currency = getTransactionCurrency(tx);
       if (currency !== 'BRL') currencies.add(currency);
     });
+
+    // Moedas das transações compartilhadas envolvidas
+    sharedTransactions.forEach((tx: any) => {
+      const isMeThePayer = tx.user_id === user?.id || (tx.payer_id === myMemberId && tx.payer_id != null);
+      
+      let isMeInvolved = isMeThePayer;
+      if (!isMeInvolved && tx.is_shared && tx.transaction_splits) {
+        isMeInvolved = tx.transaction_splits.some((s: any) => s.member_id === myMemberId);
+      }
+      if (!isMeInvolved && !tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id === myMemberId) {
+        isMeInvolved = true;
+      }
+
+      if (isMeInvolved) {
+        const currency = tx.currency || 'BRL';
+        if (currency !== 'BRL') currencies.add(currency);
+      }
+    });
+
     accounts.forEach(acc => { if (acc.is_international && acc.currency) currencies.add(acc.currency); });
     return Array.from(currencies).sort();
-  }, [allTransactions, accounts]);
+  }, [allTransactions, sharedTransactions, accounts, myMemberId, user?.id]);
 
   const formatCurrency = (value: number, currency: string = 'BRL') => {
     if (currency === 'BRL') return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
     return `${getCurrencySymbol(currency)} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const allCombinedTransactions = useMemo(() => {
+    // ─── REGRA FINANCEIRA CENTRAL ───────────────────────────────────────────────
+    // Despesa só existe quando o dinheiro sai da conta.
+    // • PAGADOR (Wesley): vê o valor TOTAL que saiu do bolso dele. Quando outro
+    //   membro acerta (reembolsa), o valor é reduzido em tempo real.
+    // • DEVEDOR (Fran): NENHUMA despesa aparece até ela fazer o acerto. Só após
+    //   o acerto (dinheiro saindo da conta dela) a despesa entra no relatório.
+    // ────────────────────────────────────────────────────────────────────────────
+
+    // 1. Processar transações onde o usuário logado é o pagador
+    const processedOwn = allTransactions.map(tx => {
+      // Pular acertos de contas (settlements) no domínio SHARED
+      const isSettlement =
+        (tx.description?.includes('Acerto') || tx.description?.includes('acerto') || (tx as any).is_settled)
+        && tx.domain === 'SHARED';
+      if (isSettlement) return null;
+
+      // Transação compartilhada via splits:
+      // Wesley vê o valor TOTAL que pagou, mas abatemos o que outros já ressarciram
+      if (tx.is_shared && tx.transaction_splits && tx.transaction_splits.length > 0) {
+        const settledByOthers = (tx.transaction_splits as any[])
+          .filter((s: any) => s.member_id !== myMemberId && (s.is_settled === true || s.settled_by_debtor === true))
+          .reduce((sum: number, s: any) => moneyUtils.round(sum + Number(s.amount)), 0);
+
+        // Custo líquido real = total pago − o que os outros já devolveram
+        const netAmount = moneyUtils.round(Math.max(0, Number(tx.amount) - settledByOthers));
+        return { ...tx, amount: netAmount };
+      }
+
+      // Atribuição direta 100% a outro membro (related_member_id)
+      if (!tx.is_shared && tx.domain === 'SHARED' && (tx as any).related_member_id) {
+        if ((tx as any).related_member_id !== myMemberId) {
+          // Se o outro já acertou, o Wesley foi reembolsado → custo real = 0
+          if ((tx as any).is_settled === true) return { ...tx, amount: 0 };
+          // Ainda não acertado: Wesley carrega o valor integral no relatório
+          return tx;
+        }
+      }
+
+      return tx;
+    }).filter(Boolean) as any[];
+
+    // 2. Processar despesas de terceiros onde O USUÁRIO LOGADO JÁ ACERTOU
+    // Fran só vê o gasto depois que o dinheiro saiu da conta dela (split.is_settled)
+    const processedOthers: any[] = [];
+    sharedTransactions.forEach((tx: any) => {
+      // Ignorar se o usuário logado é o pagador (já processado acima)
+      const isMeThePayer = tx.user_id === user?.id || (tx.payer_id === myMemberId && tx.payer_id != null);
+      if (isMeThePayer) return;
+
+      // Ignorar acertos
+      const isSettlement =
+        (tx.description?.includes('Acerto') || tx.description?.includes('acerto') || tx.is_settled)
+        && tx.domain === 'SHARED';
+      if (isSettlement) return;
+
+      // Splits: injetar SOMENTE o split que o usuário já liquidou (acertou)
+      if (tx.is_shared && tx.transaction_splits) {
+        const mySettledSplit = tx.transaction_splits.find(
+          (s: any) => s.member_id === myMemberId && (s.is_settled === true || s.settled_by_debtor === true)
+        );
+        if (mySettledSplit) {
+          processedOthers.push({
+            ...tx,
+            id: `${tx.id}-injected-settled-split`,
+            amount: Number(mySettledSplit.amount), // Valor que realmente saiu da conta
+            user_id: user?.id || tx.user_id,
+          });
+        }
+        // Split ainda não acertado → não aparece no relatório de Fran
+      }
+
+      // Atribuição direta 100%: só injetar se já foi acertada
+      if (!tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id === myMemberId) {
+        if ((tx as any).is_settled === true) {
+          processedOthers.push({
+            ...tx,
+            id: `${tx.id}-injected-direct-settled`,
+            amount: Number(tx.amount),
+            user_id: user?.id || tx.user_id,
+          });
+        }
+        // Não acertado → não aparece no relatório de Fran
+      }
+    });
+
+    return [...processedOwn, ...processedOthers];
+  }, [allTransactions, sharedTransactions, myMemberId, user?.id]);
+
   const periodTransactions = useMemo(() => {
-    console.log('🟡 [DEBUG periodTransactions] allTransactions length:', allTransactions?.length, 'selectedCurrency:', selectedCurrency);
-    return allTransactions.filter(tx => {
+    console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
+    return allCombinedTransactions.filter(tx => {
       let txDateStr = tx.date;
       
       // Se for regime de vencimento e for despesa em cartão, usar data de vencimento da fatura
@@ -122,7 +236,7 @@ export function Reports() {
       }
       return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
     });
-  }, [allTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
 
   const sharedPeriodTransactions = useMemo(() => {
     const targetYear = safeCurrentDate.getFullYear();
@@ -380,34 +494,47 @@ export function Reports() {
     return Object.values(map).map(p => ({ ...p, seriesCount: p.series.size })).sort((a, b) => b.periodAmount - a.periodAmount);
   }, [sharedTransactions, familyMembers, safeCurrentDate, viewType]);
 
+  // monthlyData: calculado localmente a partir de allCombinedTransactions
+  // Garante harmonia matemática com os totais do período e respeita a regra
+  // de liquidação (settlements). Cobre os últimos 6 meses.
   const monthlyData = useMemo(() => {
-    return (monthlyEvolution || []).map(m => {
-      try {
-        if (!m.month_start) {
-          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
-        }
-        const parts = m.month_start.split('-');
-        if (parts.length < 3) {
-          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
-        }
-        const year = Number(parts[0]);
-        const month = Number(parts[1]) - 1; // 0-indexed
-        const day = Number(parts[2]);
-        const d = new Date(year, month, day);
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = dateFns.subMonths(safeCurrentDate, i);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
 
-        if (isNaN(d.getTime())) {
-          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
-        }
-        return {
-          month: dateFns.format(d, 'MMM', { locale: ptBR }),
-          income: Number(m.income) || 0,
-          expense: Number(m.expense) || 0
-        };
-      } catch (e) {
-        return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
-      }
-    });
-  }, [monthlyEvolution]);
+      const monthTxs = allCombinedTransactions.filter(tx => {
+        if (!tx.date) return false;
+        const parts = tx.date.split('-');
+        if (parts.length < 2) return false;
+        const txYear = parseInt(parts[0], 10);
+        const txMonth = parseInt(parts[1], 10) - 1;
+        if (txYear !== year || txMonth !== month) return false;
+        const txCurr = getTransactionCurrency(tx);
+        return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
+      });
+
+      const income = monthTxs
+        .filter(t => t.type === 'INCOME' && !(t as any).is_refund)
+        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+      const rawExpense = monthTxs
+        .filter(t => t.type === 'EXPENSE')
+        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+      const refunds = monthTxs
+        .filter(t => t.type === 'INCOME' && (t as any).is_refund)
+        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+      const netExpense = moneyUtils.round(Math.max(0, rawExpense - refunds));
+
+      months.push({
+        month: dateFns.format(monthDate, 'MMM', { locale: ptBR }),
+        income: moneyUtils.round(income),
+        expense: netExpense,
+        month_start: dateFns.format(monthDate, 'yyyy-MM-01'),
+      });
+    }
+    return months;
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency]);
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
