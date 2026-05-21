@@ -1,0 +1,524 @@
+import { moneyUtils } from "@/utils/money";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Download, Globe } from "lucide-react";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
+import { useCategories } from "@/hooks/useCategories";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useMonthlyEvolutionReport } from "@/hooks/useDashboard";
+import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
+import { useSharedFinances } from "@/hooks/useSharedFinances";
+import { useMonth } from "@/contexts/MonthContext";
+import * as dateFns from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { exportToCSV, exportToPDF } from "@/utils/exportData";
+
+// Modular Components
+import { ReportSummary } from "@/components/reports/ReportSummary";
+import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
+import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
+import { SharedFinancesTable } from "@/components/reports/SharedFinancesTable";
+import { InstallmentsTable } from "@/components/reports/InstallmentsTable";
+
+export function Reports() {
+  const { currentDate } = useMonth();
+  const safeCurrentDate = useMemo(() => {
+    if (!currentDate || isNaN(currentDate.getTime())) {
+      return new Date();
+    }
+    return currentDate;
+  }, [currentDate]);
+
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
+  const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
+  const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
+  
+  const { data: allTransactions = [], isLoading } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });
+  const { data: categories = [] } = useCategories();
+  const { data: accounts = [] } = useAccounts();
+  const { data: familyMembers = [] } = useFamilyMembers();
+  const { data: monthlyEvolution = [] } = useMonthlyEvolutionReport(6, selectedCurrency);
+  const { invoices, transactions: sharedTransactions } = useSharedFinances({ activeTab: 'REGULAR', currentDate: safeCurrentDate });
+
+  const availableCurrencies = useMemo(() => {
+    const currencies = new Set<string>(['BRL']);
+    allTransactions.forEach(tx => { if (tx.currency && tx.currency !== 'BRL') currencies.add(tx.currency); });
+    accounts.forEach(acc => { if (acc.is_international && acc.currency) currencies.add(acc.currency); });
+    return Array.from(currencies).sort();
+  }, [allTransactions, accounts]);
+
+  const formatCurrency = (value: number, currency: string = 'BRL') => {
+    if (currency === 'BRL') return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+    return `${getCurrencySymbol(currency)} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const periodTransactions = useMemo(() => {
+    const targetYear = safeCurrentDate.getFullYear();
+    const targetMonth = safeCurrentDate.getMonth();
+    
+    return allTransactions.filter(tx => {
+      let txDateStr = tx.date;
+      
+      // Se for regime de vencimento e for despesa em cartão, usar data de vencimento da fatura
+      if (dateCriterion === 'DUE_DATE' && tx.type === 'EXPENSE' && tx.account_id) {
+        const acc = accounts.find(a => a.id === tx.account_id);
+        if (acc && acc.type === 'CREDIT_CARD') {
+          const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
+          const dueDay = acc.due_day || 10;
+          const closingDay = acc.closing_day || 1;
+          
+          let dueMonthDate = compDate;
+          if (dueDay <= closingDay) {
+            dueMonthDate = dateFns.addMonths(compDate, 1);
+          }
+          
+          txDateStr = dateFns.format(dueMonthDate, 'yyyy-MM-dd');
+        }
+      }
+
+      if (!txDateStr) return false;
+      const parts = txDateStr.split('-');
+      if (parts.length < 2) return false;
+      const txYear = parseInt(parts[0], 10);
+      const txMonth = parseInt(parts[1], 10) - 1;
+      
+      const isInPeriod = viewType === 'MONTH'
+        ? txYear === targetYear && txMonth === targetMonth
+        : txYear === targetYear;
+        
+      if (!isInPeriod) return false;
+      return selectedCurrency === 'ALL' || (tx.currency || 'BRL') === selectedCurrency;
+    });
+  }, [allTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
+
+  const sharedPeriodTransactions = useMemo(() => {
+    const targetYear = safeCurrentDate.getFullYear();
+    const targetMonth = safeCurrentDate.getMonth();
+    
+    return sharedTransactions.filter((tx: any) => {
+      if (!tx.date) return false;
+      const parts = tx.date.split('-');
+      if (parts.length < 2) return false;
+      const txYear = parseInt(parts[0], 10);
+      const txMonth = parseInt(parts[1], 10) - 1;
+      
+      const isInPeriod = viewType === 'MONTH'
+        ? txYear === targetYear && txMonth === targetMonth
+        : txYear === targetYear;
+        
+      if (!isInPeriod) return false;
+      if (!isInPeriod) return false;
+      return (tx.currency || 'BRL') === selectedCurrency;
+    });
+  }, [sharedTransactions, safeCurrentDate, selectedCurrency, viewType]);
+
+  const displayCurrency = selectedCurrency;
+
+  const { totalIncome, totalExpense, balance } = useMemo(() => {
+    const income = periodTransactions
+      .filter(t => t.type === "INCOME" && !(t as any).is_refund)
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+    const rawExpense = periodTransactions
+      .filter(t => t.type === "EXPENSE")
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+    const refunds = periodTransactions
+      .filter(t => t.type === "INCOME" && (t as any).is_refund)
+      .reduce((sum, t) => sum + Number(t.amount), 0);
+    const netExpense = Math.max(0, rawExpense - refunds);
+    return { 
+      totalIncome: income, 
+      totalExpense: netExpense, 
+      balance: income - netExpense 
+    };
+  }, [periodTransactions]);
+
+  const categoryData = useMemo(() => {
+    const map: Record<string, { value: number; count: number }> = {};
+    const expenses = periodTransactions.filter(t => t.type === "EXPENSE");
+    
+    expenses.forEach(tx => {
+      let categoryName = "Sem categoria";
+      
+      if (tx.category) {
+        const catId = tx.category.id;
+        const catInfo = categories.find(c => c.id === catId);
+        
+        if (catInfo) {
+          if (catInfo.parent_category_id) {
+            const parentCat = categories.find(c => c.id === catInfo.parent_category_id);
+            if (parentCat) {
+              categoryName = `${parentCat.icon || "🏷️"} ${parentCat.name} › ${catInfo.icon || "🏷️"} ${catInfo.name}`.trim();
+            } else {
+              categoryName = `${catInfo.icon || "🏷️"} ${catInfo.name}`.trim();
+            }
+          } else {
+            categoryName = `${catInfo.icon || "🏷️"} ${catInfo.name}`.trim();
+          }
+        } else {
+          categoryName = tx.category.icon ? `${tx.category.icon} ${tx.category.name}` : tx.category.name;
+        }
+      }
+
+      if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };
+      map[categoryName].value += Number(tx.amount);
+      map[categoryName].count += 1;
+    });
+    const total = Object.values(map).reduce((sum, c) => sum + c.value, 0);
+    return Object.entries(map)
+      .map(([category, d]) => ({ 
+        category, 
+        value: d.value, 
+        count: d.count, 
+        percent: total > 0 ? Math.round((d.value / total) * 100) : 0 
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [periodTransactions, categories]);
+
+  const personData = useMemo(() => {
+    const map: Record<string, any> = {};
+    
+    familyMembers.forEach(m => {
+      map[m.name] = { name: m.name, spent: 0, received: 0, balance: 0, count: 0 };
+    });
+
+    sharedPeriodTransactions.forEach((tx: any) => {
+      // 1. SPLIT TRANSACTIONS (Divididas)
+      if (tx.is_shared && tx.transaction_splits) {
+        const involvedMembers = new Set<string>();
+        
+        let payerName = 'Desconhecido';
+        if (tx.payer_id) {
+          const payerMember = familyMembers.find(m => m.id === tx.payer_id || m.linked_user_id === tx.payer_id);
+          if (payerMember) payerName = payerMember.name;
+        }
+        if (payerName === 'Desconhecido') {
+          const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
+          if (creatorMember) payerName = creatorMember.name;
+        }
+        
+        if (!map[payerName]) {
+          map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
+        }
+        map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
+        involvedMembers.add(payerName);
+
+        tx.transaction_splits.forEach((split: any) => {
+          const member = familyMembers.find(m => m.id === split.member_id || m.linked_user_id === split.member_id);
+          const name = member?.name || split.name || 'Desconhecido';
+          
+          if (!map[name]) {
+            map[name] = { name, spent: 0, received: 0, balance: 0, count: 0 };
+          }
+          map[name].received = moneyUtils.round(map[name].received + Number(split.amount));
+          involvedMembers.add(name);
+        });
+
+        involvedMembers.forEach(name => {
+          map[name].count += 1;
+        });
+      }
+      
+      // 2. ATRIBUIÇÃO DIRETA (100% para outro membro)
+      else if (!tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id) {
+        const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
+        const receiverMember = familyMembers.find(m => m.id === tx.related_member_id);
+        
+        const payerName = creatorMember?.name || 'Desconhecido';
+        const receiverName = receiverMember?.name || 'Desconhecido';
+        
+        if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
+        if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
+        
+        map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
+        map[receiverName].received = moneyUtils.round(map[receiverName].received + Number(tx.amount));
+        
+        map[payerName].count += 1;
+        if (payerName !== receiverName) {
+          map[receiverName].count += 1;
+        }
+      }
+      
+      // 3. ACERTOS PUROS (Settlements)
+      else if (!tx.is_shared && tx.domain === 'SHARED' && (tx.description?.includes('Acerto') || tx.description?.includes('acerto') || tx.is_settled)) {
+        const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
+        const otherMember = familyMembers.find(m => m.linked_user_id !== tx.user_id);
+        
+        if (creatorMember && otherMember) {
+          const payerName = tx.type === 'EXPENSE' ? creatorMember.name : otherMember.name;
+          const receiverName = tx.type === 'EXPENSE' ? otherMember.name : creatorMember.name;
+          
+          if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
+          if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
+          
+          map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
+          map[receiverName].received = moneyUtils.round(map[receiverName].received + Number(tx.amount));
+          
+          map[payerName].count += 1;
+          map[receiverName].count += 1;
+        }
+      }
+    });
+
+    return Object.values(map)
+      .map(p => ({ ...p, balance: moneyUtils.round(p.spent - p.received) }))
+      .sort((a, b) => b.spent - a.spent);
+  }, [sharedPeriodTransactions, familyMembers]);
+
+  const installmentsByPerson = useMemo(() => {
+    console.log('🔴 [DEBUG Reports] Starting installmentsByPerson calculation. sharedTransactions:', sharedTransactions.length);
+    const map: Record<string, any> = {};
+    const targetYear = safeCurrentDate.getFullYear();
+    const targetMonth = safeCurrentDate.getMonth();
+
+    sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id).forEach((tx: any) => {
+      if (!tx.date) return;
+      const parts = tx.date.split('-');
+      if (parts.length < 2) return;
+      const txYear = parseInt(parts[0], 10);
+      const txMonth = parseInt(parts[1], 10) - 1;
+      
+      const isInPeriod = viewType === 'MONTH'
+        ? txYear === targetYear && txMonth === targetMonth
+        : txYear === targetYear;
+
+      // 1. Splits divididos
+      if (tx.is_shared && tx.transaction_splits) {
+        (tx as any).transaction_splits.forEach((split: any) => {
+          const member = familyMembers.find(m => m.id === split.member_id || m.linked_user_id === split.member_id);
+          const name = member?.name || split.name || 'Desconhecido';
+          if (!map[name]) map[name] = { 
+            name, 
+            periodAmount: 0, 
+            totalAmount: 0, 
+            remainingAmount: 0, 
+            totalInstallments: 0, 
+            remainingInstallments: 0, 
+            series: new Set() 
+          };
+          
+          map[name].series.add(tx.series_id!);
+          const amt = Number(split.amount);
+          
+          map[name].totalAmount = moneyUtils.round(map[name].totalAmount + amt);
+          
+          if (isInPeriod) {
+            map[name].periodAmount = moneyUtils.round(map[name].periodAmount + amt);
+          }
+
+          const isRemaining = !split.is_settled;
+          if (isRemaining) {
+            map[name].remainingAmount = moneyUtils.round(map[name].remainingAmount + amt);
+            map[name].remainingInstallments += 1;
+          }
+          map[name].totalInstallments += 1;
+        });
+      }
+      // 2. Não-dividido mas atribuído diretamente
+      else if (!tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id) {
+        const member = familyMembers.find(m => m.id === tx.related_member_id);
+        const name = member?.name || 'Desconhecido';
+        if (!map[name]) map[name] = { 
+          name, 
+          periodAmount: 0, 
+          totalAmount: 0, 
+          remainingAmount: 0, 
+          totalInstallments: 0, 
+          remainingInstallments: 0, 
+          series: new Set() 
+        };
+        
+        map[name].series.add(tx.series_id!);
+        const amt = Number(tx.amount);
+        
+        map[name].totalAmount = moneyUtils.round(map[name].totalAmount + amt);
+        
+        if (isInPeriod) {
+          map[name].periodAmount = moneyUtils.round(map[name].periodAmount + amt);
+        }
+
+        const isRemaining = !tx.is_settled;
+        if (isRemaining) {
+          map[name].remainingAmount = moneyUtils.round(map[name].remainingAmount + amt);
+          map[name].remainingInstallments += 1;
+        }
+        map[name].totalInstallments += 1;
+      }
+    });
+    return Object.values(map).map(p => ({ ...p, seriesCount: p.series.size })).sort((a, b) => b.periodAmount - a.periodAmount);
+  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType]);
+
+  const monthlyData = useMemo(() => {
+    return (monthlyEvolution || []).map(m => {
+      try {
+        if (!m.month_start) {
+          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
+        }
+        const parts = m.month_start.split('-');
+        if (parts.length < 3) {
+          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
+        }
+        const year = Number(parts[0]);
+        const month = Number(parts[1]) - 1; // 0-indexed
+        const day = Number(parts[2]);
+        const d = new Date(year, month, day);
+
+        if (isNaN(d.getTime())) {
+          return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
+        }
+        return {
+          month: dateFns.format(d, 'MMM', { locale: ptBR }),
+          income: Number(m.income) || 0,
+          expense: Number(m.expense) || 0
+        };
+      } catch (e) {
+        return { month: 'N/A', income: Number(m.income) || 0, expense: Number(m.expense) || 0 };
+      }
+    });
+  }, [monthlyEvolution]);
+
+  if (isLoading) return (
+    <div className="space-y-8 animate-fade-in pb-20">
+      <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="skeleton h-10 w-40 rounded-xl" />
+            <div className="skeleton h-4 w-64 rounded-lg" />
+          </div>
+          <div className="flex gap-2">
+            <div className="skeleton h-9 w-32 rounded-xl" />
+            <div className="skeleton h-9 w-28 rounded-xl" />
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1,2,3,4].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}
+      </div>
+      <div className="skeleton h-52 rounded-2xl" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[1,2,3,4].map(i => <div key={i} className="skeleton h-64 rounded-2xl" />)}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8 animate-fade-in pb-20">
+      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Relatórios</h1>
+            <p className="text-muted-foreground mt-1 font-medium">
+              Análise das suas finanças - {viewType === 'MONTH' 
+                ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
+                : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select 
+              value={dateCriterion} 
+              onValueChange={(value: 'COMPETENCE' | 'DUE_DATE') => setDateCriterion(value)}
+            >
+              <SelectTrigger className="w-[180px] bg-muted/30 border-border/50 rounded-xl">
+                <SelectValue placeholder="Visualizar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="COMPETENCE">
+                  <span className="flex items-center gap-2">📅 Data da Compra</span>
+                </SelectItem>
+                <SelectItem value="DUE_DATE">
+                  <span className="flex items-center gap-2">💳 Vencimento Fatura</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex bg-muted/50 rounded-xl p-1 mr-2 border border-border/50 shadow-inner">
+              <Button 
+                variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
+                size="sm" 
+                className={viewType === 'MONTH' ? "shadow-sm rounded-lg" : "rounded-lg"}
+                onClick={() => setViewType('MONTH')}
+              >
+                Mensal
+              </Button>
+              <Button 
+                variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
+                size="sm" 
+                className={viewType === 'YEAR' ? "shadow-sm rounded-lg" : "rounded-lg"}
+                onClick={() => setViewType('YEAR')}
+              >
+                Anual
+              </Button>
+            </div>
+          {availableCurrencies.length > 1 && (
+            <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+              <SelectTrigger className="w-[140px]"><SelectValue><span className="flex items-center gap-2"><span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>{selectedCurrency}</span></SelectValue></SelectTrigger>
+              <SelectContent>{availableCurrencies.map(currency => <SelectItem key={currency} value={currency}><span className="flex items-center gap-2"><span className="font-mono w-6">{getCurrencySymbol(currency)}</span>{currency}</span></SelectItem>)}</SelectContent>
+            </Select>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => exportToPDF(
+                  periodTransactions, 
+                  totalIncome, 
+                  totalExpense, 
+                  `relatorio-${dateFns.format(safeCurrentDate, viewType === 'MONTH' ? 'yyyy-MM' : 'yyyy')}.pdf`
+                )}
+              >
+                Exportar em PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => exportToCSV(
+                  periodTransactions, 
+                  `relatorio-${dateFns.format(safeCurrentDate, viewType === 'MONTH' ? 'yyyy-MM' : 'yyyy')}.csv`
+                )}
+              >
+                Exportar em Excel (CSV)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      </div>
+
+      {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
+
+      <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
+
+      <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} /></section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />
+        <CategoryDistribution data={categoryData} formatCurrency={formatCurrency} currency={displayCurrency} />
+        <SharedFinancesTable data={personData} formatCurrency={formatCurrency} currency={displayCurrency} />
+        <InstallmentsTable data={installmentsByPerson} formatCurrency={formatCurrency} currency={displayCurrency} />
+      </div>
+
+      <TransactionModal isOpen={showTransactionModal} onClose={() => setShowTransactionModal(false)} />
+    </div>
+  );
+}

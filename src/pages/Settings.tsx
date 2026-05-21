@@ -1,0 +1,314 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useCategories, useCreateCategory, useDeleteCategory } from "@/hooks/useCategories";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotificationPreferences } from "@/hooks/useNotifications";
+import { useUserProfile, useUpdateUserProfile, useUpdatePassword, useDeleteAccount } from "@/hooks/useUserProfile";
+import { TransactionModal } from "@/components/modals/TransactionModal";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { AdminResetPanel } from "@/components/settings/AdminResetPanel";
+import { SettingsSidebar, SettingsSection } from "@/components/settings/SettingsSidebar";
+import { AccountSettings } from "@/components/settings/AccountSettings";
+import { CategorySettings } from "@/components/settings/CategorySettings";
+import { PeopleSettings } from "@/components/settings/PeopleSettings";
+import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { BackupManager } from "@/components/settings/BackupManager";
+import { HelpSettings } from "@/components/settings/HelpSettings";
+
+export function Settings() {
+  const { user, signOut } = useAuth();
+  const [searchParams] = useSearchParams();
+  const [activeSection, setActiveSection] = useState<SettingsSection>("help");
+  const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
+  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const { preferences, isLoading: prefsLoading, updatePreferences, isUpdating } = useNotificationPreferences();
+  
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const updateProfile = useUpdateUserProfile();
+  const updatePassword = useUpdatePassword();
+  const deleteAccount = useDeleteAccount();
+  
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section === 'notifications') setActiveSection('notifications');
+    else if (section === 'account') setActiveSection('account');
+  }, [searchParams]);
+
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryType, setNewCategoryType] = useState<"expense" | "income">("expense");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("📦");
+  const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
+
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+
+  const createCategory = useCreateCategory();
+  const deleteCategory = useDeleteCategory();
+
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    document.documentElement.classList.toggle('dark', newIsDark);
+    // Persistência: sincroniza com o AppLayout
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
+  };
+
+  const handleCreateCategory = async () => {
+    await createCategory.mutateAsync({ 
+      name: newCategoryName, 
+      type: newCategoryType, 
+      icon: newCategoryIcon,
+      parent_category_id: parentCategoryId
+    });
+    setShowAddCategoryDialog(false);
+    setNewCategoryName("");
+    setNewCategoryType("expense");
+    setNewCategoryIcon("📦");
+    setParentCategoryId(null);
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword || newPassword.length < 6) return;
+    await updatePassword.mutateAsync({ newPassword });
+    setShowChangePasswordDialog(false);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "EXCLUIR") return;
+    await deleteAccount.mutateAsync();
+    setShowDeleteAccountDialog(false);
+  };
+
+  const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+
+  return (
+    <div className="space-y-8 animate-fade-in pb-20">
+      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Configurações</h1>
+            <p className="text-muted-foreground mt-1 font-medium">Personalize sua experiência financeira</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <SettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} categoriesCount={categories.length} membersCount={members.length} />
+
+        <div className="lg:col-span-3 p-6 rounded-xl border border-border">
+          {activeSection === "help" && (
+            <HelpSettings />
+          )}
+
+          {activeSection === "account" && (
+            <AccountSettings
+              profile={profile} user={user} profileLoading={profileLoading}
+              updateProfile={updateProfile} signOut={signOut}
+              onChangePassword={() => setShowChangePasswordDialog(true)}
+              onDeleteAccount={() => setShowDeleteAccountDialog(true)}
+            />
+          )}
+
+          {activeSection === "categories" && (
+            <CategorySettings
+              categories={categories} isLoading={categoriesLoading}
+              onAddCategory={() => setShowAddCategoryDialog(true)}
+              onDeleteCategory={(id) => deleteCategory.mutate(id)}
+            />
+          )}
+
+          {activeSection === "people" && (
+            <PeopleSettings members={members} isLoading={membersLoading} getInitials={getInitials} />
+          )}
+
+          {activeSection === "appearance" && (
+            <AppearanceSettings isDark={isDark} onToggleTheme={toggleTheme} />
+          )}
+
+          {activeSection === "notifications" && (
+            <NotificationSettings preferences={preferences} isLoading={prefsLoading} isUpdating={isUpdating} updatePreferences={updatePreferences} />
+          )}
+
+          {activeSection === "backup" && (
+            <BackupManager />
+          )}
+
+          {activeSection === "admin" && (
+            <div className="space-y-8 animate-fade-in">
+              <div>
+                <h2 className="font-display font-semibold text-lg">Área Adm</h2>
+                <p className="text-sm text-muted-foreground">Ferramentas administrativas e de integridade do sistema</p>
+              </div>
+              <div className="max-w-4xl">
+                <AdminResetPanel />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dialogs */}
+      <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Categoria</DialogTitle>
+            <DialogDescription>Crie uma nova categoria para suas transações</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input placeholder="Ex: Mercado, Aluguel..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select value={newCategoryType} onValueChange={(v: any) => { setNewCategoryType(v); setParentCategoryId(null); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expense">Despesa</SelectItem>
+                  <SelectItem value="income">Receita</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria Pai (Opcional)</Label>
+              <Select value={parentCategoryId || "none"} onValueChange={(v) => setParentCategoryId(v === "none" ? null : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma (Categoria Principal)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma (Categoria Principal)</SelectItem>
+                  {categories
+                    .filter(c => c.type === newCategoryType && !c.parent_category_id)
+                    .map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Ícone</Label>
+              <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1">
+                {[
+                  "🍔", "🍕", "🍜", "🍱", "🍳", "☕", "🍺", "🍷",
+                  "🚗", "🚌", "🚇", "✈️", "⛽", "🚕", "🚲", "🛵",
+                  "🏠", "🔌", "💡", "🚿", "🛋️", "🧹", "🔧", "🏗️",
+                  "💊", "🏥", "🩺", "💉", "🧘", "🏋️", "🦷", "👓",
+                  "📚", "🎓", "✏️", "💻", "🎨", "🎵", "📖", "🧠",
+                  "🎬", "🎮", "🎭", "🎪", "🏖️", "⚽", "🎾", "🎳",
+                  "🛒", "👕", "👗", "👟", "💄", "🎁", "📦", "🛍️",
+                  "💰", "💳", "🏦", "📈", "💵", "🪙", "💎", "📊",
+                  "💼", "📱", "🖥️", "📧", "📝", "🗂️", "📋", "🔒",
+                  "🐕", "🐈", "🐠", "🐦", "🐾", "🦴", "🐶", "🐱",
+                  "❤️", "⭐", "🔥", "✨", "🎯", "🏆", "🎉", "📌",
+                ].map((icon) => (
+                  <button key={icon} onClick={() => setNewCategoryIcon(icon)} className={cn("h-10 w-10 flex items-center justify-center rounded-lg border border-border hover:bg-muted transition-colors", newCategoryIcon === icon && "bg-foreground text-background border-foreground")}>
+                    {icon}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancelar</Button>
+            <Button onClick={handleCreateCategory} disabled={!newCategoryName || createCategory.isPending}>{createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar Categoria"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Senha</DialogTitle>
+            <DialogDescription>Digite sua nova senha abaixo</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nova Senha</Label>
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Confirmar Nova Senha</Label>
+              <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangePasswordDialog(false)}>Cancelar</Button>
+            <Button onClick={handleChangePassword} disabled={!newPassword || newPassword !== confirmPassword || newPassword.length < 6 || updatePassword.isPending}>{updatePassword.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Senha"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Excluir Conta Permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os seus dados, transações, contas e categorias serão excluídos para sempre.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-3">
+            <p className="text-sm font-medium">Para confirmar, digite <span className="font-bold text-destructive">EXCLUIR</span> abaixo:</p>
+            <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="EXCLUIR" className="border-destructive/50 focus-visible:ring-destructive" />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAccount} disabled={deleteConfirmText !== "EXCLUIR" || deleteAccount.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{deleteAccount.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sim, excluir minha conta"}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
+    </div>
+  );
+}

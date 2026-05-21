@@ -1,0 +1,250 @@
+import { Button } from "@/components/ui/button";
+import { FastForward, Lock, User, CheckCircle, Clock, Users, HandCoins, Edit, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
+import { Transaction } from "@/utils/transactionUtils";
+
+interface PayerInfo {
+  label: string;
+  isMe: boolean;
+}
+
+interface FamilyMember {
+  id: string;
+  name: string;
+  user_id?: string | null;
+  linked_user_id?: string | null;
+}
+
+interface CurrentUser {
+  id: string;
+  email?: string;
+}
+
+interface TransactionItemProps {
+  transaction: Transaction;
+  user: CurrentUser | null;
+  familyMembers: FamilyMember[];
+  formatCurrency: (value: number, currency?: string) => string;
+  onDetails: (tx: Transaction) => void;
+  onSettlement: (tx: Transaction) => void;
+  onAdvance: (tx: Transaction) => void;
+  onEdit: (tx: Transaction) => void;
+  onDelete: (tx: Transaction) => void;
+  isFullySettled: (tx: Transaction) => boolean;
+  hasPendingSplits: (tx: Transaction) => boolean;
+  getCreatorName: (tx: Transaction) => string | null;
+  getPayerInfo: (tx: Transaction) => PayerInfo | null;
+  isMirror?: boolean;
+  selectedAccount: string;
+}
+
+export function TransactionItem({
+  transaction,
+  user,
+  formatCurrency,
+  onDetails,
+  onSettlement,
+  onAdvance,
+  onEdit,
+  onDelete,
+  isFullySettled,
+  hasPendingSplits,
+  getCreatorName,
+  getPayerInfo,
+  selectedAccount
+}: TransactionItemProps) {
+  const creatorName = getCreatorName(transaction);
+  const isOwner = transaction.user_id === user?.id;
+  const isCreator = transaction.creator_user_id === user?.id;
+  const isMirror = !!transaction.source_transaction_id;
+  const pending = hasPendingSplits(transaction);
+  const settled = isFullySettled(transaction);
+  
+  const canEdit = (isOwner || isCreator) && !isMirror && !settled;
+  const canDelete = (isOwner || isCreator) && !settled;
+  
+  const payerInfo = getPayerInfo(transaction);
+  const isPayer = transaction.payer_id === user?.id || transaction.creator_user_id === user?.id;
+  
+  let displayType = transaction.type;
+  if (transaction.is_shared && !isPayer) {
+    displayType = 'EXPENSE';
+  }
+  
+  if (transaction.type === 'TRANSFER' && selectedAccount !== 'all') {
+    displayType = transaction.destination_account_id === selectedAccount ? 'INCOME' : 'EXPENSE';
+  }
+  
+  const isTransfer = transaction.type === 'TRANSFER';
+
+  return (
+    <div
+      className={cn(
+        "group flex items-center justify-between py-4 px-4 hover:bg-muted/30 transition-colors cursor-pointer",
+        settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
+      )}
+      onClick={() => onDetails(transaction)}
+    >
+      <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
+        <div className={cn(
+          "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
+          isTransfer ? "bg-blue-500/10 text-blue-500" :
+          transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
+        )}>
+          {isTransfer ? <FastForward className="h-5 w-5 rotate-90" /> : 
+           transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
+        </div>
+        <div className="flex-1 min-w-0 pt-0.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={cn(
+              "font-medium text-sm md:text-base truncate",
+              settled && "line-through opacity-60"
+            )}>
+              {transaction.description}
+            </p>
+            {transaction.is_shared && (
+              <SharedTransactionBadge
+                isShared={true}
+                isSettled={settled}
+                type={isPayer ? "CREDIT" : "DEBIT"}
+                memberName={creatorName || undefined}
+                compact={false}
+              />
+            )}
+            {isMirror && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                <Lock className="h-3 w-3" />
+                Espelhada
+              </span>
+            )}
+            {transaction.is_shared && creatorName && (
+              <span className={cn(
+                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                creatorName === 'Você' 
+                  ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
+                  : "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400"
+              )}>
+                <User className="h-3 w-3" />
+                Criado por {creatorName}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap mt-1">
+            <span className="truncate">
+              {isTransfer ? "Pagamento de Fatura" : (transaction.category?.name || "Sem categoria")}
+            </span>
+            {transaction.account?.name && (
+              <>
+                <span>·</span>
+                <span className="truncate">{transaction.account.name}</span>
+              </>
+            )}
+            {transaction.is_installment && transaction.current_installment && transaction.total_installments && (
+              <>
+                <span>·</span>
+                <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-medium">
+                  {transaction.current_installment}/{transaction.total_installments}
+                </span>
+              </>
+            )}
+            {transaction.is_shared && (
+              <>
+                <span>·</span>
+                <span className={cn(
+                  "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium",
+                  settled 
+                    ? "bg-positive/10 text-positive" 
+                    : pending 
+                      ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400"
+                      : "bg-muted"
+                )}>
+                  {settled ? (
+                    <><CheckCircle className="h-3 w-3" /> Acertado</>
+                  ) : pending ? (
+                    <><Clock className="h-3 w-3" /> Pendente</>
+                  ) : (
+                    <><Users className="h-3 w-3" /> Dividido</>
+                  )}
+                </span>
+              </>
+            )}
+            {payerInfo && (
+              <>
+                <span>·</span>
+                <span className={cn(
+                  "text-xs px-1.5 py-0.5 rounded font-medium",
+                  payerInfo.isMe 
+                    ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
+                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
+                )}>
+                  {payerInfo.label}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-start gap-3 shrink-0 pt-0.5">
+        <div className="flex flex-col items-end gap-0.5">
+          <span className={cn(
+            "font-mono font-medium text-right whitespace-nowrap",
+            isTransfer ? "text-negative" :
+            displayType === "INCOME" ? "text-positive" : "text-negative"
+          )}>
+            {displayType === "INCOME" ? "+" : "-"}
+            {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
+          </span>
+          <span className={cn(
+            "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
+            isTransfer ? "text-negative" :
+            displayType === "INCOME" ? "text-positive" : "text-negative"
+          )}>
+            {isTransfer ? (transaction.description.toLowerCase().includes('fatura') ? "PAGAMENTO" : "TRANSFERÊNCIA") : 
+             (displayType === "INCOME" ? "Crédito" : "Débito")}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>
+          {transaction.is_installment && transaction.series_id && canEdit && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 md:h-8 md:w-8 text-blue-600 hover:text-blue-600"
+              onClick={() => onAdvance(transaction)}
+              title="Adiantar parcelas"
+            >
+              <FastForward className="h-4 w-4" />
+            </Button>
+          )}
+          {canEdit && !isMirror && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 md:h-8 md:w-8 text-primary hover:text-primary"
+              onClick={() => onEdit(transaction)}
+              title="Editar"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 md:h-8 md:w-8 text-destructive hover:text-destructive"
+              onClick={() => onDelete(transaction)}
+              title="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+          {!canEdit && !canDelete && (
+            <div className="h-8 w-8 flex items-center justify-center text-muted-foreground" title="Somente leitura">
+              <Lock className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,202 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+export interface UserProfile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  name?: string | null; // Alias for compatibility
+  avatar_url: string | null;
+  avatar_color?: string | null;
+  avatar_icon?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export function useUserProfile() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["user-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist, create one
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.email?.split("@")[0],
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        return { ...newProfile, name: newProfile.full_name } as UserProfile;
+      }
+
+      if (error) throw error;
+      return { ...data, name: data.full_name } as UserProfile;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    gcTime: 30 * 60 * 1000,   // Manter no cache por 30 minutos
+  });
+}
+
+export function useUpdateUserProfile() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: { 
+      name?: string; 
+      avatar_url?: string;
+      avatar_color?: string;
+      avatar_icon?: string;
+    }) => {
+      if (!user) throw new Error("Não autenticado");
+
+      const updateData: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      if (input.name !== undefined) {
+        updateData.full_name = input.name;
+      }
+      if (input.avatar_url !== undefined) {
+        updateData.avatar_url = input.avatar_url;
+      }
+      if (input.avatar_color !== undefined) {
+        updateData.avatar_color = input.avatar_color;
+      }
+      if (input.avatar_icon !== undefined) {
+        updateData.avatar_icon = input.avatar_icon;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Also update auth metadata
+      if (input.name) {
+        await supabase.auth.updateUser({
+          data: { full_name: input.name },
+        });
+      }
+
+      return { ...data, name: data.full_name } as UserProfile;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Perfil atualizado!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar perfil: " + error.message);
+    },
+  });
+}
+
+export function useUpdatePassword() {
+  return useMutation({
+    mutationFn: async ({ newPassword }: { newPassword: string }) => {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      toast.success("Senha alterada com sucesso!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao alterar senha: " + error.message);
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Não autenticado");
+
+      const uid = user.id;
+
+      // ─── LGPD: Expurgo físico em cascata de todos os dados do usuário ───
+      // A ordem respeita as dependências de chave estrangeira (filhos antes dos pais).
+
+      // 1. Notificações do usuário
+      await supabase.from("notifications").delete().eq("user_id", uid);
+
+      // 2. Convites de família enviados ou recebidos pelo usuário
+      await supabase.from("family_invitations").delete().eq("invited_by", uid);
+      await supabase.from("family_invitations").delete().eq("user_id", uid);
+
+      // 3. Splits de transações do usuário (via user_id no split)
+      await supabase.from("transaction_splits").delete().eq("user_id", uid);
+
+      // 4. Splits vinculados a transações criadas pelo usuário
+      const { data: userTxIds } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("user_id", uid);
+      if (userTxIds && userTxIds.length > 0) {
+        const ids = userTxIds.map(t => t.id);
+        await supabase.from("transaction_splits").delete().in("transaction_id", ids);
+      }
+
+      // 5. Transações do usuário
+      await supabase.from("transactions").delete().eq("user_id", uid);
+
+      // 6. Orçamentos do usuário
+      await supabase.from("budgets").delete().eq("user_id", uid);
+
+      // 7. Metas do usuário
+      await supabase.from("goals").delete().eq("user_id", uid);
+
+      // 8. Ativos/Investimentos do usuário
+      await supabase.from("assets").delete().eq("user_id", uid);
+
+      // 9. Membros de família vinculados ao usuário
+      await supabase.from("family_members").delete().eq("linked_user_id", uid);
+
+      // 10. Contas do usuário
+      await supabase.from("accounts").delete().eq("user_id", uid);
+
+      // 11. Famílias onde o usuário é dono
+      await supabase.from("families").delete().eq("owner_id", uid);
+
+      // 12. Perfil do usuário
+      await supabase.from("profiles").delete().eq("id", uid);
+
+      // 13. Deslogar (dados já expurgados)
+      await supabase.auth.signOut();
+      return true;
+    },
+    onSuccess: () => {
+      toast.success("Sua conta e todos os seus dados foram removidos permanentemente.");
+    },
+    onError: (error) => {
+      toast.error("Erro ao excluir conta: " + error.message);
+    },
+  });
+}
