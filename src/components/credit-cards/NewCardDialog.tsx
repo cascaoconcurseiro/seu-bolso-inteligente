@@ -107,12 +107,7 @@ export function NewCardDialog({
                   Object.values(internationalBanks).map((bank) => (
                     <SelectItem key={bank.id} value={bank.id}>
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                          style={{ backgroundColor: bank.color, color: bank.textColor }}
-                        >
-                          {bank.icon}
-                        </div>
+                        <BankIcon bankId={bank.id} size="sm" />
                         <span>{bank.name}</span>
                       </div>
                     </SelectItem>

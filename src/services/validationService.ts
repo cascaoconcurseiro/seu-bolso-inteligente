@@ -360,22 +360,27 @@ export function validateTransaction(
   // ==========================================
   
   if (allTransactions && transaction.amount && transaction.description && transaction.date) {
+    const targetTime = new Date(transaction.date + 'T12:00:00').getTime();
+    const targetDescLower = transaction.description.toLowerCase().trim();
+    
     const duplicates = allTransactions.filter(tx => {
       if (tx.id === transaction.id) return false; // Ignorar a própria transação em edição
       
+      // 1. Filtros leves rápidos (evitam criar objetos de data desnecessários)
       const isSameAmount = Math.abs((tx.amount || 0) - (transaction.amount || 0)) < 0.01;
-      const isSameDescription = tx.description?.toLowerCase() === transaction.description?.toLowerCase();
-      const isSameAccount = tx.account_id === transaction.account_id;
+      if (!isSameAmount) return false;
       
-      // Verificar se é no mesmo dia ou ±3 dias
-      if (tx.date && transaction.date) {
-        const txDate = new Date(tx.date);
-        const transactionDate = new Date(transaction.date);
-        const diffDays = Math.abs((txDate.getTime() - transactionDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 3 && isSameAmount && isSameDescription && isSameAccount) {
-          return true;
-        }
+      const isSameAccount = tx.account_id === transaction.account_id;
+      if (!isSameAccount) return false;
+      
+      const isSameDescription = tx.description?.toLowerCase().trim() === targetDescLower;
+      if (!isSameDescription) return false;
+      
+      // 2. Filtro pesado de data (apenas executado para transações pré-selecionadas)
+      if (tx.date) {
+        const txTime = new Date(tx.date + 'T12:00:00').getTime();
+        const diffDays = Math.abs((txTime - targetTime) / (1000 * 60 * 60 * 24));
+        return diffDays <= 3;
       }
       
       return false;

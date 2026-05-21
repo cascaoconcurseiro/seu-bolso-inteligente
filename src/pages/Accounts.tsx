@@ -226,7 +226,7 @@ export function Accounts() {
               <Label>{isInternational ? 'Instituição' : 'Banco'}</Label>
               <Select value={bankId} onValueChange={setBankId}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent className="max-h-[300px]">{isInternational ? Object.values(internationalBanks).map(b => <SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><span className="text-lg">{b.icon}</span>{b.name}</div></SelectItem>) : Object.values(banks).filter(b => b.id !== 'default').map(b => <SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><BankIcon bankId={b.id} size="sm" />{b.name}</div></SelectItem>)}</SelectContent>
+                <SelectContent className="max-h-[300px]">{isInternational ? Object.values(internationalBanks).map(b => <SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><BankIcon bankId={b.id} size="sm" />{b.name}</div></SelectItem>) : Object.values(banks).filter(b => b.id !== 'default').map(b => <SelectItem key={b.id} value={b.id}><div className="flex items-center gap-2"><BankIcon bankId={b.id} size="sm" />{b.name}</div></SelectItem>)}</SelectContent>
               </Select>
             </div>
             {isInternational && <div className="space-y-2"><Label>Moeda</Label><Select value={currency} onValueChange={setCurrency}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{currencies.map(c => <SelectItem key={c.value} value={c.value}><span className="font-mono text-xs mr-2">{c.symbol}</span>{c.label}</SelectItem>)}</SelectContent></Select></div>}

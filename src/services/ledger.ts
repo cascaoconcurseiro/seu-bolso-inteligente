@@ -58,8 +58,8 @@ export const generateLedger = (
         id: tx.id,
         date,
         description,
-        debit: tx.category?.name || "Despesa",
-        credit: getAccountName(tx.account_id),
+        debit: tx.category?.name ? `[Categoria] ${tx.category.name}` : "[Categoria] Despesa",
+        credit: `[Conta] ${getAccountName(tx.account_id)}`,
         amount,
       });
     } else if (tx.type === "INCOME") {
@@ -68,8 +68,8 @@ export const generateLedger = (
         id: tx.id,
         date,
         description,
-        debit: getAccountName(tx.account_id),
-        credit: tx.category?.name || "Receita",
+        debit: `[Conta] ${getAccountName(tx.account_id)}`,
+        credit: tx.category?.name ? `[Categoria] ${tx.category.name}` : "[Categoria] Receita",
         amount,
       });
     } else if (tx.type === "TRANSFER") {
@@ -83,8 +83,8 @@ export const generateLedger = (
         id: tx.id,
         date,
         description,
-        debit: destName,
-        credit: sourceName,
+        debit: `[Conta] ${destName}`,
+        credit: `[Conta] ${sourceName}`,
         amount,
       });
     }

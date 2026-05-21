@@ -133,10 +133,10 @@ export async function generatePendingRecurringTransactions(
     for (const tx of recurringTransactions) {
       if (!tx.recurrence_pattern) continue;
 
-      // Determinar a última data gerada
+      // Determinar a última data gerada de forma segura contra deslocamentos de fuso horário
       const lastGeneratedDate = tx.last_generated_date 
-        ? new Date(tx.last_generated_date)
-        : new Date(tx.date);
+        ? new Date(tx.last_generated_date + 'T12:00:00')
+        : new Date(tx.date + 'T12:00:00');
 
       // Calcular próximas ocorrências até hoje
       let nextDate = calculateNextOccurrence(
@@ -237,9 +237,10 @@ export async function checkPendingRecurrences(userId: string): Promise<number> {
     for (const tx of data) {
       if (!tx.recurrence_pattern) continue;
 
+      // Determinar a última data de forma segura contra deslocamentos de fuso horário
       const lastDate = tx.last_generated_date 
-        ? new Date(tx.last_generated_date)
-        : new Date(tx.date);
+        ? new Date(tx.last_generated_date + 'T12:00:00')
+        : new Date(tx.date + 'T12:00:00');
 
       const nextDate = calculateNextOccurrence(
         lastDate,

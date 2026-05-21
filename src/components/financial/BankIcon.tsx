@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { getBankById, getBankByName, getCardBrand } from "@/lib/banks";
 import { getBankLogo, getCardBrandLogo } from "@/utils/bankLogos";
 import { cn } from "@/lib/utils";
@@ -12,6 +13,7 @@ interface BankIconProps {
 
 export function BankIcon({ bankId, bankName, accountName, size = "md", className }: BankIconProps) {
   const bank = bankId ? getBankById(bankId) : bankName ? getBankByName(bankName) : null;
+  const [hasError, setHasError] = useState(false);
   
   if (!bank) return null;
 
@@ -20,6 +22,9 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
     md: "w-12 h-12 text-sm",
     lg: "w-16 h-16 text-base",
   };
+
+  // Tentar buscar logo real do banco pelo nome ou pelo ID
+  const logoUrl = !hasError ? (getBankLogo(bank.name) || getBankLogo(bank.id)) : undefined;
 
   // Função para pegar as iniciais do nome
   const getInitials = (name: string) => {
@@ -33,6 +38,25 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
 
   // Se tiver accountName (nome personalizado), usar as iniciais dele
   const displayText = accountName ? getInitials(accountName) : bank.icon;
+
+  if (logoUrl) {
+    return (
+      <div 
+        className={cn(
+          "rounded-xl flex items-center justify-center shrink-0 bg-white border border-zinc-200/60 dark:border-zinc-800 shadow-sm overflow-hidden p-1.5",
+          sizeClasses[size],
+          className
+        )}
+      >
+        <img
+          src={logoUrl}
+          alt={bank.name}
+          className="w-full h-full object-contain rounded"
+          onError={() => setHasError(true)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div

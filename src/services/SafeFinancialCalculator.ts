@@ -133,11 +133,12 @@ export class SafeFinancialCalculator {
       amount: SafeFinancialCalculator.percentage(total, split.percentage),
     }));
 
-    // Adjust last split to ensure exact total
+    // Adjust last split to ensure exact total only if percentages sum to 100%
+    const isCloseTo100 = Math.abs(totalPercentage - 100) < 0.01;
     const calculatedSum = SafeFinancialCalculator.safeSum(result.map(r => r.amount));
     const difference = SafeFinancialCalculator.subtract(total, calculatedSum);
     
-    if (Math.abs(difference) > 0.01 && result.length > 0) {
+    if (isCloseTo100 && Math.abs(difference) > 0.01 && result.length > 0) {
       result[result.length - 1].amount = SafeFinancialCalculator.add(
         result[result.length - 1].amount,
         difference
