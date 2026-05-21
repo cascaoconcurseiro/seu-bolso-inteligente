@@ -16,6 +16,7 @@ import { Download, Printer, Eye, EyeOff, Scale, BadgePercent, Activity } from "l
 import * as dateFns from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatExportMoney } from "@/utils/exportCurrency";
 import { toast } from "sonner";
 
 type DRELineType = 'OPERATIONAL_INC' | 'FINANCIAL_INC' | 'DEDUCTION' | 'VARIABLE_EXP' | 'FIXED_EXP' | 'FINANCIAL_EXP';
@@ -265,9 +266,7 @@ export function AccountingDRE() {
     };
   }, [accounts, assets, selectedCurrency]);
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
-  };
+  const formatCurrency = (val: number) => formatExportMoney(val, selectedCurrency);
 
   const formatNegativeCurrency = (val: number) => {
     if (val === 0) return formatCurrency(0);
@@ -328,7 +327,7 @@ export function AccountingDRE() {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Descrição Contábil", "Valor (R$)", "Vertical %"]],
+        head: [["Descrição Contábil", `Valor (${selectedCurrency})`, "Vertical %"]],
         body: tableData,
         theme: "plain",
         headStyles: {
@@ -420,7 +419,7 @@ export function AccountingDRE() {
           <!-- Cabeçalho das Colunas -->
           <tr>
             <th class="th-premium text-cell" style="width: 350px; padding-left: 14px;">Descrição das Contas Contábeis</th>
-            <th class="th-premium number-cell" style="width: 160px; text-align: right; padding-right: 14px;">Valor Consolidado (R$)</th>
+            <th class="th-premium number-cell" style="width: 160px; text-align: right; padding-right: 14px;">Valor Consolidado (${selectedCurrency})</th>
             <th class="th-premium text-cell" style="width: 100px; text-align: right; padding-right: 14px;">AV %</th>
           </tr>
       `;
@@ -604,7 +603,7 @@ export function AccountingDRE() {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Grupo Contábil", "Valor Consolidado (R$)", "Proporção %"]],
+        head: [["Grupo Contábil", `Valor Consolidado (${selectedCurrency})`, "Proporção %"]],
         body: tableData,
         theme: "plain",
         headStyles: {
@@ -704,7 +703,7 @@ export function AccountingDRE() {
           <!-- Cabeçalho das Colunas -->
           <tr>
             <th class="th-premium text-cell" style="width: 350px; padding-left: 14px;">Grupo Patrimonial (Contas do Balanço)</th>
-            <th class="th-premium number-cell" style="width: 160px; text-align: right; padding-right: 14px;">Saldo Consolidado (R$)</th>
+            <th class="th-premium number-cell" style="width: 160px; text-align: right; padding-right: 14px;">Saldo Consolidado (${selectedCurrency})</th>
             <th class="th-premium text-cell" style="width: 100px; text-align: right; padding-right: 14px;">AV %</th>
           </tr>
 

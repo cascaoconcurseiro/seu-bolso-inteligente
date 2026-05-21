@@ -211,11 +211,16 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
   doc.text(`Emitido em: ${today} às ${now}`, 150, 23);
 
   // Totals Calculation
-  const totalBR = assets.filter(a => a.location === 'BR').reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalAbroad = assets.filter(a => a.location === 'ABROAD').reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalCost = assets.reduce((sum, a) => sum + (a.quantity || 0) * (a.purchase_price || 0), 0);
-  const totalCurrent = assets.reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalPnL = totalCurrent - totalCost;
+  const totalsByCurrency = assets.reduce<Record<string, { cost: number; current: number; pnl: number }>>((acc, asset) => {
+    const currency = asset.currency || 'BRL';
+    const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
+    const current = (asset.quantity || 0) * (asset.current_price || 0);
+    if (!acc[currency]) acc[currency] = { cost: 0, current: 0, pnl: 0 };
+    acc[currency].cost += cost;
+    acc[currency].current += current;
+    acc[currency].pnl += current - cost;
+    return acc;
+  }, {});
 
   // Executive Summary Card
   doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
@@ -224,18 +229,22 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
   doc.text('Resumo do Patrimônio', 14, 52);
 
   safeCallAutoTable(doc, {
-    body: [
-      ['Patrimônio Total (Ref. BRL):', formatCurrency(totalCurrent), 'Lucro/Prejuízo Total:', formatCurrency(totalPnL)],
-      ['Total no Brasil:', formatCurrency(totalBR), 'Total no Exterior:', formatCurrency(totalAbroad)]
-    ],
+    head: [['Moeda', 'Custo', 'Valor Atual', 'Lucro/Prejuízo']],
+    body: Object.entries(totalsByCurrency).map(([currency, total]) => [
+      currency,
+      formatCurrency(total.cost, currency),
+      formatCurrency(total.current, currency),
+      formatCurrency(total.pnl, currency),
+    ]),
     startY: 56,
-    theme: 'plain',
+    theme: 'striped',
     styles: { fontSize: 10, cellPadding: 2.5 },
+    headStyles: { fillColor: BRAND_COLOR },
     columnStyles: { 
       0: { fontStyle: 'bold', textColor: [100, 110, 120] },
       1: { fontStyle: 'bold', textColor: TEXT_COLOR },
       2: { fontStyle: 'bold', textColor: [100, 110, 120] },
-      3: { fontStyle: 'bold', textColor: totalPnL >= 0 ? [16, 185, 129] : [239, 68, 68] }
+      3: { fontStyle: 'bold' }
     }
   });
 
@@ -257,9 +266,9 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
       asset.type,
       asset.location === 'BR' ? 'Brasil' : 'Exterior',
       asset.quantity?.toFixed(4).replace(/\.?0+$/, '') || '0',
-      formatCurrency(asset.purchase_price || 0),
-      formatCurrency(current),
-      `${pnl >= 0 ? '+' : ''}${formatCurrency(pnl)} (${pnlPercent.toFixed(2)}%)`
+      formatCurrency(asset.purchase_price || 0, asset.currency || 'BRL'),
+      formatCurrency(current, asset.currency || 'BRL'),
+      `${pnl >= 0 ? '+' : ''}${formatCurrency(pnl, asset.currency || 'BRL')} (${pnlPercent.toFixed(2)}%)`
     ];
   });
 
@@ -310,11 +319,18 @@ const downloadExcel = (htmlContent: string, filename: string) => {
 export const exportToCSV = (assets: Asset[]) => {
   const today = new Date().toLocaleDateString('pt-BR');
   
-  const totalBR = assets.filter(a => a.location === 'BR').reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalAbroad = assets.filter(a => a.location === 'ABROAD').reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalCost = assets.reduce((sum, a) => sum + (a.quantity || 0) * (a.purchase_price || 0), 0);
-  const totalCurrent = assets.reduce((sum, a) => sum + (a.quantity || 0) * (a.current_price || 0), 0);
-  const totalPnL = totalCurrent - totalCost;
+  const totalsByCurrency = assets.reduce<Record<string, { cost: number; current: number; pnl: number }>>((acc, asset) => {
+    const currency = asset.currency || 'BRL';
+    const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
+    const current = (asset.quantity || 0) * (asset.current_price || 0);
+    if (!acc[currency]) acc[currency] = { cost: 0, current: 0, pnl: 0 };
+    acc[currency].cost += cost;
+    acc[currency].current += current;
+    acc[currency].pnl += current - cost;
+    return acc;
+  }, {});
+  const summaryText = (field: 'cost' | 'current' | 'pnl') =>
+    Object.entries(totalsByCurrency).map(([currency, total]) => formatCurrency(total[field], currency)).join(' / ');
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -353,13 +369,13 @@ export const exportToCSV = (assets: Asset[]) => {
       </tr>
       <tr>
         <td class="label-cell">Patrimônio Total:</td>
-        <td colspan="2" class="value-cell number-cell green-text">${totalCurrent}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${summaryText('current')}</td>
         <td class="label-cell">Lucro/Prejuízo Total:</td>
-        <td colspan="2" class="value-cell number-cell ${totalPnL >= 0 ? 'green-text' : 'red-text'}">${totalPnL}</td>
-        <td class="label-cell">Total no Brasil:</td>
-        <td colspan="2" class="value-cell number-cell">${totalBR}</td>
-        <td class="label-cell">Total no Exterior:</td>
-        <td colspan="2" class="value-cell number-cell">${totalAbroad}</td>
+        <td colspan="2" class="value-cell text-cell">${summaryText('pnl')}</td>
+        <td class="label-cell">Custo Total:</td>
+        <td colspan="2" class="value-cell text-cell">${summaryText('cost')}</td>
+        <td class="label-cell">Moedas:</td>
+        <td colspan="2" class="value-cell text-cell">${Object.keys(totalsByCurrency).join(' / ')}</td>
       </tr>
       <tr><td colspan="12" style="border:none; height: 15px;"></td></tr>
 

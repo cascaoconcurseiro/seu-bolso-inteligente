@@ -37,6 +37,8 @@ import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
 import { SharedFinancesTable } from "@/components/reports/SharedFinancesTable";
 import { InstallmentsTable } from "@/components/reports/InstallmentsTable";
 
+const getTransactionCurrency = (tx: any): string => tx.account?.currency || tx.currency || 'BRL';
+
 export function Reports() {
   const { currentDate } = useMonth();
   const safeCurrentDate = useMemo(() => {
@@ -60,7 +62,10 @@ export function Reports() {
 
   const availableCurrencies = useMemo(() => {
     const currencies = new Set<string>(['BRL']);
-    allTransactions.forEach(tx => { if (tx.currency && tx.currency !== 'BRL') currencies.add(tx.currency); });
+    allTransactions.forEach(tx => {
+      const currency = getTransactionCurrency(tx);
+      if (currency !== 'BRL') currencies.add(currency);
+    });
     accounts.forEach(acc => { if (acc.is_international && acc.currency) currencies.add(acc.currency); });
     return Array.from(currencies).sort();
   }, [allTransactions, accounts]);
@@ -105,7 +110,7 @@ export function Reports() {
         : txYear === targetYear;
         
       if (!isInPeriod) return false;
-      return selectedCurrency === 'ALL' || (tx.currency || 'BRL') === selectedCurrency;
+      return selectedCurrency === 'ALL' || getTransactionCurrency(tx) === selectedCurrency;
     });
   }, [allTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
 

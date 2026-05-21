@@ -65,14 +65,21 @@ export function TransactionList({
     <div className="space-y-6">
       {dayGroups.map((group) => (
         <div key={group.date} className="space-y-2">
-          <div className="flex items-center justify-between py-2 px-1">
+          <div className="flex items-center justify-between gap-3 py-2 px-1">
             <h3 className="font-medium text-sm text-muted-foreground">{group.label}</h3>
-            <span className={cn(
-              "font-mono text-sm font-medium",
-              group.balance >= 0 ? "text-positive" : "text-negative"
-            )}>
-              {group.balance >= 0 ? "+" : ""}{formatCurrency(group.balance)}
-            </span>
+            <div className="flex flex-wrap justify-end gap-x-3 gap-y-1">
+              {Object.entries(group.balancesByCurrency).map(([currency, totals]) => (
+                <span
+                  key={currency}
+                  className={cn(
+                    "font-mono text-sm font-medium",
+                    totals.balance >= 0 ? "text-positive" : "text-negative"
+                  )}
+                >
+                  {totals.balance >= 0 ? "+" : ""}{formatCurrency(totals.balance, currency)}
+                </span>
+              ))}
+            </div>
           </div>
           
           <div className="bg-card rounded-xl border border-border overflow-hidden">

@@ -1,4 +1,5 @@
-import { Transaction } from "@/hooks/useTransactions";
+import { exportToPDF } from "@/utils/exportData";
+import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from "@/utils/exportCurrency";
 
 export interface ExportOptions {
   format: "csv" | "json";
@@ -29,7 +30,7 @@ export function exportTransactionsToJSON(transactions: any[]): string {
     tipo: tx.type,
     categoria: tx.category?.name || tx.category || null,
     valor: tx.amount,
-    moeda: tx.currency || "BRL",
+    moeda: resolveItemCurrency(tx),
     conta: tx.account?.name || null,
     parcela: tx.is_installment
       ? { atual: tx.current_installment, total: tx.total_installments }
@@ -53,8 +54,6 @@ export function downloadFile(content: string, filename: string, mimeType: string
   URL.revokeObjectURL(url);
 }
 
-import { exportToPDF } from "@/utils/exportData";
-
 export function exportTransactions(
   transactions: any[],
   format: "csv" | "json" | "pdf" = "csv"
@@ -64,6 +63,7 @@ export function exportTransactions(
   
   const totalIncome = transactions.filter(t => t.type === 'INCOME' || t.type === 'RECEITA').reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const totalExpense = transactions.filter(t => t.type === 'EXPENSE' || t.type === 'DESPESA').reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
 
   if (format === "pdf") {
     exportToPDF(transactions, totalIncome, totalExpense, `transacoes_${date}.pdf`);
@@ -110,11 +110,11 @@ export function exportTransactions(
         </tr>
         <tr>
           <td class="label-cell">Total de Receitas:</td>
-          <td colspan="2" class="value-cell number-cell green-text">${totalIncome}</td>
+          <td colspan="2" class="value-cell text-cell green-text">${formatTotalsInline(totalsByCurrency, "income")}</td>
           <td class="label-cell">Total de Despesas:</td>
-          <td colspan="2" class="value-cell number-cell red-text">${totalExpense}</td>
+          <td colspan="2" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, "expense")}</td>
           <td class="label-cell">Saldo Líquido:</td>
-          <td colspan="2" class="value-cell number-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${balance}</td>
+          <td colspan="2" class="value-cell text-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${formatTotalsInline(totalsByCurrency, "balance")}</td>
         </tr>
         <tr><td colspan="9" style="border:none; height: 15px;"></td></tr>
 
@@ -140,6 +140,7 @@ export function exportTransactions(
       const isIncome = t.type === 'INCOME' || t.type === 'RECEITA';
       const typeText = isIncome ? 'Receita' : t.type === 'EXPENSE' || t.type === 'DESPESA' ? 'Despesa' : 'Transferência';
       const amountVal = Number(t.amount || 0);
+      const currency = resolveItemCurrency(t);
       const installmentText = t.is_installment 
         ? `Parc. ${t.current_installment}/${t.total_installments}` 
         : '';
@@ -150,8 +151,8 @@ export function exportTransactions(
           <td class="text-cell" style="color: ${isIncome ? '#059669' : t.type === 'TRANSFER' ? '#4b5563' : '#dc2626'}">${typeText}</td>
           <td colspan="2" class="text-cell">${t.description || 'Sem descrição'}</td>
           <td class="text-cell">${t.category?.name || t.category || 'Sem categoria'}</td>
-          <td class="number-cell" style="font-weight: bold; color: ${isIncome ? '#059669' : t.type === 'TRANSFER' ? '#4b5563' : '#dc2626'}">${amountVal}</td>
-          <td class="text-cell">${t.currency || 'BRL'}</td>
+          <td class="text-cell" style="font-weight: bold; color: ${isIncome ? '#059669' : t.type === 'TRANSFER' ? '#4b5563' : '#dc2626'}">${formatExportMoney(amountVal, currency)}</td>
+          <td class="text-cell">${currency}</td>
           <td class="text-cell">${t.account?.name || ''}</td>
           <td class="text-cell">${installmentText}</td>
         </tr>
@@ -179,4 +180,3 @@ export function exportTransactions(
     downloadFile(content, `transacoes_${date}.json`, "application/json");
   }
 }
-

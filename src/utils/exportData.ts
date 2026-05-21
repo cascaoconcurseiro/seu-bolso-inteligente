@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from './exportCurrency';
 
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium do Seu Bolso Inteligente
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
@@ -93,9 +94,16 @@ export const exportToCSV = (transactions: any[], filename = 'transacoes_seu_bols
   }
 
   const today = new Date().toLocaleDateString('pt-BR');
-  const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const totalExpense = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const balance = totalIncome - totalExpense;
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
+  const balance = Object.values(totalsByCurrency).reduce((sum, total) => sum + total.balance, 0);
+  const summaryRows = Object.entries(totalsByCurrency).map(([currency, total]) => `
+      <tr>
+        <td class="text-cell">${currency}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${formatExportMoney(total.income, currency)}</td>
+        <td colspan="2" class="value-cell text-cell red-text">${formatExportMoney(total.expense, currency)}</td>
+        <td colspan="2" class="value-cell text-cell ${total.balance >= 0 ? 'green-text' : 'red-text'}">${formatExportMoney(total.balance, currency)}</td>
+      </tr>
+  `).join('');
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -134,16 +142,17 @@ export const exportToCSV = (transactions: any[], filename = 'transacoes_seu_bols
       </tr>
       <tr>
         <td class="label-cell">Total de Receitas:</td>
-        <td colspan="2" class="value-cell number-cell green-text">${totalIncome}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${formatTotalsInline(totalsByCurrency, 'income')}</td>
         <td class="label-cell">Total de Despesas:</td>
-        <td colspan="3" class="value-cell number-cell red-text">${totalExpense}</td>
+        <td colspan="3" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, 'expense')}</td>
       </tr>
       <tr>
         <td class="label-cell">Saldo Líquido:</td>
-        <td colspan="2" class="value-cell number-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${balance}</td>
+        <td colspan="2" class="value-cell text-cell">${formatTotalsInline(totalsByCurrency, 'balance')}</td>
         <td class="label-cell">Status Financeiro:</td>
         <td colspan="3" class="value-cell text-cell" style="font-weight: bold; color: ${balance >= 0 ? '#059669' : '#dc2626'}">${balance >= 0 ? 'Superavitário' : 'Deficitário'}</td>
       </tr>
+      ${summaryRows}
       <tr><td colspan="7" style="border:none; height: 15px;"></td></tr>
 
       <tr>
@@ -164,6 +173,7 @@ export const exportToCSV = (transactions: any[], filename = 'transacoes_seu_bols
     const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
     const dateFormatted = safeFormatDate(t.date);
     const amountVal = Number(t.amount || 0);
+    const currency = resolveItemCurrency(t);
 
     html += `
       <tr ${zebraClass}>
@@ -171,8 +181,8 @@ export const exportToCSV = (transactions: any[], filename = 'transacoes_seu_bols
         <td class="text-cell" style="color: ${t.type === 'INCOME' ? '#059669' : '#dc2626'}">${t.type === 'INCOME' ? 'Receita' : 'Despesa'}</td>
         <td class="text-cell">${t.description || 'Sem descrição'}</td>
         <td class="text-cell">${t.category?.name || 'Sem categoria'}</td>
-        <td class="number-cell" style="font-weight: bold; color: ${t.type === 'INCOME' ? '#059669' : '#dc2626'}">${amountVal}</td>
-        <td class="text-cell">${t.currency || 'BRL'}</td>
+        <td class="text-cell" style="font-weight: bold; color: ${t.type === 'INCOME' ? '#059669' : '#dc2626'}">${formatExportMoney(amountVal, currency)}</td>
+        <td class="text-cell">${currency}</td>
         <td class="text-cell">${t.account?.name || ''}</td>
       </tr>
     `;
@@ -217,22 +227,27 @@ export const exportToPDF = (transactions: any[], totalIncome: number, totalExpen
   doc.setFont('helvetica', 'bold');
   doc.text('Resumo Financeiro do Período', 14, 48);
 
-  const currencySymbol = transactions[0]?.currency === 'USD' ? '$' : 'R$';
-  const balance = totalIncome - totalExpense;
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
+  void totalIncome;
+  void totalExpense;
 
   safeCallAutoTable(doc, {
-    body: [
-      ['Total de Receitas:', `${currencySymbol} ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Total de Despesas:', `${currencySymbol} ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ['Saldo Líquido:', `${currencySymbol} ${balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Status Financeiro:', balance >= 0 ? 'Superavitário' : 'Deficitário']
-    ],
+    head: [['Moeda', 'Receitas', 'Despesas', 'Saldo']],
+    body: Object.entries(totalsByCurrency).map(([currency, total]) => [
+      currency,
+      formatExportMoney(total.income, currency),
+      formatExportMoney(total.expense, currency),
+      formatExportMoney(total.balance, currency),
+    ]),
     startY: 52,
-    theme: 'plain',
+    theme: 'striped',
     styles: { fontSize: 10, cellPadding: 2 },
+    headStyles: { fillColor: BRAND_COLOR },
     columnStyles: { 
       0: { fontStyle: 'bold', textColor: [100, 110, 120] },
-      1: { fontStyle: 'bold', textColor: [16, 185, 129] }, // Verde
-      2: { fontStyle: 'bold', textColor: [100, 110, 120] },
-      3: { fontStyle: 'bold', textColor: balance >= 0 ? [16, 185, 129] : [239, 68, 68] }
+      1: { fontStyle: 'bold', textColor: [16, 185, 129], halign: 'right' },
+      2: { fontStyle: 'bold', textColor: [239, 68, 68], halign: 'right' },
+      3: { fontStyle: 'bold', halign: 'right' }
     }
   });
 
@@ -243,14 +258,18 @@ export const exportToPDF = (transactions: any[], totalIncome: number, totalExpen
   doc.setFont('helvetica', 'bold');
   doc.text('Lista de Lançamentos', 14, nextStartY);
 
-  const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", `Valor (${currencySymbol})`];
-  const tableRows = transactions.map(t => [
-    safeFormatDate(t.date),
-    t.description || 'Sem descrição',
-    t.category?.name || 'Sem categoria',
-    t.type === 'INCOME' ? 'Receita' : 'Despesa',
-    Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
-  ]);
+  const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Moeda", "Valor"];
+  const tableRows = transactions.map(t => {
+    const currency = resolveItemCurrency(t);
+    return [
+      safeFormatDate(t.date),
+      t.description || 'Sem descrição',
+      t.category?.name || 'Sem categoria',
+      t.type === 'INCOME' ? 'Receita' : 'Despesa',
+      currency,
+      formatExportMoney(Number(t.amount || 0), currency)
+    ];
+  });
 
   safeCallAutoTable(doc, {
     head: [tableColumn],
@@ -260,7 +279,7 @@ export const exportToPDF = (transactions: any[], totalIncome: number, totalExpen
     styles: { fontSize: 8.5 },
     headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
-      4: { halign: 'right', fontStyle: 'bold' }
+      5: { halign: 'right', fontStyle: 'bold' }
     },
     didParseCell: (cellData: any) => {
       if (cellData.section === 'body' && cellData.column.index === 3) {
@@ -292,9 +311,8 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
   }
 
   const today = new Date().toLocaleDateString('pt-BR');
-  const totalIncome = accTransactions.filter(t => t.type === 'INCOME' || (t.type === 'TRANSFER' && t.destination_account_id && accountIds.includes(t.destination_account_id) && (!t.account_id || !accountIds.includes(t.account_id)))).reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const totalExpense = accTransactions.filter(t => t.type === 'EXPENSE' || (t.type === 'TRANSFER' && t.account_id && accountIds.includes(t.account_id) && (!t.destination_account_id || !accountIds.includes(t.destination_account_id)))).reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const balance = totalIncome - totalExpense;
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(accTransactions, accounts);
+  const balance = Object.values(totalsByCurrency).reduce((sum, total) => sum + total.balance, 0);
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -321,38 +339,39 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
     <body>
     <table>
       <tr>
-        <th colspan="7" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="8" class="brand-title">SEU BOLSO INTELIGENTE</th>
       </tr>
       <tr>
-        <th colspan="7" class="brand-subtitle">Extrato de Contas Bancárias — ${periodLabel} — Emitido em ${today}</th>
+        <th colspan="8" class="brand-subtitle">Extrato de Contas Bancárias — ${periodLabel} — Emitido em ${today}</th>
       </tr>
-      <tr><td colspan="7" style="border:none; height: 10px;"></td></tr>
+      <tr><td colspan="8" style="border:none; height: 10px;"></td></tr>
 
       <tr>
-        <th colspan="7" class="section-title">1. RESUMO FINANCEIRO DAS CONTAS</th>
+        <th colspan="8" class="section-title">1. RESUMO FINANCEIRO DAS CONTAS</th>
       </tr>
       <tr>
         <td class="label-cell">Total de Entradas:</td>
-        <td colspan="2" class="value-cell number-cell green-text">${totalIncome}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${formatTotalsInline(totalsByCurrency, 'income')}</td>
         <td class="label-cell">Total de Saídas:</td>
-        <td colspan="3" class="value-cell number-cell red-text">${totalExpense}</td>
+        <td colspan="4" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, 'expense')}</td>
       </tr>
       <tr>
         <td class="label-cell">Saldo do Período:</td>
-        <td colspan="2" class="value-cell number-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${balance}</td>
+        <td colspan="2" class="value-cell text-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${formatTotalsInline(totalsByCurrency, 'balance')}</td>
         <td class="label-cell">Período Selecionado:</td>
-        <td colspan="3" class="value-cell text-cell">${periodLabel}</td>
+        <td colspan="4" class="value-cell text-cell">${periodLabel}</td>
       </tr>
-      <tr><td colspan="7" style="border:none; height: 15px;"></td></tr>
+      <tr><td colspan="8" style="border:none; height: 15px;"></td></tr>
 
       <tr>
-        <th colspan="7" class="section-title">2. LANÇAMENTOS RECENTES DAS CONTAS</th>
+        <th colspan="8" class="section-title">2. LANÇAMENTOS RECENTES DAS CONTAS</th>
       </tr>
       <tr>
         <th class="th-premium date-cell">Data</th>
         <th class="th-premium text-cell">Tipo</th>
         <th class="th-premium text-cell" style="width: 200px;">Descrição</th>
         <th class="th-premium text-cell">Categoria</th>
+        <th class="th-premium text-cell">Moeda</th>
         <th class="th-premium number-cell">Valor</th>
         <th class="th-premium text-cell">Conta Origem</th>
         <th class="th-premium text-cell">Conta Destino</th>
@@ -371,6 +390,7 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
     const originAccount = accounts.find(a => a.id === t.account_id)?.name || '';
     const destAccount = accounts.find(a => a.id === t.destination_account_id)?.name || '';
     const amountVal = Number(t.amount || 0);
+    const currency = resolveItemCurrency(t, accounts);
 
     html += `
       <tr ${zebraClass}>
@@ -378,7 +398,8 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
         <td class="text-cell" style="color: ${t.type === 'INCOME' ? '#059669' : t.type === 'EXPENSE' ? '#dc2626' : '#4b5563'}">${typeText}</td>
         <td class="text-cell">${t.description || 'Sem descrição'}</td>
         <td class="text-cell">${t.category?.name || 'Sem categoria'}</td>
-        <td class="number-cell" style="font-weight: bold; color: ${t.type === 'INCOME' ? '#059669' : t.type === 'EXPENSE' ? '#dc2626' : '#4b5563'}">${amountVal}</td>
+        <td class="text-cell">${currency}</td>
+        <td class="text-cell" style="font-weight: bold; color: ${t.type === 'INCOME' ? '#059669' : t.type === 'EXPENSE' ? '#dc2626' : '#4b5563'}">${formatExportMoney(amountVal, currency)}</td>
         <td class="text-cell">${originAccount}</td>
         <td class="text-cell">${destAccount}</td>
       </tr>
@@ -429,13 +450,19 @@ export const exportAccountsToPDF = (transactions: any[], accounts: any[], period
   doc.setFont('helvetica', 'bold');
   doc.text('Resumo Financeiro das Contas', 14, 48);
 
-  const totalIncome = accTransactions.filter(t => t.type === 'INCOME' || (t.type === 'TRANSFER' && t.destination_account_id && accountIds.includes(t.destination_account_id) && (!t.account_id || !accountIds.includes(t.account_id)))).reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const totalExpense = accTransactions.filter(t => t.type === 'EXPENSE' || (t.type === 'TRANSFER' && t.account_id && accountIds.includes(t.account_id) && (!t.destination_account_id || !accountIds.includes(t.destination_account_id)))).reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  void totalBalance;
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(accTransactions, accounts);
+  const accountBalancesByCurrency = accounts.reduce<Record<string, { income: number; expense: number; balance: number }>>((acc, account) => {
+    const currency = account.currency || 'BRL';
+    if (!acc[currency]) acc[currency] = { income: 0, expense: 0, balance: 0 };
+    acc[currency].balance += Number(account.balance || 0);
+    return acc;
+  }, {});
 
   safeCallAutoTable(doc, {
     body: [
-      ['Total de Entradas:', `R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Total de Saídas:', `R$ ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ['Saldo do Período:', `R$ ${(totalIncome - totalExpense).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Saldo Atual das Contas:', `R$ ${totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`]
+      ['Total de Entradas:', formatTotalsInline(totalsByCurrency, 'income'), 'Total de Saídas:', formatTotalsInline(totalsByCurrency, 'expense')],
+      ['Saldo do Período:', formatTotalsInline(totalsByCurrency, 'balance'), 'Saldo Atual das Contas:', formatTotalsInline(accountBalancesByCurrency, 'balance')]
     ],
     startY: 52,
     theme: 'plain',
@@ -454,7 +481,7 @@ export const exportAccountsToPDF = (transactions: any[], accounts: any[], period
   doc.setFont('helvetica', 'bold');
   doc.text('Lançamentos Recentes', 14, startY);
 
-  const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Conta Origem/Destino", "Valor (R$)"];
+  const tableColumn = ["Data", "Descrição", "Categoria", "Tipo", "Conta Origem/Destino", "Moeda", "Valor"];
   const tableRows = accTransactions.map(t => {
     let typeText = 'Despesa';
     if (t.type === 'INCOME') typeText = 'Receita';
@@ -466,13 +493,15 @@ export const exportAccountsToPDF = (transactions: any[], accounts: any[], period
       ? `${accounts.find(a => a.id === t.account_id)?.name || ''} -> ${accounts.find(a => a.id === t.destination_account_id)?.name || ''}`
       : (accounts.find(a => a.id === t.account_id)?.name || accounts.find(a => a.id === t.destination_account_id)?.name || '');
 
+    const currency = resolveItemCurrency(t, accounts);
     return [
       safeFormatDate(t.date),
       t.description || 'Sem descrição',
       t.category?.name || 'Sem categoria',
       typeText,
       accountName,
-      Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+      currency,
+      formatExportMoney(Number(t.amount || 0), currency)
     ];
   });
 
@@ -484,7 +513,7 @@ export const exportAccountsToPDF = (transactions: any[], accounts: any[], period
     styles: { fontSize: 8 },
     headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
-      5: { halign: 'right', fontStyle: 'bold' }
+      6: { halign: 'right', fontStyle: 'bold' }
     },
     didParseCell: (cellData: any) => {
       if (cellData.section === 'body' && cellData.column.index === 3) {
@@ -513,7 +542,7 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
   }
 
   const today = new Date().toLocaleDateString('pt-BR');
-  const totalExpense = cardTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(cardTransactions, cards);
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -540,26 +569,26 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
     <body>
     <table>
       <tr>
-        <th colspan="6" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="7" class="brand-title">SEU BOLSO INTELIGENTE</th>
       </tr>
       <tr>
-        <th colspan="6" class="brand-subtitle">Extrato de Cartões de Crédito — ${periodLabel} — Emitido em ${today}</th>
+        <th colspan="7" class="brand-subtitle">Extrato de Cartões de Crédito — ${periodLabel} — Emitido em ${today}</th>
       </tr>
-      <tr><td colspan="6" style="border:none; height: 10px;"></td></tr>
+      <tr><td colspan="7" style="border:none; height: 10px;"></td></tr>
 
       <tr>
-        <th colspan="6" class="section-title">1. RESUMO DE FATURAS</th>
+        <th colspan="7" class="section-title">1. RESUMO DE FATURAS</th>
       </tr>
       <tr>
         <td class="label-cell">Total Gasto no Período:</td>
-        <td colspan="2" class="value-cell number-cell red-text">${totalExpense}</td>
+        <td colspan="2" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, 'expense')}</td>
         <td class="label-cell">Período de Referência:</td>
-        <td colspan="2" class="value-cell text-cell">${periodLabel}</td>
+        <td colspan="3" class="value-cell text-cell">${periodLabel}</td>
       </tr>
-      <tr><td colspan="6" style="border:none; height: 15px;"></td></tr>
+      <tr><td colspan="7" style="border:none; height: 15px;"></td></tr>
 
       <tr>
-        <th colspan="6" class="section-title">2. LANÇAMENTOS NAS FATURAS DOS CARTÕES</th>
+        <th colspan="7" class="section-title">2. LANÇAMENTOS NAS FATURAS DOS CARTÕES</th>
       </tr>
       <tr>
         <th class="th-premium date-cell">Data</th>
@@ -567,6 +596,7 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
         <th class="th-premium text-cell">Categoria</th>
         <th class="th-premium text-cell">Cartão</th>
         <th class="th-premium text-cell">Parcelamento</th>
+        <th class="th-premium text-cell">Moeda</th>
         <th class="th-premium number-cell">Valor</th>
       </tr>
   `;
@@ -579,6 +609,7 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
       ? `Parc. ${t.current_installment}/${t.total_installments}` 
       : 'À vista';
     const amountVal = Number(t.amount || 0);
+    const currency = resolveItemCurrency(t, cards);
 
     html += `
       <tr ${zebraClass}>
@@ -587,7 +618,8 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
         <td class="text-cell">${t.category?.name || 'Sem categoria'}</td>
         <td class="text-cell">${cardName}</td>
         <td class="text-cell">${installmentText}</td>
-        <td class="number-cell" style="font-weight: bold; color: #dc2626;">${amountVal}</td>
+        <td class="text-cell">${currency}</td>
+        <td class="text-cell" style="font-weight: bold; color: #dc2626;">${formatExportMoney(amountVal, currency)}</td>
       </tr>
     `;
   });
@@ -633,12 +665,26 @@ export const exportCardsToPDF = (transactions: any[], cards: any[], periodLabel:
   doc.setFont('helvetica', 'bold');
   doc.text('Resumo das Faturas de Cartão', 14, 48);
 
-  const totalExpense = cardTransactions.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  void totalLimit;
+  void totalInvoices;
+  const totalsByCurrency = calculateTransactionTotalsByCurrency(cardTransactions, cards);
+  const cardLimitsByCurrency = cards.reduce<Record<string, { income: number; expense: number; balance: number }>>((acc, card) => {
+    const currency = card.currency || 'BRL';
+    if (!acc[currency]) acc[currency] = { income: 0, expense: 0, balance: 0 };
+    acc[currency].balance += Number(card.credit_limit || 0);
+    return acc;
+  }, {});
+  const cardInvoicesByCurrency = cards.reduce<Record<string, { income: number; expense: number; balance: number }>>((acc, card) => {
+    const currency = card.currency || 'BRL';
+    if (!acc[currency]) acc[currency] = { income: 0, expense: 0, balance: 0 };
+    acc[currency].balance += Number(card.balance || 0);
+    return acc;
+  }, {});
 
   safeCallAutoTable(doc, {
     body: [
-      ['Total Gasto no Período:', `R$ ${totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Faturas Totais Atuais:', `R$ ${totalInvoices.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ['Limite Total de Crédito:', `R$ ${totalLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Uso de Limite Consolidado:', totalLimit > 0 ? `${((totalInvoices / totalLimit) * 100).toFixed(1)}%` : '0%']
+      ['Total Gasto no Período:', formatTotalsInline(totalsByCurrency, 'expense'), 'Faturas Totais Atuais:', formatTotalsInline(cardInvoicesByCurrency, 'balance')],
+      ['Limite Total de Crédito:', formatTotalsInline(cardLimitsByCurrency, 'balance'), 'Uso de Limite Consolidado:', 'Por moeda']
     ],
     startY: 52,
     theme: 'plain',
@@ -657,20 +703,22 @@ export const exportCardsToPDF = (transactions: any[], cards: any[], periodLabel:
   doc.setFont('helvetica', 'bold');
   doc.text('Lançamentos nas Faturas', 14, startY);
 
-  const tableColumn = ["Data", "Descrição", "Categoria", "Cartão", "Parcela", "Valor (R$)"];
+  const tableColumn = ["Data", "Descrição", "Categoria", "Cartão", "Parcela", "Moeda", "Valor"];
   const tableRows = cardTransactions.map(t => {
     const cardName = cards.find(c => c.id === t.account_id)?.name || '';
     const installmentText = t.is_installment 
       ? `${t.current_installment}/${t.total_installments}` 
       : 'À vista';
 
+    const currency = resolveItemCurrency(t, cards);
     return [
       safeFormatDate(t.date),
       t.description || 'Sem descrição',
       t.category?.name || 'Sem categoria',
       cardName,
       installmentText,
-      Number(t.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+      currency,
+      formatExportMoney(Number(t.amount || 0), currency)
     ];
   });
 
@@ -682,7 +730,7 @@ export const exportCardsToPDF = (transactions: any[], cards: any[], periodLabel:
     styles: { fontSize: 8 },
     headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
-      5: { halign: 'right', fontStyle: 'bold' }
+      6: { halign: 'right', fontStyle: 'bold' }
     }
   });
 
@@ -701,9 +749,15 @@ export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
   }
 
   const today = new Date().toLocaleDateString('pt-BR');
-  const totalOwedToMe = invoiceItems.filter(i => i.type === 'CREDIT').reduce((sum, i) => sum + Number(i.amount || 0), 0);
-  const totalIOwe = invoiceItems.filter(i => i.type === 'DEBIT').reduce((sum, i) => sum + Number(i.amount || 0), 0);
-  const balance = totalOwedToMe - totalIOwe;
+  const totalsByCurrency = invoiceItems.reduce<Record<string, { income: number; expense: number; balance: number }>>((acc, item) => {
+    const currency = item.currency || 'BRL';
+    if (!acc[currency]) acc[currency] = { income: 0, expense: 0, balance: 0 };
+    if (item.type === 'CREDIT') acc[currency].income += Number(item.amount || 0);
+    if (item.type === 'DEBIT') acc[currency].expense += Number(item.amount || 0);
+    acc[currency].balance = acc[currency].income - acc[currency].expense;
+    return acc;
+  }, {});
+  const balance = Object.values(totalsByCurrency).reduce((sum, total) => sum + total.balance, 0);
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -742,13 +796,13 @@ export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
       </tr>
       <tr>
         <td class="label-cell">Total a Receber:</td>
-        <td colspan="2" class="value-cell number-cell green-text">${totalOwedToMe}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${formatTotalsInline(totalsByCurrency, 'income')}</td>
         <td class="label-cell">Total a Pagar:</td>
-        <td colspan="4" class="value-cell number-cell red-text">${totalIOwe}</td>
+        <td colspan="4" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, 'expense')}</td>
       </tr>
       <tr>
         <td class="label-cell">Balanço Líquido:</td>
-        <td colspan="2" class="value-cell number-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${balance}</td>
+        <td colspan="2" class="value-cell text-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${formatTotalsInline(totalsByCurrency, 'balance')}</td>
         <td class="label-cell">Status do Grupo:</td>
         <td colspan="4" class="value-cell text-cell" style="font-weight: bold; color: ${balance >= 0 ? '#059669' : '#dc2626'}">${balance >= 0 ? 'Credor Líquido' : 'Devedor Líquido'}</td>
       </tr>
@@ -781,7 +835,7 @@ export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
         <td class="text-cell">${item.description || 'Sem descrição'}</td>
         <td class="text-cell">${item.category?.name || 'Sem categoria'}</td>
         <td class="text-cell" style="color: ${item.type === 'CREDIT' ? '#059669' : '#dc2626'}">${item.type === 'CREDIT' ? 'Você Recebe' : 'Você Deve'}</td>
-        <td class="number-cell" style="font-weight: bold; color: ${item.type === 'CREDIT' ? '#059669' : '#dc2626'}">${amountVal}</td>
+        <td class="text-cell" style="font-weight: bold; color: ${item.type === 'CREDIT' ? '#059669' : '#dc2626'}">${formatExportMoney(amountVal, item.currency || 'BRL')}</td>
         <td class="text-cell" style="font-weight: bold; color: ${item.isPaid ? '#059669' : '#d97706'}">${item.isPaid ? 'Pago' : 'Pendente'}</td>
         <td class="text-cell">${item.tripId ? 'Sim' : 'Não'}</td>
       </tr>
@@ -824,18 +878,21 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
   doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('Balanço Consolidado de Acertos (BRL)', 14, 48);
-
-  const brlTotals = totalsByCurrency['BRL'] || { owedToMe: 0, iOwe: 0, balance: 0, settled: 0 };
+  doc.text('Balanço Consolidado de Acertos por Moeda', 14, 48);
 
   safeCallAutoTable(doc, {
-    body: [
-      ['A Receber da Família:', `R$ ${brlTotals.owedToMe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'A Pagar para Família:', `R$ ${brlTotals.iOwe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-      ['Balanço Líquido:', `R$ ${brlTotals.balance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Total Já Liquidado:', `R$ ${brlTotals.settled.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`]
-    ],
+    head: [['Moeda', 'A Receber', 'A Pagar', 'Balanço', 'Liquidado']],
+    body: Object.entries(totalsByCurrency).map(([currency, totals]) => [
+      currency,
+      formatExportMoney(Number(totals.owedToMe || 0), currency),
+      formatExportMoney(Number(totals.iOwe || 0), currency),
+      formatExportMoney(Number(totals.balance || 0), currency),
+      formatExportMoney(Number(totals.settled || 0), currency),
+    ]),
     startY: 52,
-    theme: 'plain',
+    theme: 'striped',
     styles: { fontSize: 9.5, cellPadding: 2 },
+    headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
       0: { fontStyle: 'bold', textColor: [100, 110, 120] },
       1: { fontStyle: 'bold', textColor: [16, 185, 129] }, // Verde
@@ -850,7 +907,7 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
   doc.setFont('helvetica', 'bold');
   doc.text('Detalhamento de Lançamentos Compartilhados', 14, startY);
 
-  const tableColumn = ["Membro", "Data", "Descrição", "Categoria", "Relação", "Status", "Valor (R$)"];
+  const tableColumn = ["Membro", "Data", "Descrição", "Categoria", "Relação", "Status", "Moeda", "Valor"];
   const tableRows = invoiceItems.map(item => [
     item.memberName || 'Desconhecido',
     safeFormatDate(item.date),
@@ -858,7 +915,8 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
     item.category?.name || 'Sem categoria',
     item.type === 'CREDIT' ? 'A Receber' : 'A Pagar',
     item.isPaid ? 'Acertado' : 'Pendente',
-    Number(item.amount || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+    item.currency || 'BRL',
+    formatExportMoney(Number(item.amount || 0), item.currency || 'BRL')
   ]);
 
   safeCallAutoTable(doc, {
@@ -869,7 +927,7 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
     styles: { fontSize: 8 },
     headStyles: { fillColor: BRAND_COLOR },
     columnStyles: {
-      6: { halign: 'right', fontStyle: 'bold' }
+      7: { halign: 'right', fontStyle: 'bold' }
     },
     didParseCell: (cellData: any) => {
       if (cellData.section === 'body') {

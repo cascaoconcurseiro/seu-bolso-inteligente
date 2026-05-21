@@ -24,7 +24,7 @@ import { TransactionSummary } from "@/components/transactions/TransactionSummary
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { groupTransactionsByDay } from "@/utils/transactionUtils";
+import { getTransactionCurrency, groupTransactionsByDay } from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
@@ -88,11 +88,7 @@ export function Transactions() {
       if (t.account?.id && t.account?.name) {
         accMap.set(t.account.id, { id: t.account.id, name: t.account.name });
       }
-      if (t.account?.currency) {
-        currencySet.add(t.account.currency);
-      } else {
-        currencySet.add('BRL'); // fallback
-      }
+      currencySet.add(getTransactionCurrency(t));
     });
     
     return {
@@ -120,7 +116,7 @@ export function Transactions() {
   const filteredTransactions = useMemo(() => {
     const periodDates = getPeriodDates(selectedPeriod);
     return (transactions || []).filter((t) => {
-      const txCurrency = t.account?.currency || 'BRL';
+      const txCurrency = getTransactionCurrency(t);
       if (selectedCurrency !== 'all' && txCurrency !== selectedCurrency) return false;
       
       if (t.source_transaction_id && t.source_transaction_id !== null && selectedAccount === "all") return false;
@@ -145,7 +141,7 @@ export function Transactions() {
 
   const filteredAnnualTransactions = useMemo(() => {
     return (annualTransactions || []).filter((t) => {
-      const txCurrency = t.account?.currency || 'BRL';
+      const txCurrency = getTransactionCurrency(t);
       if (selectedCurrency !== 'all' && txCurrency !== selectedCurrency) return false;
       
       if (t.source_transaction_id && t.source_transaction_id !== null && selectedAccount === "all") return false;
@@ -353,4 +349,3 @@ export function Transactions() {
     </div>
   );
 }
-

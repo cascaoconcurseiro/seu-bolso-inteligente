@@ -50,6 +50,15 @@ export interface DayGroup {
   totalIncome: number;
   totalExpense: number;
   balance: number;        // totalIncome - totalExpense
+  balancesByCurrency: Record<string, {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  }>;
+}
+
+export function getTransactionCurrency(transaction: Pick<Transaction, "currency" | "account">): string {
+  return transaction.account?.currency || transaction.currency || "BRL";
 }
 
 /**
@@ -103,18 +112,30 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     
-    // Calcular totais
+    // Calcular totais por moeda para não misturar BRL, EUR, USD etc.
     let totalIncome = 0;
     let totalExpense = 0;
+    const balancesByCurrency: DayGroup["balancesByCurrency"] = {};
     
     for (const t of sortedTransactions) {
       const amount = Number(t.amount);
+      const currency = getTransactionCurrency(t);
+      if (!balancesByCurrency[currency]) {
+        balancesByCurrency[currency] = { totalIncome: 0, totalExpense: 0, balance: 0 };
+      }
+
       if (t.type === "INCOME") {
         totalIncome += amount;
+        balancesByCurrency[currency].totalIncome += amount;
       } else if (t.type === "EXPENSE") {
         totalExpense += amount;
+        balancesByCurrency[currency].totalExpense += amount;
       }
     }
+
+    Object.values(balancesByCurrency).forEach((totals) => {
+      totals.balance = totals.totalIncome - totals.totalExpense;
+    });
     
     groups.push({
       date,
@@ -123,6 +144,7 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
       totalIncome,
       totalExpense,
       balance: totalIncome - totalExpense,
+      balancesByCurrency,
     });
   }
   
