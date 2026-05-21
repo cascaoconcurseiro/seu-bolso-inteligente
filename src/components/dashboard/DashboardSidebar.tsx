@@ -54,7 +54,7 @@ export function DashboardSidebar({
       </div>
 
       <div className="p-4 rounded-xl border border-border bg-muted/30 animate-scale-in hover-glow">
-        <p className="text-xs text-muted-foreground mb-1">Saldo do mês</p>
+        <p className="text-xs text-muted-foreground mb-1">Resultado do mês</p>
         <p className="font-semibold">
           {savings >= 0 ? "Positivo" : "Negativo"}
         </p>

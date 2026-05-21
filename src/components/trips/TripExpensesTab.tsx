@@ -33,9 +33,9 @@ export function TripExpensesTab({
     (t) => t.type === "EXPENSE" && t.is_shared
   );
 
-  // Pessoais: apenas minhas, não compartilhadas
+  // Pessoais: apenas minhas, não compartilhadas e acertos (INCOME/EXPENSE sem is_shared)
   const personalExpenses = tripTransactions.filter(
-    (t) => t.type === "EXPENSE" && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id)
+    (t) => (t.type === "EXPENSE" || t.type === "INCOME") && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id)
   );
 
   const myBalance = balances.find(b => b.participantId === user?.id);
@@ -43,7 +43,7 @@ export function TripExpensesTab({
 
   // Totais
   const totalShared = sharedExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
-  const totalPersonalOnly = personalExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalPersonalOnly = personalExpenses.reduce((sum, t) => sum + (t.type === "INCOME" ? -Number(t.amount) : Number(t.amount)), 0);
   const totalPersonal = totalPersonalOnly + myShareOfShared;
   const spentToDisplay = myTotalSpent !== undefined ? myTotalSpent : totalPersonal;
   const mySharedPaid = sharedExpenses
@@ -63,7 +63,14 @@ export function TripExpensesTab({
     }
     const allSettled = expense.transaction_splits.every((s: any) => s.is_settled);
     const anySettled = expense.transaction_splits.some((s: any) => s.is_settled);
+    
+    // Check if waiting for confirmation (one side settled, the other didn't)
+    const waitingConfirmation = expense.transaction_splits.some((s: any) => 
+        (s.settled_by_debtor && !s.settled_by_creditor) || (!s.settled_by_debtor && s.settled_by_creditor)
+    );
+
     if (allSettled) return "settled";
+    if (waitingConfirmation) return "waiting";
     if (anySettled) return "partial";
     return "pending";
   };
@@ -192,6 +199,11 @@ export function TripExpensesTab({
                               <CheckCircle className="h-2.5 w-2.5" /> Acertado
                             </span>
                           )}
+                          {status === "waiting" && (
+                            <span className="text-[9px] bg-blue-500/15 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                              <Clock className="h-2.5 w-2.5" /> Aguardando Confirmação
+                            </span>
+                          )}
                           {status === "pending" && (
                             <span className="text-[9px] bg-orange-500/15 text-orange-700 dark:text-orange-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" /> Pendente
@@ -316,8 +328,11 @@ export function TripExpensesTab({
                           <p className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
                             {expense.description}
                           </p>
-                          <span className="text-[9px] bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">
-                            Pessoal
+                          <span className={cn(
+                            "text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold",
+                            expense.type === "INCOME" ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                          )}>
+                            {expense.type === "INCOME" ? "Recebimento" : "Pessoal"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
@@ -333,8 +348,11 @@ export function TripExpensesTab({
                         </div>
                       </div>
                     </div>
-                    <span className="font-mono font-black text-base sm:text-lg text-foreground tracking-tight tabular-nums shrink-0">
-                      {formatCurrency(Number(expense.amount), currency)}
+                    <span className={cn(
+                      "font-mono font-black text-base sm:text-lg tracking-tight tabular-nums shrink-0",
+                      expense.type === "INCOME" ? "text-green-600 dark:text-green-400" : "text-foreground"
+                    )}>
+                      {expense.type === "INCOME" ? "+" : ""}{formatCurrency(Number(expense.amount), currency)}
                     </span>
                   </div>
                 );

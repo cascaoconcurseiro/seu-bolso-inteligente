@@ -116,6 +116,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const hasDebits = itemsToSettle.some(i => i.type === 'DEBIT');
       const isCompensated = hasCredits && hasDebits;
 
+      const uniqueTripIds = [...new Set(itemsToSettle.map(i => i.tripId).filter(Boolean))];
+      const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
+      const domain = tripId ? 'TRAVEL' : 'PERSONAL';
+
       // 1. Caso de compensação perfeita (valores iguais se anulam)
       if (Math.abs(itemsTotal) < 0.01) {
         const { error: updateError } = await supabase
@@ -144,7 +148,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             : `Recebimento de acerto com ${member?.name}`,
           date: settleDate,
           competence_date: settleDate,
-          domain: 'PERSONAL',
+          domain: domain,
+          trip_id: tripId,
           is_shared: false,
           is_settled: true,
           currency: settlementCurrency
@@ -194,7 +199,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             : `Pagamento de acerto para ${member?.name}`,
           date: settleDate,
           competence_date: settleDate,
-          domain: 'PERSONAL',
+          domain: domain,
+          trip_id: tripId,
           is_shared: false,
           is_settled: true,
           currency: settlementCurrency
@@ -459,6 +465,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         const settlementCurrency = items[0]?.currency || 'BRL';
         let txId: string | null = null;
 
+        const uniqueTripIds = [...new Set(items.map(i => i.tripId).filter(Boolean))];
+        const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
+        const domain = tripId ? 'TRAVEL' : 'PERSONAL';
+
         if (amount > 0.01) {
           const isIncome = netTotal > 0;
           const { data: txData, error: txError } = await supabase.from('transactions').insert({
@@ -470,7 +480,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             description: `Recebimento de acerto por compensação`,
             date: date,
             competence_date: date,
-            domain: 'PERSONAL',
+            domain: domain,
+            trip_id: tripId,
             is_shared: false,
             is_settled: true,
             currency: settlementCurrency
@@ -498,14 +509,26 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         toast.success("Acerto por compensação confirmado com sucesso!");
       } else {
         // Standard non-netted confirmation: use standard RPC with exchange rate support
+        const splitIds = items.map(i => i.splitId).filter((id): id is string => !!id);
         const { data, error } = await supabase.rpc('confirm_settlement_receipt', {
-          p_split_ids: items.map(i => i.splitId).filter((id): id is string => !!id),
+          p_split_ids: splitIds,
           p_creditor_id: user.id,
           p_account_id: accountId,
           p_date: date,
           p_exchange_rate: exchangeRate || null
         } as any);
         if (error) throw error;
+        
+        // Link created transaction to trip if applicable
+        const uniqueTripIds = [...new Set(items.map(i => i.tripId).filter(Boolean))];
+        const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
+        if (tripId) {
+            const { data: splitsData } = await supabase.from('transaction_splits').select('settled_transaction_id, creditor_settlement_tx_id').in('id', splitIds);
+            const txIds = [...new Set(splitsData?.flatMap(s => [s.settled_transaction_id, s.creditor_settlement_tx_id]).filter(Boolean) as string[])];
+            if (txIds.length > 0) {
+               await supabase.from('transactions').update({ trip_id: tripId, domain: 'TRAVEL' }).in('id', txIds);
+            }
+        }
         
         const result = data as unknown as { success?: boolean; error?: string };
         if (result && result.success === false) {
@@ -569,6 +592,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const amount = items.reduce((sum, item) => SafeFinancialCalculator.add(sum, item.amount), 0);
       const settlementCurrency = items[0]?.currency || 'BRL';
 
+      const uniqueTripIds = [...new Set(items.map(i => i.tripId).filter(Boolean))];
+      const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
+      const domain = tripId ? 'TRAVEL' : 'PERSONAL';
+
       // 1. Cadastrar a transação de despesa (EXPENSE) na conta selecionada do devedor (Fran)
       const { data: txData, error: txError } = await supabase.from('transactions').insert({
         user_id: user.id,
@@ -579,7 +606,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         description: `Pagamento de acerto com credor`,
         date: date,
         competence_date: date,
-        domain: 'PERSONAL',
+        domain: domain,
+        trip_id: tripId,
         is_shared: false,
         is_settled: true,
         currency: settlementCurrency

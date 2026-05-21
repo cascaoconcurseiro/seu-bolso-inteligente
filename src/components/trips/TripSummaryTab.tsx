@@ -46,7 +46,14 @@ export function TripSummaryTab({
   // Saldo do participante atual (do RPC — fonte única da verdade)
   const myBalance = balances.find(b => b.participantId === user?.id);
 
-  const myShareOfSharedExpenses = myBalance?.owes || 0;
+  const myShareOfSharedExpenses = tripTransactions
+    .filter(t => t.type === "EXPENSE" && t.is_shared)
+    .reduce((sum, t) => {
+      if (!t.transaction_splits) return sum;
+      const mySplit = t.transaction_splits.find((s: any) => s.user_id === user?.id);
+      return sum + (mySplit ? Number(mySplit.amount) : 0);
+    }, 0);
+  
   const myTotalPersonal = myPersonalExpenses + myShareOfSharedExpenses;
 
   // (b) Gastos compartilhados pagos por mim (eu paguei a conta toda)
@@ -170,13 +177,13 @@ export function TripSummaryTab({
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Paguei</p>
                     <p className="text-sm font-mono font-bold text-green-600 dark:text-green-400">
-                      {moneyUtils.format(myBalance.paid, currency)}
+                      {moneyUtils.format(mySharedExpensesPaid, currency)}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Minha parte</p>
                     <p className="text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
-                      {moneyUtils.format(myBalance.owes, currency)}
+                      {moneyUtils.format(myShareOfSharedExpenses, currency)}
                     </p>
                   </div>
                 </div>
@@ -192,6 +199,24 @@ export function TripSummaryTab({
       {participants.length > 0 && myBalance && (() => {
         const isSettled = Math.abs(myBalance.balance) < 0.01;
         
+        // Verificar se há acertos pendentes de confirmação
+        const waitingMyConfirmation = tripTransactions.some(t => 
+          t.type === "EXPENSE" && t.is_shared &&
+          t.transaction_splits?.some((s: any) => 
+            s.user_id !== user?.id && // não sou eu que devo
+            (t.creator_user_id === user?.id || t.user_id === user?.id) && // eu paguei
+            s.settled_by_debtor === true && !s.settled_by_creditor
+          )
+        );
+
+        const waitingTheirConfirmation = tripTransactions.some(t => 
+          t.type === "EXPENSE" && t.is_shared &&
+          t.transaction_splits?.some((s: any) => 
+            s.user_id === user?.id && // eu devo
+            s.settled_by_debtor === true && !s.settled_by_creditor
+          )
+        );
+
         return (
           <div className={cn(
             "p-8 rounded-[2rem] border transition-all duration-500 relative overflow-hidden",
@@ -221,13 +246,13 @@ export function TripSummaryTab({
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Eu Paguei</p>
                   <p className="font-mono text-2xl font-black tracking-tighter text-green-600 dark:text-green-400">
-                    {moneyUtils.format(myBalance.paid, currency)}
+                    {moneyUtils.format(mySharedExpensesPaid, currency)}
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Minha Parte</p>
                   <p className="font-mono text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
-                    {moneyUtils.format(myBalance.owes, currency)}
+                    {moneyUtils.format(myShareOfSharedExpenses, currency)}
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -249,7 +274,11 @@ export function TripSummaryTab({
               <div className="mt-8 pt-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground italic">
                   <Info className="h-4 w-4" />
-                  {myBalance.balance >= 0 
+                  {waitingMyConfirmation ? (
+                    <span className="text-blue-600 dark:text-blue-400 font-semibold">Existem pagamentos aguardando sua confirmação de recebimento.</span>
+                  ) : waitingTheirConfirmation ? (
+                    <span className="text-orange-600 dark:text-orange-400 font-semibold">Aguardando o credor confirmar o seu pagamento.</span>
+                  ) : myBalance.balance >= 0 
                     ? "Aguarde os outros participantes realizarem o acerto com você." 
                     : "Realize o acerto na aba Compartilhados para equilibrar seu saldo."}
                 </div>
