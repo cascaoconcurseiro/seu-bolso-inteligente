@@ -55,7 +55,8 @@ export function SettlementConfirmationDialog({
   const isPayment = currentItems.length > 0 && currentItems[0].type === 'DEBIT';
 
   // Mostrar todas as contas de movimentação líquida (não cartões)
-  const filteredAccounts = accounts.filter(a => a.type !== 'CREDIT_CARD');
+  // E apenas contas que sejam da mesma moeda da transação
+  const filteredAccounts = accounts.filter(a => a.type !== 'CREDIT_CARD' && a.currency === currency);
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
   const accountCurrency = selectedAccount?.currency || "BRL";

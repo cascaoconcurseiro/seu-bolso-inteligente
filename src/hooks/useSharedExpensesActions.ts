@@ -518,6 +518,20 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           p_exchange_rate: exchangeRate || null
         } as any);
         if (error) throw error;
+
+        // CORREÇÃO: Após a RPC antiga que atualiza is_settled, precisamos atualizar as flags de UI 
+        // para que as telas de Viagem e Acertos parem de mostrar "Aguardando confirmação".
+        const { error: updateError } = await supabase
+          .from('transaction_splits')
+          .update({
+            settled_by_creditor: true,
+            settled_by_debtor: true,
+            is_settled: true,
+            settled_at: new Date().toISOString()
+          })
+          .in('id', splitIds);
+
+        if (updateError) throw updateError;
         
         // Link created transaction to trip if applicable
         const uniqueTripIds = [...new Set(items.map(i => i.tripId).filter(Boolean))];

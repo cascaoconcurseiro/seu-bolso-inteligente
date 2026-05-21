@@ -180,12 +180,18 @@ export function SharedExpenseCard({
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
-                  <>
-                    <strong>{member.name.split(' ')[0]}</strong> marcou que pagou o valor de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong> (Acerto de Contas). Confirme se você recebeu esse valor e escolha em qual conta deseja creditar.
-                  </>
+                  itemsWaitingMe[0].type === "CREDIT" ? (
+                    <>
+                      <strong>{member.name.split(' ')[0]}</strong> marcou que pagou o valor de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong> (Acerto de Contas). Confirme se você recebeu esse valor e escolha em qual conta deseja creditar.
+                    </>
+                  ) : (
+                    <>
+                      <strong>{member.name.split(' ')[0]}</strong> informou que recebeu o seu pagamento de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong>. Escolha de qual conta o valor saiu para finalizar o acerto.
+                    </>
+                  )
                 ) : (
                   <>
-                    <strong>{member.name.split(' ')[0]}</strong> marcou <strong>{itemsWaitingMe.length} acertos</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => sum + i.amount, 0), currency)}</strong>) como pagos. Confirme para atualizar seu saldo e escolher as contas de recebimento.
+                    <strong>{member.name.split(' ')[0]}</strong> marcou <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => sum + i.amount, 0), currency)}</strong>). Confirme e escolha a conta associada para atualizar seus saldos.
                   </>
                 )}
               </p>

@@ -33,9 +33,13 @@ export function TripExpensesTab({
     (t) => t.type === "EXPENSE" && t.is_shared
   );
 
-  // Pessoais: apenas minhas, não compartilhadas e acertos (INCOME/EXPENSE sem is_shared)
+  // Pessoais: apenas minhas, não compartilhadas e que não sejam acertos financeiros (para evitar poluir a viagem e duplicar orçamento)
   const personalExpenses = tripTransactions.filter(
-    (t) => (t.type === "EXPENSE" || t.type === "INCOME") && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id)
+    (t) => {
+      const isMineAndNotShared = (t.type === "EXPENSE" || t.type === "INCOME") && !t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id);
+      const isSettlement = t.description?.toLowerCase().includes("acerto") || t.description?.toLowerCase().includes("compensação");
+      return isMineAndNotShared && !isSettlement;
+    }
   );
 
   const myBalance = balances.find(b => b.participantId === user?.id);
