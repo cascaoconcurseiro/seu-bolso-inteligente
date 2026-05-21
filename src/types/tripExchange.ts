@@ -15,6 +15,7 @@ export interface ExchangePurchase {
   purchase_date: string;
   created_at: string;
   updated_at: string;
+  is_automated?: boolean;
 }
 
 export interface ExchangePurchaseInput {

@@ -72,6 +72,20 @@ export function TransactionDetailsModal({
   const hasPendingSplits = splits.some((s: DBTransactionSplit) => !s.is_settled);
   const isFullySettled = splits.length > 0 && splits.every((s: DBTransactionSplit) => s.is_settled);
 
+  const getTransferTypeLabel = () => {
+    const desc = transaction.description.toLowerCase();
+    const isFatura = desc.includes("fatura") || desc.includes("cartão") || desc.includes("cartao");
+    if (isFatura) return "Pagamento de Fatura";
+    
+    const sourceCurrency = transaction.account?.currency || transaction.currency || "BRL";
+    const destCurrency = transaction.destination_currency || sourceCurrency;
+    
+    if (sourceCurrency !== destCurrency) {
+      return "Transferência Internacional";
+    }
+    return "Transferência";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -82,12 +96,12 @@ export function TransactionDetailsModal({
                 "w-12 h-12 rounded-xl flex items-center justify-center text-xl",
                 isIncome ? "bg-positive/10" : isTransfer ? "bg-primary/10" : "bg-muted"
               )}>
-                {transaction.category?.icon || (isIncome ? "💰" : isTransfer ? "🔄" : "💸")}
+                {isTransfer ? "🔄" : (transaction.category?.icon || (isIncome ? "💰" : "💸"))}
               </div>
               <div>
                 <DialogTitle className="text-left">{transaction.description}</DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  {transaction.category?.name || "Sem categoria"}
+                  {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
                 </p>
               </div>
             </div>
@@ -97,16 +111,41 @@ export function TransactionDetailsModal({
         <div className="space-y-6">
           {/* Amount */}
           <div className="text-center py-4 border-y">
-            <p className={cn(
-              "font-mono text-4xl font-bold",
-              isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
-            )}>
-              {isIncome ? "+" : isExpense ? "-" : ""}{formatCurrency(Number(transaction.amount))}
-            </p>
-            {transaction.currency && transaction.currency !== "BRL" && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Moeda: {transaction.currency}
-              </p>
+            {isTransfer ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <span className="font-mono text-3xl font-bold text-negative">
+                    -{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
+                  </span>
+                  {transaction.destination_amount && (
+                    <>
+                      <span className="text-xl text-muted-foreground font-light">➔</span>
+                      <span className="font-mono text-3xl font-bold text-positive">
+                        +{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || "BRL")}
+                      </span>
+                    </>
+                  )}
+                </div>
+                {transaction.exchange_rate && (
+                  <p className="text-xs text-muted-foreground font-medium mt-1">
+                    Câmbio: 1 {transaction.currency || "BRL"} = {Number(transaction.exchange_rate).toFixed(4)} {transaction.destination_currency || "BRL"}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <p className={cn(
+                  "font-mono text-4xl font-bold",
+                  isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
+                )}>
+                  {isIncome ? "+" : isExpense ? "-" : ""}{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
+                </p>
+                {transaction.currency && transaction.currency !== "BRL" && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Moeda: {transaction.currency}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -133,14 +172,16 @@ export function TransactionDetailsModal({
             )}
 
             {/* Category */}
-            {transaction.category && (
+            {(transaction.category || isTransfer) && (
               <div className="flex items-start gap-2">
                 <Tag className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Categoria</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                    {isTransfer ? "Tipo" : "Categoria"}
+                  </p>
                   <p className="text-sm font-medium flex items-center gap-1">
-                    <span>{transaction.category.icon}</span>
-                    {transaction.category.name}
+                    <span>{isTransfer ? "🔄" : (transaction.category?.icon || "🏷️")}</span>
+                    {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
                   </p>
                 </div>
               </div>

@@ -78,6 +78,35 @@ export function TransactionItem({
   
   const isTransfer = transaction.type === 'TRANSFER';
 
+  const getTransferTypeLabel = () => {
+    const desc = transaction.description.toLowerCase();
+    const isFatura = desc.includes("fatura") || desc.includes("cartão") || desc.includes("cartao");
+    if (isFatura) return "Pagamento de Fatura";
+    
+    const sourceCurrency = transaction.account?.currency || transaction.currency || "BRL";
+    const destCurrency = transaction.destination_currency || sourceCurrency;
+    
+    if (sourceCurrency !== destCurrency) {
+      return "Transferência Internacional";
+    }
+    return "Transferência";
+  };
+
+  const isIncomingTransfer = isTransfer && selectedAccount !== 'all' && transaction.destination_account_id === selectedAccount;
+  
+  const displayAmount = isIncomingTransfer && transaction.destination_amount !== null && transaction.destination_amount !== undefined
+    ? Number(transaction.destination_amount)
+    : Number(transaction.amount);
+
+  const displayCurrency = isIncomingTransfer && transaction.destination_currency
+    ? transaction.destination_currency
+    : (transaction.account?.currency || transaction.currency || "BRL");
+
+  const isInternationalTransfer = isTransfer && 
+    transaction.destination_amount && 
+    transaction.destination_currency && 
+    (transaction.account?.currency || transaction.currency || 'BRL') !== transaction.destination_currency;
+
   return (
     <div
       className={cn(
@@ -132,7 +161,7 @@ export function TransactionItem({
           </div>
           <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap mt-1">
             <span className="truncate">
-              {isTransfer ? "Pagamento de Fatura" : (transaction.category?.name || "Sem categoria")}
+              {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
             </span>
             {transaction.account?.name && (
               <>
@@ -189,19 +218,28 @@ export function TransactionItem({
         <div className="flex flex-col items-end gap-0.5">
           <span className={cn(
             "font-mono font-medium text-right whitespace-nowrap",
-            isTransfer ? "text-negative" :
             displayType === "INCOME" ? "text-positive" : "text-negative"
           )}>
             {displayType === "INCOME" ? "+" : "-"}
-            {formatCurrency(Number(transaction.amount), transaction.account?.currency || transaction.currency || "BRL")}
+            {formatCurrency(displayAmount, displayCurrency)}
           </span>
+          {isInternationalTransfer && !isIncomingTransfer && (
+            <span className="text-[11px] font-mono font-bold text-positive text-right whitespace-nowrap flex items-center justify-end gap-1" title="Valor convertido creditado">
+              <span>➔</span>
+              <span>{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || 'USD')}</span>
+            </span>
+          )}
           <span className={cn(
             "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-            isTransfer ? "text-negative" :
             displayType === "INCOME" ? "text-positive" : "text-negative"
           )}>
-            {isTransfer ? (transaction.description.toLowerCase().includes('fatura') ? "PAGAMENTO" : "TRANSFERÊNCIA") : 
-             (displayType === "INCOME" ? "Crédito" : "Débito")}
+            {isTransfer 
+              ? (getTransferTypeLabel() === "Pagamento de Fatura" 
+                  ? "PAGAMENTO" 
+                  : (getTransferTypeLabel() === "Transferência Internacional" 
+                      ? "TRANSF. INTERNACIONAL" 
+                      : "TRANSFERÊNCIA"))
+              : (displayType === "INCOME" ? "Crédito" : "Débito")}
           </span>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>

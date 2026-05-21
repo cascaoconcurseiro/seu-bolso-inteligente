@@ -22,14 +22,72 @@ export function useTripExchangePurchases(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return [];
 
-      const { data, error } = await supabase
+      // 1. Buscar detalhes da viagem para saber a moeda estrangeira
+      const { data: trip, error: tripError } = await supabase
+        .from("trips")
+        .select("currency")
+        .eq("id", tripId)
+        .single();
+
+      if (tripError || !trip) {
+        throw tripError || new Error("Viagem não encontrada");
+      }
+
+      // Se for BRL, não precisa de compras de câmbio
+      if (trip.currency === "BRL") {
+        return [];
+      }
+
+      // 2. Buscar compras de câmbio manuais registradas para a viagem
+      const { data: manualPurchases, error: manualError } = await supabase
         .from("trip_exchange_purchases")
         .select("*")
         .eq("trip_id", tripId)
         .order("purchase_date", { ascending: false });
 
-      if (error) throw error;
-      return data as ExchangePurchase[];
+      if (manualError) throw manualError;
+
+      // 3. Buscar transferências entre moedas (BRL -> Moeda da Viagem) nas contas globais
+      // Filtramos por transferências que tenham a moeda de destino igual à moeda da viagem,
+      // e que estejam vinculadas à viagem atual (trip_id = tripId) OU sem vínculo direto (trip_id is null)
+      // para puxar todos os aportes feitos na moeda durante o período
+      const { data: transfers, error: transfersError } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("type", "TRANSFER")
+        .eq("destination_currency", trip.currency)
+        .or(`trip_id.eq.${tripId},trip_id.is.null`);
+
+      if (transfersError) throw transfersError;
+
+      // 4. Mapear as transferências globais para o formato ExchangePurchase
+      const mappedTransfers: ExchangePurchase[] = (transfers || []).map((t) => {
+        const localAmount = t.amount || 0;
+        const foreignAmount = t.destination_amount || 0;
+        const exchangeRate = t.exchange_rate || (foreignAmount > 0 ? localAmount / foreignAmount : 0);
+
+        return {
+          id: t.id,
+          trip_id: tripId,
+          user_id: t.user_id,
+          foreign_amount: foreignAmount,
+          exchange_rate: exchangeRate,
+          cet_percentage: 0,
+          effective_rate: exchangeRate,
+          local_amount: localAmount,
+          description: t.description || `Transf. Conta Global (${t.destination_currency})`,
+          purchase_date: t.date,
+          created_at: t.created_at,
+          updated_at: t.updated_at || t.created_at,
+          is_automated: true,
+        };
+      });
+
+      // 5. Combinar compras manuais e automáticas, ordenando por data de compra decrescente
+      const combined = [...(manualPurchases || []), ...mappedTransfers];
+      combined.sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime());
+
+      return combined as ExchangePurchase[];
     },
     enabled: !!tripId,
     staleTime: 0, // ✅ Dados sempre frescos

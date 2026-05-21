@@ -96,17 +96,20 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       // Calcular saldo inicial do período (saldo atual - soma das transações do período)
       let periodSum = 0;
       for (const t of allTransactions) {
-        const amount = Number(t.amount);
         const txType = String(t.type).toUpperCase();
         if (txType === "INCOME") {
-          periodSum += amount;
+          periodSum += Number(t.amount);
         } else if (txType === "EXPENSE") {
-          periodSum -= amount;
+          periodSum -= Number(t.amount);
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
-            periodSum += amount; // Entrada
+            // Se for entrada, usar destination_amount se houver (caso de câmbio)
+            const amt = t.destination_amount !== null && t.destination_amount !== undefined 
+              ? Number(t.destination_amount) 
+              : Number(t.amount);
+            periodSum += amt; // Entrada
           } else if (t.account_id === accountId) {
-            periodSum -= amount; // Saída
+            periodSum -= Number(t.amount); // Saída (sempre do valor original)
           }
         }
       }
@@ -116,34 +119,41 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       // Calcular running balance
       let runningBalance = initialBalance;
       const processedTransactions: StatementTransaction[] = allTransactions.map(t => {
-        const amount = Number(t.amount);
         const txType = String(t.type).toUpperCase(); // Garantir que type é string uppercase
         let isIncoming = false;
         let displayAmount = 0;
+        let amt = Number(t.amount);
+        let curr = t.currency;
 
         if (txType === "INCOME") {
           isIncoming = true;
-          displayAmount = amount;
-          runningBalance += amount;
+          displayAmount = amt;
+          runningBalance += amt;
         } else if (txType === "EXPENSE") {
           isIncoming = false;
-          displayAmount = -amount;
-          runningBalance -= amount;
+          displayAmount = -amt;
+          runningBalance -= amt;
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             isIncoming = true;
-            displayAmount = amount;
-            runningBalance += amount;
+            // Se for entrada na conta selecionada, usar destination_amount e destination_currency se houver
+            amt = t.destination_amount !== null && t.destination_amount !== undefined 
+              ? Number(t.destination_amount) 
+              : Number(t.amount);
+            curr = t.destination_currency || t.currency;
+            displayAmount = amt;
+            runningBalance += amt;
           } else if (t.account_id === accountId) {
             isIncoming = false;
-            displayAmount = -amount;
-            runningBalance -= amount;
+            displayAmount = -amt;
+            runningBalance -= amt;
           }
         }
 
         return {
           ...t,
-          amount, // Garantir que amount é número
+          amount: amt, // Sobrescrever com o valor adequado para a conta
+          currency: curr, // Sobrescrever com a moeda adequada para a conta
           type: txType as "EXPENSE" | "INCOME" | "TRANSFER",
           isIncoming,
           displayAmount,

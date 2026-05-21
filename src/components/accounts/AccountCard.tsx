@@ -20,6 +20,7 @@ interface SimpleTransaction {
   type: string;
   amount: number;
   destination_account_id: string | null;
+  destination_amount?: number | null;
 }
 
 interface AccountCardProps {
@@ -97,6 +98,9 @@ export function AccountCard({
             <div className="space-y-2.5">
               {lastTransactions.map((tx) => {
                 const isIncome = tx.type === "INCOME" || tx.destination_account_id === account.id;
+                const displayAmt = (tx.destination_account_id === account.id && tx.destination_amount !== null && tx.destination_amount !== undefined)
+                  ? Math.abs(Number(tx.destination_amount))
+                  : Math.abs(Number(tx.amount));
                 return (
                   <div key={tx.id} className="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -113,7 +117,7 @@ export function AccountCard({
                       <span className="truncate text-muted-foreground font-medium">{tx.description}</span>
                     </div>
                     <span className={cn("font-mono font-bold ml-2 shrink-0 tabular-nums", isIncome ? "text-positive" : "text-negative")}>
-                      {isIncome ? "+" : "-"}{isInternational ? currencySymbol : ""}{isInternational ? Math.abs(Number(tx.amount)).toFixed(2) : formatCurrency(Math.abs(Number(tx.amount)))}
+                      {isIncome ? "+" : "-"}{isInternational ? currencySymbol : ""}{isInternational ? displayAmt.toFixed(2) : formatCurrency(displayAmt)}
                     </span>
                   </div>
                 );

@@ -98,6 +98,11 @@ export function DashboardRecentActivity({
                   )}>
                     {isIncome ? "+" : isTransfer ? "" : "-"}{formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}
                   </p>
+                  {isTransfer && tx.destination_amount && tx.destination_currency && (tx.currency || 'BRL') !== tx.destination_currency && (
+                    <p className="text-[10px] font-display font-bold text-green-600 tracking-tight mt-0.5" title="Valor convertido creditado">
+                      ➔ {formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}
+                    </p>
+                  )}
                   <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 flex items-center justify-end gap-1">
                     {isIncome ? <ArrowDownLeft className="h-2 w-2" /> : isTransfer ? <RefreshCw className="h-2 w-2" /> : <ArrowUpRight className="h-2 w-2" />}
                     {isIncome ? "Entrada" : isTransfer ? "Transfer" : "Saída"}

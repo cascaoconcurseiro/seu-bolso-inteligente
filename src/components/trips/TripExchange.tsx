@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, ArrowRightLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowRightLeft, Info } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Trip } from "@/hooks/useTrips";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
 import { 
@@ -148,6 +153,11 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                       minimumFractionDigits: 2,
                     })}
                   </div>
+                  {purchase.is_automated && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                      🌍 Automático - Conta Global
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                   <span>
@@ -169,21 +179,49 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEdit(purchase)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeletingPurchase(purchase)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {purchase.is_automated ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex gap-2 cursor-not-allowed">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-40 pointer-events-none"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-40 pointer-events-none text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[240px] text-xs p-3">
+                      Compra automática integrada das suas contas globais. Edite a transferência original na página de transações para efetuar alterações.
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEdit(purchase)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingPurchase(purchase)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           ))}

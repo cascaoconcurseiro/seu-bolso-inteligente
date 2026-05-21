@@ -26,6 +26,9 @@ export interface Transaction {
   source_transaction_id: string | null;
   external_id: string | null;
   notes: string | null;
+  exchange_rate?: number | null;
+  destination_amount?: number | null;
+  destination_currency?: string | null;
   created_at: string;
   updated_at: string;
   creator_user_id?: string | null;
@@ -180,24 +183,27 @@ export function calculateRunningBalance(
   const entries: StatementEntry[] = [];
   
   for (const transaction of sorted) {
-    const amount = Number(transaction.amount);
     let isIncoming = false;
+    let amt = Number(transaction.amount);
     
     if (transaction.type === "INCOME") {
-      runningBalance += amount;
+      runningBalance += amt;
       isIncoming = true;
     } else if (transaction.type === "EXPENSE") {
-      runningBalance -= amount;
+      runningBalance -= amt;
       isIncoming = false;
     } else if (transaction.type === "TRANSFER") {
       // Transferência: verificar direção
       if (transaction.destination_account_id === accountId) {
-        // Entrada na conta
-        runningBalance += amount;
+        // Entrada na conta: usar destination_amount se houver
+        amt = transaction.destination_amount !== null && transaction.destination_amount !== undefined
+          ? Number(transaction.destination_amount)
+          : Number(transaction.amount);
+        runningBalance += amt;
         isIncoming = true;
       } else if (transaction.account_id === accountId) {
         // Saída da conta
-        runningBalance -= amount;
+        runningBalance -= amt;
         isIncoming = false;
       }
     }
