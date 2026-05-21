@@ -69,6 +69,14 @@ export function useTransactionSync(): TransactionSyncResult {
           
           // Invalidate splits
           queryClient.invalidateQueries({ queryKey: ['transaction-splits'] }),
+          
+          // Invalidate trips and trip sub-queries to sync statuses
+          queryClient.invalidateQueries({ queryKey: ['trips'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-participant-balances'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-trip-spent'] }),
         ]);
       } finally {
         setIsSyncing(false);
@@ -114,6 +122,13 @@ export function useTransactionSync(): TransactionSyncResult {
           queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] }),
           queryClient.invalidateQueries({ queryKey: ['transactions'] }),
           queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+          
+          queryClient.invalidateQueries({ queryKey: ['trips'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
+          queryClient.invalidateQueries({ queryKey: ['trip-participant-balances'] }),
+          queryClient.invalidateQueries({ queryKey: ['my-trip-spent'] }),
         ]);
         
         // Refetch all
@@ -121,6 +136,8 @@ export function useTransactionSync(): TransactionSyncResult {
           queryClient.refetchQueries({ queryKey: ['shared-transactions-with-splits'] }),
           queryClient.refetchQueries({ queryKey: ['paid-by-others-transactions'] }),
           queryClient.refetchQueries({ queryKey: ['shared-transactions-consolidated'] }),
+          queryClient.refetchQueries({ queryKey: ['trips'] }),
+          queryClient.refetchQueries({ queryKey: ['trip-transactions'] }),
         ]);
       } finally {
         setIsSyncing(false);
