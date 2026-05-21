@@ -37,16 +37,16 @@ export function SharedFinancesTable({ data, formatCurrency, currency }: SharedFi
               <th className="text-right py-4 px-4 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
                 <div className="flex items-center justify-end gap-1">
                    <ArrowUpCircle className="h-3 w-3 text-green-500" />
-                   Pagou
+                   Total Pago
                 </div>
               </th>
               <th className="text-right py-4 px-4 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
                 <div className="flex items-center justify-end gap-1">
                    <ArrowDownCircle className="h-3 w-3 text-red-500" />
-                   Deve
+                   Custo
                 </div>
               </th>
-              <th className="text-right py-4 px-4 text-[10px] uppercase tracking-widest text-muted-foreground font-bold italic">Saldo Líquido</th>
+              <th className="text-right py-4 px-4 text-[10px] uppercase tracking-widest text-muted-foreground font-bold italic">A Pagar / Receber</th>
               <th className="text-right py-4 px-4 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Qtd.</th>
             </tr>
           </thead>
@@ -64,7 +64,7 @@ export function SharedFinancesTable({ data, formatCurrency, currency }: SharedFi
                   "py-4 px-4 text-right font-mono font-black text-lg tracking-tighter", 
                   person.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                 )}>
-                  {person.balance >= 0 ? "+" : ""}{formatCurrency(person.balance, currency)}
+                  {person.balance > 0 ? "A Receber: " : (person.balance < 0 ? "A Pagar: " : "")}{formatCurrency(Math.abs(person.balance), currency)}
                 </td>
                 <td className="py-4 px-4 text-right">
                   <span className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">

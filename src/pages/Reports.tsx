@@ -37,7 +37,12 @@ import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
 import { SharedFinancesTable } from "@/components/reports/SharedFinancesTable";
 import { InstallmentsTable } from "@/components/reports/InstallmentsTable";
 
-const getTransactionCurrency = (tx: any): string => tx.account?.currency || tx.currency || 'BRL';
+const getTransactionCurrency = (tx: any): string => {
+  if (tx.currency && tx.currency !== 'BRL') return tx.currency;
+  if (Array.isArray(tx.account) && tx.account.length > 0 && tx.account[0].currency) return tx.account[0].currency;
+  if (tx.account && !Array.isArray(tx.account) && tx.account.currency) return tx.account.currency;
+  return 'BRL';
+};
 
 export function Reports() {
   const { currentDate } = useMonth();
@@ -514,7 +519,7 @@ export function Reports() {
 
       <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
 
-      <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} /></section>
+      <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} /></section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />

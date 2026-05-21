@@ -27,6 +27,7 @@ interface SharedBalanceChartProps {
   currentDate: Date;
   isGeneralReport?: boolean;
   monthlyData?: any[];
+  currency?: string;
 }
 
 export function SharedBalanceChart({
@@ -34,7 +35,8 @@ export function SharedBalanceChart({
   invoices = {},
   currentDate,
   isGeneralReport = false,
-  monthlyData = []
+  monthlyData = [],
+  currency = "BRL"
 }: SharedBalanceChartProps) {
   console.log('🟢 [SharedBalanceChart] Renderizando com:', {
     transactions: transactions?.length,
@@ -111,6 +113,13 @@ export function SharedBalanceChart({
   const trend = currentMonthData ? (currentMonthData.net - (previousMonthData?.net || 0)) : 0;
 
   const formatCurrency = (value: number) => {
+    if (currency && currency !== "BRL") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+        notation: "compact",
+      }).format(value);
+    }
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
