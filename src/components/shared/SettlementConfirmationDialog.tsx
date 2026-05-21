@@ -72,31 +72,37 @@ export function SettlementConfirmationDialog({
     }
   }, [isOpen, filteredAccounts, selectedAccountId]);
 
-  // Inteligência de taxa padrão por par de moedas
   useEffect(() => {
-    if (isMultiCurrency) {
-      if (currency.toUpperCase() === "BRL" && accountCurrency.toUpperCase() === "USD") {
-        setExchangeRate("5.15");
-      } else if (currency.toUpperCase() === "USD" && accountCurrency.toUpperCase() === "BRL") {
-        setExchangeRate("0.19");
-      } else {
-        setExchangeRate("1.00");
+    if (isOpen && filteredAccounts.length > 0) {
+      const isAlreadyValid = filteredAccounts.some(a => a.id === selectedAccountId);
+      if (!isAlreadyValid) {
+        const defaultAcc = filteredAccounts.find(a => a.type === 'CHECKING') || filteredAccounts[0];
+        setSelectedAccountId(defaultAcc.id);
       }
+    } else if (isOpen && filteredAccounts.length === 0) {
+      // Forçar reset se não houver conta válida na mesma moeda
+      setSelectedAccountId("");
     }
-  }, [isMultiCurrency, currency, accountCurrency]);
+  }, [isOpen, filteredAccounts, selectedAccountId]);
 
   const handleConfirm = async () => {
     if (filteredAccounts.length === 0) {
-      toast.error("Você não possui nenhuma conta bancária ativa cadastrada. Por favor, cadastre uma conta no menu de contas antes de realizar o acerto.");
+      toast.error(`Você não possui conta cadastrada na moeda da despesa (${currency}). Por favor, cadastre uma conta nessa moeda primeiro.`);
       return;
     }
 
     if (!selectedAccountId || currentItems.length === 0) return;
 
+    // Dupla validação de segurança para impedir pagamentos em moedas diferentes
+    const selectedAccount = accounts.find(a => a.id === selectedAccountId);
+    if (!selectedAccount || selectedAccount.currency.toUpperCase() !== currency.toUpperCase()) {
+      toast.error(`A conta selecionada (${selectedAccount?.currency}) não é compatível com a moeda do acerto (${currency}).`);
+      return;
+    }
+
     // Se for um pagamento (saída de dinheiro), validar se o saldo é suficiente
     if (isPayment) {
-      const selectedAccount = accounts.find(a => a.id === selectedAccountId);
-      if (selectedAccount && selectedAccount.type !== 'CREDIT_CARD') {
+      if (selectedAccount.type !== 'CREDIT_CARD') {
         if (selectedAccount.balance < total) {
           toast.error(`Saldo insuficiente na conta "${selectedAccount.name}". Saldo atual: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: selectedAccount.currency }).format(selectedAccount.balance)}. Valor necessário: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: selectedAccount.currency }).format(total)}`);
           return;
@@ -104,8 +110,7 @@ export function SettlementConfirmationDialog({
       }
     }
 
-    const rateNum = isMultiCurrency ? parseFloat(exchangeRate) : undefined;
-    await onConfirm(currentItems, selectedAccountId, date, rateNum);
+    await onConfirm(currentItems, selectedAccountId, date, undefined);
     onOpenChange(false);
   };
 
@@ -255,35 +260,17 @@ export function SettlementConfirmationDialog({
             </div>
           </div>
 
-          {/* Conversão Multimoeda se aplicável */}
-          {isMultiCurrency && (
-            <div className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/10 space-y-3 animate-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-sm">
-                <Globe className="h-4 w-4" />
-                <span>Conversão de Moeda</span>
+          {/* Aviso se não houver contas na moeda da transação */}
+          {filteredAccounts.length === 0 && (
+            <div className="p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/10 space-y-2 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm">
+                <Info className="h-4 w-4" />
+                <span>Conta incompatível</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="exchange-rate-input" className="text-xs text-muted-foreground font-medium">
-                    Taxa (1 {accountCurrency.toUpperCase()} em {currency.toUpperCase()})
-                  </Label>
-                  <Input
-                    id="exchange-rate-input"
-                    type="number"
-                    step="0.0001"
-                    min="0.0001"
-                    value={exchangeRate}
-                    onChange={(e) => setExchangeRate(e.target.value)}
-                    className="h-10 rounded-xl bg-background border-border/50 focus:ring-primary/20 font-mono"
-                  />
-                </div>
-                <div className="space-y-1.5 flex flex-col justify-end">
-                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Valor Creditado</span>
-                  <span className="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">
-                    {new Intl.NumberFormat("pt-BR", { style: "currency", currency: accountCurrency }).format(total / (parseFloat(exchangeRate) || 1.0))}
-                  </span>
-                </div>
-              </div>
+              <p className="text-xs text-red-700/80 dark:text-red-400/80 leading-relaxed">
+                Você não possui nenhuma conta de pagamento disponível na moeda desta despesa ({currency}). 
+                <strong> É necessário usar uma conta da mesma moeda para realizar este acerto.</strong>
+              </p>
             </div>
           )}
         </div>
