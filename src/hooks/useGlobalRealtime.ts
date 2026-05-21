@@ -3,6 +3,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+import { 
+  invalidateFinancialQueries, 
+  invalidateSharedQueries, 
+  invalidateTripQueries, 
+  invalidateFamilyQueries, 
+  invalidateCategoryQueries,
+  invalidateBudgetQueries
+} from '@/utils/queryInvalidation';
+
 /**
  * Escuta eventos de tempo real (Realtime) do Supabase globalmente.
  * Invalida queries do React Query automaticamente quando há mudanças no banco.
@@ -27,46 +36,35 @@ export function useGlobalRealtime() {
           const { table } = payload;
           console.log(`⚡ Evento Realtime recebido na tabela: ${table}`);
 
-          // Invalida as queries com base na tabela alterada para rebuscar os dados imediatamente
-          // Isso garante que qualquer tela aberta (Viagens, Dashboard, etc) se atualize sem F5.
+          // Invalida as queries de forma inteligente agrupando por domínio
           switch (table) {
             case 'transactions':
             case 'transaction_splits':
-              queryClient.invalidateQueries({ queryKey: ['transactions'] });
-              queryClient.invalidateQueries({ queryKey: ['shared-finances'] });
-              queryClient.invalidateQueries({ queryKey: ['trip-transactions'] });
-              queryClient.invalidateQueries({ queryKey: ['trip-participant-balances'] });
-              queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] });
-              queryClient.invalidateQueries({ queryKey: ['budget-summary'] });
+              invalidateFinancialQueries(queryClient);
+              invalidateSharedQueries(queryClient);
+              invalidateTripQueries(queryClient);
               break;
             case 'trips':
             case 'trip_members':
-              queryClient.invalidateQueries({ queryKey: ['trips'] });
-              queryClient.invalidateQueries({ queryKey: ['trip'] });
-              queryClient.invalidateQueries({ queryKey: ['trip-participants'] });
-              queryClient.invalidateQueries({ queryKey: ['trip-members'] });
+              invalidateTripQueries(queryClient);
               break;
             case 'accounts':
-              queryClient.invalidateQueries({ queryKey: ['accounts'] });
+              invalidateFinancialQueries(queryClient);
               break;
             case 'categories':
-              queryClient.invalidateQueries({ queryKey: ['categories'] });
+              invalidateCategoryQueries(queryClient);
               break;
             case 'family_members':
             case 'families':
-              queryClient.invalidateQueries({ queryKey: ['family-members'] });
-              queryClient.invalidateQueries({ queryKey: ['family'] });
+              invalidateFamilyQueries(queryClient);
               break;
             case 'budgets':
-              queryClient.invalidateQueries({ queryKey: ['budgets'] });
+              invalidateBudgetQueries(queryClient);
               break;
             case 'goals':
               queryClient.invalidateQueries({ queryKey: ['goals'] });
               break;
             default:
-              // Se for uma tabela não mapeada especificamente, podemos invalidar
-              // ou apenas logar. Para o momento, vamos ignorar silenciosamente as demais
-              // ou invalidar a root se quisermos ser agressivos, mas é melhor ser contido.
               break;
           }
         }
