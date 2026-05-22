@@ -25,6 +25,8 @@ interface AccountSelectorProps {
   selectedAccount?: any;
   isPaidByOther: boolean;
   payerName: string;
+  customLabel?: string;
+  customPlaceholder?: string;
 }
 
 export function AccountSelector({
@@ -38,7 +40,9 @@ export function AccountSelector({
   selectedTrip,
   selectedAccount,
   isPaidByOther,
-  payerName
+  payerName,
+  customLabel,
+  customPlaceholder
 }: AccountSelectorProps) {
   const navigate = useNavigate();
   const isExpense = activeTab === 'EXPENSE';
@@ -93,10 +97,10 @@ export function AccountSelector({
 
     return (
       <div className="space-y-2">
-        <Label>{getAccountLabel()}</Label>
+        <Label>{customLabel || getAccountLabel()}</Label>
         <Select value={accountId} onValueChange={setAccountId}>
           <SelectTrigger className="h-12">
-            <SelectValue placeholder="Selecione a conta" />
+            <SelectValue placeholder={customPlaceholder || "Selecione a conta"} />
           </SelectTrigger>
           <SelectContent>
             {filteredAccounts.map((acc) => (
