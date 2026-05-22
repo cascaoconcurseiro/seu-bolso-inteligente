@@ -38,7 +38,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { toast } from 'sonner';
 import * as dateFns from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getBankById } from '@/lib/banks';
+import { AccountSelector } from '@/components/transactions/form/AccountSelector';
 
 interface SharedInstallmentImportProps {
   isOpen: boolean;
@@ -234,42 +234,19 @@ export function SharedInstallmentImport({
           {/* Account Selector */}
           <div className="space-y-2">
             <Label>Conta de Origem *</Label>
-            <Select value={selectedAccountId} onValueChange={setSelectedAccountId} disabled={isSubmitting}>
-              <SelectTrigger className="h-12 bg-background border-border hover:border-primary transition-all">
-                <SelectValue placeholder="Selecione a conta de origem" />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((acc) => {
-                  const bank = getBankById(acc.bank_id);
-                  return (
-                    <SelectItem key={acc.id} value={acc.id}>
-                      <div className="flex items-center gap-2 w-full">
-                        <div
-                          className="w-3.5 h-3.5 rounded-sm flex-shrink-0"
-                          style={{
-                            backgroundColor: bank?.color || '#6B7280',
-                          }}
-                        />
-                        <span className="font-medium text-sm text-foreground truncate max-w-[180px]">{acc.name}</span>
-                        {acc.type === 'CREDIT_CARD' && (
-                          <span className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded font-semibold uppercase">
-                            Cartão
-                          </span>
-                        )}
-                        {acc.is_international && (
-                          <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
-                            {acc.currency}
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground ml-auto font-mono">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: acc.currency }).format(acc.balance)}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            <AccountSelector 
+              accountId={selectedAccountId} 
+              setAccountId={setSelectedAccountId}
+              activeTab="EXPENSE"
+              destinationAccountId=""
+              setDestinationAccountId={() => {}}
+              filteredAccounts={accounts}
+              transferAccounts={[]}
+              selectedTrip={undefined}
+              selectedAccount={accounts.find(a => a.id === selectedAccountId)}
+              isPaidByOther={false}
+              payerName=""
+            />
             <p className="text-xs text-muted-foreground">
               💳 Selecione a conta onde o gasto original foi (ou será) realizado
             </p>
