@@ -233,7 +233,6 @@ export function SharedInstallmentImport({
         <div className="space-y-4 py-4">
           {/* Account Selector */}
           <div className="space-y-2">
-            <Label>Conta de Origem *</Label>
             <AccountSelector 
               accountId={selectedAccountId} 
               setAccountId={setSelectedAccountId}
