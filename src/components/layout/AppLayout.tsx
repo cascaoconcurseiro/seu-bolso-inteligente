@@ -37,6 +37,7 @@ import { MonthSelector } from "./MonthSelector";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { MobileNav } from "./MobileNav";
+import { VersionGuard } from "./VersionGuard";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -116,6 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
+      <VersionGuard />
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-2 md:px-4 lg:px-6">
