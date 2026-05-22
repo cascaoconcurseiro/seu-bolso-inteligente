@@ -23,20 +23,21 @@ export interface MonthlyProjection {
  * - Faturas de cartão pendentes
  * - Dívidas com compartilhados
  */
-export function useMonthlyProjection() {
+export function useMonthlyProjection(currency: string = "BRL") {
   const { user } = useAuth();
   const { currentDate } = useMonth();
   const endDate = dateFns.format(dateFns.endOfMonth(currentDate), 'yyyy-MM-dd');
   const currentMonth = dateFns.format(currentDate, 'yyyy-MM');
 
   return useQuery({
-    queryKey: ["monthly-projection", user?.id, currentMonth],
+    queryKey: ["monthly-projection", user?.id, currentMonth, currency],
     queryFn: async () => {
       if (!user) return null;
 
       const { data, error } = await supabase.rpc('get_monthly_projection', {
         p_user_id: user.id,
         p_end_date: endDate,
+        p_currency: currency,
       });
 
       if (error) {
@@ -62,3 +63,4 @@ export function useMonthlyProjection() {
     refetchOnMount: 'always',
   });
 }
+

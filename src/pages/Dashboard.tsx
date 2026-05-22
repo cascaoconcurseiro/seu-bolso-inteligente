@@ -15,15 +15,12 @@ import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-
 export function Dashboard() {
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
-  const { data: projection } = useMonthlyProjection();
-  
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
+  const { data: projection } = useMonthlyProjection(selectedCurrency);
 
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
@@ -66,8 +63,8 @@ export function Dashboard() {
   const foreignData = currenciesData.filter(c => c.currency !== 'BRL');
   const activeCurrencyData = currenciesData.find(c => c.currency === selectedCurrency) || currenciesData[0] || brlData;
 
-  const savings = brlData.income - brlData.expense;
-  const projectedBalance = projection?.projected_balance ?? brlData.balance;
+  const savings = activeCurrencyData.income - activeCurrencyData.expense;
+  const projectedBalance = projection?.projected_balance ?? activeCurrencyData.balance;
 
   const balancesByForeignCurrency = foreignData.reduce((acc, curr) => {
     acc[curr.currency] = curr.balance;
@@ -215,7 +212,7 @@ export function Dashboard() {
           savings={savings}
           projectedBalance={projectedBalance}
           projection={projection ?? null}
-          formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
+          formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
         />
       </div>
 
