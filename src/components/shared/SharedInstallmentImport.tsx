@@ -26,6 +26,8 @@ import {
   AlertCircle,
   Loader2,
   Users,
+  HelpCircle,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FamilyMember } from '@/hooks/useFamily';
@@ -36,6 +38,7 @@ import { toast } from 'sonner';
 import * as dateFns from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CategorySelector } from '@/components/transactions/CategorySelector';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
 interface SharedInstallmentImportProps {
   isOpen: boolean;
@@ -222,10 +225,40 @@ export function SharedInstallmentImport({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-primary" />
-            Importar Parcelado Compartilhado
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Layers className="h-5 w-5 text-primary" />
+              Importar Parcelado Compartilhado
+            </DialogTitle>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 font-bold text-sm text-primary">
+                    <Info className="h-4 w-4 shrink-0" />
+                    <span>O que é o Parcelado Compartilhado?</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Esta funcionalidade serve para <strong>registrar compras parceladas no compartilhado</strong> (ex: eletrodomésticos, viagens ou serviços), dividindo e cobrando outro membro automaticamente pelas parcelas mensais.
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    <strong>Exemplo Prático:</strong> Se você comprou uma geladeira parcelada em 10x e quer que outro membro pague uma porcentagem fixa das parcelas mensais, esta ferramenta projeta as parcelas futuras e cobra o membro selecionado mês a mês no compartilhado.
+                  </p>
+                  <div className="pt-1.5 text-[11px] font-semibold text-primary border-t border-border mt-1">
+                    💡 Dica: Informe o valor unitário de <strong>cada parcela</strong>. O total da compra será calculado de forma precisa e automatizada.
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <DialogDescription>
             Crie múltiplas parcelas para outro membro pagar.
             <br />
@@ -236,17 +269,6 @@ export function SharedInstallmentImport({
         </DialogHeader>
 
         <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-1">
-          {/* Banner Explicativo "Para que serve" */}
-          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-3 flex gap-2.5 items-start">
-            <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-foreground">Para que serve o Parcelado Compartilhado?</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Use esta função quando fizer uma compra parcelada (ex: compra de 10x de R$100) em que <strong>outro membro da família for pagar</strong> as parcelas mensais. O sistema criará as despesas nos meses correspondentes e cobrará o membro selecionado automaticamente.
-              </p>
-            </div>
-          </div>
-
           {/* Erros de validação (se existirem) */}
           {errors.length > 0 && (
             <div className="p-3 bg-destructive/10 text-destructive rounded-lg space-y-1">

@@ -649,10 +649,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Parse date as YYYY-MM-DD to avoid timezone issues
           const [year, month] = dateToUse.split('-').map(Number);
           
-          // NOVO: Mostrar se for do mês atual OU se for uma pendência de meses ANTERIORES
-          // Isso garante que dívidas antigas não sumam da visão do usuário
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
+
+          // Lógica de isolamento de competência de parcelas
+          // Parcelas são exibidas estritamente no seu mês de vencimento (competência) correspondente
+          const isInstallment = i.totalInstallments && i.totalInstallments > 1;
+          if (isInstallment) {
+            return (month - 1) === currentMonth && year === currentYear;
+          }
+          
+          // NOVO: Mostrar se for do mês atual OU se for uma pendência de meses ANTERIORES
+          // Isso garante que dívidas antigas não sumam da visão do usuário
           const itemDate = new Date(year, month - 1, 1);
           const currentViewDate = new Date(currentYear, currentMonth, 1);
           

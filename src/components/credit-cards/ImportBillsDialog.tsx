@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Calendar, DollarSign, Save, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, DollarSign, Save, Info, HelpCircle } from "lucide-react";
 import { formatLocalDate } from "@/utils/dateUtils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 type CreditCardAccount = any;
 
@@ -78,28 +79,38 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Importar Faturas</DialogTitle>
+          <div className="flex items-center justify-between pr-6">
+            <DialogTitle>Importar Faturas</DialogTitle>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 font-bold text-sm text-primary">
+                    <Info className="h-4 w-4 shrink-0" />
+                    <span>O que é a Importação de Faturas?</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Esta funcionalidade serve para <strong>registrar valores globais estimados para faturas de cartão de crédito em andamento</strong>, ideal para provisão rápida de despesas recorrentes antes de lançar cada gasto individualmente.
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed font-semibold text-destructive bg-destructive/5 border border-destructive/10 rounded-lg p-2.5">
+                    ⚠️ Atenção: Não serve para lançar parcelas de compras! Para compras parceladas de forma dividida, use a opção "Importar Parcelado" nas finanças compartilhadas.
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
           <DialogDescription>
             Lançamento rápido do valor total estimado para as faturas de {account.name}
           </DialogDescription>
         </DialogHeader>
-        
-        {/* Bloco Explicativo do Recurso */}
-        <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-2 text-sm text-foreground">
-          <div className="flex items-center gap-2 font-semibold text-primary">
-            <Info className="h-4 w-4 shrink-0" />
-            <span>O que é a Importação de Faturas?</span>
-          </div>
-          <p className="text-muted-foreground text-xs leading-relaxed">
-            Esta funcionalidade serve para <strong>registrar valores já existentes ou despesas de cartão anteriores ao seu início no Pé de Meia</strong>, como parcelas que já estão em andamento ou compras antigas que você quer provisionar rapidamente.
-          </p>
-          <p className="text-muted-foreground text-xs leading-relaxed">
-            <strong>Exemplo Prático:</strong> Se você comprou uma geladeira parcelada em 10x e já pagou 4 parcelas antes de se cadastrar no sistema, restam 6 parcelas. A importação serve exatamente para registrar o valor estimado destas 6 parcelas futuras de forma ágil, sem ter que cadastrar toda a compra do passado.
-          </p>
-          <div className="pt-1 text-[11px] font-medium text-primary">
-            💡 Dica: Ao preencher os valores nos meses correspondentes abaixo, o sistema planeja as faturas futuras de forma a manter as suas previsões matemáticas e de fluxo de caixa perfeitas.
-          </div>
-        </div>
 
         {/* Year Selector */}
         <div className="flex items-center justify-center gap-4 py-1">
