@@ -21,6 +21,8 @@ export const invalidateFinancialQueries = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: ['monthly-evolution'] }),
     queryClient.invalidateQueries({ queryKey: ['expenses-by-category'] }),
     queryClient.invalidateQueries({ queryKey: ['dashboard-data'] }),
+    queryClient.invalidateQueries({ queryKey: ['monthly-projection'] }),
+    queryClient.invalidateQueries({ queryKey: ['wealth-evolution'] }),
   ]);
 };
 
@@ -97,6 +99,8 @@ export const invalidateTransactionQueries = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: ['account-statement'] }),
     queryClient.invalidateQueries({ queryKey: ['financial-summary'] }),
     queryClient.invalidateQueries({ queryKey: ['dashboard-data'] }),
+    queryClient.invalidateQueries({ queryKey: ['monthly-projection'] }),
+    queryClient.invalidateQueries({ queryKey: ['wealth-evolution'] }),
   ]);
 };
 
