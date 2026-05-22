@@ -254,7 +254,23 @@ export function SharedExpenses() {
   Object.values(totalsByCurrency).forEach(t => t.balance = t.owedToMe - t.iOwe);
   Object.values(travelTotalsByCurrency).forEach(t => t.balance = t.owedToMe - t.iOwe);
 
-  if (membersLoading || sharedLoading) return <div className="space-y-8 animate-fade-in"><div className="h-12 w-48 bg-muted rounded animate-pulse" /><div className="h-24 bg-muted rounded animate-pulse" /><div className="space-y-2">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-muted rounded animate-pulse" />)}</div></div>;
+  // Renderizar o skeleton de carregamento apenas no carregamento inicial absoluto (sem dados no cache)
+  const hasData = members.length > 0 && Object.keys(invoices).length > 0;
+  const isInitialLoading = (membersLoading || sharedLoading) && !hasData;
+
+  if (isInitialLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="h-12 w-48 bg-muted rounded animate-pulse" />
+        <div className="h-24 bg-muted rounded animate-pulse" />
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-24 bg-muted rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
