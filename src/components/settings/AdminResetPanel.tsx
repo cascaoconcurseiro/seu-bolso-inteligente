@@ -54,6 +54,7 @@ import {
   AlertTriangle,
   Loader2,
   Lock,
+  Key,
   Trash2,
   Users,
   Eye,
@@ -150,6 +151,25 @@ export function AdminResetPanel() {
   const [isPurging, setIsPurging] = useState(false);
   const [isInjectingCategories, setIsInjectingCategories] = useState(false);
   const [isRecalculatingTarget, setIsRecalculatingTarget] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState<string | null>(null);
+
+  const handleResetUserPassword = async (email: string, userId: string) => {
+    setIsResettingPassword(userId);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}`,
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`E-mail de redefinição de senha enviado com sucesso para ${email}!`);
+    } catch (error: any) {
+      console.error('Error sending reset email:', error);
+      toast.error(`Erro ao disparar redefinição de senha: ${error.message}`);
+    } finally {
+      setIsResettingPassword(null);
+    }
+  };
   
   // Detail Modal States
   const [userDetailOpen, setUserDetailOpen] = useState(false);
@@ -783,7 +803,6 @@ export function AdminResetPanel() {
                     <TableHead>Perfil</TableHead>
                     <TableHead>Cadastro</TableHead>
                     <TableHead className="text-center">Indicadores</TableHead>
-                    <TableHead className="text-right">Saldo Líquido</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -823,12 +842,6 @@ export function AdminResetPanel() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell className={cn(
-                        "text-right font-semibold text-sm",
-                        user.totalBalance > 0 ? "text-positive" : user.totalBalance < 0 ? "text-negative" : "text-muted-foreground"
-                      )}>
-                        {formatCurrency(user.totalBalance)}
-                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button 
@@ -851,6 +864,20 @@ export function AdminResetPanel() {
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <RefreshCw className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                            disabled={isResettingPassword === user.id}
+                            onClick={() => handleResetUserPassword(user.email, user.id)}
+                            title="Enviar e-mail para redefinir senha (LGPD Seguro)"
+                          >
+                            {isResettingPassword === user.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Key className="h-4 w-4" />
                             )}
                           </Button>
                           <Button
@@ -1131,10 +1158,16 @@ export function AdminResetPanel() {
                   <div className="space-y-2 max-h-[150px] overflow-y-auto">
                     {detailAccounts.map((acc, i) => (
                       <div key={i} className="flex justify-between items-center text-xs p-2 rounded bg-muted/30">
-                        <span className="font-medium">{acc.name} <Badge variant="outline" className="text-[8px] py-0 px-1 ml-1">{acc.type}</Badge></span>
-                        <span className={cn("font-semibold", acc.balance >= 0 ? "text-positive" : "text-negative")}>
-                          {formatCurrency(Number(acc.balance))}
+                        <span className="font-medium">
+                          {acc.name}{" "}
+                          <Badge variant="outline" className="text-[8px] py-0 px-1 ml-1">
+                            {acc.type}
+                          </Badge>
                         </span>
+                        <Badge variant="outline" className="text-[10px] bg-sky-500/10 text-sky-500 border-sky-500/20 font-medium flex items-center gap-1 py-0.5 px-2">
+                          <Lock className="h-3 w-3" />
+                          Saldo Oculto (LGPD)
+                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -1159,6 +1192,35 @@ export function AdminResetPanel() {
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3">
+                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 text-amber-500">
+                  <Shield className="h-3.5 w-3.5" />
+                  Controles de Segurança e LGPD
+                </h5>
+                <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-3">
+                  <div className="flex gap-2 text-xs text-amber-800 dark:text-amber-300">
+                    <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      Para redefinir a senha de forma segura e em total conformidade com a LGPD, envie um e-mail de redefinição de senha oficial. O administrador não tem acesso a senhas em texto puro.
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 border-amber-500/30 text-amber-700 hover:text-amber-800 hover:bg-amber-500/10 dark:text-amber-400 dark:hover:text-amber-300"
+                    disabled={isResettingPassword === selectedDetailUser.id}
+                    onClick={() => handleResetUserPassword(selectedDetailUser.email, selectedDetailUser.id)}
+                  >
+                    {isResettingPassword === selectedDetailUser.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Key className="h-4 w-4" />
+                    )}
+                    Disparar E-mail de Redefinição de Senha
+                  </Button>
+                </div>
               </div>
             </div>
           )}
