@@ -50,11 +50,11 @@ export function PendingTripInvitationsAlert() {
         return (
           <Alert key={invitation.id} className="border-primary/50 bg-primary/5">
             <Plane className="h-4 w-4" />
-            <AlertTitle>Convite para Viagem</AlertTitle>
+            <AlertTitle>Novo Convite de Viagem</AlertTitle>
             <AlertDescription className="mt-2 space-y-3">
               <p>
-                <strong>{inviterName}</strong> convidou você para participar da viagem{" "}
-                <strong>"{tripName}"</strong>.
+                Você foi convidado por <strong>{inviterName}</strong> para participar da viagem{" "}
+                <strong>"{tripName}"</strong>!
               </p>
               
               {destination && (
