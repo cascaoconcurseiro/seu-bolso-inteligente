@@ -229,6 +229,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Transferência Internacional", icon: "🌍", type: "expense" },
       { name: "Remessa Internacional", icon: "💸", type: "expense" },
       { name: "Conversão Cambial", icon: "💱", type: "expense" },
+      { name: "Ajuste de Saldo", icon: "⚖️", type: "expense" },
     ],
   },
   
@@ -332,6 +333,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Acerto Financeiro", icon: "🤝", type: "income" },
       { name: "Ajuste", icon: "🔧", type: "income" },
       { name: "Conversão Cambial", icon: "💱", type: "income" },
+      { name: "Ajuste de Saldo", icon: "⚖️", type: "income" },
     ],
   },
   

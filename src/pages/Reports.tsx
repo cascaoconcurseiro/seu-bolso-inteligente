@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Globe } from "lucide-react";
+import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Edit2, Info, CreditCard, Wallet, ArrowUpRight, ArrowDownRight, Users, Layers, SlidersHorizontal } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
@@ -57,6 +57,9 @@ export function Reports() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
   const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
+  const [txSearch, setTxSearch] = useState<string>("");
+  const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   
   const { user } = useAuth();
   const { data: allTransactions = [], isLoading } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });
@@ -103,6 +106,34 @@ export function Reports() {
   const formatCurrency = (value: number, currency: string = 'BRL') => {
     if (currency === 'BRL') return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
     return `${getCurrencySymbol(currency)} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatTxDate = (dateStr: string) => {
+    if (!dateStr) return "-";
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        return dateFns.format(new Date(year, month, day), 'dd/MM/yyyy');
+      }
+      return dateFns.format(dateFns.parseISO(dateStr), 'dd/MM/yyyy');
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const getAccountBadge = (accountId: string) => {
+    const acc = accounts.find(a => a.id === accountId);
+    if (!acc) return null;
+    const isCard = acc.type === 'CREDIT_CARD';
+    return (
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+        {isCard ? <CreditCard className="h-3 w-3" /> : <Wallet className="h-3 w-3" />}
+        {acc.name}
+      </span>
+    );
   };
 
   const allCombinedTransactions = useMemo(() => {
@@ -422,7 +453,7 @@ export function Reports() {
     const targetYear = safeCurrentDate.getFullYear();
     const targetMonth = safeCurrentDate.getMonth();
 
-    sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id).forEach((tx: any) => {
+    sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id && (selectedCurrency === 'ALL' || (tx.currency || 'BRL') === selectedCurrency)).forEach((tx: any) => {
       if (!tx.date) return;
       const parts = tx.date.split('-');
       if (parts.length < 2) return;
@@ -498,6 +529,45 @@ export function Reports() {
     });
     return Object.values(map).map(p => ({ ...p, seriesCount: p.series.size })).sort((a, b) => b.periodAmount - a.periodAmount);
   }, [sharedTransactions, familyMembers, safeCurrentDate, viewType]);
+
+  // KPIs Financeiros Dinâmicos Avançados
+  const largestExpense = useMemo(() => {
+    const expenses = periodTransactions.filter(t => t.type === 'EXPENSE');
+    if (expenses.length === 0) return null;
+    return expenses.reduce((max, t) => Number(t.amount) > Number(max.amount) ? t : max, expenses[0]);
+  }, [periodTransactions]);
+
+  const dailyAverageExpense = useMemo(() => {
+    if (totalExpense <= 0) return 0;
+    const isYearly = viewType === 'YEAR';
+    const days = isYearly ? 365 : dateFns.getDaysInMonth(safeCurrentDate);
+    return moneyUtils.round(totalExpense / days);
+  }, [totalExpense, viewType, safeCurrentDate]);
+
+  const topCategory = useMemo(() => {
+    if (categoryData.length === 0) return null;
+    return categoryData[0]; // já vem ordenada por valor decrescente
+  }, [categoryData]);
+
+  const savingsGoalStatus = useMemo(() => {
+    const rate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0;
+    if (rate >= 20) return { text: "Excelente! Meta batida (Economizou > 20%)", color: "text-green-500 bg-green-500/10 border-green-500/20" };
+    if (rate >= 10) return { text: "Bom caminho! (Economizou > 10%)", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" };
+    if (rate > 0) return { text: "Resultado positivo, busque economizar pelo menos 10%", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" };
+    return { text: "Atenção: despesas superaram ou igualaram as receitas", color: "text-red-500 bg-red-500/10 border-red-500/20" };
+  }, [totalIncome, balance]);
+
+  const filteredTxList = useMemo(() => {
+    return periodTransactions.filter(tx => {
+      const matchesSearch = txSearch.trim() === "" || 
+        tx.description?.toLowerCase().includes(txSearch.toLowerCase()) ||
+        tx.category?.name?.toLowerCase().includes(txSearch.toLowerCase());
+      
+      const matchesType = txTypeFilter === 'ALL' || tx.type === txTypeFilter;
+      
+      return matchesSearch && matchesType;
+    });
+  }, [periodTransactions, txSearch, txTypeFilter]);
 
   // monthlyData: calculado localmente a partir de allCombinedTransactions
   // Garante harmonia matemática com os totais do período e respeita a regra
@@ -656,6 +726,88 @@ export function Reports() {
 
       <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
 
+      {/* KPIs Financeiros Avançados */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Gasto Médio Diário */}
+        <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-inner flex items-center justify-center">
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Média Diária</p>
+              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground">
+                {formatCurrency(dailyAverageExpense, displayCurrency)}
+              </h3>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3 flex items-center gap-1.5 font-medium">
+            <Info className="h-3 w-3 text-muted-foreground/60" />
+            Com base no período selecionado
+          </p>
+        </div>
+
+        {/* Card 2: Maior Despesa Única */}
+        <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-inner flex items-center justify-center">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Maior Despesa</p>
+              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
+                {largestExpense ? formatCurrency(Number(largestExpense.amount), displayCurrency) : formatCurrency(0, displayCurrency)}
+              </h3>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={largestExpense ? largestExpense.description : "Nenhum gasto"}>
+            🎯 {largestExpense ? largestExpense.description : "Nenhum gasto no período"}
+          </p>
+        </div>
+
+        {/* Card 3: Categoria Líder */}
+        <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-inner flex items-center justify-center">
+              <Tag className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Categoria Líder</p>
+              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
+                {topCategory ? formatCurrency(topCategory.value, displayCurrency) : formatCurrency(0, displayCurrency)}
+              </h3>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={topCategory ? topCategory.category : "Nenhum gasto"}>
+            🏷️ {topCategory ? topCategory.category : "Nenhum gasto"}
+          </p>
+        </div>
+
+        {/* Card 4: Meta de Economia */}
+        <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-inner flex items-center justify-center">
+              <Target className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Taxa de Poupança</p>
+              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground">
+                {totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : '0.0'}%
+              </h3>
+            </div>
+          </div>
+          <div className="mt-3 truncate">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${savingsGoalStatus.color}`}>
+              {savingsGoalStatus.text}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} /></section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -665,7 +817,176 @@ export function Reports() {
         <InstallmentsTable data={installmentsByPerson} formatCurrency={formatCurrency} currency={displayCurrency} />
       </div>
 
-      <TransactionModal isOpen={showTransactionModal} onClose={() => setShowTransactionModal(false)} />
+      {/* Detalhamento de Transações do Período */}
+      <section className="p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-border/80">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Lançamentos do Período</h2>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Busque, filtre e edite suas transações diretamente.</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {/* Input de Busca */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Buscar por descrição..."
+                value={txSearch}
+                onChange={(e) => setTxSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-border/50 bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+              />
+            </div>
+            
+            {/* Filtros Pills */}
+            <div className="flex bg-muted/40 p-1 rounded-xl border border-border/30 w-full sm:w-auto justify-between gap-1">
+              <button
+                onClick={() => setTxTypeFilter('ALL')}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  txTypeFilter === 'ALL'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setTxTypeFilter('INCOME')}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  txTypeFilter === 'INCOME'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-500/15'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Receitas
+              </button>
+              <button
+                onClick={() => setTxTypeFilter('EXPENSE')}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  txTypeFilter === 'EXPENSE'
+                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 shadow-sm border border-rose-500/15'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Despesas
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabela de Transações */}
+        {filteredTxList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4 rounded-xl border border-dashed border-border/60 bg-muted/5">
+            <Info className="h-8 w-8 text-muted-foreground/50 mb-3" />
+            <h3 className="text-xs font-bold text-muted-foreground">Nenhuma transação encontrada</h3>
+            <p className="text-[11px] text-muted-foreground/75 mt-1 text-center max-w-xs">
+              Tente redefinir seus filtros ou buscar por outro termo.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-border/40 bg-background/20 scrollbar-thin">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border/40 bg-muted/10">
+                  <th className="text-left py-3 px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Data</th>
+                  <th className="text-left py-3 px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Descrição</th>
+                  <th className="text-left py-3 px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Conta</th>
+                  <th className="text-right py-3 px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Valor</th>
+                  <th className="text-center py-3 px-4 text-[10px] uppercase tracking-wider text-muted-foreground font-bold w-12">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTxList.map((tx) => {
+                  const isIncome = tx.type === 'INCOME';
+                  const isShared = tx.is_shared || tx.domain === 'SHARED';
+                  const isInstallment = tx.is_installment;
+                  
+                  return (
+                    <tr 
+                      key={tx.id} 
+                      className="border-b border-border/20 last:border-0 hover:bg-muted/10 transition-colors group"
+                    >
+                      {/* Data */}
+                      <td className="py-3 px-4 font-mono text-xs text-muted-foreground/80 font-medium">
+                        {formatTxDate(tx.date)}
+                      </td>
+                      
+                      {/* Descrição e Badges */}
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <span className="font-semibold text-foreground/90 group-hover:text-foreground transition-colors">
+                            {tx.description}
+                          </span>
+                          
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {/* Categoria */}
+                            {tx.category && tx.category.name && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/5 text-primary border border-primary/10">
+                                🏷️ {tx.category.name}
+                              </span>
+                            )}
+                            
+                            {/* Compartilhado */}
+                            {isShared && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/15">
+                                <Users className="h-2.5 w-2.5" />
+                                Compartilhado
+                              </span>
+                            )}
+                            
+                            {/* Parcelado */}
+                            {isInstallment && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/15">
+                                <Layers className="h-2.5 w-2.5" />
+                                Parcelado
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Conta */}
+                      <td className="py-3 px-4">
+                        {getAccountBadge(tx.account_id)}
+                      </td>
+                      
+                      {/* Valor */}
+                      <td className={`py-3 px-4 text-right font-mono font-black ${
+                        isIncome ? 'text-emerald-500' : 'text-rose-500'
+                      }`}>
+                        {isIncome ? '+' : '-'} {formatCurrency(Number(tx.amount), displayCurrency)}
+                      </td>
+                      
+                      {/* Ações (Editar) */}
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => setEditingTransaction(tx)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-muted transition-all opacity-60 group-hover:opacity-100"
+                          title="Editar transação"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <TransactionModal 
+        isOpen={showTransactionModal || !!editingTransaction} 
+        onClose={() => {
+          setShowTransactionModal(false);
+          setEditingTransaction(null);
+        }} 
+        initialData={editingTransaction}
+      />
     </div>
   );
 }

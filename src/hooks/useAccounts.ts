@@ -268,12 +268,25 @@ export function useUpdateAccount() {
 
         // Se há diferença, criar transação de ajuste
         if (Math.abs(difference) > 0.001) {
+          const txType = difference > 0 ? 'INCOME' : 'EXPENSE';
+          const catType = difference > 0 ? 'income' : 'expense';
+
+          // Buscar categoria "Ajuste de Saldo" correspondente ao tipo de transação e usuário
+          const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('name', 'Ajuste de Saldo')
+            .eq('type', catType)
+            .maybeSingle();
+
           const { error: txError } = await supabase.from('transactions').insert({
             user_id: user.id,
             account_id: id,
-            type: difference > 0 ? 'INCOME' : 'EXPENSE',
+            type: txType,
             amount: Math.abs(difference),
             description: `Ajuste de saldo - ${currentAccount.name}`,
+            category_id: categoryData?.id || null,
             date: new Date().toISOString().split('T')[0],
             competence_date: new Date().toISOString().split('T')[0],
             domain: 'PERSONAL',

@@ -19,9 +19,10 @@ import { GoalCard } from '@/components/goals/GoalCard';
 import { AssetCard } from '@/components/investments/AssetCard';
 import { InvestmentSummarySection } from '@/components/investments/InvestmentSummarySection';
 import { AccountingDRE } from '@/components/settings/AccountingDRE';
+import { InvestmentIRPanel } from '@/components/investments/InvestmentIRPanel';
 
 export function GoalsAndInvestments() {
-  const [activeTab, setActiveTab] = useState<'GOALS' | 'INVESTMENTS' | 'DRE'>('GOALS');
+  const [activeTab, setActiveTab] = useState<'GOALS' | 'INVESTMENTS' | 'IRPF' | 'DRE'>('GOALS');
   
   // Goals state
   const { goals, deleteGoal } = useGoals();
@@ -102,11 +103,11 @@ export function GoalsAndInvestments() {
               Metas e Investimentos
             </h1>
             <p className="text-muted-foreground mt-1 font-medium">
-              {activeTab === 'DRE' ? 'DRE & Balanço Patrimonial' : 'Gestão de Patrimônio'}
+              {activeTab === 'DRE' ? 'DRE & Balanço Patrimonial' : activeTab === 'IRPF' ? 'Relatório de Imposto de Renda (IRPF)' : 'Gestão de Patrimônio'}
             </p>
           </div>
           
-          {activeTab !== 'DRE' && (
+          {activeTab !== 'DRE' && activeTab !== 'IRPF' && (
             <Button 
               onClick={() => {
                 if (activeTab === 'GOALS') {
@@ -133,9 +134,10 @@ export function GoalsAndInvestments() {
           <div
             className={cn(
               "absolute top-1 bottom-1 rounded-xl bg-background shadow-sm transition-all duration-300 ease-out",
-              activeTab === 'GOALS' && "left-1 right-[66.6%]",
-              activeTab === 'INVESTMENTS' && "left-[33.3%] right-[33.3%]",
-              activeTab === 'DRE' && "left-[66.6%] right-1"
+              activeTab === 'GOALS' && "left-1 right-[75%]",
+              activeTab === 'INVESTMENTS' && "left-[25%] right-[50%]",
+              activeTab === 'IRPF' && "left-[50%] right-[25%]",
+              activeTab === 'DRE' && "left-[75%] right-1"
             )}
           />
           <button
@@ -161,6 +163,18 @@ export function GoalsAndInvestments() {
           >
             <TrendingUp className="w-4 h-4" />
             Investimentos
+          </button>
+          <button
+            onClick={() => setActiveTab('IRPF')}
+            className={cn(
+              "relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium transition-colors duration-200",
+              activeTab === 'IRPF' 
+                ? "text-foreground" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Imposto de Renda (IRPF)
           </button>
           <button
             onClick={() => setActiveTab('DRE')}
@@ -274,6 +288,10 @@ export function GoalsAndInvestments() {
                 ))
               )}
             </div>
+          </div>
+        ) : activeTab === 'IRPF' ? (
+          <div className="bg-card p-6 rounded-2xl border border-border/80 shadow-premium-sm animate-fade-in">
+            <InvestmentIRPanel assets={assets || []} />
           </div>
         ) : (
           <div className="bg-card p-6 rounded-2xl border border-border/80 shadow-premium-sm animate-fade-in">

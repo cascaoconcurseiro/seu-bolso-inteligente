@@ -33,7 +33,7 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
 };
 
 // Retorna as transações de um ativo (reais do banco ou seed virtual)
-const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
+export const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
   const assetTxs = realTransactions.filter(tx => tx.asset_id === asset.id);
   if (assetTxs.length === 0) {
     // Se não há transações no banco, gera a transação virtual / seed baseada no ativo para retrocompatibilidade
@@ -50,7 +50,7 @@ const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
   return assetTxs;
 };
 
-const getPositionAtDate = (asset: Asset, transactions: any[], cutoffDate: string) => {
+export const getPositionAtDate = (asset: Asset, transactions: any[], cutoffDate: string) => {
   const assetTxs = getAssetTransactions(asset, transactions);
   
   let qty = 0;
