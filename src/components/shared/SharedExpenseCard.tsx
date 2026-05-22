@@ -323,7 +323,7 @@ export function SharedExpenseCard({
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" sideOffset={8} className="z-[100] min-w-[150px]">
                           {(item.isPaid || isHistory || item.isSettled) && (
                             <DropdownMenuItem onClick={() => onUndo(item)}>
                               <Undo2 className="h-4 w-4 mr-2" /> Desfazer
