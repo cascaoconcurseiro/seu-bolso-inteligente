@@ -77,21 +77,21 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col no-scrollbar">
         <DialogHeader>
-          <div className="flex items-center justify-between pr-6">
-            <DialogTitle>Importar Faturas</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 pr-12">
+            <span>Importar Faturas</span>
             <Popover>
               <PopoverTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+                  className="h-6 w-6 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
                 >
-                  <HelpCircle className="h-4 w-4" />
+                  <HelpCircle className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50">
+              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50 font-normal">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 font-bold text-sm text-primary">
                     <Info className="h-4 w-4 shrink-0" />
@@ -106,7 +106,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                 </div>
               </PopoverContent>
             </Popover>
-          </div>
+          </DialogTitle>
           <DialogDescription>
             Lançamento rápido do valor total estimado para as faturas de {account.name}
           </DialogDescription>
@@ -124,7 +124,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         </div>
 
         {/* Months List */}
-        <div className="flex-1 overflow-y-auto space-y-2 py-2">
+        <div className="flex-1 overflow-y-auto space-y-2 py-2 no-scrollbar">
           {months.map((month, index) => (
             <div 
               key={month.date} 

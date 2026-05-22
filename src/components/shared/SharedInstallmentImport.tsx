@@ -223,24 +223,22 @@ export function SharedInstallmentImport({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col no-scrollbar">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-primary" />
-              Importar Parcelado Compartilhado
-            </DialogTitle>
+          <DialogTitle className="flex items-center gap-2 pr-12">
+            <Layers className="h-5 w-5 text-primary shrink-0" />
+            <span>Importar Parcelado Compartilhado</span>
             <Popover>
               <PopoverTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+                  className="h-6 w-6 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
                 >
-                  <HelpCircle className="h-4 w-4" />
+                  <HelpCircle className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50">
+              <PopoverContent className="w-80 p-4 border bg-popover text-popover-foreground rounded-xl shadow-md z-50 font-normal">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 font-bold text-sm text-primary">
                     <Info className="h-4 w-4 shrink-0" />
@@ -258,7 +256,7 @@ export function SharedInstallmentImport({
                 </div>
               </PopoverContent>
             </Popover>
-          </div>
+          </DialogTitle>
           <DialogDescription>
             Crie múltiplas parcelas para outro membro pagar.
             <br />
@@ -268,7 +266,7 @@ export function SharedInstallmentImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-1">
+        <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1 no-scrollbar">
           {/* Erros de validação (se existirem) */}
           {errors.length > 0 && (
             <div className="p-3 bg-destructive/10 text-destructive rounded-lg space-y-1">
