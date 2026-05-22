@@ -285,7 +285,27 @@ export function CreditCards() {
         
         <PayInvoiceDialog 
           isOpen={showPayDialog} onClose={() => setShowPayDialog(false)} card={selectedCard} invoiceTotal={invoiceData.invoiceTotal} accounts={(accounts || []).filter(a => a.type !== 'CREDIT_CARD')}
-          onPay={async (fromId, amt, rate) => { const debit = rate ? amt * rate : amt; await createTransaction.mutateAsync({ amount: debit, description: `Pagamento Fatura ${selectedCard.name}`, date: formatLocalDate(new Date()), competence_date: dateFns.format(selectedDate, "yyyy-MM-01"), type: "TRANSFER", account_id: fromId, destination_account_id: selectedCard.id, domain: "PERSONAL", currency: rate ? 'BRL' : (selectedCard.currency || 'BRL') }); toastHook({ title: "Fatura paga!" }); setShowPayDialog(false); refetchAccounts(); refetchTransactions(); }}
+          onPay={async (fromId, amt, rate) => {
+            const debit = rate ? amt * rate : amt;
+            const competenceFormatted = dateFns.format(selectedDate, "MMMM/yyyy", { locale: ptBR });
+            const capitalizedCompetence = competenceFormatted.charAt(0).toUpperCase() + competenceFormatted.slice(1);
+            
+            await createTransaction.mutateAsync({
+              amount: debit,
+              description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
+              date: formatLocalDate(new Date()),
+              competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
+              type: "TRANSFER",
+              account_id: fromId,
+              destination_account_id: selectedCard.id,
+              domain: "PERSONAL",
+              currency: rate ? 'BRL' : (selectedCard.currency || 'BRL')
+            });
+            toastHook({ title: "Fatura paga!" });
+            setShowPayDialog(false);
+            refetchAccounts();
+            refetchTransactions();
+          }}
         />
 
         <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditingTransaction(null); refetchTransactions(); }} initialData={editingTransaction} />
