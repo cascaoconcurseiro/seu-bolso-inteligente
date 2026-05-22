@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
+import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
@@ -21,6 +22,7 @@ export function Dashboard() {
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: projection } = useMonthlyProjection(selectedCurrency);
+  const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
 
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
@@ -192,6 +194,7 @@ export function Dashboard() {
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}
           formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
+          wealthHistory={wealthHistory}
         />
       </div>
 
