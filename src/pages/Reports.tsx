@@ -285,8 +285,8 @@ export function Reports() {
         : txYear === targetYear;
         
       if (!isInPeriod) return false;
-      if (!isInPeriod) return false;
-      return (tx.currency || 'BRL') === selectedCurrency;
+      const txCurr = getTransactionCurrency(tx);
+      return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
     });
   }, [sharedTransactions, safeCurrentDate, selectedCurrency, viewType]);
 
@@ -453,7 +453,7 @@ export function Reports() {
     const targetYear = safeCurrentDate.getFullYear();
     const targetMonth = safeCurrentDate.getMonth();
 
-    sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id && (selectedCurrency === 'ALL' || (tx.currency || 'BRL') === selectedCurrency)).forEach((tx: any) => {
+    sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id && (selectedCurrency === 'ALL' || getTransactionCurrency(tx) === selectedCurrency)).forEach((tx: any) => {
       if (!tx.date) return;
       const parts = tx.date.split('-');
       if (parts.length < 2) return;
@@ -528,7 +528,7 @@ export function Reports() {
       }
     });
     return Object.values(map).map(p => ({ ...p, seriesCount: p.series.size })).sort((a, b) => b.periodAmount - a.periodAmount);
-  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType]);
+  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType, selectedCurrency]);
 
   // KPIs Financeiros Dinâmicos Avançados
   const largestExpense = useMemo(() => {
