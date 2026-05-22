@@ -286,7 +286,7 @@ export function Reports() {
     expenses.forEach(tx => {
       let categoryName = "Sem categoria";
       
-      if (tx.category) {
+      if (tx.category && tx.category.id && tx.category.name && tx.category.name !== "null" && tx.category.name !== "undefined") {
         const catId = tx.category.id;
         const catInfo = categories.find(c => c.id === catId);
         
@@ -304,6 +304,11 @@ export function Reports() {
         } else {
           categoryName = tx.category.icon ? `${tx.category.icon} ${tx.category.name}` : tx.category.name;
         }
+      }
+
+      // Limpeza de segurança final contra strings inválidas
+      if (!categoryName || categoryName.trim() === "" || categoryName === "null" || categoryName === "undefined") {
+        categoryName = "Sem categoria";
       }
 
       if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };

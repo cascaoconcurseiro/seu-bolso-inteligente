@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +68,7 @@ export function CreditCards() {
   const { currentDate } = useMonth();
   const [view, setView] = useState<CardView>("list");
   const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
+  const urlParamsProcessed = useRef(false);
   const [showNewCardDialog, setShowNewCardDialog] = useState(false);
   const { data: exportTransactions = [] } = useTransactions({
     startDate: `${currentDate.getFullYear()}-01-01`,
@@ -142,7 +143,13 @@ export function CreditCards() {
   const creditCards = useMemo(() => (accounts || []).filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[], [accounts]);
 
   useEffect(() => {
-    if (selectedCard) setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
+    if (selectedCard) {
+      if (urlParamsProcessed.current) {
+        urlParamsProcessed.current = false;
+        return;
+      }
+      setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
+    }
   }, [selectedCard?.id]);
 
   const { data: invoiceDataRPC, isFetching: invoiceFetching } = useCreditCardInvoice(
@@ -155,9 +162,10 @@ export function CreditCards() {
     const cardId = searchParams.get("cardId");
     const invoiceDateParam = searchParams.get("invoiceDate") || searchParams.get("month");
     
-    if (cardId && accounts.length > 0 && !selectedCard) {
+    if (cardId && accounts.length > 0 && (!selectedCard || selectedCard.id !== cardId || invoiceDateParam)) {
       const card = accounts.find(a => a.id === cardId);
       if (card) {
+        urlParamsProcessed.current = true;
         setSelectedCard(card as CreditCardAccount);
         setView("detail");
         

@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankIcon } from "@/components/financial/BankIcon";
+import * as dateFns from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface DashboardInvoicesProps {
   creditCardsWithBalance: any[];
@@ -37,6 +39,10 @@ export function DashboardInvoices({
           const invoiceDateParam = `${invoiceMonth.getFullYear()}-${String(invoiceMonth.getMonth() + 1).padStart(2, '0')}`;
           const daysUntilDue = dueDay >= todayDay ? dueDay - todayDay : -(todayDay - dueDay);
           
+          // Formata o mês de referência (competência) em formato de exibição elegível (ex: Maio/2026)
+          const monthLabel = dateFns.format(invoiceMonth, "MMMM/yyyy", { locale: ptBR });
+          const capitalizedMonthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+          
           return (
             <Link
               key={card.id}
@@ -55,8 +61,8 @@ export function DashboardInvoices({
                     daysUntilDue < 0 ? "text-negative" : "text-muted-foreground"
                   )}>
                     {daysUntilDue < 0 
-                      ? `Atrasada ${Math.abs(daysUntilDue)} dia${Math.abs(daysUntilDue) !== 1 ? 's' : ''}` 
-                      : `Vence em ${daysUntilDue} dia${daysUntilDue !== 1 ? 's' : ''}`}
+                      ? `Atrasada ${Math.abs(daysUntilDue)} dia${Math.abs(daysUntilDue) !== 1 ? 's' : ''} • ${capitalizedMonthLabel}` 
+                      : `Vence em ${daysUntilDue} dia${daysUntilDue !== 1 ? 's' : ''} • ${capitalizedMonthLabel}`}
                   </p>
                 </div>
               </div>
