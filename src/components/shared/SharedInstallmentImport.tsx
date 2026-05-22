@@ -39,6 +39,7 @@ import { toast } from 'sonner';
 import * as dateFns from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AccountSelector } from '@/components/transactions/form/AccountSelector';
+import { CategorySelector } from '@/components/transactions/CategorySelector';
 
 interface SharedInstallmentImportProps {
   isOpen: boolean;
@@ -59,8 +60,9 @@ export function SharedInstallmentImport({
 }: SharedInstallmentImportProps) {
   const { user } = useAuth();
   const createTransaction = useCreateTransaction();
-  const { hierarchical } = useCategoriesHierarchical();
+  const { data: categories = [], hierarchical } = useCategoriesHierarchical();
   const { data: accounts = [] } = useAccounts();
+  const creditCards = accounts.filter(a => a.type === 'CREDIT_CARD');
 
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -91,7 +93,8 @@ export function SharedInstallmentImport({
       setInstallments('2');
       setSelectedMonth(dateFns.format(new Date(), 'yyyy-MM'));
       setCategoryId('');
-      setSelectedAccountId(accounts.length > 0 ? accounts[0].id : '');
+      const cards = accounts.filter(a => a.type === 'CREDIT_CARD');
+      setSelectedAccountId(cards.length > 0 ? cards[0].id : '');
       setIsSubmitting(false);
       setErrors([]);
       if (availableMembers.length > 0) {
@@ -106,6 +109,18 @@ export function SharedInstallmentImport({
 
   const installmentAmount = parseAmount(amount);
   const totalAmount = installmentAmount * (parseInt(installments) || 1);
+
+  // Calcular data da última parcela
+  let lastInstallmentText = '';
+  if (selectedMonth && installments) {
+    const totalInstallmentsNum = parseInt(installments) || 0;
+    if (totalInstallmentsNum >= 1) {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const baseDate = new Date(year, month - 1, 1);
+      const lastDate = dateFns.addMonths(baseDate, totalInstallmentsNum - 1);
+      lastInstallmentText = dateFns.format(lastDate, 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase());
+    }
+  }
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
@@ -204,15 +219,6 @@ export function SharedInstallmentImport({
     }
   };
 
-  // Filtrar apenas categorias de despesa
-  // CORREÇÃO: Garantir que parents e children são arrays válidos
-  const expenseParents = Array.isArray(hierarchical?.parents)
-    ? hierarchical.parents.filter(c => c.type === 'expense')
-    : [];
-  const expenseChildren = Array.isArray(hierarchical?.children)
-    ? hierarchical.children.filter(c => c.type === 'expense')
-    : [];
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -230,7 +236,18 @@ export function SharedInstallmentImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Banner Explicativo "Para que serve" */}
+          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-3 flex gap-2.5 items-start">
+            <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-foreground">Para que serve o Parcelado Compartilhado?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Use esta função quando fizer uma compra parcelada no <strong>seu cartão de crédito pessoal</strong> (ex: compra de 10x de R$100), mas <strong>outro membro da família for pagar</strong> as parcelas mensais. O sistema criará as despesas nos meses correspondentes e cobrará o membro selecionado automaticamente.
+              </p>
+            </div>
+          </div>
+
           {/* Account Selector */}
           <div className="space-y-2">
             <AccountSelector 
@@ -239,15 +256,15 @@ export function SharedInstallmentImport({
               activeTab="EXPENSE"
               destinationAccountId=""
               setDestinationAccountId={() => {}}
-              filteredAccounts={accounts}
+              filteredAccounts={creditCards}
               transferAccounts={[]}
               selectedTrip={undefined}
-              selectedAccount={accounts.find(a => a.id === selectedAccountId)}
+              selectedAccount={creditCards.find(a => a.id === selectedAccountId)}
               isPaidByOther={false}
               payerName=""
             />
             <p className="text-xs text-muted-foreground">
-              💳 Selecione a conta onde o gasto original foi (ou será) realizado
+              💳 Selecione o cartão de crédito onde o gasto original foi (ou será) realizado
             </p>
           </div>
 
@@ -313,6 +330,14 @@ export function SharedInstallmentImport({
                 ))}
               </SelectContent>
             </Select>
+            {lastInstallmentText && (
+              <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-2.5 flex items-center gap-2 mt-1 animate-fade-in">
+                <AlertCircle className="h-4 w-4 text-primary shrink-0" />
+                <span className="text-xs text-foreground font-medium">
+                  A última parcela (de {installments}) será cobrada em <strong className="text-primary">{lastInstallmentText}</strong>.
+                </span>
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               📅 Parcelas criadas automaticamente no primeiro dia de cada mês
             </p>
@@ -321,35 +346,13 @@ export function SharedInstallmentImport({
           {/* Category */}
           <div className="space-y-2">
             <Label>Categoria</Label>
-            <Select value={categoryId} onValueChange={setCategoryId} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {expenseParents.map((parent) => {
-                  const childrenOfParent = expenseChildren.filter(c => c.parent_category_id === parent.id);
-
-                  return (
-                    <SelectGroup key={parent.id}>
-                      {/* Categoria Pai como Label */}
-                      <SelectLabel className="text-xs font-bold text-muted-foreground bg-muted/30 sticky top-0 z-10">
-                        {parent.icon} {parent.name}
-                      </SelectLabel>
-
-                      {/* Subcategorias */}
-                      {childrenOfParent.map((child) => (
-                        <SelectItem key={child.id} value={child.id} className="pl-8">
-                          <span className="flex items-center gap-2">
-                            {child.icon && <span>{child.icon}</span>}
-                            <span>{child.name}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            <CategorySelector
+              categories={categories}
+              value={categoryId}
+              onValueChange={setCategoryId}
+              type="expense"
+              placeholder="Selecione uma categoria"
+            />
             <p className="text-xs text-muted-foreground">
               🏷️ Ajuda a organizar e controlar seus gastos mensais
             </p>
