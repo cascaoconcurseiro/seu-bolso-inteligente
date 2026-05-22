@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import * as dateFns from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Asset } from '@/types/database';
 
@@ -62,13 +62,19 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                 <div className="flex items-center gap-3">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center",
-                    tx.type === 'BUY' ? "bg-green-100 text-green-600 dark:bg-green-900/30" : "bg-red-100 text-red-600 dark:bg-red-900/30"
+                    tx.type === 'BUY' && "bg-green-100 text-green-600 dark:bg-green-900/30",
+                    tx.type === 'SELL' && "bg-red-100 text-red-600 dark:bg-red-900/30",
+                    tx.type === 'DIVIDEND' && "bg-purple-100 text-purple-600 dark:bg-purple-900/30"
                   )}>
-                    {tx.type === 'BUY' ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                    {tx.type === 'BUY' && <TrendingUp className="w-5 h-5" />}
+                    {tx.type === 'SELL' && <TrendingDown className="w-5 h-5" />}
+                    {tx.type === 'DIVIDEND' && <Coins className="w-5 h-5" />}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-foreground">
-                      {tx.type === 'BUY' ? 'Compra' : 'Venda'}
+                      {tx.type === 'BUY' && 'Compra'}
+                      {tx.type === 'SELL' && 'Venda'}
+                      {tx.type === 'DIVIDEND' && 'Rendimento'}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase font-medium">
                       {dateFns.format(new Date(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
@@ -77,12 +83,20 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                 </div>
                 
                 <div className="text-right">
-                  <p className="text-sm font-mono font-bold text-foreground">
-                    {tx.quantity} <span className="text-[10px] text-muted-foreground font-sans">unid.</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    {formatMoney(tx.price)} <span className="text-[10px] font-sans">/un</span>
-                  </p>
+                  {tx.type === 'DIVIDEND' ? (
+                    <p className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">
+                      +{formatMoney(tx.price)}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-sm font-mono font-bold text-foreground">
+                        {tx.quantity} <span className="text-[10px] text-muted-foreground font-sans">unid.</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {formatMoney(tx.price)} <span className="text-[10px] font-sans">/un</span>
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             ))

@@ -10,7 +10,7 @@ import { useAssets } from '@/hooks/useAssets';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { Asset } from '@/types/database';
-import { TrendingDown, TrendingUp, RefreshCw, AlertCircle, Info } from 'lucide-react';
+import { TrendingDown, TrendingUp, RefreshCw, AlertCircle, Info, Coins } from 'lucide-react';
 import * as dateFns from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -33,7 +33,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
   const { data: accounts } = useAccounts();
   const { mutateAsync: createTransaction } = useCreateTransaction();
 
-  const [type, setType] = useState<'buy' | 'sell' | 'update'>('buy');
+  const [type, setType] = useState<'buy' | 'sell' | 'update' | 'dividend'>('buy');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState(''); // preço POR COTA executado
   const [accountId, setAccountId] = useState(asset.account_id || '');
@@ -106,12 +106,19 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
       return;
     }
 
-    if (!qty || !prc) {
-      toast.error('Informe a quantidade e o preço.');
-      return;
+    if (type !== 'dividend') {
+      if (!qty || !prc) {
+        toast.error('Informe a quantidade e o preço.');
+        return;
+      }
+    } else {
+      if (!prc) {
+        toast.error('Informe o valor do rendimento recebido.');
+        return;
+      }
     }
 
-    // Conta é OBRIGATÓRIA para compra/venda
+    // Conta é OBRIGATÓRIA para compra/venda/rendimento
     if (!accountId) {
       toast.error('Selecione a conta para débito/crédito da operação.');
       return;
@@ -179,6 +186,50 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
         toast.success('Venda registrada com sucesso!');
         resetAndClose();
+
+      } else if (type === 'dividend') {
+        // 1. Buscar categoria de Investimentos ou usar uma padrão
+        let categoryId: string | null = null;
+        try {
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('user_id', user.id)
+            .ilike('name', '%investimento%')
+            .limit(1)
+            .maybeSingle();
+          if (catData) {
+            categoryId = catData.id;
+          }
+        } catch (catErr) {
+          console.error("Erro ao buscar categoria de investimentos:", catErr);
+        }
+
+        // 2. Criar transação de RECEITA no extrato
+        await createTransaction({
+          account_id: accountId,
+          amount: prc,
+          description: `Rendimento ${asset.ticker || asset.name}`,
+          date: opDate,
+          type: 'INCOME',
+          domain: 'PERSONAL',
+          competence_date: opDate,
+          category_id: categoryId,
+        } as any);
+
+        // 3. Registrar no histórico de ativos (com quantidade fictícia 1 e preço igual ao total recebido)
+        await supabase.from('asset_transactions').insert({
+          user_id: user.id,
+          asset_id: asset.id,
+          account_id: accountId,
+          type: 'DIVIDEND',
+          quantity: 1,
+          price: prc,
+          date: opDate
+        });
+
+        toast.success('Rendimento registrado com sucesso!');
+        resetAndClose();
       }
     } catch (error: any) {
       toast.error(`Erro ao registrar operação: ${error?.message || 'Tente novamente.'}`);
@@ -215,10 +266,11 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-2">
           {/* Tabs de operação */}
-          <div className="flex bg-secondary p-1 rounded-xl border border-border">
+          <div className="flex bg-secondary p-1 rounded-xl border border-border overflow-x-auto gap-1 scrollbar-none">
             {[
               { key: 'buy', label: 'Comprar', icon: <TrendingUp className="w-4 h-4 text-green-500" /> },
               { key: 'sell', label: 'Vender', icon: <TrendingDown className="w-4 h-4 text-red-500" /> },
+              { key: 'dividend', label: 'Rendimento', icon: <Coins className="w-4 h-4 text-purple-500" /> },
               { key: 'update', label: 'Cotação', icon: <RefreshCw className="w-4 h-4 text-blue-500" /> },
             ].map(t => (
               <button
@@ -226,7 +278,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 type="button"
                 onClick={() => setType(t.key as any)}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 py-2 px-2 rounded-lg text-xs font-medium transition-all duration-200",
+                  "flex-1 flex items-center justify-center gap-2 py-2 px-2 rounded-lg text-xs font-medium transition-all duration-200 white-space-nowrap min-w-[80px]",
                   type === t.key
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -238,20 +290,38 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             ))}
           </div>
 
-          {/* Aviso conta obrigatória para compra/venda */}
+          {/* Aviso conta obrigatória para compra/venda/rendimento */}
           {type !== 'update' && (
             <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
               <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
-                {type === 'buy'
-                  ? 'O valor da compra será debitado da conta selecionada.'
-                  : 'O valor da venda será creditado na conta selecionada.'}
+                {type === 'buy' && 'O valor da compra será debitado da conta selecionada.'}
+                {type === 'sell' && 'O valor da venda será creditado na conta selecionada.'}
+                {type === 'dividend' && 'O valor do rendimento será creditado como receita na conta selecionada.'}
               </AlertDescription>
             </Alert>
           )}
 
           {/* Campos de Qtd + Preço */}
-          {type !== 'update' ? (
+          {type === 'dividend' ? (
+            <div className="space-y-2">
+              <Label>Valor Total Recebido ({currencySymbol})</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
+                  {currencySymbol}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0,00"
+                  className="font-mono pl-10 text-lg font-semibold"
+                  required
+                />
+              </div>
+            </div>
+          ) : type !== 'update' ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Quantidade</Label>
@@ -304,7 +374,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
           )}
 
           {/* Simulação em tempo real */}
-          {type !== 'update' && qty > 0 && prc > 0 && (
+          {type !== 'update' && type !== 'dividend' && qty > 0 && prc > 0 && (
             <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-2 text-sm">
               <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Resumo da operação</p>
               <div className="flex justify-between">
@@ -384,18 +454,20 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             <Button type="button" variant="outline" onClick={resetAndClose} className="flex-1">
               Cancelar
             </Button>
-            <Button
+             <Button
               type="submit"
               disabled={isSubmitting}
               className={cn(
                 "flex-1",
                 type === 'buy' && "bg-green-600 hover:bg-green-700",
                 type === 'sell' && "bg-red-600 hover:bg-red-700",
+                type === 'dividend' && "bg-purple-600 hover:bg-purple-700",
               )}
             >
               {isSubmitting ? 'Processando...' : (
                 type === 'buy' ? '✓ Confirmar Compra' :
                 type === 'sell' ? '✓ Confirmar Venda' :
+                type === 'dividend' ? '✓ Confirmar Rendimento' :
                 '✓ Atualizar Cotação'
               )}
             </Button>
