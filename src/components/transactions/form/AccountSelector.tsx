@@ -79,7 +79,7 @@ export function AccountSelector({
               variant="link"
               size="sm"
               className="p-0 h-auto text-amber-700 dark:text-amber-400 underline"
-              onClick={() => navigate('/configuracoes')}
+              onClick={() => navigate('/contas')}
             >
               Criar conta internacional
             </Button>

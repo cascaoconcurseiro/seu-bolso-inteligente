@@ -452,7 +452,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   };
 
   if (accountsLoading || categoriesLoading) return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
-  if (!accounts || accounts.length === 0) return <div className="max-w-lg mx-auto text-center py-16 space-y-4"><div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center"><ArrowDownLeft className="h-8 w-8 text-muted-foreground" /></div><h2 className="text-xl font-semibold">Nenhuma conta encontrada</h2><p className="text-muted-foreground">Crie uma conta para começar</p><Button onClick={() => navigate('/configuracoes')}>Criar Conta</Button></div>;
+  if (!accounts || accounts.length === 0) return <div className="max-w-lg mx-auto text-center py-16 space-y-4"><div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center"><ArrowDownLeft className="h-8 w-8 text-muted-foreground" /></div><h2 className="text-xl font-semibold">Nenhuma conta encontrada</h2><p className="text-muted-foreground">Crie uma conta para começar</p><Button onClick={() => navigate('/contas')}>Criar Conta</Button></div>;
 
   return (
     <div className="max-w-lg mx-auto space-y-6 animate-fade-in">

@@ -93,7 +93,10 @@ export function useDeleteNotification() {
     mutationFn: async (notificationId: string) => {
       const { error } = await supabase
         .from("notifications")
-        .delete()
+        .update({ 
+          is_dismissed: true,
+          dismissed_at: new Date().toISOString()
+        })
         .eq("id", notificationId);
 
       if (error) throw error;

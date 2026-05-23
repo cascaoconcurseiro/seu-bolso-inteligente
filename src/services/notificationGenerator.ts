@@ -204,20 +204,18 @@ async function generateInvoiceDueNotifications(
       const invoiceKey = `${card.id}-${billingEnd.getFullYear()}-${(billingEnd.getMonth() + 1).toString().padStart(2, '0')}`;
 
       // Verificar se já existe notificação para ESTA FATURA ESPECÍFICA
-      const { data: existingNotification } = await (supabase as any)
+      const { data: existingNotifications } = await (supabase as any)
         .from('notifications')
         .select('id, metadata')
         .eq('user_id', userId)
         .eq('related_id', card.id)
         .eq('related_type', 'credit_card')
-        .eq('type', 'INVOICE_DUE')
-        .eq('is_dismissed', false)
-        .maybeSingle();
+        .eq('type', 'INVOICE_DUE');
 
       // Se já existe notificação para esta fatura, pular
-      if (existingNotification) {
-        const metadata = existingNotification.metadata as any;
-        if (metadata?.invoice_key === invoiceKey) {
+      if (existingNotifications) {
+        const hasExisting = existingNotifications.some((n: any) => n.metadata?.invoice_key === invoiceKey);
+        if (hasExisting) {
           logger.debug(`  Notificação já existe para fatura ${invoiceKey}`);
           continue;
         }
@@ -314,8 +312,8 @@ async function generateBudgetWarningNotifications(
         .eq('user_id', userId)
         .eq('related_id', budget.id)
         .eq('related_type', 'budget')
-        .eq('is_dismissed', false)
         .gte('created_at', today) // Criada hoje ou depois
+        .limit(1)
         .maybeSingle();
 
       // Se já existe notificação ativa criada hoje, pular
@@ -428,8 +426,8 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
           .eq('related_id', memberId)
           .eq('related_type', 'family_member')
           .eq('type', 'SHARED_PENDING')
-          .eq('is_dismissed', false)
           .gte('created_at', today) // Criada hoje ou depois
+          .limit(1)
           .maybeSingle();
 
         // Se já existe notificação ativa criada hoje, pular
@@ -470,8 +468,8 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
         .select('id, created_at')
         .eq('user_id', userId)
         .eq('type', 'RECURRING_PENDING')
-        .eq('is_dismissed', false)
         .gte('created_at', today) // Criada hoje ou depois
+        .limit(1)
         .maybeSingle();
 
       // Se já existe notificação ativa criada hoje, pular
@@ -565,8 +563,8 @@ async function generateLowBalanceNotifications(
           .eq('user_id', userId)
           .eq('related_id', acc.id)
           .eq('type', 'LOW_BALANCE')
-          .eq('is_dismissed', false)
           .gte('created_at', today)
+          .limit(1)
           .maybeSingle();
 
         if (existing) continue;
@@ -614,8 +612,8 @@ async function generateCreditLimitNotifications(
           .eq('user_id', userId)
           .eq('related_id', card.id)
           .eq('type', 'CREDIT_LIMIT_WARNING')
-          .eq('is_dismissed', false)
           .gte('created_at', today)
+          .limit(1)
           .maybeSingle();
 
         if (existing) continue;

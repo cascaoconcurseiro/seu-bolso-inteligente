@@ -50,7 +50,7 @@ import { HelpSettings } from "@/components/settings/HelpSettings";
 export function Settings() {
   const { user, signOut } = useAuth();
   const [searchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState<SettingsSection>("help");
+  const [activeSection, setActiveSection] = useState<SettingsSection>("account");
   const [showAddCategoryDialog, setShowAddCategoryDialog] = useState(false);
   const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
