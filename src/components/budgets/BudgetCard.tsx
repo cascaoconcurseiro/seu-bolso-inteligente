@@ -62,7 +62,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             </div>
           </div>
         </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
           <button 
             onClick={() => onEdit(budget)} 
             className="p-2 hover:bg-muted rounded-xl transition-all hover:scale-110 active:scale-95"

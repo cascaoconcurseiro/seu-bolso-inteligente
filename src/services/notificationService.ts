@@ -161,7 +161,6 @@ export async function createNotification(input: CreateNotificationInput): Promis
       .eq('user_id', input.user_id)
       .eq('type', input.type)
       .eq('related_id', input.related_id)
-      .eq('is_dismissed', false)
       .maybeSingle();
 
     if (existing) {

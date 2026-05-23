@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
+import { useTransactionModal } from '@/hooks/useTransactionModal';
 import { getBankById } from '@/lib/banks';
 import { TabType } from '@/types/transactions';
 
@@ -45,6 +46,7 @@ export function AccountSelector({
   customPlaceholder
 }: AccountSelectorProps) {
   const navigate = useNavigate();
+  const { setShowTransactionModal } = useTransactionModal();
   const isExpense = activeTab === 'EXPENSE';
   const isTransfer = activeTab === 'TRANSFER';
 
@@ -72,14 +74,18 @@ export function AccountSelector({
             ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
             <br />
             <span className="text-xs">
-              Crie uma conta internacional com moeda {selectedTrip.currency} em Configurações.
+              Crie uma conta internacional com moeda {selectedTrip.currency} em Contas.
             </span>
             <Button
               type="button"
               variant="link"
               size="sm"
               className="p-0 h-auto text-amber-700 dark:text-amber-400 underline"
-              onClick={() => navigate('/contas')}
+              onClick={(e) => {
+                e.preventDefault();
+                setShowTransactionModal(false);
+                navigate('/contas');
+              }}
             >
               Criar conta internacional
             </Button>
