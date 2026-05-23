@@ -249,7 +249,7 @@ export function Transactions() {
         </div>
       </div>
       {/* Summary cards skeleton */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[1,2,3].map(i => <div key={i} className="skeleton h-20 rounded-2xl" />)}
       </div>
       {/* List skeleton */}

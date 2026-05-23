@@ -11,7 +11,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
   const result = totalIncome - totalExpense;
 
   return (
-    <div className="grid grid-cols-3 gap-3 animate-fade-in-up">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in-up">
       {/* Entradas */}
       <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
         <div className="flex items-center justify-between">
