@@ -19,8 +19,7 @@ BEGIN
   WHERE trip_id = p_trip_id
     AND type = 'EXPENSE'
     AND source_transaction_id IS NULL -- Excluir transações espelhadas
-    AND (p_user_id IS NULL OR user_id = p_user_id)
-    AND COALESCE(deleted, false) = false;
+    AND (p_user_id IS NULL OR user_id = p_user_id);
   
   RETURN v_spent;
 END;
