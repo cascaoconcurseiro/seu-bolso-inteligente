@@ -194,7 +194,7 @@ export function Budgets() {
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl shadow-xl" align="start">
                   <Command>
                     <CommandInput placeholder="Buscar categoria..." />
-                    <CommandList>
+                    <CommandList onWheel={(e) => e.stopPropagation()}>
                       <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
