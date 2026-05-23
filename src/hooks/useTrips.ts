@@ -483,7 +483,7 @@ export function useTripFinancialSummary(tripId: string | null) {
         const data = await callRPCWithRetry('get_trip_financial_summary', {
           p_trip_id: tripId
         });
-        return data as TripFinancialSummary;
+        return (Array.isArray(data) ? data[0] : data) as TripFinancialSummary;
       } catch (error) {
         logger.error('Erro ao buscar resumo financeiro da viagem:', error);
         throw error;

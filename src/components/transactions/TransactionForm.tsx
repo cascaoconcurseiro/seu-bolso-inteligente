@@ -311,7 +311,6 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
         return false;
       }
-      if (acc.id === accountId) return true;
       if (selectedTrip) {
         if (selectedTrip.currency === 'BRL') return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
@@ -319,6 +318,15 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       return !acc.is_international;
     });
   }, [accounts, accountId, selectedTrip, activeTab]);
+
+  useEffect(() => {
+    if (accountId && filteredAccounts && filteredAccounts.length > 0) {
+      const isAccountValid = filteredAccounts.some(acc => acc.id === accountId);
+      if (!isAccountValid) {
+        setAccountId('');
+      }
+    }
+  }, [filteredAccounts, accountId]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = { 'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$', 'JPY': '¥' };
@@ -365,7 +373,15 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (!description.trim()) { toast.error('A descrição é obrigatória'); return; }
     if (activeTab === 'EXPENSE' && !categoryId) { toast.error('A categoria é obrigatória para despesas'); return; }
 
+    if (tripId && selectedTrip && selectedAccount) {
+      if (selectedAccount.currency !== selectedTrip.currency) {
+        toast.error(`A moeda da conta (${selectedAccount.currency}) não bate com a moeda da viagem (${selectedTrip.currency}).`);
+        return;
+      }
+    }
+
     const resolvedPayerId = (() => {
+      if (!isShared && payerId === 'me') return undefined;
       if (payerId !== 'me') return payerId || undefined;
       const me = familyMembers.find(m => m.linked_user_id === user?.id);
       if (me) return me.id;

@@ -48,6 +48,7 @@ export const invalidateTripQueries = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: ['trip-members'] }),
     queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
     queryClient.invalidateQueries({ queryKey: ['trip-budget-summary'] }),
+    queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
   ]);
 };
 

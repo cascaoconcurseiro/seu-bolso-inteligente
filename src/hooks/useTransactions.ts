@@ -5,9 +5,9 @@ import { useMonth } from "@/contexts/MonthContext";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { getMonthDateRange } from "@/utils/dateUtils";
 import { dateUtils } from "@/lib/dateUtils";
-import { 
   invalidateFinancialQueries,
-  invalidateSharedQueries 
+  invalidateSharedQueries,
+  invalidateTripQueries
 } from "@/utils/queryInvalidation";
 import { transactionToasts } from "@/utils/toastMessages";
 import { defaultQueryConfig } from "@/utils/queryConfig";
@@ -751,6 +751,7 @@ export function useCreateTransaction() {
     onSuccess: async (_data, variables) => {
       await invalidateFinancialQueries(queryClient);
       await invalidateSharedQueries(queryClient);
+      await invalidateTripQueries(queryClient);
       transactionToasts.created();
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Verificar orçamentos e saldo em tempo real
@@ -825,6 +826,7 @@ export function useDeleteTransaction() {
     onSuccess: async () => {
       await invalidateFinancialQueries(queryClient);
       await invalidateSharedQueries(queryClient);
+      await invalidateTripQueries(queryClient);
       transactionToasts.deleted();
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
@@ -858,6 +860,7 @@ export function useDeleteInstallmentSeries() {
     onSuccess: async () => {
       await invalidateFinancialQueries(queryClient);
       await invalidateSharedQueries(queryClient);
+      await invalidateTripQueries(queryClient);
       toast.success("Série de parcelas excluída com sucesso!");
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
@@ -965,6 +968,7 @@ export function useUpdateTransaction() {
     onSuccess: async () => {
       await invalidateFinancialQueries(queryClient);
       await invalidateSharedQueries(queryClient);
+      await invalidateTripQueries(queryClient);
       transactionToasts.updated();
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
