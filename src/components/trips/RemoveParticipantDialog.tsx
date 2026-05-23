@@ -51,6 +51,29 @@ export function RemoveParticipantDialog({
 
   if (!participant) return null;
 
+  if (participant.role === 'owner') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md rounded-3xl p-6 border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight text-destructive">
+              <AlertTriangle className="h-5 w-5 animate-pulse" />
+              Ação Não Permitida
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground font-medium">
+              Não é possível remover <span className="font-bold text-foreground">{participant.name}</span> porque ele(a) é o criador da viagem.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl h-11 px-5">
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const currentBalance = balance?.balance || 0;
   const isSettled = Math.abs(currentBalance) < 0.01;
   const owesGroup = currentBalance < -0.01;
@@ -82,7 +105,7 @@ export function RemoveParticipantDialog({
         </DialogHeader>
 
         {activeMode === "choose" ? (
-          <div className="space-y-6 my-4">
+          <div className="space-y-6 my-4 max-h-[60vh] overflow-y-auto pr-2">
             {/* Visualização de Saldos do Participante */}
             <div className={cn(
               "p-5 rounded-2xl border transition-all duration-300",

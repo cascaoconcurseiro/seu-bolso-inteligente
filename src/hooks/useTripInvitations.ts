@@ -115,13 +115,14 @@ export function useCreateTripInvitation() {
     }) => {
       const { data, error } = await supabase
         .from("trip_invitations")
-        .insert({
+        .upsert({
           trip_id: tripId,
           inviter_id: user!.id,
           invitee_id: inviteeId,
           message: message || null,
           status: 'pending',
-        })
+          responded_at: null // Reseta caso tivesse sido rejeitado no passado
+        }, { onConflict: 'trip_id, invitee_id' })
         .select()
         .single();
 

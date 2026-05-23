@@ -119,6 +119,11 @@ export function useRemoveTripMember() {
       memberId: string;
       tripId: string;
     }) => {
+      const { data: member } = await supabase.from('trip_members').select('role').eq('id', memberId).single();
+      if (member?.role === 'owner') {
+        throw new Error('Não é possível remover o criador da viagem');
+      }
+
       const { error } = await supabase
         .from("trip_members")
         .delete()

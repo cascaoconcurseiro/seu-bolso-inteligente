@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAccounts } from "@/hooks/useAccounts";
 import { RemoveParticipantDialog } from "@/components/trips/RemoveParticipantDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { dismissRelatedNotifications } from "@/services/notificationGenerator";
 
 
 export function Trips() {
@@ -82,6 +83,7 @@ export function Trips() {
       queryClient.invalidateQueries({ queryKey: ["trip-participants", selectedTripId] });
       queryClient.invalidateQueries({ queryKey: ["trip-participant-balances", selectedTripId] });
       queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
@@ -111,6 +113,7 @@ export function Trips() {
         is_shared: false,
         is_settled: true,
         payer_id: balanceVal < 0 ? (removingParticipant.user_id || removingParticipant.id) : user.id,
+        currency: selectedTrip.currency || 'BRL',
       });
 
       if (txError) throw txError;
@@ -125,6 +128,7 @@ export function Trips() {
       queryClient.invalidateQueries({ queryKey: ["trip-transactions", selectedTripId] });
       queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
 
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
@@ -153,6 +157,7 @@ export function Trips() {
         is_shared: true,
         is_settled: true,
         payer_id: user.id,
+        currency: selectedTrip.currency || 'BRL',
       });
 
       if (txError) throw txError;
@@ -167,6 +172,7 @@ export function Trips() {
       queryClient.invalidateQueries({ queryKey: ["trip-transactions", selectedTripId] });
       queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
 
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);

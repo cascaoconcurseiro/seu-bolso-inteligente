@@ -26,7 +26,7 @@ export function AddParticipantDialog({
           <DialogTitle>Adicionar Participante</DialogTitle>
           <DialogDescription>Selecione um membro da família</DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-2">
+        <div className="py-4 space-y-2 max-h-[60vh] overflow-y-auto pr-2">
           {availableMembers.length === 0 ? (
             <div className="py-8 text-center">
               <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
