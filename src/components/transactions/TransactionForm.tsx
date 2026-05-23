@@ -98,8 +98,6 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const predictionType = useMemo(() => {
     if (activeTab === 'INCOME') return 'income';
     if (activeTab === 'EXPENSE') return 'expense';
-    if (activeTab === 'WITHDRAWAL') return 'withdrawal';
-    if (activeTab === 'DEPOSIT') return 'deposit';
     return null;
   }, [activeTab]);
 
@@ -464,7 +462,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       </div>
 
       <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-muted">
-        {(['EXPENSE', 'INCOME', 'TRANSFER', 'WITHDRAWAL', 'DEPOSIT'] as TabType[]).map((tab) => (
+        {(['EXPENSE', 'INCOME', 'TRANSFER'] as TabType[]).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -472,9 +470,9 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
             className={cn(
               'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[10px] font-medium transition-all',
               activeTab === tab
-                ? tab === 'EXPENSE' || tab === 'WITHDRAWAL'
+                ? tab === 'EXPENSE'
                   ? 'bg-background text-destructive shadow-sm'
-                  : tab === 'INCOME' || tab === 'DEPOSIT'
+                  : tab === 'INCOME'
                   ? 'bg-background text-positive shadow-sm'
                   : 'bg-background text-primary shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -483,14 +481,10 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
             {tab === 'EXPENSE' && <ArrowUpRight className="h-4 w-4" />}
             {tab === 'INCOME' && <ArrowDownLeft className="h-4 w-4" />}
             {tab === 'TRANSFER' && <ArrowRightLeft className="h-4 w-4" />}
-            {tab === 'WITHDRAWAL' && <Wallet className="h-4 w-4" />}
-            {tab === 'DEPOSIT' && <Landmark className="h-4 w-4" />}
             
             {tab === 'EXPENSE' && 'Despesa'}
             {tab === 'INCOME' && 'Receita'}
             {tab === 'TRANSFER' && 'Transf.'}
-            {tab === 'WITHDRAWAL' && 'Saque'}
-            {tab === 'DEPOSIT' && 'Depósito'}
           </button>
         ))}
       </div>

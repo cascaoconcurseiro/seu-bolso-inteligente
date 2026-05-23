@@ -33,7 +33,6 @@ export function Budgets() {
   
   const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>(null);
-  const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currency, setCurrency] = useState("BRL");
@@ -45,11 +44,15 @@ export function Budgets() {
     return Array.from(set);
   }, [accounts]);
 
-  const resetForm = () => { setName(""); setAmount(""); setCategoryId(""); setCurrency("BRL"); };
+  const resetForm = () => { setAmount(""); setCategoryId(""); setCurrency("BRL"); };
 
   const handleSubmit = () => {
+    const generatedName = categoryId 
+      ? categories.find((c) => c.id === categoryId)?.name || "Orçamento"
+      : "Orçamento Global";
+      
     const data = { 
-      name: name.trim(), 
+      name: generatedName, 
       amount: parseFloat(amount), 
       category_id: categoryId || null, 
       currency, 
@@ -149,7 +152,6 @@ export function Budgets() {
                 const budget = budgets.find(x => x.id === orig.budget_id); 
                 if (budget) { 
                   setEditingBudget(budget); 
-                  setName(budget.name); 
                   setAmount(budget.amount.toString()); 
                   setCategoryId(budget.category_id || ""); 
                   setCurrency(budget.currency); 
@@ -169,10 +171,7 @@ export function Budgets() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-6">
-            <div className="space-y-2">
-              <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Nome do Orçamento</Label>
-              <Input className="rounded-xl h-12" placeholder="Ex: Alimentação, Lazer..." value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
+
             <div className="space-y-2">
               <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
               <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
@@ -255,7 +254,7 @@ export function Budgets() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" className="rounded-xl h-12" onClick={() => { setShowNewBudgetDialog(false); setEditingBudget(null); resetForm(); }}>Descartar</Button>
-            <Button className="rounded-xl h-12 px-8 font-bold" onClick={handleSubmit} disabled={!name.trim() || !amount || isCreating || isUpdating}>
+            <Button className="rounded-xl h-12 px-8 font-bold" onClick={handleSubmit} disabled={!amount || isCreating || isUpdating}>
               {editingBudget ? "Salvar Alterações" : "Ativar Orçamento"}
             </Button>
           </DialogFooter>

@@ -96,8 +96,7 @@ export function AccountSelector({
 
     const getAccountLabel = () => {
       if (activeTab === 'EXPENSE') return 'Pagar com';
-      if (activeTab === 'INCOME' || activeTab === 'DEPOSIT') return 'Receber em';
-      if (activeTab === 'WITHDRAWAL') return 'Retirar de';
+      if (activeTab === 'INCOME') return 'Receber em';
       return 'Conta';
     };
 
@@ -166,6 +165,11 @@ export function AccountSelector({
                       Reserva
                     </span>
                   )}
+                  {acc.is_international && (
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                      {acc.currency}
+                    </span>
+                  )}
                 </div>
               </SelectItem>
             ))}
@@ -191,6 +195,11 @@ export function AccountSelector({
                     {acc.type === 'EMERGENCY_FUND' && (
                       <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
                         Reserva
+                      </span>
+                    )}
+                    {acc.is_international && (
+                      <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                        {acc.currency}
                       </span>
                     )}
                   </div>

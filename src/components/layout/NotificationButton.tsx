@@ -59,7 +59,7 @@ export function NotificationButton() {
       if (!user) return;
       
       const sessionKey = `notifications_generated_${user.id}`;
-      const lastGenerated = sessionStorage.getItem(sessionKey);
+      const lastGenerated = localStorage.getItem(sessionKey);
       const now = Date.now();
       
       // Gerar no máximo uma vez a cada 5 minutos
@@ -67,6 +67,8 @@ export function NotificationButton() {
         return;
       }
 
+      // Prevenir execuções concorrentes movendo o setItem para antes do await
+      localStorage.setItem(sessionKey, now.toString());
       setIsGenerating(true);
       try {
         // Verificar boas-vindas para novos usuários
@@ -76,7 +78,6 @@ export function NotificationButton() {
         // Gerar outras notificações
         await generateAllNotifications(user.id);
         
-        sessionStorage.setItem(sessionKey, now.toString());
         refetch();
       } catch (error) {
         console.error('Erro ao gerar notificações:', error);

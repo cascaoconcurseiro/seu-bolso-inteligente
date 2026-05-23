@@ -5,6 +5,7 @@ import { CreditCard, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useTrips } from "@/hooks/useTrips";
 import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -24,9 +25,11 @@ import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [isTripMode, setIsTripMode] = useState(false);
   
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
+  const { data: trips } = useTrips();
   const { data: projection } = useMonthlyProjection(selectedCurrency);
   const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
 
@@ -39,6 +42,14 @@ export function Dashboard() {
   const recentTransactions = dashboardData?.recent_transactions || [];
   const hasError = txError || accountsError;
   const isLoading = (txLoading || accountsLoading) && !hasError;
+
+  const activeTrip = useMemo(() => {
+    if (!trips || trips.length === 0) return null;
+    const now = new Date();
+    // Prioritize currently active trips, otherwise fallback to the most recent/upcoming
+    const current = trips.find((t: any) => new Date(t.start_date) <= now && new Date(t.end_date) >= now);
+    return current || trips[0];
+  }, [trips]);
 
   const totalsByCurrency = dashboardData?.totals_by_currency || [];
 
@@ -175,33 +186,54 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       <div className="space-y-4">
-        {currenciesData.length > 1 && (
-          <div className="flex justify-end">
-              <div className="w-32">
-                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                  <SelectTrigger className="h-9 bg-muted/50 border-border/50">
-                    <SelectValue placeholder="Moeda" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currenciesData.map((c) => (
-                      <SelectItem key={c.currency} value={c.currency} className="font-medium">
-                        {c.currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        {activeTrip && (
+          <div className="flex items-center justify-between bg-card border border-border p-4 rounded-2xl shadow-sm transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <Plane className="h-5 w-5" />
+              </div>
+              <div>
+                <Label className="font-bold text-base cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>Modo Viagem</Label>
+                <p className="text-xs text-muted-foreground">Atalho para {activeTrip.destination}</p>
               </div>
             </div>
-          )}
-        
+            <Switch checked={isTripMode} onCheckedChange={setIsTripMode} />
+          </div>
+        )}
+
+        {isTripMode && activeTrip && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <TripDashboardView trip={activeTrip} />
+          </div>
+        )}
+
         <DashboardHero
           currency={activeCurrencyData.currency}
-            balance={activeCurrencyData.balance}
-            income={activeCurrencyData.income}
-            expenses={activeCurrencyData.expense}
-            formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
+          balance={activeCurrencyData.balance}
+          income={activeCurrencyData.income}
+          expenses={activeCurrencyData.expense}
+          formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
           wealthHistory={wealthHistory}
         />
+
+        {currenciesData.length > 1 && (
+          <div className="flex justify-end pt-1">
+            <div className="w-32">
+              <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                <SelectTrigger className="h-9 bg-card border-border shadow-sm">
+                  <SelectValue placeholder="Moeda" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currenciesData.map((c) => (
+                    <SelectItem key={c.currency} value={c.currency} className="font-medium">
+                      {c.currency}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
