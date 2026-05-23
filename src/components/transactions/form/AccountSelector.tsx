@@ -83,8 +83,8 @@ export function AccountSelector({
               className="p-0 h-auto text-amber-700 dark:text-amber-400 underline"
               onClick={(e) => {
                 e.preventDefault();
-                setShowTransactionModal(false);
-                navigate('/contas');
+                e.stopPropagation();
+                window.location.href = '/contas';
               }}
             >
               Criar conta internacional
