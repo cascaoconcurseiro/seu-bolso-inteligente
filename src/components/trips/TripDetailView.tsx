@@ -70,14 +70,14 @@ export function TripDetailView({
       <TripDetailSummary totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} startDate={trip.start_date} endDate={trip.end_date} currency={trip.currency} formatCurrency={formatCurrency} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="overflow-x-auto no-scrollbar mb-4">
-          <TabsList className="w-full">
-            <TabsTrigger value="summary" className="flex-1 gap-2"><TrendingUp className="h-4 w-4" /> Resumo</TabsTrigger>
-            <TabsTrigger value="expenses" className="flex-1 gap-2"><DollarSign className="h-4 w-4" /> Gastos</TabsTrigger>
-            <TabsTrigger value="shopping" className="flex-1 gap-2"><ShoppingCart className="h-4 w-4" /> Compras</TabsTrigger>
-            {trip.currency !== "BRL" && <TabsTrigger value="exchange" className="flex-1 gap-2"><Plane className="h-4 w-4" /> Câmbio</TabsTrigger>}
-            <TabsTrigger value="itinerary" className="flex-1 gap-2"><Route className="h-4 w-4" /> Roteiro</TabsTrigger>
-            <TabsTrigger value="checklist" className="flex-1 gap-2"><ListChecks className="h-4 w-4" /> Checklist</TabsTrigger>
+        <div className="mb-4">
+          <TabsList className="w-full h-auto grid grid-cols-2 sm:flex sm:flex-wrap md:flex-nowrap gap-1">
+            <TabsTrigger value="summary" className="flex-1 gap-2"><TrendingUp className="h-4 w-4" /> <span className="truncate">Resumo</span></TabsTrigger>
+            <TabsTrigger value="expenses" className="flex-1 gap-2"><DollarSign className="h-4 w-4" /> <span className="truncate">Gastos</span></TabsTrigger>
+            <TabsTrigger value="shopping" className="flex-1 gap-2"><ShoppingCart className="h-4 w-4" /> <span className="truncate">Compras</span></TabsTrigger>
+            {trip.currency !== "BRL" && <TabsTrigger value="exchange" className="flex-1 gap-2"><Plane className="h-4 w-4" /> <span className="truncate">Câmbio</span></TabsTrigger>}
+            <TabsTrigger value="itinerary" className="flex-1 gap-2"><Route className="h-4 w-4" /> <span className="truncate">Roteiro</span></TabsTrigger>
+            <TabsTrigger value="checklist" className="flex-1 gap-2"><ListChecks className="h-4 w-4" /> <span className="truncate">Checklist</span></TabsTrigger>
           </TabsList>
         </div>
 

@@ -65,10 +65,11 @@ BEGIN
     END IF;
 
     -- Create Audit Log
-    INSERT INTO audit_logs (operation_type, user_id, split_id, amount, currency, metadata)
+    INSERT INTO audit_logs (table_name, record_id, operation, new_data, user_id)
     VALUES (
-      'SETTLEMENT_REQUESTED', p_user_id, v_split_id, v_split.amount, 'BRL',
-      jsonb_build_object('is_payment', p_is_payment, 'transaction_id', v_tx_id)
+      'transaction_splits', v_split_id, 'SETTLEMENT_REQUESTED',
+      jsonb_build_object('amount', v_split.amount, 'currency', 'BRL', 'is_payment', p_is_payment, 'transaction_id', v_tx_id),
+      p_user_id
     );
     v_processed_count := v_processed_count + 1;
   END LOOP;
@@ -157,10 +158,11 @@ BEGIN
     END IF;
 
     -- Create Audit Log
-    INSERT INTO audit_logs (operation_type, user_id, split_id, amount, currency, metadata)
+    INSERT INTO audit_logs (table_name, record_id, operation, new_data, user_id)
     VALUES (
-      'SETTLEMENT_CONFIRMED', p_user_id, v_split_id, v_split.amount, 'BRL',
-      jsonb_build_object('is_receiving', p_is_receiving, 'transaction_id', v_tx_id)
+      'transaction_splits', v_split_id, 'SETTLEMENT_CONFIRMED',
+      jsonb_build_object('amount', v_split.amount, 'currency', 'BRL', 'is_receiving', p_is_receiving, 'transaction_id', v_tx_id),
+      p_user_id
     );
     v_confirmed_count := v_confirmed_count + 1;
   END LOOP;
@@ -183,20 +185,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- Allow operation_type to accept our new values in audit_logs check constraint
-ALTER TABLE audit_logs DROP CONSTRAINT IF EXISTS audit_logs_operation_type_check;
-ALTER TABLE audit_logs ADD CONSTRAINT audit_logs_operation_type_check CHECK (
-  operation_type IN (
-    'SETTLEMENT_CREATED',
-    'SETTLEMENT_UNDONE',
-    'OPERATION_BLOCKED',
-    'TRANSACTION_DELETED',
-    'SERIES_DELETED',
-    'INSTALLMENT_ANTICIPATED',
-    'SETTLEMENT_REQUESTED',
-    'SETTLEMENT_CONFIRMED'
-  )
-);
+-- Removed audit_logs constraint altering since the remote schema uses the generic audit_logs table without constraint.
 
 GRANT EXECUTE ON FUNCTION request_settlement(UUID[], UUID, UUID, BOOLEAN) TO authenticated;
 GRANT EXECUTE ON FUNCTION confirm_settlement(UUID[], UUID, UUID, BOOLEAN) TO authenticated;
