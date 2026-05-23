@@ -191,39 +191,37 @@ export function Dashboard() {
           </div>
 
           {currenciesData.length > 1 && !isTravelMode && (
-          <div className="flex justify-end">
-            <div className="w-32">
-              <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                <SelectTrigger className="h-9 bg-muted/50 border-border/50">
-                  <SelectValue placeholder="Moeda" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currenciesData.map((c) => (
-                    <SelectItem key={c.currency} value={c.currency} className="font-medium">
-                      {c.currency}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex justify-end">
+              <div className="w-32">
+                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                  <SelectTrigger className="h-9 bg-muted/50 border-border/50">
+                    <SelectValue placeholder="Moeda" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currenciesData.map((c) => (
+                      <SelectItem key={c.currency} value={c.currency} className="font-medium">
+                        {c.currency}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          </div>
-        )}
+          )}
+        </div>
         
         {isTravelMode ? (
           <TripDashboardView />
         ) : (
           <DashboardHero
             currency={activeCurrencyData.currency}
-          balance={activeCurrencyData.balance}
-          income={activeCurrencyData.income}
-          expenses={activeCurrencyData.expense}
-          formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
-          wealthHistory={wealthHistory}
-        />
-      </div>
-
-        />
+            balance={activeCurrencyData.balance}
+            income={activeCurrencyData.income}
+            expenses={activeCurrencyData.expense}
+            formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
+            wealthHistory={wealthHistory}
+          />
+        )}
       </div>
 
       {!isTravelMode && (
