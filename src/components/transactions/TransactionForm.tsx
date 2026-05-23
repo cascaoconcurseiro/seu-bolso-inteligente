@@ -296,11 +296,21 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (isPaidByOther) setAccountId('');
   }, [isPaidByOther]);
 
+  // Limpar conta selecionada se mudar para receita e for um cartão de crédito
+  useEffect(() => {
+    if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD') {
+      setAccountId('');
+    }
+  }, [activeTab, selectedAccount]);
+
   const transactionCurrency = selectedTrip?.currency || (selectedAccount?.is_international ? selectedAccount.currency : null) || 'BRL';
 
   const filteredAccounts = useMemo(() => {
     if (!accounts) return [];
     return accounts.filter((acc) => {
+      if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
+        return false;
+      }
       if (acc.id === accountId) return true;
       if (selectedTrip) {
         if (selectedTrip.currency === 'BRL') return !acc.is_international;
@@ -308,7 +318,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       }
       return !acc.is_international;
     });
-  }, [accounts, accountId, selectedTrip]);
+  }, [accounts, accountId, selectedTrip, activeTab]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = { 'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$', 'JPY': '¥' };

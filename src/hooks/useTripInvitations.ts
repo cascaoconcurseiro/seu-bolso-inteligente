@@ -132,9 +132,13 @@ export function useCreateTripInvitation() {
       queryClient.invalidateQueries({ queryKey: ["sent-trip-invitations"] });
       toast.success("Convite enviado!");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       logger.error("Erro ao enviar convite:", error);
-      toast.error("Erro ao enviar convite: " + error.message);
+      if (error.code === '23505' || error.message?.includes('duplicate key') || error.message?.includes('unique constraint')) {
+        toast.error("Este usuário já foi convidado para esta viagem.");
+      } else {
+        toast.error("Erro ao enviar convite: " + error.message);
+      }
     },
   });
 }

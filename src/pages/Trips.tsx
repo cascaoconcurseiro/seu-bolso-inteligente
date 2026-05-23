@@ -255,12 +255,16 @@ export function Trips() {
           availableMembers={familyMembers.filter(m => m.linked_user_id && !participants.some(p => p.user_id === m.linked_user_id) && m.linked_user_id !== user?.id)} 
           onAdd={async (m) => { 
             if (selectedTripId && m.linked_user_id) { 
-              await createInvitation.mutateAsync({ 
-                tripId: selectedTripId, 
-                inviteeId: m.linked_user_id, 
-                message: `Você foi convidado para participar da viagem "${selectedTrip?.name}"!` 
-              }); 
-              setShowAddParticipantDialog(false); 
+              try {
+                await createInvitation.mutateAsync({ 
+                  tripId: selectedTripId, 
+                  inviteeId: m.linked_user_id, 
+                  message: `Você foi convidado para participar da viagem "${selectedTrip?.name}"!` 
+                }); 
+                setShowAddParticipantDialog(false); 
+              } catch (err) {
+                // Erro já é tratado no hook (exibe o toast amigável)
+              }
             } 
           }} 
           onNavigateToFamily={() => { setShowAddParticipantDialog(false); navigate("/familia"); }} 
