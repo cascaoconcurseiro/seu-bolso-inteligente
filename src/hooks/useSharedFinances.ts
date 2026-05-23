@@ -782,19 +782,20 @@ export function useSettleSplit() {
   });
 }
 
-// Hook para confirmar ressarcimento de múltiplos splits usando RPC seguro
-export function useSettleMultipleSplits() {
+// Hook para solicitar o acerto de múltiplos splits usando RPC (Passo 1)
+export function useRequestSettlement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ splitIds, accountId }: { splitIds: string[]; accountId: string }) => {
+    mutationFn: async ({ splitIds, accountId, isPayment }: { splitIds: string[]; accountId: string; isPayment: boolean }) => {
       if (!user) throw new Error("Usuário não autenticado");
       
-      const { data, error } = await supabase.rpc('settle_multiple_splits', {
+      const { data, error } = await supabase.rpc('request_settlement', {
         p_split_ids: splitIds,
         p_account_id: accountId,
-        p_user_id: user.id
+        p_user_id: user.id,
+        p_is_payment: isPayment
       });
 
       if (error) throw error;
@@ -804,10 +805,41 @@ export function useSettleMultipleSplits() {
       queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      toast.success(`${(data as any)?.settled_count || 0} ressarcimento(s) processado(s)!`);
+      toast.success(`${(data as any)?.processed_count || 0} acerto(s) informados. Aguardando confirmação!`);
     },
     onError: (error) => {
-      toast.error('Erro ao processar ressarcimentos: ' + error.message);
+      toast.error('Erro ao processar pagamentos: ' + error.message);
+    },
+  });
+}
+
+// Hook para confirmar o recebimento de múltiplos splits usando RPC (Passo 2)
+export function useConfirmSettlement() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ splitIds, accountId, isReceiving }: { splitIds: string[]; accountId: string; isReceiving: boolean }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      
+      const { data, error } = await supabase.rpc('confirm_settlement', {
+        p_split_ids: splitIds,
+        p_account_id: accountId,
+        p_user_id: user.id,
+        p_is_receiving: isReceiving
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      toast.success(`${(data as any)?.confirmed_count || 0} recebimento(s) confirmados e liquidados!`);
+    },
+    onError: (error) => {
+      toast.error('Erro ao confirmar recebimentos: ' + error.message);
     },
   });
 }

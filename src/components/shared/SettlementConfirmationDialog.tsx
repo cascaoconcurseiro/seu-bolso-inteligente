@@ -139,7 +139,7 @@ export function SettlementConfirmationDialog({
               {isPayment ? <ArrowUpCircle className="h-6 w-6" /> : <ArrowDownCircle className="h-6 w-6" />}
             </div>
             <DialogTitle className="text-2xl font-display font-bold">
-              {isPayment ? "Confirmar Pagamento" : "Confirmar Recebimento"}
+              {isPayment ? "Informar Pagamento" : "Confirmar Recebimento"}
             </DialogTitle>
             <DialogDescription className="text-base">
               Verifique os itens e escolha a conta de {isPayment ? "origem" : "destino"} para este {isPayment ? "pagamento" : "recebimento"}.
@@ -296,7 +296,7 @@ export function SettlementConfirmationDialog({
             ) : (
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4" />
-                {isPayment ? "Confirmar Pagamento" : "Confirmar Recebimento"}
+                {isPayment ? "Informar Pagamento" : "Confirmar Recebimento"}
               </div>
             )}
           </Button>

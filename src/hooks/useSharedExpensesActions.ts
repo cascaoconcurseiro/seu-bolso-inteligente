@@ -137,40 +137,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       // 2. O usuário é o credor líquido (recebendo o valor compensado)
       else if (itemsTotal > 0) {
-        const { data: txData, error: txError } = await supabase.from('transactions').insert({
-          user_id: user.id,
-          creator_user_id: user.id,
-          account_id: settleAccountId,
-          amount: amount,
-          type: 'INCOME',
-          description: isCompensated
-            ? `Recebimento de acerto por compensação com ${member?.name}`
-            : `Recebimento de acerto com ${member?.name}`,
-          date: settleDate,
-          competence_date: settleDate,
-          domain: domain,
-          trip_id: tripId,
-          is_shared: false,
-          is_settled: true,
-          currency: settlementCurrency
-        }).select('id').single();
+        const { data, error } = await supabase.rpc('request_settlement', {
+          p_split_ids: splitIds,
+          p_account_id: settleAccountId,
+          p_user_id: user.id,
+          p_is_payment: false
+        });
 
-        if (txError) throw txError;
-        txId = txData.id;
-
-        // O credor confirma o recebimento do seu lado, mas o devedor ainda precisa escolher a conta e confirmar
-        const { error: updateError } = await supabase
-          .from('transaction_splits')
-          .update({
-            settled_by_creditor: true,
-            creditor_settlement_tx_id: txId,
-            settled_by_debtor: false,
-            is_settled: false
-          })
-          .in('id', splitIds);
-
-        if (updateError) throw updateError;
-
+        if (error) throw error;
+        
         // Notificar devedor para vincular a conta de onde o dinheiro saiu
         const debtorUserId = member?.linked_user_id;
         if (debtorUserId && debtorUserId !== user.id) {
@@ -180,7 +155,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             amount,
             settlementCurrency,
             splitIds,
-            txId
+            (data as any)?.transaction_id
           );
         }
         
@@ -188,37 +163,14 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       // 3. O usuário é o devedor líquido (pagando o saldo compensado)
       else {
-        const { data: txData, error: txError } = await supabase.from('transactions').insert({
-          user_id: user.id,
-          creator_user_id: user.id,
-          account_id: settleAccountId,
-          amount: amount,
-          type: 'EXPENSE',
-          description: isCompensated
-            ? `Pagamento de acerto por compensação para ${member?.name}`
-            : `Pagamento de acerto para ${member?.name}`,
-          date: settleDate,
-          competence_date: settleDate,
-          domain: domain,
-          trip_id: tripId,
-          is_shared: false,
-          is_settled: true,
-          currency: settlementCurrency
-        }).select('id').single();
+        const { data, error } = await supabase.rpc('request_settlement', {
+          p_split_ids: splitIds,
+          p_account_id: settleAccountId,
+          p_user_id: user.id,
+          p_is_payment: true
+        });
 
-        if (txError) throw txError;
-        txId = txData.id;
-
-        // Devedor inicia o pagamento, aguardando confirmação do outro membro
-        const { error: updateError } = await supabase
-          .from('transaction_splits')
-          .update({
-            settled_by_debtor: true,
-            debtor_settlement_tx_id: txId
-          })
-          .in('id', splitIds);
-
-        if (updateError) throw updateError;
+        if (error) throw error;
 
         // Enviar notificação de acerto para o credor confirmar
         const creditorUserId = member?.linked_user_id || itemsToSettle[0]?.creatorUserId;
@@ -508,39 +460,24 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
         toast.success("Acerto por compensação confirmado com sucesso!");
       } else {
-        // Standard non-netted confirmation: use standard RPC with exchange rate support
+        // Standard non-netted confirmation: use standard RPC
         const splitIds = items.map(i => i.splitId).filter((id): id is string => !!id);
-        const { data, error } = await supabase.rpc('confirm_settlement_receipt', {
+        const { data, error } = await supabase.rpc('confirm_settlement', {
           p_split_ids: splitIds,
-          p_creditor_id: user.id,
           p_account_id: accountId,
-          p_date: date,
-          p_exchange_rate: exchangeRate || null
-        } as any);
+          p_user_id: user.id,
+          p_is_receiving: true
+        });
+
         if (error) throw error;
-
-        // CORREÇÃO: Após a RPC antiga que atualiza is_settled, precisamos atualizar as flags de UI 
-        // para que as telas de Viagem e Acertos parem de mostrar "Aguardando confirmação".
-        const { error: updateError } = await supabase
-          .from('transaction_splits')
-          .update({
-            settled_by_creditor: true,
-            settled_by_debtor: true,
-            is_settled: true,
-            settled_at: new Date().toISOString()
-          })
-          .in('id', splitIds);
-
-        if (updateError) throw updateError;
         
         // Link created transaction to trip if applicable
         const uniqueTripIds = [...new Set(items.map(i => i.tripId).filter(Boolean))];
         const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
         if (tripId) {
-            const { data: splitsData } = await supabase.from('transaction_splits').select('settled_transaction_id, creditor_settlement_tx_id').in('id', splitIds);
-            const txIds = [...new Set(splitsData?.flatMap(s => [s.settled_transaction_id, s.creditor_settlement_tx_id]).filter(Boolean) as string[])];
-            if (txIds.length > 0) {
-               await supabase.from('transactions').update({ trip_id: tripId, domain: 'TRAVEL' }).in('id', txIds);
+            const txId = (data as any)?.transaction_id;
+            if (txId) {
+               await supabase.from('transactions').update({ trip_id: tripId, domain: 'TRAVEL' }).eq('id', txId);
             }
         }
         
@@ -610,38 +547,24 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
       const domain = tripId ? 'TRAVEL' : 'PERSONAL';
 
-      // 1. Cadastrar a transação de despesa (EXPENSE) na conta selecionada do devedor (Fran)
-      const { data: txData, error: txError } = await supabase.from('transactions').insert({
-        user_id: user.id,
-        creator_user_id: user.id,
-        account_id: accountId,
-        amount: amount,
-        type: 'EXPENSE',
-        description: `Pagamento de acerto com credor`,
-        date: date,
-        competence_date: date,
-        domain: domain,
-        trip_id: tripId,
-        is_shared: false,
-        is_settled: true,
-        currency: settlementCurrency
-      }).select('id').single();
-
-      if (txError) throw txError;
-      const txId = txData.id;
-
-      // 2. Atualizar os splits
       const splitIds = items.map(i => i.splitId).filter((id): id is string => !!id);
       
-      const { error: updateError } = await supabase
-        .from('transaction_splits')
-        .update({
-          settled_by_debtor: true,
-          debtor_settlement_tx_id: txId
-        })
-        .in('id', splitIds);
+      const { data, error } = await supabase.rpc('confirm_settlement', {
+        p_split_ids: splitIds,
+        p_account_id: accountId,
+        p_user_id: user.id,
+        p_is_receiving: false
+      });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
+      
+      // Link created transaction to trip if applicable
+      if (tripId) {
+          const txId = (data as any)?.transaction_id;
+          if (txId) {
+             await supabase.from('transactions').update({ trip_id: tripId, domain: 'TRAVEL' }).eq('id', txId);
+          }
+      }
 
       // 3. Notificar o credor de que a conta foi vinculada e o acerto foi liquidado bilateralmente!
       const creditorUserId = items[0]?.creatorUserId;

@@ -16,9 +16,16 @@ import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Plane } from "lucide-react";
+import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
+
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [isTravelMode, setIsTravelMode] = useState(false);
+  
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: projection } = useMonthlyProjection(selectedCurrency);
@@ -169,7 +176,21 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       <div className="space-y-4">
-        {currenciesData.length > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center space-x-2 bg-muted/50 p-2 rounded-xl border border-border/50 shadow-sm">
+            <Switch
+              id="travel-mode"
+              checked={isTravelMode}
+              onCheckedChange={setIsTravelMode}
+              className="data-[state=checked]:bg-primary"
+            />
+            <Label htmlFor="travel-mode" className="flex items-center gap-2 cursor-pointer font-medium">
+              <Plane className="h-4 w-4" />
+              Modo Viagem
+            </Label>
+          </div>
+
+          {currenciesData.length > 1 && !isTravelMode && (
           <div className="flex justify-end">
             <div className="w-32">
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
@@ -186,10 +207,14 @@ export function Dashboard() {
               </Select>
             </div>
           </div>
+          </div>
         )}
         
-        <DashboardHero
-          currency={activeCurrencyData.currency}
+        {isTravelMode ? (
+          <TripDashboardView />
+        ) : (
+          <DashboardHero
+            currency={activeCurrencyData.currency}
           balance={activeCurrencyData.balance}
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}
@@ -198,26 +223,31 @@ export function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-        <div className="lg:col-span-8 space-y-6 md:space-y-8">
-          <DashboardInvoices
-            creditCardsWithBalance={creditCardsWithBalance}
-            formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
-          />
-
-          <DashboardRecentActivity
-            recentTransactions={recentTransactions}
-            formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
-          />
-        </div>
-
-        <DashboardSidebar
-          savings={savings}
-          projectedBalance={projectedBalance}
-          projection={projection ?? null}
-          formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
         />
       </div>
+
+      {!isTravelMode && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+          <div className="lg:col-span-8 space-y-6 md:space-y-8">
+            <DashboardInvoices
+              creditCardsWithBalance={creditCardsWithBalance}
+              formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
+            />
+
+            <DashboardRecentActivity
+              recentTransactions={recentTransactions}
+              formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
+            />
+          </div>
+
+          <DashboardSidebar
+            savings={savings}
+            projectedBalance={projectedBalance}
+            projection={projection ?? null}
+            formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
+          />
+        </div>
+      )}
 
       <TransactionModal
         isOpen={showTransactionModal}

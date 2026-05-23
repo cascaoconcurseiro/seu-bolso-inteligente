@@ -2878,6 +2878,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_settlement: {
+        Args: {
+          p_split_ids: string[]
+          p_account_id: string
+          p_user_id: string
+          p_is_payment: boolean
+        }
+        Returns: Json
+      }
+      confirm_settlement: {
+        Args: {
+          p_split_ids: string[]
+          p_account_id: string
+          p_user_id: string
+          p_is_receiving: boolean
+        }
+        Returns: Json
+      }
       request_settlement_confirmation: {
         Args: {
           p_amount: number
