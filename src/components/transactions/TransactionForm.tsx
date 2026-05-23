@@ -259,6 +259,13 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     selectedDestAccount && 
     selectedAccount.currency !== selectedDestAccount.currency;
 
+  const isCrossCurrencyTripExpense = isExpense &&
+    selectedTrip &&
+    selectedAccount &&
+    selectedAccount.currency !== selectedTrip.currency;
+
+  const showExchangePanel = isExchangeTransfer || isCrossCurrencyTripExpense;
+
   const handleDestAmountChange = (val: string) => {
     setDestinationAmount(val);
     const numAmount = parseFloat(amount);
@@ -281,7 +288,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
   // Se o amount de origem mudar, recalcular o valor de destino usando a taxa de câmbio atual
   useEffect(() => {
-    if (isExchangeTransfer) {
+    if (showExchangePanel) {
       const numAmount = parseFloat(amount);
       const numRate = parseFloat(exchangeRate);
       if (numAmount > 0 && numRate > 0) {
@@ -289,7 +296,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         setDestinationAmount(computedDest);
       }
     }
-  }, [amount, isExchangeTransfer]);
+  }, [amount, showExchangePanel, exchangeRate]);
 
   // Limpar contas caso não aplicável
   useEffect(() => {
@@ -375,8 +382,10 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {
-        toast.error(`A moeda da conta (${selectedAccount.currency}) não bate com a moeda da viagem (${selectedTrip.currency}).`);
-        return;
+        if (!destinationAmount || parseFloat(destinationAmount) <= 0) {
+          toast.error(`Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`);
+          return;
+        }
       }
     }
 
@@ -415,9 +424,9 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       is_installment: isActuallyInstallment,
       total_installments: isActuallyInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
-      exchange_rate: isExchangeTransfer && exchangeRate ? parseFloat(exchangeRate) : undefined,
-      destination_amount: isExchangeTransfer && destinationAmount ? parseFloat(destinationAmount) : undefined,
-      destination_currency: isExchangeTransfer && selectedDestAccount ? selectedDestAccount.currency : undefined,
+      exchange_rate: showExchangePanel && exchangeRate ? parseFloat(exchangeRate) : undefined,
+      destination_amount: showExchangePanel && destinationAmount ? parseFloat(destinationAmount) : undefined,
+      destination_currency: isExchangeTransfer && selectedDestAccount ? selectedDestAccount.currency : (isCrossCurrencyTripExpense && selectedTrip ? selectedTrip.currency : undefined),
       splits: transactionSplits,
       is_refund: isRefund,
       is_recurring: isRecurring,
@@ -495,7 +504,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         
         <AccountSelector accountId={accountId} setAccountId={setAccountId} activeTab={activeTab} destinationAccountId={destinationAccountId} setDestinationAccountId={setDestinationAccountId} filteredAccounts={filteredAccounts} transferAccounts={transferAccounts} selectedTrip={selectedTrip} selectedAccount={selectedAccount} isPaidByOther={isPaidByOther} payerName={payerId !== 'me' ? (familyMembers || []).find(m => m.id === payerId)?.name || 'outro' : ''} />
 
-        {isExchangeTransfer && (
+        {showExchangePanel && (
           <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-4 animate-slide-in shadow-sm">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
@@ -504,17 +513,21 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
               <div>
                 <p className="font-semibold text-sm tracking-tight text-foreground">Operação de Câmbio Detectada</p>
                 <p className="text-xs text-muted-foreground">
-                  Transferência de {selectedAccount?.currency} para {selectedDestAccount?.currency}
+                  {isCrossCurrencyTripExpense 
+                    ? `Despesa na Viagem: ${selectedAccount?.currency} pagando ${selectedTrip?.currency}`
+                    : `Transferência de ${selectedAccount?.currency} para ${selectedDestAccount?.currency}`}
                 </p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-foreground">Valor Recebido ({selectedDestAccount?.currency})</Label>
+                <Label className="text-xs font-semibold text-foreground">
+                  {isCrossCurrencyTripExpense ? `Valor na Viagem (${selectedTrip?.currency})` : `Valor Recebido (${selectedDestAccount?.currency})`}
+                </Label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-semibold">
-                    {getCurrencySymbol(selectedDestAccount?.currency || 'USD')}
+                    {getCurrencySymbol(isCrossCurrencyTripExpense ? (selectedTrip?.currency || 'USD') : (selectedDestAccount?.currency || 'USD'))}
                   </span>
                   <input
                     type="number"
@@ -531,7 +544,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
                 <Label className="text-xs font-semibold text-foreground">Taxa de Câmbio (Cotação)</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-[10px] text-muted-foreground font-semibold">
-                    {selectedAccount?.currency}/{selectedDestAccount?.currency}
+                    {selectedAccount?.currency}/{isCrossCurrencyTripExpense ? selectedTrip?.currency : selectedDestAccount?.currency}
                   </span>
                   <input
                     type="number"

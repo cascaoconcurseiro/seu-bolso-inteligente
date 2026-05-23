@@ -83,7 +83,7 @@ export function TripExpensesTab({
     <div className="space-y-8 mt-6 animate-fade-in">
 
       {/* ===== RESUMO RÁPIDO ===== */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-2xl border border-purple-500/20 bg-purple-500/5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-1">
             Total Compartilhado

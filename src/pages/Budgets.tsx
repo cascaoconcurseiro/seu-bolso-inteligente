@@ -6,7 +6,10 @@ import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Wallet, Target, TrendingUp } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, Wallet, Target, TrendingUp, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useBudgets } from "@/hooks/useBudgets";
@@ -34,6 +37,7 @@ export function Budgets() {
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currency, setCurrency] = useState("BRL");
+  const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
 
   const availableCurrencies = useMemo(() => {
     const set = new Set<string>(["BRL"]);
@@ -171,15 +175,67 @@ export function Budgets() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
-              <Select value={categoryId || "all"} onValueChange={(v) => setCategoryId(v === "all" ? "" : v)}>
-                <SelectTrigger className="rounded-xl h-12"><SelectValue placeholder="Todas as categorias" /></SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="all">Filtro Global</SelectItem>
-                  {categories.filter(c => c.type === "expense").map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCategoryPopover}
+                    className="w-full justify-between rounded-xl h-12 font-normal"
+                  >
+                    {categoryId
+                      ? categories.find((c) => c.id === categoryId)
+                        ? <span className="flex items-center gap-2">{categories.find((c) => c.id === categoryId)?.icon} {categories.find((c) => c.id === categoryId)?.name}</span>
+                        : "Filtro Global"
+                      : "Filtro Global"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl shadow-xl" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar categoria..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          key="all"
+                          value="all"
+                          onSelect={() => {
+                            setCategoryId("");
+                            setOpenCategoryPopover(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              !categoryId ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          Filtro Global
+                        </CommandItem>
+                        {categories.filter(c => c.type === "expense").map((c) => (
+                          <CommandItem
+                            key={c.id}
+                            value={c.name}
+                            onSelect={() => {
+                              setCategoryId(c.id);
+                              setOpenCategoryPopover(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                categoryId === c.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {c.icon} {c.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
