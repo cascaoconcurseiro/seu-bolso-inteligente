@@ -24,7 +24,6 @@ import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [isTravelMode, setIsTravelMode] = useState(false);
   
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
@@ -176,22 +175,8 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center space-x-2 bg-muted/50 p-2 rounded-xl border border-border/50 shadow-sm">
-            <Switch
-              id="travel-mode"
-              checked={isTravelMode}
-              onCheckedChange={setIsTravelMode}
-              className="data-[state=checked]:bg-primary"
-            />
-            <Label htmlFor="travel-mode" className="flex items-center gap-2 cursor-pointer font-medium">
-              <Plane className="h-4 w-4" />
-              Modo Viagem
-            </Label>
-          </div>
-
-          {currenciesData.length > 1 && !isTravelMode && (
-            <div className="flex justify-end">
+        {currenciesData.length > 1 && (
+          <div className="flex justify-end">
               <div className="w-32">
                 <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
                   <SelectTrigger className="h-9 bg-muted/50 border-border/50">
@@ -208,25 +193,19 @@ export function Dashboard() {
               </div>
             </div>
           )}
-        </div>
         
-        {isTravelMode ? (
-          <TripDashboardView />
-        ) : (
-          <DashboardHero
-            currency={activeCurrencyData.currency}
+        <DashboardHero
+          currency={activeCurrencyData.currency}
             balance={activeCurrencyData.balance}
             income={activeCurrencyData.income}
             expenses={activeCurrencyData.expense}
             formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
-            wealthHistory={wealthHistory}
-          />
-        )}
+          wealthHistory={wealthHistory}
+        />
       </div>
 
-      {!isTravelMode && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-          <div className="lg:col-span-8 space-y-6 md:space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="lg:col-span-8 space-y-6 md:space-y-8">
             <DashboardInvoices
               creditCardsWithBalance={creditCardsWithBalance}
               formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
@@ -242,10 +221,9 @@ export function Dashboard() {
             savings={savings}
             projectedBalance={projectedBalance}
             projection={projection ?? null}
-            formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
-          />
-        </div>
-      )}
+          formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
+        />
+      </div>
 
       <TransactionModal
         isOpen={showTransactionModal}
