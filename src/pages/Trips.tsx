@@ -11,7 +11,7 @@ import { EditTripDialog } from "@/components/trips/EditTripDialog";
 
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { AddParticipantDialog } from "@/components/trips/AddParticipantDialog";
-import { useCreateTripInvitation } from "@/hooks/useTripInvitations";
+import { useCreateTripInvitation, useSentTripInvitations, useCancelTripInvitation } from "@/hooks/useTripInvitations";
 import { TripEmptyState } from "@/components/trips/TripEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import { TripListView } from "@/components/trips/TripListView";
@@ -64,6 +64,9 @@ export function Trips() {
   const archiveTrip = useArchiveTrip();
   const unarchiveTrip = useUnarchiveTrip();
   const createInvitation = useCreateTripInvitation();
+  const { data: sentInvitations = [] } = useSentTripInvitations(selectedTripId);
+  const pendingInvitations = sentInvitations.filter((inv: any) => inv.status === 'pending');
+  const cancelInvitation = useCancelTripInvitation();
 
   const removeParticipant = useRemoveTripParticipant();
   const { data: accounts = [] } = useAccounts();
@@ -234,6 +237,8 @@ export function Trips() {
             setRemovingParticipantBalance(b);
             setShowRemoveDialog(true);
           }}
+          pendingInvitations={pendingInvitations}
+          onCancelInvitation={cancelInvitation.mutate}
         />
         
         <RemoveParticipantDialog

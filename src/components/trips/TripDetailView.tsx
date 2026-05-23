@@ -34,12 +34,14 @@ interface TripDetailViewProps {
   onExportPDF: () => void;
   onExportExcel: () => void;
   onRemoveParticipantClick?: (participant: any, balance: any) => void;
+  pendingInvitations?: any[];
+  onCancelInvitation?: (id: string) => void;
 }
 
 export function TripDetailView({
   trip, permissions, participants, tripTransactions, tripFinancialSummary, user, activeTab, setActiveTab,
   myPersonalBudget, balances, onBack, onEdit, onAddParticipant, onArchive, onUnarchive, onDelete, onOpenBudget, onUpdateTrip, formatCurrency,
-  onExportPDF, onExportExcel, onRemoveParticipantClick
+  onExportPDF, onExportExcel, onRemoveParticipantClick, pendingInvitations, onCancelInvitation
 }: TripDetailViewProps) {
   const relevantTransactions = tripTransactions.filter(t => t.type === "EXPENSE" && (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id));
   const totalExpenses = relevantTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
@@ -79,7 +81,7 @@ export function TripDetailView({
           </TabsList>
         </div>
 
-        <TabsContent value="summary"><TripSummaryTab selectedTrip={trip} totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} participants={participants} balances={balances} tripTransactions={tripTransactions} tripFinancialSummary={tripFinancialSummary} user={user} onAddParticipant={onAddParticipant} permissions={permissions} dateFns={dateFns} ptBR={ptBR} onRemoveClick={onRemoveParticipantClick} /></TabsContent>
+        <TabsContent value="summary"><TripSummaryTab selectedTrip={trip} totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} participants={participants} balances={balances} tripTransactions={tripTransactions} tripFinancialSummary={tripFinancialSummary} user={user} onAddParticipant={onAddParticipant} permissions={permissions} dateFns={dateFns} ptBR={ptBR} onRemoveClick={onRemoveParticipantClick} pendingInvitations={pendingInvitations} onCancelInvitation={onCancelInvitation} /></TabsContent>
         <TabsContent value="expenses"><TripExpensesTab tripTransactions={tripTransactions} participants={participants} selectedTrip={trip} user={user} formatCurrency={formatCurrency} balances={balances} myTotalSpent={myTotalSpent} /></TabsContent>
         <TabsContent value="shopping"><TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} /></TabsContent>
         {trip.currency !== "BRL" && <TabsContent value="exchange"><TripExchange trip={trip} totalExpenses={totalExpenses} /></TabsContent>}

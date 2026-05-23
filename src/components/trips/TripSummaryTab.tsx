@@ -20,6 +20,8 @@ interface TripSummaryTabProps {
   dateFns: any;
   ptBR: any;
   onRemoveClick?: (participant: any, balance: any) => void;
+  pendingInvitations?: any[];
+  onCancelInvitation?: (id: string) => void;
 }
 
 export function TripSummaryTab({
@@ -34,6 +36,8 @@ export function TripSummaryTab({
   onAddParticipant,
   permissions,
   onRemoveClick,
+  pendingInvitations = [],
+  onCancelInvitation,
 }: TripSummaryTabProps) {
   const tripDays = Math.max(1, Math.ceil((parseLocalDate(selectedTrip.end_date).getTime() - parseLocalDate(selectedTrip.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1);
   const currency = selectedTrip.currency || 'BRL';
@@ -375,6 +379,37 @@ export function TripSummaryTab({
                 </div>
               );
             })}
+
+            {permissions?.isOwner && pendingInvitations.map((inv) => (
+              <div key={inv.id} className="p-4 rounded-2xl border border-dashed border-border/50 bg-card/20 flex items-center justify-between gap-4 opacity-70">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium font-display shrink-0 border border-dashed border-border">
+                    {inv.invitee?.full_name?.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "?"}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-bold text-sm text-foreground truncate">{inv.invitee?.full_name || "Convidado"}</p>
+                      <span className="text-[8px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Pendente</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                      Aguardando aceite...
+                    </p>
+                  </div>
+                </div>
+
+                {onCancelInvitation && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => onCancelInvitation(inv.id)}
+                    title="Cancelar convite"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
         </section>
       )}
