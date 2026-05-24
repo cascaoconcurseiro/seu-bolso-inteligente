@@ -25,6 +25,8 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
   
   const debounceRef = useRef<NodeJS.Timeout>();
   const lastPredictedDescRef = useRef<string>('');
+  const lastHashRef = useRef<string>('');
+  const categoriesHash = (categories || []).map(c => c.id).join(',');
 
   useEffect(() => {
     if (!enabled || description.trim().length < 2) {
@@ -32,11 +34,12 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       setPredictedCategoryId(null);
       setIsPredicting(false);
       lastPredictedDescRef.current = '';
+      lastHashRef.current = '';
       return;
     }
 
-    if (description.trim() === lastPredictedDescRef.current) {
-      return; // Evitar re-pesquisar o que já foi pesquisado
+    if (description.trim() === lastPredictedDescRef.current && categoriesHash === lastHashRef.current) {
+      return; // Evitar re-pesquisar o que já foi pesquisado com as mesmas categorias
     }
 
     // Ao começar a digitar, limpa sugestão antiga mas MANTÉM a categoria predita anterior 
@@ -67,6 +70,7 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
         if (!isActive) return;
 
         lastPredictedDescRef.current = description.trim();
+        lastHashRef.current = categoriesHash;
 
         if (result.suggestion) {
           setSuggestion(result.suggestion);
@@ -93,7 +97,7 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       isActive = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [description, enabled]);
+  }, [description, enabled, categoriesHash]);
 
   return { suggestion, predictedCategoryId, isPredicting };
 }

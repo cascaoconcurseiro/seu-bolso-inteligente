@@ -1,6 +1,8 @@
 import { CategoryPrediction } from "@/types/categoryPrediction";
 
-const GROQ_API_URL = "/api/ai";
+const GROQ_API_URL = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1')
+  ? "/api/ai"
+  : "https://seu-bolso-inteligente.vercel.app/api/ai";
 
 // Interfaces para os relatórios
 export interface FinancialReportData {
@@ -54,7 +56,7 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", // Modelo de alta capacidade para análises complexas
+        model: "llama-3.1-8b-instant", // Modelo econômico de baixo custo-benefício
         messages: [{ role: "system", content: prompt }],
         temperature: 0.5,
         max_tokens: 600,
@@ -190,7 +192,7 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "llama-3.1-8b-instant",
           messages: [{ role: "system", content: prompt }],
           temperature: 0.5,
           max_tokens: 300,
@@ -233,7 +235,7 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "llama-3.1-8b-instant",
           messages: [{ role: "system", content: prompt }],
           temperature: 0.4,
           max_tokens: 600,
@@ -273,7 +275,7 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "llama-3.1-8b-instant",
           messages: [{ role: "system", content: prompt }],
           temperature: 0.3,
           max_tokens: 400,

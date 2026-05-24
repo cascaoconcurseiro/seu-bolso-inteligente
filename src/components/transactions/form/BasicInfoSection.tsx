@@ -21,7 +21,6 @@ interface BasicInfoSectionProps {
   categories: any[];
   categoriesLoading: boolean;
   selectedTrip?: any;
-  selectedTrip?: any;
   suggestion?: string;
   predictedCategoryId?: string | null;
   isPredicting?: boolean;
