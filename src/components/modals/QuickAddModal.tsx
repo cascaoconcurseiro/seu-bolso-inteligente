@@ -38,6 +38,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [totalInstallments, setTotalInstallments] = useState(1);
   
   const activeTrips = trips?.filter(t => t.status === 'ACTIVE' || t.status === 'PLANNING') || [];
   const [isTripMode, setIsTripMode] = useState(false);
@@ -52,6 +54,15 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const selectedTrip = activeTrips.find(t => t.id === selectedTripId);
   const currentCurrency = isTripMode && selectedTrip ? selectedTrip.currency : 'BRL';
+  const selectedCard = accounts?.find(a => a.id === accountId);
+  const isCreditCard = selectedCard?.type === 'CREDIT_CARD';
+
+  useEffect(() => {
+    if (!isCreditCard) {
+      setIsInstallment(false);
+      setTotalInstallments(1);
+    }
+  }, [accountId, isCreditCard]);
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
 
@@ -103,6 +114,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         payer_id: undefined,
         trip_id: isTripMode && selectedTripId ? selectedTripId : undefined,
         currency: currentCurrency,
+        is_installment: isInstallment && totalInstallments > 1,
+        total_installments: isInstallment && totalInstallments > 1 ? totalInstallments : undefined,
       });
       
       // Reset and close
@@ -281,9 +294,38 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   </SelectContent>
                 </Select>
               </div>
+          </div>
+          
+          {isCreditCard && (
+            <div className="p-4 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
+              <Label className="font-medium text-sm">Parcelas (Cartão de Crédito)</Label>
+              <Select
+                value={totalInstallments.toString()}
+                onValueChange={(v) => {
+                  const val = parseInt(v);
+                  setTotalInstallments(val);
+                  setIsInstallment(val > 1);
+                }}
+              >
+                <SelectTrigger className="rounded-xl h-11">
+                  <SelectValue placeholder="Selecione o parcelamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">
+                    1x de {moneyUtils.getSymbol(currentCurrency)} {(parseFloat(amount.replace(',', '.')) || 0).toFixed(2).replace('.', ',')} (À vista)
+                  </SelectItem>
+                  {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
+                    <SelectItem key={n} value={n.toString()}>
+                      {n}x de {moneyUtils.getSymbol(currentCurrency)}{' '}
+                      {((parseFloat(amount.replace(',', '.')) || 0) / n).toFixed(2).replace('.', ',')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="space-y-2">
+          )}
+          
+          <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Categoria 
                 {predictedCategoryId === categoryId && categoryId && (
