@@ -15,50 +15,46 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       if (!value) return "";
       const numericValue = parseFloat(value);
       if (isNaN(numericValue)) return "";
-      return numericValue.toString().replace(".", ",");
+      return numericValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     });
 
     const formatToCurrency = (val: string) => {
-      if (!val) return "";
-      let cleanValue = val.replace(/[^\d,]/g, "");
-      const parts = cleanValue.split(",");
-      if (parts.length > 2) {
-        cleanValue = parts[0] + "," + parts.slice(1).join("");
-      }
-      const finalParts = cleanValue.split(",");
-      if (finalParts.length === 2 && finalParts[1].length > 2) {
-        finalParts[1] = finalParts[1].slice(0, 2);
-      }
-      finalParts[0] = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      return finalParts.join(",");
+      const digits = val.replace(/\D/g, "");
+      if (!digits) return "";
+      
+      const numericValue = parseInt(digits, 10) / 100;
+      return numericValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value;
-      const formatted = formatToCurrency(rawValue);
-      setDisplayValue(formatted);
+      const digits = rawValue.replace(/\D/g, "");
       
-      const unformatted = formatted.replace(/\./g, "").replace(",", ".");
-      const numericValue = parseFloat(unformatted);
-      
-      if (!isNaN(numericValue)) {
-        onChange(numericValue.toString());
-      } else {
+      if (!digits) {
+        setDisplayValue("");
         onChange("");
+        return;
       }
+      
+      const numericValue = parseInt(digits, 10) / 100;
+      
+      const formatted = numericValue.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      
+      setDisplayValue(formatted);
+      onChange(numericValue.toString());
     };
 
     const handleBlur = () => {
-      if (displayValue && displayValue !== ",") {
-        const unformatted = displayValue.replace(/\./g, "").replace(",", ".");
-        const numericValue = parseFloat(unformatted);
-        
-        if (!isNaN(numericValue)) {
-          const formatted = formatToCurrency(numericValue.toFixed(2).replace(".", ","));
-          setDisplayValue(formatted);
-          onChange(numericValue.toString());
-        }
-      }
+      // Nothing needed here since the format is strictly controlled on every change
     };
 
     return (
