@@ -336,16 +336,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {categories?.filter(c => !c.parent_category_id).map(category => (
-                    <div key={category.id}>
-                      <SelectItem value={category.id} className="font-semibold">
-                        {category.icon} {category.name}
-                      </SelectItem>
-                      {categories.filter(c => c.parent_category_id === category.id).map(sub => (
-                        <SelectItem key={sub.id} value={sub.id} className="pl-6 text-sm">
-                          {sub.icon} {sub.name}
-                        </SelectItem>
-                      ))}
-                    </div>
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.icon} {category.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
