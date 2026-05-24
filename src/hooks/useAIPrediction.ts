@@ -69,7 +69,43 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       try {
         const expenseTransactions = (transactionsRef.current || []).filter(t => t.type === 'EXPENSE' && t.description);
         const historyDescriptions = expenseTransactions.map(t => t.description);
-        const formattedCategories = (categoriesRef.current || []).map(c => ({ id: c.id, name: c.name }));
+        
+        // Filtrar estritamente as categorias legítimas de despesa enviadas para a IA (máximo de 15 pais e suas subcategorias legítimas)
+        const ALLOWED_EXPENSE_PARENTS = [
+          "Supermercado",
+          "Restaurantes e Lanches",
+          "Delivery",
+          "Gasolina",
+          "Transporte",
+          "Moradia",
+          "Contas e Assinaturas",
+          "Saúde",
+          "Educação",
+          "Compras",
+          "Lazer",
+          "Viagens",
+          "Família e Pets",
+          "Impostos e Taxas",
+          "Outros"
+        ];
+
+        const allCats = categoriesRef.current || [];
+        const filteredCats = allCats.filter(c => {
+          if (c.type !== 'expense') return false;
+          if (!c.parent_category_id) {
+            return ALLOWED_EXPENSE_PARENTS.includes(c.name);
+          }
+          const parent = allCats.find(p => p.id === c.parent_category_id);
+          return parent ? ALLOWED_EXPENSE_PARENTS.includes(parent.name) : false;
+        });
+
+        // Se o usuário não usar subcategorias, envia apenas as categorias pai permitidas
+        let finalCatsToSend = filteredCats;
+        if (!useSubcategories) {
+          finalCatsToSend = filteredCats.filter(c => !c.parent_category_id);
+        }
+
+        const formattedCategories = finalCatsToSend.map(c => ({ id: c.id, name: c.name }));
         
         console.log(`[useAIPrediction] [Req #${currentRequestId}] Disparando requisição para: "${description.trim()}"`);
         
