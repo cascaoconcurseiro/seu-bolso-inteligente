@@ -2,27 +2,34 @@ import { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService } from '@/services/aiAdvisorService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
-import { toast } from 'sonner';
 
 export function useAIPrediction(description: string, enabled: boolean = true) {
   const [suggestion, setSuggestion] = useState<string>('');
   const [predictedCategoryId, setPredictedCategoryId] = useState<string | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   
-  const { data: transactions } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });
+  // Memoize parameters or avoid unnecessary re-fetches
+  const { data: transactions } = useTransactions({ startDate: '2023-01-01', endDate: '2026-12-31' });
   const { data: categories } = useCategories();
   
   const debounceRef = useRef<NodeJS.Timeout>();
-  
+  const lastPredictedDescRef = useRef<string>('');
+
   useEffect(() => {
-    if (!enabled || description.length < 2) {
+    if (!enabled || description.trim().length < 2) {
       setSuggestion('');
       setPredictedCategoryId(null);
       setIsPredicting(false);
+      lastPredictedDescRef.current = '';
       return;
     }
 
-    // Ao começar a digitar, já limpa a sugestão antiga para mostrar que está buscando nova
+    if (description.trim() === lastPredictedDescRef.current) {
+      return; // Evitar re-pesquisar o que já foi pesquisado
+    }
+
+    // Ao começar a digitar, limpa sugestão antiga mas MANTÉM a categoria predita anterior 
+    // até que a nova venha, para não ficar piscando a interface ou sobrescrevendo o usuário sem querer.
     setSuggestion('');
     
     if (debounceRef.current) {
@@ -41,12 +48,14 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
         const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
         
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
-          description,
+          description.trim(),
           historyDescriptions,
           formattedCategories
         );
         
         if (!isActive) return;
+
+        lastPredictedDescRef.current = description.trim();
 
         if (result.suggestion) {
           setSuggestion(result.suggestion);
@@ -54,19 +63,20 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           setSuggestion('');
         }
         
-        if (result.categoryId) {
-          setPredictedCategoryId(result.categoryId);
-        }
+        // Sempre atualiza o predictedCategoryId, mesmo que seja null, para refletir o último texto
+        setPredictedCategoryId(result.categoryId || null);
+        
       } catch (error: any) {
         if (!isActive) return;
-        // Não mostrar toast aqui para evitar spam na tela do usuário, apenas logar no console
         console.error('Erro na hook de previsão AI:', error);
+        setPredictedCategoryId(null);
+        setSuggestion('');
       } finally {
         if (isActive) {
           setIsPredicting(false);
         }
       }
-    }, 400);
+    }, 600); // Aumentei o debounce para 600ms para evitar rate limit de APIs e múltiplas chamadas rápidas
 
     return () => {
       isActive = false;

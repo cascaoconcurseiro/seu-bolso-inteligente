@@ -19,6 +19,7 @@ interface TripShoppingProps {
     id: string;
     name: string;
     currency: string;
+    destination?: string;
     shopping_list?: ShoppingItem[];
   };
   onUpdateTrip: (updates: { shopping_list: ShoppingItem[] }) => Promise<void>;
@@ -32,6 +33,29 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
   const [newItem, setNewItem] = useState('');
   const [newCost, setNewCost] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+
+  const handleApplyAISuggestions = async (suggestions: any[]) => {
+    setIsAdding(true);
+    const newItems: ShoppingItem[] = suggestions.map(s => ({
+      id: crypto.randomUUID(),
+      item: s.item,
+      estimatedCost: Number(s.estimatedCost) || 0,
+      purchased: false
+    }));
+
+    const updatedList = [...shoppingList, ...newItems];
+    setShoppingList(updatedList);
+
+    try {
+      await onUpdateTrip({ shopping_list: updatedList });
+      toast.success(`${suggestions.length} itens adicionados com sucesso!`);
+    } catch (error) {
+      setShoppingList(shoppingList);
+      toast.error('Erro ao salvar sugestões');
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const handleCostChange = (value: string) => {
     setNewCost(value);
@@ -142,9 +166,17 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
       {/* Add New Item */}
       <div className="p-4 rounded-xl border border-border bg-muted/30 space-y-4">
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-          <h3 className="font-semibold">Adicionar Item</h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+            <h3 className="font-semibold">Adicionar Item</h3>
+          </div>
+          <AITripSuggestions 
+            type="shopping"
+            destination={trip.destination || trip.name}
+            currency={trip.currency}
+            onApply={handleApplyAISuggestions}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

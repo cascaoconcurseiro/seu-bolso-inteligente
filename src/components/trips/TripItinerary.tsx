@@ -41,14 +41,18 @@ interface ItineraryItem {
   created_at: string;
 }
 
+import { AITripSuggestions } from './AITripSuggestions';
+
 interface TripItineraryProps {
-  tripId: string;
+  trip: any;
 }
 
-export function TripItinerary({ tripId }: TripItineraryProps) {
+export function TripItinerary({ trip }: TripItineraryProps) {
+  const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<ItineraryItem | null>(null);
+  const [isApplyingAI, setIsApplyingAI] = useState(false);
   
   // Form state
   const [date, setDate] = useState("");
@@ -145,6 +149,36 @@ export function TripItinerary({ tripId }: TripItineraryProps) {
     },
   });
 
+  const handleApplyAISuggestions = async (suggestions: any[]) => {
+    setIsApplyingAI(true);
+    const startDate = trip.start_date || dateFns.format(new Date(), 'yyyy-MM-dd');
+    
+    try {
+      // Create all items
+      const promises = suggestions.map((s, idx) => {
+        return supabase.from("trip_itinerary").insert({
+          trip_id: tripId,
+          date: startDate, // Tudo pro primeiro dia
+          title: s.title,
+          description: s.description,
+          location: s.location,
+          start_time: null,
+          end_time: null,
+          order_index: items.length + idx,
+        });
+      });
+
+      await Promise.all(promises);
+      
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Sucesso", description: `${suggestions.length} atividades adicionadas no 1º dia.` });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsApplyingAI(false);
+    }
+  };
+
   const resetForm = () => {
     setDate("");
     setTitle("");
@@ -207,10 +241,17 @@ export function TripItinerary({ tripId }: TripItineraryProps) {
           <Route className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="font-display font-semibold text-lg mb-2">Roteiro da viagem</h3>
           <p className="text-muted-foreground mb-6">Adicione atividades e passeios</p>
-          <Button onClick={() => handleOpenDialog()}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar atividade
-          </Button>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={() => handleOpenDialog()}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar atividade
+            </Button>
+            <AITripSuggestions 
+              type="itinerary"
+              destination={trip.destination || trip.name}
+              onApply={handleApplyAISuggestions}
+            />
+          </div>
         </div>
 
         <ItineraryDialog
@@ -243,10 +284,17 @@ export function TripItinerary({ tripId }: TripItineraryProps) {
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           Roteiro ({items.length} atividades)
         </h2>
-        <Button variant="outline" size="sm" onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-1" />
-          Adicionar
-        </Button>
+        <div className="flex items-center gap-2">
+          <AITripSuggestions 
+            type="itinerary"
+            destination={trip.destination || trip.name}
+            onApply={handleApplyAISuggestions}
+          />
+          <Button variant="outline" size="sm" onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-1" />
+            Adicionar
+          </Button>
+        </div>
       </div>
 
       {/* Lista agrupada por data */}

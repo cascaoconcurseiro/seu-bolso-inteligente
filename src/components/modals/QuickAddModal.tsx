@@ -37,9 +37,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
 
-  // Auto-selecionar categoria se a IA prever e o usuário ainda não tiver selecionado uma ou estiver no embalo
+  // Auto-selecionar categoria se a IA prever
   useEffect(() => {
-    if (predictedCategoryId && !categoryId) {
+    if (predictedCategoryId) {
       setCategoryId(predictedCategoryId);
     }
   }, [predictedCategoryId]);
@@ -134,11 +134,20 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   placeholder="Ex: Padaria, Uber..." 
                   value={description} 
                   onChange={e => setDescription(e.target.value)}
-                  className="pr-8"
+                  className="pr-8 bg-transparent relative z-10"
                   required
                 />
+                
+                {/* Autocomplete Hint (Ghost text behind input) */}
+                {suggestion && suggestion.toLowerCase().startsWith(description.toLowerCase()) && description.length > 0 && (
+                  <div className="absolute inset-0 flex items-center px-3 pointer-events-none z-0">
+                    <span className="opacity-0">{description}</span>
+                    <span className="text-muted-foreground/40 text-sm">{suggestion.slice(description.length)}</span>
+                  </div>
+                )}
+
                 {isPredicting && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   </div>
                 )}

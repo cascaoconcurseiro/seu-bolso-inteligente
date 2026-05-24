@@ -23,6 +23,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { AITripSuggestions } from './AITripSuggestions';
 
 interface ChecklistItem {
   id: string;
@@ -36,7 +37,7 @@ interface ChecklistItem {
 }
 
 interface TripChecklistProps {
-  tripId: string;
+  trip: any;
 }
 
 const CATEGORIES = [
@@ -48,10 +49,12 @@ const CATEGORIES = [
   { value: "outros", label: "Outros" },
 ];
 
-export function TripChecklist({ tripId }: TripChecklistProps) {
+export function TripChecklist({ trip }: TripChecklistProps) {
+  const tripId = trip.id;
   const [showDialog, setShowDialog] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [newCategory, setNewCategory] = useState("");
+  const [isApplyingAI, setIsApplyingAI] = useState(false);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -146,6 +149,30 @@ export function TripChecklist({ tripId }: TripChecklistProps) {
     });
   };
 
+  const handleApplyAISuggestions = async (suggestions: any[]) => {
+    setIsApplyingAI(true);
+    try {
+      const promises = suggestions.map((s, idx) => {
+        return supabase.from("trip_checklist").insert({
+          trip_id: tripId,
+          item: s.item,
+          category: s.category || "outros",
+          is_completed: false,
+          order_index: items.length + idx,
+        });
+      });
+
+      await Promise.all(promises);
+      
+      queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
+      toast({ title: "Sucesso", description: `${suggestions.length} itens adicionados ao checklist.` });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } finally {
+      setIsApplyingAI(false);
+    }
+  };
+
   // Agrupar por categoria
   const groupedItems = items.reduce((acc, item) => {
     const cat = item.category || "outros";
@@ -166,10 +193,17 @@ export function TripChecklist({ tripId }: TripChecklistProps) {
           <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="font-display font-semibold text-lg mb-2">Checklist</h3>
           <p className="text-muted-foreground mb-6">Organize o que levar na viagem</p>
-          <Button onClick={() => setShowDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar item
-          </Button>
+          <div className="flex items-center justify-center gap-3">
+            <Button onClick={() => setShowDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar item
+            </Button>
+            <AITripSuggestions 
+              type="checklist"
+              destination={trip.destination || trip.name}
+              onApply={handleApplyAISuggestions}
+            />
+          </div>
         </div>
 
         <ChecklistDialog
@@ -194,10 +228,17 @@ export function TripChecklist({ tripId }: TripChecklistProps) {
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
             Checklist ({completedCount}/{items.length})
           </h2>
-          <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
-            <Plus className="h-4 w-4 mr-1" />
-            Adicionar
-          </Button>
+          <div className="flex items-center gap-2">
+            <AITripSuggestions 
+              type="checklist"
+              destination={trip.destination || trip.name}
+              onApply={handleApplyAISuggestions}
+            />
+            <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
+              <Plus className="h-4 w-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
         </div>
         <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
           <div

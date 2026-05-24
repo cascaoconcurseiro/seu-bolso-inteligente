@@ -85,8 +85,8 @@ export function TripDetailView({
         <TabsContent value="expenses"><TripExpensesTab tripTransactions={tripTransactions} participants={participants} selectedTrip={trip} user={user} formatCurrency={formatCurrency} balances={balances} myTotalSpent={myTotalSpent} /></TabsContent>
         <TabsContent value="shopping"><TripShopping trip={trip} onUpdateTrip={onUpdateTrip} isUpdating={false} /></TabsContent>
         {trip.currency !== "BRL" && <TabsContent value="exchange"><TripExchange trip={trip} totalExpenses={totalExpenses} /></TabsContent>}
-        <TabsContent value="itinerary"><TripItinerary tripId={trip.id} /></TabsContent>
-        <TabsContent value="checklist"><TripChecklist tripId={trip.id} /></TabsContent>
+        <TabsContent value="itinerary"><TripItinerary trip={trip} /></TabsContent>
+        <TabsContent value="checklist"><TripChecklist trip={trip} /></TabsContent>
       </Tabs>
     </div>
   );

@@ -150,4 +150,129 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
       return { suggestion: "", categoryId: null };
     }
   }
+
+  // --- MÉTODOS PARA VIAGENS (TRIP PLANNING) ---
+
+  static async suggestTripShopping(destination: string, currency: string): Promise<Array<{ item: string; estimatedCost: number }>> {
+    if (!destination) return [];
+
+    const prompt = `
+Você é a inteligência artificial "Arquiteto Financeiro" especializada em viagens.
+O usuário vai viajar para: "${destination}" e a moeda local da viagem é: "${currency}".
+Sugira até 8 itens comuns que viajantes costumam COMPRAR (Shopping) nesse destino.
+Pense no que as pessoas mais gastam nesse local (souvenirs típicos, comidas locais que levam pra casa, eletrônicos se for Miami/Orlando, vinhos se for Paris/Mendoza, etc).
+A estimativa de custo (estimatedCost) deve estar na moeda informada: ${currency}.
+
+RETORNE APENAS UM JSON no seguinte formato, e nada mais:
+{
+  "suggestions": [
+    { "item": "Nome do Item", "estimatedCost": 0.00 }
+  ]
+}`;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: prompt }],
+          temperature: 0.5,
+          max_tokens: 300,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) throw new Error("Falha ao comunicar com IA");
+      const result = await response.json();
+      const parsed = JSON.parse(result.choices[0].message.content);
+      return parsed.suggestions || [];
+    } catch (error) {
+      console.error("Erro na sugestão de compras da viagem:", error);
+      return [];
+    }
+  }
+
+  static async suggestTripItinerary(destination: string): Promise<Array<{ title: string; location: string; description: string; durationHours: number }>> {
+    if (!destination) return [];
+
+    const prompt = `
+Você é a inteligência artificial "Arquiteto Financeiro" especializada em roteiros turísticos.
+O usuário vai viajar para: "${destination}".
+Sugira até 6 passeios ou atividades imperdíveis nesse destino.
+
+RETORNE APENAS UM JSON no seguinte formato, e nada mais:
+{
+  "suggestions": [
+    { 
+      "title": "Nome do Passeio", 
+      "location": "Local exato/Endereço", 
+      "description": "Breve descrição do que fazer lá",
+      "durationHours": 2 // Estimativa de duração em horas
+    }
+  ]
+}`;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: prompt }],
+          temperature: 0.4,
+          max_tokens: 600,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) throw new Error("Falha ao comunicar com IA");
+      const result = await response.json();
+      const parsed = JSON.parse(result.choices[0].message.content);
+      return parsed.suggestions || [];
+    } catch (error) {
+      console.error("Erro na sugestão de roteiro da viagem:", error);
+      return [];
+    }
+  }
+
+  static async suggestTripChecklist(destination: string): Promise<Array<{ item: string; category: string }>> {
+    if (!destination) return [];
+
+    const prompt = `
+Você é a inteligência artificial "Arquiteto Financeiro" especializada em organização de viagens.
+O usuário vai viajar para: "${destination}".
+Crie um checklist de até 10 itens fundamentais para esta viagem específica.
+Lembre-se das necessidades climáticas e burocráticas do destino (ex: Passaporte e Visto se for internacional, casaco pesado se for neve, protetor solar se for praia).
+Categorias permitidas: documentos, roupas, higiene, eletronicos, remedios, outros.
+
+RETORNE APENAS UM JSON no seguinte formato, e nada mais:
+{
+  "suggestions": [
+    { "item": "Nome do Item", "category": "documentos" }
+  ]
+}`;
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "system", content: prompt }],
+          temperature: 0.3,
+          max_tokens: 400,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) throw new Error("Falha ao comunicar com IA");
+      const result = await response.json();
+      const parsed = JSON.parse(result.choices[0].message.content);
+      return parsed.suggestions || [];
+    } catch (error) {
+      console.error("Erro na sugestão de checklist da viagem:", error);
+      return [];
+    }
+  }
 }
