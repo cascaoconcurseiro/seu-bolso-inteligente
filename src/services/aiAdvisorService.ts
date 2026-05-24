@@ -1,7 +1,6 @@
 import { CategoryPrediction } from "@/types/categoryPrediction";
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+const GROQ_API_URL = "/api/ai";
 
 // Interfaces para os relatórios
 export interface FinancialReportData {
@@ -21,50 +20,44 @@ export class AIAdvisorService {
    * Pede para a IA gerar uma análise financeira baseada no histórico mensal ou anual.
    */
   static async analyzeFinancialPeriod(data: FinancialReportData): Promise<string> {
-    if (!GROQ_API_KEY) {
-      throw new Error("Chave da API da Groq não configurada. Configure VITE_GROQ_API_KEY no arquivo .env.");
-    }
-
     const prompt = `
-Você é um consultor financeiro de elite de um sistema chamado "Seu Bolso Inteligente". 
-Sua função é analisar o resumo financeiro do usuário e fornecer um parecer analítico em português do Brasil, sendo didático, respeitoso e focado em melhorar a saúde financeira do cliente.
-Não invente números, use APENAS os números fornecidos. Não faça cálculos complexos. Mantenha o design do texto limpo.
+Você é o consultor financeiro IA oficial do app "Seu Bolso Inteligente".
+O usuário está visualizando os relatórios do período: ${data.periodLabel} (${data.viewType === 'MONTH' ? 'Mensal' : 'Anual'}).
 
-DADOS FINANCEIROS (${data.viewType === 'MONTH' ? 'Mês' : 'Ano'}: ${data.periodLabel}):
-- Moeda: ${data.currency}
-- Total Receitas: ${data.totalIncome.toFixed(2)}
-- Total Despesas: ${data.totalExpense.toFixed(2)}
-- Saldo Líquido: ${data.balance.toFixed(2)}
-- Taxa de Poupança (Economia): ${data.savingsRate.toFixed(2)}%
-- Maior Despesa: ${data.largestExpense ? `${data.largestExpense.description} (${data.largestExpense.amount.toFixed(2)})` : 'Nenhuma'}
-- Top 3 Categorias de Gastos:
-${data.topCategories.slice(0, 3).map(c => `  * ${c.category}: ${c.value.toFixed(2)}`).join('\n')}
+DADOS DO PERÍODO:
+- Receitas Totais: ${data.currency} ${data.totalIncome.toFixed(2)}
+- Despesas Totais: ${data.currency} ${data.totalExpense.toFixed(2)}
+- Saldo Líquido: ${data.currency} ${data.balance.toFixed(2)}
+- Taxa de Poupança (economia): ${data.savingsRate.toFixed(1)}%
 
-ESTRUTURA DA SUA RESPOSTA (obrigatória, use formato Markdown simples sem muitas tabelas):
-### 📊 Resumo Executivo
-(Parágrafo curto sobre o estado geral)
+Top Categorias de Gasto:
+${data.topCategories.map(c => `- ${c.category}: ${data.currency} ${c.value.toFixed(2)}`).join('\n')}
 
-### ✨ Pontos Fortes
-(Liste 2 coisas boas, exemplo: taxa de poupança alta, ou despesas sob controle)
+${data.largestExpense ? `Maior Despesa Única: ${data.largestExpense.description} (${data.currency} ${data.largestExpense.amount.toFixed(2)})` : ''}
 
-### ⚠️ Pontos de Atenção
-(Liste os gargalos, onde está gastando muito, focado nas top categorias ou na maior despesa)
+SUA MISSÃO:
+1. Analise a saúde financeira do usuário neste período.
+2. Seja MUITO conciso, direto e didático (tom de especialista de negócios e coach financeiro motivador).
+3. Escreva pequenos parágrafos, formatados em Markdown. Use negrito para enfatizar coisas importantes.
+4. Siga ESTRITAMENTE esta estrutura de tópicos (não use outras hashtags):
+### Resumo
+### Pontos Fortes
+### Pontos de Atenção
+### Plano de Ação
 
-### 🎯 Plano de Ação
-(Dê 2 dicas práticas baseadas exclusivamente nos gastos reais descritos acima para o próximo ciclo)
+Não invente números, use apenas os dados acima. Se os dados estiverem todos zerados, diga que precisa de mais movimentações para gerar uma análise.
 `;
 
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", // Modelo atualizado e mais inteligente da Groq
+        model: "llama-3.3-70b-versatile", // Modelo de alta capacidade para análises complexas
         messages: [{ role: "system", content: prompt }],
-        temperature: 0.5, // Respostas lógicas e controladas
-        max_tokens: 1024,
+        temperature: 0.5,
+        max_tokens: 600,
       })
     });
 
@@ -85,7 +78,7 @@ ESTRUTURA DA SUA RESPOSTA (obrigatória, use formato Markdown simples sem muitas
     historicalDescriptions: string[],
     userCategories: { id: string; name: string }[]
   ): Promise<{ suggestion: string; categoryId: string | null }> {
-    if (!GROQ_API_KEY || partialDescription.length < 2) {
+    if (partialDescription.length < 2) {
       return { suggestion: "", categoryId: null };
     }
 
@@ -119,7 +112,6 @@ Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte 
       const response = await fetch(GROQ_API_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
