@@ -30,21 +30,6 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       setIsPredicting(true);
       try {
         const expenseTransactions = (transactions || []).filter(t => t.type === 'EXPENSE' && t.description);
-        
-        // 1. BUSCA LOCAL INSTANTÂNEA (Muito mais rápido e à prova de falhas)
-        const localMatch = expenseTransactions.find(t => 
-          t.description.toLowerCase().startsWith(description.toLowerCase())
-        );
-
-        if (localMatch) {
-          // Achou no histórico local! Responde na mesma hora sem chamar a internet
-          setSuggestion(localMatch.description);
-          setPredictedCategoryId(localMatch.category_id || null);
-          setIsPredicting(false);
-          return;
-        }
-
-        // 2. SE NÃO ACHOU LOCALMENTE, CHAMA A IA
         const historyDescriptions = expenseTransactions.map(t => t.description);
         const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
         

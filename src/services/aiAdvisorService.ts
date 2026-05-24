@@ -92,9 +92,10 @@ O usuário começou a digitar a descrição de uma despesa: "${partialDescriptio
 
 Seu trabalho é:
 1. Tentar advinhar qual é a palavra/frase COMPLETA que ele quer escrever baseando-se no histórico dele ou no uso comum de finanças (ex: "Pã" -> "Padaria" ou "Pão de Queijo").
-2. Prever qual o ID da categoria correta da despesa na lista de categorias do usuário.
+2. CORRIGIR ERROS DE DIGITAÇÃO E CAPITALIZAÇÃO. Se o usuário digitar "uber", sugira "Uber". Se digitar "ifod", sugira "iFood". Se digitar "craro", sugira "Carro".
+3. Prever qual o ID da categoria correta da despesa na lista de categorias do usuário.
 
-Histórico recente do usuário:
+Histórico recente do usuário (use para aprender o padrão de escrita dele, mas corrija erros absurdos se houver):
 [${uniqueHistory.join(', ')}]
 
 Categorias disponíveis:
