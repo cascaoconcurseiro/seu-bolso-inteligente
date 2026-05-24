@@ -136,17 +136,29 @@ O usuário começou a digitar uma despesa: "${sanitizedPartial}"
 
 Seu trabalho é:
 1. ADIVINHAR A PALAVRA COMPLETA e CORRIGIR ERROS ORTOGRÁFICOS.
-Exemplos de correção: "ifod" -> "iFood", "craro" -> "Carro", "gasola" -> "Gasolina", "mc donals" -> "McDonald's", "pgto" -> "Pagamento".
+Exemplos de correção: "ifod" -> "iFood", "craro" -> "Carro", "gasola" -> "Gasolina", "mc donals" -> "McDonald's", "pgto" -> "Pagamento", "pao" -> "Pão".
 2. REGIONALISMOS E GÍRIAS BRASILEIRAS SÃO VÁLIDOS!
 Abrace os regionalismos de todo o Brasil (especialmente Rio Grande do Sul, Nordeste, etc). Exemplos:
-- "Xis", "Cacetinho" (Pão), "Bergamota", "Churras", "Dogão", "Hamburguer" -> Alimentação / Comida
-- "Guri", "Pila" (Dinheiro), "Gás" -> Diversos / Despesas
-3. SELECIONAR A MELHOR CATEGORIA OBRIGATORIAMENTE.
-- Gasolina, Uber, 99, Ônibus, Mecânico -> Transporte / Carro
-- Luz, Água, Internet, Aluguel, Condomínio -> Moradia / Casa
-- Farmácia, Médico, Unimed, Dentista -> Saúde
-- Netflix, Spotify, Cinema, Barzinho -> Lazer / Entretenimento
-4. REGRA DE SOBREVIVÊNCIA: Se você NÃO FAZ IDEIA do que a palavra significa, APENAS formate a primeira letra como maiúscula e categorize como "Outros", "Alimentação" ou a categoria mais genérica disponível. NUNCA retorne vazio ou null!
+- "Cacetinho" (Pão), "Pão de sal", "Bergamota", "Churras", "Guri", "Pila" (Dinheiro).
+3. SELECIONAR A MELHOR CATEGORIA COM MÁXIMA INTELIGÊNCIA E PRECISÃO FINANCEIRA:
+Considere a seguinte árvore de decisão estrita para as 15 categorias disponíveis no Brasil:
+- "Supermercado": Compras do dia a dia, compras de mantimentos para casa, feira, hortifrúti, açougue, atacadões (Assaí, Sam's), mercados de bairro e compras básicas de PADARIA, como Pão, Cacetinho, Pão de Sal, Leite, Queijo e Margarina!
+- "Restaurantes e Lanches": Comer fora, almoço de trabalho, jantares, barzinho, chopp, cafeterias (Starbucks), McDonald's, Burger King, lanchonetes, pastelarias, rodízios, sushis, xis, dogão, docerias, ou seja, lanches e refeições prontas para consumo local.
+- "Delivery": Pedidos de comida pronta para entrega domiciliar exclusivamente através de aplicativos como iFood, Rappi, Uber Eats, Zé Delivery ou tele-entrega direta de pizzaria.
+- "Gasolina": Abastecimento de veículo em postos de combustível (gasolina, álcool, diesel, GNV), Posto Ipiranga, Petrobras, Shell, etc.
+- "Transporte": Aplicativos de mobilidade (Uber, 99, táxi), transporte público (ônibus, metrô, trem), tarifas de pedágio, estacionamentos, lavagem, mecânico e manutenção de carros/motos.
+- "Moradia": Aluguel, condomínio, IPTU, conta de água, conta de luz (energia), gás de cozinha encanado ou botijão, móveis para casa e pequenas reformas.
+- "Contas e Assinaturas": Netflix, Spotify, Amazon Prime, YouTube Premium, plano de internet banda larga, planos de telefone celular (Vivo, Claro, Tim) e assinaturas recorrentes SaaS.
+- "Saúde": Farmácias (Drogasil, Pague Menos), medicamentos, consultas médicas, exames, planos de saúde (Unimed), dentista e psicólogo.
+- "Educação": Mensalidades de escolas, faculdades, cursos online, material escolar, livros didáticos, taxas de inscrição de concursos e idiomas.
+- "Compras": Roupas, calçados, eletrônicos, móveis, eletrodomésticos, presentes e compras de varejo em lojas gerais (Amazon, Mercado Livre, Shopee, Shein, Americanas).
+- "Lazer": Cinema, shows, jogos, festas, parks temáticos, passeios e hobbies.
+- "Viagens": Passagens aéreas ou terrestres de viagem, hospedagem (Airbnb, hotéis), seguro viagem e passeios turísticos.
+- "Família e Pets": Ração para animais, veterinário, pet shop, despesas com filhos, fraldas e brinquedos.
+- "Impostos e Taxas": Tarifas bancárias, IPVA, multas de trânsito, imposto de renda, juros de cartão e taxas públicas.
+- "Outros": Apenas para despesas que absolutamente não se encaixem em nenhuma das categorias acima.
+
+4. REGRA DE SOBREVIVÊNCIA: Se você NÃO FAZ IDEIA do que a palavra significa, APENAS formate a primeira letra como maiúscula e categorize como "Outros" ou a categoria mais genérica disponível. NUNCA retorne vazio ou null!
 
 Histórico recente do usuário (use como base, mas corrija erros absurdos):
 [${uniqueHistory.join(', ')}]
