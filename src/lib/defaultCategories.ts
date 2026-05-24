@@ -127,25 +127,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Clube", icon: "🏊", type: "expense" },
     ],
   },
-  
-  {
-    name: "Streaming e Assinaturas",
-    icon: "📺",
-    type: "expense",
-    children: [
-      { name: "Netflix", icon: "🎬", type: "expense" },
-      { name: "Spotify", icon: "🎵", type: "expense" },
-      { name: "Amazon Prime", icon: "📦", type: "expense" },
-      { name: "Disney+", icon: "🏰", type: "expense" },
-      { name: "HBO Max", icon: "🎭", type: "expense" },
-      { name: "YouTube Premium", icon: "▶️", type: "expense" },
-      { name: "Apple Music", icon: "🍎", type: "expense" },
-      { name: "Revistas/Jornais", icon: "📰", type: "expense" },
-      { name: "Aplicativos", icon: "📱", type: "expense" },
-      { name: "Cloud Storage", icon: "☁️", type: "expense" },
-    ],
-  },
-  
+
   {
     name: "Compras",
     icon: "🛍️",
@@ -165,76 +147,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   },
   
   {
-    name: "Pets",
-    icon: "🐾",
-    type: "expense",
-    children: [
-      { name: "Veterinário", icon: "🐕", type: "expense" },
-      { name: "Ração", icon: "🦴", type: "expense" },
-      { name: "Pet Shop", icon: "🐾", type: "expense" },
-      { name: "Banho e Tosa", icon: "🛁", type: "expense" },
-      { name: "Medicamentos Pet", icon: "💊", type: "expense" },
-      { name: "Brinquedos Pet", icon: "🎾", type: "expense" },
-      { name: "Hotel Pet", icon: "🏨", type: "expense" },
-    ],
-  },
-  
-  {
-    name: "Cuidados Pessoais",
-    icon: "💇",
-    type: "expense",
-    children: [
-      { name: "Cabeleireiro", icon: "💇", type: "expense" },
-      { name: "Barbeiro", icon: "✂️", type: "expense" },
-      { name: "Manicure", icon: "💅", type: "expense" },
-      { name: "Pedicure", icon: "🦶", type: "expense" },
-      { name: "Depilação", icon: "🪒", type: "expense" },
-      { name: "Estética", icon: "✨", type: "expense" },
-      { name: "Spa", icon: "🧖", type: "expense" },
-      { name: "Massagem", icon: "💆", type: "expense" },
-    ],
-  },
-  
-  {
-    name: "Serviços",
-    icon: "🔧",
-    type: "expense",
-    children: [
-      { name: "Lavanderia", icon: "🧺", type: "expense" },
-      { name: "Costureira", icon: "🧵", type: "expense" },
-      { name: "Encanador", icon: "🚰", type: "expense" },
-      { name: "Eletricista", icon: "⚡", type: "expense" },
-      { name: "Pintor", icon: "🎨", type: "expense" },
-      { name: "Marceneiro", icon: "🪚", type: "expense" },
-      { name: "Diarista", icon: "🧹", type: "expense" },
-      { name: "Jardineiro", icon: "🌱", type: "expense" },
-      { name: "Segurança", icon: "🛡️", type: "expense" },
-    ],
-  },
-  
-  {
-    name: "Financeiro",
-    icon: "💰",
-    type: "expense",
-    children: [
-      { name: "Investimentos", icon: "📈", type: "expense" },
-      { name: "Previdência Privada", icon: "🏦", type: "expense" },
-      { name: "Seguros", icon: "🛡️", type: "expense" },
-      { name: "Taxas Bancárias", icon: "🏦", type: "expense" },
-      { name: "Empréstimo", icon: "💳", type: "expense" },
-      { name: "Financiamento", icon: "🏠", type: "expense" },
-      { name: "Cartão de Crédito", icon: "💳", type: "expense" },
-      { name: "Doações", icon: "❤️", type: "expense" },
-      { name: "Acerto Financeiro", icon: "🤝", type: "expense" },
-      { name: "Transferência Internacional", icon: "🌍", type: "expense" },
-      { name: "Remessa Internacional", icon: "💸", type: "expense" },
-      { name: "Conversão Cambial", icon: "💱", type: "expense" },
-      { name: "Ajuste de Saldo", icon: "⚖️", type: "expense" },
-    ],
-  },
-  
-  {
-    name: "Viagem",
+    name: "Viagens",
     icon: "✈️",
     type: "expense",
     children: [
@@ -247,6 +160,54 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Passeios", icon: "🎢", type: "expense" },
       { name: "Seguro Viagem", icon: "🛡️", type: "expense" },
       { name: "Visto", icon: "📋", type: "expense" },
+    ],
+  },
+
+  {
+    name: "Assinaturas e Serviços",
+    icon: "📺",
+    type: "expense",
+    children: [
+      { name: "Netflix", icon: "🎬", type: "expense" },
+      { name: "Spotify", icon: "🎵", type: "expense" },
+      { name: "Amazon Prime", icon: "📦", type: "expense" },
+      { name: "Disney+", icon: "🏰", type: "expense" },
+      { name: "HBO Max", icon: "🎭", type: "expense" },
+      { name: "YouTube Premium", icon: "▶️", type: "expense" },
+      { name: "Cloud Storage", icon: "☁️", type: "expense" },
+      { name: "Lavanderia", icon: "🧺", type: "expense" },
+      { name: "Costureira", icon: "🧵", type: "expense" },
+      { name: "Encanador", icon: "🚰", type: "expense" },
+      { name: "Eletricista", icon: "⚡", type: "expense" },
+      { name: "Diarista", icon: "🧹", type: "expense" },
+      { name: "Jardineiro", icon: "🌱", type: "expense" },
+    ],
+  },
+  
+  {
+    name: "Família e Pets",
+    icon: "🐾",
+    type: "expense",
+    children: [
+      { name: "Veterinário", icon: "🐕", type: "expense" },
+      { name: "Ração", icon: "🦴", type: "expense" },
+      { name: "Pet Shop", icon: "🐾", type: "expense" },
+      { name: "Banho e Tosa", icon: "🛁", type: "expense" },
+      { name: "Medicamentos Pet", icon: "💊", type: "expense" },
+      { name: "Hotel Pet", icon: "🏨", type: "expense" },
+    ],
+  },
+
+  {
+    name: "Trabalho e Negócios",
+    icon: "💼",
+    type: "expense",
+    children: [
+      { name: "Freelance", icon: "💻", type: "expense" },
+      { name: "Ferramentas/SaaS", icon: "⚙️", type: "expense" },
+      { name: "Escritório", icon: "🏢", type: "expense" },
+      { name: "Marketing", icon: "📈", type: "expense" },
+      { name: "Impostos CNPJ", icon: "🏛️", type: "expense" },
     ],
   },
   
@@ -262,6 +223,31 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Multas", icon: "🚨", type: "expense" },
     ],
   },
+
+  {
+    name: "Dívidas e Empréstimos",
+    icon: "💰",
+    type: "expense",
+    children: [
+      { name: "Empréstimo", icon: "💳", type: "expense" },
+      { name: "Financiamento", icon: "🏠", type: "expense" },
+      { name: "Juros Pagos", icon: "💸", type: "expense" },
+      { name: "Amortização", icon: "⚖️", type: "expense" },
+    ],
+  },
+
+  {
+    name: "Investimentos",
+    icon: "📈",
+    type: "expense",
+    children: [
+      { name: "Ações", icon: "📈", type: "expense" },
+      { name: "Fundos Imobiliários", icon: "🏢", type: "expense" },
+      { name: "Renda Fixa", icon: "📊", type: "expense" },
+      { name: "Cripto", icon: "₿", type: "expense" },
+      { name: "Previdência Privada", icon: "🏦", type: "expense" },
+    ],
+  },
   
   {
     name: "Outros",
@@ -272,7 +258,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Emergência", icon: "🚨", type: "expense" },
     ],
   },
-  
+
   // ========== RECEITAS ==========
   
   {

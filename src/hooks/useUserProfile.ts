@@ -11,6 +11,7 @@ export interface UserProfile {
   avatar_url: string | null;
   avatar_color?: string | null;
   avatar_icon?: string | null;
+  use_subcategories?: boolean;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -64,6 +65,7 @@ export function useUpdateUserProfile() {
       avatar_url?: string;
       avatar_color?: string;
       avatar_icon?: string;
+      use_subcategories?: boolean;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -82,6 +84,9 @@ export function useUpdateUserProfile() {
       }
       if (input.avatar_icon !== undefined) {
         updateData.avatar_icon = input.avatar_icon;
+      }
+      if (input.use_subcategories !== undefined) {
+        updateData.use_subcategories = input.use_subcategories;
       }
 
       const { data, error } = await supabase

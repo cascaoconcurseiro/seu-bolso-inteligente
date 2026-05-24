@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCategoriesHierarchical } from '@/hooks/useCategories';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { format } from 'date-fns';
 import { Loader2, Sparkles, Plane } from 'lucide-react';
@@ -32,6 +33,33 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
   const createTransaction = useCreateTransaction();
+  const { data: profile } = useUserProfile();
+  const useSubcategories = profile?.use_subcategories ?? false;
+
+  const dropdownCategories = useMemo(() => {
+    if (!categories) return [];
+    const expenseCats = categories.filter(c => c.type === 'expense');
+    
+    if (!useSubcategories) {
+      return expenseCats.filter(c => !c.parent_category_id);
+    }
+    
+    const result: any[] = [];
+    const parents = expenseCats.filter(c => !c.parent_category_id);
+    
+    parents.forEach(parent => {
+      result.push(parent);
+      const children = expenseCats.filter(c => c.parent_category_id === parent.id);
+      children.forEach(child => {
+        result.push({
+          ...child,
+          displayName: `— ${child.name}`
+        });
+      });
+    });
+    
+    return result;
+  }, [categories, useSubcategories]);
 
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -335,9 +363,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               <Select value={categoryId} onValueChange={setCategoryId} required>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
-                  {categories?.filter(c => !c.parent_category_id).map(category => (
+                  {dropdownCategories.map(category => (
                     <SelectItem key={category.id} value={category.id}>
-                      {category.icon} {category.name}
+                      {category.icon} {category.displayName || category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

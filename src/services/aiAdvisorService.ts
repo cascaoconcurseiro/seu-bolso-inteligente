@@ -1,8 +1,6 @@
 import { CategoryPrediction } from "@/types/categoryPrediction";
 
-const GROQ_API_URL = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1')
-  ? "/api/ai"
-  : "https://seu-bolso-inteligente.vercel.app/api/ai";
+const GROQ_API_URL = "/api/ai";
 
 // Interfaces para os relatórios
 export interface FinancialReportData {

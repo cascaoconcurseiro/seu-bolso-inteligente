@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import {
   Popover,
   PopoverContent,
@@ -33,6 +34,8 @@ export function CategorySelector({
 }: CategorySelectorProps) {
   const [open, setOpen] = useState(false);
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+  const { data: profile } = useUserProfile();
+  const useSubcategories = profile?.use_subcategories ?? false;
 
   // Prevenir scroll da página quando o popover está aberto (mobile)
   React.useEffect(() => {
@@ -155,7 +158,7 @@ export function CategorySelector({
           {parents.map((parent) => {
             const children = childrenMap.get(parent.id) || [];
             const isExpanded = expandedParents.has(parent.id);
-            const hasChildren = children.length > 0;
+            const hasChildren = useSubcategories && children.length > 0;
 
             return (
               <div key={parent.id} className="mb-1">

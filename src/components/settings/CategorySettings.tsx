@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
 
 interface CategorySettingsProps {
   categories: any[];
@@ -9,6 +12,10 @@ interface CategorySettingsProps {
 }
 
 export function CategorySettings({ categories, isLoading, onAddCategory, onDeleteCategory }: CategorySettingsProps) {
+  const { data: profile } = useUserProfile();
+  const updateProfile = useUpdateUserProfile();
+  const useSubcategories = profile?.use_subcategories ?? false;
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-2">
@@ -30,6 +37,26 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
           <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
           Nova
         </Button>
+      </div>
+
+      {/* Switch Premium para ativar/desativar subcategorias */}
+      <div className="flex items-center justify-between p-4 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-primary/30">
+        <div className="space-y-1 pr-4">
+          <Label htmlFor="toggle-subcategories" className="font-bold text-sm sm:text-base cursor-pointer">
+            Ativar Subcategorias e Hierarquia
+          </Label>
+          <p className="text-xs text-muted-foreground max-w-md">
+            Mostra subcategorias detalhadas nos seletores de transação (Ex: Supermercado dentro de Alimentação). Se desativado, o sistema exibirá apenas as categorias principais.
+          </p>
+        </div>
+        <Switch
+          id="toggle-subcategories"
+          checked={useSubcategories}
+          onCheckedChange={(checked) => {
+            updateProfile.mutate({ use_subcategories: checked });
+          }}
+          disabled={updateProfile.isPending}
+        />
       </div>
 
       <div className="space-y-4">
@@ -66,7 +93,7 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
                       </div>
                       
                       {/* Subcategorias (Filhas) */}
-                      {children.length > 0 && (
+                      {useSubcategories && children.length > 0 && (
                         <div className="ml-6 pl-4 border-l-2 border-border/40 space-y-2">
                           {children.map((child) => (
                             <div
