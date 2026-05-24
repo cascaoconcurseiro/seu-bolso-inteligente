@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,14 +8,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCategoriesHierarchical } from '@/hooks/useCategories';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { format } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAIPrediction } from '@/hooks/useAIPrediction';
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -32,6 +34,21 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+
+  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
+
+  // Auto-selecionar categoria se a IA prever e o usuário ainda não tiver selecionado uma ou estiver no embalo
+  useEffect(() => {
+    if (predictedCategoryId && !categoryId) {
+      setCategoryId(predictedCategoryId);
+    }
+  }, [predictedCategoryId]);
+
+  const handleApplySuggestion = () => {
+    if (suggestion) {
+      setDescription(suggestion);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,25 +113,52 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label>Valor (R$)</Label>
-              <Input 
-                type="number" 
-                step="0.01" 
-                placeholder="0.00" 
-                value={amount} 
-                onChange={e => setAmount(e.target.value)}
-                className="text-lg font-bold"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                  R$
+                </span>
+                <CurrencyInput 
+                  placeholder="0,00" 
+                  value={amount} 
+                  onChange={setAmount}
+                  className="pl-9 text-lg font-bold"
+                  required
+                />
+              </div>
             </div>
             
             <div className="space-y-2">
               <Label>Descrição</Label>
-              <Input 
-                placeholder="Ex: Padaria, Uber..." 
-                value={description} 
-                onChange={e => setDescription(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input 
+                  placeholder="Ex: Padaria, Uber..." 
+                  value={description} 
+                  onChange={e => setDescription(e.target.value)}
+                  className="pr-8"
+                  required
+                />
+                {isPredicting && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              
+              {/* AI Suggestion Chip */}
+              {suggestion && suggestion !== description && (
+                <div className="flex items-center gap-2 mt-1 animate-fade-in">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-blue-500" /> Sugestão:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleApplySuggestion}
+                    className="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-200 dark:border-blue-800"
+                  >
+                    {suggestion}
+                  </button>
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -145,7 +189,12 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
             </div>
             
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <Label className="flex items-center gap-2">
+                Categoria 
+                {predictedCategoryId === categoryId && categoryId && (
+                  <Sparkles className="h-3 w-3 text-blue-500" title="Categoria sugerida pela IA" />
+                )}
+              </Label>
               <Select value={categoryId} onValueChange={setCategoryId} required>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>

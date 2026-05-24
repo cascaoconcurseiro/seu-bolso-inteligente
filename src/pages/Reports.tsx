@@ -36,6 +36,7 @@ import { CategoryDistribution } from "@/components/reports/CategoryDistribution"
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
 import { SharedFinancesTable } from "@/components/reports/SharedFinancesTable";
 import { InstallmentsTable } from "@/components/reports/InstallmentsTable";
+import { FinancialAIAdvisor } from "@/components/reports/FinancialAIAdvisor";
 
 const getTransactionCurrency = (tx: any): string => {
   if (tx.currency && tx.currency !== 'BRL') return tx.currency;
@@ -724,7 +725,22 @@ export function Reports() {
 
       {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
 
-      <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
+        <FinancialAIAdvisor 
+          reportData={{
+            totalIncome,
+            totalExpense,
+            balance,
+            savingsRate: totalIncome > 0 ? ((balance / totalIncome) * 100) : 0,
+            currency: displayCurrency,
+            topCategories: categoryData.slice(0, 5),
+            largestExpense: largestExpense ? { description: largestExpense.description, amount: Number(largestExpense.amount) } : null,
+            periodLabel: viewType === 'MONTH' ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR }) : dateFns.format(safeCurrentDate, "yyyy"),
+            viewType
+          }} 
+        />
+      </div>
 
       {/* KPIs Financeiros Avançados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

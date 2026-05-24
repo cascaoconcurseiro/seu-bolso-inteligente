@@ -1,7 +1,7 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Sparkles } from 'lucide-react';
+import { Calendar as CalendarIcon, Sparkles, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,11 @@ interface BasicInfoSectionProps {
   categories: any[];
   categoriesLoading: boolean;
   selectedTrip?: any;
-  prediction?: any;
+  selectedTrip?: any;
+  suggestion?: string;
+  predictedCategoryId?: string | null;
+  isPredicting?: boolean;
+  onApplySuggestion?: () => void;
 }
 
 export function BasicInfoSection({
@@ -35,7 +39,10 @@ export function BasicInfoSection({
   categories,
   categoriesLoading,
   selectedTrip,
-  prediction
+  suggestion,
+  predictedCategoryId,
+  isPredicting,
+  onApplySuggestion
 }: BasicInfoSectionProps) {
   const isTransfer = activeTab === 'TRANSFER';
 
@@ -44,12 +51,35 @@ export function BasicInfoSection({
       {/* Description */}
       <div className="space-y-2">
         <Label>Descrição</Label>
-        <Input
-          placeholder="Ex: Almoço, Uber, Salário"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="h-12"
-        />
+        <div className="relative">
+          <Input
+            placeholder="Ex: Almoço, Uber, Salário"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="h-12 pr-8"
+          />
+          {isPredicting && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        
+        {/* AI Suggestion Chip */}
+        {suggestion && suggestion !== description && (
+          <div className="flex items-center gap-2 mt-1 animate-fade-in">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-blue-500" /> Sugestão:
+            </span>
+            <button
+              type="button"
+              onClick={onApplySuggestion}
+              className="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-200 dark:border-blue-800"
+            >
+              {suggestion}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Date & Category (side by side) */}
@@ -94,24 +124,12 @@ export function BasicInfoSection({
         {/* Category */}
         {!isTransfer ? (
           <div className="space-y-2">
-            <Label>Categoria</Label>
-
-            {/* Badge de Sugestão */}
-            {prediction && (
-              <div className="flex items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                  <Sparkles className="h-3 w-3" />
-                  Sugestão: {prediction.categoryName}
-                  <button
-                    type="button"
-                    onClick={() => setCategoryId(prediction.categoryId)}
-                    className="ml-2 px-1.5 py-0.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-[10px]"
-                  >
-                    Aplicar
-                  </button>
-                </div>
-              </div>
-            )}
+            <Label className="flex items-center gap-2">
+              Categoria
+              {predictedCategoryId === categoryId && categoryId && (
+                <Sparkles className="h-3 w-3 text-blue-500" title="Categoria sugerida pela IA" />
+              )}
+            </Label>
 
             {categoriesLoading ? (
               <Button

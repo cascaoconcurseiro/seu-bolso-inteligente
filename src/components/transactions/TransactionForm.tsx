@@ -43,8 +43,7 @@ import { useTripMembers } from '@/hooks/useTripMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { validateTransaction } from '@/services/validationService';
-import { useCategoryPrediction } from '@/hooks/useCategoryPrediction';
-import { CategoryPredictionService } from '@/services/categoryPredictionService';
+import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
 
 // Refactored Sub-components
@@ -101,11 +100,16 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     return null;
   }, [activeTab]);
 
-  const { prediction } = useCategoryPrediction(
+  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(
     description,
-    (predictionType as any) || 'expense',
     !!predictionType
   );
+
+  const handleApplySuggestion = () => {
+    if (suggestion) {
+      setDescription(suggestion);
+    }
+  };
 
   // Context application
   useEffect(() => {
@@ -491,7 +495,22 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <AmountInput amount={amount} onAmountChange={setAmount} currency={transactionCurrency} currencySymbol={getCurrencySymbol(transactionCurrency)} activeTab={activeTab} selectedTrip={selectedTrip} />
-        <BasicInfoSection description={description} setDescription={setDescription} date={date} setDate={setDate} categoryId={categoryId} setCategoryId={setCategoryId} activeTab={activeTab} categories={categories || []} categoriesLoading={categoriesLoading} selectedTrip={selectedTrip} prediction={prediction} />
+        <BasicInfoSection
+          description={description}
+          setDescription={setDescription}
+          date={date}
+          setDate={setDate}
+          categoryId={categoryId}
+          setCategoryId={setCategoryId}
+          activeTab={activeTab}
+          categories={categories || []}
+          categoriesLoading={categoriesLoading}
+          selectedTrip={selectedTrip}
+          suggestion={suggestion}
+          predictedCategoryId={predictedCategoryId}
+          isPredicting={isPredicting}
+          onApplySuggestion={handleApplySuggestion}
+        /> 
         
         {isExpense && <TripSelector tripId={tripId} setTripId={setTripId} trips={trips || []} />}
         

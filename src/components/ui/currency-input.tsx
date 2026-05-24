@@ -10,36 +10,36 @@ interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, currency = "BRL", className, ...props }, ref) => {
-    const [displayValue, setDisplayValue] = useState("");
+    // Inicializa o estado visual a partir do value (caso venha preenchido)
+    const [displayValue, setDisplayValue] = useState(() => {
+      if (!value) return "";
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue)) return "";
+      return numericValue.toString().replace(".", ",");
+    });
+
+    const formatToCurrency = (val: string) => {
+      if (!val) return "";
+      let cleanValue = val.replace(/[^\d,]/g, "");
+      const parts = cleanValue.split(",");
+      if (parts.length > 2) {
+        cleanValue = parts[0] + "," + parts.slice(1).join("");
+      }
+      const finalParts = cleanValue.split(",");
+      if (finalParts.length === 2 && finalParts[1].length > 2) {
+        finalParts[1] = finalParts[1].slice(0, 2);
+      }
+      finalParts[0] = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      return finalParts.join(",");
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let inputValue = e.target.value;
+      const rawValue = e.target.value;
+      const formatted = formatToCurrency(rawValue);
+      setDisplayValue(formatted);
       
-      // Permitir apenas números e vírgula
-      inputValue = inputValue.replace(/[^\d,]/g, "");
-      
-      // Permitir apenas uma vírgula
-      const parts = inputValue.split(",");
-      if (parts.length > 2) {
-        return;
-      }
-      
-      // Limitar casas decimais a 2
-      if (parts.length === 2 && parts[1].length > 2) {
-        return;
-      }
-      
-      // Atualizar valor interno (o que o usuário vê)
-      setDisplayValue(inputValue);
-      
-      // Converter para número e enviar para o pai
-      if (!inputValue || inputValue === ",") {
-        onChange("");
-        return;
-      }
-      
-      const normalizedValue = inputValue.replace(",", ".");
-      const numericValue = parseFloat(normalizedValue);
+      const unformatted = formatted.replace(/\./g, "").replace(",", ".");
+      const numericValue = parseFloat(unformatted);
       
       if (!isNaN(numericValue)) {
         onChange(numericValue.toString());
@@ -49,13 +49,12 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     const handleBlur = () => {
-      // Ao sair do campo, garantir formato com 2 casas decimais
       if (displayValue && displayValue !== ",") {
-        const normalizedValue = displayValue.replace(",", ".");
-        const numericValue = parseFloat(normalizedValue);
+        const unformatted = displayValue.replace(/\./g, "").replace(",", ".");
+        const numericValue = parseFloat(unformatted);
         
         if (!isNaN(numericValue)) {
-          const formatted = numericValue.toFixed(2).replace(".", ",");
+          const formatted = formatToCurrency(numericValue.toFixed(2).replace(".", ","));
           setDisplayValue(formatted);
           onChange(numericValue.toString());
         }
