@@ -5,18 +5,23 @@ import { useCategories } from '@/hooks/useCategories';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 export function useAIPrediction(description: string, enabled: boolean = true) {
-  const { data: profile } = useUserProfile();
-  const useSubcategories = profile?.use_subcategories ?? false;
   const [suggestion, setSuggestion] = useState<string>('');
   const [predictedCategoryId, setPredictedCategoryId] = useState<string | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   
-  // Memoize parameters or avoid unnecessary re-fetches
   const { data: transactions } = useTransactions({ startDate: '2023-01-01', endDate: '2026-12-31' });
   const { data: categories } = useCategories();
+  const { data: profile } = useUserProfile();
+  const useSubcategories = profile?.use_subcategories ?? false;
   
   const transactionsRef = useRef(transactions);
   const categoriesRef = useRef(categories);
+  const debounceRef = useRef<NodeJS.Timeout>();
+  
+  // Controle absoluto de concorrência por ID incremental
+  const requestCounterRef = useRef<number>(0);
+  const lastPredictedDescRef = useRef<string>('');
+  const lastHashRef = useRef<string>('');
 
   useEffect(() => {
     transactionsRef.current = transactions;
@@ -26,47 +31,47 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
     categoriesRef.current = categories;
   }, [categories]);
   
-  const debounceRef = useRef<NodeJS.Timeout>();
-  const lastPredictedDescRef = useRef<string>('');
-  const lastHashRef = useRef<string>('');
   const categoriesHash = (categories || []).map(c => c.id).join(',');
 
   useEffect(() => {
+    // Se a descrição for menor que 2 caracteres, limpa e retorna
     if (!enabled || description.trim().length < 2) {
       setSuggestion('');
       setPredictedCategoryId(null);
       setIsPredicting(false);
       lastPredictedDescRef.current = '';
       lastHashRef.current = '';
+      // Cancela timers ativos
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      // Incrementa para anular qualquer requisição assíncrona anterior que ainda esteja em trânsito
+      requestCounterRef.current++;
       return;
     }
 
+    // Evita chamadas repetidas desnecessárias com o mesmo texto
     if (description.trim() === lastPredictedDescRef.current && categoriesHash === lastHashRef.current) {
-      return; // Evitar re-pesquisar o que já foi pesquisado com as mesmas categorias
+      return;
     }
 
-    // Ao começar a digitar, limpa sugestão antiga mas MANTÉM a categoria predita anterior 
-    // até que a nova venha, para não ficar piscando a interface ou sobrescrevendo o usuário sem querer.
+    // Limpa sugestão imediata da tela para resposta responsiva ao digitar, mas mantém a categoria
     setSuggestion('');
-    console.log(`[useAIPrediction] Entrada de texto detectada: "${description.trim()}"`);
     
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
-    let isActive = true;
-
+    // Dispara o debounce
     debounceRef.current = setTimeout(async () => {
-      if (!isActive) return;
+      // 1. Incrementa o contador de requisição para esta chamada
+      const currentRequestId = ++requestCounterRef.current;
       setIsPredicting(true);
-      console.log(`[useAIPrediction] Disparando predição de IA para: "${description.trim()}"`);
       
       try {
         const expenseTransactions = (transactionsRef.current || []).filter(t => t.type === 'EXPENSE' && t.description);
         const historyDescriptions = expenseTransactions.map(t => t.description);
         const formattedCategories = (categoriesRef.current || []).map(c => ({ id: c.id, name: c.name }));
         
-        console.log(`[useAIPrediction] Histórico enviado: ${historyDescriptions.length} itens. Categorias enviadas: ${formattedCategories.length} itens.`);
+        console.log(`[useAIPrediction] [Req #${currentRequestId}] Disparando requisição para: "${description.trim()}"`);
         
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description.trim(),
@@ -74,12 +79,16 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           formattedCategories
         );
         
-        if (!isActive) return;
+        // 2. BLINDAGEM DE CONCORRÊNCIA: Se uma requisição mais nova foi disparada após esta, descarta o resultado!
+        if (currentRequestId !== requestCounterRef.current) {
+          console.warn(`[useAIPrediction] [Req #${currentRequestId}] Descartando resultado obsoleto. Uma requisição mais nova (#${requestCounterRef.current}) já está em trânsito.`);
+          return;
+        }
 
         lastPredictedDescRef.current = description.trim();
         lastHashRef.current = categoriesHash;
 
-        console.log(`[useAIPrediction] IA respondeu com sucesso:`, result);
+        console.log(`[useAIPrediction] [Req #${currentRequestId}] Resposta da IA aceita com sucesso:`, result);
 
         if (result.suggestion) {
           setSuggestion(result.suggestion);
@@ -87,35 +96,36 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           setSuggestion('');
         }
         
-        // Sempre atualiza o predictedCategoryId, mesmo que seja null, para refletir o último texto
+        // Mapeia subcategoria para pai se a hierarquia estiver desativada
         let catId = result.categoryId || null;
         if (catId && !useSubcategories && categoriesRef.current) {
           const found = categoriesRef.current.find(c => c.id === catId);
           if (found && found.parent_category_id) {
-            console.log(`[useAIPrediction] Mapeando subcategoria predita "${found.name}" para o pai correspondente: "${categoriesRef.current.find(c => c.id === found.parent_category_id)?.name}".`);
+            console.log(`[useAIPrediction] Mapeando subcategoria predita "${found.name}" para o pai correspondente.`);
             catId = found.parent_category_id;
           }
         }
+        
         setPredictedCategoryId(catId);
         
       } catch (error: any) {
-        if (!isActive) return;
-        console.error('[useAIPrediction] Erro na requisição da IA:', error);
-        setPredictedCategoryId(null);
-        setSuggestion('');
+        // Verifica se ainda é a requisição ativa antes de limpar o estado
+        if (currentRequestId === requestCounterRef.current) {
+          console.error(`[useAIPrediction] [Req #${currentRequestId}] Erro na chamada de IA:`, error);
+          setPredictedCategoryId(null);
+          setSuggestion('');
+        }
       } finally {
-        if (isActive) {
+        if (currentRequestId === requestCounterRef.current) {
           setIsPredicting(false);
-          console.log(`[useAIPrediction] Finalizado estado de carregamento.`);
         }
       }
-    }, 600); // Aumentei o debounce para 600ms para evitar rate limit de APIs e múltiplas chamadas rápidas
+    }, 500); // 500ms de debounce
 
     return () => {
-      isActive = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [description, enabled, categoriesHash]);
+  }, [description, enabled, categoriesHash, useSubcategories]);
 
   return { suggestion, predictedCategoryId, isPredicting };
 }

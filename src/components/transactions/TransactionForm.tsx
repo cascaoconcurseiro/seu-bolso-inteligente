@@ -89,6 +89,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const [accountId, setAccountId] = useState('');
   const [destinationAccountId, setDestinationAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [hasUserSelectedCategoryManually, setHasUserSelectedCategoryManually] = useState(false);
   const [tripId, setTripId] = useState('');
   const [notes, setNotes] = useState('');
   const [exchangeRate, setExchangeRate] = useState('');
@@ -118,12 +119,24 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (context?.categoryId) setCategoryId(context.categoryId);
   }, [context]);
 
-  // AI Auto-categoria
+  // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
-    if (predictedCategoryId) {
+    if (description.trim() === '') {
+      setHasUserSelectedCategoryManually(false);
+    }
+  }, [description]);
+
+  // AI Auto-categoria (apenas se o usuário não alterou manualmente)
+  useEffect(() => {
+    if (predictedCategoryId && !hasUserSelectedCategoryManually) {
       setCategoryId(predictedCategoryId);
     }
-  }, [predictedCategoryId]);
+  }, [predictedCategoryId, hasUserSelectedCategoryManually]);
+
+  const handleCategoryChange = (val: string) => {
+    setCategoryId(val);
+    setHasUserSelectedCategoryManually(true);
+  };
 
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
 
@@ -508,7 +521,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
           date={date}
           setDate={setDate}
           categoryId={categoryId}
-          setCategoryId={setCategoryId}
+          setCategoryId={handleCategoryChange}
           activeTab={activeTab}
           categories={categories || []}
           categoriesLoading={categoriesLoading}

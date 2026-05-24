@@ -94,6 +94,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [hasUserSelectedCategoryManually, setHasUserSelectedCategoryManually] = useState(false);
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(1);
   
@@ -122,12 +123,24 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
 
-  // Auto-selecionar categoria se a IA prever
+  // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
-    if (predictedCategoryId) {
+    if (description.trim() === '') {
+      setHasUserSelectedCategoryManually(false);
+    }
+  }, [description]);
+
+  // Auto-selecionar categoria se a IA prever (apenas se o usuário não alterou manualmente)
+  useEffect(() => {
+    if (predictedCategoryId && !hasUserSelectedCategoryManually) {
       setCategoryId(predictedCategoryId);
     }
-  }, [predictedCategoryId]);
+  }, [predictedCategoryId, hasUserSelectedCategoryManually]);
+
+  const handleCategoryChange = (val: string) => {
+    setCategoryId(val);
+    setHasUserSelectedCategoryManually(true);
+  };
 
   const handleApplySuggestion = () => {
     if (suggestion) {
@@ -399,7 +412,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   <Sparkles className="h-3 w-3 text-blue-500" title="Categoria sugerida pela IA" />
                 )}
               </Label>
-              <Select value={categoryId} onValueChange={setCategoryId} required>
+              <Select value={categoryId} onValueChange={handleCategoryChange} required>
                 <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                 <SelectContent>
                   {dropdownCategories.map(category => (
