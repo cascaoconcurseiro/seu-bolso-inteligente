@@ -84,7 +84,7 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
 
     // Para evitar tokens excessivos, pegamos apenas até 30 descrições únicas do histórico do usuário
     const uniqueHistory = Array.from(new Set(historicalDescriptions)).slice(0, 30);
-    const categoryList = userCategories.map(c => `ID:${c.id} - ${c.name}`).join('\n');
+    const categoryList = userCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
 
     const prompt = `
 Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do app "Seu Bolso Inteligente".
@@ -111,7 +111,7 @@ Categorias disponíveis no banco de dados do usuário:
 ${categoryList}
 
 REGRA ESTILOSA OBRIGATÓRIA:
-Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se houver qualquer categoria minimamente relacionada na lista.
+Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se houver qualquer categoria minimamente relacionada na lista. O valor de "categoryId" deve ser EXATAMENTE o ID correspondente da lista de categorias, sem adicionar prefixos como "ID:" ou "id:" e sem alterar a string.
 {
   "suggestion": "Nome Formatado Corretamente",
   "categoryId": "id_da_categoria_mais_apropriada"
@@ -141,9 +141,24 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
       const result = await response.json();
       const parsed = JSON.parse(result.choices[0].message.content);
       
+      let finalCategoryId = parsed.categoryId || null;
+      if (finalCategoryId && typeof finalCategoryId === 'string') {
+        finalCategoryId = finalCategoryId.trim();
+        // Remove eventuais prefixos 'id:', 'id-', 'id_' criados incorretamente por modelos menores
+        if (finalCategoryId.toLowerCase().startsWith('id:')) {
+          finalCategoryId = finalCategoryId.slice(3).trim();
+        } else if (finalCategoryId.toLowerCase().startsWith('id-')) {
+          finalCategoryId = finalCategoryId.slice(3).trim();
+        } else if (finalCategoryId.toLowerCase().startsWith('id_')) {
+          finalCategoryId = finalCategoryId.slice(3).trim();
+        }
+        // Remove aspas simples, duplas, chaves ou colchetes extras que possam ter restado
+        finalCategoryId = finalCategoryId.replace(/['"{}[:\]]/g, '').trim();
+      }
+
       return {
         suggestion: parsed.suggestion || "",
-        categoryId: parsed.categoryId || null
+        categoryId: finalCategoryId
       };
     } catch (error) {
       console.error("Erro na predição AI:", error);

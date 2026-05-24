@@ -9,6 +9,23 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api/ai': {
+        target: 'https://api.groq.com/openai/v1/chat/completions',
+        changeOrigin: true,
+        rewrite: (path) => '',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            const key = process.env.VITE_GROQ_API_KEY;
+            if (key) {
+              proxyReq.setHeader('Authorization', `Bearer ${key}`);
+            } else {
+              console.warn("[Vite Proxy] Chave VITE_GROQ_API_KEY não encontrada no arquivo .env!");
+            }
+          });
+        }
+      }
+    }
   },
   plugins: [
     react(), 
