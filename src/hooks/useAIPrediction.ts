@@ -42,8 +42,8 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           formattedCategories
         );
         
-        // Só aceita a sugestão se a palavra começar com o que o usuário digitou (ignora case)
-        if (result.suggestion && result.suggestion.toLowerCase().startsWith(description.toLowerCase())) {
+        // Se houver sugestão da IA, exibimos
+        if (result.suggestion) {
           setSuggestion(result.suggestion);
         } else {
           setSuggestion('');

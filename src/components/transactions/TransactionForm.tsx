@@ -118,6 +118,13 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (context?.categoryId) setCategoryId(context.categoryId);
   }, [context]);
 
+  // AI Auto-categoria
+  useEffect(() => {
+    if (predictedCategoryId && !categoryId) {
+      setCategoryId(predictedCategoryId);
+    }
+  }, [predictedCategoryId]);
+
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
 
   useEffect(() => {
