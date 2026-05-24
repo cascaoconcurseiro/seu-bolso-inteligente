@@ -184,12 +184,6 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       <div className="space-y-4">
-        {isTripMode && activeTrip && (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-            <TripDashboardView trip={activeTrip} />
-          </div>
-        )}
-
         <DashboardHero
           currency={activeCurrencyData.currency}
           balance={activeCurrencyData.balance}
@@ -234,6 +228,12 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      {isTripMode && activeTrip && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-500 mb-2">
+          <TripDashboardView trip={activeTrip} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         <div className="lg:col-span-8 space-y-6 md:space-y-8">
