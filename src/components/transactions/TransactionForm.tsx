@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -90,6 +90,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const [destinationAccountId, setDestinationAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [hasUserSelectedCategoryManually, setHasUserSelectedCategoryManually] = useState(false);
+  const lastAppliedCategoryIdRef = useRef<string | null>(null);
   const [tripId, setTripId] = useState('');
   const [notes, setNotes] = useState('');
   const [exchangeRate, setExchangeRate] = useState('');
@@ -123,15 +124,25 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   useEffect(() => {
     if (description.trim() === '') {
       setHasUserSelectedCategoryManually(false);
+      lastAppliedCategoryIdRef.current = null;
     }
   }, [description]);
 
-  // AI Auto-categoria (apenas se o usuário não alterou manualmente)
+  // AI Auto-categoria inteligente e blindada contra race conditions
   useEffect(() => {
-    if (predictedCategoryId && !hasUserSelectedCategoryManually) {
-      setCategoryId(predictedCategoryId);
+    if (predictedCategoryId) {
+      // Se a categoria atual na tela foi colocada pela IA (igual a lastAppliedCategoryIdRef.current) 
+      // ou se o usuário ainda não alterou manualmente, podemos atualizar livremente!
+      const isCurrentCategoryFromAI = categoryId === lastAppliedCategoryIdRef.current;
+      
+      if (!hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
+        setCategoryId(predictedCategoryId);
+        lastAppliedCategoryIdRef.current = predictedCategoryId;
+        // Se foi atualizado pela IA, garante que não seja considerado escolha manual travada
+        setHasUserSelectedCategoryManually(false);
+      }
     }
-  }, [predictedCategoryId, hasUserSelectedCategoryManually]);
+  }, [predictedCategoryId, hasUserSelectedCategoryManually, categoryId]);
 
   const handleCategoryChange = (val: string) => {
     setCategoryId(val);
