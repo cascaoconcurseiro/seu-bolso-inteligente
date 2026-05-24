@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { AITripSuggestions } from './AITripSuggestions';
 
 interface ShoppingItem {
   id: string;
