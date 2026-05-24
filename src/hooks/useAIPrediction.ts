@@ -22,12 +22,19 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       return;
     }
 
+    // Ao começar a digitar, já limpa a sugestão antiga para mostrar que está buscando nova
+    setSuggestion('');
+    
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
+    let isActive = true;
+
     debounceRef.current = setTimeout(async () => {
+      if (!isActive) return;
       setIsPredicting(true);
+      
       try {
         const expenseTransactions = (transactions || []).filter(t => t.type === 'EXPENSE' && t.description);
         const historyDescriptions = expenseTransactions.map(t => t.description);
@@ -39,6 +46,8 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           formattedCategories
         );
         
+        if (!isActive) return;
+
         if (result.suggestion) {
           setSuggestion(result.suggestion);
         } else {
@@ -49,14 +58,18 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           setPredictedCategoryId(result.categoryId);
         }
       } catch (error: any) {
-        toast.error(`Erro na IA: ${error.message}`);
+        if (!isActive) return;
+        // Não mostrar toast aqui para evitar spam na tela do usuário, apenas logar no console
         console.error('Erro na hook de previsão AI:', error);
       } finally {
-        setIsPredicting(false);
+        if (isActive) {
+          setIsPredicting(false);
+        }
       }
-    }, 400); // Reduzido de 600ms para 400ms para ser mais responsivo
+    }, 400);
 
     return () => {
+      isActive = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [description, enabled, transactions, categories]);
