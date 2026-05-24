@@ -15,9 +15,12 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { useCategoriesHierarchical } from '@/hooks/useCategories';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { format } from 'date-fns';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Plane } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
+import { useTrips } from '@/hooks/useTrips';
+import { Switch } from '@/components/ui/switch';
+import { moneyUtils } from '@/utils/money';
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -27,6 +30,7 @@ interface QuickAddModalProps {
 export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
+  const { data: trips } = useTrips();
   const createTransaction = useCreateTransaction();
 
   const [amount, setAmount] = useState('');
@@ -34,6 +38,20 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  
+  const activeTrips = trips?.filter(t => t.status === 'ACTIVE' || t.status === 'PLANNING') || [];
+  const [isTripMode, setIsTripMode] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState<string>('');
+
+  useEffect(() => {
+    if (isTripMode && activeTrips.length > 0 && !selectedTripId) {
+      const sorted = [...activeTrips].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+      setSelectedTripId(sorted[0].id);
+    }
+  }, [isTripMode, activeTrips, selectedTripId]);
+
+  const selectedTrip = activeTrips.find(t => t.id === selectedTripId);
+  const currentCurrency = isTripMode && selectedTrip ? selectedTrip.currency : 'BRL';
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
 
@@ -83,7 +101,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         domain: 'PERSONAL',
         is_shared: false,
         payer_id: undefined,
-        currency: 'BRL',
+        trip_id: isTripMode && selectedTripId ? selectedTripId : undefined,
+        currency: currentCurrency,
       });
       
       // Reset and close
@@ -110,22 +129,59 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         {accountsLoading || categoriesLoading ? (
           <div className="flex justify-center p-6"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                  R$
-                </span>
-                <CurrencyInput 
-                  placeholder="0,00" 
-                  value={amount} 
-                  onChange={setAmount}
-                  className="pl-9 text-lg font-bold"
-                  required
-                />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {activeTrips.length > 0 && (
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                  <div className="space-y-0.5">
+                    <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
+                      <Plane className="h-4 w-4 text-blue-500" />
+                      Despesa de Viagem
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Vincular a uma viagem ativa ou futura
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={isTripMode} 
+                    onCheckedChange={setIsTripMode} 
+                  />
+                </div>
+                
+                {isTripMode && activeTrips.length > 1 && (
+                  <div className="space-y-2 animate-fade-in pl-1">
+                    <Label className="text-xs">Qual Viagem?</Label>
+                    <Select value={selectedTripId} onValueChange={setSelectedTripId}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
+                      <SelectContent>
+                        {activeTrips.map(trip => (
+                          <SelectItem key={trip.id} value={trip.id}>{trip.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Valor ({currentCurrency})</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    {moneyUtils.getSymbol(currentCurrency)}
+                  </span>
+                  <CurrencyInput 
+                    placeholder="0,00"
+                    value={amount} 
+                    onChange={setAmount} 
+                    currency={currentCurrency}
+                    className="pl-9 h-14 text-2xl font-bold bg-transparent"
+                    autoFocus
+                    required
+                  />
+                </div>
+              </div>
             
             <div className="space-y-2">
               <Label>Descrição</Label>
