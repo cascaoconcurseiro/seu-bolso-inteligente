@@ -61,7 +61,7 @@ ESTRUTURA DA SUA RESPOSTA (obrigatória, use formato Markdown simples sem muitas
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // Modelo atualizado e suportado
+        model: "llama-3.3-70b-versatile", // Modelo atualizado e mais inteligente da Groq
         messages: [{ role: "system", content: prompt }],
         temperature: 0.5, // Respostas lógicas e controladas
         max_tokens: 1024,
@@ -123,7 +123,7 @@ Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192", // Llama 8b para resposta quase instantânea
+          model: "llama-3.1-8b-instant", // Modelo atualizado oficial para respostas curtas
           messages: [{ role: "system", content: prompt }],
           temperature: 0.1, // Quase determinístico
           max_tokens: 150,
