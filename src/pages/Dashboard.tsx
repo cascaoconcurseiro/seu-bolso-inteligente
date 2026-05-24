@@ -17,8 +17,6 @@ import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 
@@ -187,17 +185,20 @@ export function Dashboard() {
 
       <div className="space-y-4">
         {activeTrip && (
-          <div className="flex items-center justify-between bg-card border border-border p-4 rounded-2xl shadow-sm transition-all">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Plane className="h-5 w-5" />
-              </div>
-              <div>
-                <Label className="font-bold text-base cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>Modo Viagem</Label>
-                <p className="text-xs text-muted-foreground">Atalho para {activeTrip.destination}</p>
-              </div>
-            </div>
-            <Switch checked={isTripMode} onCheckedChange={setIsTripMode} />
+          <div className="flex justify-end -mb-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsTripMode(!isTripMode)}
+              className={`rounded-full h-12 w-12 border-2 transition-all duration-300 shadow-md hover:scale-105 active:scale-95 z-10 ${
+                isTripMode 
+                  ? "bg-green-500/10 border-green-500 text-green-600 hover:bg-green-500/20" 
+                  : "bg-red-500/10 border-red-500 text-red-600 hover:bg-red-500/20"
+              }`}
+              title={isTripMode ? "Desativar Modo Viagem" : "Ativar Modo Viagem"}
+            >
+              <Plane className="h-6 w-6" />
+            </Button>
           </div>
         )}
 
