@@ -115,7 +115,6 @@ export function FinancialAIAdvisor({ reportData }: FinancialAIAdvisorProps) {
               <X className="w-5 h-5" />
             </Button>
           </div>
-          </div>
 
           {/* Content */}
           <div className="p-6">
