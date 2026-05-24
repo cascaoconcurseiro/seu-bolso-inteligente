@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService } from '@/services/aiAdvisorService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
+import { toast } from 'sonner';
 
 export function useAIPrediction(description: string, enabled: boolean = true) {
   const [suggestion, setSuggestion] = useState<string>('');
@@ -21,12 +22,10 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       return;
     }
 
-    // Limpar o timeout anterior
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
-    // Debounce de 600ms para evitar chamadas API a cada letra digitada
     debounceRef.current = setTimeout(async () => {
       setIsPredicting(true);
       try {
@@ -36,23 +35,26 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           
         const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
         
+        // toast.info("Chamando IA...", { duration: 1000 });
+        
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description,
           historyDescriptions,
           formattedCategories
         );
         
-        // Se houver sugestão da IA, exibimos
         if (result.suggestion) {
           setSuggestion(result.suggestion);
         } else {
           setSuggestion('');
+          // toast.error("IA não retornou sugestão.");
         }
         
         if (result.categoryId) {
           setPredictedCategoryId(result.categoryId);
         }
-      } catch (error) {
+      } catch (error: any) {
+        toast.error(`Erro na IA: ${error.message}`);
         console.error('Erro na hook de previsão AI:', error);
       } finally {
         setIsPredicting(false);

@@ -122,7 +122,10 @@ Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte 
         })
       });
 
-      if (!response.ok) return { suggestion: "", categoryId: null };
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro na API: ${response.status} - ${errorText}`);
+      }
 
       const result = await response.json();
       const content = result.choices[0].message.content;
