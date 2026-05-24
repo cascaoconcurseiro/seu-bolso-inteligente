@@ -32,7 +32,7 @@ export function ExchangePurchaseDialog({
   isLoading,
 }: ExchangePurchaseDialogProps) {
   const [foreignAmount, setForeignAmount] = useState("");
-  const [exchangeRate, setExchangeRate] = useState("");
+  const [localAmount, setLocalAmount] = useState("");
   const [description, setDescription] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -45,12 +45,12 @@ export function ExchangePurchaseDialog({
   useEffect(() => {
     if (purchase) {
       setForeignAmount(purchase.foreign_amount.toString());
-      setExchangeRate(purchase.exchange_rate.toString());
+      setLocalAmount((purchase.foreign_amount * purchase.exchange_rate).toFixed(2));
       setDescription(purchase.description || "");
       setPurchaseDate(purchase.purchase_date);
     } else {
       setForeignAmount("");
-      setExchangeRate("");
+      setLocalAmount("");
       setDescription("");
       setPurchaseDate(new Date().toISOString().split("T")[0]);
     }
@@ -58,15 +58,15 @@ export function ExchangePurchaseDialog({
 
   // Cálculos em tempo real
   const foreignAmountNum = parseFloat(foreignAmount) || 0;
-  const exchangeRateNum = parseFloat(exchangeRate) || 0;
+  const localAmountNum = parseFloat(localAmount) || 0;
 
-  let localAmount = 0;
-  if (exchangeRateNum > 0 && foreignAmountNum > 0) {
-    localAmount = foreignAmountNum * exchangeRateNum;
+  let exchangeRateNum = 0;
+  if (foreignAmountNum > 0 && localAmountNum > 0) {
+    exchangeRateNum = localAmountNum / foreignAmountNum;
   }
 
   const handleSubmit = () => {
-    if (foreignAmountNum <= 0 || exchangeRateNum <= 0) return;
+    if (foreignAmountNum <= 0 || localAmountNum <= 0) return;
 
     onSubmit({
       foreign_amount: foreignAmountNum,
@@ -77,7 +77,7 @@ export function ExchangePurchaseDialog({
     });
   };
 
-  const isValid = foreignAmountNum > 0 && exchangeRateNum > 0 && purchaseDate;
+  const isValid = foreignAmountNum > 0 && localAmountNum > 0 && purchaseDate;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,34 +109,30 @@ export function ExchangePurchaseDialog({
             </div>
           </div>
 
-          {/* Taxa de câmbio */}
+          {/* Total Pago */}
           <div className="space-y-2">
-            <Label>Taxa de Câmbio *</Label>
+            <Label>Total Pago (R$) *</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
                 R$
               </span>
-              <Input
-                type="number"
-                step="0.0001"
-                placeholder="5.1234"
-                value={exchangeRate}
-                onChange={(e) => setExchangeRate(e.target.value)}
+              <CurrencyInput
+                placeholder="0.00"
+                value={localAmount}
+                onChange={setLocalAmount}
+                currency="BRL"
                 className="pl-10"
               />
             </div>
           </div>
 
           {/* Cálculo em tempo real */}
-          {localAmount > 0 && (
-            <div className="p-4 rounded-lg bg-muted/50">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total em R$:</span>
-                <span className="font-mono font-bold text-lg">
-                  R$ {localAmount.toLocaleString("pt-BR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+          {exchangeRateNum > 0 && (
+            <div className="p-4 rounded-lg bg-muted/50 border border-primary/20 bg-primary/5">
+              <div className="flex justify-between text-sm items-center">
+                <span className="text-muted-foreground font-medium">Taxa Efetiva (Cotação + Taxas):</span>
+                <span className="font-mono font-bold text-lg text-primary">
+                  R$ {exchangeRateNum.toFixed(4).replace('.', ',')}
                 </span>
               </div>
             </div>

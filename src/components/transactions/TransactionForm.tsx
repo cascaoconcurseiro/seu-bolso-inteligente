@@ -273,30 +273,24 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (numAmount > 0 && numDest > 0) {
       const computedRate = (numAmount / numDest).toFixed(4);
       setExchangeRate(computedRate);
+    } else {
+      setExchangeRate('');
     }
   };
 
-  const handleExchangeRateChange = (val: string) => {
-    setExchangeRate(val);
-    const numAmount = parseFloat(amount);
-    const numRate = parseFloat(val);
-    if (numAmount > 0 && numRate > 0) {
-      const computedDest = (numAmount / numRate).toFixed(2);
-      setDestinationAmount(computedDest);
-    }
-  };
-
-  // Se o amount de origem mudar, recalcular o valor de destino usando a taxa de câmbio atual
+  // Se o amount de origem mudar, recalcular a taxa de câmbio
   useEffect(() => {
     if (showExchangePanel) {
       const numAmount = parseFloat(amount);
-      const numRate = parseFloat(exchangeRate);
-      if (numAmount > 0 && numRate > 0) {
-        const computedDest = (numAmount / numRate).toFixed(2);
-        setDestinationAmount(computedDest);
+      const numDest = parseFloat(destinationAmount);
+      if (numAmount > 0 && numDest > 0) {
+        const computedRate = (numAmount / numDest).toFixed(4);
+        setExchangeRate(computedRate);
+      } else {
+        setExchangeRate('');
       }
     }
-  }, [amount, showExchangePanel, exchangeRate]);
+  }, [amount, showExchangePanel, destinationAmount]);
 
   // Limpar contas caso não aplicável
   useEffect(() => {
@@ -539,8 +533,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-semibold text-foreground">Taxa de Câmbio (Cotação)</Label>
+              <div className="space-y-2 opacity-70">
+                <Label className="text-xs font-semibold text-foreground">Taxa de Câmbio Efetiva</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-[10px] text-muted-foreground font-semibold">
                     {selectedAccount?.currency}/{isCrossCurrencyTripExpense ? selectedTrip?.currency : selectedDestAccount?.currency}
@@ -550,15 +544,15 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
                     step="0.0001"
                     placeholder="0.0000"
                     value={exchangeRate}
-                    onChange={(e) => handleExchangeRateChange(e.target.value)}
-                    className="w-full h-11 pl-16 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                    readOnly
+                    className="w-full h-11 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
                   />
                 </div>
               </div>
             </div>
             
             <p className="text-[10px] text-muted-foreground leading-normal">
-              💡 Digite a taxa de câmbio ou o valor recebido no destino. O outro campo será calculado automaticamente baseado no valor de origem ({getCurrencySymbol(selectedAccount?.currency || 'BRL')} {parseFloat(amount || '0').toFixed(2)}).
+              💡 Digite apenas o valor exato que chegou no destino. O sistema irá calcular automaticamente a taxa de câmbio efetiva (incluindo spread, IOF e outras taxas) baseada no valor de origem de {getCurrencySymbol(selectedAccount?.currency || 'BRL')} {parseFloat(amount || '0').toFixed(2)}.
             </p>
           </div>
         )}
