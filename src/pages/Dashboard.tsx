@@ -184,24 +184,6 @@ export function Dashboard() {
       <PendingTripInvitationsAlert />
 
       <div className="space-y-4">
-        {activeTrip && (
-          <div className="flex justify-end -mb-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsTripMode(!isTripMode)}
-              className={`rounded-full h-12 w-12 border-2 transition-all duration-300 shadow-md hover:scale-105 active:scale-95 z-10 ${
-                isTripMode 
-                  ? "bg-green-500/10 border-green-500 text-green-600 hover:bg-green-500/20" 
-                  : "bg-red-500/10 border-red-500 text-red-600 hover:bg-red-500/20"
-              }`}
-              title={isTripMode ? "Desativar Modo Viagem" : "Ativar Modo Viagem"}
-            >
-              <Plane className="h-6 w-6" />
-            </Button>
-          </div>
-        )}
-
         {isTripMode && activeTrip && (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
             <TripDashboardView trip={activeTrip} />
@@ -217,11 +199,27 @@ export function Dashboard() {
           wealthHistory={wealthHistory}
         />
 
-        {currenciesData.length > 1 && (
-          <div className="flex justify-end pt-1">
+        <div className="flex justify-end items-center gap-3 pt-1">
+          {activeTrip && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsTripMode(!isTripMode)}
+              className={`rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 z-10 ${
+                isTripMode 
+                  ? "bg-green-500/10 border-green-500 text-green-600 hover:bg-green-500/20" 
+                  : "bg-red-500/10 border-red-500 text-red-600 hover:bg-red-500/20"
+              }`}
+              title={isTripMode ? "Desativar Modo Viagem" : "Ativar Modo Viagem"}
+            >
+              <Plane className="h-5 w-5" />
+            </Button>
+          )}
+
+          {currenciesData.length > 1 && (
             <div className="w-32">
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                <SelectTrigger className="h-9 bg-card border-border shadow-sm">
+                <SelectTrigger className="h-10 bg-card border-border shadow-sm">
                   <SelectValue placeholder="Moeda" />
                 </SelectTrigger>
                 <SelectContent>
@@ -233,8 +231,8 @@ export function Dashboard() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
