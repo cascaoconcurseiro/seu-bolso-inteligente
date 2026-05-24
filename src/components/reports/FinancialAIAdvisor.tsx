@@ -73,7 +73,7 @@ export function FinancialAIAdvisor({ reportData }: FinancialAIAdvisorProps) {
       return <p key={idx} className="mb-2 text-sm text-muted-foreground leading-relaxed">{line}</p>;
     });
   };
-
+  return (
     <div className="w-full mb-8">
       {!isOpen && (
         <button
