@@ -12,20 +12,73 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   // ========== DESPESAS ==========
   
   {
-    name: "Alimentação",
+    name: "Supermercado",
+    icon: "🛒",
+    type: "expense",
+    children: [
+      { name: "Feira", icon: "🥬", type: "expense" },
+      { name: "Açougue", icon: "🥩", type: "expense" },
+      { name: "Padaria", icon: "🥖", type: "expense" },
+      { name: "Bebidas", icon: "🥤", type: "expense" },
+      { name: "Higiene e Limpeza", icon: "🧼", type: "expense" }
+    ],
+  },
+  
+  {
+    name: "Restaurantes e Lanches",
     icon: "🍽️",
     type: "expense",
     children: [
-      { name: "Supermercado", icon: "🛒", type: "expense" },
       { name: "Restaurante", icon: "🍽️", type: "expense" },
       { name: "Lanche", icon: "🍔", type: "expense" },
-      { name: "Delivery", icon: "🍕", type: "expense" },
-      { name: "Padaria", icon: "🥖", type: "expense" },
       { name: "Café", icon: "☕", type: "expense" },
       { name: "Bar", icon: "🍺", type: "expense" },
-      { name: "Fast Food", icon: "🍟", type: "expense" },
-      { name: "Açougue", icon: "🥩", type: "expense" },
-      { name: "Feira", icon: "🥬", type: "expense" },
+      { name: "Fast Food", icon: "🍟", type: "expense" }
+    ],
+  },
+
+  {
+    name: "Delivery",
+    icon: "🍕",
+    type: "expense",
+    children: [
+      { name: "Marmita", icon: "🍱", type: "expense" },
+      { name: "Pizza", icon: "🍕", type: "expense" },
+      { name: "Hamburguer", icon: "🍔", type: "expense" },
+      { name: "Comida Japonesa", icon: "🍣", type: "expense" }
+    ],
+  },
+
+  {
+    name: "Gasolina",
+    icon: "⛽",
+    type: "expense",
+    children: [
+      { name: "Combustível", icon: "⛽", type: "expense" },
+      { name: "Etanol", icon: "🌿", type: "expense" },
+      { name: "Diesel", icon: "🚚", type: "expense" },
+      { name: "GNV", icon: "🎈" , type: "expense"}
+    ],
+  },
+
+  {
+    name: "Transporte",
+    icon: "🚗",
+    type: "expense",
+    children: [
+      { name: "Uber/Taxi", icon: "🚕", type: "expense" },
+      { name: "Ônibus", icon: "🚌", type: "expense" },
+      { name: "Metrô", icon: "🚇", type: "expense" },
+      { name: "Trem", icon: "🚆", type: "expense" },
+      { name: "Estacionamento", icon: "🅿️", type: "expense" },
+      { name: "Pedágio", icon: "🛣️", type: "expense" },
+      { name: "Manutenção Veículo", icon: "🔧", type: "expense" },
+      { name: "Lavagem", icon: "🚿", type: "expense" },
+      { name: "IPVA", icon: "🚗", type: "expense" },
+      { name: "Seguro Veículo", icon: "🛡️", type: "expense" },
+      { name: "Licenciamento", icon: "📋", type: "expense" },
+      { name: "Multas", icon: "🚨", type: "expense" },
+      { name: "Financiamento Veículo", icon: "💳", type: "expense" }
     ],
   },
   
@@ -47,29 +100,28 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Móveis", icon: "🛋️", type: "expense" },
       { name: "Decoração", icon: "🖼️", type: "expense" },
       { name: "Eletrodomésticos", icon: "🔌", type: "expense" },
-      { name: "Limpeza", icon: "🧹", type: "expense" },
+      { name: "Limpeza", icon: "🧹", type: "expense" }
     ],
   },
-  
+
   {
-    name: "Transporte",
-    icon: "🚗",
+    name: "Contas e Assinaturas",
+    icon: "📺",
     type: "expense",
     children: [
-      { name: "Combustível", icon: "⛽", type: "expense" },
-      { name: "Uber/Taxi", icon: "🚕", type: "expense" },
-      { name: "Ônibus", icon: "🚌", type: "expense" },
-      { name: "Metrô", icon: "🚇", type: "expense" },
-      { name: "Trem", icon: "🚆", type: "expense" },
-      { name: "Estacionamento", icon: "🅿️", type: "expense" },
-      { name: "Pedágio", icon: "🛣️", type: "expense" },
-      { name: "Manutenção Veículo", icon: "🔧", type: "expense" },
-      { name: "Lavagem", icon: "🚿", type: "expense" },
-      { name: "IPVA", icon: "🚗", type: "expense" },
-      { name: "Seguro Veículo", icon: "🛡️", type: "expense" },
-      { name: "Licenciamento", icon: "📋", type: "expense" },
-      { name: "Multas", icon: "🚨", type: "expense" },
-      { name: "Financiamento Veículo", icon: "💳", type: "expense" },
+      { name: "Netflix", icon: "🎬", type: "expense" },
+      { name: "Spotify", icon: "🎵", type: "expense" },
+      { name: "Amazon Prime", icon: "📦", type: "expense" },
+      { name: "Disney+", icon: "🏰", type: "expense" },
+      { name: "HBO Max", icon: "🎭", type: "expense" },
+      { name: "YouTube Premium", icon: "▶️", type: "expense" },
+      { name: "Cloud Storage", icon: "☁️", type: "expense" },
+      { name: "Lavanderia", icon: "🧺", type: "expense" },
+      { name: "Costureira", icon: "🧵", type: "expense" },
+      { name: "Encanador", icon: "🚰", type: "expense" },
+      { name: "Eletricista", icon: "⚡", type: "expense" },
+      { name: "Diarista", icon: "🧹", type: "expense" },
+      { name: "Jardineiro", icon: "🌱", type: "expense" }
     ],
   },
   
@@ -88,7 +140,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Terapia", icon: "🧠", type: "expense" },
       { name: "Psicólogo", icon: "💭", type: "expense" },
       { name: "Óculos/Lentes", icon: "👓", type: "expense" },
-      { name: "Aparelho Ortodôntico", icon: "😁", type: "expense" },
+      { name: "Aparelho Ortodôntico", icon: "😁", type: "expense" }
     ],
   },
   
@@ -105,7 +157,25 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Material Escolar", icon: "✏️", type: "expense" },
       { name: "Idiomas", icon: "🗣️", type: "expense" },
       { name: "Certificações", icon: "📜", type: "expense" },
-      { name: "Uniforme", icon: "👔", type: "expense" },
+      { name: "Uniforme", icon: "👔", type: "expense" }
+    ],
+  },
+  
+  {
+    name: "Compras",
+    icon: "🛍️",
+    type: "expense",
+    children: [
+      { name: "Roupas", icon: "👕", type: "expense" },
+      { name: "Calçados", icon: "👟", type: "expense" },
+      { name: "Acessórios", icon: "👜", type: "expense" },
+      { name: "Joias", icon: "💍", type: "expense" },
+      { name: "Relógios", icon: "⌚", type: "expense" },
+      { name: "Eletrônicos", icon: "📱", type: "expense" },
+      { name: "Informática", icon: "💻", type: "expense" },
+      { name: "Cosméticos", icon: "💄", type: "expense" },
+      { name: "Perfumes", icon: "🌸", type: "expense" },
+      { name: "Presentes", icon: "🎁", type: "expense" }
     ],
   },
   
@@ -124,28 +194,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Jogos", icon: "🎮", type: "expense" },
       { name: "Esportes", icon: "⚽", type: "expense" },
       { name: "Academia", icon: "💪", type: "expense" },
-      { name: "Clube", icon: "🏊", type: "expense" },
+      { name: "Clube", icon: "🏊", type: "expense" }
     ],
   },
 
-  {
-    name: "Compras",
-    icon: "🛍️",
-    type: "expense",
-    children: [
-      { name: "Roupas", icon: "👕", type: "expense" },
-      { name: "Calçados", icon: "👟", type: "expense" },
-      { name: "Acessórios", icon: "👜", type: "expense" },
-      { name: "Joias", icon: "💍", type: "expense" },
-      { name: "Relógios", icon: "⌚", type: "expense" },
-      { name: "Eletrônicos", icon: "📱", type: "expense" },
-      { name: "Informática", icon: "💻", type: "expense" },
-      { name: "Cosméticos", icon: "💄", type: "expense" },
-      { name: "Perfumes", icon: "🌸", type: "expense" },
-      { name: "Presentes", icon: "🎁", type: "expense" },
-    ],
-  },
-  
   {
     name: "Viagens",
     icon: "✈️",
@@ -159,31 +211,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Turismo", icon: "🗺️", type: "expense" },
       { name: "Passeios", icon: "🎢", type: "expense" },
       { name: "Seguro Viagem", icon: "🛡️", type: "expense" },
-      { name: "Visto", icon: "📋", type: "expense" },
+      { name: "Visto", icon: "📋", type: "expense" }
     ],
   },
 
-  {
-    name: "Assinaturas e Serviços",
-    icon: "📺",
-    type: "expense",
-    children: [
-      { name: "Netflix", icon: "🎬", type: "expense" },
-      { name: "Spotify", icon: "🎵", type: "expense" },
-      { name: "Amazon Prime", icon: "📦", type: "expense" },
-      { name: "Disney+", icon: "🏰", type: "expense" },
-      { name: "HBO Max", icon: "🎭", type: "expense" },
-      { name: "YouTube Premium", icon: "▶️", type: "expense" },
-      { name: "Cloud Storage", icon: "☁️", type: "expense" },
-      { name: "Lavanderia", icon: "🧺", type: "expense" },
-      { name: "Costureira", icon: "🧵", type: "expense" },
-      { name: "Encanador", icon: "🚰", type: "expense" },
-      { name: "Eletricista", icon: "⚡", type: "expense" },
-      { name: "Diarista", icon: "🧹", type: "expense" },
-      { name: "Jardineiro", icon: "🌱", type: "expense" },
-    ],
-  },
-  
   {
     name: "Família e Pets",
     icon: "🐾",
@@ -194,20 +225,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Pet Shop", icon: "🐾", type: "expense" },
       { name: "Banho e Tosa", icon: "🛁", type: "expense" },
       { name: "Medicamentos Pet", icon: "💊", type: "expense" },
-      { name: "Hotel Pet", icon: "🏨", type: "expense" },
-    ],
-  },
-
-  {
-    name: "Trabalho e Negócios",
-    icon: "💼",
-    type: "expense",
-    children: [
-      { name: "Freelance", icon: "💻", type: "expense" },
-      { name: "Ferramentas/SaaS", icon: "⚙️", type: "expense" },
-      { name: "Escritório", icon: "🏢", type: "expense" },
-      { name: "Marketing", icon: "📈", type: "expense" },
-      { name: "Impostos CNPJ", icon: "🏛️", type: "expense" },
+      { name: "Hotel Pet", icon: "🏨", type: "expense" }
     ],
   },
   
@@ -220,42 +238,17 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "IPVA", icon: "🚗", type: "expense" },
       { name: "IR", icon: "💼", type: "expense" },
       { name: "Taxas Governamentais", icon: "🏛️", type: "expense" },
-      { name: "Multas", icon: "🚨", type: "expense" },
+      { name: "Multas", icon: "🚨", type: "expense" }
     ],
   },
 
-  {
-    name: "Dívidas e Empréstimos",
-    icon: "💰",
-    type: "expense",
-    children: [
-      { name: "Empréstimo", icon: "💳", type: "expense" },
-      { name: "Financiamento", icon: "🏠", type: "expense" },
-      { name: "Juros Pagos", icon: "💸", type: "expense" },
-      { name: "Amortização", icon: "⚖️", type: "expense" },
-    ],
-  },
-
-  {
-    name: "Investimentos",
-    icon: "📈",
-    type: "expense",
-    children: [
-      { name: "Ações", icon: "📈", type: "expense" },
-      { name: "Fundos Imobiliários", icon: "🏢", type: "expense" },
-      { name: "Renda Fixa", icon: "📊", type: "expense" },
-      { name: "Cripto", icon: "₿", type: "expense" },
-      { name: "Previdência Privada", icon: "🏦", type: "expense" },
-    ],
-  },
-  
   {
     name: "Outros",
     icon: "📦",
     type: "expense",
     children: [
       { name: "Diversos", icon: "📦", type: "expense" },
-      { name: "Emergência", icon: "🚨", type: "expense" },
+      { name: "Emergência", icon: "🚨", type: "expense" }
     ],
   },
 

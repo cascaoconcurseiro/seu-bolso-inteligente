@@ -38,7 +38,35 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const dropdownCategories = useMemo(() => {
     if (!categories) return [];
-    const expenseCats = categories.filter(c => c.type === 'expense');
+    
+    const ALLOWED_EXPENSE_PARENTS = [
+      "Supermercado",
+      "Restaurantes e Lanches",
+      "Delivery",
+      "Gasolina",
+      "Transporte",
+      "Moradia",
+      "Contas e Assinaturas",
+      "Saúde",
+      "Educação",
+      "Compras",
+      "Lazer",
+      "Viagens",
+      "Família e Pets",
+      "Impostos e Taxas",
+      "Outros"
+    ];
+
+    const expenseCats = categories.filter(c => {
+      if (c.type !== 'expense') return false;
+      // Se for categoria principal, validar se está na lista permitida
+      if (!c.parent_category_id) {
+        return ALLOWED_EXPENSE_PARENTS.includes(c.name);
+      }
+      // Se for subcategoria, o pai dela deve estar na lista permitida
+      const parent = categories.find(p => p.id === c.parent_category_id);
+      return parent ? ALLOWED_EXPENSE_PARENTS.includes(parent.name) : false;
+    });
     
     if (!useSubcategories) {
       return expenseCats.filter(c => !c.parent_category_id);
@@ -297,7 +325,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Data</Label>
                 <Input 

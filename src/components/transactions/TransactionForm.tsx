@@ -463,7 +463,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   if (!accounts || accounts.length === 0) return <div className="max-w-lg mx-auto text-center py-16 space-y-4"><div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center"><ArrowDownLeft className="h-8 w-8 text-muted-foreground" /></div><h2 className="text-xl font-semibold">Nenhuma conta encontrada</h2><p className="text-muted-foreground">Crie uma conta para começar</p><Button type="button" onClick={(e) => { e.preventDefault(); setShowTransactionModal(false); navigate('/contas'); }}>Criar Conta</Button></div>;
 
   return (
-    <div className="max-w-lg mx-auto space-y-6 animate-fade-in">
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-6 animate-fade-in overflow-x-hidden">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => onCancel ? onCancel() : navigate(-1)} className="rounded-full"><ArrowLeft className="h-5 w-5" /></Button>
         <h1 className="font-display font-bold text-2xl tracking-tight">{initialData ? 'Editar Transação' : 'Nova Transação'}</h1>

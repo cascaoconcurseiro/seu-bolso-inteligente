@@ -78,7 +78,33 @@ export function CategorySelector({
   }
 
   // Organizar categorias em hierarquia
-  const parents = categories.filter(c => !c.parent_category_id && c.type === type);
+  const ALLOWED_EXPENSE_PARENTS = [
+    "Supermercado",
+    "Restaurantes e Lanches",
+    "Delivery",
+    "Gasolina",
+    "Transporte",
+    "Moradia",
+    "Contas e Assinaturas",
+    "Saúde",
+    "Educação",
+    "Compras",
+    "Lazer",
+    "Viagens",
+    "Família e Pets",
+    "Impostos e Taxas",
+    "Outros"
+  ];
+
+  const parents = categories.filter(c => {
+    if (c.parent_category_id) return false;
+    if (c.type !== type) return false;
+    if (type === 'expense') {
+      return ALLOWED_EXPENSE_PARENTS.includes(c.name);
+    }
+    return true;
+  });
+
   const childrenMap = new Map<string, Category[]>();
   
   categories.forEach(cat => {
