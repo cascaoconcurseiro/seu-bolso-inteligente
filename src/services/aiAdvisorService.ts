@@ -92,15 +92,17 @@ O usuário começou a digitar uma despesa: "${partialDescription}"
 
 Seu trabalho é:
 1. ADIVINHAR A PALAVRA COMPLETA e CORRIGIR ERROS ORTOGRÁFICOS.
-Exemplos de correção: "ifod" -> "iFood", "craro" -> "Carro", "gasola" -> "Gasolina", "mc donals" -> "McDonald's", "pgto" -> "Pagamento", "luz" -> "Conta de Luz".
-2. SELECIONAR A MELHOR CATEGORIA OBRIGATORIAMENTE. Você deve classificar qualquer gasto comum do brasileiro na melhor categoria disponível.
-Exemplos lógicos:
+Exemplos de correção: "ifod" -> "iFood", "craro" -> "Carro", "gasola" -> "Gasolina", "mc donals" -> "McDonald's", "pgto" -> "Pagamento".
+2. REGIONALISMOS E GÍRIAS BRASILEIRAS SÃO VÁLIDOS!
+Abrace os regionalismos de todo o Brasil (especialmente Rio Grande do Sul, Nordeste, etc). Exemplos:
+- "Xis", "Cacetinho" (Pão), "Bergamota", "Churras", "Dogão", "Hamburguer" -> Alimentação / Comida
+- "Guri", "Pila" (Dinheiro), "Gás" -> Diversos / Despesas
+3. SELECIONAR A MELHOR CATEGORIA OBRIGATORIAMENTE.
 - Gasolina, Uber, 99, Ônibus, Mecânico -> Transporte / Carro
-- Mercado, iFood, Padaria, Açougue, Sorvete -> Alimentação / Comida
 - Luz, Água, Internet, Aluguel, Condomínio -> Moradia / Casa
 - Farmácia, Médico, Unimed, Dentista -> Saúde
 - Netflix, Spotify, Cinema, Barzinho -> Lazer / Entretenimento
-- Roupas, Tênis, Cabelereiro, Unha -> Pessoal / Cuidados
+4. REGRA DE SOBREVIVÊNCIA: Se você NÃO FAZ IDEIA do que a palavra significa, APENAS formate a primeira letra como maiúscula e categorize como "Outros", "Alimentação" ou a categoria mais genérica disponível. NUNCA retorne vazio ou null!
 
 Histórico recente do usuário (use como base, mas corrija erros absurdos):
 [${uniqueHistory.join(', ')}]
