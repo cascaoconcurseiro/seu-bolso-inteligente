@@ -101,22 +101,38 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
   /**
    * Pede para a IA prever o resto da palavra que o usuário está digitando e categorizá-la.
    */
+  /**
+   * Pede para a IA prever o resto da palavra que o usuário está digitando e categorizá-la.
+   */
   static async predictAutocompleteAndCategory(
     partialDescription: string,
     historicalDescriptions: string[],
     userCategories: { id: string; name: string }[]
   ): Promise<{ suggestion: string; categoryId: string | null }> {
-    if (partialDescription.length < 2) {
+    const sanitizedPartial = (partialDescription || "").trim().substring(0, 80);
+    if (sanitizedPartial.length < 2) {
       return { suggestion: "", categoryId: null };
     }
 
-    // Para evitar tokens excessivos, pegamos apenas até 30 descrições únicas do histórico do usuário
-    const uniqueHistory = Array.from(new Set(historicalDescriptions)).slice(0, 30);
-    const categoryList = userCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
+    // 1. Truncamento rigoroso contra payloads abusivos ou anomalias (ex: base64, anexos)
+    const uniqueHistory = Array.from(
+      new Set(
+        (historicalDescriptions || [])
+          .map(d => (d || "").trim().substring(0, 50))
+          .filter(d => d.length >= 2 && !d.startsWith("data:") && !d.includes(";base64"))
+      )
+    ).slice(0, 25); // Reduzimos para 25 itens para garantir segurança máxima de token e payload
+
+    const sanitizedCategories = (userCategories || []).map(c => ({
+      id: c.id,
+      name: (c.name || "").trim().substring(0, 40)
+    }));
+
+    const categoryList = sanitizedCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
 
     const prompt = `
 Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do app "Seu Bolso Inteligente".
-O usuário começou a digitar uma despesa: "${partialDescription}"
+O usuário começou a digitar uma despesa: "${sanitizedPartial}"
 
 Seu trabalho é:
 1. ADIVINHAR A PALAVRA COMPLETA e CORRIGIR ERROS ORTOGRÁFICOS.
@@ -146,23 +162,41 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
 }
 `;
 
+    const requestBody = {
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.1,
+      max_tokens: 100,
+      response_format: { type: "json_object" }
+    };
+
+    const bodyString = JSON.stringify(requestBody);
+    const bodySizeBytes = new Blob([bodyString]).size;
+
+    console.log(`[AIAdvisorService] 🔌 RASTREAMENTO DE REQUISIÇÃO (Tamanho: ${bodySizeBytes} bytes / ${bodyString.length} chars):`, {
+      partialDescription: sanitizedPartial,
+      historyCount: uniqueHistory.length,
+      categoriesCount: sanitizedCategories.length,
+      first3History: uniqueHistory.slice(0, 3),
+      categories: sanitizedCategories.map(c => c.name)
+    });
+
     try {
       const response = await fetch(GROQ_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant", // Modelo ultra-rápido de 8B para autocomplete, economizando cota e respondendo instantaneamente
-          messages: [{ role: "system", content: prompt }],
-          temperature: 0.1,
-          max_tokens: 100,
-          response_format: { type: "json_object" }
-        })
+        body: bodyString
       });
 
       if (!response.ok) {
-        throw new Error(`API servidora retornou status ${response.status}`);
+        const errorText = await response.text();
+        console.error(`[AIAdvisorService] ❌ Erro na API Servidora (Status ${response.status}):`, {
+          errorText,
+          payloadSizeBytes: bodySizeBytes
+        });
+        throw new Error(`API servidora retornou status ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
       const result = await response.json();
@@ -176,51 +210,66 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
         else if (finalCategoryId.toLowerCase().startsWith('id_')) finalCategoryId = finalCategoryId.slice(3).trim();
       }
 
+      console.log(`[AIAdvisorService] ✅ Resposta da API Servidora decodificada com sucesso:`, {
+        suggestion: parsed.suggestion,
+        categoryId: finalCategoryId
+      });
+
       return {
         suggestion: parsed.suggestion || "",
         categoryId: finalCategoryId
       };
-    } catch (error) {
-      console.warn("[AIAdvisorService] Falha na chamada da API servidora para autocomplete. Iniciando fallback direto no cliente...", error);
+    } catch (error: any) {
+      console.warn(`[AIAdvisorService] ⚠️ Falha na chamada da API servidora para autocomplete (Tamanho do payload: ${bodySizeBytes} bytes). Iniciando fallback direto no cliente...`, error);
+      
       const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (clientApiKey) {
-        try {
-          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [{ role: "system", content: prompt }],
-              temperature: 0.1,
-              max_tokens: 100,
-              response_format: { type: "json_object" }
-            })
+      if (!clientApiKey) {
+        console.error("[AIAdvisorService] ❌ Fallback no cliente impossível: VITE_GROQ_API_KEY não está definida no ambiente do cliente!");
+        return { suggestion: "", categoryId: null };
+      }
+
+      try {
+        console.log(`[AIAdvisorService] 🔌 Iniciando requisição direta para a Groq (Fallback Cliente - Tamanho: ${bodySizeBytes} bytes)...`);
+        const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${clientApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: bodyString
+        });
+
+        if (!directResponse.ok) {
+          const errorText = await directResponse.text();
+          console.error(`[AIAdvisorService] ❌ Erro no Fallback Direto da Groq (Status ${directResponse.status}):`, {
+            errorText,
+            payloadSizeBytes: bodySizeBytes
           });
-
-          if (directResponse.ok) {
-            const result = await directResponse.json();
-            const parsed = JSON.parse(result.choices[0].message.content);
-            
-            let finalCategoryId = parsed.categoryId || null;
-            if (finalCategoryId && typeof finalCategoryId === 'string') {
-              finalCategoryId = finalCategoryId.trim().replace(/['"{}[:\]]/g, '').trim();
-              if (finalCategoryId.toLowerCase().startsWith('id:')) finalCategoryId = finalCategoryId.slice(3).trim();
-              else if (finalCategoryId.toLowerCase().startsWith('id-')) finalCategoryId = finalCategoryId.slice(3).trim();
-              else if (finalCategoryId.toLowerCase().startsWith('id_')) finalCategoryId = finalCategoryId.slice(3).trim();
-            }
-
-            console.log("[AIAdvisorService] Autocomplete via fallback direto na Groq concluído com sucesso!");
-            return {
-              suggestion: parsed.suggestion || "",
-              categoryId: finalCategoryId
-            };
-          }
-        } catch (fallbackError) {
-          console.error("[AIAdvisorService] Erro no fallback direto de autocomplete:", fallbackError);
+          throw new Error(`Groq direto retornou status ${directResponse.status} - ${errorText.substring(0, 200)}`);
         }
+
+        const result = await directResponse.json();
+        const parsed = JSON.parse(result.choices[0].message.content);
+        
+        let finalCategoryId = parsed.categoryId || null;
+        if (finalCategoryId && typeof finalCategoryId === 'string') {
+          finalCategoryId = finalCategoryId.trim().replace(/['"{}[:\]]/g, '').trim();
+          if (finalCategoryId.toLowerCase().startsWith('id:')) finalCategoryId = finalCategoryId.slice(3).trim();
+          else if (finalCategoryId.toLowerCase().startsWith('id-')) finalCategoryId = finalCategoryId.slice(3).trim();
+          else if (finalCategoryId.toLowerCase().startsWith('id_')) finalCategoryId = finalCategoryId.slice(3).trim();
+        }
+
+        console.log("[AIAdvisorService] ✅ Autocomplete via fallback direto na Groq concluído com sucesso!", {
+          suggestion: parsed.suggestion,
+          categoryId: finalCategoryId
+        });
+        
+        return {
+          suggestion: parsed.suggestion || "",
+          categoryId: finalCategoryId
+        };
+      } catch (fallbackError: any) {
+        console.error("[AIAdvisorService] ❌ Erro crítico no fallback direto de autocomplete:", fallbackError);
       }
       return { suggestion: "", categoryId: null };
     }

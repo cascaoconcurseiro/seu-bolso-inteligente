@@ -67,8 +67,20 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       setIsPredicting(true);
       
       try {
-        const expenseTransactions = (transactionsRef.current || []).filter(t => t.type === 'EXPENSE' && t.description);
-        const historyDescriptions = expenseTransactions.map(t => t.description);
+        const expenseTransactions = (transactionsRef.current || []).filter(t => 
+          t.type === 'EXPENSE' && 
+          t.description && 
+          typeof t.description === 'string' &&
+          t.description.length < 150 && 
+          !t.description.startsWith('data:') && 
+          !t.description.includes(';base64')
+        );
+        const uniqueDescriptions = Array.from(
+          new Set(
+            expenseTransactions.map(t => t.description.substring(0, 50).trim())
+          )
+        ).filter(d => d.length >= 2);
+        const historyDescriptions = uniqueDescriptions.slice(0, 20); // Limita a 20 itens únicos no frontend antes de enviar pela rede!
         
         // Filtrar estritamente as categorias legítimas de despesa enviadas para a IA (máximo de 15 pais e suas subcategorias legítimas)
         const ALLOWED_EXPENSE_PARENTS = [
@@ -106,6 +118,13 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
         }
 
         const formattedCategories = finalCatsToSend.map(c => ({ id: c.id, name: c.name }));
+        
+        console.log(`[useAIPrediction] [Req #${currentRequestId}] RASTREAMENTO:`, {
+          textoDigitado: description.trim(),
+          tamanhoHistoricoEnviado: historyDescriptions.length,
+          tamanhoCategoriasEnviadas: formattedCategories.length,
+          categoriasEnviadas: formattedCategories.map(c => c.name)
+        });
         
         console.log(`[useAIPrediction] [Req #${currentRequestId}] Disparando requisição para: "${description.trim()}"`);
         
