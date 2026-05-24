@@ -165,11 +165,11 @@ export function AITripSuggestions({
                   {suggestions.map((item, index) => (
                     <div 
                       key={index}
-                      className={\`flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer \${
+                      className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
                         selectedIndices.has(index) 
                           ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/20' 
                           : 'border-border/50 hover:bg-muted/50'
-                      }\`}
+                      }`}
                       onClick={() => toggleSelection(index)}
                     >
                       <Checkbox 
@@ -185,9 +185,9 @@ export function AITripSuggestions({
                           {type === 'checklist' && item.item}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {type === 'shopping' && \`Custo estimado: \${currency} \${item.estimatedCost.toFixed(2)}\`}
-                          {type === 'itinerary' && \`\${item.location} • Aprox. \${item.durationHours}h\`}
-                          {type === 'checklist' && \`Categoria: \${item.category}\`}
+                          {type === 'shopping' && `Custo estimado: ${currency} ${item.estimatedCost.toFixed(2)}`}
+                          {type === 'itinerary' && `${item.location} • Aprox. ${item.durationHours}h`}
+                          {type === 'checklist' && `Categoria: ${item.category}`}
                         </p>
                         {type === 'itinerary' && item.description && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
