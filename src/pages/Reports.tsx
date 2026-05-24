@@ -727,20 +727,21 @@ export function Reports() {
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
-        <FinancialAIAdvisor 
-          reportData={{
-            totalIncome,
-            totalExpense,
-            balance,
-            savingsRate: totalIncome > 0 ? ((balance / totalIncome) * 100) : 0,
-            currency: displayCurrency,
-            topCategories: categoryData.slice(0, 5),
-            largestExpense: largestExpense ? { description: largestExpense.description, amount: Number(largestExpense.amount) } : null,
-            periodLabel: viewType === 'MONTH' ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR }) : dateFns.format(safeCurrentDate, "yyyy"),
-            viewType
-          }} 
-        />
       </div>
+      
+      <FinancialAIAdvisor 
+        reportData={{
+          totalIncome,
+          totalExpense,
+          balance,
+          savingsRate: totalIncome > 0 ? ((balance / totalIncome) * 100) : 0,
+          currency: displayCurrency,
+          topCategories: categoryData.slice(0, 5),
+          largestExpense: largestExpense ? { description: largestExpense.description, amount: Number(largestExpense.amount) } : null,
+          periodLabel: viewType === 'MONTH' ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR }) : dateFns.format(safeCurrentDate, "yyyy"),
+          viewType
+        }} 
+      />
 
       {/* KPIs Financeiros Avançados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -74,75 +74,66 @@ export function FinancialAIAdvisor({ reportData }: FinancialAIAdvisorProps) {
     });
   };
 
-  return (
-    <>
-      {/* Botão de chamada (Flutuante na área de KPIs) */}
-      <Button
-        onClick={handleAnalyze}
-        className="w-full sm:w-auto gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105"
-      >
-        <Sparkles className="w-4 h-4" />
-        Consultoria IA
-      </Button>
+    <div className="w-full mt-6 space-y-4">
+      <div className="flex justify-end">
+        <Button
+          onClick={isOpen ? () => setIsOpen(false) : handleAnalyze}
+          variant={isOpen ? "outline" : "default"}
+          className={`gap-2 transition-all duration-300 ${!isOpen ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 hover:scale-105' : ''}`}
+        >
+          {isOpen ? <X className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+          {isOpen ? "Fechar Consultoria" : "Consultoria IA"}
+        </Button>
+      </div>
 
-      {/* Painel lateral (Slide-out) / Modal com glassmorphism */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div 
-            className="w-full max-w-md h-full bg-card/90 backdrop-blur-xl border-l border-border/50 shadow-2xl flex flex-col animate-in slide-in-from-right duration-500"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border/50 bg-background/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                  <Sparkles className="w-5 h-5 text-blue-500" />
+        <div className="w-full bg-card/90 backdrop-blur-xl border border-border/50 shadow-xl rounded-2xl overflow-hidden animate-in slide-in-from-top-4 fade-in duration-500">
+          {/* Header */}
+          <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-background/50">
+            <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+              <Sparkles className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-lg">Consultor Financeiro</h2>
+              <p className="text-[11px] text-muted-foreground font-medium">IA Baseada em seu Histórico</p>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {isAnalyzing ? (
+              <div className="flex flex-col items-center justify-center space-y-4 text-center py-8 animate-pulse">
+                <div className="w-16 h-16 relative">
+                  <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping" />
+                  <div className="absolute inset-2 bg-blue-500/40 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-blue-600" />
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-display font-bold text-lg">Consultor Financeiro</h2>
-                  <p className="text-[11px] text-muted-foreground font-medium">IA Baseada em seu Histórico</p>
+                <div className="space-y-1">
+                  <p className="font-semibold text-foreground">A IA está analisando seus dados...</p>
+                  <p className="text-sm text-muted-foreground">Isso leva apenas alguns segundos.</p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="rounded-full hover:bg-muted">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-muted">
-              {isAnalyzing ? (
-                <div className="h-full flex flex-col items-center justify-center space-y-4 text-center animate-pulse">
-                  <div className="w-16 h-16 relative">
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping" />
-                    <div className="absolute inset-2 bg-blue-500/40 rounded-full flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-semibold text-foreground">A IA está analisando seus dados...</p>
-                    <p className="text-sm text-muted-foreground">Isso leva apenas alguns segundos.</p>
-                  </div>
-                </div>
-              ) : error ? (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 text-sm text-center">
-                  <AlertTriangle className="w-6 h-6 mx-auto mb-2 opacity-80" />
-                  {error}
-                </div>
-              ) : analysisResult ? (
-                <div className="space-y-1 animate-in fade-in duration-700">
-                  {renderMarkdownText(analysisResult)}
-                </div>
-              ) : null}
-            </div>
-            
-            {/* Footer */}
-            <div className="p-4 border-t border-border/50 bg-background/50 text-center">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                Análise gerada por GroqCloud IA
-              </p>
-            </div>
+            ) : error ? (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 text-sm text-center">
+                <AlertTriangle className="w-6 h-6 mx-auto mb-2 opacity-80" />
+                {error}
+              </div>
+            ) : analysisResult ? (
+              <div className="space-y-1 animate-in fade-in duration-700">
+                {renderMarkdownText(analysisResult)}
+              </div>
+            ) : null}
+          </div>
+          
+          {/* Footer */}
+          <div className="p-3 border-t border-border/50 bg-background/50 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+              Análise gerada por GroqCloud IA
+            </p>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
