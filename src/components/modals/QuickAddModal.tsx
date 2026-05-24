@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -117,7 +117,39 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
     }
   };
 
-  const filteredAccounts = accounts?.filter(a => !a.is_international && a.type !== 'CREDIT_CARD') || [];
+  const filteredAccounts = useMemo(() => {
+    if (!accounts) return [];
+    return accounts.filter((acc) => {
+      if (acc.type === 'CREDIT_CARD') return false;
+      if (isTripMode && selectedTrip) {
+        if (selectedTrip.currency === 'BRL') return !acc.is_international;
+        return acc.is_international && acc.currency === selectedTrip.currency;
+      }
+      return !acc.is_international;
+    });
+  }, [accounts, isTripMode, selectedTrip]);
+
+  const filteredCreditCards = useMemo(() => {
+    if (!accounts) return [];
+    return accounts.filter((acc) => {
+      if (acc.type !== 'CREDIT_CARD') return false;
+      if (isTripMode && selectedTrip) {
+        if (selectedTrip.currency === 'BRL') return !acc.is_international;
+        return acc.is_international && acc.currency === selectedTrip.currency;
+      }
+      return !acc.is_international;
+    });
+  }, [accounts, isTripMode, selectedTrip]);
+
+  useEffect(() => {
+    if (accountId) {
+      const allFiltered = [...filteredAccounts, ...filteredCreditCards];
+      const isAccountValid = allFiltered.some(acc => acc.id === accountId);
+      if (!isAccountValid) {
+        setAccountId('');
+      }
+    }
+  }, [filteredAccounts, filteredCreditCards, accountId]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -243,7 +275,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                     {filteredAccounts.map(acc => (
                       <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
                     ))}
-                    {accounts?.filter(a => a.type === 'CREDIT_CARD').map(acc => (
+                    {filteredCreditCards.map(acc => (
                       <SelectItem key={acc.id} value={acc.id}>{acc.name} (Cartão)</SelectItem>
                     ))}
                   </SelectContent>
