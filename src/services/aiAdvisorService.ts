@@ -61,7 +61,7 @@ ESTRUTURA DA SUA RESPOSTA (obrigatória, use formato Markdown simples sem muitas
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192", // Modelo rápido e inteligente
+        model: "llama3-8b-8192", // Modelo atualizado e suportado
         messages: [{ role: "system", content: prompt }],
         temperature: 0.5, // Respostas lógicas e controladas
         max_tokens: 1024,
