@@ -120,7 +120,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
   // AI Auto-categoria
   useEffect(() => {
-    if (predictedCategoryId && !categoryId) {
+    if (predictedCategoryId) {
       setCategoryId(predictedCategoryId);
     }
   }, [predictedCategoryId]);

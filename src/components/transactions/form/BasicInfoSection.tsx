@@ -49,34 +49,44 @@ export function BasicInfoSection({
   return (
     <div className="space-y-6">
       {/* Description */}
-      <div className="space-y-2">
+      <div className="space-y-2 relative">
         <Label>Descrição</Label>
         <div className="relative">
           <Input
             placeholder="Ex: Almoço, Uber, Salário"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="h-12 pr-8"
+            className="h-12 pr-10 text-lg relative z-10 bg-transparent"
           />
+          
+          {/* Autocomplete Hint (Ghost text behind input) */}
+          {suggestion && suggestion.toLowerCase().startsWith(description.toLowerCase()) && description.length > 0 && (
+            <div className="absolute inset-0 flex items-center h-12 px-3 text-lg pointer-events-none z-0">
+              <span className="opacity-0">{description}</span>
+              <span className="text-muted-foreground/40">{suggestion.slice(description.length)}</span>
+            </div>
+          )}
+
           {isPredicting && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           )}
         </div>
         
-        {/* AI Suggestion Chip */}
+        {/* AI Suggestion Chip (Mobile Keyboard Style) */}
         {suggestion && suggestion !== description && (
-          <div className="flex items-center gap-2 mt-1 animate-fade-in">
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-blue-500" /> Sugestão:
-            </span>
+          <div className="flex items-center animate-fade-in -mt-1 mb-2">
             <button
               type="button"
               onClick={onApplySuggestion}
-              className="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-200 dark:border-blue-800"
+              className="w-full flex items-center justify-between px-4 py-2.5 bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800/50"
             >
-              {suggestion}
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-blue-500" />
+                <span className="text-sm">Sugestão da IA</span>
+              </div>
+              <span className="font-semibold text-base">{suggestion}</span>
             </button>
           </div>
         )}

@@ -115,10 +115,11 @@ Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "llama-3.1-8b-instant", // Modelo atualizado oficial para respostas curtas
+          model: "llama-3.3-70b-versatile", // Mudando para o modelo melhor para evitar que ele seja 'burro'
           messages: [{ role: "system", content: prompt }],
-          temperature: 0.1, // Quase determinístico
-          max_tokens: 150,
+          temperature: 0.1,
+          max_tokens: 100,
+          response_format: { type: "json_object" }
         })
       });
 
@@ -128,14 +129,7 @@ Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte 
       }
 
       const result = await response.json();
-      const content = result.choices[0].message.content;
-      
-      // Limpeza pra garantir que pegamos o JSON
-      const jsonStart = content.indexOf('{');
-      const jsonEnd = content.lastIndexOf('}') + 1;
-      const cleanJson = content.substring(jsonStart, jsonEnd);
-      
-      const parsed = JSON.parse(cleanJson);
+      const parsed = JSON.parse(result.choices[0].message.content);
       
       return {
         suggestion: parsed.suggestion || "",
