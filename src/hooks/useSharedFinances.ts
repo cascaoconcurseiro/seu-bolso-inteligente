@@ -603,8 +603,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       // TRAVEL: Mostrar TODOS os itens de viagens (sem filtro de mês)
       // As viagens são agrupadas por trip, então não faz sentido filtrar por mês
       const filtered = scopeFilteredItems
-        .filter(() => {
-          return true; // Mostrar TODOS os itens de viagem
+        .filter((i) => {
+          return !!i.tripId; // Mostrar TODOS os itens de viagem
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       

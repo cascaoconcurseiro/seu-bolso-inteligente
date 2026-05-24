@@ -460,6 +460,7 @@ export async function createBudgetWarningNotification(
     related_id: budgetId,
     related_type: 'budget',
     priority: isExceeded ? 'HIGH' : 'NORMAL',
+    metadata: { exceeded: isExceeded },
   });
 }
 

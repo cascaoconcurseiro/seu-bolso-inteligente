@@ -21,6 +21,41 @@ interface AssetTransactionDialogProps {
   asset: Asset;
 }
 
+const DIVIDEND_TYPES_BY_ASSET: Record<string, { value: string, label: string }[]> = {
+  STOCK: [
+    { value: 'DIVIDENDOS', label: 'Dividendos' },
+    { value: 'JCP', label: 'Juros sobre Capital Próprio (JCP)' },
+    { value: 'RESTITUICAO', label: 'Restituição de Capital' },
+  ],
+  FII: [
+    { value: 'RENDIMENTO', label: 'Rendimentos' },
+    { value: 'AMORTIZACAO', label: 'Amortização' },
+  ],
+  BOND: [
+    { value: 'JUROS', label: 'Juros' },
+    { value: 'AMORTIZACAO', label: 'Amortização' },
+    { value: 'RENDIMENTO', label: 'Rendimento' },
+  ],
+  CRYPTO: [
+    { value: 'STAKING', label: 'Staking' },
+    { value: 'AIRDROP', label: 'Airdrop' },
+  ],
+  ETF: [
+    { value: 'DIVIDENDOS', label: 'Dividendos' }
+  ],
+  REIT: [
+    { value: 'DIVIDENDOS', label: 'Dividendos' }
+  ],
+  FUND: [
+    { value: 'RENDIMENTO', label: 'Rendimentos' },
+    { value: 'AMORTIZACAO', label: 'Amortização' },
+  ],
+  DEFAULT: [
+    { value: 'RENDIMENTO', label: 'Rendimentos' },
+    { value: 'DIVIDENDOS', label: 'Dividendos' },
+  ]
+};
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   BRL: 'R$',
   USD: 'US$',
@@ -34,11 +69,18 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
   const { mutateAsync: createTransaction } = useCreateTransaction();
 
   const [type, setType] = useState<'buy' | 'sell' | 'update' | 'dividend'>('buy');
+  const [dividendType, setDividendType] = useState('RENDIMENTO');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState(''); // preço POR COTA executado
   const [accountId, setAccountId] = useState(asset.account_id || '');
   const [opDate, setOpDate] = useState(dateFns.format(new Date(), 'yyyy-MM-dd'));
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Set default dividendType when asset or dialog opens
+  React.useEffect(() => {
+    const opts = DIVIDEND_TYPES_BY_ASSET[asset.type] || DIVIDEND_TYPES_BY_ASSET['DEFAULT'];
+    setDividendType(opts[0].value);
+  }, [asset.type, isOpen]);
 
   const currency = asset.currency || 'BRL';
   const isAbroad = asset.location === 'ABROAD';
@@ -206,10 +248,12 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
         }
 
         // 2. Criar transação de RECEITA no extrato
+        const dividendLabel = (DIVIDEND_TYPES_BY_ASSET[asset.type] || DIVIDEND_TYPES_BY_ASSET['DEFAULT']).find(d => d.value === dividendType)?.label || 'Rendimento';
+        
         await createTransaction({
           account_id: accountId,
           amount: prc,
-          description: `Rendimento ${asset.ticker || asset.name}`,
+          description: `${dividendLabel} - ${asset.ticker || asset.name}`,
           date: opDate,
           type: 'INCOME',
           domain: 'PERSONAL',
@@ -222,7 +266,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
           user_id: user.id,
           asset_id: asset.id,
           account_id: accountId,
-          type: 'DIVIDEND',
+          type: `DIVIDEND:${dividendType}`,
           quantity: 1,
           price: prc,
           date: opDate
@@ -304,21 +348,37 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
           {/* Campos de Qtd + Preço */}
           {type === 'dividend' ? (
-            <div className="space-y-2">
-              <Label>Valor Total Recebido ({currencySymbol})</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
-                  {currencySymbol}
-                </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0,00"
-                  className="font-mono pl-10 text-lg font-semibold"
-                  required
-                />
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label>Tipo de Rendimento</Label>
+                <Select value={dividendType} onValueChange={setDividendType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(DIVIDEND_TYPES_BY_ASSET[asset.type] || DIVIDEND_TYPES_BY_ASSET['DEFAULT']).map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Valor Total Recebido ({currencySymbol})</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
+                    {currencySymbol}
+                  </span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0,00"
+                    className="font-mono pl-10 text-lg font-semibold"
+                    required
+                  />
+                </div>
               </div>
             </div>
           ) : type !== 'update' ? (

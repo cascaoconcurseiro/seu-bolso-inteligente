@@ -9,13 +9,16 @@ interface TransactionContext {
 interface TransactionModalContextType {
   showTransactionModal: boolean;
   setShowTransactionModal: (show: boolean, context?: TransactionContext) => void;
-  transactionContext: TransactionContext;
+  showQuickAddModal: boolean;
+  setShowQuickAddModal: (show: boolean) => void;
+  transactionContext?: TransactionContext;
 }
 
 const TransactionModalContext = createContext<TransactionModalContextType | undefined>(undefined);
 
 export function TransactionModalProvider({ children }: { children: ReactNode }) {
   const [showTransactionModal, setShowModal] = useState(false);
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
   const [transactionContext, setTransactionContext] = useState<TransactionContext>({});
 
   const setShowTransactionModal = (show: boolean, context?: TransactionContext) => {
@@ -28,7 +31,7 @@ export function TransactionModalProvider({ children }: { children: ReactNode }) 
   };
 
   return (
-    <TransactionModalContext.Provider value={{ showTransactionModal, setShowTransactionModal, transactionContext }}>
+    <TransactionModalContext.Provider value={{ showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal, transactionContext }}>
       {children}
     </TransactionModalContext.Provider>
   );

@@ -64,17 +64,17 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                     "w-10 h-10 rounded-full flex items-center justify-center",
                     tx.type === 'BUY' && "bg-green-100 text-green-600 dark:bg-green-900/30",
                     tx.type === 'SELL' && "bg-red-100 text-red-600 dark:bg-red-900/30",
-                    tx.type === 'DIVIDEND' && "bg-purple-100 text-purple-600 dark:bg-purple-900/30"
+                    tx.type.startsWith('DIVIDEND') && "bg-purple-100 text-purple-600 dark:bg-purple-900/30"
                   )}>
                     {tx.type === 'BUY' && <TrendingUp className="w-5 h-5" />}
                     {tx.type === 'SELL' && <TrendingDown className="w-5 h-5" />}
-                    {tx.type === 'DIVIDEND' && <Coins className="w-5 h-5" />}
+                    {tx.type.startsWith('DIVIDEND') && <Coins className="w-5 h-5" />}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-foreground">
                       {tx.type === 'BUY' && 'Compra'}
                       {tx.type === 'SELL' && 'Venda'}
-                      {tx.type === 'DIVIDEND' && 'Rendimento'}
+                      {tx.type.startsWith('DIVIDEND') && 'Rendimento'}
                     </p>
                     <p className="text-[10px] text-muted-foreground uppercase font-medium">
                       {dateFns.format(new Date(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
@@ -83,7 +83,7 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                 </div>
                 
                 <div className="text-right">
-                  {tx.type === 'DIVIDEND' ? (
+                  {tx.type.startsWith('DIVIDEND') ? (
                     <p className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">
                       +{formatMoney(tx.price)}
                     </p>

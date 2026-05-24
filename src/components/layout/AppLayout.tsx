@@ -36,6 +36,8 @@ import { NotificationButton } from "./NotificationButton";
 import { MonthSelector } from "./MonthSelector";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { QuickAddModal } from "@/components/modals/QuickAddModal";
+import { DraggableQuickAddFAB } from "@/components/ui/DraggableQuickAddFAB";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 
@@ -71,7 +73,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
-  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } = useTransactionModal();
 
   // Ativa a escuta de Realtime global para toda a aplicação
   useGlobalRealtime();
@@ -311,14 +313,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         onClose={() => setShowTransactionModal(false)}
       />
 
-      {/* Mobile FAB to open full transaction form */}
-      <Button
-        className="md:hidden fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-xl z-50 transition-transform active:scale-95"
-        size="icon"
-        onClick={handleNewTransaction}
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+      <QuickAddModal 
+        isOpen={showQuickAddModal} 
+        onClose={() => setShowQuickAddModal(false)} 
+      />
+
+      <DraggableQuickAddFAB onClick={() => setShowQuickAddModal(true)} />
     </div>
   );
 }
