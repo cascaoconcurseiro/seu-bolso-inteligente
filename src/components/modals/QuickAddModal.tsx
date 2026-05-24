@@ -164,25 +164,23 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               </div>
             )}
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Valor ({currentCurrency})</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                    {moneyUtils.getSymbol(currentCurrency)}
-                  </span>
-                  <CurrencyInput 
-                    placeholder="0,00"
-                    value={amount} 
-                    onChange={setAmount} 
-                    currency={currentCurrency}
-                    className="pl-9 h-14 text-2xl font-bold bg-transparent"
-                    autoFocus
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label>Valor ({currentCurrency})</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                  {moneyUtils.getSymbol(currentCurrency)}
+                </span>
+                <CurrencyInput 
+                  placeholder="0,00"
+                  value={amount} 
+                  onChange={setAmount} 
+                  currency={currentCurrency}
+                  className="pl-9 h-14 text-2xl font-bold bg-transparent"
+                  autoFocus
+                  required
+                />
               </div>
-            
+            </div>
             <div className="space-y-2">
               <Label>Descrição</Label>
               <div className="relative">

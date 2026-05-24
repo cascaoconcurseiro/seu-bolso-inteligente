@@ -125,7 +125,7 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", // Mudando para o modelo melhor para evitar que ele seja 'burro'
+          model: "llama-3.1-8b-instant", // Modelo ultra-rápido de 8B para autocomplete, economizando cota e respondendo instantaneamente
           messages: [{ role: "system", content: prompt }],
           temperature: 0.1,
           max_tokens: 100,

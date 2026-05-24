@@ -12,6 +12,17 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
   const { data: transactions } = useTransactions({ startDate: '2023-01-01', endDate: '2026-12-31' });
   const { data: categories } = useCategories();
   
+  const transactionsRef = useRef(transactions);
+  const categoriesRef = useRef(categories);
+
+  useEffect(() => {
+    transactionsRef.current = transactions;
+  }, [transactions]);
+
+  useEffect(() => {
+    categoriesRef.current = categories;
+  }, [categories]);
+  
   const debounceRef = useRef<NodeJS.Timeout>();
   const lastPredictedDescRef = useRef<string>('');
 
@@ -43,9 +54,9 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       setIsPredicting(true);
       
       try {
-        const expenseTransactions = (transactions || []).filter(t => t.type === 'EXPENSE' && t.description);
+        const expenseTransactions = (transactionsRef.current || []).filter(t => t.type === 'EXPENSE' && t.description);
         const historyDescriptions = expenseTransactions.map(t => t.description);
-        const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
+        const formattedCategories = (categoriesRef.current || []).map(c => ({ id: c.id, name: c.name }));
         
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description.trim(),
@@ -82,7 +93,7 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       isActive = false;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [description, enabled, transactions, categories]);
+  }, [description, enabled]);
 
   return { suggestion, predictedCategoryId, isPredicting };
 }
