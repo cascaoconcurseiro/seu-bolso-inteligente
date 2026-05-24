@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -62,37 +63,110 @@ export function AdvancedOptions({
 }: AdvancedOptionsProps) {
   return (
     <div className="space-y-4">
-      {/* Installments (manual, non-credit card only) */}
-      {isExpense && !isCreditCard && (
-        <div className="p-4 rounded-xl border border-border bg-card space-y-4">
-          <label className="flex items-center justify-between cursor-pointer select-none py-1">
-            <div className="flex items-center gap-3">
-              <RefreshCw className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Parcelar Despesa</p>
-                <p className="text-sm text-muted-foreground">
-                  Parcelamento manual (ex: empréstimo pessoal)
-                </p>
-              </div>
-            </div>
-            <Switch 
-              checked={isInstallment} 
-              onCheckedChange={(v) => {
-                setIsInstallment(v);
-                if (v && totalInstallments < 2) setTotalInstallments(2);
-              }} 
-            />
-          </label>
+      {/* Label de seção discreto */}
+      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">
+        Opções Avançadas
+      </Label>
 
-          {isInstallment && (
-            <div className="space-y-3 animate-slide-in">
+      {/* Fileira Horizontal de Pílulas Interativas */}
+      <div className="flex items-center gap-2 sm:gap-3 py-1">
+        {isExpense && !isCreditCard && (
+          <button
+            type="button"
+            onClick={() => {
+              const nextState = !isInstallment;
+              setIsInstallment(nextState);
+              if (nextState && totalInstallments < 2) setTotalInstallments(2);
+            }}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+              isInstallment 
+                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+            )}
+          >
+            <RefreshCw className={cn("h-5 w-5", isInstallment && "animate-spin-slow")} />
+            <span className="text-[10px] tracking-tight font-medium">Parcelar</span>
+          </button>
+        )}
+
+        {isExpense && (
+          <button
+            type="button"
+            onClick={() => setIsRefund(!isRefund)}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+              isRefund 
+                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+            )}
+          >
+            <RotateCcw className="h-5 w-5" />
+            <span className="text-[10px] tracking-tight font-medium">Reembolso</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setIsRecurring(!isRecurring)}
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+            isRecurring 
+              ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+              : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+          )}
+        >
+          <Repeat className="h-5 w-5" />
+          <span className="text-[10px] tracking-tight font-medium">Recorrente</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            const nextState = !enableNotification;
+            setEnableNotification(nextState);
+            if (nextState && !notificationDate) setNotificationDate(new Date());
+          }}
+          className={cn(
+            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+            enableNotification 
+              ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+              : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+          )}
+        >
+          <Bell className="h-5 w-5" />
+          <span className="text-[10px] tracking-tight font-medium">Notificação</span>
+        </button>
+      </div>
+
+      {/* Painéis de Detalhes Dinâmicos (só aparecem se o estado estiver ativo) */}
+      <div className="space-y-3 mt-1">
+        
+        {/* 1. Detalhes do Parcelamento Manual */}
+        {isExpense && !isCreditCard && isInstallment && (
+          <div className="p-4 rounded-2xl border border-primary/20 bg-card space-y-4 animate-slide-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4 text-primary animate-spin-slow" />
+                <span className="font-bold text-sm">Parcelamento Manual</span>
+              </div>
+              <Switch 
+                checked={isInstallment} 
+                onCheckedChange={(v) => setIsInstallment(v)} 
+              />
+            </div>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Parcelamento manual (ex: empréstimo pessoal ou acordos fora do cartão).
+            </p>
+
+            <div className="space-y-3 pt-1">
               <div className="space-y-2">
-                <Label>Número de parcelas</Label>
+                <Label className="text-xs">Número de parcelas</Label>
                 <Select
                   value={totalInstallments.toString()}
                   onValueChange={(v) => setTotalInstallments(parseInt(v))}
                 >
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger className="rounded-xl h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -105,138 +179,125 @@ export function AdvancedOptions({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/40">
-                <span className="text-blue-600 dark:text-blue-400 mt-0.5 shrink-0">ℹ️</span>
+
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
+                <span className="text-blue-500 dark:text-blue-400 text-sm mt-0.5 shrink-0">ℹ️</span>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">
-                    Para que serve este parcelamento?
+                  <p className="text-xs font-semibold text-blue-900 dark:text-blue-300">
+                    Aviso Importante
                   </p>
                   <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
-                    Use este modo <strong>apenas para acordos manuais fora do cartão</strong> — por exemplo:
-                    uma pessoa te emprestou R$ 300 e você vai devolver R$ 100 por mês durante 3 meses.
+                    Isso criará <strong>{totalInstallments} transações separadas</strong> no extrato (uma por mês).
                   </p>
                   <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
-                    ⚠️ Isso cria <strong>{totalInstallments} transação(ões) separada(s)</strong>, uma por mês.
-                    Para compras no <strong>cartão de crédito</strong>, use o seletor de parcelas que aparece
-                    automaticamente ao selecionar a conta do cartão.
+                    ⚠️ Para compras no <strong>cartão de crédito</strong>, não use este painel. Use o parcelamento que aparece automaticamente no seletor de contas ao escolher seu cartão.
                   </p>
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Refund (any expense) */}
-      {isExpense && (
-        <div className="p-4 rounded-xl border border-border space-y-4">
-          <label className="flex items-center justify-between cursor-pointer select-none py-1">
-            <div className="flex items-center gap-3">
-              <RotateCcw className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Reembolso</p>
-                <p className="text-sm text-muted-foreground">
-                  Devolução de uma despesa anterior
-                </p>
-              </div>
-            </div>
-            <Switch checked={isRefund} onCheckedChange={setIsRefund} />
-          </label>
-        </div>
-      )}
-
-      {/* Recurring (any type) */}
-      <div className="p-4 rounded-xl border border-border space-y-4">
-        <label className="flex items-center justify-between cursor-pointer select-none py-1">
-          <div className="flex items-center gap-3">
-            <Repeat className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">Recorrente</p>
-              <p className="text-sm text-muted-foreground">
-                Repetir automaticamente
-              </p>
-            </div>
-          </div>
-          <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
-        </label>
-
-        {isRecurring && (
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label>Frequência</Label>
-              <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DAILY">Diariamente</SelectItem>
-                  <SelectItem value="WEEKLY">Semanalmente</SelectItem>
-                  <SelectItem value="MONTHLY">Mensalmente</SelectItem>
-                  <SelectItem value="YEARLY">Anualmente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {frequency === 'MONTHLY' && (
-              <div className="space-y-2">
-                <Label>Dia do mês</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={recurrenceDay}
-                  onChange={(e) => setRecurrenceDay(parseInt(e.target.value) || 1)}
-                  placeholder="1-31"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Dia em que a transação será repetida todo mês
-                </p>
-              </div>
-            )}
           </div>
         )}
-      </div>
 
-      {/* Notifications */}
-      <div className="p-4 rounded-xl border border-border space-y-4">
-        <label className="flex items-center justify-between cursor-pointer select-none py-1">
-          <div className="flex items-center gap-3">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="font-medium">Notificação</p>
-              <p className="text-sm text-muted-foreground">
-                Lembrete antes do vencimento
-              </p>
+        {/* 2. Detalhes de Reembolso */}
+        {isExpense && isRefund && (
+          <div className="p-4 rounded-2xl border border-primary/20 bg-card space-y-3 animate-slide-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="h-4 w-4 text-primary" />
+                <span className="font-bold text-sm">Despesa Reembolsável</span>
+              </div>
+              <Switch checked={isRefund} onCheckedChange={setIsRefund} />
+            </div>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Esta despesa é elegível para devolução ou reembolso posterior de terceiros/empresa.
+            </p>
+          </div>
+        )}
+
+        {/* 3. Detalhes de Recorrência */}
+        {isRecurring && (
+          <div className="p-4 rounded-2xl border border-primary/20 bg-card space-y-4 animate-slide-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Repeat className="h-4 w-4 text-primary" />
+                <span className="font-bold text-sm">Transação Recorrente</span>
+              </div>
+              <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            </div>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Repetir automaticamente este lançamento na frequência abaixo.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="space-y-2">
+                <Label className="text-xs">Frequência</Label>
+                <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
+                  <SelectTrigger className="rounded-xl h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY">Diariamente</SelectItem>
+                    <SelectItem value="WEEKLY">Semanalmente</SelectItem>
+                    <SelectItem value="MONTHLY">Mensalmente</SelectItem>
+                    <SelectItem value="YEARLY">Anualmente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {frequency === 'MONTHLY' && (
+                <div className="space-y-2">
+                  <Label className="text-xs">Dia do mês para repetição</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={recurrenceDay}
+                    onChange={(e) => setRecurrenceDay(parseInt(e.target.value) || 1)}
+                    placeholder="1-31"
+                    className="rounded-xl h-11"
+                  />
+                </div>
+              )}
             </div>
           </div>
-          <Switch checked={enableNotification} onCheckedChange={setEnableNotification} />
-        </label>
+        )}
 
+        {/* 4. Detalhes de Notificação */}
         {enableNotification && (
-          <div className="space-y-2">
-            <Label>Data da notificação</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={notificationDate}
-                  onSelect={setNotificationDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            <p className="text-xs text-muted-foreground">
-              Você receberá um lembrete nesta data
+          <div className="p-4 rounded-2xl border border-primary/20 bg-card space-y-4 animate-slide-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <span className="font-bold text-sm">Lembrete Ativo</span>
+              </div>
+              <Switch checked={enableNotification} onCheckedChange={setEnableNotification} />
+            </div>
+            <p className="text-xs text-muted-foreground leading-normal">
+              Você receberá um lembrete antes do vencimento na data selecionada.
             </p>
+
+            <div className="space-y-2 pt-1">
+              <Label className="text-xs">Data da notificação</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal rounded-xl h-11 border-border/80"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={notificationDate}
+                    onSelect={setNotificationDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         )}
       </div>
