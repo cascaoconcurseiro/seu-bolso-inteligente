@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { AIAdvisorService } from '@/services/aiAdvisorService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 export function useAIPrediction(description: string, enabled: boolean = true) {
+  const { data: profile } = useUserProfile();
+  const useSubcategories = profile?.use_subcategories ?? false;
   const [suggestion, setSuggestion] = useState<string>('');
   const [predictedCategoryId, setPredictedCategoryId] = useState<string | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -85,7 +88,15 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
         }
         
         // Sempre atualiza o predictedCategoryId, mesmo que seja null, para refletir o último texto
-        setPredictedCategoryId(result.categoryId || null);
+        let catId = result.categoryId || null;
+        if (catId && !useSubcategories && categoriesRef.current) {
+          const found = categoriesRef.current.find(c => c.id === catId);
+          if (found && found.parent_category_id) {
+            console.log(`[useAIPrediction] Mapeando subcategoria predita "${found.name}" para o pai correspondente: "${categoriesRef.current.find(c => c.id === found.parent_category_id)?.name}".`);
+            catId = found.parent_category_id;
+          }
+        }
+        setPredictedCategoryId(catId);
         
       } catch (error: any) {
         if (!isActive) return;

@@ -71,6 +71,17 @@ export function BasicInfoSection({
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           )}
+
+          {!isPredicting && suggestion && suggestion !== description && (
+            <button
+              type="button"
+              onClick={onApplySuggestion}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-md transition-colors animate-pulse cursor-pointer"
+              title="Completar sugestão da IA"
+            >
+              <Sparkles className="h-4 w-4" />
+            </button>
+          )}
         </div>
         
         {/* AI Suggestion Chip (Mobile Keyboard Style) */}
