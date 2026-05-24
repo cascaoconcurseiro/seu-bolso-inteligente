@@ -87,25 +87,32 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
     const categoryList = userCategories.map(c => `ID:${c.id} - ${c.name}`).join('\n');
 
     const prompt = `
-Você é uma inteligência artificial embutida no teclado e classificador financeiro do app "Seu Bolso Inteligente".
-O usuário começou a digitar a descrição de uma despesa: "${partialDescription}"
+Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do app "Seu Bolso Inteligente".
+O usuário começou a digitar uma despesa: "${partialDescription}"
 
 Seu trabalho é:
-1. Tentar advinhar qual é a palavra/frase COMPLETA que ele quer escrever baseando-se no histórico dele ou no uso comum de finanças (ex: "Pã" -> "Padaria" ou "Pão de Queijo").
-2. CORRIGIR ERROS DE DIGITAÇÃO E CAPITALIZAÇÃO. Se o usuário digitar "uber", sugira "Uber". Se digitar "ifod", sugira "iFood". Se digitar "craro", sugira "Carro".
-3. Prever qual o ID da categoria correta da despesa na lista de categorias do usuário.
+1. ADIVINHAR A PALAVRA COMPLETA e CORRIGIR ERROS ORTOGRÁFICOS.
+Exemplos de correção: "ifod" -> "iFood", "craro" -> "Carro", "gasola" -> "Gasolina", "mc donals" -> "McDonald's", "pgto" -> "Pagamento", "luz" -> "Conta de Luz".
+2. SELECIONAR A MELHOR CATEGORIA OBRIGATORIAMENTE. Você deve classificar qualquer gasto comum do brasileiro na melhor categoria disponível.
+Exemplos lógicos:
+- Gasolina, Uber, 99, Ônibus, Mecânico -> Transporte / Carro
+- Mercado, iFood, Padaria, Açougue, Sorvete -> Alimentação / Comida
+- Luz, Água, Internet, Aluguel, Condomínio -> Moradia / Casa
+- Farmácia, Médico, Unimed, Dentista -> Saúde
+- Netflix, Spotify, Cinema, Barzinho -> Lazer / Entretenimento
+- Roupas, Tênis, Cabelereiro, Unha -> Pessoal / Cuidados
 
-Histórico recente do usuário (use para aprender o padrão de escrita dele, mas corrija erros absurdos se houver):
+Histórico recente do usuário (use como base, mas corrija erros absurdos):
 [${uniqueHistory.join(', ')}]
 
-Categorias disponíveis:
+Categorias disponíveis no banco de dados do usuário:
 ${categoryList}
 
 REGRA ESTILOSA OBRIGATÓRIA:
-Retorne APENAS um JSON válido, sem NADA a mais, nenhum "markdown", no seguinte formato exato:
+Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se houver qualquer categoria minimamente relacionada na lista.
 {
-  "suggestion": "Frase completa adivinhada",
-  "categoryId": "id_da_categoria_ou_null"
+  "suggestion": "Nome Formatado Corretamente",
+  "categoryId": "id_da_categoria_mais_apropriada"
 }
 `;
 
