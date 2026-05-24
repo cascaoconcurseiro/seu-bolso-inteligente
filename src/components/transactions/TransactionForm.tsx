@@ -318,6 +318,9 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
         return false;
       }
+      if (activeTab === 'TRANSFER') {
+        return true;
+      }
       if (selectedTrip) {
         if (selectedTrip.currency === 'BRL') return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
