@@ -29,13 +29,24 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
     debounceRef.current = setTimeout(async () => {
       setIsPredicting(true);
       try {
-        const historyDescriptions = (transactions || [])
-          .filter(t => t.type === 'EXPENSE' && t.description)
-          .map(t => t.description);
-          
-        const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
+        const expenseTransactions = (transactions || []).filter(t => t.type === 'EXPENSE' && t.description);
         
-        // toast.info("Chamando IA...", { duration: 1000 });
+        // 1. BUSCA LOCAL INSTANTÂNEA (Muito mais rápido e à prova de falhas)
+        const localMatch = expenseTransactions.find(t => 
+          t.description.toLowerCase().startsWith(description.toLowerCase())
+        );
+
+        if (localMatch) {
+          // Achou no histórico local! Responde na mesma hora sem chamar a internet
+          setSuggestion(localMatch.description);
+          setPredictedCategoryId(localMatch.category_id || null);
+          setIsPredicting(false);
+          return;
+        }
+
+        // 2. SE NÃO ACHOU LOCALMENTE, CHAMA A IA
+        const historyDescriptions = expenseTransactions.map(t => t.description);
+        const formattedCategories = (categories || []).map(c => ({ id: c.id, name: c.name }));
         
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description,
@@ -47,7 +58,6 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           setSuggestion(result.suggestion);
         } else {
           setSuggestion('');
-          // toast.error("IA não retornou sugestão.");
         }
         
         if (result.categoryId) {
@@ -59,7 +69,7 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       } finally {
         setIsPredicting(false);
       }
-    }, 600);
+    }, 400); // Reduzido de 600ms para 400ms para ser mais responsivo
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
