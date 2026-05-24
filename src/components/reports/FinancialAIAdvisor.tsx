@@ -74,6 +74,7 @@ export function FinancialAIAdvisor({ reportData }: FinancialAIAdvisorProps) {
     });
   };
 
+  return (
     <div className="w-full mt-6 space-y-4">
       <div className="flex justify-end">
         <Button
