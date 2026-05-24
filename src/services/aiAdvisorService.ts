@@ -146,7 +146,7 @@ Considere a seguinte árvore de decisão estrita para as 15 categorias disponív
 - "Restaurantes e Lanches": Comer fora, almoço de trabalho, jantares, barzinho, chopp, cafeterias (Starbucks), McDonald's, Burger King, lanchonetes, pastelarias, rodízios, sushis, xis, dogão, docerias, ou seja, lanches e refeições prontas para consumo local.
 - "Delivery": Pedidos de comida pronta para entrega domiciliar exclusivamente através de aplicativos como iFood, Rappi, Uber Eats, Zé Delivery ou tele-entrega direta de pizzaria.
 - "Gasolina": Abastecimento de veículo em postos de combustível (gasolina, álcool, diesel, GNV), Posto Ipiranga, Petrobras, Shell, etc.
-- "Transporte": Aplicativos de mobilidade (Uber, 99, táxi), transporte público (ônibus, metrô, trem), tarifas de pedágio, estacionamentos, lavagem, mecânico e manutenção de carros/motos.
+- "Transporte": Qualquer gasto relacionado a locomoção urbana ou manutenção de veículos, como aplicativos de mobilidade (Uber, 99, táxi), transporte público (ônibus, metrô, trem), tarifas de pedágio, estacionamentos, lavagem, mecânico, pneu, seguro, IPVA, licenciamento, conserto e manutenção de carros/motos. A palavra "Carro" isolada ou associada a peças e mecânica pertence obrigatoriamente a "Transporte"!
 - "Moradia": Aluguel, condomínio, IPTU, conta de água, conta de luz (energia), gás de cozinha encanado ou botijão, móveis para casa e pequenas reformas.
 - "Contas e Assinaturas": Netflix, Spotify, Amazon Prime, YouTube Premium, plano de internet banda larga, planos de telefone celular (Vivo, Claro, Tim) e assinaturas recorrentes SaaS.
 - "Saúde": Farmácias (Drogasil, Pague Menos), medicamentos, consultas médicas, exames, planos de saúde (Unimed), dentista e psicólogo.
@@ -157,6 +157,13 @@ Considere a seguinte árvore de decisão estrita para as 15 categorias disponív
 - "Família e Pets": Ração para animais, veterinário, pet shop, despesas com filhos, fraldas e brinquedos.
 - "Impostos e Taxas": Tarifas bancárias, IPVA, multas de trânsito, imposto de renda, juros de cartão e taxas públicas.
 - "Outros": Apenas para despesas que absolutamente não se encaixem em nenhuma das categorias acima.
+
+EXEMPLOS EXPLICITOS DE MAPEAMENTO DIRETO (Mapeie sem hesitar):
+- "carro", "pneu", "mecanico", "oficina", "estacionamento", "pedagio", "lavagem", "seguro auto", "uber", "99pop" -> ID de "Transporte" (NUNCA supermercado ou compras!)
+- "combustivel", "gasolina", "etanol", "diesel", "posto ipiranga", "shell" -> ID de "Gasolina" (NUNCA transporte ou supermercado!)
+- "pao", "cacetinho", "leite", "manteiga", "mercado", "supermercado", "sacolao", "feira" -> ID de "Supermercado"
+- "mcdonalds", "burguer king", "starbucks", "almoço", "jantar", "rodizio", "churrascaria" -> ID de "Restaurantes e Lanches"
+- "ifood", "rappi", "tele pizza", "delivery burguer" -> ID de "Delivery"
 
 4. REGRA DE SOBREVIVÊNCIA: Se você NÃO FAZ IDEIA do que a palavra significa, APENAS formate a primeira letra como maiúscula e categorize como "Outros" ou a categoria mais genérica disponível. NUNCA retorne vazio ou null!
 
