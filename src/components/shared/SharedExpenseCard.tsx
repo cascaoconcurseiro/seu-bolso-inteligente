@@ -231,8 +231,10 @@ export function SharedExpenseCard({
                 const isCredit = item.type === "CREDIT";
                 
                 // NOVO: Status de Confirmação Bilateral (Corrigido para detectar todos os casos de pendência)
-                const isWaitingMe = (isCredit && item.settledByDebtor && !item.settledByCreditor) || 
-                                    (!isCredit && !item.settledByDebtor && item.settledByCreditor);
+                const isWaitingMe = !item.isSettled && (
+                                    (isCredit && item.settledByDebtor && !item.settledByCreditor) || 
+                                    (!isCredit && !item.settledByDebtor && item.settledByCreditor)
+                                  );
                 const isWaitingOther = (isCredit && item.settledByCreditor && !item.settledByDebtor) || 
                                        (!isCredit && item.settledByDebtor && !item.settledByCreditor);
 

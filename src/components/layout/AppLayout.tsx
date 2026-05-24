@@ -280,15 +280,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <MonthSelector />
               </div>
 
-              <div className="flex justify-end md:flex-1">
+              <div className="hidden md:flex justify-end md:flex-1">
                 <Button 
                   size="sm"
                   onClick={handleNewTransaction}
                   className="gap-2 h-10 md:h-9 px-4 md:px-6 shadow-md shadow-primary/20 transition-all active:scale-95"
                 >
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Nova transação</span>
-                  <span className="sm:hidden font-semibold">Nova</span>
+                  <span>Nova transação</span>
                 </Button>
               </div>
             </div>
@@ -311,6 +310,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
       />
+
+      {/* Mobile FAB to open full transaction form */}
+      <Button
+        className="md:hidden fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-xl z-50 transition-transform active:scale-95"
+        size="icon"
+        onClick={handleNewTransaction}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
     </div>
   );
 }

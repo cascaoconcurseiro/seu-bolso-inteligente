@@ -817,7 +817,8 @@ export function Reports() {
         <InstallmentsTable data={installmentsByPerson} formatCurrency={formatCurrency} currency={displayCurrency} />
       </div>
 
-      {/* Detalhamento de Transações do Período */}
+      {/* Detalhamento de Transações do Período - Oculto a pedido do usuário */}
+      {false && (
       <section className="p-6 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-border/80">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -978,6 +979,7 @@ export function Reports() {
           </div>
         )}
       </section>
+      )}
 
       <TransactionModal 
         isOpen={showTransactionModal || !!editingTransaction} 

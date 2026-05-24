@@ -133,6 +133,19 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           .in('id', splitIds);
 
         if (updateError) throw updateError;
+        
+        // Notificar o outro usuário de que as dívidas foram compensadas perfeitamente
+        const otherUserId = member?.linked_user_id || itemsToSettle[0]?.creatorUserId;
+        if (otherUserId && otherUserId !== user.id) {
+          import('@/services/notificationService').then(({ createPerfectCompensationNotification }) => {
+            createPerfectCompensationNotification(
+              otherUserId,
+              user?.user_metadata?.name || user?.email || 'Alguém',
+              itemsToSettle.length
+            ).catch(err => console.error("Error creating perfect compensation notification:", err));
+          });
+        }
+
         toast.success("Compensação realizada com sucesso! As despesas mútuas se anularam.");
       }
       // 2. O usuário é o credor líquido (recebendo o valor compensado)
@@ -155,7 +168,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             amount,
             settlementCurrency,
             splitIds,
-            (data as any)?.transaction_id
+            (data as any)?.transaction_id,
+            isCompensated
           );
         }
         
@@ -180,7 +194,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             user?.user_metadata?.name || user?.email || 'Alguém',
             amount,
             settlementCurrency,
-            splitIds[0]
+            splitIds[0],
+            isCompensated
           );
         }
       }

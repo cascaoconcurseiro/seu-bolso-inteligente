@@ -615,6 +615,28 @@ export function useCreateTransaction() {
               .eq("id", transaction.id);
           }
         }
+        if (finalSplits && finalSplits.length > 0) {
+          try {
+            // Extracts unique user_ids from actual splits inserted
+            const otherUserIds = Array.from(new Set(finalSplits.map(s => {
+              const isUserId = !memberNames[s.member_id] && userIdToName[s.member_id];
+              return isUserId ? s.member_id : memberUserIds[s.member_id];
+            }).filter(uid => uid && uid !== user?.id)));
+
+            for (const otherUserId of otherUserIds) {
+              await createNotification({
+                user_id: otherUserId,
+                type: 'SHARED_EXPENSE',
+                title: 'Novas Transações Compartilhadas',
+                message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou uma transação parcelada compartilhada "${input.description}".`,
+                icon: '🤝',
+                priority: 'NORMAL'
+              }).catch(e => console.error("Erro ao criar notificação de parcelamento compartilhado:", e));
+            }
+          } catch (notificationError) {
+            console.error("Erro ao notificar criação de parcelamento compartilhado:", notificationError);
+          }
+        }
 
         return data;
       }
@@ -722,7 +744,8 @@ export function useCreateTransaction() {
       }
 
       // Se for compartilhada e criada com sucesso, notificar os outros membros do split
-      if (data && (data.is_shared || data.domain === 'SHARED' || input.domain === 'SHARED')) {
+      const isSharedNow = (finalSplits && finalSplits.length > 0) || data?.domain === 'SHARED' || input.domain === 'SHARED';
+      if (data && isSharedNow) {
         try {
           const { data: splitsData } = await supabase
             .from("transaction_splits")

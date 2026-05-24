@@ -304,22 +304,28 @@ async function generateBudgetWarningNotifications(
       const spent = spentByCategory[catId]?.[budget.currency] || 0;
       const percentage = (spent / budget.amount) * 100;
 
-      // Verificar se já existe notificação não dispensada para este orçamento HOJE
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      // Verificar se já existe notificação para este orçamento NESTE MÊS
+      const periodStartStr = periodStart.toISOString().split('T')[0];
       const { data: existingNotification } = await (supabase as any)
         .from('notifications')
-        .select('id, created_at')
+        .select('id, created_at, metadata')
         .eq('user_id', userId)
         .eq('related_id', budget.id)
         .eq('related_type', 'budget')
-        .gte('created_at', today) // Criada hoje ou depois
-        .limit(1)
-        .maybeSingle();
+        .gte('created_at', periodStartStr) // Criada neste mês
+        .limit(50);
 
-      // Se já existe notificação ativa criada hoje, pular
-      if (existingNotification) {
-        logger.debug(`Notificação de orçamento já existe hoje para budget ${budget.id}`);
-        continue;
+      // Precisamos garantir que não criamos a mesma notificação (ex: 80% já notificado)
+      if (existingNotification && existingNotification.length > 0) {
+        const isExceeded = percentage >= 100;
+        const alreadyNotified = existingNotification.some((n: any) => 
+          (isExceeded && n.metadata?.exceeded === true) || 
+          (!isExceeded && n.metadata?.exceeded === false)
+        );
+        if (alreadyNotified) {
+          logger.debug(`Notificação de orçamento já existe este mês para budget ${budget.id}`);
+          continue;
+        }
       }
 
       if (percentage >= 100) {
@@ -417,22 +423,25 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     // Criar notificação para cada membro com pendência significativa
     for (const [memberId, data] of Object.entries(byMember)) {
       if (data.amount >= 10) { // Mínimo de R$ 10 para notificar
-        // Verificar se já existe notificação não dispensada para este membro HOJE
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        // Verificar se já existe notificação não dispensada para este membro nos ÚLTIMOS 7 DIAS
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
         const { data: existingNotification } = await (supabase as any)
           .from('notifications')
-          .select('id, created_at')
+          .select('id, created_at, is_dismissed')
           .eq('user_id', userId)
           .eq('related_id', memberId)
           .eq('related_type', 'family_member')
           .eq('type', 'SHARED_PENDING')
-          .gte('created_at', today) // Criada hoje ou depois
+          .gte('created_at', sevenDaysAgoStr) // Criada nos últimos 7 dias
+          .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        // Se já existe notificação ativa criada hoje, pular
+        // Se já existe notificação recente (ativa ou dispensada nos últimos 7 dias), pular
         if (existingNotification) {
-          logger.debug(`Notificação de compartilhado já existe hoje para membro ${memberId}`);
+          logger.debug(`Notificação de compartilhado já existe nos últimos 7 dias para membro ${memberId}`);
           continue;
         }
 
@@ -461,20 +470,22 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
     const pendingCount = await checkPendingRecurrences(userId);
 
     if (pendingCount > 0) {
-      // Verificar se já existe notificação não dispensada HOJE
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      // Verificar se já existe notificação nos ÚLTIMOS 7 DIAS
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
       const { data: existingNotification } = await (supabase as any)
         .from('notifications')
-        .select('id, created_at')
+        .select('id, created_at, is_dismissed')
         .eq('user_id', userId)
         .eq('type', 'RECURRING_PENDING')
-        .gte('created_at', today) // Criada hoje ou depois
+        .gte('created_at', sevenDaysAgoStr) // Criada nos últimos 7 dias
         .limit(1)
         .maybeSingle();
 
-      // Se já existe notificação ativa criada hoje, pular
+      // Se já existe notificação recente, pular
       if (existingNotification) {
-        logger.debug(`Notificação de recorrência já existe hoje`);
+        logger.debug(`Notificação de recorrência já existe nos últimos 7 dias`);
         return 0;
       }
 
@@ -555,15 +566,17 @@ async function generateLowBalanceNotifications(
 
     for (const acc of accounts) {
       if (acc.balance < threshold) {
-        // Verificar se já existe hoje
-        const today = new Date().toISOString().split('T')[0];
+        // Verificar se já existe nos ÚLTIMOS 7 DIAS
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
         const { data: existing } = await (supabase as any)
           .from('notifications')
           .select('id')
           .eq('user_id', userId)
           .eq('related_id', acc.id)
           .eq('type', 'LOW_BALANCE')
-          .gte('created_at', today)
+          .gte('created_at', sevenDaysAgoStr)
           .limit(1)
           .maybeSingle();
 
@@ -604,15 +617,17 @@ async function generateCreditLimitNotifications(
       const percentage = (spent / Number(card.credit_limit)) * 100;
 
       if (percentage >= thresholdPct) {
-        // Verificar se já existe hoje
-        const today = new Date().toISOString().split('T')[0];
+        // Verificar se já existe nos ÚLTIMOS 7 DIAS
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
         const { data: existing } = await (supabase as any)
           .from('notifications')
           .select('id')
           .eq('user_id', userId)
           .eq('related_id', card.id)
           .eq('type', 'CREDIT_LIMIT_WARNING')
-          .gte('created_at', today)
+          .gte('created_at', sevenDaysAgoStr)
           .limit(1)
           .maybeSingle();
 

@@ -563,16 +563,21 @@ export async function createSettlementRequestNotification(
   debtorName: string,
   amount: number,
   currency: string,
-  splitId: string
+  splitId: string,
+  isCompensated?: boolean
 ): Promise<void> {
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(v);
+
+  const message = isCompensated
+    ? `${debtorName} realizou uma compensação de dívidas e marcou o acerto líquido de ${formatCurrency(amount)} como pago. Por favor, confirme o recebimento.`
+    : `${debtorName} marcou um pagamento de ${formatCurrency(amount)} como realizado. Por favor, confirme o recebimento.`;
 
   await createNotification({
     user_id: userId,
     type: 'SETTLEMENT_REQUEST',
     title: 'Confirmação de Pagamento',
-    message: `${debtorName} marcou um pagamento de ${formatCurrency(amount)} como realizado. Por favor, confirme o recebimento.`,
+    message: message,
     icon: '💰',
     action_url: `/compartilhados?confirmSettlement=${splitId}`,
     action_label: 'Confirmar',
@@ -591,16 +596,21 @@ export async function createDebtorSettlementRequestNotification(
   amount: number,
   currency: string,
   splitIds: string[],
-  creditorTxId: string
+  creditorTxId: string,
+  isCompensated?: boolean
 ): Promise<void> {
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(v);
+
+  const message = isCompensated
+    ? `${creditorName} realizou uma compensação de dívidas e informou que você deve transferir o valor líquido de ${formatCurrency(amount)}. Por favor, selecione a conta de onde saiu o dinheiro para confirmar ou recuse o acerto.`
+    : `${creditorName} informou que recebeu o acerto de ${formatCurrency(amount)}. Por favor, selecione a conta de onde saiu o dinheiro para confirmar ou recuse o acerto.`;
 
   await createNotification({
     user_id: userId,
     type: 'SETTLEMENT_REQUEST',
     title: 'Confirmar Saída de Dinheiro',
-    message: `${creditorName} informou que recebeu o acerto de ${formatCurrency(amount)}. Por favor, selecione a conta de onde saiu o dinheiro para confirmar ou recuse o acerto.`,
+    message: message,
     icon: '💰',
     action_url: `/compartilhados?confirmPaymentSplit=${splitIds.join(',')}`,
     action_label: 'Confirmar Conta',
@@ -614,6 +624,26 @@ export async function createDebtorSettlementRequestNotification(
       amount,
       currency
     }
+  });
+}
+
+/**
+ * Cria notificação de compensação perfeita (zerada)
+ */
+export async function createPerfectCompensationNotification(
+  userId: string,
+  userName: string,
+  itemCount: number
+): Promise<void> {
+  await createNotification({
+    user_id: userId,
+    type: 'SHARED_SETTLED',
+    title: 'Dívidas Compensadas',
+    message: `${userName} realizou uma compensação perfeita de ${itemCount} despesas mútuas. Os valores se anularam e não há pendências.`,
+    icon: '✅',
+    action_url: '/compartilhados?tab=history',
+    action_label: 'Ver Histórico',
+    priority: 'NORMAL',
   });
 }
 
