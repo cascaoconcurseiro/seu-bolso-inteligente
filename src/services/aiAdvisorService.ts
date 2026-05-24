@@ -48,26 +48,54 @@ SUA MISSÃO:
 Não invente números, use apenas os dados acima. Se os dados estiverem todos zerados, diga que precisa de mais movimentações para gerar uma análise.
 `;
 
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-8b-instant", // Modelo econômico de baixo custo-benefício
-        messages: [{ role: "system", content: prompt }],
-        temperature: 0.5,
-        max_tokens: 600,
-      })
-    });
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant", // Modelo econômico de baixo custo-benefício
+          messages: [{ role: "system", content: prompt }],
+          temperature: 0.5,
+          max_tokens: 600,
+        })
+      });
 
-    if (!response.ok) {
-      console.error("Erro na Groq API:", await response.text());
+      if (response.ok) {
+        const result = await response.json();
+        return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
+      }
+      throw new Error(`API servidora retornou status ${response.status}`);
+    } catch (error) {
+      console.warn("[AIAdvisorService] Falha na chamada da API servidora para análise financeira. Tentando fallback direto no cliente...", error);
+      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (clientApiKey) {
+        try {
+          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: prompt }],
+              temperature: 0.5,
+              max_tokens: 600,
+            })
+          });
+
+          if (directResponse.ok) {
+            const result = await directResponse.json();
+            return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
+          }
+        } catch (fallbackError) {
+          console.error("[AIAdvisorService] Erro no fallback direto de análise financeira:", fallbackError);
+        }
+      }
       throw new Error("Falha ao se comunicar com a Inteligência Artificial.");
     }
-
-    const result = await response.json();
-    return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
   }
 
   /**
@@ -134,8 +162,7 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erro na API: ${response.status} - ${errorText}`);
+        throw new Error(`API servidora retornou status ${response.status}`);
       }
 
       const result = await response.json();
@@ -143,17 +170,10 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
       
       let finalCategoryId = parsed.categoryId || null;
       if (finalCategoryId && typeof finalCategoryId === 'string') {
-        finalCategoryId = finalCategoryId.trim();
-        // Remove eventuais prefixos 'id:', 'id-', 'id_' criados incorretamente por modelos menores
-        if (finalCategoryId.toLowerCase().startsWith('id:')) {
-          finalCategoryId = finalCategoryId.slice(3).trim();
-        } else if (finalCategoryId.toLowerCase().startsWith('id-')) {
-          finalCategoryId = finalCategoryId.slice(3).trim();
-        } else if (finalCategoryId.toLowerCase().startsWith('id_')) {
-          finalCategoryId = finalCategoryId.slice(3).trim();
-        }
-        // Remove aspas simples, duplas, chaves ou colchetes extras que possam ter restado
-        finalCategoryId = finalCategoryId.replace(/['"{}[:\]]/g, '').trim();
+        finalCategoryId = finalCategoryId.trim().replace(/['"{}[:\]]/g, '').trim();
+        if (finalCategoryId.toLowerCase().startsWith('id:')) finalCategoryId = finalCategoryId.slice(3).trim();
+        else if (finalCategoryId.toLowerCase().startsWith('id-')) finalCategoryId = finalCategoryId.slice(3).trim();
+        else if (finalCategoryId.toLowerCase().startsWith('id_')) finalCategoryId = finalCategoryId.slice(3).trim();
       }
 
       return {
@@ -161,7 +181,47 @@ Retorne APENAS um JSON válido. É PROIBIDO retornar null para categoryId se hou
         categoryId: finalCategoryId
       };
     } catch (error) {
-      console.error("Erro na predição AI:", error);
+      console.warn("[AIAdvisorService] Falha na chamada da API servidora para autocomplete. Iniciando fallback direto no cliente...", error);
+      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (clientApiKey) {
+        try {
+          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: prompt }],
+              temperature: 0.1,
+              max_tokens: 100,
+              response_format: { type: "json_object" }
+            })
+          });
+
+          if (directResponse.ok) {
+            const result = await directResponse.json();
+            const parsed = JSON.parse(result.choices[0].message.content);
+            
+            let finalCategoryId = parsed.categoryId || null;
+            if (finalCategoryId && typeof finalCategoryId === 'string') {
+              finalCategoryId = finalCategoryId.trim().replace(/['"{}[:\]]/g, '').trim();
+              if (finalCategoryId.toLowerCase().startsWith('id:')) finalCategoryId = finalCategoryId.slice(3).trim();
+              else if (finalCategoryId.toLowerCase().startsWith('id-')) finalCategoryId = finalCategoryId.slice(3).trim();
+              else if (finalCategoryId.toLowerCase().startsWith('id_')) finalCategoryId = finalCategoryId.slice(3).trim();
+            }
+
+            console.log("[AIAdvisorService] Autocomplete via fallback direto na Groq concluído com sucesso!");
+            return {
+              suggestion: parsed.suggestion || "",
+              categoryId: finalCategoryId
+            };
+          }
+        } catch (fallbackError) {
+          console.error("[AIAdvisorService] Erro no fallback direto de autocomplete:", fallbackError);
+        }
+      }
       return { suggestion: "", categoryId: null };
     }
   }
