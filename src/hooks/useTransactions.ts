@@ -574,16 +574,24 @@ export function useCreateTransaction() {
           }
 
           for (const transaction of data) {
-            const splitsToInsert = finalSplits.map(split => {
+            let allocatedSum = 0;
+            const splitsToInsert = finalSplits.map((split, index) => {
               const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
               const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
               const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
               const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
               
-              const splitAmount = SafeFinancialCalculator.percentage(
-                transaction.amount,
-                split.percentage
-              );
+              let splitAmount = 0;
+              if (index === finalSplits.length - 1) {
+                // Último membro recebe o resíduo exato para fechar perfeitamente com o valor da parcela
+                splitAmount = SafeFinancialCalculator.subtract(transaction.amount, allocatedSum);
+              } else {
+                splitAmount = SafeFinancialCalculator.percentage(
+                  transaction.amount,
+                  split.percentage
+                );
+                allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
+              }
               
               return {
                 transaction_id: transaction.id,
@@ -707,18 +715,30 @@ export function useCreateTransaction() {
           }
         });
 
-        const splitsToInsert = finalSplits.map(split => {
+        let allocatedSum = 0;
+        const splitsToInsert = finalSplits.map((split, index) => {
           const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
           const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
           const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
           const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
+          
+          let splitAmount = 0;
+          if (index === finalSplits.length - 1) {
+            // Último membro recebe o resíduo exato para fechar perfeitamente com o total da transação
+            splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
+          } else {
+            // Se vier split.amount do front, usamos. Caso contrário calculamos pela porcentagem
+            const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
+            splitAmount = baseAmount;
+            allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
+          }
           
           return {
             transaction_id: data.id,
             member_id: actualMemberId,
             user_id: actualUserId,
             percentage: split.percentage,
-            amount: split.amount,
+            amount: splitAmount,
             name: actualName || "Membro",
             is_settled: false,
           };
