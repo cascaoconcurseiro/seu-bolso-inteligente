@@ -544,7 +544,34 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
           onApplySuggestion={handleApplySuggestion}
         /> 
         
-        {isExpense && <TripSelector tripId={tripId} setTripId={setTripId} trips={trips || []} />}
+        {isExpense && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TripSelector tripId={tripId} setTripId={setTripId} trips={trips || []} />
+            {availableMembers.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-semibold text-foreground">Divisão de Despesa</Label>
+                <Button
+                  type="button"
+                  variant={hasSharing ? 'default' : 'outline'}
+                  className="w-full h-11 justify-between px-4 rounded-xl font-medium shadow-sm transition-all"
+                  onClick={() => setShowSplitModal(true)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>
+                      {hasSharing 
+                        ? `${splits.length + 1} pessoas (${payerId === 'me' ? 'Eu paguei' : 'Outro pagou'})` 
+                        : 'Dividir Despesa'}
+                    </span>
+                  </span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider bg-background/20 px-2 py-0.5 rounded-full">
+                    {hasSharing ? 'Editar' : 'Dividir'}
+                  </span>
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
         
         <AccountSelector accountId={accountId} setAccountId={setAccountId} activeTab={activeTab} destinationAccountId={destinationAccountId} setDestinationAccountId={setDestinationAccountId} filteredAccounts={filteredAccounts} transferAccounts={transferAccounts} selectedTrip={selectedTrip} selectedAccount={selectedAccount} isPaidByOther={isPaidByOther} payerName={payerId !== 'me' ? (familyMembers || []).find(m => m.id === payerId)?.name || 'outro' : ''} />
 
@@ -638,15 +665,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
           </div>
         )}
 
-        {isExpense && availableMembers.length > 0 && (
-          <div className="p-4 rounded-xl border border-border space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3"><Users className="h-5 w-5 text-muted-foreground" /><div><p className="font-medium">Dividir despesa</p><p className="text-sm text-muted-foreground">{hasSharing ? `${splits.length} pessoa(s) · ${payerId !== 'me' ? 'Outro pagou' : 'Eu paguei'}` : tripId ? 'Compartilhar com membros da viagem' : 'Compartilhar com família'}</p></div></div>
-              <Button type="button" variant={hasSharing ? 'default' : 'outline'} size="sm" onClick={() => setShowSplitModal(true)}>{hasSharing ? 'Editar' : 'Dividir'}</Button>
-            </div>
-            {hasSharing && splits.length > 0 && <p className="text-sm text-primary">Cada pessoa paga: {getCurrencySymbol(transactionCurrency)} {((parseFloat(amount) || 0) * splits[0].percentage / 100).toFixed(2)}</p>}
-          </div>
-        )}
+
 
         <AdvancedOptions isExpense={isExpense} isCreditCard={isCreditCard} isInstallment={isInstallment} setIsInstallment={setIsInstallment} totalInstallments={totalInstallments} setTotalInstallments={setTotalInstallments} isRefund={isRefund} setIsRefund={setIsRefund} isRecurring={isRecurring} setIsRecurring={setIsRecurring} frequency={frequency} setFrequency={setFrequency} recurrenceDay={recurrenceDay} setRecurrenceDay={setRecurrenceDay} enableNotification={enableNotification} setEnableNotification={setEnableNotification} notificationDate={notificationDate} setNotificationDate={setNotificationDate} currencySymbol={getCurrencySymbol(transactionCurrency)} numericAmount={parseFloat(amount) || 0} />
 

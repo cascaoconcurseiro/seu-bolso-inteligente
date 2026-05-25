@@ -34,8 +34,6 @@ import { exportToCSV, exportToPDF } from "@/utils/exportData";
 import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
-import { SharedFinancesTable } from "@/components/reports/SharedFinancesTable";
-import { InstallmentsTable } from "@/components/reports/InstallmentsTable";
 import { FinancialAIAdvisor } from "@/components/reports/FinancialAIAdvisor";
 
 const getTransactionCurrency = (tx: any): string => {
@@ -830,8 +828,6 @@ export function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />
         <CategoryDistribution data={categoryData} formatCurrency={formatCurrency} currency={displayCurrency} />
-        <SharedFinancesTable data={personData} formatCurrency={formatCurrency} currency={displayCurrency} />
-        <InstallmentsTable data={installmentsByPerson} formatCurrency={formatCurrency} currency={displayCurrency} />
       </div>
 
       {/* Detalhamento de Transações do Período - Oculto a pedido do usuário */}

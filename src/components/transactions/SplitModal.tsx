@@ -17,7 +17,7 @@ import { moneyUtils } from '@/utils/money';
 
 import { TransactionSplitData } from '@/types/transactions';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 interface SplitModalProps {
   isOpen: boolean;
@@ -56,13 +56,43 @@ export function SplitModal({
   currentUserName,
   currentUserMemberId,
 }: SplitModalProps) {
+  // Estado local para a minha porcentagem de partilha quando o parceiro pagou
+  const [mySplitPercentage, setMySplitPercentage] = useState<number>(50);
+
+  // Sincroniza o estado local ao abrir o modal para carregar splits existentes se houver
+  useEffect(() => {
+    if (isOpen) {
+      if (payerId !== 'me' && splits.length > 0) {
+        setMySplitPercentage(Number((100 - splits[0].percentage).toFixed(1)));
+      } else {
+        setMySplitPercentage(50);
+      }
+    }
+  }, [isOpen, payerId]);
+
+  // Sempre que mySplitPercentage ou payerId mudar quando outro pagou (payerId !== 'me'), atualiza os splits no formato do banco
+  useEffect(() => {
+    if (isOpen && payerId !== 'me') {
+      const partnerPercentage = 100 - mySplitPercentage;
+      const partnerAmount = Number(((activeAmount * partnerPercentage) / 100).toFixed(2));
+      
+      // Define o split contendo apenas o parceiro que pagou
+      setSplits([{
+        memberId: payerId,
+        percentage: partnerPercentage,
+        amount: partnerAmount
+      }]);
+    }
+  }, [mySplitPercentage, payerId, activeAmount, isOpen]);
+
   console.log('🔵 [SplitModal] Renderizado com:', { 
     isOpen, 
     splits, 
     familyMembers: familyMembers.length, 
     activeAmount,
     payerId,
-    currentUserMemberId
+    currentUserMemberId,
+    mySplitPercentage
   });
 
   // Filtro de outros membros da família (exclui o usuário atual) para o seletor de quem pagou
@@ -257,115 +287,204 @@ export function SplitModal({
             )}
           </div>
 
-          {/* 2. QUEM DIVIDE? */}
-          <div className="space-y-3">
-            <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-              Dividir com quem?
-            </Label>
-            {checklistMembers.length === 0 ? (
-              <div className="text-center py-8 border border-dashed border-border rounded-lg">
-                <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Adicione pessoas para dividir despesas.
-                </p>
-                {onNavigateToFamily && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onNavigateToFamily}
-                    className="mt-3"
-                  >
-                    Ir para Família
-                  </Button>
-                )}
+          {payerId !== 'me' ? (
+            /* NOVO PAINEL EXCLUSIVO: MINHA PARTICIPAÇÃO NO "OUTRO PAGOU" */
+            <div className="space-y-4 border border-border p-4 rounded-xl bg-card">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+                  Minha Participação
+                </Label>
+                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  Outro Pagou
+                </span>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {checklistMembers.map((member) => {
-                  const split = splits.find((s) => s.memberId === member.id);
-                  const isSelected = !!split;
-                  return (
-                    <div
-                      key={member.id}
-                      onClick={() => toggleSplitMember(member.id)}
-                      className={cn(
-                        'p-4 flex items-center justify-between cursor-pointer rounded-lg border transition-all',
-                        isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
-                          {getInitials(member.name)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{member.name}</p>
-                          {member.linked_user_id && (
-                            <p className="text-xs text-primary">
-                              Usuário vinculado ✓
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {isSelected && <Check className="h-5 w-5 text-primary" />}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
-          {/* 3. PRESETS DE DIVISÃO RÁPIDA */}
-          {splits.length > 0 && (
-            <div className="space-y-3">
-              <Label className="text-xs uppercase tracking-widest text-muted-foreground">
-                Divisão Rápida
-              </Label>
-              <div className="grid grid-cols-3 gap-2">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Como <strong>{familyMembers.find(m => m.id === payerId)?.name || 'Parceiro'}</strong> pagou o valor total, defina abaixo a sua porcentagem de participação na despesa. O valor da sua fatia gerará uma dívida sua com essa pessoa.
+              </p>
+
+              {/* Seletor Rápido de Percentual */}
+              <div className="grid grid-cols-4 gap-2 pt-2">
                 {[
-                  { label: '50/50', myPct: 50 },
-                  { label: '60/40', myPct: 60 },
-                  { label: '70/30', myPct: 70 },
-                  { label: '80/20', myPct: 80 },
-                  { label: currentUserName ? `Só ${currentUserName}` : 'Só eu', myPct: 100 },
-                  { label: 'Só parceiro', myPct: 0 },
+                  { label: 'Meio a Meio (50%)', pct: 50 },
+                  { label: 'Só Eu (100%)', pct: 100 },
+                  { label: 'Proporcional (30%)', pct: 30 },
+                  { label: 'Só Parceiro (0%)', pct: 0 },
                 ].map((preset) => {
-                  const otherPct = 100 - preset.myPct;
-                  const isActive =
-                    splits.length > 0 && Math.round(totalOtherPct) === otherPct;
-
+                  const isActive = mySplitPercentage === preset.pct;
                   return (
                     <Button
                       key={preset.label}
                       type="button"
                       variant={isActive ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => applyPreset(preset.myPct)}
+                      className="py-2 text-[10px] sm:text-xs font-medium rounded-xl h-10 flex flex-col items-center justify-center gap-0.5 leading-none shadow-sm"
+                      onClick={() => setMySplitPercentage(preset.pct)}
                     >
-                      {preset.label}
+                      <span className="font-bold">{preset.pct}%</span>
+                      <span className="text-[8px] opacity-75">{preset.pct === 50 ? 'Meio' : preset.pct === 100 ? 'Tudo' : preset.pct === 0 ? 'Nada' : 'Prop.'}</span>
                     </Button>
                   );
                 })}
               </div>
 
-              <div className="p-3 rounded-lg bg-muted text-sm">
-                <span className="text-muted-foreground">Parceiro paga: </span>
-                <span className="font-medium">
-                  {totalOtherPct.toFixed(0)}% = R${' '}
-                  {((activeAmount * totalOtherPct) / 100).toFixed(2)}
-                </span>
+              {/* Input de Ajuste Fino */}
+              <div className="flex items-center gap-3 pt-2">
+                <Label htmlFor="my-percentage" className="text-xs font-semibold whitespace-nowrap">
+                  Ajuste Fino (%):
+                </Label>
+                <div className="relative flex-1">
+                  <Input
+                    id="my-percentage"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    value={mySplitPercentage}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setMySplitPercentage(isNaN(val) ? 0 : Math.min(100, Math.max(0, val)));
+                    }}
+                    className="h-10 pr-8 text-center font-bold text-sm rounded-xl"
+                  />
+                  <span className="absolute right-3 top-2.5 text-xs text-muted-foreground font-semibold">
+                    %
+                  </span>
+                </div>
+              </div>
+
+              {/* Resumo de Custos em Cards Horizontais */}
+              <div className="grid grid-cols-2 gap-3 pt-3">
+                <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Minha Fatia (A Pagar)</span>
+                  <span className="text-base font-black text-primary mt-1.5 leading-none">
+                    R$ {((activeAmount * mySplitPercentage) / 100).toFixed(2).replace('.', ',')}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">Sua dívida com {familyMembers.find(m => m.id === payerId)?.name || 'parceiro'}</span>
+                </div>
+
+                <div className="p-3.5 rounded-xl border border-border bg-muted/40 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Custo do Parceiro</span>
+                  <span className="text-base font-black text-foreground mt-1.5 leading-none">
+                    R$ {((activeAmount * (100 - mySplitPercentage)) / 100).toFixed(2).replace('.', ',')}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">Parte que ele(a) consumiu</span>
+                </div>
               </div>
             </div>
-          )}
+          ) : (
+            /* AQUI FICA A RENDERIZAÇÃO ANTIGA (QUEM DIVIDE E PRESETS) QUANDO "EU PAGUEI" */
+            <>
+              {/* 2. QUEM DIVIDE? */}
+              <div className="space-y-3">
+                <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Dividir com quem?
+                </Label>
+                {checklistMembers.length === 0 ? (
+                  <div className="text-center py-8 border border-dashed border-border rounded-lg">
+                    <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Adicione pessoas para dividir despesas.
+                    </p>
+                    {onNavigateToFamily && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onNavigateToFamily}
+                        className="mt-3"
+                      >
+                        Ir para Família
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {checklistMembers.map((member) => {
+                      const split = splits.find((s) => s.memberId === member.id);
+                      const isSelected = !!split;
+                      return (
+                        <div
+                          key={member.id}
+                          onClick={() => toggleSplitMember(member.id)}
+                          className={cn(
+                            'p-4 flex items-center justify-between cursor-pointer rounded-lg border transition-all',
+                            isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/50'
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
+                              {getInitials(member.name)}
+                            </div>
+                            <div>
+                              <p className="font-medium">{member.name}</p>
+                              {member.linked_user_id && (
+                                <p className="text-xs text-primary">
+                                  Usuário vinculado ✓
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {isSelected && <Check className="h-5 w-5 text-primary" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-          <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-            <p>
-              <strong>Nota:</strong> Se você selecionou que "Outro Pagou", o valor
-              total será registrado como uma dívida sua com essa pessoa, descontando
-              a parte que você dividiu (se houver).
-            </p>
-          </div>
+              {/* 3. PRESETS DE DIVISÃO RÁPIDA */}
+              {splits.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Divisão Rápida
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: '50/50', myPct: 50 },
+                      { label: '60/40', myPct: 60 },
+                      { label: '70/30', myPct: 70 },
+                      { label: '80/20', myPct: 80 },
+                      { label: currentUserName ? `Só ${currentUserName}` : 'Só eu', myPct: 100 },
+                      { label: 'Só parceiro', myPct: 0 },
+                    ].map((preset) => {
+                      const otherPct = 100 - preset.myPct;
+                      const isActive =
+                        splits.length > 0 && Math.round(totalOtherPct) === otherPct;
+
+                      return (
+                        <Button
+                          key={preset.label}
+                          type="button"
+                          variant={isActive ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => applyPreset(preset.myPct)}
+                        >
+                          {preset.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-muted text-sm">
+                    <span className="text-muted-foreground">Parceiro paga: </span>
+                    <span className="font-medium">
+                      {totalOtherPct.toFixed(0)}% = R${' '}
+                      {((activeAmount * totalOtherPct) / 100).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                <p>
+                  <strong>Nota:</strong> O valor que você dividiu com os membros
+                  será registrado como saldo a receber ou dívida, dependendo de
+                  quem pagou e da fatia de cada um.
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter>
