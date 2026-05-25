@@ -148,7 +148,9 @@ export class CategoryPredictionService {
             name
           )
         `)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('last_used_at', { ascending: false, nullsFirst: false })
+        .limit(200);
       
       if (error || !data || data.length === 0) return null;
       

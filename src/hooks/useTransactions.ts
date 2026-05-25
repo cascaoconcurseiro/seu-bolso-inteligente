@@ -817,9 +817,13 @@ export function useDeleteTransaction() {
       // 1. Buscar a transação antes de deletar
       const { data: existingTx } = await supabase
         .from("transactions")
-        .select("is_shared, domain, description, user_id")
+        .select("is_shared, domain, description, user_id, is_settled")
         .eq("id", id)
         .maybeSingle();
+
+      if (existingTx && existingTx.is_settled) {
+        throw new Error("Esta transação já foi liquidada/acertada. Desfaça o acerto antes de excluí-la.");
+      }
 
       // 2. Se for compartilhada, buscar splits antes de deletar
       let otherUserIds: string[] = [];
@@ -920,9 +924,13 @@ export function useUpdateTransaction() {
       // 1. Buscar a transação existente antes de atualizar para saber se é compartilhada e obter detalhes
       const { data: existingTx } = await supabase
         .from("transactions")
-        .select("is_shared, domain, description, user_id, account_id, date")
+        .select("is_shared, domain, description, user_id, account_id, date, is_settled")
         .eq("id", id)
         .maybeSingle();
+
+      if (existingTx && existingTx.is_settled) {
+        throw new Error("Esta transação já foi liquidada/acertada e não pode ser editada. Desfaça o acerto antes de alterá-la.");
+      }
 
       let cardClosingDay: number | null = null;
       const accountId = input.account_id !== undefined ? input.account_id : (existingTx ? (existingTx as any).account_id : null);
