@@ -104,6 +104,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(
     description,
+    predictionType || 'expense',
     !!predictionType
   );
 

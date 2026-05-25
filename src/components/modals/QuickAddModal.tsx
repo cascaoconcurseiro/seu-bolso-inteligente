@@ -122,7 +122,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
     }
   }, [accountId, isCreditCard]);
 
-  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, isOpen);
+  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, 'expense', isOpen);
 
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useTransactions } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
-export function useAIPrediction(description: string, enabled: boolean = true) {
+export function useAIPrediction(description: string, type: 'expense' | 'income' = 'expense', enabled: boolean = true) {
   const [suggestion, setSuggestion] = useState<string>('');
   const [predictedCategoryId, setPredictedCategoryId] = useState<string | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -67,8 +67,9 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
       setIsPredicting(true);
       
       try {
-        const expenseTransactions = (transactionsRef.current || []).filter(t => 
-          t.type === 'EXPENSE' && 
+        const targetType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+        const historyTransactions = (transactionsRef.current || []).filter(t => 
+          t.type === targetType && 
           t.description && 
           typeof t.description === 'string' &&
           t.description.length < 150 && 
@@ -77,12 +78,12 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
         );
         const uniqueDescriptions = Array.from(
           new Set(
-            expenseTransactions.map(t => t.description.substring(0, 50).trim())
+            historyTransactions.map(t => t.description.substring(0, 50).trim())
           )
         ).filter(d => d.length >= 2);
         const historyDescriptions = uniqueDescriptions.slice(0, 20); // Limita a 20 itens únicos no frontend antes de enviar pela rede!
         
-        // Filtrar estritamente as categorias legítimas de despesa enviadas para a IA (máximo de 15 pais e suas subcategorias legítimas)
+        // Filtrar estritamente as categorias legítimas baseadas no tipo de transação
         const ALLOWED_EXPENSE_PARENTS = [
           "Supermercado",
           "Restaurantes e Lanches",
@@ -101,14 +102,23 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
           "Outros"
         ];
 
+        const ALLOWED_INCOME_PARENTS = [
+          "Trabalho",
+          "Investimentos",
+          "Renda Extra",
+          "Sistema",
+          "Outros"
+        ];
+
         const allCats = categoriesRef.current || [];
         const filteredCats = allCats.filter(c => {
-          if (c.type !== 'expense') return false;
+          if (c.type !== type) return false;
+          const allowedParents = type === 'expense' ? ALLOWED_EXPENSE_PARENTS : ALLOWED_INCOME_PARENTS;
           if (!c.parent_category_id) {
-            return ALLOWED_EXPENSE_PARENTS.includes(c.name);
+            return allowedParents.includes(c.name);
           }
           const parent = allCats.find(p => p.id === c.parent_category_id);
-          return parent ? ALLOWED_EXPENSE_PARENTS.includes(parent.name) : false;
+          return parent ? allowedParents.includes(parent.name) : false;
         });
 
         // Se o usuário não usar subcategorias, envia apenas as categorias pai permitidas
@@ -180,7 +190,7 @@ export function useAIPrediction(description: string, enabled: boolean = true) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [description, enabled, categoriesHash, useSubcategories]);
+  }, [description, type, enabled, categoriesHash, useSubcategories]);
 
   return { suggestion, predictedCategoryId, isPredicting };
 }
