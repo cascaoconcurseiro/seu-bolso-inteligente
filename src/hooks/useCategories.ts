@@ -36,6 +36,7 @@ export function useCategories() {
         .from("categories")
         .select("*")
         .eq("user_id", user!.id)
+        .is("deleted_at", null)
         .order("name");
 
       if (error) throw error;
@@ -126,35 +127,12 @@ export function useDeleteCategory() {
         );
       }
 
-      // INTEGRIDADE DO BANCO: Verificar transações vinculadas antes de excluir
-      const { count: txCount } = await supabase
-        .from("transactions")
-        .select("id", { count: "exact", head: true })
-        .eq("category_id", id);
-
-      if (txCount && txCount > 0) {
-        throw new Error(
-          `Esta categoria está vinculada a ${txCount} transação(ões). ` +
-          `Mude a categoria dessas transações antes de excluir ou elas ficarão sem categorização.`
-        );
-      }
-
-      // INTEGRIDADE DO BANCO: Verificar orçamentos vinculados antes de excluir
-      const { count: budgetCount } = await supabase
-        .from("budgets")
-        .select("id", { count: "exact", head: true })
-        .eq("category_id", id);
-
-      if (budgetCount && budgetCount > 0) {
-        throw new Error(
-          `Esta categoria está associada a ${budgetCount} orçamento(s) ativo(s). ` +
-          `Remova ou atualize os orçamentos vinculados antes de excluir a categoria.`
-        );
-      }
+      // Removida a validação de transações e orçamentos vinculados, pois agora usamos Soft Delete.
+      // O histórico financeiro será mantido intacto.
 
       const { error } = await supabase
         .from("categories")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
 
       if (error) throw error;

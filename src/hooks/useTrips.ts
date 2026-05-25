@@ -75,6 +75,7 @@ export function useTrips() {
         .from("trips")
         .select("*")
         .in("id", tripIds)
+        .is("deleted_at", null)
         .order("start_date", { ascending: false });
 
       if (tripsError) throw tripsError;
@@ -271,7 +272,7 @@ export function useDeleteTrip() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("trips")
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq("id", id);
 
       if (error) throw error;
