@@ -2,7 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell } from 'lucide-react';
+import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -37,6 +37,15 @@ interface AdvancedOptionsProps {
   setNotificationDate: (v: Date | undefined) => void;
   currencySymbol: string;
   numericAmount: number;
+  
+  // Novas propriedades integradas para Viagem e Partilha
+  tripId: string;
+  setTripId: (v: string) => void;
+  trips: any[];
+  hasSharing: boolean;
+  setShowSplitModal: (v: boolean) => void;
+  splits: any[];
+  availableMembers: any[];
 }
 
 export function AdvancedOptions({
@@ -59,17 +68,97 @@ export function AdvancedOptions({
   notificationDate,
   setNotificationDate,
   currencySymbol,
-  numericAmount
+  numericAmount,
+  
+  // Desestruturando novas propriedades
+  tripId,
+  setTripId,
+  trips,
+  hasSharing,
+  setShowSplitModal,
+  splits,
+  availableMembers,
 }: AdvancedOptionsProps) {
   return (
     <div className="space-y-4">
       {/* Label de seção discreto */}
       <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">
-        Opções Avançadas
+        Recursos e Opções
       </Label>
 
-      {/* Fileira Horizontal de Pílulas Interativas */}
-      <div className="flex items-center gap-2 sm:gap-3 py-1">
+      {/* Fileira Horizontal de Pílulas Interativas - Grid de 3 colunas em celular, linha única em desktop */}
+      <div className="grid grid-cols-3 sm:flex sm:flex-row items-center gap-2 py-1">
+        {/* 1. Viagem (Avião) */}
+        {isExpense && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+                  tripId 
+                    ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                    : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+                )}
+              >
+                <Plane className="h-5 w-5 animate-pulse-slow" />
+                <span className="text-[10px] tracking-tight font-medium truncate max-w-[70px] text-center">
+                  {tripId ? (trips.find(t => t.id === tripId)?.name || 'Viagem') : 'Viagem'}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2 rounded-xl border border-border bg-card shadow-md" align="start">
+              <p className="text-xs font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider text-[10px]">Vincular Viagem</p>
+              <div className="space-y-1 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTripId('')}
+                  className={cn(
+                    "w-full text-left px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all",
+                    !tripId ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  Nenhuma Viagem
+                </button>
+                {trips && trips.map((trip) => (
+                  <button
+                    key={trip.id}
+                    type="button"
+                    onClick={() => setTripId(trip.id)}
+                    className={cn(
+                      "w-full text-left px-2.5 py-1.5 text-xs rounded-lg font-medium flex items-center justify-between transition-all gap-2",
+                      tripId === trip.id ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
+                    )}
+                  >
+                    <span className="truncate flex-1">{trip.name}</span>
+                    <span className="text-[8px] px-1 py-0.2 bg-muted text-muted-foreground rounded uppercase font-bold shrink-0">{trip.currency}</span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+
+        {/* 2. Dividir Despesa (Pessoas) */}
+        {isExpense && availableMembers.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowSplitModal(true)}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+              hasSharing 
+                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
+            )}
+          >
+            <Users className="h-5 w-5" />
+            <span className="text-[10px] tracking-tight font-medium text-center">
+              {hasSharing ? 'Dividido' : 'Dividir'}
+            </span>
+          </button>
+        )}
+
+        {/* 3. Parcelar (RefreshCw) */}
         {isExpense && !isCreditCard && (
           <button
             type="button"
@@ -79,47 +168,50 @@ export function AdvancedOptions({
               if (nextState && totalInstallments < 2) setTotalInstallments(2);
             }}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isInstallment 
                 ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <RefreshCw className={cn("h-5 w-5", isInstallment && "animate-spin-slow")} />
-            <span className="text-[10px] tracking-tight font-medium">Parcelar</span>
+            <span className="text-[10px] tracking-tight font-medium text-center">Parcelar</span>
           </button>
         )}
 
+        {/* 4. Reembolso (RotateCcw) */}
         {isExpense && (
           <button
             type="button"
             onClick={() => setIsRefund(!isRefund)}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isRefund 
                 ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <RotateCcw className="h-5 w-5" />
-            <span className="text-[10px] tracking-tight font-medium">Reembolso</span>
+            <span className="text-[10px] tracking-tight font-medium text-center">Reembolso</span>
           </button>
         )}
 
+        {/* 5. Recorrente (Repeat) */}
         <button
           type="button"
           onClick={() => setIsRecurring(!isRecurring)}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             isRecurring 
               ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
           <Repeat className="h-5 w-5" />
-          <span className="text-[10px] tracking-tight font-medium">Recorrente</span>
+          <span className="text-[10px] tracking-tight font-medium text-center">Recorrente</span>
         </button>
 
+        {/* 6. Notificação (Bell) */}
         <button
           type="button"
           onClick={() => {
@@ -128,14 +220,14 @@ export function AdvancedOptions({
             if (nextState && !notificationDate) setNotificationDate(new Date());
           }}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95",
+            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             enableNotification 
               ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
           <Bell className="h-5 w-5" />
-          <span className="text-[10px] tracking-tight font-medium">Notificação</span>
+          <span className="text-[10px] tracking-tight font-medium text-center">Notificação</span>
         </button>
       </div>
 
