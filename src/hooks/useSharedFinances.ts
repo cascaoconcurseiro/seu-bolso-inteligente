@@ -131,12 +131,37 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     ]);
   };
 
-  // NOVO: Fetch consolidado via RPC para alta performance
+  // NOVO: Fetch de saldos consolidados via RPC nativo (Performance DBA)
+  const { data: sharedBalances, isLoading: isBalancesLoading } = useQuery({
+    queryKey: ['shared-balances', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      try {
+        const data = await rpcWithRetry('get_current_shared_debts', {
+          p_user_id: user.id
+        });
+        return data as Array<{
+          member_id: string;
+          currency: string;
+          total_credits: number;
+          total_debits: number;
+          net_balance: number;
+        }>;
+      } catch (error) {
+        logger.error('Erro ao buscar saldos via RPC', error);
+        return null;
+      }
+    },
+    enabled: !!user,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // NOVO: Fetch consolidado via RPC para popular a lista de transações
   const { data: sharedData, isLoading, refetch } = useQuery({
     queryKey: ['shared-transactions-consolidated', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
       try {
         const data = await rpcWithRetry('get_shared_invoice_data', {
           p_user_id: user.id
@@ -702,9 +727,30 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   };
 
   // Calculate global summary - SEPARADO POR MOEDA (NUNCA SOMAR MOEDAS DIFERENTES!)
+  // Utilizando a NOVA RPC do Banco de Dados para aliviar o cálculo do Frontend
   const getSummary = () => {
     const summaryByCurrency: Record<string, { totalCredits: number; totalDebits: number; net: number }> = {};
     
+    // Se a RPC retornou com sucesso os saldos mastigados do DB, usamos isso!
+    if (sharedBalances && sharedBalances.length > 0) {
+      sharedBalances.forEach(balance => {
+        const curr = balance.currency || 'BRL';
+        if (!summaryByCurrency[curr]) {
+          summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
+        }
+        
+        summaryByCurrency[curr].totalCredits += Number(balance.total_credits);
+        summaryByCurrency[curr].totalDebits += Number(balance.total_debits);
+        summaryByCurrency[curr].net += Number(balance.net_balance);
+      });
+      
+      return {
+        byCurrency: summaryByCurrency,
+        hasMultipleCurrencies: Object.keys(summaryByCurrency).length > 1,
+      };
+    }
+    
+    // Fallback de segurança: calcula via Frontend caso a RPC falhe ou ainda não tenha sido injetada
     Object.values(invoices).forEach(items => {
       items.forEach(item => {
         const curr = item.currency || 'BRL';
@@ -723,7 +769,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     });
     
     // Calcular net para cada moeda individualmente
-    // REGRA DE OURO: Nunca somar moedas diferentes sem taxa explícita do usuário
     Object.keys(summaryByCurrency).forEach(curr => {
       summaryByCurrency[curr].net = moneyUtils.round(
         summaryByCurrency[curr].totalCredits - summaryByCurrency[curr].totalDebits
@@ -732,8 +777,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
     return {
       byCurrency: summaryByCurrency,
-      // Nunca retornar estimativa de conversão automática
-      // Se precisar de consolidado, o usuário deve informar a taxa atual
       hasMultipleCurrencies: Object.keys(summaryByCurrency).length > 1,
     };
   };

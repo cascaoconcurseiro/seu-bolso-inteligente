@@ -89,9 +89,6 @@ export class CategoryPredictionService {
     return clean;
   }
 
-  /**
-   * Prediz categoria baseado na descrição
-   */
   static async predictCategory(
     description: string,
     userId: string,
@@ -103,20 +100,24 @@ export class CategoryPredictionService {
     
     const normalizedDesc = description.toLowerCase().trim();
     
+    // Disparar todas as verificações paralelamente para evitar gargalos sequenciais
+    const [userLearning, keywordMatch, similarMatch] = await Promise.all([
+      this.checkUserLearning(normalizedDesc, userId),
+      this.matchKeywords(normalizedDesc, userId, type),
+      this.findSimilarTransactions(normalizedDesc, userId, type)
+    ]);
+    
     // 1. Verificar histórico do usuário (prioridade máxima)
-    const userLearning = await this.checkUserLearning(normalizedDesc, userId);
     if (userLearning && userLearning.confidence > 0.6) {
       return userLearning;
     }
     
     // 2. Verificar palavras-chave padrão
-    const keywordMatch = await this.matchKeywords(normalizedDesc, userId, type);
     if (keywordMatch) {
       return keywordMatch;
     }
     
     // 3. Verificar transações similares do usuário
-    const similarMatch = await this.findSimilarTransactions(normalizedDesc, userId, type);
     if (similarMatch) {
       return similarMatch;
     }

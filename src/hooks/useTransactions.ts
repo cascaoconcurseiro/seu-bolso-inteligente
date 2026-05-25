@@ -514,6 +514,8 @@ export function useCreateTransaction() {
           const formattedDate = dateUtils.formatDate(installmentDate);
           const competenceDate = calculateCompetence(formattedDate);
           
+          const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
+          
           transactions.push({
             user_id: user.id,
             creator_user_id: user.id,
@@ -524,6 +526,9 @@ export function useCreateTransaction() {
             description: `${input.description} (${i + 1}/${input.total_installments})`,
             current_installment: i + 1,
             series_id: seriesId,
+            is_shared: isSharedNow,
+            domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+            payer_id: input.payer_id
           });
         }
 
@@ -567,12 +572,10 @@ export function useCreateTransaction() {
           }
 
           // TASK 2.3: Validar member_id ANTES de criar splits
-          for (const memberId of memberIds) {
-            if (memberId !== user.id) {
-              await validateMemberId(memberId);
-            }
-          }
+          // Removido loop individual assíncrono para melhorar performance, a validação é feita via `invalidMembers`
 
+          let allSplitsToInsert: any[] = [];
+          
           for (const transaction of data) {
             let allocatedSum = 0;
             const splitsToInsert = finalSplits.map((split, index) => {
@@ -603,24 +606,18 @@ export function useCreateTransaction() {
                 is_settled: false,
               };
             });
+            allSplitsToInsert.push(...splitsToInsert);
+          }
 
+          if (allSplitsToInsert.length > 0) {
             const { error: splitsError } = await supabase
               .from("transaction_splits")
-              .insert(splitsToInsert);
+              .insert(allSplitsToInsert);
             
             if (splitsError) {
               logger.error("Erro ao criar splits para parcela:", splitsError);
               throw new Error(`Erro ao criar splits: ${splitsError.message}`);
             }
-            
-            await supabase
-              .from("transactions")
-              .update({ 
-                is_shared: true, 
-                domain: input.trip_id ? "TRAVEL" : "SHARED",
-                payer_id: input.payer_id
-              })
-              .eq("id", transaction.id);
           }
         }
         if (finalSplits && finalSplits.length > 0) {
@@ -631,16 +628,16 @@ export function useCreateTransaction() {
               return isUserId ? s.member_id : memberUserIds[s.member_id];
             }).filter(uid => uid && uid !== user?.id)));
 
-            for (const otherUserId of otherUserIds) {
-              await createNotification({
+            await Promise.all(otherUserIds.map(otherUserId => 
+              createNotification({
                 user_id: otherUserId,
                 type: 'SHARED_EXPENSE',
                 title: 'Novas Transações Compartilhadas',
                 message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou uma transação parcelada compartilhada "${input.description}".`,
                 icon: '🤝',
                 priority: 'NORMAL'
-              }).catch(e => console.error("Erro ao criar notificação de parcelamento compartilhado:", e));
-            }
+              }).catch(e => console.error("Erro ao criar notificação de parcelamento compartilhado:", e))
+            ));
           } catch (notificationError) {
             console.error("Erro ao notificar criação de parcelamento compartilhado:", notificationError);
           }
@@ -677,6 +674,8 @@ export function useCreateTransaction() {
         }
       }
 
+      const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
+      
       const { data, error } = await supabase
         .from("transactions")
         .insert({
@@ -685,6 +684,9 @@ export function useCreateTransaction() {
           competence_date: input.competence_date || calculateCompetence(input.date),
           ...transactionData,
           category_id: categoryId,
+          is_shared: isSharedNow,
+          domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+          payer_id: input.payer_id
         })
         .select()
         .single();
@@ -751,15 +753,6 @@ export function useCreateTransaction() {
         if (splitsError) {
           logger.error("Erro ao criar splits:", splitsError);
           throw new Error(`Erro ao criar splits: ${splitsError.message}`);
-        } else {
-          await supabase
-            .from("transactions")
-            .update({ 
-              is_shared: true, 
-              domain: input.trip_id ? "TRAVEL" : "SHARED",
-              payer_id: input.payer_id
-            })
-            .eq("id", data.id);
         }
       }
 
@@ -774,16 +767,16 @@ export function useCreateTransaction() {
           
           if (splitsData && splitsData.length > 0) {
             const otherUserIds = Array.from(new Set(splitsData.map(s => s.user_id).filter(uid => uid && uid !== user?.id)));
-            for (const otherUserId of otherUserIds) {
-              await createNotification({
+            await Promise.all(otherUserIds.map(otherUserId => 
+              createNotification({
                 user_id: otherUserId,
                 type: 'SHARED_EXPENSE',
                 title: 'Nova Transação Compartilhada',
                 message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou a transação compartilhada "${data.description}".`,
                 icon: '🤝',
                 priority: 'NORMAL'
-              }).catch(e => console.error("Erro ao criar notificação de criação compartilhada:", e));
-            }
+              }).catch(e => console.error("Erro ao criar notificação de criação compartilhada:", e))
+            ));
           }
         } catch (notificationError) {
           console.error("Erro ao notificar criação de compartilhada:", notificationError);
