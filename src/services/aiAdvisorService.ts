@@ -1147,26 +1147,63 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
     });
     const targetType: 'receita' | 'despesa' = isReceitaList ? 'receita' : 'despesa';
 
-    // 2. Busca exaustiva local priorizando keywords específicas longas (ex: "uber eats" antes de "uber")
+    // 2. Motor de busca local em 3 Fases
     let bestMatch: LocalMapping | null = null;
-    let longestKeywordLength = 0;
 
+    // --- FASE 1: MATCH 100% EXATO ---
+    // Se o usuário digitou exatamente uma keyword conhecida (evita concorrência e falsos positivos de substrings)
     for (const mapping of LOCAL_BRAZILIAN_MAPPINGS) {
-      if (mapping.type !== targetType) continue; // Segregação rígida de fluxos!
+      if (mapping.type !== targetType) continue;
 
       for (const keyword of mapping.keywords) {
         const normalizedKeyword = normalizeBrazilianText(keyword);
-        
-        // Verifica se:
-        // A) A palavra digitada é exatamente igual ou começa igual à palavra mapeada (ex: "ube" -> "uber")
-        // B) Ou se a palavra digitada contem a palavra mapeada isolada (ex: "uber para aeroporto" -> "uber")
-        const isExactOrStarts = normalizedKeyword.startsWith(normalizedInput) || normalizedInput.startsWith(normalizedKeyword);
-        const containsAsWord = new RegExp(`\\b${normalizedKeyword}\\b`).test(normalizedInput);
+        if (normalizedInput === normalizedKeyword) {
+          bestMatch = mapping;
+          break;
+        }
+      }
+      if (bestMatch) break;
+    }
 
-        if (isExactOrStarts || containsAsWord) {
-          if (normalizedKeyword.length > longestKeywordLength) {
-            longestKeywordLength = normalizedKeyword.length;
-            bestMatch = mapping;
+    // --- FASE 2: CASAMENTO DE PALAVRA COMPLETA (EXATA) ---
+    // Se não achou match exato, verifica se a entrada é uma palavra inteira contida na keyword ou vice-versa (limite de palavra exato)
+    if (!bestMatch) {
+      for (const mapping of LOCAL_BRAZILIAN_MAPPINGS) {
+        if (mapping.type !== targetType) continue;
+
+        for (const keyword of mapping.keywords) {
+          const normalizedKeyword = normalizeBrazilianText(keyword);
+
+          const inputContainsKeyword = new RegExp(`\\b${normalizedKeyword}\\b`).test(normalizedInput);
+          const keywordContainsInput = new RegExp(`\\b${normalizedInput}\\b`).test(normalizedKeyword);
+
+          if (inputContainsKeyword || keywordContainsInput) {
+            // Em caso de matches parciais por palavra, preferimos o termo mais curto para evitar alucinações
+            if (!bestMatch || normalizedKeyword.length < normalizeBrazilianText(bestMatch.keywords[0]).length) {
+              bestMatch = mapping;
+            }
+          }
+        }
+      }
+    }
+
+    // --- FASE 3: AUTOCOMPLETE PARCIAL (PREFIXO) ---
+    // Se o usuário está no início da digitação (ex: "pa" ou "ub")
+    if (!bestMatch && normalizedInput.length >= 2) {
+      let shortestKeywordLength = Infinity;
+
+      for (const mapping of LOCAL_BRAZILIAN_MAPPINGS) {
+        if (mapping.type !== targetType) continue;
+
+        for (const keyword of mapping.keywords) {
+          const normalizedKeyword = normalizeBrazilianText(keyword);
+
+          if (normalizedKeyword.startsWith(normalizedInput)) {
+            // Damos preferência para a palavra mais curta (evita sugerir pao de queijo ao digitar apenas pao)
+            if (normalizedKeyword.length < shortestKeywordLength) {
+              shortestKeywordLength = normalizedKeyword.length;
+              bestMatch = mapping;
+            }
           }
         }
       }
