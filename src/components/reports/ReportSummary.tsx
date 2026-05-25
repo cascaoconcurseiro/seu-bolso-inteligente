@@ -20,33 +20,57 @@ export function ReportSummary({
   currency
 }: ReportSummaryProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="p-5 rounded-xl border border-border">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <TrendingUp className="h-4 w-4 text-positive" />
-          Entradas
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 1. Entradas */}
+      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 truncate">
+          <TrendingUp className="h-4 w-4 text-positive shrink-0" />
+          <span className="truncate">Entradas</span>
         </div>
-        <p className="font-mono text-2xl font-bold text-positive">{formatCurrency(totalIncome, currency)}</p>
+        <p 
+          className="font-mono text-sm xs:text-base sm:text-2xl font-bold text-positive truncate select-all" 
+          title={formatCurrency(totalIncome, currency)}
+        >
+          {formatCurrency(totalIncome, currency)}
+        </p>
       </div>
-      <div className="p-5 rounded-xl border border-border">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <TrendingDown className="h-4 w-4 text-negative" />
-          Saídas
+
+      {/* 2. Saídas */}
+      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 truncate">
+          <TrendingDown className="h-4 w-4 text-negative shrink-0" />
+          <span className="truncate">Saídas</span>
         </div>
-        <p className="font-mono text-2xl font-bold text-negative">{formatCurrency(totalExpense, currency)}</p>
+        <p 
+          className="font-mono text-sm xs:text-base sm:text-2xl font-bold text-negative truncate select-all" 
+          title={formatCurrency(totalExpense, currency)}
+        >
+          {formatCurrency(totalExpense, currency)}
+        </p>
       </div>
-      <div className="p-5 rounded-xl border border-border">
-        <p className="text-sm text-muted-foreground mb-2">Resultado</p>
-        <p className={cn(
-          "font-mono text-2xl font-bold",
-          balance >= 0 ? "text-positive" : "text-negative"
-        )}>
+
+      {/* 3. Resultado */}
+      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
+        <div className="text-xs sm:text-sm text-muted-foreground mb-2 truncate">
+          Resultado
+        </div>
+        <p 
+          className={cn(
+            "font-mono text-sm xs:text-base sm:text-2xl font-bold truncate select-all",
+            balance >= 0 ? "text-positive" : "text-negative"
+          )}
+          title={`${balance >= 0 ? "+" : ""}${formatCurrency(balance, currency)}`}
+        >
           {balance >= 0 ? "+" : ""}{formatCurrency(balance, currency)}
         </p>
       </div>
-      <div className="p-5 rounded-xl bg-foreground text-background">
-        <p className="text-sm opacity-70 mb-2">Taxa de Economia</p>
-        <p className="font-display text-3xl font-bold">
+
+      {/* 4. Taxa de Economia */}
+      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl bg-foreground text-background min-w-0 flex flex-col justify-between">
+        <div className="text-xs sm:text-sm opacity-70 mb-2 truncate">
+          Taxa de Economia
+        </div>
+        <p className="font-display text-xl xs:text-2xl sm:text-3xl font-bold truncate">
           {savingsRate.toFixed(0)}%
         </p>
       </div>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseLocalDate } from "@/utils/dateUtils";
 
 export function TripDashboardView() {
   const { data: trips, isLoading: tripsLoading } = useTrips();
@@ -16,7 +17,7 @@ export function TripDashboardView() {
     if (!trips || trips.length === 0) return null;
     const active = trips.find(t => t.status === "ACTIVE");
     if (active) return active;
-    const planning = trips.filter(t => t.status === "PLANNING").sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+    const planning = trips.filter(t => t.status === "PLANNING").sort((a, b) => parseLocalDate(a.start_date).getTime() - parseLocalDate(b.start_date).getTime());
     return planning[0] || trips[0];
   }, [trips]);
 
@@ -81,7 +82,7 @@ export function TripDashboardView() {
             
             <p className="text-muted-foreground flex items-center gap-2 font-medium">
               <Calendar className="h-4 w-4" />
-              {format(new Date(activeTrip.start_date), "dd 'de' MMM", { locale: ptBR })} - {format(new Date(activeTrip.end_date), "dd 'de' MMM, yyyy", { locale: ptBR })}
+              {format(parseLocalDate(activeTrip.start_date), "dd 'de' MMM", { locale: ptBR })} - {format(parseLocalDate(activeTrip.end_date), "dd 'de' MMM, yyyy", { locale: ptBR })}
             </p>
           </div>
 

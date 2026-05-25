@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useState } from 'react';
 
 interface AdvancedOptionsProps {
   isExpense: boolean;
@@ -79,15 +80,69 @@ export function AdvancedOptions({
   splits,
   availableMembers,
 }: AdvancedOptionsProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification);
+
+  if (!isExpanded) {
+    return (
+      <div className="space-y-3">
+        {/* Cabeçalho Colapsável Premium */}
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
+        >
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
+            <span>⚙️ Recursos e Opções</span>
+            {hasActiveOption && (
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            )}
+          </span>
+          <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
+            Mostrar
+            <svg
+              className="h-3.5 w-3.5 transition-transform duration-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      {/* Label de seção discreto */}
-      <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">
-        Recursos e Opções
-      </Label>
+    <div className="space-y-3">
+      {/* Cabeçalho Colapsável Premium */}
+      <button
+        type="button"
+        onClick={() => setIsExpanded(false)}
+        className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
+      >
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
+          <span>⚙️ Recursos e Opções</span>
+          {hasActiveOption && (
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          )}
+        </span>
+        <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
+          Ocultar
+          <svg
+            className="h-3.5 w-3.5 transition-transform duration-300 rotate-180"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+          </svg>
+        </span>
+      </button>
 
       {/* Fileira Horizontal de Pílulas Interativas - Grid de 3 colunas em celular, linha única em desktop */}
-      <div className="grid grid-cols-3 sm:flex sm:flex-row items-center gap-2 py-1">
+      <div className="grid grid-cols-3 sm:flex sm:flex-row items-center gap-2 py-1 animate-slide-in">
         {/* 1. Viagem (Avião) */}
         {isExpense && (
           <Popover>

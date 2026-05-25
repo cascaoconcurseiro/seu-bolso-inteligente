@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CategorySelector } from '../CategorySelector';
+import { parseLocalDate } from '@/utils/dateUtils';
 import { TabType } from '@/types/transactions';
 
 interface BasicInfoSectionProps {
@@ -136,7 +137,7 @@ export function BasicInfoSection({
             format(date, 'yyyy-MM-dd') > selectedTrip.end_date
           ) && (
               <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
-                ⚠️ Data fora do período da viagem ({format(new Date(selectedTrip.start_date), 'dd/MM/yy')} - {format(new Date(selectedTrip.end_date), 'dd/MM/yy')})
+                ⚠️ Data fora do período da viagem ({format(parseLocalDate(selectedTrip.start_date), 'dd/MM/yy')} - {format(parseLocalDate(selectedTrip.end_date), 'dd/MM/yy')})
               </p>
             )}
         </div>
