@@ -757,8 +757,8 @@ export function useCreateTransaction() {
       }
 
       // Se for compartilhada e criada com sucesso, notificar os outros membros do split
-      const isSharedNow = (finalSplits && finalSplits.length > 0) || data?.domain === 'SHARED' || input.domain === 'SHARED';
-      if (data && isSharedNow) {
+      const isTransactionShared = (finalSplits && finalSplits.length > 0) || data?.domain === 'SHARED' || input.domain === 'SHARED';
+      if (data && isTransactionShared) {
         try {
           const { data: splitsData } = await supabase
             .from("transaction_splits")
