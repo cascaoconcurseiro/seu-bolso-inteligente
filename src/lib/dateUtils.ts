@@ -66,8 +66,11 @@ export function formatDate(date: Date): string {
  * // Returns: '2024-12-01'
  */
 export function getCompetenceDate(date: Date): string {
-  const firstDayOfMonth = startOfMonth(date);
-  return formatInTimeZone(firstDayOfMonth, 'UTC', 'yyyy-MM-dd');
+  // Use formatInTimeZone with UTC directly to get the year and month
+  // and force the day to be '01'. This avoids local timezone shifts
+  // caused by date-fns startOfMonth.
+  const yyyyMM = formatInTimeZone(date, 'UTC', 'yyyy-MM');
+  return `${yyyyMM}-01`;
 }
 
 /**
