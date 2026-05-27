@@ -1,3 +1,4 @@
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FastForward, Lock, User, CheckCircle, Clock, Users, HandCoins, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,28 @@ export function TransactionItem({
   const payerInfo = getPayerInfo(transaction);
   const isPayer = transaction.payer_id === user?.id || transaction.creator_user_id === user?.id;
   
+  // Swipe to delete logic
+  const [isSwiped, setIsSwiped] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = e.touches[0].clientX - touchStartX.current;
+    if (diff < -40) {
+      setIsSwiped(true);
+    } else if (diff > 40) {
+      setIsSwiped(false);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartX.current = null;
+  };
+  
   let displayType = transaction.type;
   if (transaction.is_shared && !isPayer) {
     displayType = 'EXPENSE';
@@ -108,13 +131,36 @@ export function TransactionItem({
     (transaction.account?.currency || transaction.currency || 'BRL') !== transaction.destination_currency;
 
   return (
-    <div
-      className={cn(
-        "group flex items-center justify-between py-4 px-4 hover:bg-muted/30 transition-colors cursor-pointer",
-        settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
-      )}
-      onClick={() => onDetails(transaction)}
-    >
+    <div className="relative overflow-hidden group/item border-b last:border-0 border-border/50">
+      {/* Background Delete Button (revealed on swipe) */}
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-20 bg-destructive flex items-center justify-center text-white cursor-pointer transition-opacity"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(transaction);
+        }}
+      >
+        <Trash2 className="h-5 w-5" />
+      </div>
+
+      {/* Main Content (slides left) */}
+      <div
+        className={cn(
+          "flex items-center justify-between py-4 px-4 bg-background transition-transform duration-200 cursor-pointer relative z-10",
+          settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10",
+          isSwiped ? "-translate-x-20" : "translate-x-0"
+        )}
+        onClick={() => {
+          if (isSwiped) {
+            setIsSwiped(false);
+          } else {
+            onDetails(transaction);
+          }
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
       <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
         <div className={cn(
           "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
@@ -242,18 +288,7 @@ export function TransactionItem({
               : (displayType === "INCOME" ? "Crédito" : "Débito")}
           </span>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 md:transition-opacity" onClick={(e) => e.stopPropagation()}>
-          {transaction.is_installment && transaction.series_id && canEdit && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 md:h-8 md:w-8 text-blue-600 hover:text-blue-600"
-              onClick={() => onAdvance(transaction)}
-              title="Adiantar parcelas"
-            >
-              <FastForward className="h-4 w-4" />
-            </Button>
-          )}
+        <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex" onClick={(e) => e.stopPropagation()}>
           {canEdit && !isMirror && (
             <Button
               variant="ghost"
@@ -282,6 +317,7 @@ export function TransactionItem({
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

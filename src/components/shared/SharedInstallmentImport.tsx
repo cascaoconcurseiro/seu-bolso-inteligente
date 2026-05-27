@@ -151,7 +151,7 @@ export function SharedInstallmentImport({
     }
 
     if (!selectedMonth) {
-      newErrors.push('Selecione o mês da primeira parcela');
+      newErrors.push('Selecione o mês da próxima parcela');
     }
 
     setErrors(newErrors);
@@ -245,10 +245,10 @@ export function SharedInstallmentImport({
                     <span>O que é o Parcelado Compartilhado?</span>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Esta funcionalidade serve para <strong>registrar compras parceladas no compartilhado</strong> (ex: eletrodomésticos, viagens ou serviços), dividindo e cobrando outro membro automaticamente pelas parcelas mensais.
+                    Esta funcionalidade serve para <strong>importar parcelas que já estão em andamento</strong> no compartilhado, dividindo e cobrando outro membro automaticamente pelos meses restantes.
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    <strong>Exemplo Prático:</strong> Se você comprou uma geladeira parcelada em 10x e quer que outro membro pague uma porcentagem fixa das parcelas mensais, esta ferramenta projeta as parcelas futuras e cobra o membro selecionado mês a mês no compartilhado.
+                    <strong>Exemplo Prático:</strong> Se você comprou uma geladeira em 10x, já pagou 2 e faltam 8 parcelas, informe "8" em Parcelas Restantes e o mês da próxima cobrança. A ferramenta projetará essas parcelas futuras e cobrará o membro selecionado mês a mês.
                   </p>
                   <div className="pt-1.5 text-[11px] font-semibold text-primary border-t border-border mt-1">
                     💡 Dica: Informe o valor unitário de <strong>cada parcela</strong>. O total da compra será calculado de forma precisa e automatizada.
@@ -258,7 +258,7 @@ export function SharedInstallmentImport({
             </Popover>
           </DialogTitle>
           <DialogDescription>
-            Crie múltiplas parcelas para outro membro pagar.
+            Importe as parcelas restantes para outro membro pagar.
             <br />
             <span className="text-xs text-muted-foreground">
               💰 Informe o valor de cada parcela - o total será calculado automaticamente
@@ -306,7 +306,7 @@ export function SharedInstallmentImport({
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Parcelas *</Label>
+              <Label>Parcelas Restantes *</Label>
               <Input
                 type="number"
                 value={installments}
@@ -328,7 +328,7 @@ export function SharedInstallmentImport({
 
           {/* Month Selector */}
           <div className="space-y-2">
-            <Label>Mês da 1ª Parcela *</Label>
+            <Label>Mês da Próxima Parcela *</Label>
             <Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o mês" />

@@ -28,7 +28,15 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
       for (let i = 0; i < 12; i++) {
         const targetDate = new Date(year, i, 1);
-        const isPast = targetDate < currentMonthStart;
+        let isPast = false;
+        if (year < today.getFullYear() || (year === today.getFullYear() && i < today.getMonth())) {
+          isPast = true;
+        } else if (year === today.getFullYear() && i === today.getMonth()) {
+          const closingDay = account.closing_day || 1;
+          if (today.getDate() >= closingDay) {
+            isPast = true;
+          }
+        }
         const monthName = targetDate.toLocaleDateString('pt-BR', { month: 'long' });
         const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
         

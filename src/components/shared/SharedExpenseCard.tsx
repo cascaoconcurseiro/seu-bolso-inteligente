@@ -8,7 +8,8 @@ import {
   Undo2, 
   Trash2, 
   Clock,
-  CheckCircle
+  CheckCircle,
+  FastForward
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FamilyMember } from "@/hooks/useFamily";
@@ -33,6 +34,7 @@ interface SharedExpenseCardProps {
   onDelete: (item: InvoiceItem) => void;
   onConfirmReceipt: (item: InvoiceItem) => void;
   onRejectSettlement: (item: InvoiceItem) => void;
+  onAnticipate?: (item: InvoiceItem) => void;
   formatCurrency: (value: number, currency: string) => string;
   currentUserId?: string;
 }
@@ -48,6 +50,7 @@ export function SharedExpenseCard({
   onDelete,
   onConfirmReceipt,
   onRejectSettlement,
+  onAnticipate,
   formatCurrency,
   currentUserId
 }: SharedExpenseCardProps) {
@@ -334,6 +337,11 @@ export function SharedExpenseCard({
                           {isWaitingMe && (
                             <DropdownMenuItem onClick={() => onRejectSettlement(item)} className="text-destructive">
                               <Trash2 className="h-4 w-4 mr-2" /> Recusar
+                            </DropdownMenuItem>
+                          )}
+                          {onAnticipate && item.totalInstallments && item.totalInstallments > 1 && item.creatorUserId === currentUserId && !item.isPaid && (
+                            <DropdownMenuItem onClick={() => onAnticipate(item)}>
+                              <FastForward className="h-4 w-4 mr-2" /> Adiantar Parcelas
                             </DropdownMenuItem>
                           )}
                           {item.creatorUserId === currentUserId && !item.isPaid && (
