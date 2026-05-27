@@ -81,18 +81,7 @@ export function CreditCardSummary({
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onRefresh}
-          className="text-xs text-muted-foreground hover:text-foreground h-8 rounded-lg border border-border/40 hover:bg-muted/50"
-          disabled={isLoading}
-        >
-          <RefreshCcw className={cn("h-3 w-3 mr-1.5", isLoading && "animate-spin")} />
-          Sincronizar Faturas
-        </Button>
-      </div>
+
     </div>
   );
 }
