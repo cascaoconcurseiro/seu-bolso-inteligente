@@ -53,64 +53,6 @@ export function DashboardSidebar({
         </Link>
       </div>
 
-      <div className="p-4 rounded-xl border border-border bg-muted/30 animate-scale-in hover-glow">
-        <p className="text-xs text-muted-foreground mb-1">Resultado do mês</p>
-        <p className="font-semibold">
-          {savings >= 0 ? "Positivo" : "Negativo"}
-        </p>
-        <p className={cn(
-          "text-sm flex items-center gap-1",
-          savings >= 0 ? "text-green-500" : "text-red-500"
-        )}>
-          {savings >= 0 ? <ArrowDownRight className="h-3 w-3 animate-soft-bounce" /> : <ArrowUpRight className="h-3 w-3 animate-soft-bounce" />}
-          {formatCurrency(Math.abs(savings))}
-        </p>
-      </div>
-
-      <div className="p-4 rounded-xl bg-foreground text-background animate-scale-in-bounce hover-lift">
-        <p className="text-xs opacity-70 mb-1">Projeção fim do mês</p>
-        <p className="font-mono text-2xl font-bold animate-count-up">
-          {formatCurrency(projectedBalance)}
-        </p>
-        
-        {projection && (
-          projection.future_income > 0 || 
-          projection.future_expenses > 0 || 
-          projection.credit_card_invoices > 0 || 
-          projection.shared_debts !== 0
-        ) && (
-          <div className="mt-3 pt-3 border-t border-background/20 space-y-1.5 text-xs">
-            {projection.future_income > 0 && (
-              <div className="flex justify-between font-semibold">
-                <span className="text-emerald-400">+ Receitas futuras</span>
-                <span className="text-emerald-400">{formatCurrency(projection.future_income)}</span>
-              </div>
-            )}
-            {projection.future_expenses > 0 && (
-              <div className="flex justify-between font-semibold">
-                <span className="text-rose-400">- Despesas futuras</span>
-                <span className="text-rose-400">{formatCurrency(projection.future_expenses)}</span>
-              </div>
-            )}
-            {projection.credit_card_invoices > 0 && (
-              <div className="flex justify-between font-semibold">
-                <span className="text-rose-400">- Faturas cartão</span>
-                <span className="text-rose-400">{formatCurrency(projection.credit_card_invoices)}</span>
-              </div>
-            )}
-            {projection.shared_debts !== 0 && (
-              <div className="flex justify-between font-semibold">
-                <span className={projection.shared_debts > 0 ? "text-rose-400" : "text-emerald-400"}>
-                  {projection.shared_debts > 0 ? "- Compartilhados a pagar" : "+ Compartilhados a receber"}
-                </span>
-                <span className={projection.shared_debts > 0 ? "text-rose-400" : "text-emerald-400"}>
-                  {formatCurrency(Math.abs(projection.shared_debts))}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </aside>
   );
 }

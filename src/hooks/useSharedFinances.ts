@@ -678,21 +678,14 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           const currentYear = currentDate.getFullYear();
 
           // Lógica de isolamento de competência de parcelas
-          // Parcelas são exibidas estritamente no seu mês de vencimento (competência) correspondente
+          // Parcelas são exibidas estritamente no seu mês de vencimento correspondente, sem acúmulo
           const isInstallment = i.totalInstallments && i.totalInstallments > 1;
           if (isInstallment) {
             return (month - 1) === currentMonth && year === currentYear;
           }
           
-          // NOVO: Mostrar se for do mês atual OU se for uma pendência de meses ANTERIORES
-          // Isso garante que dívidas antigas não sumam da visão do usuário
-          const itemDate = new Date(year, month - 1, 1);
-          const currentViewDate = new Date(currentYear, currentMonth, 1);
-          
-          const isPastOrCurrent = itemDate <= currentViewDate;
-          const matches = isPastOrCurrent;
-          
-          return matches;
+          // Despesas fixas/recorrentes/comuns também devem ser exibidas ESTRITAMENTE no seu mês
+          return (month - 1) === currentMonth && year === currentYear;
         })
         .sort((a, b) => b.date.localeCompare(a.date));
       
