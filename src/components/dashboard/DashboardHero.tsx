@@ -15,6 +15,8 @@ interface DashboardHeroProps {
   balance: number;
   income: number;
   expenses: number;
+  pendingIncome?: number;
+  pendingExpense?: number;
   currency: string;
   formatCurrency: (value: number) => string;
   wealthHistory?: { month_label: string; balance: number; }[];
@@ -25,6 +27,8 @@ export function DashboardHero({
   balance,
   income,
   expenses,
+  pendingIncome = 0,
+  pendingExpense = 0,
   currency,
   formatCurrency,
   wealthHistory,
@@ -42,7 +46,7 @@ export function DashboardHero({
 
   const strokeColor = isPositiveTrend ? "#10b981" : "#f43f5e";
 
-  const savings = income - expenses;
+  const predictedBalance = balance + pendingIncome - pendingExpense;
 
   const SparklineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -74,16 +78,16 @@ export function DashboardHero({
              </div>
              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
                Saldo Mensal Previsto ({currency})
-               <InfoTooltip content="Este saldo é a diferença entre as Suas Entradas e Saídas do mês atual. Não é o saldo da conta, mas sim o desempenho mensal." />
+               <InfoTooltip content="Este saldo é calculado somando seu Saldo Atual com as Entradas Pendentes, menos as Saídas Pendentes do mês corrente." />
              </p>
           </div>
           
           <h1 className={cn(
             "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500",
-            savings >= 0 ? "text-primary" : "text-destructive",
+            predictedBalance >= 0 ? "text-primary" : "text-destructive",
             isPrivate && "blur-md opacity-50 select-none"
           )}>
-            {isPrivate ? "R$ •••••" : formatCurrency(savings)}
+            {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
           <div className="flex flex-wrap gap-3">

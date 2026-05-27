@@ -22,8 +22,10 @@ export interface DashboardTransaction {
 export interface DashboardSummary {
   total_income: number;
   total_expense: number;
+  pending_income: number;
+  pending_expense: number;
   balance: number;
-  totals_by_currency: { currency: string; income: number; expense: number; balance: number }[];
+  totals_by_currency: { currency: string; income: number; expense: number; pending_income: number; pending_expense: number; balance: number }[];
   recent_transactions: DashboardTransaction[];
 }
 
@@ -40,7 +42,7 @@ export function useDashboardData() {
   return useQuery({
     queryKey: ['dashboard-data', user?.id, monthKey],
     queryFn: async (): Promise<DashboardSummary> => {
-      if (!user) return { total_income: 0, total_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
+      if (!user) return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
 
       const { data, error } = await (supabase.rpc as any)('get_dashboard_summary', {
         p_user_id: user.id,
@@ -50,12 +52,14 @@ export function useDashboardData() {
 
       if (error) {
         console.error('[useDashboardData] Erro RPC:', error);
-        return { total_income: 0, total_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
+        return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
       }
 
       return {
         total_income: Number(data?.total_income) || 0,
         total_expense: Number(data?.total_expense) || 0,
+        pending_income: Number(data?.pending_income) || 0,
+        pending_expense: Number(data?.pending_expense) || 0,
         balance: Number(data?.balance) || 0,
         totals_by_currency: data?.totals_by_currency || [],
         recent_transactions: (data?.recent_transactions as DashboardTransaction[]) || [],

@@ -194,6 +194,8 @@ export function Dashboard() {
           balance={activeCurrencyData.balance}
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}
+          pendingIncome={activeCurrencyData.pending_income}
+          pendingExpense={activeCurrencyData.pending_expense}
           formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
           wealthHistory={wealthHistory}
           monthlyBudget={profile?.monthly_budget}

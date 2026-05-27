@@ -68,6 +68,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         
         return {
           date: formatLocalDate(transactionDate),
+          competence_date: formatLocalDate(new Date(y, month - 1, 1)),
           amount: parseFloat(m.amount),
           type: "EXPENSE",
           description: `Fatura Importada - ${m.label}`,

@@ -56,12 +56,14 @@ export class ErrorBoundary extends Component<Props, State> {
         this.setState({ isSubmitting: true });
         try {
             const { error, errorInfo } = this.state;
-            const { error: rpcError } = await supabase.rpc('submit_error_report', {
-                p_error_message: error?.message || 'Erro desconhecido',
-                p_stack_trace: error?.stack || errorInfo?.componentStack || '',
-                p_context: window.location.href
+            const { error: dbError } = await supabase.from('error_logs').insert({
+                error_name: error?.name || 'Error',
+                error_message: error?.message || 'Erro desconhecido',
+                component_stack: error?.stack || errorInfo?.componentStack || '',
+                user_message: window.location.href,
+                user_id: (await supabase.auth.getUser()).data.user?.id
             });
-            if (rpcError) throw rpcError;
+            if (dbError) throw dbError;
             this.setState({ isReported: true });
         } catch (err) {
             console.error('Erro ao enviar relatório:', err);
