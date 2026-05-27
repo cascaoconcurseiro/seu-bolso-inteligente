@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, Banknote, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 interface AccountInfo {
   id: string;
@@ -39,6 +41,8 @@ export function AccountBalanceCard({
   onEdit,
   onDelete
 }: AccountBalanceCardProps) {
+  const { isPrivate } = usePrivacy();
+
   return (
     <div 
       className="p-8 rounded-2xl border border-border"
@@ -48,14 +52,14 @@ export function AccountBalanceCard({
         Saldo {isCredit ? "Atual" : "Disponível"}
       </p>
       <p 
-        className="font-mono text-5xl font-bold mb-6"
+        className={cn("font-mono text-5xl font-bold mb-6", isPrivate && "blur-md opacity-50 select-none")}
         style={{ color: bank?.textColor || '#fff' }}
       >
-        {Number(account.balance) >= 0 ? "" : "-"}{formatCurrency(Number(account.balance), accountCurrency)}
+        {isPrivate ? "•••••" : `${Number(account.balance) >= 0 ? "" : "-"}${formatCurrency(Number(account.balance), accountCurrency)}`}
       </p>
       {isCredit && account.credit_limit && (
-        <p className="text-sm" style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
-          Limite: {formatCurrency(Number(account.credit_limit), accountCurrency)}
+        <p className={cn("text-sm", isPrivate && "blur-md opacity-50 select-none")} style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
+          Limite: {isPrivate ? "•••••" : formatCurrency(Number(account.credit_limit), accountCurrency)}
         </p>
       )}
       {account.is_international && (

@@ -23,6 +23,8 @@ import {
   Plus,
   PiggyBank,
   Target,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +42,7 @@ import { QuickAddModal } from "@/components/modals/QuickAddModal";
 import { DraggableQuickAddFAB } from "@/components/ui/DraggableQuickAddFAB";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -74,6 +77,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
   const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } = useTransactionModal();
+  const { isPrivate, togglePrivacy } = usePrivacy();
 
   // Ativa a escuta de Realtime global para toda a aplicação
   useGlobalRealtime();
@@ -158,6 +162,16 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto md:ml-4">
               {/* Notifications */}
               <NotificationButton />
+
+              {/* Privacy Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={togglePrivacy}
+                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
+              >
+                {isPrivate ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
+              </Button>
 
               {/* Theme Toggle */}
               <Button

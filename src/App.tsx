@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MonthProvider } from "@/contexts/MonthContext";
 import { TransactionModalProvider } from "@/contexts/TransactionModalContext";
+import { PrivacyProvider } from "@/contexts/PrivacyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout";
 import { lazy, Suspense } from "react";
@@ -49,6 +50,7 @@ const App = () => (
     <AuthProvider>
       <MonthProvider>
         <TransactionModalProvider>
+          <PrivacyProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -201,6 +203,7 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
+          </PrivacyProvider>
         </TransactionModalProvider>
       </MonthProvider>
     </AuthProvider>

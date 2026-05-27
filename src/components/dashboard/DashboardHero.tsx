@@ -2,6 +2,7 @@ import { moneyUtils } from "@/utils/money";
 import { Globe, Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 import {
   Area,
   AreaChart,
@@ -26,6 +27,8 @@ export function DashboardHero({
   formatCurrency,
   wealthHistory,
 }: DashboardHeroProps) {
+  const { isPrivate } = usePrivacy();
+
   // Tendência: positiva se o saldo atual for maior ou igual ao saldo de 6 meses atrás
   const isPositiveTrend = useMemo(() => {
     if (!wealthHistory || wealthHistory.length < 2) return balance >= 0;
@@ -73,9 +76,10 @@ export function DashboardHero({
           
           <h1 className={cn(
             "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500",
-            savings >= 0 ? "text-primary" : "text-destructive"
+            savings >= 0 ? "text-primary" : "text-destructive",
+            isPrivate && "blur-md opacity-50 select-none"
           )}>
-            {formatCurrency(savings)}
+            {isPrivate ? "R$ •••••" : formatCurrency(savings)}
           </h1>
 
           <div className="flex flex-wrap gap-3">
@@ -85,7 +89,9 @@ export function DashboardHero({
               </div>
               <div>
                 <p className="text-[9px] text-blue-600/70 font-bold uppercase tracking-wider">Patrimônio</p>
-                <p className="text-sm font-bold text-blue-600">{formatCurrency(balance)}</p>
+                <p className={cn("text-sm font-bold text-blue-600", isPrivate && "blur-md opacity-50 select-none")}>
+                  {isPrivate ? "•••••" : formatCurrency(balance)}
+                </p>
               </div>
             </div>
 
@@ -95,7 +101,9 @@ export function DashboardHero({
               </div>
               <div>
                 <p className="text-[9px] text-green-600/70 font-bold uppercase tracking-wider">Entradas</p>
-                <p className="text-sm font-bold text-green-600">{formatCurrency(income)}</p>
+                <p className={cn("text-sm font-bold text-green-600", isPrivate && "blur-md opacity-50 select-none")}>
+                  {isPrivate ? "•••••" : formatCurrency(income)}
+                </p>
               </div>
             </div>
 
@@ -105,7 +113,9 @@ export function DashboardHero({
               </div>
               <div>
                 <p className="text-[9px] text-red-600/70 font-bold uppercase tracking-wider">Saídas</p>
-                <p className="text-sm font-bold text-red-600">{formatCurrency(expenses)}</p>
+                <p className={cn("text-sm font-bold text-red-600", isPrivate && "blur-md opacity-50 select-none")}>
+                  {isPrivate ? "•••••" : formatCurrency(expenses)}
+                </p>
               </div>
             </div>
           </div>

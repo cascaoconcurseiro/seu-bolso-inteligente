@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 interface AccountStatementProps {
   transactions: any[];
@@ -30,6 +31,8 @@ export function AccountStatement({
   onEditTransaction,
   onDeleteTransaction
 }: AccountStatementProps) {
+  const { isPrivate } = usePrivacy();
+
   if (transactions.length === 0) {
     return (
       <div className="space-y-4">
@@ -120,12 +123,13 @@ export function AccountStatement({
                         <div>
                           <p className={cn(
                             "font-mono text-base sm:text-lg font-bold tracking-tight",
-                            isIncome ? "text-positive" : "text-negative"
+                            isIncome ? "text-positive" : "text-negative",
+                            isPrivate && "blur-md opacity-50 select-none"
                           )}>
-                            {isIncome ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}
+                            {isPrivate ? "•••••" : `${isIncome ? "+" : "-"}${formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}`}
                           </p>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground font-mono opacity-80">
-                            Saldo: {formatCurrency(tx.runningBalance, accountCurrency)}
+                          <p className={cn("text-[10px] sm:text-xs text-muted-foreground font-mono opacity-80", isPrivate && "blur-md opacity-50 select-none")}>
+                            Saldo: {isPrivate ? "•••••" : formatCurrency(tx.runningBalance, accountCurrency)}
                           </p>
                         </div>
                         <DropdownMenu>

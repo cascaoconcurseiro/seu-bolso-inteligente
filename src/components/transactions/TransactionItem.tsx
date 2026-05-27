@@ -4,6 +4,8 @@ import { FastForward, Lock, User, CheckCircle, Clock, Users, HandCoins, Edit, Tr
 import { cn } from "@/lib/utils";
 import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
 import { Transaction } from "@/utils/transactionUtils";
+import { haptics } from "@/utils/haptics";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 interface PayerInfo {
   label: string;
@@ -55,6 +57,7 @@ export function TransactionItem({
   getPayerInfo,
   selectedAccount
 }: TransactionItemProps) {
+  const { isPrivate } = usePrivacy();
   const creatorName = getCreatorName(transaction);
   const isOwner = transaction.user_id === user?.id;
   const isCreator = transaction.creator_user_id === user?.id;
@@ -70,6 +73,7 @@ export function TransactionItem({
   
   // Swipe to delete logic
   const [isSwiped, setIsSwiped] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -79,15 +83,32 @@ export function TransactionItem({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const diff = e.touches[0].clientX - touchStartX.current;
-    if (diff < -40) {
-      setIsSwiped(true);
+    
+    if (diff < 0) {
+      const newOffset = Math.max(diff, -80);
+      if (swipeOffset > -40 && newOffset <= -40) {
+        haptics.light();
+      }
+      setSwipeOffset(newOffset);
+      if (diff < -40) {
+        setIsSwiped(true);
+      }
     } else if (diff > 40) {
       setIsSwiped(false);
+      setSwipeOffset(0);
     }
   };
 
   const handleTouchEnd = () => {
     touchStartX.current = null;
+    if (swipeOffset < -40) {
+      setSwipeOffset(-80);
+      setIsSwiped(true);
+      haptics.medium();
+    } else {
+      setSwipeOffset(0);
+      setIsSwiped(false);
+    }
   };
   
   let displayType = transaction.type;
@@ -264,15 +285,15 @@ export function TransactionItem({
         <div className="flex flex-col items-end gap-0.5">
           <span className={cn(
             "font-mono font-medium text-right whitespace-nowrap",
-            displayType === "INCOME" ? "text-positive" : "text-negative"
+            displayType === "INCOME" ? "text-positive" : "text-negative",
+            isPrivate && "blur-md opacity-50 select-none"
           )}>
-            {displayType === "INCOME" ? "+" : "-"}
-            {formatCurrency(displayAmount, displayCurrency)}
+            {isPrivate ? "•••••" : `${displayType === "INCOME" ? "+" : "-"}${formatCurrency(displayAmount, displayCurrency)}`}
           </span>
           {isInternationalTransfer && !isIncomingTransfer && (
-            <span className="text-[11px] font-mono font-bold text-positive text-right whitespace-nowrap flex items-center justify-end gap-1" title="Valor convertido creditado">
+            <span className={cn("text-[11px] font-mono font-bold text-positive text-right whitespace-nowrap flex items-center justify-end gap-1", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
               <span>➔</span>
-              <span>{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || 'USD')}</span>
+              <span>{isPrivate ? "•••••" : formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || 'USD')}</span>
             </span>
           )}
           <span className={cn(

@@ -28,6 +28,7 @@ import { getTransactionCurrency, groupTransactionsByDay } from "@/utils/transact
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
+import { haptics } from "@/utils/haptics";
 
 export function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -181,6 +182,7 @@ export function Transactions() {
       }
       await deleteTransaction.mutateAsync(deleteId);
       if (transaction?.is_shared) await invalidateRelated(deleteId);
+      haptics.heavy();
       setDeleteId(null);
     }
   };
@@ -196,6 +198,7 @@ export function Transactions() {
       await deleteInstallmentSeries.mutateAsync(deleteSeriesId);
       const first = seriesTransactions[0];
       if (first?.is_shared && first?.id) await invalidateRelated(first.id);
+      haptics.heavy();
       setDeleteSeriesId(null);
     }
   };

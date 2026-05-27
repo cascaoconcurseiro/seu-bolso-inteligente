@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { parseDate } from "@/lib/dateUtils";
+import { parseDate } from "@/lib/dateUtils";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 interface DashboardRecentActivityProps {
   recentTransactions: any[];
@@ -12,6 +14,8 @@ export function DashboardRecentActivity({
   recentTransactions,
   formatCurrencyWithSymbol
 }: DashboardRecentActivityProps) {
+  const { isPrivate } = usePrivacy();
+
   return (
     <div className="space-y-4 animate-fade-in-up">
       <div className="flex items-center justify-between px-1">
@@ -94,13 +98,14 @@ export function DashboardRecentActivity({
                 <div className="text-right shrink-0 ml-4">
                   <p className={cn(
                     "font-display font-black text-sm md:text-base tracking-tight",
-                    isIncome ? "text-green-600" : isTransfer ? "text-blue-600" : "text-foreground"
+                    isIncome ? "text-green-600" : isTransfer ? "text-blue-600" : "text-foreground",
+                    isPrivate && "blur-md opacity-50 select-none"
                   )}>
-                    {isIncome ? "+" : isTransfer ? "" : "-"}{formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}
+                    {isPrivate ? "•••••" : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}`}
                   </p>
                   {isTransfer && tx.destination_amount && tx.destination_currency && (tx.currency || 'BRL') !== tx.destination_currency && (
-                    <p className="text-[10px] font-display font-bold text-green-600 tracking-tight mt-0.5" title="Valor convertido creditado">
-                      ➔ {formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}
+                    <p className={cn("text-[10px] font-display font-bold text-green-600 tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
+                      {isPrivate ? "➔ •••••" : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
                     </p>
                   )}
                   <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 flex items-center justify-end gap-1">

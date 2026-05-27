@@ -45,6 +45,7 @@ import { toast } from 'sonner';
 import { validateTransaction } from '@/services/validationService';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
+import { haptics } from '@/utils/haptics';
 
 // Refactored Sub-components
 import { AmountInput } from './form/AmountInput';
@@ -389,6 +390,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         logger.error('Erro ao registrar aprendizado de categoria:', error);
       }
     }
+    haptics.success();
     if (onSuccess) onSuccess(); else navigate('/transacoes');
   };
 

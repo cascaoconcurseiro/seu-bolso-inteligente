@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDownRight, Globe, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { getBankById } from "@/lib/banks";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 interface AccountInfo {
   id: string;
@@ -41,6 +42,7 @@ export function AccountCard({
   const bank = getBankById(account.bank_id);
   const isInternational = account.is_international;
   const currencySymbol = getCurrencySymbol(account.currency || 'BRL');
+  const { isPrivate } = usePrivacy();
 
   return (
     <div className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden">
@@ -74,10 +76,10 @@ export function AccountCard({
           
           <div className="mt-6 relative z-10">
             <p className="text-[10px] uppercase tracking-wider font-bold opacity-75" style={{ color: bank.textColor }}>Saldo Disponível</p>
-            <p className="font-mono text-2xl sm:text-3xl font-black tracking-tight mt-1" style={{ color: bank.textColor }}>
-              {isInternational 
+            <p className={cn("font-mono text-2xl sm:text-3xl font-black tracking-tight mt-1", isPrivate && "blur-md opacity-50 select-none")} style={{ color: bank.textColor }}>
+              {isPrivate ? "•••••" : (isInternational 
                 ? `${currencySymbol} ${Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
-                : formatCurrency(Number(account.balance))
+                : formatCurrency(Number(account.balance)))
               }
             </p>
           </div>
