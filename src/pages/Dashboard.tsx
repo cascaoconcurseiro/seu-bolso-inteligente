@@ -15,7 +15,7 @@ import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvit
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
@@ -234,8 +234,11 @@ export function Dashboard() {
           <TripDashboardView trip={activeTrip} />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 animate-in fade-in duration-500">
-          <div className="lg:col-span-8 space-y-6 md:space-y-8">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+          
+          <DashboardQuickAccess />
+
+          <div className="space-y-6 md:space-y-8">
             <DashboardInvoices
               creditCardsWithBalance={creditCardsWithBalance}
               formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
@@ -246,13 +249,6 @@ export function Dashboard() {
               formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
             />
           </div>
-
-          <DashboardSidebar
-            savings={savings}
-            projectedBalance={projectedBalance}
-            projection={projection ?? null}
-            formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
-          />
         </div>
       )}
 

@@ -53,10 +53,10 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                <ArrowRight className="h-5 w-5 text-green-500 rotate-180" />
+                <p className="text-sm font-medium text-green-600/70 dark:text-green-400/70 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2">
                 {Object.entries(totalsByCurrency)
@@ -75,10 +75,10 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-red-600" />
-                <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                <ArrowRight className="h-5 w-5 text-red-500" />
+                <p className="text-sm font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2">
                 {Object.entries(totalsByCurrency)
@@ -137,10 +137,10 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
+            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-green-600 rotate-180" />
-                <p className="text-sm font-medium text-muted-foreground">A Receber</p>
+                <ArrowRight className="h-5 w-5 text-green-500 rotate-180" />
+                <p className="text-sm font-medium text-green-600/70 dark:text-green-400/70 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2">
                 {Object.entries(travelTotalsByCurrency)
@@ -159,10 +159,10 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
+            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
               <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-red-600" />
-                <p className="text-sm font-medium text-muted-foreground">A Pagar</p>
+                <ArrowRight className="h-5 w-5 text-red-500" />
+                <p className="text-sm font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2">
                 {Object.entries(travelTotalsByCurrency)
