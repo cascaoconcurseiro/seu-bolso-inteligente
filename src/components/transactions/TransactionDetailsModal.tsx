@@ -290,20 +290,7 @@ export function TransactionDetailsModal({
                 Adiantar Parcelas
               </Button>
             )}
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1"
-                onClick={() => {
-                  onOpenChange(false);
-                  onEdit();
-                }}
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-            )}
+
             {onDelete && (
               <Button
                 variant="outline"

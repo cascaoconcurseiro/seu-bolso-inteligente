@@ -289,17 +289,7 @@ export function TransactionItem({
           </span>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex" onClick={(e) => e.stopPropagation()}>
-          {canEdit && !isMirror && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 md:h-8 md:w-8 text-primary hover:text-primary"
-              onClick={() => onEdit(transaction)}
-              title="Editar"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
+
           {canDelete && (
             <Button
               variant="ghost"
