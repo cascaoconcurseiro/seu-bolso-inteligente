@@ -131,21 +131,26 @@ export function getEndOfMonth(): Date {
  * Obtém o range de datas de um mês específico formatado como YYYY-MM-DD
  * Útil para queries que precisam de startDate e endDate
  */
-export function getMonthDateRange(date: Date = getBrazilDate()): {
+export function getMonthDateRange(date: Date = getBrazilDate(), startDay: number = 1): {
   startDate: string;
   endDate: string;
   monthKey: string;
 } {
   const year = date.getFullYear();
-  const month = date.getMonth();
+  let month = date.getMonth();
   
-  const startDate = new Date(year, month, 1);
-  const endDate = new Date(year, month + 1, 0);
+  if (date.getDate() < startDay) {
+    month = month - 1;
+  }
+  
+  const startDate = new Date(year, month, startDay);
+  const endDate = new Date(year, month + 1, startDay - 1);
+  const normalizedStart = new Date(year, month, 1);
   
   return {
     startDate: formatDateISO(startDate),
     endDate: formatDateISO(endDate),
-    monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
+    monthKey: `${normalizedStart.getFullYear()}-${String(normalizedStart.getMonth() + 1).padStart(2, '0')}`,
   };
 }
 

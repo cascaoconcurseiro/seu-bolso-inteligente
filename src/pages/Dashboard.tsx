@@ -8,6 +8,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
 import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { useWealthEvolution } from "@/hooks/useWealthEvolution";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
@@ -30,6 +31,7 @@ export function Dashboard() {
   const { data: trips } = useTrips();
   const { data: projection } = useMonthlyProjection(selectedCurrency);
   const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
+  const { data: profile } = useUserProfile();
 
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
@@ -194,6 +196,7 @@ export function Dashboard() {
           expenses={activeCurrencyData.expense}
           formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
           wealthHistory={wealthHistory}
+          monthlyBudget={profile?.monthly_budget}
         />
 
         <div className="flex justify-end items-center gap-3 pt-1">

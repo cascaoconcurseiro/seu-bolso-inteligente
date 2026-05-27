@@ -9,6 +9,7 @@ import { TransactionModalProvider } from "@/contexts/TransactionModalContext";
 import { PrivacyProvider } from "@/contexts/PrivacyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout";
+import { PinWrapper } from "@/components/auth/PinWrapper";
 import { lazy, Suspense } from "react";
 
 // Páginas críticas — carregadas imediatamente (impacto direto no primeiro acesso)
@@ -65,9 +66,11 @@ const App = () => (
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Dashboard />
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Dashboard />
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -75,9 +78,11 @@ const App = () => (
                   path="/transacoes"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Transactions />
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Transactions />
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -85,9 +90,11 @@ const App = () => (
                   path="/contas"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Accounts />
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Accounts />
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -95,9 +102,11 @@ const App = () => (
                   path="/contas/:id"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <AccountDetail />
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <AccountDetail />
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -105,11 +114,13 @@ const App = () => (
                   path="/cartoes"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <CreditCards />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <CreditCards />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -117,13 +128,15 @@ const App = () => (
                   path="/compartilhados"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <ErrorBoundary>
-                          <Suspense fallback={<PageLoader />}>
-                            <SharedExpenses />
-                          </Suspense>
-                        </ErrorBoundary>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <ErrorBoundary>
+                            <Suspense fallback={<PageLoader />}>
+                              <SharedExpenses />
+                            </Suspense>
+                          </ErrorBoundary>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -131,11 +144,13 @@ const App = () => (
                   path="/viagens"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <Trips />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <Trips />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -143,11 +158,13 @@ const App = () => (
                   path="/familia"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <Family />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <Family />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -155,11 +172,13 @@ const App = () => (
                   path="/relatorios"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <Reports />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <Reports />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -167,11 +186,13 @@ const App = () => (
                   path="/orcamentos"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <Budgets />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <Budgets />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -179,11 +200,13 @@ const App = () => (
                   path="/metas"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <GoalsAndInvestments />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <GoalsAndInvestments />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />
@@ -191,11 +214,13 @@ const App = () => (
                   path="/configuracoes"
                   element={
                     <ProtectedRoute>
-                      <AppLayout>
-                        <Suspense fallback={<PageLoader />}>
-                          <Settings />
-                        </Suspense>
-                      </AppLayout>
+                      <PinWrapper>
+                        <AppLayout>
+                          <Suspense fallback={<PageLoader />}>
+                            <Settings />
+                          </Suspense>
+                        </AppLayout>
+                      </PinWrapper>
                     </ProtectedRoute>
                   }
                 />

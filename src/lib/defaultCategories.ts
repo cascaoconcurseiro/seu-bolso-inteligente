@@ -254,21 +254,14 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
 
   // ========== RECEITAS ==========
   
-  {
-    name: "Receitas",
-    icon: "💰",
-    type: "income",
-    children: [
-      { name: "Salário", icon: "💰", type: "income" },
-      { name: "Freelance", icon: "💻", type: "income" },
-      { name: "Vendas", icon: "🏷️", type: "income" },
-      { name: "Investimentos", icon: "📈", type: "income" },
-      { name: "Reembolso", icon: "💳", type: "income" },
-      { name: "Cashback", icon: "💸", type: "income" },
-      { name: "Benefícios", icon: "🎁", type: "income" },
-      { name: "Presente", icon: "🎉", type: "income" },
-      { name: "Transferência Recebida", icon: "📥", type: "income" },
-      { name: "Outros", icon: "💵", type: "income" },
-    ],
-  },
+  { name: "Salário", icon: "💰", type: "income" },
+  { name: "Freelance", icon: "💻", type: "income" },
+  { name: "Vendas", icon: "🏷️", type: "income" },
+  { name: "Investimentos", icon: "📈", type: "income" },
+  { name: "Reembolso", icon: "💳", type: "income" },
+  { name: "Cashback", icon: "💸", type: "income" },
+  { name: "Benefícios", icon: "🎁", type: "income" },
+  { name: "Presente", icon: "🎉", type: "income" },
+  { name: "Transferência Recebida", icon: "📥", type: "income" },
+  { name: "Outros", icon: "💵", type: "income" },
 ];

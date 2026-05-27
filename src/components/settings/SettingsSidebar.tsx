@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { User, Tag, Users, Palette, Bell, Shield, BarChart3, Database, HelpCircle } from "lucide-react";
+import { User, Tag, Users, Palette, Bell, Shield, Database, HelpCircle, SlidersHorizontal, Lock } from "lucide-react";
 
-export type SettingsSection = "account" | "categories" | "people" | "appearance" | "notifications" | "backup" | "admin" | "help";
+export type SettingsSection = "account" | "preferences" | "security" | "categories" | "people" | "appearance" | "notifications" | "backup" | "admin" | "help";
 
 interface SettingsSidebarProps {
   activeSection: SettingsSection;
@@ -14,6 +14,8 @@ export function SettingsSidebar({ activeSection, setActiveSection, categoriesCou
   const sections = [
     { id: "help" as const, label: "Central de Ajuda (FAQ)", icon: HelpCircle },
     { id: "account" as const, label: "Perfil", icon: User },
+    { id: "preferences" as const, label: "Preferências", icon: SlidersHorizontal },
+    { id: "security" as const, label: "Segurança", icon: Lock },
     { id: "categories" as const, label: "Categorias", icon: Tag, count: categoriesCount },
     { id: "people" as const, label: "Pessoas", icon: Users, count: membersCount },
     { id: "appearance" as const, label: "Aparência", icon: Palette },

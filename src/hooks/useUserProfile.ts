@@ -12,6 +12,11 @@ export interface UserProfile {
   avatar_color?: string | null;
   avatar_icon?: string | null;
   use_subcategories?: boolean;
+  month_start_day?: number;
+  base_currency?: string;
+  app_pin?: string | null;
+  require_pin_on_open?: boolean;
+  monthly_budget?: number;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -66,6 +71,11 @@ export function useUpdateUserProfile() {
       avatar_color?: string;
       avatar_icon?: string;
       use_subcategories?: boolean;
+      month_start_day?: number;
+      base_currency?: string;
+      app_pin?: string | null;
+      require_pin_on_open?: boolean;
+      monthly_budget?: number;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -87,6 +97,21 @@ export function useUpdateUserProfile() {
       }
       if (input.use_subcategories !== undefined) {
         updateData.use_subcategories = input.use_subcategories;
+      }
+      if (input.month_start_day !== undefined) {
+        updateData.month_start_day = input.month_start_day;
+      }
+      if (input.base_currency !== undefined) {
+        updateData.base_currency = input.base_currency;
+      }
+      if (input.app_pin !== undefined) {
+        updateData.app_pin = input.app_pin;
+      }
+      if (input.require_pin_on_open !== undefined) {
+        updateData.require_pin_on_open = input.require_pin_on_open;
+      }
+      if (input.monthly_budget !== undefined) {
+        updateData.monthly_budget = input.monthly_budget;
       }
 
       const { data, error } = await supabase

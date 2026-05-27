@@ -3,7 +3,7 @@ import {
   HelpCircle, Search, BookOpen, Users, CreditCard, 
   Target, BarChart3, ShieldCheck, ChevronRight, AlertCircle,
   TrendingUp, Globe, Database, Settings, RefreshCw, Sparkles,
-  PiggyBank, FileText, Undo2, Trash2
+  PiggyBank, FileText, Undo2, Trash2, Eraser
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -746,6 +746,37 @@ export function HelpSettings() {
         <p className="text-xs leading-relaxed text-muted-foreground">
           Ao contrário de softwares de finanças comuns que utilizam variáveis numéricas simples (como `float` ou `double` do Javascript) — que sofrem de dízimas periódicas que geram erros de arredondamento de centavos no fechamento mensal —, nossa arquitetura bancária utiliza a biblioteca de alta precisão **Decimal/BigInt**. Isso garante que todas as conversões de câmbio multi-moedas, splits de grupo, juros do cartão e amortizações parceladas fiquem exatas até o último centavo, protegendo o seu patrimônio com rigor científico.
         </p>
+      </div>
+
+      {/* Limpeza de Cache Local */}
+      <div className="p-5 rounded-2xl border border-destructive/20 bg-destructive/5 space-y-4">
+        <h3 className="font-display font-semibold text-sm flex items-center gap-2 text-foreground">
+          <Eraser className="h-4 w-4 text-destructive" />
+          Manutenção do Sistema (Limpar Cache)
+        </h3>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Se o aplicativo estiver lento, com problemas de atualização visual ou falhas de carregamento no modo offline (PWA), clique no botão abaixo para forçar a limpeza dos dados armazenados localmente e sincronizar novamente com os servidores seguros. Você não perderá nenhum dado contábil.
+        </p>
+        <Button 
+          variant="destructive" 
+          size="sm"
+          onClick={() => {
+            if(confirm("Deseja realmente limpar o cache local? O aplicativo será recarregado.")) {
+              localStorage.clear();
+              sessionStorage.clear();
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
+                });
+              }
+              window.location.reload();
+            }
+          }}
+        >
+          Limpar Dados Locais e Recarregar
+        </Button>
       </div>
     </div>
   );

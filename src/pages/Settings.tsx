@@ -42,6 +42,8 @@ import { SettingsSidebar, SettingsSection } from "@/components/settings/Settings
 import { AccountSettings } from "@/components/settings/AccountSettings";
 import { CategorySettings } from "@/components/settings/CategorySettings";
 import { PeopleSettings } from "@/components/settings/PeopleSettings";
+import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { BackupManager } from "@/components/settings/BackupManager";
@@ -156,6 +158,14 @@ export function Settings() {
               onChangePassword={() => setShowChangePasswordDialog(true)}
               onDeleteAccount={() => setShowDeleteAccountDialog(true)}
             />
+          )}
+
+          {activeSection === "preferences" && (
+            <PreferencesSettings profile={profile} isLoading={profileLoading} updateProfile={updateProfile} />
+          )}
+
+          {activeSection === "security" && (
+            <SecuritySettings profile={profile} isLoading={profileLoading} updateProfile={updateProfile} />
           )}
 
           {activeSection === "categories" && (

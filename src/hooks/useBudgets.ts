@@ -27,11 +27,11 @@ export interface BudgetWithProgress {
 export const useBudgets = () => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { currentDate } = useMonth();
+  const { currentDate, startDay } = useMonth();
   const queryClient = useQueryClient();
 
   // Calcular datas do período atual
-  const { startDate, endDate } = getMonthDateRange(currentDate);
+  const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
 
   // Buscar todos os orçamentos COM progresso calculado pelo banco de dados
   // SINGLE SOURCE OF TRUTH: O gasto é calculado diretamente das transações

@@ -34,8 +34,8 @@ export interface DashboardSummary {
  */
 export function useDashboardData() {
   const { user } = useAuth();
-  const { currentDate } = useMonth();
-  const { startDate, endDate, monthKey } = getMonthDateRange(currentDate);
+  const { currentDate, startDay } = useMonth();
+  const { startDate, endDate, monthKey } = getMonthDateRange(currentDate, startDay);
 
   return useQuery({
     queryKey: ['dashboard-data', user?.id, monthKey],

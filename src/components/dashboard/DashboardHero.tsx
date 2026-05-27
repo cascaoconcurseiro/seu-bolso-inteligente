@@ -1,5 +1,5 @@
 import { moneyUtils } from "@/utils/money";
-import { Globe, Wallet, TrendingUp, TrendingDown } from "lucide-react";
+import { Globe, Wallet, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
@@ -17,6 +17,7 @@ interface DashboardHeroProps {
   currency: string;
   formatCurrency: (value: number) => string;
   wealthHistory?: { month_label: string; balance: number; }[];
+  monthlyBudget?: number | null;
 }
 
 export function DashboardHero({
@@ -26,6 +27,7 @@ export function DashboardHero({
   currency,
   formatCurrency,
   wealthHistory,
+  monthlyBudget,
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
 
@@ -163,6 +165,44 @@ export function DashboardHero({
           </div>
         )}
       </div>
+
+      {/* Barra de Progresso do Orçamento Mensal Global */}
+      {monthlyBudget && monthlyBudget > 0 && (
+        <div className="mt-8 pt-6 border-t border-border/30">
+          <div className="flex justify-between items-end mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-orange-500/10">
+                <Target className="h-4 w-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Orçamento do Mês</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {formatCurrency(expenses)} <span className="text-muted-foreground font-normal">/ {formatCurrency(monthlyBudget)}</span>
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className={cn(
+                "text-xs font-bold",
+                expenses > monthlyBudget ? "text-destructive" : "text-emerald-500"
+              )}>
+                {((expenses / monthlyBudget) * 100).toFixed(1)}% utilizado
+              </p>
+            </div>
+          </div>
+          <div className="h-3 w-full bg-muted/50 rounded-full overflow-hidden">
+            <div 
+              className={cn(
+                "h-full rounded-full transition-all duration-1000 ease-out",
+                expenses > monthlyBudget ? "bg-destructive" : 
+                expenses > monthlyBudget * 0.8 ? "bg-orange-500" : 
+                "bg-emerald-500"
+              )}
+              style={{ width: `${Math.min((expenses / monthlyBudget) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

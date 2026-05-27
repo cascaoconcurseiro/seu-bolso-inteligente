@@ -258,11 +258,11 @@ async function validateMemberId(memberId: string | null | undefined): Promise<bo
 
 export function useTransactions(filters?: TransactionFilters) {
   const { user } = useAuth();
-  const { currentDate } = useMonth();
+  const { currentDate, startDay } = useMonth();
 
   const effectiveFilters = filters ? { ...filters } : {};
   if (!effectiveFilters.startDate && !effectiveFilters.endDate) {
-    const { startDate, endDate } = getMonthDateRange(currentDate);
+    const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
     effectiveFilters.startDate = startDate;
     effectiveFilters.endDate = endDate;
   }
