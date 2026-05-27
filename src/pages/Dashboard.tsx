@@ -37,7 +37,10 @@ export function Dashboard() {
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
 
-  const recentTransactions = dashboardData?.recent_transactions || [];
+  const recentTransactions = useMemo(() => {
+    const allRecent = dashboardData?.recent_transactions || [];
+    return allRecent.filter(tx => (tx.currency || 'BRL') === selectedCurrency);
+  }, [dashboardData?.recent_transactions, selectedCurrency]);
   const hasError = txError || accountsError;
   const isLoading = (txLoading || accountsLoading) && !hasError;
 
