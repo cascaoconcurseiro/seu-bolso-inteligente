@@ -67,7 +67,7 @@ export function DashboardHero({
                 <TrendingUp className="h-4 w-4 text-primary" />
              </div>
              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">
-               Sobrando no Mês ({currency})
+               Saldo Mensal Previsto ({currency})
              </p>
           </div>
           
