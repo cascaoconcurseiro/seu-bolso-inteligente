@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from './exportCurrency';
 
-const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium do Seu Bolso Inteligente
+const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
 // Helper para invocar autoTable de forma resiliente diante de variações de bundler
@@ -79,7 +79,7 @@ const addFooter = (doc: jsPDF) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Seu Bolso Inteligente - Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 };
 
@@ -130,7 +130,7 @@ export const exportToCSV = (transactions: any[], filename = 'transacoes_seu_bols
     <body>
     <table>
       <tr>
-        <th colspan="7" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="7" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="7" class="brand-subtitle">Relatório Financeiro Consolidado — Emitido em ${today}</th>
@@ -214,7 +214,7 @@ export const exportToPDF = (transactions: any[], totalIncome: number, totalExpen
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 20);
+  doc.text('controle financeiro', 14, 20);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -339,7 +339,7 @@ export const exportAccountsToCSV = (transactions: any[], accounts: any[], period
     <body>
     <table>
       <tr>
-        <th colspan="8" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="8" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="8" class="brand-subtitle">Extrato de Contas Bancárias — ${periodLabel} — Emitido em ${today}</th>
@@ -437,7 +437,7 @@ export const exportAccountsToPDF = (transactions: any[], accounts: any[], period
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 20);
+  doc.text('controle financeiro', 14, 20);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -569,7 +569,7 @@ export const exportCardsToCSV = (transactions: any[], cards: any[], periodLabel:
     <body>
     <table>
       <tr>
-        <th colspan="7" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="7" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="7" class="brand-subtitle">Extrato de Cartões de Crédito — ${periodLabel} — Emitido em ${today}</th>
@@ -652,7 +652,7 @@ export const exportCardsToPDF = (transactions: any[], cards: any[], periodLabel:
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 20);
+  doc.text('controle financeiro', 14, 20);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -784,7 +784,7 @@ export const exportSharedToCSV = (invoiceItems: any[], periodLabel: string) => {
     <body>
     <table>
       <tr>
-        <th colspan="8" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="8" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="8" class="brand-subtitle">Extrato de Despesas Compartilhadas — ${periodLabel} — Emitido em ${today}</th>
@@ -867,7 +867,7 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 20);
+  doc.text('controle financeiro', 14, 20);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');

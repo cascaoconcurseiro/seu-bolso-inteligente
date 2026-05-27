@@ -301,7 +301,7 @@ export function AccountingDRE() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(5, 150, 105);
-      doc.text("PÉ DE MEIA - SEU BOLSO INTELIGENTE", 105, 15, { align: "center" });
+      doc.text("PÉ DE MEIA - CONTROLE FINANCEIRO", 105, 15, { align: "center" });
       doc.setFontSize(11);
       doc.setTextColor(31, 41, 55);
       doc.text(title, 105, 22, { align: "center" });
@@ -404,7 +404,7 @@ export function AccountingDRE() {
         <table>
           <!-- Título Principal -->
           <tr>
-            <th colspan="3" class="brand-title">SEU BOLSO INTELIGENTE</th>
+            <th colspan="3" class="brand-title">CONTROLE FINANCEIRO</th>
           </tr>
           <tr>
             <th colspan="3" class="brand-subtitle">DRE — DEMONSTRATIVO DO RESULTADO DO EXERCÍCIO</th>
@@ -577,7 +577,7 @@ export function AccountingDRE() {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(14);
       doc.setTextColor(5, 150, 105);
-      doc.text("PÉ DE MEIA - SEU BOLSO INTELIGENTE", 105, 15, { align: "center" });
+      doc.text("PÉ DE MEIA - CONTROLE FINANCEIRO", 105, 15, { align: "center" });
       doc.setFontSize(11);
       doc.setTextColor(31, 41, 55);
       doc.text(title, 105, 22, { align: "center" });
@@ -677,7 +677,7 @@ export function AccountingDRE() {
         <table>
           <!-- Título Principal -->
           <tr>
-            <th colspan="3" class="brand-title">SEU BOLSO INTELIGENTE</th>
+            <th colspan="3" class="brand-title">CONTROLE FINANCEIRO</th>
           </tr>
           <tr>
             <th colspan="3" class="brand-subtitle">BALANÇO PATRIMONIAL CONTÁBIL</th>

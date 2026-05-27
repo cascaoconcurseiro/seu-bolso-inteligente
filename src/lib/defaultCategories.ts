@@ -255,73 +255,20 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   // ========== RECEITAS ==========
   
   {
-    name: "Trabalho",
-    icon: "💼",
+    name: "Receitas",
+    icon: "💰",
     type: "income",
     children: [
       { name: "Salário", icon: "💰", type: "income" },
       { name: "Freelance", icon: "💻", type: "income" },
-      { name: "Bônus", icon: "🎯", type: "income" },
-      { name: "Comissão", icon: "💼", type: "income" },
-      { name: "13º Salário", icon: "💵", type: "income" },
-      { name: "Férias", icon: "🏖️", type: "income" },
-      { name: "Hora Extra", icon: "⏰", type: "income" },
-      { name: "PLR", icon: "📊", type: "income" },
-      { name: "Rescisão", icon: "📄", type: "income" },
-    ],
-  },
-  
-  {
-    name: "Investimentos",
-    icon: "📈",
-    type: "income",
-    children: [
-      { name: "Dividendos", icon: "📈", type: "income" },
-      { name: "Juros", icon: "💹", type: "income" },
-      { name: "Rendimento Poupança", icon: "🏦", type: "income" },
-      { name: "Rendimento CDB", icon: "📊", type: "income" },
-      { name: "Venda de Ações", icon: "📊", type: "income" },
-      { name: "Criptomoedas", icon: "₿", type: "income" },
-      { name: "Fundos Imobiliários", icon: "🏢", type: "income" },
-    ],
-  },
-  
-  {
-    name: "Renda Extra",
-    icon: "💵",
-    type: "income",
-    children: [
-      { name: "Aluguel Recebido", icon: "🏠", type: "income" },
-      { name: "Venda", icon: "🏷️", type: "income" },
-      { name: "Presente Recebido", icon: "🎁", type: "income" },
+      { name: "Vendas", icon: "🏷️", type: "income" },
+      { name: "Investimentos", icon: "📈", type: "income" },
       { name: "Reembolso", icon: "💳", type: "income" },
-      { name: "Prêmio", icon: "🏆", type: "income" },
-      { name: "Cashback", icon: "💰", type: "income" },
-      { name: "Pensão", icon: "👨‍👩‍👧", type: "income" },
-      { name: "Aposentadoria", icon: "👴", type: "income" },
-      { name: "Remessa Internacional", icon: "💸", type: "income" },
-    ],
-  },
-  
-  {
-    name: "Sistema",
-    icon: "⚙️",
-    type: "income",
-    children: [
-      { name: "Saldo Inicial", icon: "💰", type: "income" },
-      { name: "Acerto Financeiro", icon: "🤝", type: "income" },
-      { name: "Ajuste", icon: "🔧", type: "income" },
-      { name: "Conversão Cambial", icon: "💱", type: "income" },
-      { name: "Ajuste de Saldo", icon: "⚖️", type: "income" },
-    ],
-  },
-  
-  {
-    name: "Outros",
-    icon: "💵",
-    type: "income",
-    children: [
-      { name: "Diversos", icon: "💵", type: "income" },
+      { name: "Cashback", icon: "💸", type: "income" },
+      { name: "Benefícios", icon: "🎁", type: "income" },
+      { name: "Presente", icon: "🎉", type: "income" },
+      { name: "Transferência Recebida", icon: "📥", type: "income" },
+      { name: "Outros", icon: "💵", type: "income" },
     ],
   },
 ];

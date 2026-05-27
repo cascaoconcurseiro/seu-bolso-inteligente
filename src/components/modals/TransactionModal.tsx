@@ -13,15 +13,13 @@ interface TransactionModalProps {
   onClose?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  initialData?: unknown;
 }
 
 export function TransactionModal({ 
   isOpen, 
   onClose, 
   open, 
-  onOpenChange, 
-  initialData 
+  onOpenChange 
 }: TransactionModalProps) {
   const { transactionContext } = useTransactionModal();
   
@@ -35,13 +33,11 @@ export function TransactionModal({
     <Dialog open={actualOpen} onOpenChange={actualClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
-          <DialogTitle>
-            {initialData ? 'Editar Transação' : 'Nova Transação'}
+            Nova Transação
           </DialogTitle>
         </DialogHeader>
         <div className="px-6 pb-6">
           <TransactionForm 
-            initialData={initialData}
             context={transactionContext}
             onSuccess={onClose}
             onCancel={onClose}

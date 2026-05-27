@@ -25,7 +25,6 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
-  useUpdateTransaction,
   useTransactions,
   TransactionType,
   CreateTransactionInput,
@@ -66,7 +65,7 @@ interface TransactionFormProps {
   };
 }
 
-export function TransactionForm({ onSuccess, onCancel, context, initialData }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, onCancel, context }: TransactionFormProps) {
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
   const { user } = useAuth();
@@ -79,7 +78,6 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   }, [familyMembers, user?.id]);
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
-  const updateTransaction = useUpdateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
   // Form State
@@ -171,45 +169,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const [enableNotification, setEnableNotification] = useState(false);
   const [notificationDate, setNotificationDate] = useState<Date | undefined>();
 
-  // Populate from initialData when editing
-  useEffect(() => {
-    if (initialData) {
-      const tx = initialData as any;
-      setActiveTab(tx.type || 'EXPENSE');
-      setAmount(tx.amount ? String(Math.abs(tx.amount)) : '');
-      setDescription(tx.description || '');
-      setDate(tx.date ? new Date(tx.date + 'T12:00:00') : new Date());
-      setAccountId(tx.account_id || '');
-      setDestinationAccountId(tx.destination_account_id || '');
-      setCategoryId(tx.category_id || '');
-      setTripId(tx.trip_id || '');
-      setNotes(tx.notes || '');
-      setExchangeRate(tx.exchange_rate ? String(tx.exchange_rate) : '');
-      setDestinationAmount(tx.destination_amount ? String(tx.destination_amount) : '');
-      
-      // Advanced options
-      setIsInstallment(tx.is_installment || false);
-      setTotalInstallments(tx.total_installments || (tx.is_installment ? 2 : 1));
-      setIsRefund(tx.is_refund || false);
-      setIsRecurring(tx.is_recurring || false);
-      if (tx.frequency) {
-        setFrequency(tx.frequency);
-      }
-      if (tx.recurrence_day) {
-        setRecurrenceDay(tx.recurrence_day);
-      }
-      
-      // Splits
-      if (tx.transaction_splits && tx.transaction_splits.length > 0) {
-        const mappedSplits = tx.transaction_splits.map((s: any) => ({
-          memberId: s.member_id,
-          percentage: s.percentage,
-        }));
-        setSplits(mappedSplits);
-        setPayerId(tx.payer_id || 'me');
-      }
-    }
-  }, [initialData]);
+  // Populate from initialData removed as editing is disabled.
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -375,14 +335,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   };
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
-    if (initialData && (initialData as any).id) {
-      await updateTransaction.mutateAsync({
-        id: (initialData as any).id,
-        ...transactionData,
-      } as any);
-    } else {
-      await createTransaction.mutateAsync(transactionData);
-    }
+    await createTransaction.mutateAsync(transactionData);
     if (user && categoryId && description && activeTab !== 'TRANSFER') {
       try {
         await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(prediction && prediction.categoryId !== categoryId));
@@ -442,11 +395,21 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       ? totalInstallments > 1 
       : isInstallment && totalInstallments > 1;
 
+    let calculatedCompetenceDate = format(date, 'yyyy-MM-01');
+    if (selectedAccount?.type === 'CREDIT_CARD' && selectedAccount.closing_day) {
+      const txDay = date.getDate();
+      if (txDay >= selectedAccount.closing_day) {
+        // Se a data da compra for >= ao dia de fechamento, a competência é no mês seguinte
+        const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+        calculatedCompetenceDate = format(nextMonth, 'yyyy-MM-01');
+      }
+    }
+
     const transactionData: CreateTransactionInput = {
       amount: numericAmount,
       description: description.trim(),
       date: format(date, 'yyyy-MM-dd'),
-      competence_date: format(date, 'yyyy-MM-01'),
+      competence_date: calculatedCompetenceDate,
       type: activeTab as TransactionType,
       account_id: payerId === 'me' ? accountId || undefined : undefined,
       destination_account_id: activeTab === 'TRANSFER' ? destinationAccountId : undefined,
@@ -493,7 +456,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-6 animate-fade-in overflow-x-hidden">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => onCancel ? onCancel() : navigate(-1)} className="rounded-full"><ArrowLeft className="h-5 w-5" /></Button>
-        <h1 className="font-display font-bold text-2xl tracking-tight">{initialData ? 'Editar Transação' : 'Nova Transação'}</h1>
+        <h1 className="font-display font-bold text-2xl tracking-tight">Nova Transação</h1>
       </div>
 
       <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-muted">

@@ -40,7 +40,7 @@ export function Transactions() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteSeriesId, setDeleteSeriesId] = useState<string | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
   const [detailsTransaction, setDetailsTransaction] = useState<Transaction | null>(null);
   const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
   const [advanceDescription, setAdvanceDescription] = useState<string>("");
@@ -210,14 +210,7 @@ export function Transactions() {
     }
   };
 
-  const handleEdit = (transaction: Transaction) => {
-    if (transaction.is_shared && isFullySettled(transaction)) {
-      toast.error("Transação acertada não pode ser editada");
-      return;
-    }
-    setEditingTransaction(transaction);
-    setShowTransactionModal(true);
-  };
+
 
   const getCreatorName = (transaction: Transaction) => {
     if (!transaction.creator_user_id) return null;
@@ -311,7 +304,7 @@ export function Transactions() {
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}
         onAdvance={handleAdvance}
-        onEdit={handleEdit}
+
         onDelete={(tx) => tx.is_installment && tx.series_id ? setDeleteSeriesId(tx.series_id) : setDeleteId(tx.id)}
         isFullySettled={isFullySettled} hasPendingSplits={hasPendingSplits}
         getCreatorName={getCreatorName} getPayerInfo={getPayerInfo}
@@ -346,8 +339,8 @@ export function Transactions() {
       </AlertDialog>
 
       <AdvanceInstallmentsDialog open={!!advanceSeriesId} onOpenChange={(open) => { if (!open) { setAdvanceSeriesId(null); setAdvanceDescription(""); } }} seriesId={advanceSeriesId || ""} transactionDescription={advanceDescription} />
-      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onEdit={() => detailsTransaction && handleEdit(detailsTransaction)} onDelete={() => detailsTransaction && (detailsTransaction.is_installment && detailsTransaction.series_id ? setDeleteSeriesId(detailsTransaction.series_id) : setDeleteId(detailsTransaction.id))} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} />
-      <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditingTransaction(null); }} initialData={editingTransaction} />
+      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onDelete={() => detailsTransaction && (detailsTransaction.is_installment && detailsTransaction.series_id ? setDeleteSeriesId(detailsTransaction.series_id) : setDeleteId(detailsTransaction.id))} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} />
+      <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); }} />
       <OFXImportModal isOpen={showOfxModal} onClose={() => setShowOfxModal(false)} />
     </div>
   );

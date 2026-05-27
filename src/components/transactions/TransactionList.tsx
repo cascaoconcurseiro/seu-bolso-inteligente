@@ -27,7 +27,6 @@ interface TransactionListProps {
   onDetails: (tx: Transaction) => void;
   onSettlement: (tx: Transaction) => void;
   onAdvance: (tx: Transaction) => void;
-  onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
   isFullySettled: (tx: Transaction) => boolean;
   hasPendingSplits: (tx: Transaction) => boolean;
@@ -44,7 +43,6 @@ export function TransactionList({
   onDetails,
   onSettlement,
   onAdvance,
-  onEdit,
   onDelete,
   isFullySettled,
   hasPendingSplits,
@@ -93,7 +91,6 @@ export function TransactionList({
                 onDetails={onDetails}
                 onSettlement={onSettlement}
                 onAdvance={onAdvance}
-                onEdit={onEdit}
                 onDelete={onDelete}
                 isFullySettled={isFullySettled}
                 hasPendingSplits={hasPendingSplits}

@@ -4,7 +4,7 @@ import { Asset } from '@/types/database';
 import { formatCurrency } from './currencyFormatter';
 import { supabase } from '@/integrations/supabase/client';
 
-const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium do Seu Bolso Inteligente
+const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
 // Helper para invocar autoTable de forma resiliente diante de variações de bundler
@@ -257,7 +257,7 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 23);
+  doc.text('controle financeiro', 14, 23);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -354,7 +354,7 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Seu Bolso Inteligente - Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 
   doc.save(`carteira_seu_bolso_inteligente_${today.replace(/\//g, '-')}.pdf`);
@@ -413,7 +413,7 @@ export const exportToCSV = (assets: Asset[]) => {
     <body>
     <table>
       <tr>
-        <th colspan="12" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="12" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="12" class="brand-subtitle">Carteira de Investimentos Consolidada — Emitido em ${today}</th>
@@ -519,7 +519,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 23);
+  doc.text('controle financeiro', 14, 23);
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -610,7 +610,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('seu bolso inteligente', 14, 12);
+  doc.text('controle financeiro', 14, 12);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text(`Demonstrativo de Operações de Ativos — Ano-Calendário ${year - 1}`, 14, 19);
@@ -695,7 +695,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Seu Bolso Inteligente - Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 
   doc.save(`auxiliar_ir_seu_bolso_inteligente_${year - 1}.pdf`);
@@ -748,7 +748,7 @@ export const exportToIRExcel = async (assets: Asset[]) => {
     <body>
     <table>
       <tr>
-        <th colspan="11" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="11" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="11" class="brand-subtitle">Demonstrativo Auxiliar de Imposto de Renda — Ano-Calendário ${year - 1} — Emitido em ${today}</th>

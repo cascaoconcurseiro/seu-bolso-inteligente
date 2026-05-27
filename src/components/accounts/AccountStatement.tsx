@@ -17,7 +17,6 @@ interface AccountStatementProps {
   getDateLabel: (dateStr: string) => string;
   formatCurrency: (value: number, currency?: string) => string;
   accountCurrency: string;
-  onEditTransaction: (tx: any) => void;
   onDeleteTransaction: (tx: any) => void;
 }
 
@@ -28,7 +27,6 @@ export function AccountStatement({
   getDateLabel,
   formatCurrency,
   accountCurrency,
-  onEditTransaction,
   onDeleteTransaction
 }: AccountStatementProps) {
   const { isPrivate } = usePrivacy();
@@ -139,10 +137,7 @@ export function AccountStatement({
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEditTransaction(tx)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
+
                             <DropdownMenuItem 
                               onClick={() => onDeleteTransaction(tx)}
                               className="text-destructive focus:text-destructive"

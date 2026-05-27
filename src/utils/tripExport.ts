@@ -184,7 +184,7 @@ export const exportTripToPDF = (data: TripExportData) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Seu Bolso Inteligente - Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 
   const filename = `relatorio_viagem_${trip.name.toLowerCase().replace(/\s+/g, '_')}_${today.replace(/\//g, '-')}.pdf`;
@@ -238,7 +238,7 @@ export const exportTripToExcel = (data: TripExportData) => {
     <table>
       <!-- Título Principal -->
       <tr>
-        <th colspan="6" class="brand-title">SEU BOLSO INTELIGENTE</th>
+        <th colspan="6" class="brand-title">CONTROLE FINANCEIRO</th>
       </tr>
       <tr>
         <th colspan="6" class="brand-subtitle">Relatório Financeiro de Viagem — Emitido em ${today}</th>

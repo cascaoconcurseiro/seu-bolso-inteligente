@@ -1047,7 +1047,8 @@ export class AIAdvisorService {
    */
   static async analyzeFinancialPeriod(data: FinancialReportData): Promise<string> {
     const prompt = `
-Você é o consultor financeiro IA oficial do app "Seu Bolso Inteligente".
+Você é o consultor financeiro IA oficial do aplicativo.
+O usuário do sistema precisa de análises, dicas e um raio-x do comportamento financeiro.
 O usuário está visualizando os relatórios do período: ${data.periodLabel} (${data.viewType === 'MONTH' ? 'Mensal' : 'Anual'}).
 
 DADOS DO PERÍODO:
@@ -1248,7 +1249,8 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
     const categoryList = sanitizedCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
 
     const prompt = `
-Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do app "Seu Bolso Inteligente".
+Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do aplicativo.
+Sua missão é ajudar o usuário a preencher campos difíceis (como descrições e títulos) ou responder perguntas rápidas de forma direta.
 O usuário começou a digitar uma transação (despesa ou receita): "${sanitizedPartial}"
 
 Seu trabalho é:

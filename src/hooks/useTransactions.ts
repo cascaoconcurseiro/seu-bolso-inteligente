@@ -385,7 +385,7 @@ export function useCreateTransaction() {
           const day = d.getUTCDate();
           let compMonth = d.getUTCMonth();
           let compYear = d.getUTCFullYear();
-          if (day > cardClosingDay) {
+          if (day >= cardClosingDay) {
             compMonth++;
             if (compMonth > 11) {
               compMonth = 0;
@@ -915,117 +915,6 @@ export function useDeleteInstallmentSeries() {
   });
 }
 
-export function useUpdateTransaction() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, ...input }: Partial<Transaction> & { id: string }) => {
-      // 1. Buscar a transação existente antes de atualizar para saber se é compartilhada e obter detalhes
-      const { data: existingTx } = await supabase
-        .from("transactions")
-        .select("is_shared, domain, description, user_id, account_id, date, is_settled")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (existingTx && existingTx.is_settled) {
-        throw new Error("Esta transação já foi liquidada/acertada e não pode ser editada. Desfaça o acerto antes de alterá-la.");
-      }
-
-      let cardClosingDay: number | null = null;
-      const accountId = input.account_id !== undefined ? input.account_id : (existingTx ? (existingTx as any).account_id : null);
-      const txDate = input.date !== undefined ? input.date : (existingTx ? (existingTx as any).date : null);
-      
-      if (accountId) {
-        const { data: accData } = await supabase
-          .from("accounts")
-          .select("type, closing_day")
-          .eq("id", accountId)
-          .maybeSingle();
-        
-        if (accData && accData.type === 'CREDIT_CARD') {
-          cardClosingDay = accData.closing_day || 1;
-        }
-      }
-      
-      if (txDate) {
-        const d = dateUtils.parseDate(txDate);
-        if (cardClosingDay !== null) {
-          const day = d.getUTCDate();
-          let compMonth = d.getUTCMonth();
-          let compYear = d.getUTCFullYear();
-          if (day > cardClosingDay) {
-            compMonth++;
-            if (compMonth > 11) {
-              compMonth = 0;
-              compYear++;
-            }
-          }
-          input.competence_date = `${compYear}-${String(compMonth + 1).padStart(2, '0')}-01`;
-        } else {
-          input.competence_date = dateUtils.getCompetenceDate(d);
-        }
-      }
-
-      const { data, error } = await supabase
-        .from("transactions")
-        .update(input)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) {
-        logger.error("Erro ao atualizar transação:", error);
-        throw error;
-      }
-
-      // 2. Se for uma transação compartilhada e foi editada com sucesso, notificar o outro membro
-      if (data && (data.is_shared || data.domain === 'SHARED' || existingTx?.domain === 'SHARED')) {
-        try {
-          // Buscar splits desta transação para encontrar os outros membros
-          const { data: splitsData } = await supabase
-            .from("transaction_splits")
-            .select("user_id, name")
-            .eq("transaction_id", id);
-          
-          if (splitsData && splitsData.length > 0) {
-            // Identificar outros usuários envolvidos
-            const otherUserIds = Array.from(new Set(splitsData.map(s => s.user_id).filter(uid => uid && uid !== user?.id)));
-            
-            for (const otherUserId of otherUserIds) {
-              await createNotification({
-                user_id: otherUserId,
-                type: 'SHARED_EXPENSE',
-                title: 'Transação Editada',
-                message: `${user?.user_metadata?.name || user?.email || 'Alguém'} editou a transação compartilhada "${data.description}".`,
-                icon: '✏️',
-                priority: 'NORMAL'
-              }).catch(e => console.error("Erro ao criar notificação de edição compartilhada:", e));
-            }
-          }
-        } catch (notificationError) {
-          console.error("Erro ao tentar enviar notificação de edição compartilhada:", notificationError);
-        }
-      }
-
-      return data as Transaction;
-    },
-    onSuccess: async () => {
-      await invalidateFinancialQueries(queryClient);
-      await invalidateSharedQueries(queryClient);
-      await invalidateTripQueries(queryClient);
-      transactionToasts.updated();
-      
-      // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
-      if (user?.id) {
-        generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-atualização', e));
-      }
-    },
-    onError: (error) => {
-      transactionToasts.error('atualizar', error);
-    },
-  });
-}
 
 export function useAnticipateInstallments() {
   const { user } = useAuth();

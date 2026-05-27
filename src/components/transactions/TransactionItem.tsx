@@ -32,7 +32,6 @@ interface TransactionItemProps {
   onDetails: (tx: Transaction) => void;
   onSettlement: (tx: Transaction) => void;
   onAdvance: (tx: Transaction) => void;
-  onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
   isFullySettled: (tx: Transaction) => boolean;
   hasPendingSplits: (tx: Transaction) => boolean;
@@ -49,7 +48,6 @@ export function TransactionItem({
   onDetails,
   onSettlement,
   onAdvance,
-  onEdit,
   onDelete,
   isFullySettled,
   hasPendingSplits,
@@ -65,7 +63,6 @@ export function TransactionItem({
   const pending = hasPendingSplits(transaction);
   const settled = isFullySettled(transaction);
   
-  const canEdit = (isOwner || isCreator) && !isMirror && !settled;
   const canDelete = (isOwner || isCreator) && !settled;
   
   const payerInfo = getPayerInfo(transaction);
@@ -322,7 +319,7 @@ export function TransactionItem({
               <Trash2 className="h-4 w-4" />
             </Button>
           )}
-          {!canEdit && !canDelete && (
+          {!canDelete && (
             <div className="h-8 w-8 flex items-center justify-center text-muted-foreground" title="Somente leitura">
               <Lock className="h-4 w-4" />
             </div>

@@ -97,7 +97,7 @@ export function exportTransactions(
       <table>
         <!-- Título Principal -->
         <tr>
-          <th colspan="9" class="brand-title">SEU BOLSO INTELIGENTE</th>
+          <th colspan="9" class="brand-title">CONTROLE FINANCEIRO</th>
         </tr>
         <tr>
           <th colspan="9" class="brand-subtitle">Extrato de Transações — Emitido em ${today}</th>

@@ -52,7 +52,7 @@ export function AccountDetail() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+
   const [editAccountName, setEditAccountName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
@@ -116,10 +116,7 @@ export function AccountDetail() {
     setShowEditDialog(false);
   };
 
-  const handleEditTransaction = (tx: any) => {
-    setEditingTransaction(tx);
-    setShowTransactionModal(true);
-  };
+
 
   const handleDeleteTransaction = async () => {
     const tx = deleteConfirm.transaction;
@@ -172,7 +169,7 @@ export function AccountDetail() {
         getDateLabel={getDateLabel}
         formatCurrency={formatCurrency}
         accountCurrency={accountCurrency}
-        onEditTransaction={handleEditTransaction}
+
         onDeleteTransaction={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
       />
 
@@ -198,10 +195,8 @@ export function AccountDetail() {
         isOpen={showTransactionModal}
         onClose={() => {
           setShowTransactionModal(false);
-          setEditingTransaction(null);
           refetchStatement();
         }}
-        initialData={editingTransaction}
       />
 
       <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
