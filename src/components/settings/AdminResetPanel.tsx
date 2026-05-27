@@ -76,7 +76,9 @@ import {
   Calendar,
   XCircle,
   Clock,
-  Sparkle
+  Sparkle,
+  Bug,
+  Code
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +113,17 @@ interface AuditLog {
   created_at: string;
 }
 
+interface ErrorLog {
+  id: string;
+  user_id: string | null;
+  user_email: string | null;
+  error_message: string;
+  stack_trace: string | null;
+  context: string | null;
+  status: string;
+  created_at: string;
+}
+
 interface SystemStats {
   totalUsers: number;
   totalTransactions: number;
@@ -129,6 +142,7 @@ export function AdminResetPanel() {
   // States
   const [enrichedUsers, setEnrichedUsers] = useState<EnrichedUser[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [errorLogs, setErrorLogs] = useState<ErrorLog[]>([]);
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     totalTransactions: 0,
@@ -148,6 +162,7 @@ export function AdminResetPanel() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [isLoadingErrorLogs, setIsLoadingErrorLogs] = useState(false);
   const [isPurging, setIsPurging] = useState(false);
   const [isInjectingCategories, setIsInjectingCategories] = useState(false);
   const [isRecalculatingTarget, setIsRecalculatingTarget] = useState<string | null>(null);
@@ -171,12 +186,14 @@ export function AdminResetPanel() {
     }
   };
   
-  // Detail Modal States
   const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [selectedDetailUser, setSelectedDetailUser] = useState<EnrichedUser | null>(null);
   const [detailAccounts, setDetailAccounts] = useState<any[]>([]);
   const [detailFamilies, setDetailFamilies] = useState<any[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  
+  const [selectedErrorLog, setSelectedErrorLog] = useState<ErrorLog | null>(null);
+  const [errorDetailOpen, setErrorDetailOpen] = useState(false);
 
   const recalculateBalances = useRecalculateBalances();
 
@@ -272,6 +289,7 @@ export function AdminResetPanel() {
     loadSystemStats();
     loadUsersDetailed();
     loadAuditLogs();
+    loadErrorLogs();
   };
 
   const loadSystemStats = async () => {
@@ -348,6 +366,38 @@ export function AdminResetPanel() {
       toast.error('Erro ao carregar logs de auditoria');
     } finally {
       setIsLoadingLogs(false);
+    }
+  };
+
+  const loadErrorLogs = async () => {
+    setIsLoadingErrorLogs(true);
+    try {
+      const { data, error } = await supabase.rpc('get_admin_error_logs', {
+        admin_password: ADMIN_PASSWORD
+      });
+      if (error) throw error;
+      setErrorLogs(data || []);
+    } catch (error) {
+      console.error('Error loading error logs:', error);
+      toast.error('Erro ao carregar relatórios de erros');
+    } finally {
+      setIsLoadingErrorLogs(false);
+    }
+  };
+
+  const resolveErrorLog = async (reportId: string) => {
+    try {
+      const { error } = await supabase.rpc('resolve_error_report', {
+        admin_password: ADMIN_PASSWORD,
+        p_report_id: reportId
+      });
+      if (error) throw error;
+      toast.success('Erro marcado como resolvido!');
+      loadErrorLogs();
+      setErrorDetailOpen(false);
+    } catch (error) {
+      console.error('Error resolving report:', error);
+      toast.error('Erro ao marcar como resolvido');
     }
   };
 
@@ -659,7 +709,7 @@ export function AdminResetPanel() {
 
       {/* Main Tabs Dashboard */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full lg:w-[600px] bg-muted/50 p-1 rounded-xl">
+        <TabsList className="grid grid-cols-5 w-full lg:w-[750px] bg-muted/50 p-1 rounded-xl overflow-x-auto">
           <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs">
             <Sparkle className="h-3.5 w-3.5" />
             Visão Geral
@@ -671,6 +721,10 @@ export function AdminResetPanel() {
           <TabsTrigger value="audit" className="rounded-lg gap-2 text-xs">
             <History className="h-3.5 w-3.5" />
             Auditoria
+          </TabsTrigger>
+          <TabsTrigger value="errors" className="rounded-lg gap-2 text-xs">
+            <Bug className="h-3.5 w-3.5" />
+            Erros
           </TabsTrigger>
           <TabsTrigger value="maintenance" className="rounded-lg gap-2 text-xs">
             <Wrench className="h-3.5 w-3.5" />
@@ -986,6 +1040,81 @@ export function AdminResetPanel() {
           )}
         </TabsContent>
 
+        {/* Tab Erros */}
+        <TabsContent value="errors" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-semibold text-sm">Central de Relatórios de Erros</h4>
+              <p className="text-xs text-muted-foreground">Erros capturados e enviados pelos usuários</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadErrorLogs}>
+              <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
+            </Button>
+          </div>
+
+          {isLoadingErrorLogs ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 border border-border rounded-xl">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Lendo relatórios de erros...</p>
+            </div>
+          ) : errorLogs.length === 0 ? (
+            <div className="p-12 text-center border border-border rounded-xl bg-card">
+              <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500 mb-2" />
+              <p className="font-semibold text-sm">Nenhum erro reportado</p>
+              <p className="text-xs text-muted-foreground">Tudo funcionando perfeitamente no momento.</p>
+            </div>
+          ) : (
+            <div className="border border-border rounded-xl overflow-hidden bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Erro</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {errorLogs.map((log) => (
+                    <TableRow key={log.id} className={log.status === 'resolved' ? 'opacity-50' : ''}>
+                      <TableCell className="text-xs">
+                        {new Date(log.created_at).toLocaleString('pt-BR')}
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium text-xs">{log.user_email || 'Anônimo / Deslogado'}</p>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-xs truncate max-w-[200px]" title={log.error_message}>
+                          {log.error_message}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={log.status === 'resolved' ? 'secondary' : 'destructive'} className="text-[10px]">
+                          {log.status === 'resolved' ? 'Resolvido' : 'Aberto'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 text-xs font-medium"
+                          onClick={() => {
+                            setSelectedErrorLog(log);
+                            setErrorDetailOpen(true);
+                          }}
+                        >
+                          Detalhes Técnicos
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+
         {/* Tab 4: Ferramentas de Manutenção */}
         <TabsContent value="maintenance" className="space-y-6">
           {/* Orphan Transactions Manager integration */}
@@ -1287,6 +1416,66 @@ export function AdminResetPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Error Details Modal */}
+      <Dialog open={errorDetailOpen} onOpenChange={setErrorDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bug className="h-5 w-5 text-destructive" />
+              Detalhes do Erro
+            </DialogTitle>
+            <DialogDescription>Inspeção técnica do erro capturado</DialogDescription>
+          </DialogHeader>
+          
+          {selectedErrorLog && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4 text-sm bg-muted/20 p-4 rounded-xl border border-border">
+                <div>
+                  <span className="text-muted-foreground text-xs block">Reportado por</span>
+                  <span className="font-semibold">{selectedErrorLog.user_email || 'Usuário Não Identificado'}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs block">Data da Ocorrência</span>
+                  <span>{new Date(selectedErrorLog.created_at).toLocaleString('pt-BR')}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground text-xs block">Contexto (URL)</span>
+                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded break-all">{selectedErrorLog.context || 'N/A'}</span>
+                </div>
+                <div className="col-span-2 pt-2 border-t border-border">
+                  <span className="text-muted-foreground text-xs block">Mensagem de Erro</span>
+                  <p className="font-medium text-destructive mt-1 break-words">{selectedErrorLog.error_message}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2 mt-4">
+                <span className="text-muted-foreground text-xs font-semibold flex items-center gap-2 uppercase tracking-wider">
+                  <Code className="h-4 w-4" /> Stack Trace
+                </span>
+                <pre className="bg-muted text-foreground p-4 rounded-lg text-[10px] font-mono max-h-60 overflow-y-auto whitespace-pre-wrap">
+                  {selectedErrorLog.stack_trace || 'Nenhum stack trace disponível'}
+                </pre>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex justify-between sm:justify-between items-center w-full">
+            <Button variant="outline" onClick={() => setErrorDetailOpen(false)}>
+              Fechar
+            </Button>
+            {selectedErrorLog?.status === 'open' && (
+              <Button 
+                variant="default"
+                onClick={() => resolveErrorLog(selectedErrorLog.id)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" /> Marcar como Resolvido
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

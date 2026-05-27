@@ -1,7 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Send, CheckCircle2, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Props {
     children: ReactNode;
@@ -12,6 +13,8 @@ interface State {
     hasError: boolean;
     error: Error | null;
     errorInfo: ErrorInfo | null;
+    isSubmitting: boolean;
+    isReported: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -21,6 +24,8 @@ export class ErrorBoundary extends Component<Props, State> {
             hasError: false,
             error: null,
             errorInfo: null,
+            isSubmitting: false,
+            isReported: false,
         };
     }
 
@@ -29,6 +34,8 @@ export class ErrorBoundary extends Component<Props, State> {
             hasError: true,
             error,
             errorInfo: null,
+            isSubmitting: false,
+            isReported: false,
         };
     }
 
@@ -43,6 +50,24 @@ export class ErrorBoundary extends Component<Props, State> {
             error,
             errorInfo,
         });
+    }
+
+    handleReportError = async () => {
+        this.setState({ isSubmitting: true });
+        try {
+            const { error, errorInfo } = this.state;
+            const { error: rpcError } = await supabase.rpc('submit_error_report', {
+                p_error_message: error?.message || 'Erro desconhecido',
+                p_stack_trace: error?.stack || errorInfo?.componentStack || '',
+                p_context: window.location.href
+            });
+            if (rpcError) throw rpcError;
+            this.setState({ isReported: true });
+        } catch (err) {
+            console.error('Erro ao enviar relatório:', err);
+        } finally {
+            this.setState({ isSubmitting: false });
+        }
     }
 
     render() {
@@ -74,15 +99,33 @@ export class ErrorBoundary extends Component<Props, State> {
                                     </pre>
                                 </details>
 
-                                <Button
-                                    onClick={() => {
-                                        this.setState({ hasError: false, error: null, errorInfo: null });
-                                        window.location.reload();
-                                    }}
-                                    variant="outline"
-                                >
-                                    Recarregar página
-                                </Button>
+                                <div className="flex gap-3 mt-4">
+                                    <Button
+                                        onClick={() => {
+                                            this.setState({ hasError: false, error: null, errorInfo: null, isReported: false });
+                                            window.location.reload();
+                                        }}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        Recarregar página
+                                    </Button>
+                                    
+                                    <Button 
+                                        onClick={this.handleReportError} 
+                                        disabled={this.state.isSubmitting || this.state.isReported}
+                                        variant={this.state.isReported ? "secondary" : "default"}
+                                        className="flex-1"
+                                    >
+                                        {this.state.isSubmitting ? (
+                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</>
+                                        ) : this.state.isReported ? (
+                                            <><CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> Relatório Enviado</>
+                                        ) : (
+                                            <><Send className="mr-2 h-4 w-4" /> Enviar Relatório ao Suporte</>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         </AlertDescription>
                     </Alert>
