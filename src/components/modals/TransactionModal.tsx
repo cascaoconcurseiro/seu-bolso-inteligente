@@ -33,6 +33,7 @@ export function TransactionModal({
     <Dialog open={actualOpen} onOpenChange={actualClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-6 pb-0">
+          <DialogTitle>
             Nova Transação
           </DialogTitle>
         </DialogHeader>
