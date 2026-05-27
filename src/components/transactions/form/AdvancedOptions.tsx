@@ -4,6 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import {
@@ -296,6 +297,7 @@ export function AdvancedOptions({
               <div className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4 text-primary animate-spin-slow" />
                 <span className="font-bold text-sm">Parcelamento Manual</span>
+                <InfoTooltip content="Divide esta despesa em várias parcelas iguais, criando transações avulsas nos próximos meses. Ideal para crediários ou compras fora de cartão de crédito." />
               </div>
               <Switch 
                 checked={isInstallment} 
@@ -352,6 +354,7 @@ export function AdvancedOptions({
               <div className="flex items-center gap-2">
                 <RotateCcw className="h-4 w-4 text-primary" />
                 <span className="font-bold text-sm">Despesa Reembolsável</span>
+                <InfoTooltip content="Marca esta despesa como aguardando devolução (ex: viagem a trabalho paga por você para a empresa reembolsar). Um ícone ficará visível no extrato." />
               </div>
               <Switch checked={isRefund} onCheckedChange={setIsRefund} />
             </div>
@@ -368,6 +371,7 @@ export function AdvancedOptions({
               <div className="flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-primary" />
                 <span className="font-bold text-sm">Transação Recorrente</span>
+                <InfoTooltip content="Clona e repete esta transação automaticamente no futuro com base na frequência que você escolher (ex: assinatura Netflix, Conta de Luz)." />
               </div>
               <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
             </div>

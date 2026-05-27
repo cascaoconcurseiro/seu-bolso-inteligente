@@ -6,6 +6,7 @@ import { Loader2, Lock, ShieldCheck, Smartphone } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface SecuritySettingsProps {
   profile: UserProfile | null;
@@ -84,6 +85,7 @@ export function SecuritySettings({ profile, isLoading, updateProfile }: Security
               <div className="flex items-center gap-3">
                 <Smartphone className="h-5 w-5 text-muted-foreground" />
                 <Label htmlFor="require-pin" className="cursor-pointer">Exigir PIN ao abrir o app</Label>
+                <InfoTooltip content="Quando ativado, caso o aplicativo seja fechado ou recarregado, será necessário digitar o PIN para visualizar suas finanças." />
               </div>
               <Switch 
                 id="require-pin" 

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Coins, CalendarDays, TrendingDown } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { NumericFormat } from "react-number-format";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface PreferencesSettingsProps {
   profile: UserProfile | null;
@@ -61,8 +62,11 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <CalendarDays className="h-5 w-5" />
             </div>
-            <div className="flex-1 space-y-1 w-full">
-              <Label>Dia de Início do Mês</Label>
+            <div className="flex-1 space-y-1 w-full animate-in slide-in-from-bottom-2 duration-300 delay-100 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Dia de Início do Mês</Label>
+                <InfoTooltip content="Define em qual dia o seu ciclo financeiro mensal reinicia. Ex: Se você recebe salário no dia 5, configure como dia 5. O app calculará seu saldo do dia 5 ao dia 4 do mês seguinte." />
+              </div>
               <Select value={monthStartDay} onValueChange={setMonthStartDay}>
                 <SelectTrigger>
                   <SelectValue />
@@ -76,7 +80,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Define em qual dia os relatórios mensais "viram". Ideal se você recebe salário todo dia 5, por exemplo.
+                Muda a janela de datas dos seus relatórios.
               </p>
             </div>
           </div>
@@ -85,8 +89,11 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <Coins className="h-5 w-5" />
             </div>
-            <div className="flex-1 space-y-1 w-full">
-              <Label>Moeda Padrão</Label>
+            <div className="flex-1 space-y-1 w-full animate-in slide-in-from-bottom-2 duration-300 delay-150 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Moeda Padrão</Label>
+                <InfoTooltip content="A moeda principal na qual os seus totais consolidados de painel (Dashboard e DRE) serão exibidos." />
+              </div>
               <Select value={baseCurrency} onValueChange={setBaseCurrency}>
                 <SelectTrigger>
                   <SelectValue />
@@ -104,8 +111,11 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <TrendingDown className="h-5 w-5" />
             </div>
-            <div className="flex-1 space-y-1 w-full">
-              <Label>Orçamento Mensal Global</Label>
+            <div className="flex-1 space-y-1 w-full animate-in slide-in-from-bottom-2 duration-300 delay-200 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Orçamento Mensal Global</Label>
+                <InfoTooltip content="Um limite máximo planejado para suas saídas do mês. Uma barra de acompanhamento aparecerá no Dashboard alertando se você estiver perto do limite." />
+              </div>
               <NumericFormat
                 value={monthlyBudget || ""}
                 onValueChange={(values) => {

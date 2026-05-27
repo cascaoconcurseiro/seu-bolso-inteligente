@@ -3,6 +3,7 @@ import { Globe, Wallet, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import {
   Area,
   AreaChart,
@@ -71,8 +72,9 @@ export function DashboardHero({
              <div className="p-1.5 rounded-lg bg-primary/10">
                 <TrendingUp className="h-4 w-4 text-primary" />
              </div>
-             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">
+             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
                Saldo Mensal Previsto ({currency})
+               <InfoTooltip content="Este saldo é a diferença entre as Suas Entradas e Saídas do mês atual. Não é o saldo da conta, mas sim o desempenho mensal." />
              </p>
           </div>
           
@@ -175,7 +177,10 @@ export function DashboardHero({
                 <Target className="h-4 w-4 text-orange-500" />
               </div>
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Orçamento do Mês</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1">
+                  Orçamento do Mês
+                  <InfoTooltip content="Configurado nas suas preferências. Ajuda a limitar os gastos (saídas) totais do mês corrente." />
+                </p>
                 <p className="text-sm font-semibold text-foreground">
                   {formatCurrency(expenses)} <span className="text-muted-foreground font-normal">/ {formatCurrency(monthlyBudget)}</span>
                 </p>
