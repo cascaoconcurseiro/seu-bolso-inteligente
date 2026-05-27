@@ -36,6 +36,8 @@ export function DashboardHero({
 
   const strokeColor = isPositiveTrend ? "#10b981" : "#f43f5e";
 
+  const savings = income - expenses;
+
   const SparklineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -62,21 +64,31 @@ export function DashboardHero({
         <div className="space-y-4 flex-1">
           <div className="flex items-center gap-2">
              <div className="p-1.5 rounded-lg bg-primary/10">
-                <Wallet className="h-4 w-4 text-primary" />
+                <TrendingUp className="h-4 w-4 text-primary" />
              </div>
              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold">
-               Patrimônio Total Estimado ({currency})
+               Sobrando no Mês ({currency})
              </p>
           </div>
           
           <h1 className={cn(
             "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500",
-            balance >= 0 ? "text-foreground" : "text-destructive"
+            savings >= 0 ? "text-primary" : "text-destructive"
           )}>
-            {formatCurrency(balance)}
+            {formatCurrency(savings)}
           </h1>
 
           <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 group/patrimony transition-all hover:bg-blue-500/15">
+              <div className="p-1.5 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/20 group-hover/patrimony:scale-110 transition-transform">
+                <Globe className="h-3 w-3" />
+              </div>
+              <div>
+                <p className="text-[9px] text-blue-600/70 font-bold uppercase tracking-wider">Patrimônio</p>
+                <p className="text-sm font-bold text-blue-600">{formatCurrency(balance)}</p>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-green-500/10 border border-green-500/20 group/income transition-all hover:bg-green-500/15">
               <div className="p-1.5 rounded-full bg-green-500 text-white shadow-lg shadow-green-500/20 group-hover/income:scale-110 transition-transform">
                 <TrendingUp className="h-3 w-3" />
