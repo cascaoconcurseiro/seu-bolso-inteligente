@@ -173,7 +173,7 @@ export function DashboardHero({
       </div>
 
       {/* Barra de Progresso do Orçamento Mensal Global */}
-      {monthlyBudget && monthlyBudget > 0 && (
+      {(monthlyBudget ?? 0) > 0 && (
         <div className="mt-8 pt-6 border-t border-border/30">
           <div className="flex justify-between items-end mb-2">
             <div className="flex items-center gap-2">
