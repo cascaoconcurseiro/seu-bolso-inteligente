@@ -9,7 +9,9 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
   const [predictedCategoryId, setPredictedCategoryId] = useState<string | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   
-  const { data: transactions } = useTransactions({ startDate: '2023-01-01', endDate: '2026-12-31' });
+  // 🔥 OTIMIZAÇÃO CRÍTICA: Busca apenas as 50 transações mais recentes (usadas apenas p/ extrair últimas descrições)
+  // Isso evita travar o sistema com um fetch massivo na primeira renderização ou em refetches pós-lançamento.
+  const { data: transactions } = useTransactions({ limit: 50 });
   const { data: categories } = useCategories();
   const { data: profile } = useUserProfile();
   const useSubcategories = profile?.use_subcategories ?? false;
@@ -185,7 +187,7 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
           setIsPredicting(false);
         }
       }
-    }, 500); // 500ms de debounce
+    }, 800); // 800ms de debounce (Aumentado para mitigar rate limits da IA em digitação sequencial rápida)
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
