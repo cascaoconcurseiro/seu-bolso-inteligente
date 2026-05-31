@@ -25,6 +25,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
+  useUpdateTransaction,
   useTransactions,
   TransactionType,
   CreateTransactionInput,
@@ -165,7 +166,26 @@ export function TransactionForm({ onSuccess, onCancel, context }: TransactionFor
   const [enableNotification, setEnableNotification] = useState(false);
   const [notificationDate, setNotificationDate] = useState<Date | undefined>();
 
-  // Populate from initialData removed as editing is disabled.
+  const updateTransaction = useUpdateTransaction();
+
+  // Populate from initialData
+  useEffect(() => {
+    if (initialData && typeof initialData === 'object') {
+      const data = initialData as any;
+      if (data.type) setActiveTab(data.type);
+      if (data.amount) setAmount(data.amount.toString());
+      if (data.description) setDescription(data.description);
+      if (data.date) setDate(parseISO(data.date));
+      if (data.account_id) setAccountId(data.account_id);
+      if (data.destination_account_id) setDestinationAccountId(data.destination_account_id);
+      if (data.category_id) setCategoryId(data.category_id);
+      if (data.trip_id) setTripId(data.trip_id);
+      if (data.notes) setNotes(data.notes);
+      if (data.payer_id) setPayerId(data.payer_id);
+      if (data.is_installment) setIsInstallment(data.is_installment);
+      if (data.total_installments) setTotalInstallments(data.total_installments);
+    }
+  }, [initialData]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -331,7 +351,12 @@ export function TransactionForm({ onSuccess, onCancel, context }: TransactionFor
   };
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
-    await createTransaction.mutateAsync(transactionData);
+    if (initialData && (initialData as any).id) {
+      await updateTransaction.mutateAsync({ ...transactionData, id: (initialData as any).id });
+    } else {
+      await createTransaction.mutateAsync(transactionData);
+    }
+    
     if (user && categoryId && description && activeTab !== 'TRANSFER') {
       try {
         await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(prediction && prediction.categoryId !== categoryId));

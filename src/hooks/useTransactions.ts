@@ -811,6 +811,52 @@ export function useCreateTransaction() {
   });
 }
 
+export function useUpdateTransaction() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updateData }: Partial<Transaction> & { id: string }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // Validate payer_id and members if they are being updated
+      if (updateData.payer_id !== undefined) {
+        await validatePayerId(updateData.payer_id);
+      }
+      
+      // We don't update splits through this generic hook yet to keep it simple,
+      // but we update the main transaction fields.
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select()
+        .single();
+
+      if (error) {
+        logger.error("Erro ao atualizar transação:", error);
+        throw new Error(`Erro ao atualizar transação: ${error.message}`);
+      }
+
+      return data as Transaction;
+    },
+    onSuccess: async () => {
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
+      transactionToasts.updated();
+    },
+    onError: (error) => {
+      transactionToasts.error('atualizar', error);
+    },
+  });
+}
+
 export function useDeleteTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
