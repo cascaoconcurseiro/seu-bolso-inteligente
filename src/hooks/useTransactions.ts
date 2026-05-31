@@ -628,7 +628,8 @@ export function useCreateTransaction() {
               return isUserId ? s.member_id : memberUserIds[s.member_id];
             }).filter(uid => uid && uid !== user?.id)));
 
-            await Promise.all(otherUserIds.map(otherUserId => 
+            // Fire and forget notification
+            Promise.all(otherUserIds.map(otherUserId => 
               createNotification({
                 user_id: otherUserId,
                 type: 'SHARED_EXPENSE',
@@ -767,7 +768,8 @@ export function useCreateTransaction() {
           
           if (splitsData && splitsData.length > 0) {
             const otherUserIds = Array.from(new Set(splitsData.map(s => s.user_id).filter(uid => uid && uid !== user?.id)));
-            await Promise.all(otherUserIds.map(otherUserId => 
+            // Fire and forget notification
+            Promise.all(otherUserIds.map(otherUserId => 
               createNotification({
                 user_id: otherUserId,
                 type: 'SHARED_EXPENSE',
@@ -786,9 +788,10 @@ export function useCreateTransaction() {
       return data as Transaction;
     },
     onSuccess: async (_data, variables) => {
-      await invalidateFinancialQueries(queryClient);
-      await invalidateSharedQueries(queryClient);
-      await invalidateTripQueries(queryClient);
+      // Run invalidations without awaiting to unblock UI instantly
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
       transactionToasts.created();
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Verificar orçamentos e saldo em tempo real
@@ -849,25 +852,27 @@ export function useDeleteTransaction() {
       // 4. Notificar outros membros
       if (existingTx && otherUserIds.length > 0) {
         try {
-          for (const otherUserId of otherUserIds) {
-            await createNotification({
+          // Fire and forget notification
+          Promise.all(otherUserIds.map(otherUserId => 
+            createNotification({
               user_id: otherUserId,
               type: 'SHARED_EXPENSE',
               title: 'Transação Excluída',
               message: `${user?.user_metadata?.name || user?.email || 'Alguém'} excluiu a transação compartilhada "${existingTx.description}".`,
               icon: '❌',
               priority: 'NORMAL'
-            }).catch(e => console.error("Erro ao criar notificação de exclusão compartilhada:", e));
-          }
+            }).catch(e => console.error("Erro ao criar notificação de exclusão compartilhada:", e))
+          ));
         } catch (notificationError) {
           console.error("Erro ao tentar enviar notificação de exclusão compartilhada:", notificationError);
         }
       }
     },
     onSuccess: async () => {
-      await invalidateFinancialQueries(queryClient);
-      await invalidateSharedQueries(queryClient);
-      await invalidateTripQueries(queryClient);
+      // Run invalidations without awaiting to unblock UI instantly
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
       transactionToasts.deleted();
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
@@ -899,9 +904,10 @@ export function useDeleteInstallmentSeries() {
       return { deletedCount };
     },
     onSuccess: async () => {
-      await invalidateFinancialQueries(queryClient);
-      await invalidateSharedQueries(queryClient);
-      await invalidateTripQueries(queryClient);
+      // Run invalidations without awaiting to unblock UI instantly
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
       toast.success("Série de parcelas excluída com sucesso!");
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
@@ -964,7 +970,8 @@ export function useAnticipateInstallments() {
       return { count: data.length };
     },
     onSuccess: async () => {
-      await invalidateFinancialQueries(queryClient);
+      // Run invalidations without awaiting to unblock UI instantly
+      invalidateFinancialQueries(queryClient);
       toast.success("Parcelas antecipadas com sucesso!");
       
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
