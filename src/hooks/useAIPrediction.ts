@@ -143,7 +143,8 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description.trim(),
           historyDescriptions,
-          formattedCategories
+          formattedCategories,
+          type
         );
         
         // 2. BLINDAGEM DE CONCORRÊNCIA: Se uma requisição mais nova foi disparada após esta, descarta o resultado!

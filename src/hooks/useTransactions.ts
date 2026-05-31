@@ -660,12 +660,12 @@ export function useCreateTransaction() {
       // Tentar categorizar automaticamente, mas não bloquear se falhar
       let categoryId = input.category_id;
       
-      if (!categoryId && input.type === 'EXPENSE') {
+      if (!categoryId && (input.type === 'EXPENSE' || input.type === 'INCOME')) {
         try {
           const prediction = await CategoryPredictionService.predictCategory(
             input.description,
             user.id,
-            'expense'
+            input.type.toLowerCase() as 'expense' | 'income'
           );
           
           if (prediction && prediction.confidence > 0.5) {

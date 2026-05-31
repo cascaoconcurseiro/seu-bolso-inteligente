@@ -1131,7 +1131,8 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
   static async predictAutocompleteAndCategory(
     partialDescription: string,
     historicalDescriptions: string[],
-    userCategories: { id: string; name: string }[]
+    userCategories: { id: string; name: string }[],
+    transactionType?: 'expense' | 'income'
   ): Promise<{ suggestion: string; categoryId: string | null }> {
     const sanitizedPartial = (partialDescription || "").trim().substring(0, 80);
     if (sanitizedPartial.length < 2) {
@@ -1142,11 +1143,16 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
     const normalizedInput = normalizeBrazilianText(sanitizedPartial);
 
     // 1. Identifica se a lista de categorias fornecida é de receita ou despesa
-    const isReceitaList = userCategories.some(uc => {
-      const name = normalizeBrazilianText(uc.name);
-      return name.includes("trabalho") || name.includes("investimento") || name.includes("renda extra");
-    });
-    const targetType: 'receita' | 'despesa' = isReceitaList ? 'receita' : 'despesa';
+    let targetType: 'receita' | 'despesa';
+    if (transactionType) {
+      targetType = transactionType === 'income' ? 'receita' : 'despesa';
+    } else {
+      const isReceitaList = userCategories.some(uc => {
+        const name = normalizeBrazilianText(uc.name);
+        return name.includes("trabalho") || name.includes("investimento") || name.includes("renda extra");
+      });
+      targetType = isReceitaList ? 'receita' : 'despesa';
+    }
 
     // 2. Motor de busca local em 3 Fases
     let bestMatch: LocalMapping | null = null;
