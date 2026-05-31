@@ -41,6 +41,7 @@ export function Transactions() {
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Transaction | null }>({ isOpen: false, transaction: null });
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [editTransactionData, setEditTransactionData] = useState<Transaction | null>(null);
 
   const [detailsTransaction, setDetailsTransaction] = useState<Transaction | null>(null);
   const [advanceSeriesId, setAdvanceSeriesId] = useState<string | null>(null);
@@ -207,6 +208,14 @@ export function Transactions() {
     return member?.name || 'Outro membro';
   };
 
+  const handleEdit = (transaction: Transaction) => {
+    setEditTransactionData(transaction);
+    setShowTransactionModal(true);
+    if (detailsTransaction) {
+      setDetailsTransaction(null);
+    }
+  };
+
   const getPayerInfo = (transaction: Transaction) => {
     if (!transaction.is_shared) return null;
     if (!transaction.payer_id || transaction.payer_id === user?.id) return { label: 'Você pagou', isMe: true };
@@ -291,8 +300,9 @@ export function Transactions() {
       <TransactionList
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}
+        onDetails={setDetailsTransaction}
         onAdvance={handleAdvance}
-
+        onEdit={handleEdit}
         onDelete={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
         isFullySettled={isFullySettled} hasPendingSplits={hasPendingSplits}
         getCreatorName={getCreatorName} getPayerInfo={getPayerInfo}
@@ -308,8 +318,8 @@ export function Transactions() {
       />
 
       <AdvanceInstallmentsDialog open={!!advanceSeriesId} onOpenChange={(open) => { if (!open) { setAdvanceSeriesId(null); setAdvanceDescription(""); } }} seriesId={advanceSeriesId || ""} transactionDescription={advanceDescription} />
-      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onDelete={() => detailsTransaction && setDeleteConfirm({ isOpen: true, transaction: detailsTransaction })} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} />
-      <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); }} />
+      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onDelete={() => detailsTransaction && setDeleteConfirm({ isOpen: true, transaction: detailsTransaction })} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} onEdit={() => detailsTransaction && handleEdit(detailsTransaction)} />
+      <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditTransactionData(null); }} initialData={editTransactionData} />
       <OFXImportModal isOpen={showOfxModal} onClose={() => setShowOfxModal(false)} />
     </div>
   );

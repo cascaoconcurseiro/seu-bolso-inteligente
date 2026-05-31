@@ -58,7 +58,7 @@ import { AdvancedOptions } from './form/AdvancedOptions';
 interface TransactionFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialData?: unknown;
+  initialData?: Partial<Transaction>;
   context?: {
     tripId?: string;
     accountId?: string;
@@ -171,11 +171,11 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   // Populate from initialData
   useEffect(() => {
     if (initialData && typeof initialData === 'object') {
-      const data = initialData as any;
+      const data = initialData;
       if (data.type) setActiveTab(data.type);
       if (data.amount) setAmount(data.amount.toString());
       if (data.description) setDescription(data.description);
-      if (data.date) setDate(parseISO(data.date));
+      if (data.date) setDate(typeof data.date === 'string' ? parseISO(data.date as string) : data.date as Date);
       if (data.account_id) setAccountId(data.account_id);
       if (data.destination_account_id) setDestinationAccountId(data.destination_account_id);
       if (data.category_id) setCategoryId(data.category_id);
@@ -351,8 +351,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   };
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
-    if (initialData && (initialData as any).id) {
-      await updateTransaction.mutateAsync({ ...transactionData, id: (initialData as any).id });
+    if (initialData && initialData.id) {
+      await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
     } else {
       await createTransaction.mutateAsync(transactionData);
     }
@@ -417,11 +417,11 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       : isInstallment && totalInstallments > 1;
 
     let calculatedCompetenceDate = format(date, 'yyyy-MM-01');
-    const isEdit = !!initialData && !!(initialData as any).id;
-    const isInstallmentTx = isEdit ? (initialData as any).is_installment : isActuallyInstallment;
+    const isEdit = !!initialData && !!initialData.id;
+    const isInstallmentTx = isEdit ? initialData.is_installment : isActuallyInstallment;
 
-    if (isEdit && isInstallmentTx && (initialData as any).competence_date) {
-      calculatedCompetenceDate = (initialData as any).competence_date;
+    if (isEdit && isInstallmentTx && initialData.competence_date) {
+      calculatedCompetenceDate = initialData.competence_date;
     } else if (selectedAccount?.type === 'CREDIT_CARD' && selectedAccount.closing_day) {
       const txDay = date.getDate();
       if (txDay >= selectedAccount.closing_day) {
@@ -461,7 +461,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     };
 
     const validation = validateTransaction(
-      transactionData as any,
+      transactionData as Partial<Transaction>,
       selectedAccount,
       accounts?.find(a => a.id === destinationAccountId),
       selectedTrip,
@@ -686,7 +686,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-start gap-3"><div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center"><BellRing className="h-5 w-5 text-amber-600" /></div><div><h3 className="font-semibold text-lg mb-2">Atenção</h3><p className="text-sm text-muted-foreground mb-3">Detectamos avisos. Continuar?</p><ul className="list-disc list-inside space-y-1 text-sm text-amber-600">{validationWarnings.map((w, i) => <li key={i}>{w}</li>)}</ul></div></div>
-            <div className="flex gap-3"><Button variant="outline" className="flex-1" onClick={() => { setShowWarningModal(false); setPendingSubmit(null); }}>Cancelar</Button><Button className="flex-1" onClick={async () => { setShowWarningModal(false); if (pendingSubmit) await performSubmit(pendingSubmit as any); }}>Continuar</Button></div>
+            <div className="flex gap-3"><Button variant="outline" className="flex-1" onClick={() => { setShowWarningModal(false); setPendingSubmit(null); }}>Cancelar</Button><Button className="flex-1" onClick={async () => { setShowWarningModal(false); if (pendingSubmit) await performSubmit(pendingSubmit as Partial<Transaction>); }}>Continuar</Button></div>
           </div>
         </div>
       )}

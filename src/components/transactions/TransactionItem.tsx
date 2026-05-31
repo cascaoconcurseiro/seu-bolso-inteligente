@@ -32,6 +32,7 @@ interface TransactionItemProps {
   onDetails: (tx: Transaction) => void;
   onSettlement: (tx: Transaction) => void;
   onAdvance: (tx: Transaction) => void;
+  onEdit: (tx: Transaction) => void;
   onDelete: (tx: Transaction) => void;
   isFullySettled: (tx: Transaction) => boolean;
   hasPendingSplits: (tx: Transaction) => boolean;
@@ -48,6 +49,7 @@ export function TransactionItem({
   onDetails,
   onSettlement,
   onAdvance,
+  onEdit,
   onDelete,
   isFullySettled,
   hasPendingSplits,
@@ -309,15 +311,32 @@ export function TransactionItem({
         <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex" onClick={(e) => e.stopPropagation()}>
 
           {canDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 md:h-8 md:w-8 text-destructive hover:text-destructive"
-              onClick={() => onDelete(transaction)}
-              title="Excluir"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 md:h-8 md:w-8 text-primary hover:text-primary/80"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(transaction);
+                }}
+                title="Editar"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 md:h-8 md:w-8 text-destructive hover:text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(transaction);
+                }}
+                title="Excluir"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
           )}
           {!canDelete && (
             <div className="h-8 w-8 flex items-center justify-center text-muted-foreground" title="Somente leitura">

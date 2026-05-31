@@ -344,7 +344,7 @@ export function useTransactions(filters?: TransactionFilters) {
         );
       }
       
-      const filteredData = (data || []).filter((tx: any) => {
+      const filteredData = (data || []).filter((tx: Transaction) => {
         const accountCurrency = tx.account?.currency || 'BRL';
         if (accountCurrency === 'BRL') return true;
         // Se for transação em moeda estrangeira mas for pessoal/viagem, mantemos
@@ -505,10 +505,11 @@ export function useCreateTransaction() {
           input.total_installments
         );
         
-        // CORREÇÃO CRÍTICA: Usar dateUtils com UTC para cálculos de parcelamento (Requisito 3)
         const baseDate = dateUtils.parseDate(input.date);
         
         const transactions = [];
+        let allocatedAmount = 0;
+        
         for (let i = 0; i < input.total_installments; i++) {
           const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
           const formattedDate = dateUtils.formatDate(installmentDate);
@@ -516,11 +517,18 @@ export function useCreateTransaction() {
           
           const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
           
+          let currentAmount = installmentAmount;
+          if (i === input.total_installments - 1) {
+            currentAmount = SafeFinancialCalculator.subtract(input.amount, allocatedAmount);
+          } else {
+            allocatedAmount = SafeFinancialCalculator.add(allocatedAmount, currentAmount);
+          }
+          
           transactions.push({
             user_id: user.id,
             creator_user_id: user.id,
             ...transactionData,
-            amount: installmentAmount,
+            amount: currentAmount,
             date: formattedDate,
             competence_date: competenceDate,
             description: `${input.description} (${i + 1}/${input.total_installments})`,
@@ -574,7 +582,7 @@ export function useCreateTransaction() {
           // TASK 2.3: Validar member_id ANTES de criar splits
           // Removido loop individual assíncrono para melhorar performance, a validação é feita via `invalidMembers`
 
-          let allSplitsToInsert: any[] = [];
+          let allSplitsToInsert: Record<string, unknown>[] = [];
           
           for (const transaction of data) {
             let allocatedSum = 0;

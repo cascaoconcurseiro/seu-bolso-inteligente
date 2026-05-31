@@ -13,13 +13,15 @@ interface TransactionModalProps {
   onClose?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  initialData?: any;
 }
 
 export function TransactionModal({ 
   isOpen, 
   onClose, 
   open, 
-  onOpenChange 
+  onOpenChange,
+  initialData
 }: TransactionModalProps) {
   const { transactionContext } = useTransactionModal();
   
@@ -42,6 +44,7 @@ export function TransactionModal({
             context={transactionContext}
             onSuccess={onClose}
             onCancel={onClose}
+            initialData={initialData}
           />
         </div>
       </DialogContent>
