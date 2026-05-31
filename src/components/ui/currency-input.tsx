@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +20,26 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         maximumFractionDigits: 2,
       });
     });
+
+    // Sincroniza o valor do input caso ele seja alterado externamente (ex: initialData ao editar transação)
+    useEffect(() => {
+      if (!value) {
+        setDisplayValue("");
+        return;
+      }
+      const numericValue = parseFloat(value);
+      const currentParsedDisplay = parseFloat(displayValue.replace(/\./g, "").replace(",", "."));
+      
+      // Se o valor real for diferente do que está sendo exibido, atualiza o display
+      // Isso impede que ele pisque/reset se estivermos apenas digitando (e.g. 1.00 vs 1,00)
+      if (!isNaN(numericValue) && numericValue !== currentParsedDisplay) {
+        setDisplayValue(numericValue.toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }));
+      }
+    }, [value]);
+
 
     const formatToCurrency = (val: string) => {
       const digits = val.replace(/\D/g, "");

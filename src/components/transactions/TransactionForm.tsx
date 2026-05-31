@@ -173,7 +173,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (initialData && typeof initialData === 'object') {
       const data = initialData;
       if (data.type) setActiveTab(data.type);
-      if (data.amount) setAmount(data.amount.toString());
+      if (data.amount !== undefined && data.amount !== null) setAmount(data.amount.toString());
       if (data.description) setDescription(data.description);
       if (data.date) setDate(typeof data.date === 'string' ? parseISO(data.date as string) : data.date as Date);
       if (data.account_id) setAccountId(data.account_id);
