@@ -37,6 +37,7 @@ export function Transactions() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Transaction | null }>({ isOpen: false, transaction: null });
   const [showTransactionModal, setShowTransactionModal] = useState(false);
