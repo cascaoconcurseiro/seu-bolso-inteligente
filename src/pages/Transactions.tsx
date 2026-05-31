@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
+import { useTransactions, useDeleteTransaction, useDeleteInstallmentSeries, Transaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
