@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTransactions, useDeleteTransaction, useDeleteInstallmentSeries, Transaction } from "@/hooks/useTransactions";
+import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
+import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
@@ -36,9 +37,8 @@ export function Transactions() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedAccount, setSelectedAccount] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
-  const [showFilters, setShowFilters] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleteSeriesId, setDeleteSeriesId] = useState<string | null>(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: Transaction | null }>({ isOpen: false, transaction: null });
   const [showTransactionModal, setShowTransactionModal] = useState(false);
 
   const [detailsTransaction, setDetailsTransaction] = useState<Transaction | null>(null);
@@ -172,35 +172,22 @@ export function Transactions() {
     setSelectedPeriod("all");
   };
 
-  const handleDelete = async () => {
-    if (deleteId) {
-      const transaction = transactions?.find(t => t.id === deleteId);
-      if (transaction?.is_shared && isFullySettled(transaction)) {
-        toast.error("Transação acertada não pode ser excluída");
-        setDeleteId(null);
-        return;
-      }
-      await deleteTransaction.mutateAsync(deleteId);
-      if (transaction?.is_shared) await invalidateRelated(deleteId);
-      haptics.heavy();
-      setDeleteId(null);
+  const handleDelete = async (cascadeType: CascadeDeleteType) => {
+    if (!deleteConfirm.transaction) return;
+    
+    const tx = deleteConfirm.transaction;
+    
+    if (tx.is_shared && isFullySettled(tx)) {
+      toast.error("Transação acertada não pode ser excluída");
+      setDeleteConfirm({ isOpen: false, transaction: null });
+      return;
     }
-  };
-
-  const handleDeleteSeries = async () => {
-    if (deleteSeriesId) {
-      const seriesTransactions = transactions?.filter(t => t.series_id === deleteSeriesId) || [];
-      if (seriesTransactions.some(t => t.is_shared && isFullySettled(t))) {
-        toast.error("Série contém parcelas acertadas");
-        setDeleteSeriesId(null);
-        return;
-      }
-      await deleteInstallmentSeries.mutateAsync(deleteSeriesId);
-      const first = seriesTransactions[0];
-      if (first?.is_shared && first?.id) await invalidateRelated(first.id);
-      haptics.heavy();
-      setDeleteSeriesId(null);
-    }
+    
+    await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
+    if (tx.is_shared) await invalidateRelated(tx.id);
+    
+    haptics.heavy();
+    setDeleteConfirm({ isOpen: false, transaction: null });
   };
 
   const handleAdvance = (transaction: Transaction) => {
@@ -305,41 +292,22 @@ export function Transactions() {
         onDetails={setDetailsTransaction}
         onAdvance={handleAdvance}
 
-        onDelete={(tx) => tx.is_installment && tx.series_id ? setDeleteSeriesId(tx.series_id) : setDeleteId(tx.id)}
+        onDelete={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
         isFullySettled={isFullySettled} hasPendingSplits={hasPendingSplits}
         getCreatorName={getCreatorName} getPayerInfo={getPayerInfo}
         selectedAccount={selectedAccount}
       />
 
       {/* Alert Dialogs & Modals */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir transação?</AlertDialogTitle>
-            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!deleteSeriesId} onOpenChange={() => setDeleteSeriesId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir parcelas?</AlertDialogTitle>
-            <AlertDialogDescription>Esta é uma transação parcelada. Deseja excluir toda a série de parcelas? Esta ação não pode ser desfeita.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSeries} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir toda a série</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteTransactionModal 
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })}
+        onConfirm={handleDelete}
+        transaction={deleteConfirm.transaction}
+      />
 
       <AdvanceInstallmentsDialog open={!!advanceSeriesId} onOpenChange={(open) => { if (!open) { setAdvanceSeriesId(null); setAdvanceDescription(""); } }} seriesId={advanceSeriesId || ""} transactionDescription={advanceDescription} />
-      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onDelete={() => detailsTransaction && (detailsTransaction.is_installment && detailsTransaction.series_id ? setDeleteSeriesId(detailsTransaction.series_id) : setDeleteId(detailsTransaction.id))} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} />
+      <TransactionDetailsModal open={!!detailsTransaction} onOpenChange={(open) => { if (!open) setDetailsTransaction(null); }} transaction={detailsTransaction} onDelete={() => detailsTransaction && setDeleteConfirm({ isOpen: true, transaction: detailsTransaction })} onAdvance={() => detailsTransaction && handleAdvance(detailsTransaction)} />
       <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); }} />
       <OFXImportModal isOpen={showOfxModal} onClose={() => setShowOfxModal(false)} />
     </div>

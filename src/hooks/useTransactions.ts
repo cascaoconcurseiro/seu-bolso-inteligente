@@ -811,6 +811,49 @@ export function useCreateTransaction() {
   });
 }
 
+export function useBulkCreateTransactions() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (inputs: CreateTransactionInput[]) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      
+      const transactionsToInsert = inputs.map(input => {
+        const { splits, transaction_splits, ...transactionData } = input;
+        
+        return {
+          user_id: user.id,
+          creator_user_id: user.id,
+          ...transactionData,
+        };
+      });
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .insert(transactionsToInsert)
+        .select();
+
+      if (error) {
+        logger.error("Erro ao criar transações em lote:", error);
+        throw new Error(`Erro ao criar transações em lote: ${error.message}`);
+      }
+
+      return data as Transaction[];
+    },
+    onSuccess: async () => {
+      // Run invalidations
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
+      transactionToasts.created();
+    },
+    onError: (error) => {
+      transactionToasts.error('criar', error);
+    },
+  });
+}
+
 export function useUpdateTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -862,11 +905,11 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, cascadeType = 'NONE' }: { id: string, cascadeType?: 'ALL' | 'NEXT' | 'NONE' }) => {
       // 1. Buscar a transação antes de deletar
       const { data: existingTx } = await supabase
         .from("transactions")
-        .select("is_shared, domain, description, user_id, is_settled")
+        .select("is_shared, domain, description, user_id, is_settled, series_id, current_installment")
         .eq("id", id)
         .maybeSingle();
 
@@ -887,11 +930,23 @@ export function useDeleteTransaction() {
         }
       }
 
-      // 3. Deletar a transação
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", id);
+      // 3. Deletar a transação (com lógica de cascata)
+      let deleteQuery = supabase.from("transactions").delete();
+      
+      if (cascadeType === 'ALL' && existingTx?.series_id) {
+        deleteQuery = deleteQuery.eq('series_id', existingTx.series_id);
+      } else if (cascadeType === 'NEXT' && existingTx?.series_id) {
+        // Para NEXT, precisamos deletar onde series_id bate E current_installment >= tx.current_installment
+        // Como o Supabase delete() com múltiplos filtros funciona com AND, podemos fazer:
+        deleteQuery = deleteQuery
+          .eq('series_id', existingTx.series_id)
+          .gte('current_installment', existingTx.current_installment || 1);
+      } else {
+        // Padrão (NONE) ou transação sem série
+        deleteQuery = deleteQuery.eq("id", id);
+      }
+
+      const { error } = await deleteQuery;
 
       if (error) throw error;
 

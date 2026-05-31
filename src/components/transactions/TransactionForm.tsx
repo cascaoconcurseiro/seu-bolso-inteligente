@@ -66,7 +66,7 @@ interface TransactionFormProps {
   };
 }
 
-export function TransactionForm({ onSuccess, onCancel, context }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, onCancel, context, initialData }: TransactionFormProps) {
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
   const { user } = useAuth();
@@ -417,7 +417,12 @@ export function TransactionForm({ onSuccess, onCancel, context }: TransactionFor
       : isInstallment && totalInstallments > 1;
 
     let calculatedCompetenceDate = format(date, 'yyyy-MM-01');
-    if (selectedAccount?.type === 'CREDIT_CARD' && selectedAccount.closing_day) {
+    const isEdit = !!initialData && !!(initialData as any).id;
+    const isInstallmentTx = isEdit ? (initialData as any).is_installment : isActuallyInstallment;
+
+    if (isEdit && isInstallmentTx && (initialData as any).competence_date) {
+      calculatedCompetenceDate = (initialData as any).competence_date;
+    } else if (selectedAccount?.type === 'CREDIT_CARD' && selectedAccount.closing_day) {
       const txDay = date.getDate();
       if (txDay >= selectedAccount.closing_day) {
         // Se a data da compra for >= ao dia de fechamento, a competência é no mês seguinte

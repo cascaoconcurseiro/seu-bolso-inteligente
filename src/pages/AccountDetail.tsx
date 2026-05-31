@@ -25,6 +25,7 @@ import {
 import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
+import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBankById } from "@/lib/banks";
@@ -118,12 +119,12 @@ export function AccountDetail() {
 
 
 
-  const handleDeleteTransaction = async () => {
+  const handleDeleteTransaction = async (cascadeType: "NONE" | "NEXT" | "ALL") => {
     const tx = deleteConfirm.transaction;
     if (!tx) return;
 
     try {
-      await deleteTransaction.mutateAsync(tx.id);
+      await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
       toast.success("Transação excluída com sucesso!");
       setDeleteConfirm({ isOpen: false, transaction: null });
       refetchStatement();
@@ -199,22 +200,12 @@ export function AccountDetail() {
         }}
       />
 
-      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir "{deleteConfirm.transaction?.description}"? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteTransactionModal 
+        isOpen={deleteConfirm.isOpen} 
+        onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })} 
+        onConfirm={handleDeleteTransaction} 
+        transaction={deleteConfirm.transaction} 
+      />
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>

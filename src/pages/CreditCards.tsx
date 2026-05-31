@@ -31,7 +31,7 @@ import { useMonth } from "@/contexts/MonthContext";
 import { exportCardsToCSV, exportCardsToPDF } from "@/utils/exportData";
 import { getBankById } from "@/lib/banks";
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice } from "@/hooks/useAccounts";
-import { useTransactions, useCreateTransaction, useDeleteTransaction } from "@/hooks/useTransactions";
+import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCreateTransactions } from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 
 // Modular Components
 import { CreditCardItem } from "@/components/credit-cards/CreditCardItem";
@@ -127,6 +128,7 @@ export function CreditCards() {
   const { data: archivedCards = [] } = useArchivedAccounts();
   const unarchiveAccountMutation = useUnarchiveAccount();
   const createTransaction = useCreateTransaction();
+  const bulkCreateTransactions = useBulkCreateTransactions();
   const deleteTransaction = useDeleteTransaction();
   const { toast: toastHook } = useToast();
 
@@ -229,10 +231,13 @@ export function CreditCards() {
     return Math.min(...creditCards.map(card => getDaysUntilDue(getCardInvoice(card).dueDate)));
   }, [creditCards, transactions]);
 
-  const handleDeleteTransaction = async () => {
+  const handleDeleteTransaction = async (cascadeType: CascadeDeleteType) => {
     if (!deleteConfirm.transaction) return;
-    await deleteTransaction.mutateAsync(deleteConfirm.transaction.id);
-    toast.success("Transação excluída!");
+    await deleteTransaction.mutateAsync({ 
+      id: deleteConfirm.transaction.id, 
+      cascadeType 
+    });
+    toast.success("Transação(ões) excluída(s)!");
     setDeleteConfirm({ isOpen: false, transaction: null });
     refetchTransactions();
   };
@@ -281,7 +286,11 @@ export function CreditCards() {
           handleEditTransaction={(tx) => { setEditingTransaction(tx); setShowTransactionModal(true); }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(selectedCard.id)}
         />
 
-        <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { for (const tx of txs) await createTransaction.mutateAsync(tx as any); toastHook({ title: "Faturas importadas!" }); setShowImportDialog(false); }} />
+        <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
+          await bulkCreateTransactions.mutateAsync(txs as any); 
+          toastHook({ title: "Faturas importadas!" }); 
+          setShowImportDialog(false); 
+        }} />
         
         <PayInvoiceDialog 
           isOpen={showPayDialog} onClose={() => setShowPayDialog(false)} card={selectedCard} invoiceTotal={invoiceData.invoiceTotal} accounts={(accounts || []).filter(a => a.type !== 'CREDIT_CARD')}
@@ -310,12 +319,12 @@ export function CreditCards() {
 
         <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditingTransaction(null); refetchTransactions(); }} initialData={editingTransaction} />
 
-        <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(open) => !open && setDeleteConfirm({ isOpen: false, transaction: null })}>
-          <AlertDialogContent>
-            <AlertDialogHeader><AlertDialogTitle>Excluir Transação</AlertDialogTitle><AlertDialogDescription>Tem certeza que deseja excluir "{deleteConfirm.transaction?.description}"?</AlertDialogDescription></AlertDialogHeader>
-            <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive">Excluir</AlertDialogAction></AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteTransactionModal 
+          isOpen={deleteConfirm.isOpen} 
+          onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })}
+          onConfirm={handleDeleteTransaction}
+          transaction={deleteConfirm.transaction}
+        />
 
         <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
           <DialogContent>
