@@ -107,11 +107,7 @@ export function TransactionForm({ onSuccess, onCancel, context }: TransactionFor
     !!predictionType
   );
 
-  const handleApplySuggestion = () => {
-    if (suggestion) {
-      setDescription(suggestion);
-    }
-  };
+  // Autocompletar a descrição não é mais utilizado conforme regra de negócio
 
   // Context application
   useEffect(() => {
@@ -503,10 +499,8 @@ export function TransactionForm({ onSuccess, onCancel, context }: TransactionFor
           categories={categories || []}
           categoriesLoading={categoriesLoading}
           selectedTrip={selectedTrip}
-          suggestion={suggestion}
           predictedCategoryId={predictedCategoryId}
           isPredicting={isPredicting}
-          onApplySuggestion={handleApplySuggestion}
         /> 
         
 

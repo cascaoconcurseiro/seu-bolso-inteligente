@@ -153,11 +153,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
     setHasUserSelectedCategoryManually(true);
   };
 
-  const handleApplySuggestion = () => {
-    if (suggestion) {
-      setDescription(suggestion);
-    }
-  };
+  // A descrição não é mais sugerida/autocompletada pela IA conforme pedido do usuário
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,47 +313,12 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   required
                 />
                 
-                {/* Autocomplete Hint (Ghost text behind input) */}
-                {suggestion && suggestion.toLowerCase().startsWith(description.toLowerCase()) && description.length > 0 && (
-                  <div className="absolute inset-0 flex items-center px-3 pointer-events-none z-0">
-                    <span className="opacity-0">{description}</span>
-                    <span className="text-muted-foreground/40 text-sm">{suggestion.slice(description.length)}</span>
-                  </div>
-                )}
-
                 {isPredicting && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   </div>
                 )}
-
-                {!isPredicting && suggestion && suggestion !== description && (
-                  <button
-                    type="button"
-                    onClick={handleApplySuggestion}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-md transition-colors animate-pulse cursor-pointer"
-                    title="Completar sugestão da IA"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                  </button>
-                )}
               </div>
-              
-              {/* AI Suggestion Chip */}
-              {suggestion && suggestion !== description && (
-                <div className="flex items-center gap-2 mt-1 animate-fade-in">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Sparkles className="h-3 w-3 text-blue-500" /> Sugestão:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleApplySuggestion}
-                    className="text-xs font-medium px-2.5 py-1 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-200 dark:border-blue-800"
-                  >
-                    {suggestion}
-                  </button>
-                </div>
-              )}
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

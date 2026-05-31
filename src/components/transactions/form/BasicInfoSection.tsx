@@ -59,48 +59,12 @@ export function BasicInfoSection({
             className="h-12 pr-10 text-lg relative z-10 bg-transparent"
           />
           
-          {/* Autocomplete Hint (Ghost text behind input) */}
-          {suggestion && suggestion.toLowerCase().startsWith(description.toLowerCase()) && description.length > 0 && (
-            <div className="absolute inset-0 flex items-center h-12 px-3 text-lg pointer-events-none z-0">
-              <span className="opacity-0">{description}</span>
-              <span className="text-muted-foreground/40">{suggestion.slice(description.length)}</span>
-            </div>
-          )}
-
           {isPredicting && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           )}
-
-          {!isPredicting && suggestion && suggestion !== description && (
-            <button
-              type="button"
-              onClick={onApplySuggestion}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-md transition-colors animate-pulse cursor-pointer"
-              title="Completar sugestão da IA"
-            >
-              <Sparkles className="h-4 w-4" />
-            </button>
-          )}
         </div>
-        
-        {/* AI Suggestion Chip (Mobile Keyboard Style) */}
-        {suggestion && suggestion !== description && (
-          <div className="flex items-center animate-fade-in -mt-1 mb-2">
-            <button
-              type="button"
-              onClick={onApplySuggestion}
-              className="w-full flex items-center justify-between px-4 py-2.5 bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800/50"
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">Sugestão da IA</span>
-              </div>
-              <span className="font-semibold text-base">{suggestion}</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Date & Category (responsive: stacked on mobile, side by side on sm screens) */}
