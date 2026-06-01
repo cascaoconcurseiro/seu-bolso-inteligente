@@ -114,6 +114,8 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
       iterationCompetence = addMonths(iterationCompetence, 1);
     }
 
+    const seriesId = crypto.randomUUID();
+
     for (let i = currNum; i <= totNum; i++) {
       const compDateStr = formatLocalDate(iterationCompetence);
 
@@ -122,12 +124,13 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         competence_date: compDateStr,
         amount: valueNum,
         type: "EXPENSE",
-        description: desc,
+        description: `${desc} (${i}/${totNum})`,
         account_id: account.id,
         domain: "PERSONAL",
         is_installment: true,
         current_installment: i,
         total_installments: totNum,
+        series_id: seriesId,
       });
       
       iterationCompetence = addMonths(iterationCompetence, 1);
