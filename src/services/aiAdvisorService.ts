@@ -998,19 +998,19 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
   {
     keywords: ["doacao", "ajuda financeira", "emprestimo recebido"],
     suggestion: "Ajuda / Doação",
-    categoryMatch: "renda extra",
+    categoryMatch: "outros",
     type: "receita"
   },
   {
     keywords: ["lote", "loteria", "mega sena", "mega-sena", "premios", "premiacao recebida"],
     suggestion: "Premiação / Sorteio",
-    categoryMatch: "renda extra",
+    categoryMatch: "outros",
     type: "receita"
   },
   {
     keywords: ["aposentadoria", "pensao recebida", "inss"],
     suggestion: "Aposentadoria / INSS",
-    categoryMatch: "renda extra",
+    categoryMatch: "outros",
     type: "receita"
   },
 
@@ -1018,13 +1018,13 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
   {
     keywords: ["saldo inicial", "aporte inicial", "abertura conta", "saldo abertura"],
     suggestion: "Saldo Inicial de Conta",
-    categoryMatch: "sistema",
+    categoryMatch: "outros",
     type: "receita"
   },
   {
     keywords: ["ajuste", "ajuste saldo", "ajuste de saldo", "acerto", "acerto contabil"],
     suggestion: "Ajuste de Saldo",
-    categoryMatch: "sistema",
+    categoryMatch: "outros",
     type: "receita"
   }
 ];

@@ -105,10 +105,15 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
         ];
 
         const ALLOWED_INCOME_PARENTS = [
-          "Trabalho",
+          "Salário",
+          "Freelance",
+          "Vendas",
           "Investimentos",
-          "Renda Extra",
-          "Sistema",
+          "Reembolso",
+          "Cashback",
+          "Benefícios",
+          "Presente",
+          "Transferência Recebida",
           "Outros"
         ];
 
