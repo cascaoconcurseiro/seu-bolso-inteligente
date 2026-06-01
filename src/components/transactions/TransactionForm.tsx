@@ -388,6 +388,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     if (numericAmount <= 0) { toast.error('O valor da transação deve ser maior que zero'); return; }
     if (!description.trim()) { toast.error('A descrição é obrigatória'); return; }
     if (activeTab === 'EXPENSE' && !categoryId) { toast.error('A categoria é obrigatória para despesas'); return; }
+    if (!accountId && payerId === 'me') { toast.error('A conta de origem é obrigatória'); return; }
+    if (activeTab === 'TRANSFER' && !destinationAccountId) { toast.error('A conta de destino é obrigatória'); return; }
 
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {
