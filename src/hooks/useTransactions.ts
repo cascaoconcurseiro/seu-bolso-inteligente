@@ -881,7 +881,7 @@ export function useUpdateTransaction() {
       const { data, error } = await supabase
         .from("transactions")
         .update({
-          ...updateData,
+          ...updateData, splits: undefined,
           updated_at: new Date().toISOString()
         })
         .eq("id", id)

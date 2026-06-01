@@ -216,6 +216,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         return;
       }
       const hasDuplicate = allTransactions.some((tx) => {
+        if (initialData && tx.id === initialData.id) return false;
         if (tx.type !== activeTab) return false;
         const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
         const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
