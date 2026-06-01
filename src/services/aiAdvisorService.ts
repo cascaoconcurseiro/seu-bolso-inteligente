@@ -1463,7 +1463,33 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
       const parsed = JSON.parse(result.choices[0].message.content);
       return parsed.suggestions || [];
     } catch (error) {
-      console.error("Erro na sugestão de compras da viagem:", error);
+      console.warn("Fallback direto no cliente para compras...", error);
+      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (clientApiKey) {
+        try {
+          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: prompt }],
+              temperature: 0.5,
+              max_tokens: 300,
+              response_format: { type: "json_object" }
+            })
+          });
+          if (directResponse.ok) {
+            const result = await directResponse.json();
+            const parsed = JSON.parse(result.choices[0].message.content);
+            return parsed.suggestions || [];
+          }
+        } catch (e) {
+          console.error("Erro no fallback da Groq para compras:", e);
+        }
+      }
       return [];
     }
   }
@@ -1506,7 +1532,33 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
       const parsed = JSON.parse(result.choices[0].message.content);
       return parsed.suggestions || [];
     } catch (error) {
-      console.error("Erro na sugestão de roteiro da viagem:", error);
+      console.warn("Fallback direto no cliente para roteiro...", error);
+      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (clientApiKey) {
+        try {
+          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: prompt }],
+              temperature: 0.4,
+              max_tokens: 600,
+              response_format: { type: "json_object" }
+            })
+          });
+          if (directResponse.ok) {
+            const result = await directResponse.json();
+            const parsed = JSON.parse(result.choices[0].message.content);
+            return parsed.suggestions || [];
+          }
+        } catch (e) {
+          console.error("Erro no fallback da Groq para roteiro:", e);
+        }
+      }
       return [];
     }
   }
@@ -1546,7 +1598,33 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
       const parsed = JSON.parse(result.choices[0].message.content);
       return parsed.suggestions || [];
     } catch (error) {
-      console.error("Erro na sugestão de checklist da viagem:", error);
+      console.warn("Fallback direto no cliente para checklist...", error);
+      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (clientApiKey) {
+        try {
+          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: prompt }],
+              temperature: 0.3,
+              max_tokens: 400,
+              response_format: { type: "json_object" }
+            })
+          });
+          if (directResponse.ok) {
+            const result = await directResponse.json();
+            const parsed = JSON.parse(result.choices[0].message.content);
+            return parsed.suggestions || [];
+          }
+        } catch (e) {
+          console.error("Erro no fallback da Groq para checklist:", e);
+        }
+      }
       return [];
     }
   }
