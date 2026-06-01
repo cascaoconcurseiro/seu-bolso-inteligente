@@ -20,13 +20,15 @@ interface DeleteTransactionModalProps {
   onClose: () => void;
   onConfirm: (cascadeType: CascadeDeleteType) => void;
   transaction: Transaction | null;
+  isDeleting?: boolean;
 }
 
 export function DeleteTransactionModal({
   isOpen,
   onClose,
   onConfirm,
-  transaction
+  transaction,
+  isDeleting = false
 }: DeleteTransactionModalProps) {
   const [cascadeType, setCascadeType] = useState<CascadeDeleteType>('NONE');
 
@@ -111,9 +113,9 @@ export function DeleteTransactionModal({
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setCascadeType('NONE')}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-            Excluir
+          <AlertDialogCancel onClick={() => setCascadeType('NONE')} disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirm} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            {isDeleting ? "Excluindo..." : "Excluir"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

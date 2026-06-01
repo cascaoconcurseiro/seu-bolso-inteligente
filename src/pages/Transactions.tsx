@@ -190,6 +190,7 @@ export function Transactions() {
     
     haptics.heavy();
     setDeleteConfirm({ isOpen: false, transaction: null });
+    setDetailsTransaction(null);
   };
 
   const handleAdvance = (transaction: Transaction) => {
@@ -315,6 +316,7 @@ export function Transactions() {
         onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })}
         onConfirm={handleDelete}
         transaction={deleteConfirm.transaction}
+        isDeleting={deleteTransaction.isPending}
       />
 
       <AdvanceInstallmentsDialog open={!!advanceSeriesId} onOpenChange={(open) => { if (!open) { setAdvanceSeriesId(null); setAdvanceDescription(""); } }} seriesId={advanceSeriesId || ""} transactionDescription={advanceDescription} />
