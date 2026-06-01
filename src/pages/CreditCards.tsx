@@ -193,11 +193,20 @@ export function CreditCards() {
     return baseData;
   }, [selectedCard, invoiceDataRPC, transactions, selectedDate]);
 
-  const getCardInvoice = (card: CreditCardAccount) => {
-    const targetDate = getTargetDate(new Date(), card.closing_day || 1);
-    const data = getInvoiceData(card, transactions, targetDate);
-    return { value: data.invoiceTotal, dueDate: data.dueDate, status: data.status };
-  };
+    const getCardInvoice = (card: CreditCardAccount) => {
+      const targetDate = getTargetDate(new Date(), card.closing_day || 1);
+      const data = getInvoiceData(card, transactions, targetDate);
+      
+      if (data.status === 'OPEN') {
+        const prevDate = dateFns.subMonths(targetDate, 1);
+        const prevData = getInvoiceData(card, transactions, prevDate);
+        if (prevData.status === 'CLOSED' && prevData.invoiceTotal > 0.01) {
+          return { value: prevData.invoiceTotal, dueDate: prevData.dueDate, status: prevData.status };
+        }
+      }
+      
+      return { value: data.invoiceTotal, dueDate: data.dueDate, status: data.status };
+    };
 
   const getCardInstallments = (cardId: string) => transactions.filter(t => t.account_id === cardId && t.is_installment).map(t => ({ id: t.id, description: t.description, current: t.current_installment || 1, total: t.total_installments || 1, value: t.amount }));
 

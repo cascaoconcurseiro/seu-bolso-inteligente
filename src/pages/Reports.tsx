@@ -34,7 +34,7 @@ import { exportToCSV, exportToPDF } from "@/utils/exportData";
 import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
-import { FinancialAIAdvisor } from "@/components/reports/FinancialAIAdvisor";
+
 
 const getTransactionCurrency = (tx: any): string => {
   if (tx.currency && tx.currency !== 'BRL') return tx.currency;
@@ -727,19 +727,7 @@ export function Reports() {
         <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
       </div>
       
-      <FinancialAIAdvisor 
-        reportData={{
-          totalIncome,
-          totalExpense,
-          balance,
-          savingsRate: totalIncome > 0 ? ((balance / totalIncome) * 100) : 0,
-          currency: displayCurrency,
-          topCategories: categoryData.slice(0, 5),
-          largestExpense: largestExpense ? { description: largestExpense.description, amount: Number(largestExpense.amount) } : null,
-          periodLabel: viewType === 'MONTH' ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR }) : dateFns.format(safeCurrentDate, "yyyy"),
-          viewType
-        }} 
-      />
+      
 
       {/* KPIs Financeiros Avançados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
