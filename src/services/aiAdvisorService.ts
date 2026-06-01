@@ -874,49 +874,49 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
   {
     keywords: ["salario", "salário", "pagamento salario", "prolabore", "pro-labore", "folha", "folha pagamento", "holerite"],
     suggestion: "Salário",
-    categoryMatch: "trabalho",
+    categoryMatch: "salario",
     type: "receita"
   },
   {
     keywords: ["quinzena", "adiantamento", "adiantamento salarial", "vale"],
     suggestion: "Adiantamento Salarial",
-    categoryMatch: "trabalho",
+    categoryMatch: "salario",
     type: "receita"
   },
   {
     keywords: ["13 salario", "decimo terceiro", "13o", "13o salario", "13º", "13º salário"],
     suggestion: "Décimo Terceiro",
-    categoryMatch: "trabalho",
+    categoryMatch: "salario",
     type: "receita"
   },
   {
     keywords: ["ferias", "abono pecuniario", "ferias remuneradas"],
     suggestion: "Férias",
-    categoryMatch: "trabalho",
+    categoryMatch: "salario",
     type: "receita"
   },
   {
     keywords: ["plr", "participacao lucros", "bonus", "bonificacao", "premio", "premiacao"],
     suggestion: "PLR / Bônus",
-    categoryMatch: "trabalho",
+    categoryMatch: "freelance",
     type: "receita"
   },
   {
     keywords: ["freelance", "freelancer", "freela", "job", "servico freela", "bico", "projeto"],
     suggestion: "Freelancer / Job",
-    categoryMatch: "trabalho",
+    categoryMatch: "freelance",
     type: "receita"
   },
   {
     keywords: ["prestacao servicos", "prestacao de servicos", "prestacao de servico", "consultoria", "honorarios", "honorario"],
     suggestion: "Prestação de Serviços",
-    categoryMatch: "trabalho",
+    categoryMatch: "freelance",
     type: "receita"
   },
   {
     keywords: ["venda comissao", "comissao", "comissao vendas"],
     suggestion: "Comissão de Vendas",
-    categoryMatch: "trabalho",
+    categoryMatch: "vendas",
     type: "receita"
   },
 
@@ -924,37 +924,37 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
   {
     keywords: ["dividendos", "dividendo", "proventos dividendos"],
     suggestion: "Dividendos",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
   {
     keywords: ["jcp", "juros sobre capital proprio"],
     suggestion: "Juros s/ Capital Próprio",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
   {
     keywords: ["rendimento", "rendimento poupanca", "rendimentos", "rendimento cdb", "rendimento fundo", "nubank rendimento", "tesouro direto rendimento"],
     suggestion: "Rendimentos de Aplicação",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
   {
     keywords: ["fii", "fiis", "fundos imobiliarios", "rendimento fii"],
     suggestion: "Proventos FIIs",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
   {
     keywords: ["resgate", "resgate cdb", "resgate investimentos", "venda acoes", "resgate fundo"],
     suggestion: "Resgate de Investimento",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
   {
     keywords: ["bitcoin", "btc", "cripto", "venda cripto", "lucro cripto"],
     suggestion: "Criptoativos",
-    categoryMatch: "investimentos",
+    categoryMatch: "investimento",
     type: "receita"
   },
 
@@ -962,37 +962,37 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
   {
     keywords: ["pix recebido", "pix amigo", "recebido pix", "pix mae", "pix pai", "transferencia recebida"],
     suggestion: "Pix Recebido",
-    categoryMatch: "renda extra",
+    categoryMatch: "transferencia recebida",
     type: "receita"
   },
   {
     keywords: ["venda usado", "desapego", "venda desapego", "enjoei", "olx", "brecho", "venda olx", "venda brecho"],
     suggestion: "Venda de Desapegos",
-    categoryMatch: "renda extra",
+    categoryMatch: "vendas",
     type: "receita"
   },
   {
     keywords: ["aluguel recebido", "aluguel ap recebido", "aluguel sala"],
     suggestion: "Aluguel Recebido",
-    categoryMatch: "renda extra",
+    categoryMatch: "outros",
     type: "receita"
   },
   {
     keywords: ["presente", "presente aniversario", "pix aniversario", "dinheiro presente"],
     suggestion: "Presente / Doação",
-    categoryMatch: "renda extra",
+    categoryMatch: "presente",
     type: "receita"
   },
   {
     keywords: ["reembolso", "reembolso despesa", "reembolso Uber", "reembolso corporativo", "estorno"],
     suggestion: "Reembolso",
-    categoryMatch: "renda extra",
+    categoryMatch: "reembolso",
     type: "receita"
   },
   {
     keywords: ["cashback", "cash back", "meliuz", "ame cashback", "nubank cashback"],
     suggestion: "Cashback",
-    categoryMatch: "renda extra",
+    categoryMatch: "cashback",
     type: "receita"
   },
   {
@@ -1149,7 +1149,7 @@ Não invente números, use apenas os dados acima. Se os dados estiverem todos ze
     } else {
       const isReceitaList = userCategories.some(uc => {
         const name = normalizeBrazilianText(uc.name);
-        return name.includes("trabalho") || name.includes("investimento") || name.includes("renda extra");
+        return name.includes("salario") || name.includes("freelance") || name.includes("investimento") || name.includes("renda") || name.includes("receita") || name.includes("transferencia recebida");
       });
       targetType = isReceitaList ? 'receita' : 'despesa';
     }
