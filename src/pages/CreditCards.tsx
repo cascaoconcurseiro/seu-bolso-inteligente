@@ -35,7 +35,7 @@ import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCre
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
-import { formatLocalDate } from "@/utils/dateUtils";
+import { formatLocalDate, getMonthDateRange } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
@@ -120,7 +120,20 @@ export function CreditCards() {
   const [newCurrency, setNewCurrency] = useState("USD");
 
   const { data: accounts = [], isLoading, refetch: refetchAccounts } = useAccounts();
-  const { data: transactions = [], isLoading: transactionsLoading, refetch: refetchTransactions } = useTransactions();
+  
+  const { currentDate, startDay } = useMonth();
+  // Expandir a janela de busca para garantir que compras de meses anteriores
+  // que caem na fatura atual sejam incluídas no cálculo da lista de cartões.
+  const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
+  const extendedStartDate = dateFns.subMonths(new Date(startDate), 2).toISOString();
+  const extendedEndDate = dateFns.addMonths(new Date(endDate), 1).toISOString();
+
+  const { data: transactions = [], isLoading: transactionsLoading, refetch: refetchTransactions } = useTransactions({
+    startDate: extendedStartDate,
+    endDate: extendedEndDate,
+    limit: 5000,
+  });
+  
   const createAccount = useCreateAccount();
   const updateAccount = useUpdateAccount();
   const deleteAccountMutation = useDeleteAccount();
