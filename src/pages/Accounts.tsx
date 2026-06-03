@@ -126,6 +126,8 @@ export function Accounts() {
   const [balance, setBalance] = useState("");
   const [isInternational, setIsInternational] = useState(false);
   const [currency, setCurrency] = useState("USD");
+  const [hideBalance, setHideBalance] = useState(false);
+  const [editHideBalance, setEditHideBalance] = useState(false);
 
   const nationalAccounts = useMemo(() => (regularAccounts || []).filter(a => !a.is_international), [regularAccounts]);
   const internationalAccounts = useMemo(() => (regularAccounts || []).filter(a => a.is_international), [regularAccounts]);
@@ -135,12 +137,12 @@ export function Accounts() {
 
   const handleCreate = async () => {
     const bank = bankId ? getBankById(bankId) : null;
-    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: parseFloat(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL' });
+    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: parseFloat(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL', hide_balance: hideBalance });
     setShowAddDialog(false);
     resetForm();
   };
 
-  const resetForm = () => { setType("CHECKING"); setBankId(""); setBalance(""); setIsInternational(false); setCurrency("USD"); };
+  const resetForm = () => { setType("CHECKING"); setBankId(""); setBalance(""); setIsInternational(false); setCurrency("USD"); setHideBalance(false); };
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -232,6 +234,13 @@ export function Accounts() {
             {isInternational && <div className="space-y-2"><Label>Moeda</Label><Select value={currency} onValueChange={setCurrency}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{currencies.map(c => <SelectItem key={c.value} value={c.value}><span className="font-mono text-xs mr-2">{c.symbol}</span>{c.label}</SelectItem>)}</SelectContent></Select></div>}
             <div className="space-y-2"><Label>Tipo</Label><Select value={type} onValueChange={setType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{(isInternational ? [{v:"GLOBAL_ACCOUNT",l:"Conta Global"}] : [{v:"CHECKING",l:"Conta Corrente"},{v:"SAVINGS",l:"Poupança"},{v:"INVESTMENT",l:"Investimento"},{v:"CASH",l:"Dinheiro"},{v:"EMERGENCY_FUND",l:"Reserva de Emergência"}]).map(t => <SelectItem key={t.v} value={t.v}>{t.l}</SelectItem>)}</SelectContent></Select></div>
             <div className="space-y-2"><Label>Saldo inicial</Label><CurrencyInput value={balance} onChange={setBalance} currency={isInternational ? currency : "BRL"} /></div>
+            <div className="flex items-center justify-between p-4 border rounded-xl">
+              <div className="space-y-0.5">
+                <Label>Ocultar Saldo</Label>
+                <p className="text-xs text-muted-foreground">O valor ficará desfocado no painel.</p>
+              </div>
+              <Switch checked={hideBalance} onCheckedChange={setHideBalance} />
+            </div>
           </div>
           <DialogFooter><Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancelar</Button><Button onClick={handleCreate} disabled={!bankId || createAccount.isPending}>Criar</Button></DialogFooter>
         </DialogContent>
@@ -242,8 +251,15 @@ export function Accounts() {
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label>Nome</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
             <div className="space-y-2"><Label>Saldo atual</Label><CurrencyInput value={editBalance} onChange={setEditBalance} currency={editingAccount?.currency || "BRL"} /></div>
+            <div className="flex items-center justify-between p-4 border rounded-xl">
+              <div className="space-y-0.5">
+                <Label>Ocultar Saldo</Label>
+                <p className="text-xs text-muted-foreground">O valor ficará desfocado no painel.</p>
+              </div>
+              <Switch checked={editHideBalance} onCheckedChange={setEditHideBalance} />
+            </div>
           </div>
-          <DialogFooter><Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button><Button onClick={async () => { if (editingAccount) { await updateAccount.mutateAsync({ id: editingAccount.id, name: editName, balance: parseFloat(editBalance) || 0 }); setShowEditDialog(false); } }}>Salvar</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button><Button onClick={async () => { if (editingAccount) { await updateAccount.mutateAsync({ id: editingAccount.id, name: editName, balance: parseFloat(editBalance) || 0, hide_balance: editHideBalance }); setShowEditDialog(false); } }}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 

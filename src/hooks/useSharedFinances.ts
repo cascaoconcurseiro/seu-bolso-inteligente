@@ -95,9 +95,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const account = accounts.find(a => a.id === accountId);
     if (!account) return competenceDate;
     
-    // Se não é cartão de crédito, usar competence_date
+    // Se não é cartão de crédito, vamos adiantar para o mês seguinte
+    // para seguir a mesma lógica de cobrança no ciclo posterior.
     if (account.type !== 'CREDIT_CARD') {
-      return competenceDate;
+      const closingMonth = dateUtils.parseDate(competenceDate);
+      let dueMonth = closingMonth.getMonth() + 1;
+      let dueYear = closingMonth.getFullYear();
+      if (dueMonth > 11) {
+        dueMonth = 0;
+        dueYear++;
+      }
+      const dueDate = new Date(Date.UTC(dueYear, dueMonth, 1));
+      return dateUtils.getCompetenceDate(dueDate);
     }
 
     // É CARTÃO DE CRÉDITO → calcular mês de VENCIMENTO usando dateUtils
@@ -404,7 +413,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       }
       
       // Use dateUtils.getCompetenceDate for consistent UTC handling
-      const displayDate = tx.competence_date || dateUtils.formatDate(dateUtils.parseDate(tx.date));
+      const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
       
       invoiceMap[targetMemberId].push({
         id: uniqueKey,
@@ -459,7 +468,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             processedTxIds.add(uniqueKey);
             
             const member = members.find(m => m.id === targetMemberId);
-            const displayDate = tx.competence_date || dateUtils.formatDate(dateUtils.parseDate(tx.date));
+            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
             
             if (!invoiceMap[targetMemberId]) {
               invoiceMap[targetMemberId] = [];
@@ -499,7 +508,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             if (!processedTxIds.has(uniqueKey)) {
               processedTxIds.add(uniqueKey);
               
-              const displayDate = tx.competence_date || dateUtils.formatDate(dateUtils.parseDate(tx.date));
+              const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
               
               if (!invoiceMap[creatorMember.id]) {
                 invoiceMap[creatorMember.id] = [];
@@ -548,7 +557,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           if (!processedTxIds.has(uniqueKey)) {
             processedTxIds.add(uniqueKey);
             
-            const displayDate = tx.competence_date || tx.date;
+            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
             
             if (!invoiceMap[targetMemberId]) {
               invoiceMap[targetMemberId] = [];

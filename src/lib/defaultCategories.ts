@@ -230,14 +230,17 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   },
   
   {
-    name: "Impostos e Taxas",
-    icon: "📋",
+    name: "Financeiro",
+    icon: "🏦",
     type: "expense",
     children: [
+      { name: "Taxas", icon: "📋", type: "expense" },
+      { name: "Juros", icon: "💸", type: "expense" },
+      { name: "Tarifas Bancárias", icon: "🏦", type: "expense" },
+      { name: "Impostos", icon: "🏛️", type: "expense" },
       { name: "IPTU", icon: "🏘️", type: "expense" },
       { name: "IPVA", icon: "🚗", type: "expense" },
       { name: "IR", icon: "💼", type: "expense" },
-      { name: "Taxas Governamentais", icon: "🏛️", type: "expense" },
       { name: "Multas", icon: "🚨", type: "expense" }
     ],
   },

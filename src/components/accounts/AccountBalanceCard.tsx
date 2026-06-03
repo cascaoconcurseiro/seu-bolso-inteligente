@@ -11,6 +11,7 @@ interface AccountInfo {
   is_international: boolean | null;
   currency: string;
   type: string;
+  hide_balance?: boolean;
 }
 
 interface BankInfo {
@@ -42,6 +43,7 @@ export function AccountBalanceCard({
   onDelete
 }: AccountBalanceCardProps) {
   const { isPrivate } = usePrivacy();
+  const shouldHideBalance = isPrivate || account.hide_balance;
 
   return (
     <div 
@@ -52,14 +54,14 @@ export function AccountBalanceCard({
         Saldo {isCredit ? "Atual" : "Disponível"}
       </p>
       <p 
-        className={cn("font-mono text-5xl font-bold mb-6", isPrivate && "blur-md opacity-50 select-none")}
+        className={cn("font-mono text-5xl font-bold mb-6", shouldHideBalance && "blur-md opacity-50 select-none")}
         style={{ color: bank?.textColor || '#fff' }}
       >
-        {isPrivate ? "•••••" : `${Number(account.balance) >= 0 ? "" : "-"}${formatCurrency(Number(account.balance), accountCurrency)}`}
+        {shouldHideBalance ? "•••••" : `${Number(account.balance) >= 0 ? "" : "-"}${formatCurrency(Number(account.balance), accountCurrency)}`}
       </p>
       {isCredit && account.credit_limit && (
-        <p className={cn("text-sm", isPrivate && "blur-md opacity-50 select-none")} style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
-          Limite: {isPrivate ? "•••••" : formatCurrency(Number(account.credit_limit), accountCurrency)}
+        <p className={cn("text-sm", shouldHideBalance && "blur-md opacity-50 select-none")} style={{ color: bank?.textColor || '#fff', opacity: 0.8 }}>
+          Limite: {shouldHideBalance ? "•••••" : formatCurrency(Number(account.credit_limit), accountCurrency)}
         </p>
       )}
       {account.is_international && (

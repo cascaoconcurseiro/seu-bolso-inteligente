@@ -326,6 +326,9 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
         return false;
       }
+      if ((activeTab === 'INCOME' || activeTab === 'EXPENSE') && (acc.type === 'INVESTMENT' || acc.type === 'EMERGENCY_FUND')) {
+        return false;
+      }
       if (activeTab === 'TRANSFER') {
         return true;
       }

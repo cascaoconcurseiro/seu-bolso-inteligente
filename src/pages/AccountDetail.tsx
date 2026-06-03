@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,7 @@ export function AccountDetail() {
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
 
   const [editAccountName, setEditAccountName] = useState("");
+  const [editHideBalance, setEditHideBalance] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
@@ -105,6 +107,7 @@ export function AccountDetail() {
   const handleEditAccount = () => {
     if (!account) return;
     setEditAccountName(account.name);
+    setEditHideBalance(account.hide_balance || false);
     setShowEditDialog(true);
   };
 
@@ -113,6 +116,7 @@ export function AccountDetail() {
     await updateAccount.mutateAsync({
       id: account.id,
       name: editAccountName.trim(),
+      hide_balance: editHideBalance,
     });
     setShowEditDialog(false);
   };
@@ -222,6 +226,13 @@ export function AccountDetail() {
                 onChange={(e) => setEditAccountName(e.target.value)}
                 placeholder="Digite o nome da conta"
               />
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-xl">
+              <div className="space-y-0.5">
+                <Label>Ocultar Saldo</Label>
+                <p className="text-xs text-muted-foreground">O valor ficará desfocado no painel.</p>
+              </div>
+              <Switch checked={editHideBalance} onCheckedChange={setEditHideBalance} />
             </div>
           </div>
           <DialogFooter>

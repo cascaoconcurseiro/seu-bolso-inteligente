@@ -70,6 +70,7 @@ export interface Account {
   credit_limit: number | null;
   created_at: string;
   updated_at: string;
+  hide_balance?: boolean;
 }
 
 export interface CreateAccountInput {
@@ -82,6 +83,7 @@ export interface CreateAccountInput {
   closing_day?: number;
   due_day?: number;
   credit_limit?: number;
+  hide_balance?: boolean;
 }
 
 // Type for credit card invoice transactions
@@ -180,6 +182,7 @@ export function useCreateAccount() {
           closing_day: input.closing_day || null,
           due_day: input.due_day || null,
           credit_limit: input.credit_limit || null,
+          hide_balance: input.hide_balance || false,
         })
         .select()
         .single();

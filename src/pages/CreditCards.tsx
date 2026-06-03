@@ -292,7 +292,14 @@ export function CreditCards() {
           cycleRange={formatCycleRange(invoiceData.startDate, invoiceData.closingDate)} invoiceFetching={invoiceFetching} invoiceData={invoiceData}
           formatCurrency={formatCurrency} daysUntilDue={getDaysUntilDue(invoiceData.dueDate)} usagePercent={selectedCard.credit_limit ? (invoiceData.invoiceTotal / selectedCard.credit_limit) * 100 : 0}
           bank={getBankById(selectedCard.bank_id)} setShowPayDialog={setShowPayDialog} setShowImportDialog={setShowImportDialog}
-          handleEditTransaction={(tx) => { setEditingTransaction(tx); setShowTransactionModal(true); }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(selectedCard.id)}
+          handleEditTransaction={(tx) => { 
+            setEditingTransaction({
+              ...tx,
+              category_id: tx.category_id || tx.category?.id,
+              date: tx.date.includes('T') ? tx.date : `${tx.date}T00:00:00`
+            }); 
+            setShowTransactionModal(true); 
+          }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(selectedCard.id)}
         />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
