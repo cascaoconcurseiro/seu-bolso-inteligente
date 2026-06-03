@@ -13,6 +13,7 @@ import {
 
 interface DashboardHeroProps {
   balance: number;
+  totalPatrimony?: number;
   income: number;
   expenses: number;
   pendingIncome?: number;
@@ -25,6 +26,7 @@ interface DashboardHeroProps {
 
 export function DashboardHero({
   balance,
+  totalPatrimony = 0,
   income,
   expenses,
   pendingIncome = 0,
@@ -98,7 +100,7 @@ export function DashboardHero({
               <div>
                 <p className="text-[9px] text-blue-600/70 font-bold uppercase tracking-wider">Patrimônio</p>
                 <p className={cn("text-sm font-bold text-blue-600", isPrivate && "blur-md opacity-50 select-none")}>
-                  {isPrivate ? "•••••" : formatCurrency(balance)}
+                  {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>
             </div>

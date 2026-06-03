@@ -59,20 +59,26 @@ export function Dashboard() {
   const currenciesData = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return [];
     
-    const map = new Map<string, { currency: string, balance: number, income: number, expense: number, pending_income: number, pending_expense: number }>();
+    const map = new Map<string, { currency: string, balance: number, total_patrimony: number, income: number, expense: number, pending_income: number, pending_expense: number }>();
     
     // Aggregate balances from accounts
     accounts.filter(a => a.type !== 'CREDIT_CARD').forEach(acc => {
       const c = acc.currency || 'BRL';
-      const current = map.get(c) || { currency: c, balance: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
-      current.balance += Number(acc.balance || 0);
+      const current = map.get(c) || { currency: c, balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
+      
+      current.total_patrimony += Number(acc.balance || 0);
+      
+      if (acc.type !== 'INVESTMENT' && acc.type !== 'EMERGENCY_FUND') {
+        current.balance += Number(acc.balance || 0);
+      }
+
       map.set(c, current);
     });
 
     // Add income/expense from dashboardData
     totalsByCurrency.forEach(t => {
       const c = t.currency || 'BRL';
-      const current = map.get(c) || { currency: c, balance: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
+      const current = map.get(c) || { currency: c, balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
       current.income += Number(t.income || 0);
       current.expense += Number(t.expense || 0);
       current.pending_income += Number(t.pending_income || 0);
@@ -83,7 +89,7 @@ export function Dashboard() {
     return Array.from(map.values()).sort((a, b) => a.currency === 'BRL' ? -1 : 1);
   }, [accounts, totalsByCurrency]);
 
-  const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
+  const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
   const foreignData = currenciesData.filter(c => c.currency !== 'BRL');
   const activeCurrencyData = currenciesData.find(c => c.currency === selectedCurrency) || currenciesData[0] || brlData;
 
@@ -194,6 +200,7 @@ export function Dashboard() {
         <DashboardHero
           currency={activeCurrencyData.currency}
           balance={activeCurrencyData.balance}
+          totalPatrimony={activeCurrencyData.total_patrimony}
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}
           pendingIncome={activeCurrencyData.pending_income}

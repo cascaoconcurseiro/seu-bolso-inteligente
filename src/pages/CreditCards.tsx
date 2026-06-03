@@ -38,7 +38,7 @@ import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUt
 import { formatLocalDate } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
-import { useTransactionModal } from "@/hooks/useTransactionModal";
+
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 
@@ -104,7 +104,7 @@ export function CreditCards() {
   };
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showPayDialog, setShowPayDialog] = useState(false);
-  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [selectedDate, setSelectedDate] = useState(() => new Date());
