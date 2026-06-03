@@ -121,7 +121,7 @@ export function CreditCards() {
 
   const { data: accounts = [], isLoading, refetch: refetchAccounts } = useAccounts();
   
-  const { currentDate, startDay } = useMonth();
+  const { startDay } = useMonth();
   // Expandir a janela de busca para garantir que compras de meses anteriores
   // que caem na fatura atual sejam incluídas no cálculo da lista de cartões.
   const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
