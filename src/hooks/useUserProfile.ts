@@ -17,6 +17,9 @@ export interface UserProfile {
   app_pin?: string | null;
   require_pin_on_open?: boolean;
   monthly_budget?: number;
+  shared_expenses_behavior?: string;
+  shared_closing_day?: number | null;
+  shared_due_day?: number | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -76,6 +79,9 @@ export function useUpdateUserProfile() {
       app_pin?: string | null;
       require_pin_on_open?: boolean;
       monthly_budget?: number;
+      shared_expenses_behavior?: string;
+      shared_closing_day?: number | null;
+      shared_due_day?: number | null;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -112,6 +118,15 @@ export function useUpdateUserProfile() {
       }
       if (input.monthly_budget !== undefined) {
         updateData.monthly_budget = input.monthly_budget;
+      }
+      if (input.shared_expenses_behavior !== undefined) {
+        updateData.shared_expenses_behavior = input.shared_expenses_behavior;
+      }
+      if (input.shared_closing_day !== undefined) {
+        updateData.shared_closing_day = input.shared_closing_day;
+      }
+      if (input.shared_due_day !== undefined) {
+        updateData.shared_due_day = input.shared_due_day;
       }
 
       const { data, error } = await supabase

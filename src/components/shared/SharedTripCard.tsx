@@ -14,7 +14,7 @@ interface SharedTripCardProps {
   getTotals: (items: InvoiceItem[]) => any;
   formatCurrency: (value: number, currency: string) => string;
   user: any;
-  onSettle: (memberId: string, type: "PAY" | "RECEIVE", amount: number) => void;
+  onSettle: (memberId: string, type: "PAY" | "RECEIVE", amount: number, specificItem?: InvoiceItem) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onDeleteSeries: (item: InvoiceItem) => void;
@@ -414,6 +414,18 @@ export function SharedTripCard({
                             <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-600 border-amber-200">
                               Aguardando
                             </Badge>
+                          )}
+
+                          {!item.isSettled && !isWaitingMe && !isWaitingOther && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-8 text-[10px] bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                              onClick={() => onSettle(memberId, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
+                            >
+                              <Wallet className="h-3 w-3 mr-1" />
+                              Acertar
+                            </Button>
                           )}
 
                           {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (

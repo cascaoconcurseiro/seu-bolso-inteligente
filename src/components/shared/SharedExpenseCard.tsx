@@ -29,7 +29,7 @@ interface SharedExpenseCardProps {
   netAmount: number;
   currency: string;
   isHistory: boolean;
-  onSettle: (memberId: string, type: "PAY" | "RECEIVE", amount: number) => void;
+  onSettle: (memberId: string, type: "PAY" | "RECEIVE", amount: number, specificItem?: InvoiceItem) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onConfirmReceipt: (item: InvoiceItem) => void;
@@ -320,6 +320,18 @@ export function SharedExpenseCard({
                         <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-600 border-amber-200">
                           Aguardando
                         </Badge>
+                      )}
+
+                      {!item.isSettled && !isWaitingMe && !isWaitingOther && !isHistory && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-9 md:h-8 flex-1 md:flex-none text-xs md:text-[10px] bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                          onClick={() => onSettle(member.id, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
+                        >
+                          <Wallet className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />
+                          Acertar
+                        </Button>
                       )}
 
                       <DropdownMenu>

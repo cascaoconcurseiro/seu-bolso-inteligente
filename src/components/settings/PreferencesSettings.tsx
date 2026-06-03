@@ -18,12 +18,18 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [baseCurrency, setBaseCurrency] = useState("BRL");
   const [monthStartDay, setMonthStartDay] = useState("1");
   const [monthlyBudget, setMonthlyBudget] = useState(0);
+  const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
+  const [sharedClosingDay, setSharedClosingDay] = useState("");
+  const [sharedDueDay, setSharedDueDay] = useState("");
 
   useEffect(() => {
     if (profile) {
       setBaseCurrency(profile.base_currency || "BRL");
       setMonthStartDay(profile.month_start_day?.toString() || "1");
       setMonthlyBudget(profile.monthly_budget || 0);
+      setSharedExpensesBehavior(profile.shared_expenses_behavior || "CURRENT_MONTH");
+      setSharedClosingDay(profile.shared_closing_day?.toString() || "");
+      setSharedDueDay(profile.shared_due_day?.toString() || "");
     }
   }, [profile]);
 
@@ -32,6 +38,9 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       base_currency: baseCurrency,
       month_start_day: parseInt(monthStartDay, 10) || 1,
       monthly_budget: monthlyBudget,
+      shared_expenses_behavior: sharedExpensesBehavior,
+      shared_closing_day: sharedClosingDay ? parseInt(sharedClosingDay, 10) : null,
+      shared_due_day: sharedDueDay ? parseInt(sharedDueDay, 10) : null,
     });
   };
 
@@ -40,7 +49,10 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
     return (
       baseCurrency !== (profile.base_currency || "BRL") ||
       monthStartDay !== (profile.month_start_day?.toString() || "1") ||
-      monthlyBudget !== (profile.monthly_budget || 0)
+      monthlyBudget !== (profile.monthly_budget || 0) ||
+      sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
+      sharedClosingDay !== (profile.shared_closing_day?.toString() || "") ||
+      sharedDueDay !== (profile.shared_due_day?.toString() || "")
     );
   };
 
@@ -132,6 +144,54 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
               <p className="text-xs text-muted-foreground">
                 Seu limite de gastos no mês. Se definido, mostraremos um medidor no Dashboard (deixe R$ 0,00 para desativar).
               </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-3 w-full animate-in slide-in-from-bottom-2 duration-300 delay-300 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Ciclo de Despesas Compartilhadas</Label>
+                <InfoTooltip content="Define se os compartilhamentos feitos em dinheiro/conta caem no mês atual ou se seguem um ciclo parecido com cartão de crédito (para você cobrar a pessoa no próximo mês)." />
+              </div>
+              <Select value={sharedExpensesBehavior} onValueChange={setSharedExpensesBehavior}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CURRENT_MONTH">Mês Atual (Padrão)</SelectItem>
+                  <SelectItem value="CYCLE">Seguir Ciclo/Fatura Compartilhada</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {sharedExpensesBehavior === "CYCLE" && (
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Dia de Fechamento</Label>
+                    <Select value={sharedClosingDay} onValueChange={setSharedClosingDay}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Ex: 30" /></SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                          <SelectItem key={day} value={day.toString()}>Dia {day}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Dia de Vencimento</Label>
+                    <Select value={sharedDueDay} onValueChange={setSharedDueDay}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Ex: 5" /></SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                          <SelectItem key={day} value={day.toString()}>Dia {day}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
