@@ -73,7 +73,14 @@ export function Accounts() {
   const deleteAccount = useDeleteAccount();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
-  const regularAccounts = useMemo(() => (accounts || []).filter(a => a.type !== "CREDIT_CARD"), [accounts]);
+  const regularAccounts = useMemo(() => {
+    const endOfCurrentMonth = dateFns.endOfMonth(currentDate);
+    return (accounts || []).filter(a => {
+      if (a.type === "CREDIT_CARD") return false;
+      const createdDate = new Date(a.created_at);
+      return createdDate <= endOfCurrentMonth;
+    });
+  }, [accounts, currentDate]);
   
   const balancesByCurrency = useMemo(() => {
     const map = new Map<string, { balance: number; symbol: string }>();
@@ -128,6 +135,8 @@ export function Accounts() {
   const [currency, setCurrency] = useState("USD");
   const [hideBalance, setHideBalance] = useState(false);
   const [editHideBalance, setEditHideBalance] = useState(false);
+  const [yieldType, setYieldType] = useState<string>("NONE");
+  const [yieldRate, setYieldRate] = useState<string>("100");
 
   const nationalAccounts = useMemo(() => (regularAccounts || []).filter(a => !a.is_international), [regularAccounts]);
   const internationalAccounts = useMemo(() => (regularAccounts || []).filter(a => a.is_international), [regularAccounts]);
@@ -137,12 +146,14 @@ export function Accounts() {
 
   const handleCreate = async () => {
     const bank = bankId ? getBankById(bankId) : null;
-    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: parseFloat(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL', hide_balance: hideBalance });
+    const yRate = yieldType !== "NONE" ? parseFloat(yieldRate) : null;
+    const yType = yieldType !== "NONE" ? yieldType : null;
+    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: parseFloat(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL', hide_balance: hideBalance, yield_rate: yRate, yield_type: yType });
     setShowAddDialog(false);
     resetForm();
   };
 
-  const resetForm = () => { setType("CHECKING"); setBankId(""); setBalance(""); setIsInternational(false); setCurrency("USD"); setHideBalance(false); };
+  const resetForm = () => { setType("CHECKING"); setBankId(""); setBalance(""); setIsInternational(false); setCurrency("USD"); setHideBalance(false); setYieldType("NONE"); setYieldRate("100"); };
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -233,6 +244,29 @@ export function Accounts() {
             </div>
             {isInternational && <div className="space-y-2"><Label>Moeda</Label><Select value={currency} onValueChange={setCurrency}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{currencies.map(c => <SelectItem key={c.value} value={c.value}><span className="font-mono text-xs mr-2">{c.symbol}</span>{c.label}</SelectItem>)}</SelectContent></Select></div>}
             <div className="space-y-2"><Label>Tipo</Label><Select value={type} onValueChange={setType}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{(isInternational ? [{v:"GLOBAL_ACCOUNT",l:"Conta Global"}] : [{v:"CHECKING",l:"Conta Corrente"},{v:"SAVINGS",l:"Poupança"},{v:"INVESTMENT",l:"Investimento"},{v:"CASH",l:"Dinheiro"},{v:"EMERGENCY_FUND",l:"Reserva de Emergência"}]).map(t => <SelectItem key={t.v} value={t.v}>{t.l}</SelectItem>)}</SelectContent></Select></div>
+            
+            {(type === "INVESTMENT" || type === "EMERGENCY_FUND") && !isInternational && (
+              <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
+                <div className="space-y-2">
+                  <Label>Rendimento Automático Diário</Label>
+                  <Select value={yieldType} onValueChange={setYieldType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">Nenhum</SelectItem>
+                      <SelectItem value="CDI">CDI (% do CDI)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {yieldType === "CDI" && (
+                  <div className="space-y-2">
+                    <Label>Taxa (%)</Label>
+                    <Input type="number" value={yieldRate} onChange={(e) => setYieldRate(e.target.value)} placeholder="Ex: 100" />
+                    <p className="text-xs text-muted-foreground">O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2"><Label>Saldo inicial</Label><CurrencyInput value={balance} onChange={setBalance} currency={isInternational ? currency : "BRL"} /></div>
             <div className="flex items-center justify-between p-4 border rounded-xl">
               <div className="space-y-0.5">

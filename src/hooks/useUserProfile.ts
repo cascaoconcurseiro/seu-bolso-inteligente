@@ -20,6 +20,7 @@ export interface UserProfile {
   shared_expenses_behavior?: string;
   shared_closing_day?: number | null;
   shared_due_day?: number | null;
+  global_cdi_rate?: number;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -82,6 +83,7 @@ export function useUpdateUserProfile() {
       shared_expenses_behavior?: string;
       shared_closing_day?: number | null;
       shared_due_day?: number | null;
+      global_cdi_rate?: number;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -127,6 +129,9 @@ export function useUpdateUserProfile() {
       }
       if (input.shared_due_day !== undefined) {
         updateData.shared_due_day = input.shared_due_day;
+      }
+      if (input.global_cdi_rate !== undefined) {
+        updateData.global_cdi_rate = input.global_cdi_rate;
       }
 
       const { data, error } = await supabase

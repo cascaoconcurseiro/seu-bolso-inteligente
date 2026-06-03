@@ -68,6 +68,8 @@ export interface Account {
   closing_day: number | null;
   due_day: number | null;
   credit_limit: number | null;
+  yield_rate: number | null;
+  yield_type: string | null;
   created_at: string;
   updated_at: string;
   hide_balance?: boolean;
@@ -83,6 +85,8 @@ export interface CreateAccountInput {
   closing_day?: number;
   due_day?: number;
   credit_limit?: number;
+  yield_rate?: number | null;
+  yield_type?: string | null;
   hide_balance?: boolean;
 }
 
@@ -182,6 +186,8 @@ export function useCreateAccount() {
           closing_day: input.closing_day || null,
           due_day: input.due_day || null,
           credit_limit: input.credit_limit || null,
+          yield_rate: input.yield_rate || null,
+          yield_type: input.yield_type || null,
           hide_balance: input.hide_balance || false,
         })
         .select()

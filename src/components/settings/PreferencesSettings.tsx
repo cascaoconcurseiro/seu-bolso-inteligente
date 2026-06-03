@@ -21,6 +21,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedClosingDay, setSharedClosingDay] = useState("");
   const [sharedDueDay, setSharedDueDay] = useState("");
+  const [globalCdiRate, setGlobalCdiRate] = useState<number>(11.15);
 
   useEffect(() => {
     if (profile) {
@@ -30,6 +31,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       setSharedExpensesBehavior(profile.shared_expenses_behavior || "CURRENT_MONTH");
       setSharedClosingDay(profile.shared_closing_day?.toString() || "");
       setSharedDueDay(profile.shared_due_day?.toString() || "");
+      setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
     }
   }, [profile]);
 
@@ -41,6 +43,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       shared_expenses_behavior: sharedExpensesBehavior,
       shared_closing_day: sharedClosingDay ? parseInt(sharedClosingDay, 10) : null,
       shared_due_day: sharedDueDay ? parseInt(sharedDueDay, 10) : null,
+      global_cdi_rate: globalCdiRate,
     });
   };
 
@@ -52,7 +55,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       monthlyBudget !== (profile.monthly_budget || 0) ||
       sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
       sharedClosingDay !== (profile.shared_closing_day?.toString() || "") ||
-      sharedDueDay !== (profile.shared_due_day?.toString() || "")
+      sharedDueDay !== (profile.shared_due_day?.toString() || "") ||
+      globalCdiRate !== (profile.global_cdi_rate ?? 11.15)
     );
   };
 
@@ -143,6 +147,34 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
               />
               <p className="text-xs text-muted-foreground">
                 Seu limite de gastos no mês. Se definido, mostraremos um medidor no Dashboard (deixe R$ 0,00 para desativar).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <TrendingDown className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-1 w-full animate-in slide-in-from-bottom-2 duration-300 delay-200 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Taxa CDI Atual (%)</Label>
+                <InfoTooltip content="Usado para calcular o rendimento automático da sua Reserva de Emergência e Investimentos. O valor atual é por volta de 11,15% ao ano." />
+              </div>
+              <NumericFormat
+                value={globalCdiRate}
+                onValueChange={(values) => {
+                  setGlobalCdiRate(values.floatValue || 0);
+                }}
+                thousandSeparator="."
+                decimalSeparator=","
+                suffix=" % ao ano"
+                decimalScale={2}
+                fixedDecimalScale
+                customInput={Input}
+                placeholder="Ex: 11,15 % ao ano"
+              />
+              <p className="text-xs text-muted-foreground">
+                Mantenha atualizado conforme as reuniões do COPOM para maior precisão nos rendimentos diários.
               </p>
             </div>
           </div>
