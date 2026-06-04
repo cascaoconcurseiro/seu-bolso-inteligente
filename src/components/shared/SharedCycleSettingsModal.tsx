@@ -80,11 +80,17 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                 </SelectContent>
               </Select>
               
-              <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg border border-border/50">
+              <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg border border-border/50 space-y-2">
                 {sharedExpensesBehavior === "CURRENT_MONTH" ? (
-                  <p>As despesas entram no acerto (settlement) do <strong>mesmo mês</strong> em que foram cadastradas.</p>
+                  <>
+                    <p className="font-semibold text-foreground">Cobrar no Mês do Lançamento:</p>
+                    <p>Despesas pagas em dinheiro ou conta bancária serão cobradas no acerto (settlement) do <strong>exato mês</strong> em que a compra foi feita.</p>
+                  </>
                 ) : (
-                  <p>As despesas acumulam até o <strong>Dia de Fechamento</strong>. O que for gasto depois dessa data será cobrado apenas no mês seguinte, como um cartão de crédito.</p>
+                  <>
+                    <p className="font-semibold text-foreground">Seguir Ciclo/Fatura Compartilhada:</p>
+                    <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Você define um dia de "corte", e tudo que for gasto dali em diante acumulará para ser cobrado do seu parceiro(a) apenas no mês seguinte.</p>
+                  </>
                 )}
               </div>
             </div>
