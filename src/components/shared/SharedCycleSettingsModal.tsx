@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Settings2 } from "lucide-react";
+import { Loader2, Settings2, CreditCard } from "lucide-react";
 import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
+import { useAccounts } from "@/hooks/useAccounts";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface SharedCycleSettingsModalProps {
@@ -13,38 +14,47 @@ interface SharedCycleSettingsModalProps {
 }
 
 export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSettingsModalProps) {
-  const { data: profile, isLoading } = useUserProfile();
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
   const updateProfile = useUpdateUserProfile();
+  const { data: accounts, isLoading: isAccountsLoading } = useAccounts();
   
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
-  const [sharedClosingDay, setSharedClosingDay] = useState("");
-  const [sharedDueDay, setSharedDueDay] = useState("");
+  const [sharedSyncCreditCardId, setSharedSyncCreditCardId] = useState<string>("none");
+
+  const creditCards = useMemo(() => {
+    return accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
+  }, [accounts]);
 
   useEffect(() => {
-    if (profile && isOpen) {
+    if (profile && isOpen && accounts) {
       setSharedExpensesBehavior(profile.shared_expenses_behavior || "CURRENT_MONTH");
-      setSharedClosingDay(profile.shared_closing_day?.toString() || "");
-      setSharedDueDay(profile.shared_due_day?.toString() || "");
+      
+      let initialCardId = profile.shared_sync_credit_card_id || "none";
+      if (initialCardId === "none" && profile.shared_expenses_behavior === "CYCLE" && creditCards.length > 0) {
+        initialCardId = creditCards[0].id;
+      }
+      setSharedSyncCreditCardId(initialCardId);
     }
-  }, [profile, isOpen]);
+  }, [profile, isOpen, accounts, creditCards]);
 
   const handleSave = async () => {
     await updateProfile.mutateAsync({
       shared_expenses_behavior: sharedExpensesBehavior,
-      shared_closing_day: sharedClosingDay ? parseInt(sharedClosingDay, 10) : null,
-      shared_due_day: sharedDueDay ? parseInt(sharedDueDay, 10) : null,
+      shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
     });
     onOpenChange(false);
   };
 
   const hasChanges = () => {
     if (!profile) return false;
+    const currentCardId = profile.shared_sync_credit_card_id || "none";
     return (
       sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
-      sharedClosingDay !== (profile.shared_closing_day?.toString() || "") ||
-      sharedDueDay !== (profile.shared_due_day?.toString() || "")
+      sharedSyncCreditCardId !== currentCardId
     );
   };
+
+  const isLoading = isProfileLoading || isAccountsLoading;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -70,7 +80,12 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                 <Label>Comportamento do Ciclo</Label>
                 <InfoTooltip content="Despesas feitas no Cartão de Crédito sempre seguem a fatura do cartão. Esta opção define o que acontece com despesas feitas no Dinheiro ou Conta Corrente." />
               </div>
-              <Select value={sharedExpensesBehavior} onValueChange={setSharedExpensesBehavior}>
+              <Select value={sharedExpensesBehavior} onValueChange={(val) => {
+                setSharedExpensesBehavior(val);
+                if (val === "CYCLE" && sharedSyncCreditCardId === "none" && creditCards.length > 0) {
+                  setSharedSyncCreditCardId(creditCards[0].id);
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -89,36 +104,36 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                 ) : (
                   <>
                     <p className="font-semibold text-foreground">Seguir Ciclo/Fatura Compartilhada:</p>
-                    <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Você define um dia de "corte", e tudo que for gasto dali em diante acumulará para ser cobrado do seu parceiro(a) apenas no mês seguinte.</p>
+                    <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Sincronize com um cartão mestre e tudo que for gasto acumulará para o seu parceiro(a) pagar apenas no mês seguinte.</p>
                   </>
                 )}
               </div>
             </div>
 
             {sharedExpensesBehavior === "CYCLE" && (
-              <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
-                <div className="space-y-2">
-                  <Label className="text-xs">Dia de Fechamento</Label>
-                  <Select value={sharedClosingDay} onValueChange={setSharedClosingDay}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Ex: 30" /></SelectTrigger>
+              <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                <Label className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Sincronizar com qual Cartão?
+                </Label>
+                {creditCards.length > 0 ? (
+                  <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
+                    <SelectTrigger className="h-10 bg-background">
+                      <SelectValue placeholder="Selecione um cartão de crédito" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                        <SelectItem key={day} value={day.toString()}>Dia {day}</SelectItem>
+                      {creditCards.map(card => (
+                        <SelectItem key={card.id} value={card.id}>
+                          {card.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Dia de Vencimento</Label>
-                  <Select value={sharedDueDay} onValueChange={setSharedDueDay}>
-                    <SelectTrigger className="h-9"><SelectValue placeholder="Ex: 5" /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                        <SelectItem key={day} value={day.toString()}>Dia {day}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                ) : (
+                  <div className="text-sm text-destructive font-medium p-3 bg-destructive/10 rounded-md">
+                    Você não possui cartões de crédito cadastrados. Crie um cartão primeiro ou mude o comportamento para "Cobrar no Mês do Lançamento".
+                  </div>
+                )}
               </div>
             )}
           </div>

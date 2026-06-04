@@ -18,8 +18,7 @@ export interface UserProfile {
   require_pin_on_open?: boolean;
   monthly_budget?: number;
   shared_expenses_behavior?: string;
-  shared_closing_day?: number | null;
-  shared_due_day?: number | null;
+  shared_sync_credit_card_id?: string | null;
   global_cdi_rate?: number;
   created_at: string | null;
   updated_at: string | null;
@@ -81,8 +80,7 @@ export function useUpdateUserProfile() {
       require_pin_on_open?: boolean;
       monthly_budget?: number;
       shared_expenses_behavior?: string;
-      shared_closing_day?: number | null;
-      shared_due_day?: number | null;
+      shared_sync_credit_card_id?: string | null;
       global_cdi_rate?: number;
     }) => {
       if (!user) throw new Error("Não autenticado");
@@ -124,11 +122,8 @@ export function useUpdateUserProfile() {
       if (input.shared_expenses_behavior !== undefined) {
         updateData.shared_expenses_behavior = input.shared_expenses_behavior;
       }
-      if (input.shared_closing_day !== undefined) {
-        updateData.shared_closing_day = input.shared_closing_day;
-      }
-      if (input.shared_due_day !== undefined) {
-        updateData.shared_due_day = input.shared_due_day;
+      if (input.shared_sync_credit_card_id !== undefined) {
+        updateData.shared_sync_credit_card_id = input.shared_sync_credit_card_id;
       }
       if (input.global_cdi_rate !== undefined) {
         updateData.global_cdi_rate = input.global_cdi_rate;
