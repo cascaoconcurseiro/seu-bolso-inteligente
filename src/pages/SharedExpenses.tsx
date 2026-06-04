@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plane, History, Undo2, Layers, CheckCircle2, Download } from "lucide-react";
+import { Users, Plane, History, Undo2, Layers, CheckCircle2, Download, Settings } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,7 +40,7 @@ import { SharedSummarySection } from "@/components/shared/SharedSummarySection";
 import { SharedSettleDialog } from "@/components/shared/SharedSettleDialog";
 import { SharedTripCard } from "@/components/shared/SharedTripCard";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
-
+import { SharedCycleSettingsModal } from "@/components/shared/SharedCycleSettingsModal";
 // Lazy-loaded heavy components — carregados apenas quando necessário
 const SharedBalanceChart = lazy(() =>
   import("@/components/shared/SharedBalanceChart").then(m => ({ default: m.SharedBalanceChart }))
@@ -99,6 +99,7 @@ export function SharedExpenses() {
   const { invalidateRelated, syncAllShared } = useTransactionSync();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSettleDialog, setShowSettleDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -282,6 +283,9 @@ export function SharedExpenses() {
             <p className="text-muted-foreground mt-1 font-medium">Despesas divididas com a família e amigos</p>
           </div>
           <div className="flex gap-2">
+            <Button size="icon" variant="outline" className="shadow-sm border-border/80" onClick={() => setShowSettingsModal(true)} title="Configurações de Ciclo">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="lg" variant="outline" className="gap-2 shadow-sm border-border/80">
@@ -435,6 +439,7 @@ export function SharedExpenses() {
       <Suspense fallback={null}>
         {anticipateDialog.seriesId && <AnticipateInstallmentsDialog isOpen={anticipateDialog.isOpen} onClose={() => setAnticipateDialog(prev => ({ ...prev, isOpen: false }))} seriesId={anticipateDialog.seriesId} currentInstallment={anticipateDialog.currentInstallment} totalInstallments={anticipateDialog.totalInstallments} onSuccess={() => { refetch(); syncAllShared(); }} />}
       </Suspense>
+      <SharedCycleSettingsModal isOpen={showSettingsModal} onOpenChange={setShowSettingsModal} />
     </div>
   );
 }

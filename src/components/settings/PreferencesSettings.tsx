@@ -193,10 +193,18 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CURRENT_MONTH">Mês Atual (Padrão)</SelectItem>
+                  <SelectItem value="CURRENT_MONTH">Cobrar no Mês do Lançamento</SelectItem>
                   <SelectItem value="CYCLE">Seguir Ciclo/Fatura Compartilhada</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg border border-border/50">
+                {sharedExpensesBehavior === "CURRENT_MONTH" ? (
+                  <p>As despesas entram no acerto (settlement) do <strong>mesmo mês</strong> em que foram cadastradas.</p>
+                ) : (
+                  <p>As despesas acumulam até o <strong>Dia de Fechamento</strong>. O que for gasto depois dessa data será cobrado apenas no mês seguinte, como um cartão de crédito.</p>
+                )}
+              </div>
               
               {sharedExpensesBehavior === "CYCLE" && (
                 <div className="grid grid-cols-2 gap-4 mt-2">
