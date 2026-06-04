@@ -900,12 +900,35 @@ export function useUpdateTransaction() {
       }
 
       if (actualSplits) {
+        let finalSplits = [...actualSplits];
+        
+        // Auto-completar splits se a soma for menor que 100% (Critério #6: O próprio criador assume o restante)
+        if (finalSplits.length > 0) {
+          const totalPercentage = SafeFinancialCalculator.safeSum(finalSplits.map((s: any) => s.percentage));
+          if (totalPercentage < 100) {
+            const remainingPercentage = SafeFinancialCalculator.subtract(100, totalPercentage);
+            const { data: currentUserMember } = await supabase
+              .from("family_members")
+              .select("id")
+              .eq("linked_user_id", user.id)
+              .maybeSingle();
+              
+            if (currentUserMember) {
+              finalSplits.push({
+                member_id: currentUserMember.id,
+                percentage: remainingPercentage,
+                amount: SafeFinancialCalculator.percentage(data.amount, remainingPercentage)
+              });
+            }
+          }
+        }
+
         // Excluir splits existentes
         await supabase.from("transaction_splits").delete().eq("transaction_id", id);
         
         // Inserir os novos
-        if (actualSplits.length > 0) {
-          const memberIds = actualSplits.map((s: any) => s.member_id);
+        if (finalSplits.length > 0) {
+          const memberIds = finalSplits.map((s: any) => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
@@ -926,14 +949,14 @@ export function useUpdateTransaction() {
           });
 
           let allocatedSum = 0;
-          const splitsToInsert = actualSplits.map((split: any, index: number) => {
+          const splitsToInsert = finalSplits.map((split: any, index: number) => {
             const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
             const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
             const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
             const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
             
             let splitAmount = 0;
-            if (index === actualSplits.length - 1) {
+            if (index === finalSplits.length - 1) {
               splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
             } else {
               const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
