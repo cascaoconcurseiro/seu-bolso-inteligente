@@ -10,9 +10,12 @@ import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { TransactionModal } from "@/components/modals/TransactionModal";
-import { GreetingCard } from "@/components/dashboard/GreetingCard";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
-import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
+import { PendingTripInvitationsAlert } from "@/components/shared/PendingTripInvitationsAlert";
+import { useMonth } from "@/contexts/MonthContext";
+import * as dateFns from "date-fns";
+import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
@@ -26,6 +29,7 @@ export function Dashboard() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [isTripMode, setIsTripMode] = useState(false);
   
+  const { currentDate } = useMonth();
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: trips } = useTrips();
@@ -62,7 +66,8 @@ export function Dashboard() {
     const map = new Map<string, { currency: string, balance: number, total_patrimony: number, income: number, expense: number, pending_income: number, pending_expense: number }>();
     
     // Aggregate balances from accounts
-    accounts.filter(a => a.type !== 'CREDIT_CARD').forEach(acc => {
+    const endOfCurrentMonth = dateFns.endOfMonth(currentDate);
+    accounts.filter(a => a.type !== 'CREDIT_CARD' && new Date(a.created_at) <= endOfCurrentMonth).forEach(acc => {
       const c = acc.currency || 'BRL';
       const current = map.get(c) || { currency: c, balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
       
