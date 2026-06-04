@@ -153,7 +153,7 @@ export function AdvancedOptions({
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
                   tripId 
-                    ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                     : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
                 )}
               >
@@ -203,7 +203,7 @@ export function AdvancedOptions({
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               hasSharing 
-                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
@@ -226,7 +226,7 @@ export function AdvancedOptions({
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isInstallment 
-                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
@@ -243,7 +243,7 @@ export function AdvancedOptions({
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isRefund 
-                ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
@@ -259,7 +259,7 @@ export function AdvancedOptions({
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             isRecurring 
-              ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
@@ -278,7 +278,7 @@ export function AdvancedOptions({
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             enableNotification 
-              ? "border-primary bg-primary/5 text-primary font-bold dark:bg-primary/15" 
+                ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >

@@ -67,8 +67,22 @@ export function SplitModal({
       } else {
         setMySplitPercentage(50);
       }
+      
+      // Auto-inicializar 50/50 com o primeiro membro disponível se splits estiver vazio
+      const otherMembersList = (familyMembers || []).filter((m) => m.id !== currentUserMemberId);
+      if (payerId === 'me' && splits.length === 0 && otherMembersList.length > 0) {
+        const memberId = otherMembersList[0].id;
+        const totalPeople = 2; // eu + 1 parceiro
+        const splitAmounts = moneyUtils.splitSafely(activeAmount, totalPeople);
+        
+        setSplits([{
+          memberId,
+          percentage: 50,
+          amount: splitAmounts[1] // O parceiro fica com a segunda fatia
+        }]);
+      }
     }
-  }, [isOpen, payerId]);
+  }, [isOpen, payerId, familyMembers, currentUserMemberId, activeAmount]);
 
   // Sempre que mySplitPercentage ou payerId mudar quando outro pagou (payerId !== 'me'), atualiza os splits no formato do banco
   useEffect(() => {
