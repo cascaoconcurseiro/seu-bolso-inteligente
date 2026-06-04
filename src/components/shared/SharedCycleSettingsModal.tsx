@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Settings2 } from "lucide-react";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 interface SharedCycleSettingsModalProps {
@@ -13,7 +13,8 @@ interface SharedCycleSettingsModalProps {
 }
 
 export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSettingsModalProps) {
-  const { data: profile, updateProfile, isLoading } = useUserProfile();
+  const { data: profile, isLoading } = useUserProfile();
+  const updateProfile = useUpdateUserProfile();
   
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedClosingDay, setSharedClosingDay] = useState("");
