@@ -4,11 +4,23 @@ import { Asset } from '@/types/database';
 import { formatCurrency } from './currencyFormatter';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface AssetTransaction {
+  id: string;
+  asset_id: string;
+  type: string;
+  quantity: number | string;
+  price: number | string;
+  date: string;
+  name?: string;
+  ticker?: string;
+  currency?: string;
+}
+
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
 // Helper para invocar autoTable de forma resiliente diante de variações de bundler
-const safeCallAutoTable = (doc: jsPDF, options: any) => {
+const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
   try {
     if (typeof autoTable === 'function') {
       autoTable(doc, options);
@@ -33,7 +45,7 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
 };
 
 // Retorna as transações de um ativo (reais do banco ou seed virtual)
-export const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
+export const getAssetTransactions = (asset: Asset, realTransactions: AssetTransaction[]) => {
   const assetTxs = realTransactions.filter(tx => tx.asset_id === asset.id);
   if (assetTxs.length === 0) {
     // Se não há transações no banco, gera a transação virtual / seed baseada no ativo para retrocompatibilidade
@@ -50,7 +62,7 @@ export const getAssetTransactions = (asset: Asset, realTransactions: any[]) => {
   return assetTxs;
 };
 
-export const getPositionAtDate = (asset: Asset, transactions: any[], cutoffDate: string) => {
+export const getPositionAtDate = (asset: Asset, transactions: AssetTransaction[], cutoffDate: string) => {
   const assetTxs = getAssetTransactions(asset, transactions);
   
   let qty = 0;
@@ -339,7 +351,8 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
       0: { halign: 'left', fontStyle: 'bold' },
       6: { fontStyle: 'bold' }
     },
-    didParseCell: (cellData: any) => {
+    // @ts-expect-error Pula checagem de tipagem de biblioteca externa não tipada
+    didParseCell: (cellData: Record<string, any>) => {
       if (cellData.section === 'body' && cellData.column.index === 6) {
         const text = cellData.cell.text[0];
         if (text.startsWith('+')) cellData.cell.styles.textColor = [16, 185, 129];
@@ -630,7 +643,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   const yearStart = `${year - 1}-01-01`;
   const yearEnd = `${year - 1}-12-31`;
   
-  const allTxsForListing: any[] = [];
+  const allTxsForListing: AssetTransaction[] = [];
   assets.forEach(asset => {
     const txs = getAssetTransactions(asset, allTxs);
     txs.forEach(tx => {
@@ -679,7 +692,8 @@ export const exportToIRPDF = async (assets: Asset[]) => {
         2: { halign: 'left' },
         3: { fontStyle: 'bold' }
       },
-      didParseCell: (cellData: any) => {
+      // @ts-expect-error Pula checagem de tipagem de biblioteca externa não tipada
+      didParseCell: (cellData: Record<string, any>) => {
         if (cellData.section === 'body' && cellData.column.index === 3) {
           const val = cellData.cell.text[0];
           if (val === 'COMPRA') cellData.cell.styles.textColor = [16, 185, 129];
@@ -839,7 +853,7 @@ export const exportToIRExcel = async (assets: Asset[]) => {
   const yearStart = `${year - 1}-01-01`;
   const yearEnd = `${year - 1}-12-31`;
 
-  const allTxsForListing: any[] = [];
+  const allTxsForListing: AssetTransaction[] = [];
   assets.forEach(asset => {
     const txs = getAssetTransactions(asset, allTxs);
     txs.forEach(tx => {

@@ -45,6 +45,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useMonth } from "@/contexts/MonthContext";
 import { exportAccountsToCSV, exportAccountsToPDF } from "@/utils/exportData";
 import * as dateFns from "date-fns";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 // Modular Components
 import { AccountCard } from "@/components/accounts/AccountCard";
@@ -87,7 +88,7 @@ export function Accounts() {
     regularAccounts.forEach(a => {
       const c = a.currency || 'BRL';
       const existing = map.get(c) || { balance: 0, symbol: getCurrencySymbol(c) };
-      existing.balance += Number(a.balance || 0);
+      existing.balance = SafeFinancialCalculator.add(existing.balance, Number(a.balance || 0));
       map.set(c, existing);
     });
     return Array.from(map.entries()).map(([currency, data]) => ({

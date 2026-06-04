@@ -174,15 +174,15 @@ export function SplitModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 border-b border-border shrink-0">
           <DialogTitle>Divisão e Pagamento</DialogTitle>
           <DialogDescription>
             Configure como a despesa será dividida entre os participantes
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* 1. QUEM PAGOU? */}
           <div className="space-y-3">
             <Label className="text-xs uppercase tracking-widest text-muted-foreground">
@@ -487,13 +487,13 @@ export function SplitModal({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="p-6 pt-4 border-t border-border shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
           <Button onClick={() => {
             console.log('🔵 [SplitModal] Confirmando com splits:', splits);
-            onConfirm(splits); // ✅ CORREÇÃO: Passar splits explicitamente
+            onConfirm(splits);
           }}>
             Confirmar
           </Button>

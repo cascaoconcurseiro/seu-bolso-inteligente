@@ -189,56 +189,17 @@ export function useDeleteAccount() {
     mutationFn: async () => {
       if (!user) throw new Error("Não autenticado");
 
-      const uid = user.id;
-
       // ─── LGPD: Expurgo físico em cascata de todos os dados do usuário ───
-      // A ordem respeita as dependências de chave estrangeira (filhos antes dos pais).
-
-      // 1. Notificações do usuário
-      await supabase.from("notifications").delete().eq("user_id", uid);
-
-      // 2. Convites de família enviados ou recebidos pelo usuário
-      await supabase.from("family_invitations").delete().eq("invited_by", uid);
-      await supabase.from("family_invitations").delete().eq("user_id", uid);
-
-      // 3. Splits de transações do usuário (via user_id no split)
-      await supabase.from("transaction_splits").delete().eq("user_id", uid);
-
-      // 4. Splits vinculados a transações criadas pelo usuário
-      const { data: userTxIds } = await supabase
-        .from("transactions")
-        .select("id")
-        .eq("user_id", uid);
-      if (userTxIds && userTxIds.length > 0) {
-        const ids = userTxIds.map(t => t.id);
-        await supabase.from("transaction_splits").delete().in("transaction_id", ids);
+      // Agora realizado via função segura e atômica no banco (RPC)
+      // garantindo que não restem registros fantasmas nem falhas de rede intermediárias.
+      
+      const { error } = await supabase.rpc('delete_user_account');
+      
+      if (error) {
+        throw new Error(`Erro no banco de dados ao excluir conta: ${error.message}`);
       }
 
-      // 5. Transações do usuário
-      await supabase.from("transactions").delete().eq("user_id", uid);
-
-      // 6. Orçamentos do usuário
-      await supabase.from("budgets").delete().eq("user_id", uid);
-
-      // 7. Metas do usuário
-      await supabase.from("goals").delete().eq("user_id", uid);
-
-      // 8. Ativos/Investimentos do usuário
-      await supabase.from("assets").delete().eq("user_id", uid);
-
-      // 9. Membros de família vinculados ao usuário
-      await supabase.from("family_members").delete().eq("linked_user_id", uid);
-
-      // 10. Contas do usuário
-      await supabase.from("accounts").delete().eq("user_id", uid);
-
-      // 11. Famílias onde o usuário é dono
-      await supabase.from("families").delete().eq("owner_id", uid);
-
-      // 12. Perfil do usuário
-      await supabase.from("profiles").delete().eq("id", uid);
-
-      // 13. Deslogar (dados já expurgados)
+      // Deslogar localmente
       await supabase.auth.signOut();
       return true;
     },

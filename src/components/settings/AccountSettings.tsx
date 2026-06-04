@@ -8,6 +8,7 @@ import { avatarIcons } from "@/lib/avatars";
 import { supabase } from "@/integrations/supabase/client";
 import { exportTransactions } from "@/services/exportService";
 import { toast } from "sonner";
+import { hashPin } from "@/utils/crypto";
 
 interface AccountSettingsProps {
   profile: any;
@@ -94,7 +95,7 @@ export function AccountSettings({
     }
   };
 
-  const handleSavePin = () => {
+  const handleSavePin = async () => {
     if (setupPin.length !== 4) {
       toast.error("O PIN deve ter 4 dígitos numéricos.");
       return;
@@ -103,7 +104,8 @@ export function AccountSettings({
       toast.error("Os PINs não conferem.");
       return;
     }
-    localStorage.setItem('@BolsoInteligente:pin', setupPin);
+    const hashedPin = await hashPin(setupPin);
+    localStorage.setItem('@BolsoInteligente:pin', hashedPin);
     setHasPin(true);
     setShowPinSetup(false);
     toast.success("PIN de segurança configurado com sucesso!");

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Asset } from '@/types/database';
 import { getAssetTransactions, getPositionAtDate, getIRDetails } from '@/utils/investmentExport';
 import { formatCurrency } from '@/utils/currencyFormatter';
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { 
   ShieldCheck, 
   Copy, 
@@ -190,7 +191,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           detalhes: []
         };
       }
-      isentosMap[key].valor += amount;
+      isentosMap[key].valor = SafeFinancialCalculator.add(isentosMap[key].valor, amount);
       isentosMap[key].detalhes.push(`${tx.date.split('-').reverse().slice(0, 2).join('/')}: R$ ${amount.toFixed(2)} (${desc})`);
     } 
     else if (catName === 'Fundos Imobiliários' || desc.toLowerCase().includes('fii') || desc.toLowerCase().includes('rend. fii')) {
@@ -206,7 +207,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           detalhes: []
         };
       }
-      isentosMap[key].valor += amount;
+      isentosMap[key].valor = SafeFinancialCalculator.add(isentosMap[key].valor, amount);
       isentosMap[key].detalhes.push(`${tx.date.split('-').reverse().slice(0, 2).join('/')}: R$ ${amount.toFixed(2)} (${desc})`);
     }
     else if (catName === 'Rendimento Poupança' || desc.toLowerCase().includes('poupança') || desc.toLowerCase().includes('lci') || desc.toLowerCase().includes('lca')) {
@@ -222,7 +223,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           detalhes: []
         };
       }
-      isentosMap[key].valor += amount;
+      isentosMap[key].valor = SafeFinancialCalculator.add(isentosMap[key].valor, amount);
       isentosMap[key].detalhes.push(`${tx.date.split('-').reverse().slice(0, 2).join('/')}: R$ ${amount.toFixed(2)} (${desc})`);
     }
   });
@@ -258,7 +259,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           detalhes: []
         };
       }
-      tributacaoExclusivaMap[key].valor += amount;
+      tributacaoExclusivaMap[key].valor = SafeFinancialCalculator.add(tributacaoExclusivaMap[key].valor, amount);
       tributacaoExclusivaMap[key].detalhes.push(`${tx.date.split('-').reverse().slice(0, 2).join('/')}: R$ ${amount.toFixed(2)} (${desc})`);
     }
     else if (catName === 'Rendimento CDB' || desc.toLowerCase().includes('cdb') || desc.toLowerCase().includes('tesouro direto') || desc.toLowerCase().includes('rdb')) {
@@ -274,7 +275,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           detalhes: []
         };
       }
-      tributacaoExclusivaMap[key].valor += amount;
+      tributacaoExclusivaMap[key].valor = SafeFinancialCalculator.add(tributacaoExclusivaMap[key].valor, amount);
       tributacaoExclusivaMap[key].detalhes.push(`${tx.date.split('-').reverse().slice(0, 2).join('/')}: R$ ${amount.toFixed(2)} (${desc})`);
     }
   });
@@ -322,9 +323,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
     monthlyResumo[m].txsCount++;
 
     if (tx.type === 'BUY') {
-      monthlyResumo[m].compras += amount;
+      monthlyResumo[m].compras = SafeFinancialCalculator.add(monthlyResumo[m].compras, amount);
     } else if (tx.type === 'SELL') {
-      monthlyResumo[m].vendas += amount;
+      monthlyResumo[m].vendas = SafeFinancialCalculator.add(monthlyResumo[m].vendas, amount);
 
       // Calcular o lucro/prejuízo matemático dessa venda com custo médio ponderado
       if (asset) {
@@ -341,31 +342,31 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           const tQty = Number(t.quantity);
           const tPrice = Number(t.price);
           if (t.type === 'BUY') {
-            totalCost += tQty * tPrice;
-            qty += tQty;
+            totalCost = SafeFinancialCalculator.add(totalCost, SafeFinancialCalculator.multiply(tQty, tPrice));
+            qty = SafeFinancialCalculator.add(qty, tQty);
           } else if (t.type === 'SELL') {
             if (qty > 0) {
-              const currentAvg = totalCost / qty;
+              const currentAvg = SafeFinancialCalculator.divide(totalCost, qty);
               const soldQty = Math.min(tQty, qty);
-              qty -= soldQty;
-              totalCost = qty * currentAvg;
+              qty = SafeFinancialCalculator.subtract(qty, soldQty);
+              totalCost = SafeFinancialCalculator.multiply(qty, currentAvg);
             }
           }
         });
 
-        const avgPrice = qty > 0 ? totalCost / qty : Number(asset.purchase_price || 0);
+        const avgPrice = qty > 0 ? SafeFinancialCalculator.divide(totalCost, qty) : Number(asset.purchase_price || 0);
         const salePrice = Number(tx.price);
         const saleQty = Number(tx.quantity);
-        const profit = (salePrice - avgPrice) * saleQty;
+        const profit = SafeFinancialCalculator.multiply(SafeFinancialCalculator.subtract(salePrice, avgPrice), saleQty);
 
-        monthlyResumo[m].lucroEstimado += profit;
+        monthlyResumo[m].lucroEstimado = SafeFinancialCalculator.add(monthlyResumo[m].lucroEstimado, profit);
 
         if (asset.type === 'STOCK') {
-          monthlyResumo[m].vendasAcoes += amount;
+          monthlyResumo[m].vendasAcoes = SafeFinancialCalculator.add(monthlyResumo[m].vendasAcoes, amount);
           if (profit > 0) {
-            monthlyResumo[m].lucroVendaAcoes += profit;
+            monthlyResumo[m].lucroVendaAcoes = SafeFinancialCalculator.add(monthlyResumo[m].lucroVendaAcoes, profit);
           } else {
-            monthlyResumo[m].prejuizoAcumulado += Math.abs(profit); // Salva como positivo
+            monthlyResumo[m].prejuizoAcumulado = SafeFinancialCalculator.add(monthlyResumo[m].prejuizoAcumulado, Math.abs(profit)); // Salva como positivo
           }
         }
       }

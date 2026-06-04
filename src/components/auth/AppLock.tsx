@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Lock, Unlock, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { haptics } from '@/utils/haptics';
+import { hashPin } from '@/utils/crypto';
 
 interface AppLockProps {
   children: React.ReactNode;
@@ -60,11 +61,13 @@ export function AppLock({ children }: AppLockProps) {
               setSetupStep('confirm');
             } else {
               if (newPin === tempPin) {
-                localStorage.setItem('@BolsoInteligente:pin', newPin);
-                setPinCode(newPin);
-                setIsSettingPin(false);
-                setIsLocked(false);
-                haptics.success();
+                hashPin(newPin).then(hashedPin => {
+                  localStorage.setItem('@BolsoInteligente:pin', hashedPin);
+                  setPinCode(hashedPin);
+                  setIsSettingPin(false);
+                  setIsLocked(false);
+                  haptics.success();
+                });
               } else {
                 setError(true);
                 setInputPin('');
@@ -80,14 +83,34 @@ export function AppLock({ children }: AppLockProps) {
         setInputPin(newPin);
         if (newPin.length === 4) {
           setTimeout(() => {
-            if (newPin === pinCode) {
-              setIsLocked(false);
-              setInputPin('');
-              haptics.success();
+            // Lógica de migração (se o PIN antigo ainda estava em plain text)
+            if (pinCode && pinCode.length === 4) {
+              if (newPin === pinCode) {
+                hashPin(newPin).then(hashedPin => {
+                  localStorage.setItem('@BolsoInteligente:pin', hashedPin);
+                  setPinCode(hashedPin);
+                  setIsLocked(false);
+                  setInputPin('');
+                  haptics.success();
+                });
+              } else {
+                setError(true);
+                setInputPin('');
+                haptics.error();
+              }
             } else {
-              setError(true);
-              setInputPin('');
-              haptics.error();
+              // Já é um hash
+              hashPin(newPin).then(hashedPin => {
+                if (hashedPin === pinCode) {
+                  setIsLocked(false);
+                  setInputPin('');
+                  haptics.success();
+                } else {
+                  setError(true);
+                  setInputPin('');
+                  haptics.error();
+                }
+              });
             }
           }, 300);
         }

@@ -23,6 +23,7 @@ import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAcces
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
@@ -71,10 +72,10 @@ export function Dashboard() {
       const c = acc.currency || 'BRL';
       const current = map.get(c) || { currency: c, balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
       
-      current.total_patrimony += Number(acc.balance || 0);
+      current.total_patrimony = SafeFinancialCalculator.add(current.total_patrimony, Number(acc.balance || 0));
       
       if (acc.type !== 'INVESTMENT' && acc.type !== 'EMERGENCY_FUND') {
-        current.balance += Number(acc.balance || 0);
+        current.balance = SafeFinancialCalculator.add(current.balance, Number(acc.balance || 0));
       }
 
       map.set(c, current);
@@ -84,10 +85,10 @@ export function Dashboard() {
     totalsByCurrency.forEach(t => {
       const c = t.currency || 'BRL';
       const current = map.get(c) || { currency: c, balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
-      current.income += Number(t.income || 0);
-      current.expense += Number(t.expense || 0);
-      current.pending_income += Number(t.pending_income || 0);
-      current.pending_expense += Number(t.pending_expense || 0);
+      current.income = SafeFinancialCalculator.add(current.income, Number(t.income || 0));
+      current.expense = SafeFinancialCalculator.add(current.expense, Number(t.expense || 0));
+      current.pending_income = SafeFinancialCalculator.add(current.pending_income, Number(t.pending_income || 0));
+      current.pending_expense = SafeFinancialCalculator.add(current.pending_expense, Number(t.pending_expense || 0));
       map.set(c, current);
     });
 

@@ -5,61 +5,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFamilyMembers } from './useFamily';
 import { toast } from 'sonner';
-import { SettlementValidator } from '@/services/settlementValidation';
 import { Database } from '@/types/database';
 import { logger } from '@/utils/logger';
-import { dateUtils } from '@/lib/dateUtils';
 import { rpcWithRetry } from '@/utils/rpcWithRetry';
+import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
+import { 
+  generateInvoices, 
+  InvoiceItem 
+} from '@/utils/sharedFinanceCalculations';
 
 type DBTransaction = Database['public']['Tables']['transactions']['Row'] & {
   category?: { id: string; name: string; icon: string | null; color: string | null } | null;
   transaction_splits?: DBSplit[];
   payer?: { id: string; name: string; user_id: string | null; linked_user_id: string | null } | null;
-  currency?: string; // Estendendo manualmente
-  competence_date?: string | null; // Estendendo manualmente
+  currency?: string; 
+  competence_date?: string | null; 
 };
 
 type DBSplit = Database['public']['Tables']['transaction_splits']['Row'] & {
-  settled_by_debtor: boolean; // Forçando como obrigatório para o código
-  settled_by_creditor: boolean; // Forçando como obrigatório para o código
+  settled_by_debtor: boolean; 
+  settled_by_creditor: boolean; 
 };
 type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id'>;
-
-export interface InvoiceItem {
-  id: string;
-  originalTxId: string;
-  splitId?: string;
-  sourceTransactionId?: string; // ID da transação original (quando é DEBIT de mirror transaction)
-  description: string;
-  date: string;
-  category?: string;
-  amount: number;
-  type: 'CREDIT' | 'DEBIT';
-  isPaid: boolean;
-  tripId?: string;
-  memberId: string;
-  memberName?: string;
-  currency: string;
-  installmentNumber?: number | null;
-  totalInstallments?: number | null;
-  seriesId?: string | null; // ID da série de parcelas
-  creatorUserId?: string;
-  creatorName?: string; // Nome de quem pagou/criou a transação
-  
-  // NEW: Settlement status fields
-  isSettled: boolean;
-  settledByDebtor: boolean;
-  settledByCreditor: boolean;
-  
-  // NEW: Validation flags
-  canEdit: boolean;
-  canDelete: boolean;
-  canAnticipate: boolean;
-  
-  // NEW: Block reason (if operation is blocked)
-  blockReason?: string;
-  settledAt?: string | null;
-}
 
 interface UseSharedFinancesProps {
   currentDate?: Date;
@@ -70,66 +37,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const { user } = useAuth();
   const { data: members = [] } = useFamilyMembers();
   const queryClient = useQueryClient();
-
-  // Função para calcular a data de vencimento de uma transação de cartão de crédito
-  // Função EXCLUSIVA para calcular data de exibição no Compartilhados
-  // REGRA: Para cartões de crédito, calcular mês de VENCIMENTO a partir do competence_date (mês de fechamento)
-  // Para outras contas, usar competence_date diretamente
-  const calculateSharedDisplayDate = (
-    transactionDate: string, 
-    competenceDate: string | null,
-    accountId: string | null, 
-    accounts: DBAccount[]
-  ): string => {
-    // Se não tem competence_date, usar date
-    if (!competenceDate) {
-      return transactionDate;
-    }
-    
-    // Se não tem account_id, usar competence_date
-    if (!accountId) {
-      return competenceDate;
-    }
-
-    // Buscar a conta
-    const account = accounts.find(a => a.id === accountId);
-    if (!account) return competenceDate;
-    
-    // Se não é cartão de crédito, vamos adiantar para o mês seguinte
-    // para seguir a mesma lógica de cobrança no ciclo posterior.
-    if (account.type !== 'CREDIT_CARD') {
-      const closingMonth = dateUtils.parseDate(competenceDate);
-      let dueMonth = closingMonth.getMonth() + 1;
-      let dueYear = closingMonth.getFullYear();
-      if (dueMonth > 11) {
-        dueMonth = 0;
-        dueYear++;
-      }
-      const dueDate = new Date(Date.UTC(dueYear, dueMonth, 1));
-      return dateUtils.getCompetenceDate(dueDate);
-    }
-
-    // É CARTÃO DE CRÉDITO → calcular mês de VENCIMENTO usando dateUtils
-    const closingDay = account.closing_day || 1;
-    const dueDay = account.due_day || 10;
-    const closingMonth = dateUtils.parseDate(competenceDate);
-    
-    let dueMonth = closingMonth.getMonth();
-    let dueYear = closingMonth.getFullYear();
-    
-    if (dueDay <= closingDay) {
-      dueMonth++;
-      if (dueMonth > 11) {
-        dueMonth = 0;
-        dueYear++;
-      }
-    }
-    
-    // Use dateUtils.getCompetenceDate to ensure proper UTC handling
-    const dueDate = new Date(Date.UTC(dueYear, dueMonth, 1));
-    return dateUtils.getCompetenceDate(dueDate);
-  };
-
 
   // Invalida a query consolidada (única fonte de dados)
   const refetchAll = async () => {
@@ -217,9 +124,6 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     accounts: sharedData?.accounts || []
   }), [sharedData]);
 
-  // Atualizar membros se vierem do RPC (opcional, mas garante consistência)
-  // const members = sharedData?.members || [];
-
   // Transações pagas por outros vêm da RPC consolidada (sem consulta extra)
   const paidByOthersTransactions = useMemo(() => {
     const txList: DBTransaction[] = sharedData?.transactions || [];
@@ -229,376 +133,20 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   }, [sharedData, user?.id]);
 
   const invoices = useMemo(() => {
-    const invoiceMap: Record<string, InvoiceItem[]> = {};
-    const processedTxIds = new Set<string>();
-    
     const transactions = (transactionsWithSplits as { transactions: DBTransaction[] }).transactions || [];
     const accounts = (transactionsWithSplits as { accounts: DBAccount[] }).accounts || [];
     
-    const myMemberId = members.find(m => m.linked_user_id === user?.id)?.id;
-
-    // Initialize map for each member
-    members.forEach(m => {
-      invoiceMap[m.id] = [];
-    });
-
-    // LÓGICA CORRETA (SEM ESPELHAMENTO):
-    
-    // CASO 1: EU PAGUEI - Créditos (me devem)
-    // Transações que EU criei e dividi com outros
-    transactions.forEach(tx => {
-      // Permitir EXPENSE e INCOME (como estorno)
-      if (tx.type !== 'EXPENSE' && tx.type !== 'INCOME') return;
-      
-      const isRefund = tx.type === 'INCOME';
-      
-      const splits = tx.transaction_splits || [];
-      const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação
-
-      // NOVO: Determinar se EU sou o credor (quem pagou a conta)
-      // Sou credor se: EU criei e NÃO marquei outro como pagador, OU se OUTRO criou mas marcou que EU paguei (payer_id)
-      const isMeTheRealCreditor = (tx.user_id === user?.id && !tx.payer_id) || 
-                                  (tx.payer_id === myMemberId && tx.payer_id != null);
-
-      if (isMeTheRealCreditor) {
-          splits.forEach((split) => {
-            
-            const memberId = split.member_id;
-            // Pular se for minha própria parte OU se não tiver memberId
-            if (!memberId || memberId === myMemberId) {
-              return;
-            }
-          
-          const uniqueKey = `${tx.id}-credit-${memberId}`;
-          if (processedTxIds.has(uniqueKey)) {
-            return;
-          }
-          processedTxIds.add(uniqueKey);
-          
-          const member = members.find(m => m.id === memberId);
-          
-          // Buscar nome do criador (quem pagou)
-          const creator = members.find(m => m.linked_user_id === tx.user_id);
-          const creatorName = creator?.name || (tx.user_id === user?.id ? 'Você' : 'Outro membro');
-          
-          if (!invoiceMap[memberId]) {
-            invoiceMap[memberId] = [];
-          }
-          
-          // Calculate validation flags
-          const settlementStatus = SettlementValidator.getSettlementStatus(
-            { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled || false },
-            split as any // DBSplit has user_id: string | null, but TransactionSplit wants string | null now too, but there might be other small diffs
-          );
-          
-          // Para Compartilhados: usar data de exibição calculada
-          const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-          
-          invoiceMap[memberId].push({
-            id: uniqueKey,
-            originalTxId: tx.id,
-            splitId: split.id,
-            description: tx.description,
-            date: displayDate,
-            category: tx.category?.name,
-            amount: isRefund ? -split.amount : split.amount,
-            type: isRefund ? 'DEBIT' : 'CREDIT',
-            isPaid: split.is_settled === true || split.settled_by_creditor === true, // Credor: usa settled_by_creditor ou is_settled
-            tripId: tx.trip_id || undefined,
-            memberId: memberId,
-            memberName: member?.name || split.name,
-            currency: txCurrency,
-            installmentNumber: tx.current_installment,
-            totalInstallments: tx.total_installments,
-            seriesId: tx.series_id,
-            creatorUserId: tx.user_id,
-            creatorName: creatorName,
-            // NEW: Settlement status fields
-            isSettled: split.is_settled === true,
-            settledByDebtor: split.settled_by_debtor || false,
-            settledByCreditor: split.settled_by_creditor || false,
-            // NEW: Validation flags
-            canEdit: settlementStatus.canEdit,
-            canDelete: settlementStatus.canDelete,
-            canAnticipate: settlementStatus.canAnticipate,
-            // NEW: Block reason
-            blockReason: settlementStatus.blockReason,
-            settledAt: split.settled_at,
-          });
-        });
-      } else {
-        // CASO 1B: OUTRO PAGOU (ou eu criei mas marquei outro como pagador) e me incluiu em um split - DÉBITO (eu devo)
-        // Encontrar o split onde EU sou o devedor
-        const mySplit = splits.find((s) => s.member_id === myMemberId);
-        
-        if (mySplit) {
-          // Encontrar o membro que representa o criador da transação
-          const creatorMember = members.find(m => m.linked_user_id === tx.user_id);
-          
-          if (creatorMember) {
-            const uniqueKey = `${tx.id}-debit-${creatorMember.id}`;
-            if (!processedTxIds.has(uniqueKey)) {
-              processedTxIds.add(uniqueKey);
-              
-              if (!invoiceMap[creatorMember.id]) {
-                invoiceMap[creatorMember.id] = [];
-              }
-              
-              // Calculate validation flags
-              const settlementStatus = SettlementValidator.getSettlementStatus(
-                { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled || false },
-                { ...mySplit, member_id: mySplit.member_id || "" } as any
-              );
-              
-              // Para Compartilhados: usar data de exibição calculada
-              const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-              
-              invoiceMap[creatorMember.id].push({
-                id: uniqueKey,
-                originalTxId: tx.id,
-                splitId: mySplit.id,
-                description: tx.description,
-                date: displayDate,
-                category: tx.category?.name,
-                amount: mySplit.amount,
-                type: 'DEBIT',
-                isPaid: mySplit.is_settled === true || mySplit.settled_by_debtor === true, // Devedor: usa settled_by_debtor ou is_settled
-                tripId: tx.trip_id || undefined,
-                memberId: creatorMember.id,
-                memberName: creatorMember.name,
-                currency: txCurrency,
-                installmentNumber: tx.current_installment,
-                totalInstallments: tx.total_installments,
-                seriesId: tx.series_id,
-                creatorUserId: tx.user_id,
-                creatorName: creatorMember.name, // Quem pagou foi o criador
-                // NEW: Settlement status fields
-                isSettled: mySplit.is_settled === true,
-                settledByDebtor: mySplit.settled_by_debtor || false,
-                settledByCreditor: mySplit.settled_by_creditor || false,
-                // NEW: Validation flags
-                canEdit: settlementStatus.canEdit,
-                canDelete: settlementStatus.canDelete,
-                canAnticipate: settlementStatus.canAnticipate,
-                // NEW: Block reason
-                blockReason: settlementStatus.blockReason,
-                settledAt: mySplit.settled_at,
-              });
-            }
-          }
-        }
-      }
-    });
-
-    // CASO 2: OUTRO PAGOU - Débitos (eu devo)
-    // Transações onde payer_id indica que outro membro pagou por mim
-    paidByOthersTransactions.forEach((tx) => {
-      if (tx.type !== 'EXPENSE' && tx.type !== 'INCOME') return;
-      
-      const isRefund = tx.type === 'INCOME';
-      
-      const txCurrency = tx.currency || 'BRL'; // Usar moeda da transação
-      const payer = tx.payer;
-      
-      if (!payer) return;
-      
-      const targetMemberId = payer.id;
-      
-      const uniqueKey = `${tx.id}-debit-${targetMemberId}`;
-      if (processedTxIds.has(uniqueKey)) return;
-      processedTxIds.add(uniqueKey);
-      
-      if (!invoiceMap[targetMemberId]) {
-        invoiceMap[targetMemberId] = [];
-      }
-      
-      // Use dateUtils.getCompetenceDate for consistent UTC handling
-      const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-      
-      invoiceMap[targetMemberId].push({
-        id: uniqueKey,
-        originalTxId: tx.id,
-        description: tx.description,
-        date: displayDate,
-        category: tx.category?.name,
-        amount: isRefund ? -tx.amount : tx.amount,
-        type: isRefund ? 'CREDIT' : 'DEBIT',
-        isPaid: tx.is_settled === true,
-        tripId: tx.trip_id || undefined,
-        memberId: targetMemberId,
-        memberName: payer.name,
-        currency: txCurrency,
-        installmentNumber: tx.current_installment,
-        totalInstallments: tx.total_installments,
-        seriesId: tx.series_id,
-        creatorUserId: tx.user_id,
-        creatorName: payer.name, // Quem pagou foi o payer
-        // NEW: Settlement status fields
-        isSettled: tx.is_settled === true,
-        settledByDebtor: false, // No split info available for this case
-        settledByCreditor: false,
-        // NEW: Validation flags
-        canEdit: !tx.is_settled,
-        canDelete: !tx.is_settled,
-        canAnticipate: !tx.is_settled,
-        // NEW: Block reason
-        blockReason: tx.is_settled ? 'Esta transação já foi acertada e não pode ser modificada' : undefined,
-        settledAt: tx.settled_at,
-      });
-    });
-
-    // CASO 3: Transações não divididas (is_shared = false) mas no domínio SHARED
-    // Isso inclui atribuições diretas de 100% a outro membro (via related_member_id)
-    // e transações de acerto (settlements).
-    transactions.forEach(tx => {
-      if (tx.is_shared) return;
-      if (tx.domain !== 'SHARED') return;
-      if (tx.type !== 'EXPENSE' && tx.type !== 'INCOME') return;
-      
-      const txCurrency = tx.currency || 'BRL';
-
-      // 3A: Atribuição direta via related_member_id (100% de um gasto para outro membro)
-      if (tx.related_member_id) {
-        const isPayerMe = tx.user_id === user?.id;
-        const targetMemberId = tx.related_member_id;
-        
-        if (isPayerMe) {
-          const uniqueKey = `${tx.id}-credit-${targetMemberId}`;
-          if (!processedTxIds.has(uniqueKey)) {
-            processedTxIds.add(uniqueKey);
-            
-            const member = members.find(m => m.id === targetMemberId);
-            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-            
-            if (!invoiceMap[targetMemberId]) {
-              invoiceMap[targetMemberId] = [];
-            }
-            
-            invoiceMap[targetMemberId].push({
-              id: uniqueKey,
-              originalTxId: tx.id,
-              description: tx.description,
-              date: displayDate,
-              category: tx.category?.name,
-              amount: Number(tx.amount),
-              type: 'CREDIT',
-              isPaid: tx.is_settled === true,
-              tripId: tx.trip_id || undefined,
-              memberId: targetMemberId,
-              memberName: member?.name || 'Membro',
-              currency: txCurrency,
-              installmentNumber: tx.current_installment,
-              totalInstallments: tx.total_installments,
-              seriesId: tx.series_id,
-              creatorUserId: tx.user_id,
-              creatorName: 'Você',
-              isSettled: tx.is_settled === true,
-              settledByDebtor: tx.is_settled === true,
-              settledByCreditor: tx.is_settled === true,
-              canEdit: !tx.is_settled,
-              canDelete: !tx.is_settled,
-              canAnticipate: !tx.is_settled,
-              settledAt: tx.settled_at,
-            });
-          }
-        } else {
-          const creatorMember = members.find(m => m.linked_user_id === tx.user_id);
-          if (creatorMember) {
-            const uniqueKey = `${tx.id}-debit-${creatorMember.id}`;
-            if (!processedTxIds.has(uniqueKey)) {
-              processedTxIds.add(uniqueKey);
-              
-              const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-              
-              if (!invoiceMap[creatorMember.id]) {
-                invoiceMap[creatorMember.id] = [];
-              }
-              
-              invoiceMap[creatorMember.id].push({
-                id: uniqueKey,
-                originalTxId: tx.id,
-                description: tx.description,
-                date: displayDate,
-                category: tx.category?.name,
-                amount: Number(tx.amount),
-                type: 'DEBIT',
-                isPaid: tx.is_settled === true,
-                tripId: tx.trip_id || undefined,
-                memberId: creatorMember.id,
-                memberName: creatorMember.name,
-                currency: txCurrency,
-                installmentNumber: tx.current_installment,
-                totalInstallments: tx.total_installments,
-                seriesId: tx.series_id,
-                creatorUserId: tx.user_id,
-                creatorName: creatorMember.name,
-                isSettled: tx.is_settled === true,
-                settledByDebtor: tx.is_settled === true,
-                settledByCreditor: tx.is_settled === true,
-                canEdit: !tx.is_settled,
-                canDelete: !tx.is_settled,
-                canAnticipate: !tx.is_settled,
-                settledAt: tx.settled_at,
-              });
-            }
-          }
-        }
-      }
-      
-      // 3B: Acerto de contas puro (e.g. description contém "Acerto" ou "Recebimento: carro" etc.)
-      else if (tx.description?.includes('Acerto') || tx.description?.includes('acerto') || tx.is_settled) {
-        const isCreatorMe = tx.user_id === user?.id;
-        const otherMember = members.find(m => m.linked_user_id !== user?.id);
-        
-        if (otherMember) {
-          const targetMemberId = otherMember.id;
-          const uniqueKey = `${tx.id}-${tx.type === 'INCOME' ? 'credit' : 'debit'}-${targetMemberId}`;
-          
-          if (!processedTxIds.has(uniqueKey)) {
-            processedTxIds.add(uniqueKey);
-            
-            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
-            
-            if (!invoiceMap[targetMemberId]) {
-              invoiceMap[targetMemberId] = [];
-            }
-            
-            const type = tx.type === 'EXPENSE' ? 'CREDIT' : 'DEBIT';
-            
-            invoiceMap[targetMemberId].push({
-              id: uniqueKey,
-              originalTxId: tx.id,
-              description: tx.description,
-              date: displayDate,
-              category: 'Acerto',
-              amount: Number(tx.amount),
-              type: type,
-              isPaid: true,
-              tripId: tx.trip_id || undefined,
-              memberId: targetMemberId,
-              memberName: otherMember.name,
-              currency: txCurrency,
-              creatorUserId: tx.user_id,
-              creatorName: isCreatorMe ? 'Você' : otherMember.name,
-              isSettled: true,
-              settledByDebtor: true,
-              settledByCreditor: true,
-              canEdit: false,
-              canDelete: true,
-              canAnticipate: false,
-              settledAt: tx.settled_at || tx.created_at,
-            });
-          }
-        }
-      }
-    });
-
-    return invoiceMap;
+    return generateInvoices(
+      transactions,
+      accounts,
+      paidByOthersTransactions,
+      members,
+      user?.id
+    );
   }, [transactionsWithSplits, paidByOthersTransactions, members, user?.id]);
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
-    
     
     // Buscar configuração de escopo do membro
     const member = members.find(m => m.id === memberId);
@@ -714,15 +262,15 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
       if (!i.isPaid) {
         if (i.type === 'CREDIT') {
-          totalsByCurrency[curr].credits += i.amount;
+          totalsByCurrency[curr].credits = SafeFinancialCalculator.add(totalsByCurrency[curr].credits, i.amount);
         } else {
-          totalsByCurrency[curr].debits += i.amount;
+          totalsByCurrency[curr].debits = SafeFinancialCalculator.add(totalsByCurrency[curr].debits, i.amount);
         }
       }
     });
 
     Object.keys(totalsByCurrency).forEach(curr => {
-      totalsByCurrency[curr].net = moneyUtils.round(totalsByCurrency[curr].credits - totalsByCurrency[curr].debits);
+      totalsByCurrency[curr].net = SafeFinancialCalculator.subtract(totalsByCurrency[curr].credits, totalsByCurrency[curr].debits);
     });
 
     return totalsByCurrency;
@@ -741,9 +289,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
         }
         
-        summaryByCurrency[curr].totalCredits += Number(balance.total_credits);
-        summaryByCurrency[curr].totalDebits += Number(balance.total_debits);
-        summaryByCurrency[curr].net += Number(balance.net_balance);
+        summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, Number(balance.total_credits));
+        summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalDebits, Number(balance.total_debits));
+        summaryByCurrency[curr].net = SafeFinancialCalculator.add(summaryByCurrency[curr].net, Number(balance.net_balance));
       });
       
       return {
@@ -762,9 +310,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         
         if (!item.isPaid) {
           if (item.type === 'CREDIT') {
-            summaryByCurrency[curr].totalCredits += item.amount;
+            summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, item.amount);
           } else {
-            summaryByCurrency[curr].totalDebits += item.amount;
+            summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalDebits, item.amount);
           }
         }
       });
@@ -772,8 +320,9 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     
     // Calcular net para cada moeda individualmente
     Object.keys(summaryByCurrency).forEach(curr => {
-      summaryByCurrency[curr].net = moneyUtils.round(
-        summaryByCurrency[curr].totalCredits - summaryByCurrency[curr].totalDebits
+      summaryByCurrency[curr].net = SafeFinancialCalculator.subtract(
+        summaryByCurrency[curr].totalCredits,
+        summaryByCurrency[curr].totalDebits
       );
     });
 

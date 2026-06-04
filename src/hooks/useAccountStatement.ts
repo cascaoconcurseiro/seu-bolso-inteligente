@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { logger } from "@/utils/logger";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 export interface StatementTransaction {
   id: string;
@@ -98,23 +99,23 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
       for (const t of allTransactions) {
         const txType = String(t.type).toUpperCase();
         if (txType === "INCOME") {
-          periodSum += Number(t.amount);
+          periodSum = SafeFinancialCalculator.add(periodSum, Number(t.amount));
         } else if (txType === "EXPENSE") {
-          periodSum -= Number(t.amount);
+          periodSum = SafeFinancialCalculator.subtract(periodSum, Number(t.amount));
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             // Se for entrada, usar destination_amount se houver (caso de câmbio)
             const amt = t.destination_amount !== null && t.destination_amount !== undefined 
               ? Number(t.destination_amount) 
               : Number(t.amount);
-            periodSum += amt; // Entrada
+            periodSum = SafeFinancialCalculator.add(periodSum, amt); // Entrada
           } else if (t.account_id === accountId) {
-            periodSum -= Number(t.amount); // Saída (sempre do valor original)
+            periodSum = SafeFinancialCalculator.subtract(periodSum, Number(t.amount)); // Saída (sempre do valor original)
           }
         }
       }
 
-      const initialBalance = currentBalance - periodSum;
+      const initialBalance = SafeFinancialCalculator.subtract(currentBalance, periodSum);
 
       // Calcular running balance
       let runningBalance = initialBalance;
@@ -128,11 +129,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
         if (txType === "INCOME") {
           isIncoming = true;
           displayAmount = amt;
-          runningBalance += amt;
+          runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
         } else if (txType === "EXPENSE") {
           isIncoming = false;
           displayAmount = -amt;
-          runningBalance -= amt;
+          runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             isIncoming = true;
@@ -142,11 +143,11 @@ export function useAccountStatement({ accountId, startDate, endDate }: UseAccoun
               : Number(t.amount);
             curr = t.destination_currency || t.currency;
             displayAmount = amt;
-            runningBalance += amt;
+            runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
           } else if (t.account_id === accountId) {
             isIncoming = false;
             displayAmount = -amt;
-            runningBalance -= amt;
+            runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
           }
         }
 

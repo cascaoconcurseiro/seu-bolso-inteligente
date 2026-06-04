@@ -7,15 +7,15 @@ const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verd
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 
 export interface TripExportData {
-  trip: any;
-  participants: any[];
-  tripTransactions: any[];
-  balances: any[];
-  user: any;
+  trip: Record<string, any>;
+  participants: Record<string, any>[];
+  tripTransactions: Record<string, any>[];
+  balances: Record<string, any>[];
+  user: Record<string, any>;
 }
 
 // Helper para formatação de datas de forma ultra-segura
-const safeFormatDate = (dateVal: any): string => {
+const safeFormatDate = (dateVal: unknown): string => {
   if (!dateVal) return 'N/A';
   try {
     const d = new Date(dateVal);
@@ -89,7 +89,7 @@ export const exportTripToPDF = (data: TripExportData) => {
     }
   });
 
-  let currentY = (doc as any).lastAutoTable.finalY + 12;
+  let currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
 
   // 3. Participantes e Saldos de Acerto
   if (participants && participants.length > 0) {
@@ -122,7 +122,8 @@ export const exportTripToPDF = (data: TripExportData) => {
       columnStyles: {
         3: { fontStyle: 'bold' }
       },
-      didParseCell: (cellData: any) => {
+      // @ts-expect-error Pula tipagem da lib jsPDF
+      didParseCell: (cellData: Record<string, any>) => {
         if (cellData.section === 'body' && cellData.column.index === 3) {
           const text = cellData.cell.text[0];
           if (text.startsWith('Recebe')) cellData.cell.styles.textColor = [16, 185, 129]; // Verde
@@ -131,7 +132,7 @@ export const exportTripToPDF = (data: TripExportData) => {
       }
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 12;
+    currentY = (doc as Record<string, any>).lastAutoTable.finalY + 12;
   }
 
   // 4. Detalhamento de Gastos (Tabela Principal)
@@ -179,7 +180,7 @@ export const exportTripToPDF = (data: TripExportData) => {
   }
 
   // 5. Paginação e Rodapé Automático
-  const pageCount = (doc as any).internal.getNumberOfPages();
+  const pageCount = (doc as Record<string, any>).internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(8);

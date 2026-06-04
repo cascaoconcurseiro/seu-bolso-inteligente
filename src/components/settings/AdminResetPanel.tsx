@@ -86,7 +86,7 @@ import { toast } from "sonner";
 import { OrphanTransactionsManager } from "./OrphanTransactionsManager";
 import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 
-const ADMIN_PASSWORD = "909496";
+// A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";
 
 interface EnrichedUser {
@@ -274,19 +274,41 @@ export function AdminResetPanel() {
     return { opType, reason, amount, currency, isSettlement, isBlocked };
   };
 
-  const handleAuthenticate = () => {
-    if (password === ADMIN_PASSWORD) {
+  const handleAuthenticate = async () => {
+    setIsLoadingStats(true);
+    try {
+      const { data, error } = await supabase.rpc('get_admin_system_stats', {
+        admin_password: password
+      });
+      if (error) throw error;
+      
       setIsAuthenticated(true);
       setPasswordError(false);
-      loadAllAdminData();
-    } else {
+      
+      if (data) {
+        setStats({
+          totalUsers: Number(data.totalUsers) || 0,
+          totalTransactions: Number(data.totalTransactions) || 0,
+          totalVolume: Number(data.totalVolume) || 0,
+          totalAccounts: Number(data.totalAccounts) || 0,
+          totalFamilies: Number(data.totalFamilies) || 0,
+          totalAssets: Number(data.totalAssets) || 0
+        });
+      }
+      
+      loadUsersDetailed();
+      loadAuditLogs();
+      loadErrorLogs();
+    } catch (error) {
       setPasswordError(true);
-      toast.error("Senha incorreta");
+      toast.error("Credencial administrativa inválida");
+    } finally {
+      setIsLoadingStats(false);
     }
   };
 
   const loadAllAdminData = () => {
-    loadSystemStats();
+    // loadSystemStats is now called in handleAuthenticate
     loadUsersDetailed();
     loadAuditLogs();
     loadErrorLogs();
@@ -296,7 +318,7 @@ export function AdminResetPanel() {
     setIsLoadingStats(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_system_stats', {
-        admin_password: ADMIN_PASSWORD
+        admin_password: password
       });
       
       if (error) throw error;
@@ -323,7 +345,7 @@ export function AdminResetPanel() {
     setIsLoadingUsers(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_users_detailed', {
-        admin_password: ADMIN_PASSWORD
+        admin_password: password
       });
       
       if (error) throw error;
@@ -355,7 +377,7 @@ export function AdminResetPanel() {
     setIsLoadingLogs(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_audit_logs', {
-        admin_password: ADMIN_PASSWORD
+        admin_password: password
       });
       
       if (error) throw error;
@@ -373,7 +395,7 @@ export function AdminResetPanel() {
     setIsLoadingErrorLogs(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_error_logs', {
-        admin_password: ADMIN_PASSWORD
+        admin_password: password
       });
       if (error) throw error;
       setErrorLogs(data || []);
@@ -388,7 +410,7 @@ export function AdminResetPanel() {
   const resolveErrorLog = async (reportId: string) => {
     try {
       const { error } = await supabase.rpc('resolve_error_report', {
-        admin_password: ADMIN_PASSWORD,
+        admin_password: password,
         p_report_id: reportId
       });
       if (error) throw error;
@@ -434,14 +456,14 @@ export function AdminResetPanel() {
 
   const resetAllUsers = async () => {
     const { error } = await supabase.rpc('admin_reset_all_data', {
-      admin_password: ADMIN_PASSWORD
+      admin_password: password
     });
     if (error) throw error;
   };
 
   const resetSingleUser = async (userId: string) => {
     const { error } = await supabase.rpc('admin_reset_single_user', {
-      admin_password: ADMIN_PASSWORD,
+      admin_password: password,
       target_user_id: userId
     });
     if (error) throw error;
@@ -562,7 +584,7 @@ export function AdminResetPanel() {
     setUserDetailOpen(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_user_dossier', {
-        admin_password: ADMIN_PASSWORD,
+        admin_password: password,
         target_user_id: targetUser.id
       });
       
@@ -969,7 +991,7 @@ export function AdminResetPanel() {
               onClick={async () => {
                 try {
                   const { error } = await supabase.rpc('clean_old_audit_logs', {
-                    admin_password: ADMIN_PASSWORD,
+                    admin_password: password,
                     p_days_to_keep: 30
                   });
                   if (error) throw error;

@@ -18,6 +18,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatExportMoney } from "@/utils/exportCurrency";
 import { toast } from "sonner";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 type DRELineType = 'OPERATIONAL_INC' | 'FINANCIAL_INC' | 'DEDUCTION' | 'VARIABLE_EXP' | 'FIXED_EXP' | 'FINANCIAL_EXP';
 
@@ -175,13 +176,13 @@ export function AccountingDRE() {
 
       if (tx.type === 'INCOME') {
         if ((tx as any).is_refund) {
-          map.DEDUCTION.total += amount;
-          map.DEDUCTION.subcategories[catName] = (map.DEDUCTION.subcategories[catName] || 0) + amount;
+          map.DEDUCTION.total = SafeFinancialCalculator.add(map.DEDUCTION.total, amount);
+          map.DEDUCTION.subcategories[catName] = SafeFinancialCalculator.add(map.DEDUCTION.subcategories[catName] || 0, amount);
         } else {
           const classification = classifyCategory(catName);
           const target = classification === 'FINANCIAL_INC' ? 'FINANCIAL_INC' : 'OPERATIONAL_INC';
-          map[target].total += amount;
-          map[target].subcategories[catName] = (map[target].subcategories[catName] || 0) + amount;
+          map[target].total = SafeFinancialCalculator.add(map[target].total, amount);
+          map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, amount);
         }
       } else if (tx.type === 'EXPENSE') {
         const classification = classifyCategory(catName);
@@ -189,16 +190,16 @@ export function AccountingDRE() {
         if (classification === 'FIXED_EXP') target = 'FIXED_EXP';
         else if (classification === 'FINANCIAL_EXP') target = 'FINANCIAL_EXP';
         
-        map[target].total += amount;
-        map[target].subcategories[catName] = (map[target].subcategories[catName] || 0) + amount;
+        map[target].total = SafeFinancialCalculator.add(map[target].total, amount);
+        map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, amount);
       }
     });
 
-    const grossRevenue = map.OPERATIONAL_INC.total + map.FINANCIAL_INC.total;
-    const netRevenue = grossRevenue - map.DEDUCTION.total;
-    const contributionMargin = netRevenue - map.VARIABLE_EXP.total;
-    const ebitda = contributionMargin - map.FIXED_EXP.total;
-    const netSavings = ebitda - map.FINANCIAL_EXP.total;
+    const grossRevenue = SafeFinancialCalculator.add(map.OPERATIONAL_INC.total, map.FINANCIAL_INC.total);
+    const netRevenue = SafeFinancialCalculator.subtract(grossRevenue, map.DEDUCTION.total);
+    const contributionMargin = SafeFinancialCalculator.subtract(netRevenue, map.VARIABLE_EXP.total);
+    const ebitda = SafeFinancialCalculator.subtract(contributionMargin, map.FIXED_EXP.total);
+    const netSavings = SafeFinancialCalculator.subtract(ebitda, map.FINANCIAL_EXP.total);
 
     return {
       lines: map,
@@ -213,40 +214,40 @@ export function AccountingDRE() {
   const balanceSheetData = useMemo(() => {
     const checkingChecking = accounts
       .filter(a => (a.type === 'CHECKING' || a.type === 'CASH') && (a.currency || 'BRL') === selectedCurrency)
-      .reduce((sum, a) => sum + Number(a.balance || 0), 0);
+      .reduce((sum, a) => SafeFinancialCalculator.add(sum, Number(a.balance || 0)), 0);
       
     const checkingSavings = accounts
       .filter(a => a.type === 'SAVINGS' && (a.currency || 'BRL') === selectedCurrency)
-      .reduce((sum, a) => sum + Number(a.balance || 0), 0);
+      .reduce((sum, a) => SafeFinancialCalculator.add(sum, Number(a.balance || 0)), 0);
 
-    const assetCirculante = checkingChecking + checkingSavings;
+    const assetCirculante = SafeFinancialCalculator.add(checkingChecking, checkingSavings);
 
     const currentInvestments = accounts
       .filter(a => a.type === 'INVESTMENT' && (a.currency || 'BRL') === selectedCurrency)
-      .reduce((sum, a) => sum + Number(a.balance || 0), 0);
+      .reduce((sum, a) => SafeFinancialCalculator.add(sum, Number(a.balance || 0)), 0);
 
     const physicalAssets = assets
       .filter(a => (a.currency || 'BRL') === selectedCurrency)
       .reduce((sum, a) => {
       const price = Number(a.current_price !== undefined && a.current_price !== null ? a.current_price : a.purchase_price || 0);
       const qty = Number(a.quantity || 1);
-      return sum + (price * qty);
+      return SafeFinancialCalculator.add(sum, SafeFinancialCalculator.multiply(price, qty));
     }, 0);
 
-    const assetNaoCirculante = currentInvestments + physicalAssets;
-    const totalAssets = assetCirculante + assetNaoCirculante;
+    const assetNaoCirculante = SafeFinancialCalculator.add(currentInvestments, physicalAssets);
+    const totalAssets = SafeFinancialCalculator.add(assetCirculante, assetNaoCirculante);
 
     const creditCardDebts = accounts
       .filter(a => a.type === 'CREDIT_CARD' && (a.currency || 'BRL') === selectedCurrency)
-      .reduce((sum, a) => sum + Math.abs(Math.min(0, Number(a.balance || 0))), 0);
+      .reduce((sum, a) => SafeFinancialCalculator.add(sum, Math.abs(Math.min(0, Number(a.balance || 0)))), 0);
 
     const negativeAccounts = accounts
       .filter(a => a.type !== 'CREDIT_CARD' && Number(a.balance || 0) < 0 && (a.currency || 'BRL') === selectedCurrency)
-      .reduce((sum, a) => sum + Math.abs(Number(a.balance || 0)), 0);
+      .reduce((sum, a) => SafeFinancialCalculator.add(sum, Math.abs(Number(a.balance || 0))), 0);
 
-    const totalLiabilities = creditCardDebts + negativeAccounts;
+    const totalLiabilities = SafeFinancialCalculator.add(creditCardDebts, negativeAccounts);
 
-    const netWorth = totalAssets - totalLiabilities;
+    const netWorth = SafeFinancialCalculator.subtract(totalAssets, totalLiabilities);
 
     const liquidityRatio = totalLiabilities > 0 ? (assetCirculante / totalLiabilities) : 999;
     const debtRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;

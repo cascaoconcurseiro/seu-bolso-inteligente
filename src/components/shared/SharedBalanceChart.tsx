@@ -13,6 +13,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface ChartDataPoint {
   month: string;
@@ -53,7 +54,7 @@ export function SharedBalanceChart({
         month: item.month,
         credits: item.income,
         debits: item.expense,
-        net: item.income - item.expense
+        net: SafeFinancialCalculator.subtract(item.income, item.expense)
       }));
     }
 
@@ -88,9 +89,9 @@ export function SharedBalanceChart({
             itemYear === monthDate.getFullYear()
           ) {
             if (item.type === "CREDIT" && !item.isPaid) {
-              credits += item.amount;
+              credits = SafeFinancialCalculator.add(credits, item.amount);
             } else if (item.type === "DEBIT" && !item.isPaid) {
-              debits += item.amount;
+              debits = SafeFinancialCalculator.add(debits, item.amount);
             }
           }
         });
@@ -100,7 +101,7 @@ export function SharedBalanceChart({
         month: monthLabel,
         credits,
         debits,
-        net: credits - debits,
+        net: SafeFinancialCalculator.subtract(credits, debits),
       });
     }
 
@@ -110,7 +111,7 @@ export function SharedBalanceChart({
   const safeChartData = chartData || [];
   const currentMonthData = safeChartData.length > 0 ? safeChartData[safeChartData.length - 1] : null;
   const previousMonthData = safeChartData.length > 1 ? safeChartData[safeChartData.length - 2] : null;
-  const trend = currentMonthData ? (currentMonthData.net - (previousMonthData?.net || 0)) : 0;
+  const trend = currentMonthData ? SafeFinancialCalculator.subtract(currentMonthData.net, previousMonthData?.net || 0) : 0;
 
   const formatCurrency = (value: number) => {
     if (currency && currency !== "BRL") {

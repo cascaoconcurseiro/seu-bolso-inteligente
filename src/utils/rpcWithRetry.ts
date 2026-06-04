@@ -39,19 +39,20 @@ function calculateBackoffDelay(attempt: number, baseDelayMs: number): number {
  * Verifica se um erro é retriável
  * Alguns erros (como 401 Unauthorized) não devem ser retentados
  */
-function isRetriableError(error: any): boolean {
+function isRetriableError(error: unknown): boolean {
+  const err = error as Record<string, unknown>;
   // Erros de autenticação não são retriáveis
-  if (error?.status === 401 || error?.code === 'PGRST301') {
+  if (err?.status === 401 || err?.code === 'PGRST301') {
     return false;
   }
 
   // Erros de permissão não são retriáveis
-  if (error?.status === 403 || error?.code === '42501') {
+  if (err?.status === 403 || err?.code === '42501') {
     return false;
   }
 
   // Erros de validação não são retriáveis
-  if (error?.status === 400 || error?.code === '42601') {
+  if (err?.status === 400 || err?.code === '42601') {
     return false;
   }
 
@@ -69,7 +70,7 @@ function isRetriableError(error: any): boolean {
  * 
  * @throws Error se todas as tentativas falharem
  */
-export async function rpcWithRetry<T = any>(
+export async function rpcWithRetry<T = unknown>(
   functionName: string,
   params?: Record<string, unknown>,
   options: RpcRetryOptions = {}
@@ -91,7 +92,7 @@ export async function rpcWithRetry<T = any>(
       });
 
       // Criar promise com timeout
-      const rpcPromise = supabase.rpc(functionName as any, params);
+      const rpcPromise = supabase.rpc(functionName as never, params);
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
@@ -102,7 +103,7 @@ export async function rpcWithRetry<T = any>(
       const { data, error } = await Promise.race([
         rpcPromise,
         timeoutPromise,
-      ]) as any;
+      ]) as Promise<{ data: unknown; error: Error | null }>;
 
       if (error) {
         throw error;
@@ -159,7 +160,7 @@ export async function rpcWithRetry<T = any>(
  * Versão simplificada que retorna resultado com metadados
  * Útil quando você quer saber quantas tentativas foram necessárias
  */
-export async function rpcWithRetryDetailed<T = any>(
+export async function rpcWithRetryDetailed<T = unknown>(
   functionName: string,
   params?: Record<string, unknown>,
   options: RpcRetryOptions = {}
@@ -178,7 +179,7 @@ export async function rpcWithRetryDetailed<T = any>(
     try {
       logger.debug(`[RPC] Tentativa ${attempt + 1}/${maxRetries}: ${functionName}`);
 
-      const rpcPromise = supabase.rpc(functionName as any, params);
+      const rpcPromise = supabase.rpc(functionName as never, params);
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
@@ -189,7 +190,7 @@ export async function rpcWithRetryDetailed<T = any>(
       const { data, error } = await Promise.race([
         rpcPromise,
         timeoutPromise,
-      ]) as any;
+      ]) as Promise<{ data: unknown; error: Error | null }>;
 
       if (error) {
         throw error;
@@ -248,7 +249,7 @@ export async function rpcWithRetryDetailed<T = any>(
  * Batch RPC calls com retry
  * Útil para múltiplas chamadas RPC que devem ser feitas em paralelo
  */
-export async function batchRpcWithRetry<T = any>(
+export async function batchRpcWithRetry<T = unknown>(
   calls: Array<{
     functionName: string;
     params?: Record<string, unknown>;
