@@ -154,11 +154,11 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
     try {
       const [yearStr, monthStr] = selectedMonth.split('-');
-      const startCompetence = new Date(Number(yearStr), Number(monthStr) - 1, 1);
       
-      // Criamos a transação na data de fechamento daquele mês selecionado
+      // Criamos a transação num dia anterior ao fechamento para que a competência (fatura)
+      // caia exatamente no mês selecionado, de acordo com o ciclo do cartão.
       const closingDay = account?.closing_day || 1;
-      const transactionDate = new Date(Number(yearStr), Number(monthStr) - 1, closingDay);
+      const transactionDate = new Date(Number(yearStr), Number(monthStr) - 1, closingDay - 1);
       const transactionDateStr = formatLocalDate(transactionDate);
 
       // Quantas parcelas vamos criar
