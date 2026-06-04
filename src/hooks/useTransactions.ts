@@ -880,7 +880,8 @@ export function useUpdateTransaction() {
       }
       
       // We update splits separately since they are in another table.
-      const { splits, ...restUpdateData } = updateData as any;
+      const { splits, transaction_splits, ...restUpdateData } = updateData as any;
+      const actualSplits = transaction_splits || splits;
 
       const { data, error } = await supabase
         .from("transactions")
@@ -898,13 +899,13 @@ export function useUpdateTransaction() {
         throw new Error(`Erro ao atualizar transação: ${error.message}`);
       }
 
-      if (splits) {
+      if (actualSplits) {
         // Excluir splits existentes
         await supabase.from("transaction_splits").delete().eq("transaction_id", id);
         
         // Inserir os novos
-        if (splits.length > 0) {
-          const memberIds = splits.map((s: any) => s.member_id);
+        if (actualSplits.length > 0) {
+          const memberIds = actualSplits.map((s: any) => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
@@ -925,14 +926,14 @@ export function useUpdateTransaction() {
           });
 
           let allocatedSum = 0;
-          const splitsToInsert = splits.map((split: any, index: number) => {
+          const splitsToInsert = actualSplits.map((split: any, index: number) => {
             const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
             const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
             const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
             const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
             
             let splitAmount = 0;
-            if (index === splits.length - 1) {
+            if (index === actualSplits.length - 1) {
               splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
             } else {
               const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
