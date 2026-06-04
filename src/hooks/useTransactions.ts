@@ -874,6 +874,17 @@ export function useUpdateTransaction() {
     mutationFn: async ({ id, ...updateData }: Partial<Transaction> & { id: string }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
+      // Verificar se a transação já foi liquidada
+      const { data: existingTx } = await supabase
+        .from("transactions")
+        .select("is_settled")
+        .eq("id", id)
+        .single();
+        
+      if (existingTx?.is_settled) {
+        throw new Error("Esta transação já foi liquidada/acertada. Desfaça o acerto antes de editá-la.");
+      }
+
       // Validate payer_id and members if they are being updated
       if (updateData.payer_id !== undefined) {
         await validatePayerId(updateData.payer_id);

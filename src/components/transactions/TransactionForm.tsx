@@ -171,7 +171,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   // Populate from initialData
   useEffect(() => {
     if (initialData && typeof initialData === 'object') {
-      const data = initialData;
+      const data = initialData as any;
       if (data.type) setActiveTab(data.type);
       if (data.amount !== undefined && data.amount !== null) setAmount(data.amount.toString());
       if (data.description) setDescription(data.description);
@@ -184,6 +184,20 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       if (data.payer_id) setPayerId(data.payer_id);
       if (data.is_installment) setIsInstallment(data.is_installment);
       if (data.total_installments) setTotalInstallments(data.total_installments);
+      
+      if (data.transaction_splits && Array.isArray(data.transaction_splits) && data.transaction_splits.length > 0) {
+        setSplits(data.transaction_splits.map((s: any) => ({
+          memberId: s.member_id || s.memberId,
+          percentage: s.percentage,
+          amount: s.amount
+        })));
+      } else if (data.splits && Array.isArray(data.splits) && data.splits.length > 0) {
+        setSplits(data.splits.map((s: any) => ({
+          memberId: s.member_id || s.memberId,
+          percentage: s.percentage,
+          amount: s.amount
+        })));
+      }
     }
   }, [initialData]);
 
@@ -254,10 +268,9 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     return familyMembersList.filter(m => m.id !== payerMemberId);
   }, [tripId, tripMembers, familyMembers, user?.id, payerId]);
 
-  // Limpar divisões de gastos (splits) se o pagador mudar para evitar dados inconsistentes
-  useEffect(() => {
-    setSplits([]);
-  }, [payerId]);
+  // A limpeza automática de splits (setSplits([])) quando o payerId mudava 
+  // foi removida pois apagava os splits recém-carregados na edição. O UX no modal 
+  // lida bem com a manutenção dos splits caso o usuário troque "Eu Paguei" / "Outro Pagou".
 
   const creditCards = (accounts || []).filter((a) => a.type === 'CREDIT_CARD');
   const transferAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD');
