@@ -12,6 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Trash2, Archive } from "lucide-react";
 import {
   AlertDialog,
@@ -57,6 +64,8 @@ export function AccountDetail() {
 
   const [editAccountName, setEditAccountName] = useState("");
   const [editHideBalance, setEditHideBalance] = useState(false);
+  const [editYieldType, setEditYieldType] = useState<string>("NONE");
+  const [editYieldRate, setEditYieldRate] = useState<string>("100");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
@@ -108,15 +117,21 @@ export function AccountDetail() {
     if (!account) return;
     setEditAccountName(account.name);
     setEditHideBalance(account.hide_balance || false);
+    setEditYieldType(account.yield_type || "NONE");
+    setEditYieldRate(account.yield_rate ? account.yield_rate.toString() : "100");
     setShowEditDialog(true);
   };
 
   const handleSaveEdit = async () => {
     if (!account || !editAccountName.trim()) return;
+    const yRate = editYieldType !== "NONE" ? parseFloat(editYieldRate) : null;
+    const yType = editYieldType !== "NONE" ? editYieldType : null;
     await updateAccount.mutateAsync({
       id: account.id,
       name: editAccountName.trim(),
       hide_balance: editHideBalance,
+      yield_type: yType,
+      yield_rate: yRate,
     });
     setShowEditDialog(false);
   };
@@ -234,6 +249,28 @@ export function AccountDetail() {
               </div>
               <Switch checked={editHideBalance} onCheckedChange={setEditHideBalance} />
             </div>
+
+            {(account?.type === "INVESTMENT" || account?.type === "EMERGENCY_FUND") && !account?.is_international && (
+              <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
+                <div className="space-y-2">
+                  <Label>Rendimento Automático Diário</Label>
+                  <Select value={editYieldType} onValueChange={setEditYieldType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">Nenhum</SelectItem>
+                      <SelectItem value="CDI">CDI (% do CDI)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {editYieldType === "CDI" && (
+                  <div className="space-y-2">
+                    <Label>Taxa (%)</Label>
+                    <Input type="number" value={editYieldRate} onChange={(e) => setEditYieldRate(e.target.value)} placeholder="Ex: 100" />
+                    <p className="text-xs text-muted-foreground">O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button>

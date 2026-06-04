@@ -879,13 +879,13 @@ export function useUpdateTransaction() {
         await validatePayerId(updateData.payer_id);
       }
       
-      // We don't update splits through this generic hook yet to keep it simple,
-      // but we update the main transaction fields.
+      // We update splits separately since they are in another table.
+      const { splits, ...restUpdateData } = updateData as any;
 
       const { data, error } = await supabase
         .from("transactions")
         .update({
-          ...updateData, splits: undefined,
+          ...restUpdateData,
           updated_at: new Date().toISOString()
         })
         .eq("id", id)
@@ -896,6 +896,70 @@ export function useUpdateTransaction() {
       if (error) {
         logger.error("Erro ao atualizar transação:", error);
         throw new Error(`Erro ao atualizar transação: ${error.message}`);
+      }
+
+      if (splits) {
+        // Excluir splits existentes
+        await supabase.from("transaction_splits").delete().eq("transaction_id", id);
+        
+        // Inserir os novos
+        if (splits.length > 0) {
+          const memberIds = splits.map((s: any) => s.member_id);
+          const { data: membersData } = await supabase
+            .from("family_members")
+            .select("id, name, linked_user_id")
+            .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
+          
+          const memberNames: Record<string, string> = {};
+          const memberUserIds: Record<string, string> = {};
+          const userIdToMemberId: Record<string, string> = {};
+          const userIdToName: Record<string, string> = {};
+          
+          membersData?.forEach(m => {
+            memberNames[m.id] = m.name;
+            if (m.linked_user_id) {
+              memberUserIds[m.id] = m.linked_user_id;
+              userIdToMemberId[m.linked_user_id] = m.id;
+              userIdToName[m.linked_user_id] = m.name;
+            }
+          });
+
+          let allocatedSum = 0;
+          const splitsToInsert = splits.map((split: any, index: number) => {
+            const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
+            const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
+            const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
+            const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
+            
+            let splitAmount = 0;
+            if (index === splits.length - 1) {
+              splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
+            } else {
+              const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
+              splitAmount = baseAmount;
+              allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
+            }
+
+            return {
+              transaction_id: id,
+              member_id: actualMemberId,
+              user_id: actualUserId,
+              percentage: split.percentage,
+              amount: splitAmount,
+              name: actualName || "Membro",
+              is_settled: false,
+            };
+          });
+
+          const { error: splitsError } = await supabase
+            .from("transaction_splits")
+            .insert(splitsToInsert);
+
+          if (splitsError) {
+            logger.error("Erro ao atualizar splits:", splitsError);
+            throw new Error(`Erro ao atualizar divisões: ${splitsError.message}`);
+          }
+        }
       }
 
       return data as Transaction;

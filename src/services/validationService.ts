@@ -365,6 +365,7 @@ export function validateTransaction(
     
     const duplicates = allTransactions.filter(tx => {
       if (tx.id === transaction.id) return false; // Ignorar a própria transação em edição
+      if (transaction.series_id && tx.series_id === transaction.series_id) return false; // Ignorar transações da mesma série/parcelamento
       
       // 1. Filtros leves rápidos (evitam criar objetos de data desnecessários)
       const isSameAmount = Math.abs((tx.amount || 0) - (transaction.amount || 0)) < 0.01;

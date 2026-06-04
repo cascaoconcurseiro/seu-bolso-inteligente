@@ -217,6 +217,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       }
       const hasDuplicate = allTransactions.some((tx) => {
         if (initialData && tx.id === initialData.id) return false;
+        if (initialData && initialData.series_id && tx.series_id === initialData.series_id) return false;
         if (tx.type !== activeTab) return false;
         const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
         const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
@@ -228,7 +229,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       setDuplicateWarning(hasDuplicate);
     }, 500);
     return () => clearTimeout(handler);
-  }, [amount, description, date, activeTab, allTransactions]);
+  }, [amount, description, date, activeTab, allTransactions, initialData]);
 
   // Available Members logic
   const availableMembers = useMemo(() => {
@@ -467,7 +468,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     };
 
     const validation = validateTransaction(
-      transactionData as Partial<Transaction>,
+      { ...transactionData, id: isEdit ? initialData?.id : undefined, series_id: isEdit ? initialData?.series_id : undefined } as Partial<Transaction>,
       selectedAccount,
       accounts?.find(a => a.id === destinationAccountId),
       selectedTrip,
