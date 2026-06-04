@@ -301,7 +301,6 @@ export function Transactions() {
       <TransactionList
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}
-        onDetails={setDetailsTransaction}
         onAdvance={handleAdvance}
         onEdit={handleEdit}
         onDelete={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}

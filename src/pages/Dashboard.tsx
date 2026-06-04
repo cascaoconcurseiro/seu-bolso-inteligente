@@ -12,7 +12,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
-import { PendingTripInvitationsAlert } from "@/components/shared/PendingTripInvitationsAlert";
+import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
