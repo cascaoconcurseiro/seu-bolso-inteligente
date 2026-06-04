@@ -499,10 +499,13 @@ export function useCreateTransaction() {
 
       // Parcelamento
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
-        const seriesId = crypto.randomUUID();
+        const seriesId = input.series_id || crypto.randomUUID();
+        const startingInstallment = input.current_installment || 1;
+        const installmentsToCreate = input.total_installments - startingInstallment + 1;
+
         const installmentAmount = SafeFinancialCalculator.calculateInstallment(
           input.amount,
-          input.total_installments
+          installmentsToCreate
         );
         
         const baseDate = dateUtils.parseDate(input.date);
@@ -510,7 +513,8 @@ export function useCreateTransaction() {
         const transactions = [];
         let allocatedAmount = 0;
         
-        for (let i = 0; i < input.total_installments; i++) {
+        for (let i = 0; i < installmentsToCreate; i++) {
+          const currentInstNum = startingInstallment + i;
           const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
           const formattedDate = dateUtils.formatDate(installmentDate);
           const competenceDate = calculateCompetence(formattedDate);
@@ -518,7 +522,7 @@ export function useCreateTransaction() {
           const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
           
           let currentAmount = installmentAmount;
-          if (i === input.total_installments - 1) {
+          if (i === installmentsToCreate - 1) {
             currentAmount = SafeFinancialCalculator.subtract(input.amount, allocatedAmount);
           } else {
             allocatedAmount = SafeFinancialCalculator.add(allocatedAmount, currentAmount);
@@ -531,8 +535,8 @@ export function useCreateTransaction() {
             amount: currentAmount,
             date: formattedDate,
             competence_date: competenceDate,
-            description: `${input.description} (${i + 1}/${input.total_installments})`,
-            current_installment: i + 1,
+            description: `${input.description} (${currentInstNum}/${input.total_installments})`,
+            current_installment: currentInstNum,
             series_id: seriesId,
             is_shared: isSharedNow,
             domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
