@@ -73,7 +73,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
-  const { data: familyMembers = [] } = useFamilyMembers();
+  const { data: familyMembers = [], isLoading: membersLoading } = useFamilyMembers();
   const myMemberRecord = useMemo(() => {
     return (familyMembers || []).find(m => m.linked_user_id === user?.id);
   }, [familyMembers, user?.id]);
@@ -278,16 +278,18 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const isExpense = activeTab === 'EXPENSE';
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
-  const isPaidByOther = payerId !== 'me' && payerId !== '' && payerId !== myMemberRecord?.id;
+  const isPaidByOther = !membersLoading && payerId !== 'me' && payerId !== '' && payerId !== myMemberRecord?.id && payerId !== user?.id;
   const selectedAccount = accounts?.find((a) => a.id === accountId);
   const selectedDestAccount = accounts?.find((a) => a.id === destinationAccountId);
 
   // Corrigir payerId vindo do banco caso seja o próprio usuário
   useEffect(() => {
-    if (myMemberRecord?.id && payerId === myMemberRecord.id) {
+    if (payerId === user?.id) {
+      setPayerId('me');
+    } else if (myMemberRecord?.id && payerId === myMemberRecord.id) {
       setPayerId('me');
     }
-  }, [myMemberRecord?.id, payerId]);
+  }, [user?.id, myMemberRecord?.id, payerId]);
   
   const isExchangeTransfer = activeTab === 'TRANSFER' && 
     selectedAccount && 

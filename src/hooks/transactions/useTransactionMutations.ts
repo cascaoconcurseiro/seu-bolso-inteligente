@@ -15,7 +15,7 @@ import { createNotification } from "@/services/notificationService";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 import { toast } from "sonner";
-import { callRPCWithRetry } from "@/utils/rpcWithRetry";
+import { rpcWithRetry } from "@/utils/rpcWithRetry";
 
 export function useBulkCreateTransactions() {
   const { user } = useAuth();
@@ -299,7 +299,7 @@ export function useDeleteInstallmentSeries() {
   return useMutation({
     mutationFn: async (seriesId: string) => {
       // CORREÇÃO: Usar RPC com retry para maior resiliência (Critério Alto #7)
-      const data = await callRPCWithRetry('delete_installment_series', { p_series_id: seriesId });
+      const data = await rpcWithRetry('delete_installment_series', { p_series_id: seriesId });
       
       const deletedCount = (data as any)?.[0]?.deleted_count || 0;
       

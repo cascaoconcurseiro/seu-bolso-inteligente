@@ -219,7 +219,8 @@ export function Transactions() {
 
   const getPayerInfo = (transaction: Transaction) => {
     if (!transaction.is_shared) return null;
-    if (!transaction.payer_id || transaction.payer_id === user?.id) return { label: 'Você pagou', isMe: true };
+    const myFamilyMemberId = familyMembers.find(m => m.linked_user_id === user?.id)?.id;
+    if (!transaction.payer_id || transaction.payer_id === user?.id || transaction.payer_id === myFamilyMemberId) return { label: 'Você pagou', isMe: true };
     const payer = familyMembers.find(m => m.id === transaction.payer_id);
     return payer ? { label: `Pago por ${payer.name}`, isMe: false } : null;
   };

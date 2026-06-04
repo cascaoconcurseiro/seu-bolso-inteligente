@@ -445,8 +445,6 @@ export function SplitModal({
                       { label: '60/40', myPct: 60 },
                       { label: '70/30', myPct: 70 },
                       { label: '80/20', myPct: 80 },
-                      { label: '100/0', myPct: 100 },
-                      { label: '0/100', myPct: 0 },
                     ].map((preset) => {
                       const otherPct = 100 - preset.myPct;
                       const isActive =
