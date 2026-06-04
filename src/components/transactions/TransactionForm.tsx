@@ -265,9 +265,16 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   const isExpense = activeTab === 'EXPENSE';
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
-  const isPaidByOther = payerId !== 'me' && payerId !== '';
+  const isPaidByOther = payerId !== 'me' && payerId !== '' && payerId !== myMemberRecord?.id;
   const selectedAccount = accounts?.find((a) => a.id === accountId);
   const selectedDestAccount = accounts?.find((a) => a.id === destinationAccountId);
+
+  // Corrigir payerId vindo do banco caso seja o próprio usuário
+  useEffect(() => {
+    if (myMemberRecord?.id && payerId === myMemberRecord.id) {
+      setPayerId('me');
+    }
+  }, [myMemberRecord?.id, payerId]);
   
   const isExchangeTransfer = activeTab === 'TRANSFER' && 
     selectedAccount && 
