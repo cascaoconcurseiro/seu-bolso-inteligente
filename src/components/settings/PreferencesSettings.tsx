@@ -205,7 +205,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CURRENT_MONTH">Cobrar no Mês do Lançamento</SelectItem>
-                  <SelectItem value="CYCLE">Seguir Ciclo/Fatura Compartilhada</SelectItem>
+                  <SelectItem value="CYCLE">Seguir Ciclo do Cartão de Crédito</SelectItem>
                 </SelectContent>
               </Select>
               <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg border border-border/50 space-y-2 mt-3">
@@ -216,7 +216,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                   </>
                 ) : (
                   <>
-                    <p className="font-semibold text-foreground">Seguir Ciclo/Fatura Compartilhada:</p>
+                    <p className="font-semibold text-foreground">Seguir Ciclo do Cartão de Crédito:</p>
                     <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Sincronize com um cartão mestre e tudo que for gasto acumulará para o seu parceiro(a) pagar apenas no mês seguinte.</p>
                   </>
                 )}

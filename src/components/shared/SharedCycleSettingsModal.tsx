@@ -91,7 +91,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CURRENT_MONTH">Cobrar no Mês do Lançamento</SelectItem>
-                  <SelectItem value="CYCLE">Seguir Ciclo/Fatura Compartilhada</SelectItem>
+                  <SelectItem value="CYCLE">Seguir Ciclo do Cartão de Crédito</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -103,7 +103,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                   </>
                 ) : (
                   <>
-                    <p className="font-semibold text-foreground">Seguir Ciclo/Fatura Compartilhada:</p>
+                    <p className="font-semibold text-foreground">Seguir Ciclo do Cartão de Crédito:</p>
                     <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Sincronize com um cartão mestre e tudo que for gasto acumulará para o seu parceiro(a) pagar apenas no mês seguinte.</p>
                   </>
                 )}
