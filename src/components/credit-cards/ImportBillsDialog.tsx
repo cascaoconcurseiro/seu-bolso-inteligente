@@ -345,8 +345,8 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                 <CategorySelector
                   categories={categories}
                   value={categoryId}
-                  onChange={setCategoryId}
-                  type="EXPENSE"
+                  onValueChange={setCategoryId}
+                  type="expense"
                 />
               </div>
 
