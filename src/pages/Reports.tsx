@@ -58,6 +58,7 @@ export function Reports() {
   const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
   const [txSearch, setTxSearch] = useState<string>("");
   const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
+  const [showOnlyCreditCards, setShowOnlyCreditCards] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   
   const { user } = useAuth();
@@ -264,9 +265,14 @@ export function Reports() {
       if (txCurr === 'EUR') {
         console.log('🟢 [DEBUG periodTransactions] Found EUR transaction in period:', tx.description, tx.amount, 'txCurr:', txCurr, 'selected:', selectedCurrency, 'tx.currency:', tx.currency, 'tx.account:', tx.account);
       }
-      return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
+      
+      const matchesCurrency = selectedCurrency === 'ALL' || txCurr === selectedCurrency;
+      const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
+      const matchesCC = !showOnlyCreditCards || (tx.account_id && creditCardIds.includes(tx.account_id));
+      
+      return matchesCurrency && matchesCC;
     });
-  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts]);
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts, showOnlyCreditCards]);
 
   const sharedPeriodTransactions = useMemo(() => {
     const targetYear = safeCurrentDate.getFullYear();
@@ -683,6 +689,16 @@ export function Reports() {
                 Anual
               </Button>
             </div>
+
+            <Button
+              variant={showOnlyCreditCards ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowOnlyCreditCards(!showOnlyCreditCards)}
+              className={showOnlyCreditCards ? "bg-primary text-primary-foreground shadow-sm" : ""}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              Cartões
+            </Button>
           {availableCurrencies.length > 1 && (
             <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
               <SelectTrigger className="w-[140px]"><SelectValue><span className="flex items-center gap-2"><span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>{selectedCurrency}</span></SelectValue></SelectTrigger>

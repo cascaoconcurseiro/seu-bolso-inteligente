@@ -948,3 +948,231 @@ export const exportSharedToPDF = (invoiceItems: any[], periodLabel: string, tota
   addFooter(doc);
   doc.save(`extrato_compartilhado_${periodLabel.toLowerCase().replace(/\s+/g, '_')}.pdf`);
 };
+
+// =========================================================================
+// RELATÓRIOS DETALHADOS DE UM CARTÃO ESPECÍFICO (CICLO / ANUAL)
+// =========================================================================
+
+export const exportDetailedCardReportToPDF = (transactions: any[], card: any, periodLabel: string) => {
+  if (!transactions || transactions.length === 0) {
+    toast.error("Não há lançamentos no período selecionado para exportar.");
+    return;
+  }
+
+  const doc = new jsPDF();
+  const today = new Date().toLocaleDateString('pt-BR');
+  const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  // 1. Cabeçalho Premium
+  doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
+  doc.rect(0, 0, 210, 35, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('controle financeiro', 14, 20);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Relatório Detalhado: Cartão ${card?.name || ''} - ${periodLabel}`, 14, 28);
+  doc.text(`Emitido em: ${today} às ${now}`, 150, 20);
+
+  // Calcular TOTAIS e CATEGORIAS
+  let totalExpense = 0;
+  const categoriesMap: Record<string, number> = {};
+  
+  const currency = card?.currency || 'BRL';
+
+  transactions.forEach(t => {
+     const amt = Number(t.amount || 0);
+     if (t.type === 'EXPENSE') {
+       totalExpense += amt;
+       const catName = t.category?.name || 'Outros';
+       categoriesMap[catName] = (categoriesMap[catName] || 0) + amt;
+     } else if (t.type === 'INCOME') {
+       totalExpense -= amt;
+     }
+  });
+
+  const categoriesList = Object.entries(categoriesMap)
+    .sort((a, b) => b[1] - a[1]) // maior pra menor
+    .filter(([_, val]) => val > 0);
+
+  // 2. Resumo da Fatura/Período
+  doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Resumo do Cartão', 14, 48);
+
+  safeCallAutoTable(doc, {
+    body: [
+      ['Gasto Total no Período:', formatExportMoney(totalExpense, currency)],
+      ['Limite do Cartão:', formatExportMoney(Number(card?.credit_limit || 0), currency)]
+    ],
+    startY: 52,
+    theme: 'plain',
+    styles: { fontSize: 10, cellPadding: 2 },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [100, 110, 120], cellWidth: 50 },
+      1: { fontStyle: 'bold', textColor: [239, 68, 68] }
+    }
+  });
+
+  let nextStartY = getNextStartY(doc, 75);
+
+  // 3. Distribuição por Categoria
+  if (categoriesList.length > 0) {
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+    doc.text('Maiores Gastos por Categoria', 14, nextStartY);
+
+    safeCallAutoTable(doc, {
+      head: [['Categoria', 'Valor', '% do Total']],
+      body: categoriesList.slice(0, 10).map(([cat, val]) => [
+        cat,
+        formatExportMoney(val, currency),
+        ((val / Math.max(totalExpense, 1)) * 100).toFixed(1) + '%'
+      ]),
+      startY: nextStartY + 5,
+      theme: 'striped',
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [100, 110, 120] },
+      columnStyles: {
+        1: { halign: 'right' },
+        2: { halign: 'right' }
+      }
+    });
+
+    nextStartY = getNextStartY(doc, nextStartY + 30);
+  }
+
+  // 4. Lista de Lançamentos
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Lançamentos Detalhados', 14, nextStartY);
+
+  const tableColumn = ["Data", "Descrição", "Categoria", "Parcela", "Moeda", "Valor"];
+  const tableRows = transactions.map(t => {
+    const installmentText = t.is_installment 
+      ? `Parc. ${t.current_installment}/${t.total_installments}` 
+      : 'À vista';
+
+    const tCurrency = resolveItemCurrency(t, [card]);
+    return [
+      safeFormatDate(t.date),
+      t.description || 'Sem descrição',
+      t.category?.name || 'Sem categoria',
+      installmentText,
+      tCurrency,
+      formatExportMoney(Number(t.amount || 0), tCurrency)
+    ];
+  });
+
+  safeCallAutoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+    startY: nextStartY + 5,
+    theme: 'striped',
+    styles: { fontSize: 8.5 },
+    headStyles: { fillColor: BRAND_COLOR },
+    columnStyles: {
+      5: { halign: 'right', fontStyle: 'bold' }
+    },
+    didParseCell: (cellData: any) => {
+      if (cellData.section === 'body' && cellData.column.index === 5) {
+         cellData.cell.styles.textColor = [239, 68, 68]; // Red for expenses
+      }
+    }
+  });
+
+  addFooter(doc);
+  doc.save(`relatorio_detalhado_${card?.name?.replace(/\s+/g, '_')}_${periodLabel.toLowerCase().replace(/\s+/g, '_')}.pdf`);
+};
+
+export const exportDetailedCardReportToCSV = (transactions: any[], card: any, periodLabel: string) => {
+  if (!transactions || transactions.length === 0) {
+    toast.error("Não há lançamentos no período selecionado para exportar.");
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('pt-BR');
+  const currency = card?.currency || 'BRL';
+  
+  let totalExpense = 0;
+  transactions.forEach(t => {
+     const amt = Number(t.amount || 0);
+     if (t.type === 'EXPENSE') totalExpense += amt;
+     else if (t.type === 'INCOME') totalExpense -= amt;
+  });
+
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8" />
+    <style>
+      table { border-collapse: collapse; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+      td, th { border: 1px solid #e5e7eb; padding: 6px 8px; font-size: 11px; }
+      .brand-title { background-color: #059669; color: #ffffff; font-size: 16px; font-weight: bold; text-align: center; height: 35px; }
+      .section-title { font-size: 12px; font-weight: bold; background-color: #f3f4f6; color: #1f2937; height: 25px; border-bottom: 2px solid #d1d5db; }
+      .th-premium { background-color: #059669; color: #ffffff; font-weight: bold; font-size: 10px; height: 25px; }
+      .text-cell { mso-number-format:"\\@"; text-align: left; }
+      .number-cell { mso-number-format:"\\#\\,\\#\\#0\\.00"; text-align: right; }
+      .date-cell { mso-number-format:"dd\\/mm\\/yyyy"; text-align: center; }
+    </style>
+    </head>
+    <body>
+    <table>
+      <tr>
+        <th colspan="6" class="brand-title">Relatório Detalhado: Cartão ${card?.name || ''} - ${periodLabel}</th>
+      </tr>
+      <tr><td colspan="6" style="border:none; height: 10px;"></td></tr>
+      <tr>
+        <th colspan="6" class="section-title">1. RESUMO</th>
+      </tr>
+      <tr>
+        <td colspan="2"><b>Gasto Total no Período:</b></td>
+        <td colspan="4" class="text-cell" style="color: red; font-weight: bold;">${formatExportMoney(totalExpense, currency)}</td>
+      </tr>
+      <tr><td colspan="6" style="border:none; height: 15px;"></td></tr>
+      <tr>
+        <th colspan="6" class="section-title">2. LANÇAMENTOS</th>
+      </tr>
+      <tr>
+        <th class="th-premium date-cell">Data</th>
+        <th class="th-premium text-cell">Descrição</th>
+        <th class="th-premium text-cell">Categoria</th>
+        <th class="th-premium text-cell">Parcela</th>
+        <th class="th-premium text-cell">Moeda</th>
+        <th class="th-premium number-cell">Valor</th>
+      </tr>
+  `;
+
+  transactions.forEach((t) => {
+    const dateFormatted = safeFormatDate(t.date);
+    const installmentText = t.is_installment 
+      ? \`Parc. \${t.current_installment}/\${t.total_installments}\` 
+      : 'À vista';
+    const amountVal = Number(t.amount || 0);
+    const tCurrency = resolveItemCurrency(t, [card]);
+
+    html += \`
+      <tr>
+        <td class="date-cell">\${dateFormatted}</td>
+        <td class="text-cell">\${t.description || 'Sem descrição'}</td>
+        <td class="text-cell">\${t.category?.name || 'Sem categoria'}</td>
+        <td class="text-cell">\${installmentText}</td>
+        <td class="text-cell">\${tCurrency}</td>
+        <td class="text-cell" style="font-weight: bold; color: #dc2626;">\${formatExportMoney(amountVal, tCurrency)}</td>
+      </tr>
+    \`;
+  });
+
+  html += \`
+    </table>
+    </body>
+    </html>
+  \`;
+
+  downloadExcel(html, \`relatorio_detalhado_\${card?.name?.replace(/\\s+/g, '_')}_\${periodLabel.toLowerCase().replace(/\\s+/g, '_')}.xls\`);
+};

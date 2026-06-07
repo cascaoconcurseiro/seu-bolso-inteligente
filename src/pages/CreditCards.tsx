@@ -313,6 +313,7 @@ export function CreditCards() {
             }); 
             setShowTransactionModal(true); 
           }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(selectedCard.id)}
+          allYearTransactions={exportTransactions}
         />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 

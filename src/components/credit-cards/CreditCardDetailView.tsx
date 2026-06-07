@@ -5,6 +5,7 @@ import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } from "@/utils/exportData";
 
 interface CreditCardDetailViewProps {
   selectedCard: any;
@@ -22,11 +23,12 @@ interface CreditCardDetailViewProps {
   daysUntilDue: number;
   usagePercent: number;
   bank: any;
-  setShowPayDialog: (show: boolean) => void;
-  setShowImportDialog: (show: boolean) => void;
+  setShowPayDialog: (v: boolean) => void;
+  setShowImportDialog: (v: boolean) => void;
   handleEditTransaction: (tx: any) => void;
-  setDeleteConfirm: (state: { isOpen: boolean; transaction: any | null }) => void;
+  setDeleteConfirm: (v: { isOpen: boolean; transaction: any | null }) => void;
   installments: any[];
+  allYearTransactions?: any[];
 }
 
 export function CreditCardDetailView({
@@ -50,6 +52,7 @@ export function CreditCardDetailView({
   handleEditTransaction,
   setDeleteConfirm,
   installments,
+  allYearTransactions = []
 }: CreditCardDetailViewProps) {
   return (
     <div className="space-y-8 animate-fade-in">
@@ -200,11 +203,11 @@ export function CreditCardDetailView({
         </div>
         
         {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-2 mt-6 flex-wrap">
           <Button 
             variant="secondary" 
             size="sm" 
-            className="flex-1 bg-white/20 hover:bg-white/30 text-white border-0"
+            className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
             onClick={() => setShowPayDialog(true)}
           >
             <Wallet className="h-4 w-4 mr-2" />
@@ -213,12 +216,51 @@ export function CreditCardDetailView({
           <Button 
             variant="secondary" 
             size="sm" 
-            className="flex-1 bg-white/20 hover:bg-white/30 text-white border-0"
+            className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
             onClick={() => setShowImportDialog(true)}
           >
             <Download className="h-4 w-4 mr-2" />
             Importar
           </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => exportDetailedCardReportToPDF(invoiceData.transactions, selectedCard, `Fatura ${monthName}`)}>
+                Exportar Fatura Completa (PDF)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportDetailedCardReportToCSV(invoiceData.transactions, selectedCard, `Fatura ${monthName}`)}>
+                Exportar Fatura em Excel (CSV)
+              </DropdownMenuItem>
+              
+              {allYearTransactions.length > 0 && (
+                <>
+                  <div className="h-px bg-border my-1" />
+                  <DropdownMenuItem onClick={() => {
+                    const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
+                    exportDetailedCardReportToPDF(cardYearTxs, selectedCard, `Ano ${selectedDate.getFullYear()}`);
+                  }}>
+                    Exportar Relatório Anual (PDF)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
+                    exportDetailedCardReportToCSV(cardYearTxs, selectedCard, `Ano ${selectedDate.getFullYear()}`);
+                  }}>
+                    Exportar Relatório Anual (CSV)
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
