@@ -1151,28 +1151,28 @@ export const exportDetailedCardReportToCSV = (transactions: any[], card: any, pe
   transactions.forEach((t) => {
     const dateFormatted = safeFormatDate(t.date);
     const installmentText = t.is_installment 
-      ? \`Parc. \${t.current_installment}/\${t.total_installments}\` 
+      ? `Parc. ${t.current_installment}/${t.total_installments}` 
       : 'À vista';
     const amountVal = Number(t.amount || 0);
     const tCurrency = resolveItemCurrency(t, [card]);
 
-    html += \`
+    html += `
       <tr>
-        <td class="date-cell">\${dateFormatted}</td>
-        <td class="text-cell">\${t.description || 'Sem descrição'}</td>
-        <td class="text-cell">\${t.category?.name || 'Sem categoria'}</td>
-        <td class="text-cell">\${installmentText}</td>
-        <td class="text-cell">\${tCurrency}</td>
-        <td class="text-cell" style="font-weight: bold; color: #dc2626;">\${formatExportMoney(amountVal, tCurrency)}</td>
+        <td class="date-cell">${dateFormatted}</td>
+        <td class="text-cell">${t.description || 'Sem descrição'}</td>
+        <td class="text-cell">${t.category?.name || 'Sem categoria'}</td>
+        <td class="text-cell">${installmentText}</td>
+        <td class="text-cell">${tCurrency}</td>
+        <td class="text-cell" style="font-weight: bold; color: #dc2626;">${formatExportMoney(amountVal, tCurrency)}</td>
       </tr>
-    \`;
+    `;
   });
 
-  html += \`
+  html += `
     </table>
     </body>
     </html>
-  \`;
+  `;
 
-  downloadExcel(html, \`relatorio_detalhado_\${card?.name?.replace(/\\s+/g, '_')}_\${periodLabel.toLowerCase().replace(/\\s+/g, '_')}.xls\`);
+  downloadExcel(html, `relatorio_detalhado_${card?.name?.replace(/\s+/g, '_')}_${periodLabel.toLowerCase().replace(/\s+/g, '_')}.xls`);
 };
