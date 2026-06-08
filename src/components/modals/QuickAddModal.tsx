@@ -53,7 +53,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
       "Lazer",
       "Viagens",
       "Família e Pets",
-      "Impostos e Taxas",
+      "Financeiro",
+      "Impostos",
       "Outros"
     ];
 

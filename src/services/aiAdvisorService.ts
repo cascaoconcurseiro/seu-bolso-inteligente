@@ -855,17 +855,23 @@ const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
     type: "despesa"
   },
 
-  // --- DESPESAS: IMPOSTOS E TAXAS ---
+  // --- DESPESAS: FINANCEIRO E IMPOSTOS ---
   {
-    keywords: ["darf", "das", "mei das", "das-mei", "imposto de renda", "receita federal", "irpf", "imposto", "impostos", "tributo"],
+    keywords: ["imposto", "taxa", "darf", "das", "multa", "juros", "iof", "imposto renda", "irpf"],
     suggestion: "Impostos",
-    categoryMatch: "impostos e taxas",
+    categoryMatch: "impostos",
     type: "despesa"
   },
   {
-    keywords: ["tarifa bancaria", "anuidade", "anuidade cartao", "juros", "iof", "taxa banco", "tarifa conta", "juros cheque especial", "multa", "multa atraso", "multa transito"],
-    suggestion: "Tarifas & Taxas",
-    categoryMatch: "impostos e taxas",
+    keywords: ["tarifa bancaria", "manutencao conta", "anuidade", "taxa cartao", "juros cheque especial", "tarifa"],
+    suggestion: "Taxas e Tarifas Bancárias",
+    categoryMatch: "financeiro",
+    type: "despesa"
+  },
+  {
+    keywords: ["emprestimo", "financiamento", "parcela emprestimo", "consignado", "juros emprestimo"],
+    suggestion: "Empréstimos e Financiamentos",
+    categoryMatch: "financeiro",
     type: "despesa"
   },
 
@@ -1275,7 +1281,7 @@ Se a lista de categorias disponíveis abaixo contiver categorias de DESPESA (Sup
 - "Gasolina": Abastecimento de veículo em postos de combustível (gasolina, álcool, diesel, GNV), Posto Ipiranga, Petrobras, Shell, etc.
 - "Transporte": Qualquer gasto relacionado a locomoção urbana ou manutenção de veículos, como aplicativos de mobilidade (Uber, 99, táxi), transporte público (ônibus, metrô, trem), tarifas de pedágio, estacionamentos, lavagem, mecânico, pneu, seguro, IPVA, licenciamento, conserto e manutenção de carros/motos.
   * ATENÇÃO ABSOLUTA: A palavra isolada "Uber" é TRANSPORTE. A palavra "Uber Eats" (ou qualquer menção a comida no Uber) é DELIVERY. A palavra "Carro" isolada ou associada a peças e mecânica pertence obrigatoriamente a "Transporte"!
-- "Moradia", "Contas e Assinaturas", "Saúde", "Educação", "Compras", "Lazer", "Viagens", "Família e Pets", "Impostos e Taxas", "Outros".
+- "Moradia", "Contas e Assinaturas", "Saúde", "Educação", "Compras", "Lazer", "Viagens", "Família e Pets", "Financeiro", "Impostos", "Outros".
 
 Se a lista de categorias disponíveis abaixo contiver apenas categorias de RECEITA (Trabalho, Investimentos, Renda Extra, Sistema, Outros), mapeie conforme as regras de RECEITA:
 - "Trabalho": Ganhos vindos do emprego, salários, adiantamento salarial, pró-labore, horas extras, comissões, bônus corporativos, décimo terceiro (13º salário), férias e receitas de prestação de serviços como trabalhador autônomo, freelancers, "jobs" ou consultorias.

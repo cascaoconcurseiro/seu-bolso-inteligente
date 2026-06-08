@@ -92,7 +92,8 @@ export function CategorySelector({
     "Lazer",
     "Viagens",
     "Família e Pets",
-    "Impostos e Taxas",
+    "Financeiro",
+    "Impostos",
     "Outros"
   ];
 

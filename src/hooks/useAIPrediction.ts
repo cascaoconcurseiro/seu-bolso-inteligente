@@ -100,7 +100,8 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
           "Lazer",
           "Viagens",
           "Família e Pets",
-          "Impostos e Taxas",
+          "Financeiro",
+          "Impostos",
           "Outros"
         ];
 
