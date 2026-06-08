@@ -282,13 +282,13 @@ export function SharedExpenses() {
             <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Compartilhados</h1>
             <p className="text-muted-foreground mt-1 font-medium">Despesas divididas com a família e amigos</p>
           </div>
-          <div className="flex gap-2">
-            <Button size="icon" variant="outline" className="shadow-sm border-border/80" onClick={() => setShowSettingsModal(true)} title="Configurações de Ciclo">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button size="icon" variant="outline" className="shadow-sm border-border/80 w-full sm:w-10" onClick={() => setShowSettingsModal(true)} title="Configurações de Ciclo">
               <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="lg" variant="outline" className="gap-2 shadow-sm border-border/80">
+                <Button size="lg" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto">
                   <Download className="h-5 w-5" />
                   <span>Exportar</span>
                 </Button>
@@ -309,7 +309,7 @@ export function SharedExpenses() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="lg" variant="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2" onClick={() => setShowImportDialog(true)}>
+            <Button size="lg" variant="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2 w-full sm:w-auto" onClick={() => setShowImportDialog(true)}>
               <Layers className="h-5 w-5" /> 
               Importar Parcelas
             </Button>

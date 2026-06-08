@@ -106,7 +106,7 @@ export function Budgets() {
           <Button 
             onClick={() => setShowNewBudgetDialog(true)} 
             size="lg"
-            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11"
+            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto"
           >
             <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" /> 
             Novo Orçamento

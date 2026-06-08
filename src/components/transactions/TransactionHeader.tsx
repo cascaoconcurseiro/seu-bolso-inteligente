@@ -30,7 +30,7 @@ export function TransactionHeader({ count, filteredTransactions, filteredAnnualT
           <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Transações</h1>
           <p className="text-muted-foreground mt-1 font-medium">{count} registros</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Button variant="default" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" onClick={onImportOFX}>
           <FileSpreadsheet className="h-4 w-4" />
           <span className="hidden sm:inline">Importar OFX</span>
