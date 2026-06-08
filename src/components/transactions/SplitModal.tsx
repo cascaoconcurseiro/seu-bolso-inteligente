@@ -447,13 +447,13 @@ export function SplitModal({
                 )}
               </div>
 
-              {/* 3. PRESETS DE DIVISÃO RÁPIDA */}
+              {/* 3. PRESETS E AJUSTE DE DIVISÃO */}
               {splits.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Label className="text-xs uppercase tracking-widest text-muted-foreground">
                     Divisão Rápida
                   </Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
                       { label: '50/50', myPct: 50 },
                       { label: '60/40', myPct: 60 },
@@ -478,12 +478,34 @@ export function SplitModal({
                     })}
                   </div>
 
-                  <div className="p-3 rounded-lg bg-muted text-sm">
-                    <span className="text-muted-foreground">Parceiro paga: </span>
-                    <span className="font-medium">
-                      {totalOtherPct.toFixed(0)}% = R${' '}
-                      {((activeAmount * totalOtherPct) / 100).toFixed(2)}
-                    </span>
+                  <div className="space-y-3 pt-4 border-t border-border">
+                    <div className="flex items-center justify-between text-sm">
+                      <Label className="font-semibold text-foreground">
+                        Porcentagem da outra pessoa ({totalOtherPct.toFixed(0)}%)
+                      </Label>
+                      <span className="font-bold">
+                        R$ {((activeAmount * totalOtherPct) / 100).toFixed(2).replace('.', ',')} {isInstallment && totalInstallments > 1 ? '/ parcela' : ''}
+                      </span>
+                    </div>
+                    
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={totalOtherPct}
+                      onChange={(e) => {
+                        const otherPct = parseFloat(e.target.value);
+                        applyPreset(100 - otherPct);
+                      }}
+                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                    
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        Sua parte: R$ {((activeAmount * (100 - totalOtherPct)) / 100).toFixed(2).replace('.', ',')} ({(100 - totalOtherPct).toFixed(0)}%)
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
