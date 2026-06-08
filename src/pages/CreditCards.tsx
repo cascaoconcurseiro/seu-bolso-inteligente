@@ -221,7 +221,7 @@ export function CreditCards() {
       return { value: data.invoiceTotal, dueDate: data.dueDate, status: data.status };
     };
 
-  const getCardInstallments = (cardId: string) => transactions.filter(t => t.account_id === cardId && t.is_installment).map(t => ({ id: t.id, description: t.description, current: t.current_installment || 1, total: t.total_installments || 1, value: t.amount }));
+  const getCardInstallments = (invoiceTxs: any[]) => invoiceTxs.filter(t => t.is_installment).map(t => ({ id: t.id, description: t.description, current: t.current_installment || 1, total: t.total_installments || 1, value: t.amount }));
 
   const formatCurrency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
@@ -312,7 +312,7 @@ export function CreditCards() {
               date: tx.date.includes('T') ? tx.date : `${tx.date}T00:00:00`
             }); 
             setShowTransactionModal(true); 
-          }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(selectedCard.id)}
+          }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(invoiceData.transactions)}
           allYearTransactions={exportTransactions}
         />
 

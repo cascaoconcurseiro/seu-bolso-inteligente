@@ -45,7 +45,15 @@ function PageLoader() {
   );
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30, // 30 segundos mantendo dados locais "frescos"
+      gcTime: 1000 * 60 * 5, // 5 minutos em memória cache
+      refetchOnWindowFocus: false, // Menos agressivo ao focar a aba
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
