@@ -29,13 +29,18 @@ export function useGlobalRealtime() {
           const { table } = payload;
           console.log(`⚡ Evento Realtime recebido na tabela: ${table}`);
 
-          // O usuário solicitou que TODO o sistema seja em tempo real sem deixar nada de fora.
-          // Iniciar invalidação global de TUDO que estiver na tela do usuário.
           // O React Query é inteligente o suficiente para recarregar apenas o que está visível.
-          queryClient.invalidateQueries();
+          // Iniciar invalidação global de TUDO que estiver na tela do usuário.
+          // Porem para não sobrecarregar o celular, não usamos invalidateQueries global sem parâmetros.
           
-          // E também chamar a função massiva por garantia para áreas financeiras:
-          invalidateAllFinancialData(queryClient);
+          if ((window as any)._realtimeTimeout) {
+            clearTimeout((window as any)._realtimeTimeout);
+          }
+          
+          (window as any)._realtimeTimeout = setTimeout(() => {
+            console.log('🔄 Executando invalidação financeira após evento Realtime');
+            invalidateAllFinancialData(queryClient);
+          }, 1500);
         }
       )
       .subscribe((status) => {

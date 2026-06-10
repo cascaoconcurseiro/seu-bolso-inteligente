@@ -92,7 +92,7 @@ export function DraggableQuickAddFAB({ onClick }: DraggableQuickAddFABProps) {
   return (
     <Button
       className={cn(
-        "fixed h-14 w-14 rounded-full shadow-xl z-50 transition-colors active:scale-95 touch-none",
+        "hidden md:flex fixed h-14 w-14 rounded-full shadow-xl z-50 transition-colors active:scale-95 touch-none",
         isDragging ? "cursor-grabbing" : "cursor-grab"
       )}
       style={{
