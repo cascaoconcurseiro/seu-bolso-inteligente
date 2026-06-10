@@ -20,20 +20,73 @@ export function useCreateTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    onMutate: async (newTx) => {
+      // Cancelar refetches de transações para não sobrescrever nossa atualização otimista
+      await queryClient.cancelQueries({ queryKey: ["transactions"] });
+      await queryClient.cancelQueries({ queryKey: ["dashboard_data"] });
+
+      const previousTransactions = queryClient.getQueryData(["transactions"]);
+
+      // Injetar transação temporária na UI
+      if (user) {
+        queryClient.setQueryData(["transactions"], (old: any[]) => {
+          const optimisticTx = {
+            id: `temp-${Date.now()}`,
+            user_id: user.id,
+            creator_user_id: user.id,
+            amount: newTx.amount,
+            description: newTx.description,
+            date: newTx.date,
+            type: newTx.type,
+            account_id: newTx.account_id,
+            category_id: newTx.category_id,
+            is_shared: newTx.is_shared,
+            domain: newTx.domain || "PERSONAL",
+            created_at: new Date().toISOString(),
+            is_optimistic: true, // Útil caso queiramos mostrar um ícone de carregando
+            category: { id: newTx.category_id, name: '...', icon: '⏳' },
+            account: { id: newTx.account_id, name: '...' }
+          };
+          
+          if (!old) return [optimisticTx];
+          return [optimisticTx, ...old];
+        });
+      }
+
+      return { previousTransactions };
+    },
     mutationFn: async (input: CreateTransactionInput) => {
       if (!user) throw new Error("User not authenticated");
       
+      // ✅ PARALELIZAR CONSULTAS INICIAIS
+      const accDataPromise = input.account_id 
+        ? supabase.from("accounts").select("type, closing_day").eq("id", input.account_id).maybeSingle()
+        : Promise.resolve({ data: null });
+
+      const memberDataPromise = (input.is_shared && !input.payer_id)
+        ? supabase.from('family_members').select('id').eq('linked_user_id', user.id).maybeSingle()
+        : Promise.resolve({ data: null });
+
+      const existingTxPromise = supabase
+        .from("transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("amount", input.amount)
+        .eq("description", (input.description || "").trim())
+        .eq("date", input.date)
+        .eq("account_id", input.account_id || "")
+        .gt("created_at", new Date(Date.now() - 10000).toISOString())
+        .maybeSingle();
+
+      const [accResult, memberResult, existingTxResult] = await Promise.all([
+        accDataPromise,
+        memberDataPromise,
+        existingTxPromise
+      ]);
+
       let cardClosingDay: number | null = null;
-      if (input.account_id) {
-        const { data: accData } = await supabase
-          .from("accounts")
-          .select("type, closing_day")
-          .eq("id", input.account_id)
-          .maybeSingle();
-        
-        if (accData && accData.type === 'CREDIT_CARD') {
-          cardClosingDay = accData.closing_day || 1;
-        }
+      if (accResult.data && accResult.data.type === 'CREDIT_CARD') {
+        cardClosingDay = accResult.data.closing_day || 1;
       }
 
       const calculateCompetence = (dateStr: string) => {
@@ -58,18 +111,11 @@ export function useCreateTransaction() {
       let resolvedPayerId = input.payer_id;
       
       if (input.is_shared && !resolvedPayerId) {
-        logger.info("Buscando payer_id automaticamente para o usuário atual...");
-        const { data: memberData } = await supabase
-          .from('family_members')
-          .select('id')
-          .eq('linked_user_id', user.id)
-          .maybeSingle();
-          
-        if (memberData) {
-          resolvedPayerId = memberData.id;
-          input.payer_id = resolvedPayerId; // Atualizar o input para as próximas etapas
+        if (memberResult.data) {
+          resolvedPayerId = memberResult.data.id;
+          input.payer_id = resolvedPayerId;
         } else {
-          // Fallback final: Tentar encontrar por e-mail ou admin se necessário
+          // Fallback final: Tentar encontrar admin se necessário
           const { data: adminMember } = await supabase
             .from('family_members')
             .select('id')
@@ -81,12 +127,12 @@ export function useCreateTransaction() {
             resolvedPayerId = adminMember.id;
             input.payer_id = resolvedPayerId;
           } else {
-            throw new Error("Não foi possível identificar seu perfil de membro. Por favor, vincule seu usuário a um membro da família nas configurações.");
+            throw new Error("Não foi possível identificar seu perfil de membro.");
           }
         }
       }
 
-      // Validar payer_id se fornecido (lança erro se inválido)
+      // Validar payer_id se fornecido
       if (input.payer_id) {
         await validatePayerId(input.payer_id);
       }
@@ -137,18 +183,7 @@ export function useCreateTransaction() {
       }
 
       // ✅ TRAVA DE DUPLICIDADE
-      const { data: existingTx } = await supabase
-        .from("transactions")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("amount", input.amount)
-        .eq("description", (input.description || "").trim())
-        .eq("date", input.date)
-        .eq("account_id", input.account_id!)
-        .gt("created_at", new Date(Date.now() - 10000).toISOString())
-        .maybeSingle();
-
-      if (existingTx) {
+      if (existingTxResult.data) {
         throw new Error("⚠️ Transação duplicada detectada! Aguarde alguns segundos ou verifique se já foi lançada.");
       }
 
@@ -447,20 +482,31 @@ export function useCreateTransaction() {
       return data as Transaction;
     },
     onSuccess: async (_data, variables) => {
-      invalidateFinancialQueries(queryClient);
-      invalidateSharedQueries(queryClient);
-      invalidateTripQueries(queryClient);
+      // Sucesso não precisa mais invalidar *imediatamente*, pois o onSettled fará isso,
+      // mas mantemos as notificações de sucesso aqui.
       transactionToasts.created();
       
       if (user?.id) {
         if (variables?.type === 'TRANSFER' && variables?.destination_account_id) {
-          await dismissRelatedNotifications(user.id, variables.destination_account_id, 'credit_card');
+          // Fire and forget
+          dismissRelatedNotifications(user.id, variables.destination_account_id, 'credit_card').catch(e => logger.error('Erro dismiss', e));
         }
+        // Fire and forget
         generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-transação', e));
       }
     },
-    onError: (error) => {
+    onError: (error, _newTx, context: any) => {
+      // Rollback da cache em caso de erro
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(["transactions"], context.previousTransactions);
+      }
       transactionToasts.error('criar', error);
     },
+    onSettled: () => {
+      // Ao finalizar (sucesso ou erro), revalidamos os dados finais
+      invalidateFinancialQueries(queryClient);
+      invalidateSharedQueries(queryClient);
+      invalidateTripQueries(queryClient);
+    }
   });
 }

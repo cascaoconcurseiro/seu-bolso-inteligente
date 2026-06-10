@@ -48,8 +48,8 @@ function PageLoader() {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30 segundos mantendo dados locais "frescos"
-      gcTime: 1000 * 60 * 5, // 5 minutos em memória cache
+      staleTime: 1000 * 60 * 2, // 2 minutos mantendo dados locais "frescos"
+      gcTime: 1000 * 60 * 10, // 10 minutos em memória cache
       refetchOnWindowFocus: false, // Menos agressivo ao focar a aba
     },
   },
