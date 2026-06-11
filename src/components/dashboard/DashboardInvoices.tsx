@@ -150,7 +150,7 @@ export function DashboardInvoices({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm md:text-base truncate">Fatura {card.name}</p>
                   <p className={cn(
-                    "text-xs md:text-sm whitespace-nowrap font-medium",
+                    "text-xs md:text-sm truncate font-medium",
                     card.isOverdue ? "text-negative" : "text-muted-foreground"
                   )}>
                     {card.isOverdue 
