@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Lock, ShieldCheck } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -6,35 +6,48 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 export function PinWrapper({ children }: { children: React.ReactNode }) {
-  const { data: profile, isLoading } = useUserProfile();
-  const [isLocked, setIsLocked] = useState(false);
-  const [pinInput, setPinInput] = useState('');
+  const { data: profile } = useUserProfile();
   
-  // Verifica se deve bloquear assim que o perfil carregar
-  useEffect(() => {
-    if (!isLoading && profile?.require_pin_on_open && profile?.app_pin) {
-      // Bloqueia sempre que a página carrega/atualiza e o recurso está ativo
-      setIsLocked(true);
+  // Inicialização síncrona pelo LocalStorage
+  const [isLocked, setIsLocked] = useState(() => {
+    try {
+      return localStorage.getItem('@pedemeia:require_pin') === 'true';
+    } catch {
+      return false;
     }
-  }, [isLoading, profile?.require_pin_on_open, profile?.app_pin]);
+  });
+  
+  const [pinInput, setPinInput] = useState('');
+  const hasCheckedProfile = useRef(false);
+  
+  // Validação quando o perfil chegar da nuvem (caso o cache estivesse vazio no primeiro acesso)
+  useEffect(() => {
+    if (!hasCheckedProfile.current && profile) {
+      hasCheckedProfile.current = true;
+      // Se não travamos no inicio, mas o BD diz que precisa (ex: limparam o cache)
+      if (profile.require_pin_on_open && profile.app_pin) {
+        // Só tenta travar de novo se não há histórico no storage, para não travar num reload indevido
+        const localConfig = localStorage.getItem('@pedemeia:require_pin');
+        if (localConfig !== 'true' && localConfig !== 'false') {
+          setIsLocked(true);
+        }
+      }
+    }
+  }, [profile]);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  // Lê a necessidade e o PIN, preferindo cache se o profile ainda não chegou
+  const requirePin = profile?.require_pin_on_open ?? (localStorage.getItem('@pedemeia:require_pin') === 'true');
+  const currentPin = profile?.app_pin || localStorage.getItem('@pedemeia:app_pin');
 
-  // Se não requer PIN ou já desbloqueou, renderiza as filhas normais (AppLayout)
-  if (!profile?.require_pin_on_open || !profile?.app_pin || !isLocked) {
+  // Se não requer PIN ou já desbloqueou, renderiza as filhas normais de forma instantânea
+  if (!requirePin || !currentPin || !isLocked) {
     return <>{children}</>;
   }
 
   // Tela de Bloqueio
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === profile.app_pin) {
+    if (pinInput === currentPin) {
       setIsLocked(false);
     } else {
       toast.error('PIN incorreto');

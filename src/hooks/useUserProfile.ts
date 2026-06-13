@@ -55,6 +55,19 @@ export function useUserProfile() {
       }
 
       if (error) throw error;
+
+      // Sincroniza configurações críticas no localStorage para acesso síncrono no startup
+      if (data) {
+        try {
+          if (data.require_pin_on_open !== undefined) {
+            localStorage.setItem('@pedemeia:require_pin', JSON.stringify(data.require_pin_on_open));
+          }
+          if (data.app_pin !== undefined) {
+            localStorage.setItem('@pedemeia:app_pin', data.app_pin || '');
+          }
+        } catch (e) {}
+      }
+
       return { ...data, name: data.full_name } as UserProfile;
     },
     enabled: !!user,
@@ -137,6 +150,16 @@ export function useUpdateUserProfile() {
         .single();
 
       if (error) throw error;
+
+      // Mantém o LocalStorage sincronizado com a fonte da verdade
+      try {
+        if (input.require_pin_on_open !== undefined) {
+          localStorage.setItem('@pedemeia:require_pin', JSON.stringify(input.require_pin_on_open));
+        }
+        if (input.app_pin !== undefined) {
+          localStorage.setItem('@pedemeia:app_pin', input.app_pin || '');
+        }
+      } catch (e) {}
 
       // Also update auth metadata
       if (input.name) {
