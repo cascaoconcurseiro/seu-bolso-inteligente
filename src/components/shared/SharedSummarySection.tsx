@@ -1,4 +1,4 @@
-import { Plane, CreditCard, ArrowRight } from "lucide-react";
+import { Plane, CreditCard, ArrowRight, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SharedSummarySectionProps {
@@ -23,18 +23,18 @@ export function SharedSummarySection({
         <div>
           <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">Regular</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-muted/30 border-border transition-all hover:bg-muted/40">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-muted/30 border-border transition-all hover:bg-muted/40 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                 <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
                 {Object.entries(totalsByCurrency).map(([currency, data]) => (
                   <div key={currency}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
-                        "font-mono text-lg md:text-xl font-bold",
+                        "font-mono text-xl md:text-2xl font-bold",
                         data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                       )}>
                         {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
@@ -53,46 +53,46 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-green-500 rotate-180" />
-                <p className="text-sm font-medium text-green-600/70 dark:text-green-400/70 uppercase tracking-widest">A Receber</p>
+            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <ArrowLeft className="h-5 w-5 text-green-500" />
+                <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(totalsByCurrency)
                   .filter(([_, data]) => data.owedToMe > 0)
                   .map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
+                    <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-lg md:text-xl font-bold text-green-600 dark:text-green-400">
+                      <p className="font-mono text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
                   ))}
                 {Object.values(totalsByCurrency).every(d => d.owedToMe === 0) && (
-                  <p className="text-muted-foreground text-center text-sm py-2 opacity-50">R$ 0,00</p>
+                  <p className="text-muted-foreground/50 text-center text-sm py-2 font-mono">R$ 0,00</p>
                 )}
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowRight className="h-5 w-5 text-red-500" />
-                <p className="text-sm font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-widest">A Pagar</p>
+                <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(totalsByCurrency)
                   .filter(([_, data]) => data.iOwe > 0)
                   .map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
+                    <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-lg md:text-xl font-bold text-red-600 dark:text-red-400">
+                      <p className="font-mono text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>
                   ))}
                 {Object.values(totalsByCurrency).every(d => d.iOwe === 0) && (
-                  <p className="text-muted-foreground text-center text-sm py-2 opacity-50">R$ 0,00</p>
+                  <p className="text-muted-foreground/50 text-center text-sm py-2 font-mono">R$ 0,00</p>
                 )}
               </div>
             </div>
@@ -107,18 +107,18 @@ export function SharedSummarySection({
             Viagens
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50 transition-all hover:bg-blue-50/50">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50 transition-all hover:bg-blue-50/50 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <CreditCard className="h-5 w-5 text-blue-600" />
                 <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
                 {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
                   <div key={currency}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
-                        "font-mono text-lg md:text-xl font-bold",
+                        "font-mono text-xl md:text-2xl font-bold",
                         data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                       )}>
                         {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
@@ -137,46 +137,46 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <ArrowRight className="h-5 w-5 text-green-500 rotate-180" />
-                <p className="text-sm font-medium text-green-600/70 dark:text-green-400/70 uppercase tracking-widest">A Receber</p>
+            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
+                <ArrowLeft className="h-5 w-5 text-green-500" />
+                <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(travelTotalsByCurrency)
                   .filter(([_, data]) => data.owedToMe > 0)
                   .map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
+                    <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-lg md:text-xl font-bold text-green-600 dark:text-green-400">
+                      <p className="font-mono text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
                   ))}
                 {Object.values(travelTotalsByCurrency).every(d => d.owedToMe === 0) && (
-                  <p className="text-muted-foreground text-center text-sm py-2 opacity-50">$ 0.00</p>
+                  <p className="text-muted-foreground/50 text-center text-sm py-2 font-mono">R$ 0,00</p>
                 )}
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowRight className="h-5 w-5 text-red-500" />
-                <p className="text-sm font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-widest">A Pagar</p>
+                <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(travelTotalsByCurrency)
                   .filter(([_, data]) => data.iOwe > 0)
                   .map(([currency, data]) => (
-                    <div key={currency} className="flex items-center justify-between">
+                    <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-lg md:text-xl font-bold text-red-600 dark:text-red-400">
+                      <p className="font-mono text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>
                   ))}
                 {Object.values(travelTotalsByCurrency).every(d => d.iOwe === 0) && (
-                  <p className="text-muted-foreground text-center text-sm py-2 opacity-50">$ 0.00</p>
+                  <p className="text-muted-foreground/50 text-center text-sm py-2 font-mono">R$ 0,00</p>
                 )}
               </div>
             </div>

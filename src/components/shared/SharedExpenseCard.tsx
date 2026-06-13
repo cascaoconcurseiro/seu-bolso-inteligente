@@ -165,7 +165,8 @@ export function SharedExpenseCard({
                 onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
               >
                 <Wallet className="h-5 w-5 mr-2" />
-                <span>{iOwe ? "Fazer Acerto (Pagar)" : "Fazer Acerto (Receber)"}</span>
+                <span className="sm:hidden">{iOwe ? "Pagar" : "Receber"}</span>
+                <span className="hidden sm:inline">{iOwe ? "Fazer Acerto (Pagar)" : "Fazer Acerto (Receber)"}</span>
               </Button>
             )}
           </div>
@@ -246,11 +247,11 @@ export function SharedExpenseCard({
                   <div
                     key={item.id}
                     className={cn(
-                      "px-4 py-3 flex flex-col md:grid md:grid-cols-12 gap-2 md:items-center hover:bg-muted/20 transition-colors",
+                      "px-4 py-3 grid grid-cols-[auto_1fr] md:grid-cols-12 gap-y-2 gap-x-3 items-center hover:bg-muted/20 transition-colors",
                       item.isSettled && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
                     )}
                   >
-                    <div className="md:col-span-1 shrink-0 flex items-center justify-center">
+                    <div className="md:col-span-1 shrink-0 flex items-center justify-center self-start md:self-auto pt-1 md:pt-0">
                       {item.isSettled ? (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : isWaitingMe ? (
@@ -291,11 +292,17 @@ export function SharedExpenseCard({
                       </div>
                     </div>
 
-                    <div className="md:col-span-2 text-xs text-muted-foreground">
-                      {dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}
+                    <div className="col-start-2 md:col-start-auto md:col-span-2 text-xs text-muted-foreground flex items-center justify-between md:justify-start w-full md:w-auto">
+                      <span>{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
+                      <span className={cn(
+                        "font-mono text-sm font-bold md:hidden",
+                        item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
+                      )}>
+                        {formatCurrency(item.amount, item.currency)}
+                      </span>
                     </div>
 
-                    <div className="md:col-span-2 text-right">
+                    <div className="hidden md:block md:col-span-2 text-right">
                       <span className={cn(
                         "font-mono text-sm font-bold",
                         item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
@@ -304,7 +311,7 @@ export function SharedExpenseCard({
                       </span>
                     </div>
 
-                    <div className="md:col-span-2 flex justify-end gap-2">
+                    <div className="col-span-2 md:col-span-2 flex justify-end gap-2 mt-2 md:mt-0">
                       {isWaitingMe && (
                         <Button 
                           size="sm" 

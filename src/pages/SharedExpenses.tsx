@@ -1,5 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,6 +101,7 @@ export function SharedExpenses() {
   const createTransaction = useCreateTransaction();
   const { invalidateRelated, syncAllShared } = useTransactionSync();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const queryClient = useQueryClient();
 
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSettleDialog, setShowSettleDialog] = useState(false);
@@ -134,7 +136,7 @@ export function SharedExpenses() {
     handleRejectSettlement,
     handleConfirmPayment,
     handleRejectDebtorSettlement
-  } = useSharedExpensesActions({ selectedMember, settleAccountId, settleType, settleAmount, selectedItems, settleDate, members, getFilteredInvoice, createTransaction, user, invalidateRelated, refetch, undoConfirm, setUndoConfirm, deleteConfirm, setDeleteConfirm, deleteSeriesConfirm, setDeleteSeriesConfirm, setIsUndoingAll, setUndoAllConfirm, setIsSettling, setShowSettleDialog, setSelectedMember, setSettleAmount, setSettleAccountId, setSelectedItems, formatCurrency, accounts });
+  } = useSharedExpensesActions({ queryClient, selectedMember, settleAccountId, settleType, settleAmount, selectedItems, settleDate, members, getFilteredInvoice, createTransaction, user, invalidateRelated, refetch, undoConfirm, setUndoConfirm, deleteConfirm, setDeleteConfirm, deleteSeriesConfirm, setDeleteSeriesConfirm, setIsUndoingAll, setUndoAllConfirm, setIsSettling, setShowSettleDialog, setSelectedMember, setSettleAmount, setSettleAccountId, setSelectedItems, formatCurrency, accounts });
 
   const handleSettleClick = (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => {
     setSelectedMember(id);

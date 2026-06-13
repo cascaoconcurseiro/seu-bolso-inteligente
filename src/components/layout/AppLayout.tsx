@@ -127,10 +127,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-2 md:px-4 lg:px-6">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-1">
+          <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-4">
             {/* Logo Wordmark */}
-            <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-3 lg:mr-6 min-w-max">
-              <span className="font-display font-bold text-base md:text-lg tracking-tight whitespace-nowrap block">
+            <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
+              <span className="font-display font-bold text-sm md:text-lg tracking-tight whitespace-nowrap block">
                 pé de meia
               </span>
             </Link>
@@ -159,7 +159,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </nav>
 
             {/* Right Section */}
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-auto md:ml-4">
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 ml-auto">
               {/* Notifications */}
               <NotificationButton />
 
@@ -178,7 +178,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hidden sm:inline-flex"
               >
                 {isDark ? <Sun className="h-5 w-5 md:h-4 md:w-4" /> : <Moon className="h-5 w-5 md:h-4 md:w-4" />}
               </Button>
@@ -261,6 +261,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 );
               })}
+              {/* Theme toggle in mobile menu */}
+              <button
+                onClick={() => {
+                  toggleTheme();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                <span className="font-medium">{isDark ? "Tema Claro" : "Tema Escuro"}</span>
+              </button>
               {/* Settings link in mobile menu */}
               <Link
                 to="/configuracoes"
@@ -312,7 +322,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 pb-24 md:pb-8">
+      <main className="flex-1 pb-32 md:pb-12">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
           {children}
         </div>

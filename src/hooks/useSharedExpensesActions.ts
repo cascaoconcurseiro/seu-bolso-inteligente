@@ -25,6 +25,7 @@ interface SharedExpensesActionsProps {
   members: FamilyMember[];
   getFilteredInvoice: (memberId: string) => InvoiceItem[];
   createTransaction: any; // Facilitando a integração de tipos complexos do Tanstack Query
+  queryClient?: any;
   user: User | null;
   invalidateRelated: (txId: string) => Promise<void>;
   refetch: () => Promise<void | any>;
@@ -57,7 +58,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     setDeleteConfirm, deleteSeriesConfirm, setDeleteSeriesConfirm, setIsUndoingAll,
     setUndoAllConfirm, setIsSettling, setShowSettleDialog, setSelectedMember,
     setSettleAmount, setSettleAccountId, setSelectedItems,
-    formatCurrency
+    formatCurrency, queryClient
   } = props;
 
 
@@ -115,6 +116,35 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const hasCredits = itemsToSettle.some(i => i.type === 'CREDIT');
       const hasDebits = itemsToSettle.some(i => i.type === 'DEBIT');
       const isCompensated = hasCredits && hasDebits;
+
+      // ATUALIZAÇÃO OTIMISTA
+      setShowSettleDialog(false);
+      const previousState = queryClient ? queryClient.getQueryData(['shared-transactions-consolidated']) : null;
+      if (queryClient) {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+          if (!old) return old;
+          return old.map((tx: any) => {
+            if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
+              return {
+                ...tx,
+                transaction_splits: tx.transaction_splits.map((split: any) => {
+                  if (splitIds.includes(split.id)) {
+                    const isPerfectComp = Math.abs(itemsTotal) < 0.01;
+                    return {
+                      ...split,
+                      settled_by_debtor: user?.id === split.debtor_id ? true : split.settled_by_debtor,
+                      settled_by_creditor: user?.id === split.creditor_id ? true : split.settled_by_creditor,
+                      is_settled: isPerfectComp ? true : split.is_settled
+                    };
+                  }
+                  return split;
+                })
+              };
+            }
+            return tx;
+          });
+        });
+      }
 
       const uniqueTripIds = [...new Set(itemsToSettle.map(i => i.tripId).filter(Boolean))];
       const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
@@ -200,7 +230,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         }
       }
 
-      setShowSettleDialog(false);
       setSelectedMember(null);
       setSettleAmount("");
       setSettleAccountId("");
@@ -209,13 +238,17 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       if (itemsToSettle[0]?.originalTxId) {
         await invalidateRelated(itemsToSettle[0].originalTxId);
       }
-      await refetch();
+      refetch(); // Sem await para não travar a UI
       
       if (Math.abs(itemsTotal) >= 0.01) {
         toast.success(`Acerto de ${formatCurrency(amount, settlementCurrency)} processado com sucesso!`);
       }
     } catch (error) {
       console.error('Settlement error', error);
+      if (queryClient && props.queryClient?.getQueryData) {
+        // Rollback optimistic update
+        queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
+      }
       toast.error("Erro ao realizar acerto");
     } finally {
       setIsSettling(false);
@@ -421,6 +454,27 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const hasDebit = items.some(i => i.type === 'DEBIT');
       const isNetting = hasCredit && hasDebit;
 
+      // ATUALIZAÇÃO OTIMISTA
+      if (queryClient) {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+          if (!old) return old;
+          return old.map((tx: any) => {
+            if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
+              return {
+                ...tx,
+                transaction_splits: tx.transaction_splits.map((split: any) => {
+                  if (items.some(i => i.splitId === split.id)) {
+                    return { ...split, settled_by_creditor: true, is_settled: true };
+                  }
+                  return split;
+                })
+              };
+            }
+            return tx;
+          });
+        });
+      }
+
       if (isNetting) {
         // Netting confirmation: handle custom netting transaction and split update
         const netTotal = items.reduce((sum, item) => {
@@ -506,7 +560,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         toast.success("Recebimento confirmado!");
       }
 
-      await refetch();
+      refetch(); // Sem await
 
       const debtorId = items[0]?.memberId === user?.id ? items[0]?.creatorUserId : items[0]?.memberId;
       const debtorUserId = members.find(m => m.id === debtorId)?.linked_user_id;
@@ -519,6 +573,9 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
     } catch (error) {
       console.error('Erro ao confirmar recebimento', error);
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
+      }
       toast.error("Erro ao confirmar recebimento");
     } finally {
       setIsSettling(false);
@@ -564,6 +621,27 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       const splitIds = items.map(i => i.splitId).filter((id): id is string => !!id);
       
+      // ATUALIZAÇÃO OTIMISTA
+      if (queryClient) {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+          if (!old) return old;
+          return old.map((tx: any) => {
+            if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
+              return {
+                ...tx,
+                transaction_splits: tx.transaction_splits.map((split: any) => {
+                  if (splitIds.includes(split.id)) {
+                    return { ...split, settled_by_debtor: true };
+                  }
+                  return split;
+                })
+              };
+            }
+            return tx;
+          });
+        });
+      }
+      
       const { data, error } = await supabase.rpc('confirm_settlement', {
         p_split_ids: splitIds,
         p_account_id: accountId,
@@ -591,9 +669,12 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
 
       toast.success("Pagamento e conta vinculada confirmados com sucesso! Acerto finalizado.");
-      await refetch();
+      refetch(); // Sem await
     } catch (error) {
       console.error('Erro ao confirmar pagamento', error);
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
+      }
       toast.error("Erro ao confirmar pagamento");
     } finally {
       setIsSettling(false);
