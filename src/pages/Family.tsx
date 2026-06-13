@@ -78,8 +78,8 @@ export function Family() {
             <p className="text-muted-foreground mt-1 font-medium">Gerencie quem tem acesso às suas finanças</p>
           </div>
           {canInvite && (
-            <Button size="lg" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11" onClick={() => setShowInviteDialog(true)}>
-              <UserPlus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" /> 
+            <Button size="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold" onClick={() => setShowInviteDialog(true)}>
+              <UserPlus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" /> 
               Convidar
             </Button>
           )}

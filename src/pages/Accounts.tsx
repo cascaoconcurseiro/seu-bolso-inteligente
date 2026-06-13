@@ -187,7 +187,7 @@ export function Accounts() {
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="lg" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto">
+                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-11">
                   <Download className="h-5 w-5" />
                   <span>Exportar</span>
                 </Button>
@@ -208,8 +208,8 @@ export function Accounts() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="lg" onClick={() => setShowAddDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto">
-              <Plus className="h-5 w-5 mr-2 transition-transform group-hover:rotate-90" /> 
+            <Button size="default" onClick={() => setShowAddDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-11 font-bold">
+              <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
               Nova conta
             </Button>
           </div>

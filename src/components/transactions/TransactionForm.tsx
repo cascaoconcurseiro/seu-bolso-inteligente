@@ -689,7 +689,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
           availableMembers={availableMembers}
         />
 
-        <Button type="submit" size="lg" className="w-full h-14 text-lg" disabled={createTransaction.isPending}>{createTransaction.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}</Button>
+        <Button type="submit" size="default" className="w-full h-11 md:h-12 text-base font-bold" disabled={createTransaction.isPending}>{createTransaction.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}</Button>
       </form>
 
       <SplitModal

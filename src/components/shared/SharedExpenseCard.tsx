@@ -156,15 +156,15 @@ export function SharedExpenseCard({
             {!isHistory && netAmount !== 0 && (
               <Button
                 variant={iOwe ? "destructive" : "default"}
-                size="lg"
+                size="default"
                 className={cn(
-                  "w-full sm:w-auto h-14 sm:h-12 px-6 sm:px-8 text-base shadow-lg active:scale-95 transition-all shrink-0 font-bold", 
+                  "flex-1 sm:flex-none h-11 sm:h-11 px-4 sm:px-6 text-sm sm:text-base shadow-md active:scale-95 transition-all shrink-0 font-bold", 
                   !iOwe && "bg-green-600 hover:bg-green-700 shadow-green-600/20",
                   iOwe && "shadow-red-600/20"
                 )}
                 onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
               >
-                <Wallet className="h-5 w-5 mr-2" />
+                <Wallet className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
                 <span className="sm:hidden">{iOwe ? "Pagar" : "Receber"}</span>
                 <span className="hidden sm:inline">{iOwe ? "Fazer Acerto (Pagar)" : "Fazer Acerto (Receber)"}</span>
               </Button>
