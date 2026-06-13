@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Edit2, Info, CreditCard, Wallet, ArrowUpRight, ArrowDownRight, Users, Layers, SlidersHorizontal } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
@@ -739,13 +740,19 @@ export function Reports() {
 
       {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
 
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
-      </div>
-      
-      
+      <Tabs defaultValue="overview" className="space-y-6 w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold">Visão Geral</TabsTrigger>
+          <TabsTrigger value="evolution" className="rounded-lg text-xs font-semibold">Evolução</TabsTrigger>
+          <TabsTrigger value="categories" className="rounded-lg text-xs font-semibold">Categorias</TabsTrigger>
+        </TabsList>
 
-      {/* KPIs Financeiros Avançados */}
+        <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
+          </div>
+          
+          {/* KPIs Financeiros Avançados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Gasto Médio Diário */}
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
@@ -826,13 +833,21 @@ export function Reports() {
           </div>
         </div>
       </div>
+      </TabsContent>
 
-      <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} /></section>
+      <TabsContent value="evolution" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+        <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} /></section>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />
+        </div>
+      </TabsContent>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />
-        <CategoryDistribution data={categoryData} formatCurrency={formatCurrency} currency={displayCurrency} />
-      </div>
+      <TabsContent value="categories" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+        <div className="grid grid-cols-1 gap-6">
+          <CategoryDistribution data={categoryData} formatCurrency={formatCurrency} currency={displayCurrency} />
+        </div>
+      </TabsContent>
+      </Tabs>
 
       {/* Detalhamento de Transações do Período - Oculto a pedido do usuário */}
       {false && (

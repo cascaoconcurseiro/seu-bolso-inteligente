@@ -41,6 +41,8 @@ import { SharedSettleDialog } from "@/components/shared/SharedSettleDialog";
 import { SharedTripCard } from "@/components/shared/SharedTripCard";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { SharedCycleSettingsModal } from "@/components/shared/SharedCycleSettingsModal";
+import { SharedRegularList } from "@/components/shared/SharedRegularList";
+import { SharedTravelList } from "@/components/shared/SharedTravelList";
 // Lazy-loaded heavy components — carregados apenas quando necessário
 const SharedBalanceChart = lazy(() =>
   import("@/components/shared/SharedBalanceChart").then(m => ({ default: m.SharedBalanceChart }))
@@ -133,6 +135,34 @@ export function SharedExpenses() {
     handleConfirmPayment,
     handleRejectDebtorSettlement
   } = useSharedExpensesActions({ selectedMember, settleAccountId, settleType, settleAmount, selectedItems, settleDate, members, getFilteredInvoice, createTransaction, user, invalidateRelated, refetch, undoConfirm, setUndoConfirm, deleteConfirm, setDeleteConfirm, deleteSeriesConfirm, setDeleteSeriesConfirm, setIsUndoingAll, setUndoAllConfirm, setIsSettling, setShowSettleDialog, setSelectedMember, setSettleAmount, setSettleAccountId, setSelectedItems, formatCurrency, accounts });
+
+  const handleSettleClick = (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => {
+    setSelectedMember(id);
+    setSettleType(type);
+    if (specificItem) {
+      setSelectedItems([specificItem.id]);
+      setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+    } else {
+      const pending = getFilteredInvoice(id).filter(i => !i.isPaid);
+      setSelectedItems(pending.map(i => i.id));
+      setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+    }
+    setShowSettleDialog(true);
+  };
+
+  const handleSettleTripClick = (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem: InvoiceItem | undefined, tripId: string) => {
+    setSelectedMember(id);
+    setSettleType(type);
+    if (specificItem) {
+      setSelectedItems([specificItem.id]);
+      setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+    } else {
+      const pending = getFilteredInvoice(id).filter(i => !i.isPaid && i.tripId === tripId);
+      setSelectedItems(pending.map(i => i.id));
+      setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+    }
+    setShowSettleDialog(true);
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get("tab") as SharedTab;
@@ -361,10 +391,37 @@ export function SharedExpenses() {
           ) : (
             <div className="space-y-4">
               {activeTab === 'HISTORY' && members.some(m => getFilteredInvoice(m.id).some(i => i.isPaid)) && <div className="flex justify-end"><Button variant="destructive" size="sm" onClick={() => setUndoAllConfirm(true)} className="gap-2"><Undo2 className="h-4 w-4" /> Desfazer Tudo</Button></div>}
-              {activeTab !== 'TRAVEL' ? members.filter(m => m.linked_user_id !== user?.id).map(m => {
-                const items = getFilteredInvoice(m.id); if (items.length === 0) return null;
-                return <SharedExpenseCard key={m.id} member={m} items={items} netAmount={getTotals(items)['BRL']?.net || 0} currency="BRL" isHistory={activeTab === "HISTORY"} currentUserId={user?.id} formatCurrency={formatCurrency} onSettle={(id, type, amt, specificItem) => { setSelectedMember(id); setSettleType(type); if (specificItem) { setSelectedItems([specificItem.id]); setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ",")); } else { const pending = getFilteredInvoice(id).filter(i => !i.isPaid); setSelectedItems(pending.map(i => i.id)); setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ",")); } setShowSettleDialog(true); }} onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })} onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })} onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })} onRejectSettlement={(i) => setRejectDialog({ isOpen: true, item: i, reason: "" })} onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })} />;
-              }) : trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).map(t => <SharedTripCard key={t.id} trip={t} members={members} getFilteredInvoice={getFilteredInvoice} getTotals={getTotals} formatCurrency={formatCurrency} user={user} onSettle={(id, type, amt, specificItem) => { setSelectedMember(id); setSettleType(type); if (specificItem) { setSelectedItems([specificItem.id]); setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ",")); } else { const pending = getFilteredInvoice(id).filter(i => !i.isPaid && i.tripId === t.id); setSelectedItems(pending.map(i => i.id)); setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ",")); } setShowSettleDialog(true); }} onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })} onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })} onDeleteSeries={(i) => setDeleteSeriesConfirm({ isOpen: true, item: i })} onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })} onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })} />)}
+              {activeTab !== 'TRAVEL' ? (
+                <SharedRegularList
+                  members={members}
+                  user={user}
+                  activeTab={activeTab}
+                  getFilteredInvoice={getFilteredInvoice}
+                  getTotals={getTotals}
+                  formatCurrency={formatCurrency}
+                  onSettle={handleSettleClick}
+                  onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
+                  onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
+                  onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })}
+                  onRejectSettlement={(i) => setRejectDialog({ isOpen: true, item: i, reason: "" })}
+                  onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
+                />
+              ) : (
+                <SharedTravelList
+                  trips={trips}
+                  members={members}
+                  user={user}
+                  getFilteredInvoice={getFilteredInvoice}
+                  getTotals={getTotals}
+                  formatCurrency={formatCurrency}
+                  onSettle={handleSettleTripClick}
+                  onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
+                  onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
+                  onDeleteSeries={(i) => setDeleteSeriesConfirm({ isOpen: true, item: i })}
+                  onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })}
+                  onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
+                />
+              )}
               {(activeTab === 'TRAVEL' ? trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).length === 0 : members.filter(m => m.linked_user_id !== user?.id).every(m => getFilteredInvoice(m.id).length === 0)) && <div className="py-12 text-center border border-dashed rounded-xl"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p className="text-muted-foreground">Tudo em dia!</p></div>}
             </div>
           )}

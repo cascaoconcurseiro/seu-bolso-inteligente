@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { dateUtils } from "@/lib/dateUtils";
+import { calculateTransactionSplits } from "@/utils/sharedFinanceCalculations";
 import {
   invalidateFinancialQueries,
   invalidateSharedQueries,
@@ -278,24 +279,16 @@ export function useCreateTransaction() {
           let allSplitsToInsert: Record<string, unknown>[] = [];
           
           for (const transaction of data) {
-            let allocatedSum = 0;
-            const splitsToInsert = finalSplits.map((split, index) => {
+            // Utiliza a lógica do Matemático (SafeFinancialCalculator) para precisão de centavos e absorção de erro pelo criador
+            const splitResults = calculateTransactionSplits(transaction.amount, finalSplits, user.id);
+            
+            const splitsToInsert = splitResults.map((split) => {
               const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
               const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
               const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
               const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
               
-              let splitAmount = 0;
-              if (index === finalSplits.length - 1) {
-                // Último membro recebe o resíduo exato para fechar perfeitamente com o valor da parcela
-                splitAmount = SafeFinancialCalculator.subtract(transaction.amount, allocatedSum);
-              } else {
-                splitAmount = SafeFinancialCalculator.percentage(
-                  transaction.amount,
-                  split.percentage
-                );
-                allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
-              }
+              const splitAmount = split.amount;
               
               return {
                 transaction_id: transaction.id,
@@ -416,21 +409,16 @@ export function useCreateTransaction() {
           }
         });
 
-        let allocatedSum = 0;
-        const splitsToInsert = finalSplits.map((split, index) => {
+        // Utiliza a lógica do Matemático (SafeFinancialCalculator) para precisão de centavos
+        const splitResults = calculateTransactionSplits(data.amount, finalSplits, user.id);
+
+        const splitsToInsert = splitResults.map((split) => {
           const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
           const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
           const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
           const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
           
-          let splitAmount = 0;
-          if (index === finalSplits.length - 1) {
-            splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
-          } else {
-            const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
-            splitAmount = baseAmount;
-            allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
-          }
+          const splitAmount = split.amount;
           
           return {
             transaction_id: data.id,

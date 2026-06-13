@@ -1,6 +1,50 @@
 import { SettlementValidator } from '@/services/settlementValidation';
 import { dateUtils } from '@/lib/dateUtils';
 import { Database } from '@/types/database';
+import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
+
+export interface SplitInput {
+  member_id: string;
+  percentage: number;
+  [key: string]: any;
+}
+
+/**
+ * Calcula os valores de split garantindo que a soma exata seja igual ao valor da transação (precisão de centavos).
+ * O criador da transação é priorizado para absorver qualquer dízima/diferença de centavos.
+ */
+export const calculateTransactionSplits = <T extends SplitInput>(
+  transactionAmount: number,
+  splits: T[],
+  creatorMemberId?: string
+): (T & { amount: number })[] => {
+  if (!splits || splits.length === 0) return [];
+
+  // Ordenar para garantir que o 'Criador' fique por último e absorva o resíduo de centavos
+  const sortedSplits = [...splits].sort((a, b) => {
+    if (a.member_id === creatorMemberId) return 1;
+    if (b.member_id === creatorMemberId) return -1;
+    return 0;
+  });
+
+  let allocatedSum = 0;
+  
+  return sortedSplits.map((split, index) => {
+    let splitAmount = 0;
+    if (index === sortedSplits.length - 1) {
+      // O último (idealmente o criador) absorve a diferença para fechar os centavos
+      splitAmount = SafeFinancialCalculator.subtract(transactionAmount, allocatedSum);
+    } else {
+      splitAmount = SafeFinancialCalculator.percentage(transactionAmount, split.percentage);
+      allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
+    }
+    
+    return {
+      ...split,
+      amount: splitAmount
+    };
+  });
+};
 
 export interface InvoiceItem {
   id: string;

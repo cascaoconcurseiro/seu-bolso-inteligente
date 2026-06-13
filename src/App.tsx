@@ -33,13 +33,25 @@ const Family = lazy(() => import("./pages/Family").then(m => ({ default: m.Famil
 const Budgets = lazy(() => import("./pages/Budgets").then(m => ({ default: m.Budgets })));
 const GoalsAndInvestments = lazy(() => import("./pages/GoalsAndInvestments").then(m => ({ default: m.GoalsAndInvestments })));
 
-// Fallback de carregamento para Suspense
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Fallback de carregamento para Suspense (Premium Skeleton Loader)
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Carregando...</p>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <Skeleton className="h-8 w-[150px]" />
+        <Skeleton className="h-8 w-[100px]" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Skeleton className="h-[400px] w-full rounded-xl col-span-4" />
+        <Skeleton className="h-[400px] w-full rounded-xl col-span-3" />
       </div>
     </div>
   );
