@@ -393,6 +393,7 @@ export function CreditCards() {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-11">
                   <Download className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Exportar</span>
