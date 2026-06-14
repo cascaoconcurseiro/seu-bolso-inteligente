@@ -55,7 +55,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
       shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
     }));
     
-    if (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && family) {
+    if (sharedExpensesBehavior === "CYCLE" && sharedSyncCreditCardId === "none" && family) {
       promises.push(updateFamily.mutateAsync({
         id: family.id,
         shared_closing_day: familyClosingDay ? parseInt(familyClosingDay) : null,
@@ -72,7 +72,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
     const currentCardId = profile.shared_sync_credit_card_id || "none";
     let familyChanged = false;
     
-    if (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && family) {
+    if (sharedExpensesBehavior === "CYCLE" && sharedSyncCreditCardId === "none" && family) {
       const dbClosing = family.shared_closing_day ? family.shared_closing_day.toString() : "";
       const dbDue = family.shared_due_day ? family.shared_due_day.toString() : "";
       familyChanged = dbClosing !== familyClosingDay || dbDue !== familyDueDay;
@@ -129,25 +129,53 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
               <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg border border-border/50 space-y-2">
                 {sharedExpensesBehavior === "CURRENT_MONTH" ? (
                   <>
-                    <p className="font-semibold text-foreground">Cobrar no Mês do Lançamento:</p>
+                    <p className="font-semibold text-foreground flex items-center gap-2">
+                      Cobrar no Mês do Lançamento
+                    </p>
                     <p>Despesas pagas em dinheiro ou conta bancária serão cobradas no acerto (settlement) do <strong>exato mês</strong> em que a compra foi feita.</p>
                   </>
                 ) : (
                   <>
-                    <p className="font-semibold text-foreground">Seguir Ciclo do Cartão de Crédito:</p>
-                    <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Sincronize com um cartão mestre e tudo que for gasto acumulará para o seu parceiro(a) pagar apenas no mês seguinte.</p>
+                    <p className="font-semibold text-foreground flex items-center gap-2">
+                      Seguir Ciclo (Mensal)
+                    </p>
+                    <p>Despesas pagas em dinheiro ou conta bancária vão acumular durante um período e fecharão em uma data específica (ex: todo dia 30), para serem pagas em outra data (ex: dia 5 do mês seguinte).</p>
                   </>
                 )}
               </div>
             </div>
 
             {sharedExpensesBehavior === "CYCLE" && (
-              <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200 p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                {creditCards.length > 0 ? (
-                  <>
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label>Qual ciclo deseja seguir?</Label>
+                    <InfoTooltip content="Você pode atrelar os gastos compartilhados ao ciclo de um Cartão de Crédito que você já usa, ou criar um 'Ciclo Familiar' com datas totalmente personalizadas (igual a um cartão virtual)." />
+                  </div>
+                  <Select 
+                    value={sharedSyncCreditCardId === "none" ? "none" : "card"} 
+                    onValueChange={(v) => {
+                      if (v === "none") setSharedSyncCreditCardId("none");
+                      else if (creditCards.length > 0) setSharedSyncCreditCardId(creditCards[0].id);
+                    }}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {creditCards.length > 0 && (
+                        <SelectItem value="card">Ciclo de um Cartão de Crédito</SelectItem>
+                      )}
+                      <SelectItem value="none">Ciclo Familiar (Datas Personalizadas)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {sharedSyncCreditCardId !== "none" ? (
+                  <div className="space-y-2 pt-2 border-t border-border/50">
                     <Label className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-primary" />
-                      Sincronizar com qual Cartão?
+                      Cartão de Crédito a Sincronizar
                     </Label>
                     <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
                       <SelectTrigger className="h-10 bg-background">
@@ -161,15 +189,18 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                         ))}
                       </SelectContent>
                     </Select>
-                  </>
+                  </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 pt-2 border-t border-border/50">
                     <div className="text-sm text-primary font-medium p-3 bg-primary/10 rounded-md">
-                      Você não possui cartões de crédito. Criamos um Ciclo Fixo Base (Fatura da Família) para alinhar os fechamentos dos gastos no dinheiro/PIX.
+                      Ciclo Familiar: Defina os dias em que os gastos fecham e quando devem ser pagos.
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Dia de Fechamento</Label>
+                        <div className="flex items-center gap-2">
+                          <Label>Dia de Fechamento</Label>
+                          <InfoTooltip content="Dia em que a 'fatura' mensal da família é fechada. Gastos a partir do dia seguinte entram para o próximo mês." />
+                        </div>
                         <Input 
                           type="number" 
                           placeholder="Ex: 30" 
@@ -181,7 +212,10 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Dia de Vencimento</Label>
+                        <div className="flex items-center gap-2">
+                          <Label>Dia de Vencimento</Label>
+                          <InfoTooltip content="Dia ideal para vocês realizarem o acerto/pagamento das despesas daquele ciclo." />
+                        </div>
                         <Input 
                           type="number" 
                           placeholder="Ex: 5" 
@@ -210,7 +244,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
               !hasChanges() || 
               updateProfile.isPending || 
               updateFamily.isPending || 
-              (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && (!familyClosingDay || !familyDueDay))
+              (sharedExpensesBehavior === "CYCLE" && sharedSyncCreditCardId === "none" && (!familyClosingDay || !familyDueDay))
             }
           >
             {(updateProfile.isPending || updateFamily.isPending) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
