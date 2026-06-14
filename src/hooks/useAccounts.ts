@@ -73,6 +73,7 @@ export interface Account {
   created_at: string;
   updated_at: string;
   hide_balance?: boolean;
+  is_archived?: boolean | null;
 }
 
 export interface CreateAccountInput {
@@ -108,20 +109,26 @@ export interface AccountDependenciesResponse {
   linked_goals: number;
 }
 
-export function useAccounts() {
+export function useAccounts(includeArchived = false) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["accounts", user?.id],
+    queryKey: ["accounts", user?.id, includeArchived],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("accounts")
         .select("*")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .order("name");
+
+      if (!includeArchived) {
+        query = query.is("is_archived", false); // Exclude archived by default
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         logger.error("Erro ao buscar contas", error);
@@ -401,11 +408,11 @@ export function useArchiveAccount() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Arquivar conta (is_active = false, mas deleted = false)
+      // Arquivar conta (is_archived = true)
       // Transações são preservadas
       const { error } = await supabase
         .from("accounts")
-        .update({ is_active: false, deleted: false })
+        .update({ is_archived: true })
         .eq("id", id);
 
       if (error) throw error;
@@ -426,10 +433,10 @@ export function useUnarchiveAccount() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Desarquivar conta (is_active = true, deleted = false)
+      // Desarquivar conta (is_archived = false)
       const { error } = await supabase
         .from("accounts")
-        .update({ is_active: true, deleted: false })
+        .update({ is_archived: false })
         .eq("id", id);
 
       if (error) throw error;
@@ -457,8 +464,7 @@ export function useArchivedAccounts() {
         .from("accounts")
         .select("*")
         .eq("user_id", user.id)
-        .eq("is_active", false)
-        .eq("deleted", false)
+        .eq("is_archived", true)
         .order("name");
 
       if (error) {

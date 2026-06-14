@@ -16,6 +16,7 @@ export interface Category {
   color: string | null;
   parent_category_id: string | null; // Para hierarquia
   created_at: string;
+  is_archived?: boolean | null;
 }
 
 export interface CreateCategoryInput {
@@ -26,18 +27,24 @@ export interface CreateCategoryInput {
   parent_category_id?: string | null; // Para hierarquia
 }
 
-export function useCategories() {
+export function useCategories(includeArchived = false) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["categories", user?.id],
+    queryKey: ["categories", user?.id, includeArchived],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("categories")
         .select("*")
         .eq("user_id", user!.id)
         .is("deleted_at", null)
         .order("name");
+
+      if (!includeArchived) {
+        query = query.is("is_archived", false);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as Category[];
@@ -48,8 +55,8 @@ export function useCategories() {
 }
 
 // Hook para buscar categorias organizadas hierarquicamente
-export function useCategoriesHierarchical() {
-  const { data: allCategories, ...rest } = useCategories();
+export function useCategoriesHierarchical(includeArchived = false) {
+  const { data: allCategories, ...rest } = useCategories(includeArchived);
 
   const hierarchical = useMemo(() => {
     if (!allCategories) return { parents: [], children: new Map() };
