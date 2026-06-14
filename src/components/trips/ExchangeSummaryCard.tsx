@@ -88,6 +88,8 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
           <p className="font-mono text-xl font-bold">
             {summary.purchaseCount}
           </p>
+        </div>
+
         {/* Cotação em Tempo Real */}
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-muted-foreground">
