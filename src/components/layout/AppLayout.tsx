@@ -173,7 +173,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground hidden sm:inline-flex"
+                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
               >
                 {isDark ? <Sun className="h-5 w-5 md:h-4 md:w-4" /> : <Moon className="h-5 w-5 md:h-4 md:w-4" />}
               </Button>

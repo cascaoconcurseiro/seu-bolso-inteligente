@@ -76,7 +76,7 @@ export function useTrips() {
         .select("*")
         .in("id", tripIds)
         .is("deleted_at", null)
-        .order("start_date", { ascending: false });
+        .order("start_date", { ascending: true });
 
       if (tripsError) throw tripsError;
       
