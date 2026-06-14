@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Settings2, CreditCard } from "lucide-react";
 import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useFamily, useUpdateFamily } from "@/hooks/useFamily";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { Input } from "@/components/ui/input";
 
 interface SharedCycleSettingsModalProps {
   isOpen: boolean;
@@ -17,9 +19,13 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
   const { data: profile, isLoading: isProfileLoading } = useUserProfile();
   const updateProfile = useUpdateUserProfile();
   const { data: accounts, isLoading: isAccountsLoading } = useAccounts();
+  const { data: family, isLoading: isFamilyLoading } = useFamily();
+  const updateFamily = useUpdateFamily();
   
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedSyncCreditCardId, setSharedSyncCreditCardId] = useState<string>("none");
+  const [familyClosingDay, setFamilyClosingDay] = useState<string>("");
+  const [familyDueDay, setFamilyDueDay] = useState<string>("");
 
   const creditCards = useMemo(() => {
     return accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
@@ -35,26 +41,51 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
       }
       setSharedSyncCreditCardId(initialCardId);
     }
-  }, [profile, isOpen, accounts, creditCards]);
+    
+    if (family && isOpen) {
+      if (family.shared_closing_day) setFamilyClosingDay(family.shared_closing_day.toString());
+      if (family.shared_due_day) setFamilyDueDay(family.shared_due_day.toString());
+    }
+  }, [profile, isOpen, accounts, creditCards, family]);
 
   const handleSave = async () => {
-    await updateProfile.mutateAsync({
+    const promises = [];
+    promises.push(updateProfile.mutateAsync({
       shared_expenses_behavior: sharedExpensesBehavior,
       shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
-    });
+    }));
+    
+    if (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && family) {
+      promises.push(updateFamily.mutateAsync({
+        id: family.id,
+        shared_closing_day: familyClosingDay ? parseInt(familyClosingDay) : null,
+        shared_due_day: familyDueDay ? parseInt(familyDueDay) : null,
+      }));
+    }
+    
+    await Promise.all(promises);
     onOpenChange(false);
   };
 
   const hasChanges = () => {
     if (!profile) return false;
     const currentCardId = profile.shared_sync_credit_card_id || "none";
+    let familyChanged = false;
+    
+    if (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && family) {
+      const dbClosing = family.shared_closing_day ? family.shared_closing_day.toString() : "";
+      const dbDue = family.shared_due_day ? family.shared_due_day.toString() : "";
+      familyChanged = dbClosing !== familyClosingDay || dbDue !== familyDueDay;
+    }
+    
     return (
       sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
-      sharedSyncCreditCardId !== currentCardId
+      sharedSyncCreditCardId !== currentCardId ||
+      familyChanged
     );
   };
 
-  const isLoading = isProfileLoading || isAccountsLoading;
+  const isLoading = isProfileLoading || isAccountsLoading || isFamilyLoading;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -112,26 +143,56 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
 
             {sharedExpensesBehavior === "CYCLE" && (
               <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200 p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                <Label className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-primary" />
-                  Sincronizar com qual Cartão?
-                </Label>
                 {creditCards.length > 0 ? (
-                  <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
-                    <SelectTrigger className="h-10 bg-background">
-                      <SelectValue placeholder="Selecione um cartão de crédito" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {creditCards.map(card => (
-                        <SelectItem key={card.id} value={card.id}>
-                          {card.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Label className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-primary" />
+                      Sincronizar com qual Cartão?
+                    </Label>
+                    <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
+                      <SelectTrigger className="h-10 bg-background">
+                        <SelectValue placeholder="Selecione um cartão de crédito" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {creditCards.map(card => (
+                          <SelectItem key={card.id} value={card.id}>
+                            {card.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
                 ) : (
-                  <div className="text-sm text-destructive font-medium p-3 bg-destructive/10 rounded-md">
-                    Você não possui cartões de crédito cadastrados. Crie um cartão primeiro ou mude o comportamento para "Cobrar no Mês do Lançamento".
+                  <div className="space-y-4">
+                    <div className="text-sm text-primary font-medium p-3 bg-primary/10 rounded-md">
+                      Você não possui cartões de crédito. Criamos um Ciclo Fixo Base (Fatura da Família) para alinhar os fechamentos dos gastos no dinheiro/PIX.
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Dia de Fechamento</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 30" 
+                          min={1} 
+                          max={31} 
+                          value={familyClosingDay} 
+                          onChange={(e) => setFamilyClosingDay(e.target.value)} 
+                          className="bg-background"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Dia de Vencimento</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="Ex: 5" 
+                          min={1} 
+                          max={31} 
+                          value={familyDueDay} 
+                          onChange={(e) => setFamilyDueDay(e.target.value)} 
+                          className="bg-background"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -145,9 +206,14 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={!hasChanges() || updateProfile.isPending}
+            disabled={
+              !hasChanges() || 
+              updateProfile.isPending || 
+              updateFamily.isPending || 
+              (sharedExpensesBehavior === "CYCLE" && creditCards.length === 0 && (!familyClosingDay || !familyDueDay))
+            }
           >
-            {updateProfile.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            {(updateProfile.isPending || updateFamily.isPending) ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Salvar Preferências
           </Button>
         </div>

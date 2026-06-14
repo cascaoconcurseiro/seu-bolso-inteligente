@@ -419,6 +419,8 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          shared_closing_day: number | null
+          shared_due_day: number | null
           updated_at: string
         }
         Insert: {
@@ -429,6 +431,8 @@ export type Database = {
           id?: string
           name?: string
           owner_id: string
+          shared_closing_day?: number | null
+          shared_due_day?: number | null
           updated_at?: string
         }
         Update: {
@@ -439,6 +443,8 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          shared_closing_day?: number | null
+          shared_due_day?: number | null
           updated_at?: string
         }
         Relationships: [

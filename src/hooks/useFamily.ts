@@ -32,6 +32,8 @@ export interface Family {
   id: string;
   name: string;
   owner_id: string;
+  shared_closing_day?: number | null;
+  shared_due_day?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -387,6 +389,31 @@ export function useRemoveFamilyMember() {
     },
     onError: (error) => {
       toast.error("Erro ao remover: " + error.message);
+    },
+  });
+}
+
+export function useUpdateFamily() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...input }: Partial<Family> & { id: string }) => {
+      const { data, error } = await supabase
+        .from("families")
+        .update(input)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Family;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family"] });
+      toast.success("Família atualizada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar família: " + error.message);
     },
   });
 }
