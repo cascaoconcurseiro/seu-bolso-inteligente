@@ -56,7 +56,7 @@ export function AccountDetail() {
   const updateAccount = useUpdateAccount();
   const deleteTransaction = useDeleteTransaction();
   const { data: dependencies } = useAccountDependencies(id);
-  const hasTransactions = (dependencies?.total_transactions || 0) > 0;
+  const canDelete = dependencies?.can_delete === true;
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
@@ -176,6 +176,7 @@ export function AccountDetail() {
         account={account}
         bank={bank}
         isCredit={isCredit}
+        canDelete={canDelete}
         formatCurrency={formatCurrency}
         accountCurrency={accountCurrency}
         onTransfer={() => setShowTransferModal(true)}
@@ -301,7 +302,7 @@ export function AccountDetail() {
                     </div>
                   </div>
                 </div>
-                {!hasTransactions && (
+                {canDelete && (
                   <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
                     <div className="flex items-start gap-3">
                       <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
@@ -324,7 +325,7 @@ export function AccountDetail() {
             <Button variant="outline" onClick={() => { setShowDeleteConfirmDialog(false); handleConfirmArchive(); }} className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20">
               <Archive className="h-4 w-4" /> Arquivar
             </Button>
-            {!hasTransactions && (
+            {canDelete && (
               <Button variant="destructive" onClick={() => { setShowDeleteConfirmDialog(false); handleConfirmDelete(); }} className="w-full sm:w-auto gap-2">
                 <Trash2 className="h-4 w-4" /> Excluir
               </Button>

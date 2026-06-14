@@ -148,7 +148,10 @@ export function CreditCards() {
   const [deleteCardConfirm, setDeleteCardConfirm] = useState<{ isOpen: boolean; card: CreditCardAccount | null }>({ isOpen: false, card: null });
 
   const { data: deleteCardDeps } = useAccountDependencies(deleteCardConfirm.card?.id);
-  const deleteCardHasTransactions = (deleteCardDeps?.total_transactions || 0) > 0;
+  const deleteCardCanDelete = deleteCardDeps?.can_delete === true;
+
+  const { data: selectedCardDeps } = useAccountDependencies(selectedCard?.id);
+  const selectedCardCanDelete = selectedCardDeps?.can_delete === true;
 
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({ isOpen: false, transaction: null });
@@ -318,6 +321,7 @@ export function CreditCards() {
             setShowTransactionModal(true); 
           }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(invoiceData.transactions)}
           allYearTransactions={exportTransactions}
+          canDelete={selectedCardCanDelete}
         />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
@@ -377,7 +381,7 @@ export function CreditCards() {
             <AlertDialogHeader><AlertDialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</AlertDialogTitle></AlertDialogHeader>
             <div className="flex flex-col gap-3 py-4">
                <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
-               {!deleteCardHasTransactions && (
+               {deleteCardCanDelete && (
                  <Button variant="destructive" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await deleteAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); setView("list"); refetchAccounts(); } }}><Trash2 className="h-4 w-4" /> Excluir Permanentemente</Button>
                )}
             </div>

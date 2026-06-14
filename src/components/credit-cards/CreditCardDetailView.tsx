@@ -29,6 +29,7 @@ interface CreditCardDetailViewProps {
   setDeleteConfirm: (v: { isOpen: boolean; transaction: any | null }) => void;
   installments: any[];
   allYearTransactions?: any[];
+  canDelete?: boolean;
 }
 
 export function CreditCardDetailView({
@@ -52,7 +53,8 @@ export function CreditCardDetailView({
   handleEditTransaction,
   setDeleteConfirm,
   installments,
-  allYearTransactions = []
+  allYearTransactions = [],
+  canDelete = false,
 }: CreditCardDetailViewProps) {
   return (
     <div className="space-y-8 animate-fade-in">
@@ -83,14 +85,18 @@ export function CreditCardDetailView({
               <Pencil className="h-4 w-4 mr-2" />
               Editar Cartão
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => setDeleteCardConfirm({ isOpen: true, card: selectedCard })}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Excluir Cartão
-            </DropdownMenuItem>
+            {canDelete && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setDeleteCardConfirm({ isOpen: true, card: selectedCard })}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Cartão
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

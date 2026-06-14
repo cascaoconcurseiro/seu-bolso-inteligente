@@ -23,6 +23,7 @@ interface AccountBalanceCardProps {
   account: AccountInfo;
   bank: BankInfo | null;
   isCredit: boolean;
+  canDelete?: boolean;
   formatCurrency: (value: number, currency?: string) => string;
   accountCurrency: string;
   onTransfer: () => void;
@@ -35,6 +36,7 @@ export function AccountBalanceCard({
   account,
   bank,
   isCredit,
+  canDelete = false,
   formatCurrency,
   accountCurrency,
   onTransfer,
@@ -99,14 +101,16 @@ export function AccountBalanceCard({
           <Pencil className="h-4 w-4" />
           Editar
         </Button>
-        <Button
-          variant="outline"
-          onClick={onDelete}
-          className={isCredit ? "flex-1 gap-2 text-destructive hover:text-destructive" : "gap-2 text-destructive hover:text-destructive"}
-        >
-          <Trash2 className="h-4 w-4" />
-          Excluir
-        </Button>
+        {canDelete && (
+          <Button
+            variant="outline"
+            onClick={onDelete}
+            className={isCredit ? "flex-1 gap-2 text-destructive hover:text-destructive" : "gap-2 text-destructive hover:text-destructive"}
+          >
+            <Trash2 className="h-4 w-4" />
+            Excluir
+          </Button>
+        )}
       </div>
     </div>
   );
