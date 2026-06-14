@@ -104,6 +104,7 @@ export interface CreditCardInvoiceResponse {
 
 export interface AccountDependenciesResponse {
   can_delete: boolean;
+  total_transactions: number;
   future_installments: number;
   open_shared_expenses: number;
   linked_goals: number;
@@ -368,12 +369,13 @@ export function useDeleteAccount() {
 
         if (deps && !deps.can_delete) {
           const msgs: string[] = [];
+          if (deps.total_transactions > 0) msgs.push(`${deps.total_transactions} transação(ões) vinculada(s)`);
           if (deps.future_installments > 0) msgs.push(`${deps.future_installments} parcela(s) futura(s)`);
           if (deps.open_shared_expenses > 0) msgs.push(`${deps.open_shared_expenses} despesa(s) compartilhada(s) em aberto`);
           if (deps.linked_goals > 0) msgs.push(`${deps.linked_goals} meta(s) vinculada(s)`);
           throw new Error(
             `Não é possível excluir esta conta. Ela possui: ${msgs.join(', ')}. ` +
-            'Arquive a conta em vez de excluir para preservar o histórico.'
+            'Por favor, utilize a opção de Arquivar para preservar o histórico.'
           );
         }
       } catch (error: unknown) {
