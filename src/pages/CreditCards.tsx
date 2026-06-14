@@ -50,6 +50,7 @@ import { ImportBillsDialog } from "@/components/credit-cards/ImportBillsDialog";
 import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
 import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
+import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 
 type CardView = "list" | "detail";
 
@@ -69,6 +70,7 @@ export function CreditCards() {
   const { currentDate } = useMonth();
   const [view, setView] = useState<CardView>("list");
   const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
+  const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
   const urlParamsProcessed = useRef(false);
   const [showNewCardDialog, setShowNewCardDialog] = useState(false);
   const { data: exportTransactions = [] } = useTransactions({
@@ -322,7 +324,7 @@ export function CreditCards() {
           }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(invoiceData.transactions)}
           allYearTransactions={exportTransactions}
           canDelete={selectedCardCanDelete}
-          onArchive={async (card) => { await archiveAccountMutation.mutateAsync(card.id); toast.success("Cartão arquivado!"); setView("list"); setSelectedCard(null); }}
+          onArchive={(card) => setShowArchiveConfirmModal(true)}
           onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); setView("list"); setSelectedCard(null); }}
         />
 
@@ -453,6 +455,22 @@ export function CreditCards() {
       <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={(card) => { setSelectedCard(card); setView("detail"); }} />
 
       <NewCardDialog open={showNewCardDialog} onOpenChange={setShowNewCardDialog} onSubmit={handleCreateCard} isLoading={createAccount.isPending} bankId={newBankId} setBankId={setNewBankId} brand={newBrand} setBrand={setNewBrand} cardName={newCardName} setCardName={setNewCardName} closingDay={newClosingDay} setClosingDay={setNewClosingDay} dueDay={newDueDay} setDueDay={setNewDueDay} limit={newLimit} setLimit={setNewLimit} isInternational={newIsInternational} setIsInternational={setNewIsInternational} currency={newCurrency} setCurrency={setNewCurrency} />
+      
+      {selectedCard && (
+        <ArchiveConfirmModal
+          isOpen={showArchiveConfirmModal}
+          onClose={() => setShowArchiveConfirmModal(false)}
+          onConfirm={async () => {
+            await archiveAccountMutation.mutateAsync(selectedCard.id);
+            toast.success("Cartão arquivado com sucesso!");
+            setShowArchiveConfirmModal(false);
+            setView("list");
+            setSelectedCard(null);
+          }}
+          itemName={selectedCard.name}
+          isArchiving={archiveAccountMutation.isPending}
+        />
+      )}
     </div>
   );
 }

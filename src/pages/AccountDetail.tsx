@@ -34,6 +34,7 @@ import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, use
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
+import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getBankById } from "@/lib/banks";
@@ -64,6 +65,7 @@ export function AccountDetail() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
   const [editAccountName, setEditAccountName] = useState("");
   const [editHideBalance, setEditHideBalance] = useState(false);
@@ -114,6 +116,7 @@ export function AccountDetail() {
     try {
       await archiveAccount.mutateAsync(id || "");
       toast.success("Conta arquivada com sucesso!");
+      setShowArchiveConfirmModal(false);
       navigate("/");
     } catch (error) {
       toast.error("Erro ao arquivar a conta.");
@@ -197,7 +200,7 @@ export function AccountDetail() {
         onWithdrawal={() => setShowWithdrawalModal(true)}
         onEdit={handleEditAccount}
         onDelete={() => setShowDeleteConfirmDialog(true)}
-        onArchive={handleConfirmArchive}
+        onArchive={() => setShowArchiveConfirmModal(true)}
         onUnarchive={handleUnarchive}
       />
 
@@ -243,6 +246,14 @@ export function AccountDetail() {
         onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })} 
         onConfirm={handleDeleteTransaction} 
         transaction={deleteConfirm.transaction} 
+      />
+
+      <ArchiveConfirmModal
+        isOpen={showArchiveConfirmModal}
+        onClose={() => setShowArchiveConfirmModal(false)}
+        onConfirm={handleConfirmArchive}
+        itemName={account.name}
+        isArchiving={archiveAccount.isPending}
       />
 
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
