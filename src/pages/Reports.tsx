@@ -828,8 +828,8 @@ export function Reports() {
               </h3>
             </div>
           </div>
-          <div className="mt-3 truncate">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${savingsGoalStatus.color}`}>
+          <div className="mt-3">
+            <span className={`inline-block px-2.5 py-1 rounded-xl text-[10px] font-semibold border leading-tight ${savingsGoalStatus.color}`}>
               {savingsGoalStatus.text}
             </span>
           </div>
