@@ -140,7 +140,7 @@ export function useCreateTransaction() {
       }
 
       // ✅ VALIDAÇÃO E AUTO-COMPLETAGEM DE SPLITS
-      let finalSplits = [...(input.splits || [])];
+      const finalSplits = [...(input.splits || [])];
       
       if (input.is_shared) {
         const totalPercentage = finalSplits.reduce((sum, s) => sum + Number(s.percentage || 0), 0);
@@ -277,7 +277,7 @@ export function useCreateTransaction() {
             throw new Error("Um ou mais membros selecionados para divisão não são válidos.");
           }
 
-          let allSplitsToInsert: Record<string, unknown>[] = [];
+          const allSplitsToInsert: Record<string, unknown>[] = [];
           
           for (const transaction of data) {
             // Utiliza a lógica do Matemático (SafeFinancialCalculator) para precisão de centavos e absorção de erro pelo criador

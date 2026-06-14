@@ -651,7 +651,7 @@ export function AccountingDRE() {
       const b = balanceSheetData;
       const today = new Date().toLocaleDateString('pt-BR');
 
-      let html = `
+      const html = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <head>
         <meta charset="utf-8" />

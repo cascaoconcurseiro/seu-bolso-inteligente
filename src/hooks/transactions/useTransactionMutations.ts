@@ -117,7 +117,7 @@ export function useUpdateTransaction() {
       }
 
       if (actualSplits) {
-        let finalSplits = [...actualSplits];
+        const finalSplits = [...actualSplits];
         
         // Auto-completar splits se a soma for menor que 100% (Critério #6: O próprio criador assume o restante)
         if (finalSplits.length > 0) {

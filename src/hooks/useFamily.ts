@@ -118,7 +118,7 @@ export function useFamilyMembers() {
       }
 
       // Buscar dados reais de perfil (avatar) de uma vez só para todos os membros
-      let profileMap: Record<string, { avatar_url: string | null; avatar_color: string | null; avatar_icon: string | null; full_name: string | null }> = {};
+      const profileMap: Record<string, { avatar_url: string | null; avatar_color: string | null; avatar_icon: string | null; full_name: string | null }> = {};
       if (linkedUserIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")

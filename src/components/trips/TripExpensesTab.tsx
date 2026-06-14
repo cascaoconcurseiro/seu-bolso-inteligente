@@ -4,6 +4,8 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];
@@ -26,6 +28,11 @@ export function TripExpensesTab({
 }: TripExpensesTabProps) {
   const navigate = useNavigate();
   const currency = selectedTrip.currency || "BRL";
+  
+  const { data: profile } = useUserProfile();
+  const baseCurrency = profile?.base_currency || "BRL";
+  const isInternational = currency !== baseCurrency;
+  const { data: rate } = useCurrencyRate(isInternational ? currency : "", baseCurrency);
 
   // ===== SEPARAÇÃO CLARA DE DESPESAS =====
   // Compartilhadas: qualquer participante pode ter pago
@@ -91,6 +98,11 @@ export function TripExpensesTab({
           <p className="font-mono font-black text-xl text-foreground">
             {formatCurrency(totalShared, currency)}
           </p>
+          {isInternational && rate && (
+            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+              ≈ {formatCurrency(totalShared * rate, baseCurrency)}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground mt-0.5">{sharedExpenses.length} despesas</p>
         </div>
         <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-center">
@@ -100,6 +112,11 @@ export function TripExpensesTab({
           <p className="font-mono font-black text-xl text-foreground">
             {formatCurrency(mySharedPaid, currency)}
           </p>
+          {isInternational && rate && (
+            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+              ≈ {formatCurrency(mySharedPaid * rate, baseCurrency)}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground mt-0.5">impacto no orçamento</p>
         </div>
         <div className="p-4 rounded-2xl border border-border/50 bg-card/50 text-center">
@@ -109,6 +126,11 @@ export function TripExpensesTab({
           <p className="font-mono font-black text-xl text-foreground">
             {formatCurrency(spentToDisplay, currency)}
           </p>
+          {isInternational && rate && (
+            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+              ≈ {formatCurrency(spentToDisplay * rate, baseCurrency)}
+            </p>
+          )}
           <p className="text-xs text-muted-foreground mt-0.5">
             {myTotalSpent !== undefined 
               ? "Impacto real no seu orçamento" 
@@ -157,6 +179,7 @@ export function TripExpensesTab({
               const status = getSettlementStatus(expense);
               const categoryIcon = expense.category?.icon || "💸";
               const categoryName = expense.category?.name || "Sem categoria";
+              const amount = Number(expense.amount);
 
               return (
                 <div
@@ -243,7 +266,7 @@ export function TripExpensesTab({
                         {iPaid && (
                           <div className="mt-2 flex items-center gap-3 flex-wrap">
                             <span className="text-xs font-mono text-purple-600 dark:text-purple-400 font-bold">
-                              Impactou orçamento: −{formatCurrency(Number(expense.amount), currency)}
+                              Impactou orçamento: −{formatCurrency(amount, currency)}
                             </span>
                             {status !== "no_splits" && status !== "settled" && (
                               <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
@@ -267,8 +290,13 @@ export function TripExpensesTab({
                       {iPaid ? (
                         <>
                           <p className="font-mono font-black text-base sm:text-lg text-foreground tracking-tight tabular-nums">
-                            {formatCurrency(Number(expense.amount), currency)}
+                            {formatCurrency(amount, currency)}
                           </p>
+                          {isInternational && rate && (
+                            <p className="font-mono text-[11px] text-muted-foreground font-medium mt-0.5">
+                              ≈ {formatCurrency(amount * rate, baseCurrency)}
+                            </p>
+                          )}
                           <p className="text-[10px] text-muted-foreground mt-0.5">valor total pago</p>
                           {expense.transaction_splits && (
                             <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-1">
@@ -281,11 +309,16 @@ export function TripExpensesTab({
                           <p className="font-mono font-black text-base sm:text-lg text-orange-600 dark:text-orange-400 tracking-tight tabular-nums">
                             {formatCurrency(mySplitAmount, currency)}
                           </p>
+                          {isInternational && rate && (
+                            <p className="font-mono text-[11px] text-orange-600/70 dark:text-orange-400/70 font-medium mt-0.5">
+                              ≈ {formatCurrency(mySplitAmount * rate, baseCurrency)}
+                            </p>
+                          )}
                           <p className="text-[10px] text-orange-600/70 dark:text-orange-400/70 mt-0.5 font-bold uppercase tracking-widest">
                             Sua parte
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-1.5">
-                            Total: {formatCurrency(Number(expense.amount), currency)}
+                            Total: {formatCurrency(amount, currency)}
                           </p>
                         </>
                       )}
@@ -346,6 +379,7 @@ export function TripExpensesTab({
               {personalExpenses.map((expense) => {
                 const categoryIcon = expense.category?.icon || "💸";
                 const categoryName = expense.category?.name || "Sem categoria";
+                const amount = Number(expense.amount);
 
                 return (
                   <div
@@ -381,12 +415,22 @@ export function TripExpensesTab({
                         </div>
                       </div>
                     </div>
-                    <span className={cn(
-                      "font-mono font-black text-base sm:text-lg tracking-tight tabular-nums shrink-0",
-                      expense.type === "INCOME" ? "text-green-600 dark:text-green-400" : "text-foreground"
-                    )}>
-                      {expense.type === "INCOME" ? "+" : ""}{formatCurrency(Number(expense.amount), currency)}
-                    </span>
+                    <div className="text-right shrink-0">
+                      <p className={cn(
+                        "font-mono font-black text-base sm:text-lg tracking-tight tabular-nums",
+                        expense.type === "INCOME" ? "text-green-600 dark:text-green-400" : "text-foreground"
+                      )}>
+                        {expense.type === "INCOME" ? "+" : ""}{formatCurrency(amount, currency)}
+                      </p>
+                      {isInternational && rate && (
+                        <p className={cn(
+                          "font-mono text-[11px] font-medium mt-0.5",
+                          expense.type === "INCOME" ? "text-green-600/70 dark:text-green-400/70" : "text-muted-foreground"
+                        )}>
+                          ≈ {formatCurrency(amount * rate, baseCurrency)}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 );
               })}

@@ -207,7 +207,7 @@ export function AdminResetPanel() {
     let amount: number | null = null;
     let currency = 'BRL';
     let isSettlement = false;
-    let isBlocked = false;
+    const isBlocked = false;
 
     if (tbl === 'transactions') {
       const data = log.new_data || log.old_data || {};

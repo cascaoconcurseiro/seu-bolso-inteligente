@@ -4,6 +4,8 @@ import { Wallet, Users, Calendar, Banknote, ArrowRight } from "lucide-react";
 import { moneyUtils } from "@/utils/money";
 import { cn } from "@/lib/utils";
 import { parseLocalDate } from "@/utils/dateUtils";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 
 interface TripDetailSummaryProps {
   totalExpenses: number;
@@ -23,7 +25,12 @@ export function TripDetailSummary({
   endDate,
   currency,
 }: TripDetailSummaryProps) {
-  const isInternational = currency !== 'BRL';
+  const { data: profile } = useUserProfile();
+  const baseCurrency = profile?.base_currency || "BRL";
+  const isInternational = currency !== baseCurrency;
+  
+  const { data: rate } = useCurrencyRate(isInternational ? currency : "", baseCurrency);
+
   const budgetUsagePercent = myPersonalBudget ? Math.min(100, (myTotalSpent / myPersonalBudget) * 100) : 0;
   
   return (
@@ -39,6 +46,11 @@ export function TripDetailSummary({
         <p className="font-mono text-2xl font-black tracking-tighter text-foreground mb-1">
           {moneyUtils.format(totalExpenses, currency)}
         </p>
+        {isInternational && rate && (
+          <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+            ≈ {moneyUtils.format(totalExpenses * rate, baseCurrency)}
+          </p>
+        )}
       </div>
 
       {/* Meu Gasto Individual */}
@@ -52,7 +64,12 @@ export function TripDetailSummary({
         <p className="font-mono text-2xl font-black tracking-tighter text-foreground mb-1">
           {moneyUtils.format(myTotalSpent, currency)}
         </p>
-        <p className="text-[10px] text-muted-foreground font-medium">
+        {isInternational && rate && (
+          <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 mb-1">
+            ≈ {moneyUtils.format(myTotalSpent * rate, baseCurrency)}
+          </p>
+        )}
+        <p className="text-[10px] text-muted-foreground/80 font-medium">
           Inclui sua parte nos compartilhados
         </p>
       </div>
@@ -76,10 +93,17 @@ export function TripDetailSummary({
         
         {myPersonalBudget ? (
           <div className="space-y-2">
-            <p className="font-mono text-2xl font-black tracking-tighter text-foreground">
-              {moneyUtils.format(myPersonalBudget, currency)}
-            </p>
-            <div className="space-y-1">
+            <div>
+              <p className="font-mono text-2xl font-black tracking-tighter text-foreground">
+                {moneyUtils.format(myPersonalBudget, currency)}
+              </p>
+              {isInternational && rate && (
+                <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                  ≈ {moneyUtils.format(myPersonalBudget * rate, baseCurrency)}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1 mt-2">
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <div 
                   className={cn(

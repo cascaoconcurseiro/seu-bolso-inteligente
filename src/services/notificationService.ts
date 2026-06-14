@@ -409,7 +409,7 @@ export async function createInvoiceDueNotification(
 
   // Determinar o título com base no status do vencimento
   let title = "";
-  let isOverdue = daysUntilDue < 0;
+  const isOverdue = daysUntilDue < 0;
   
   if (isOverdue) {
     const daysOverdue = Math.abs(daysUntilDue);

@@ -111,7 +111,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
 
       const splitIds = itemsToSettle.map(i => i.splitId).filter((id): id is string => !!id);
-      let txId: string | null = null;
+      const txId: string | null = null;
 
       const hasCredits = itemsToSettle.some(i => i.type === 'CREDIT');
       const hasDebits = itemsToSettle.some(i => i.type === 'DEBIT');
