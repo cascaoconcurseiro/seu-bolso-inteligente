@@ -15,10 +15,12 @@ export function FixedIncomeSimulator() {
   
   const [initialAmount, setInitialAmount] = useState<number>(1000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(500);
-  const [years, setYears] = useState<number>(5);
+  const [term, setTerm] = useState<number>(5);
+  const [termType, setTermType] = useState<"YEARS" | "MONTHS">("YEARS");
   const [rateType, setRateType] = useState<"CDI" | "SELIC" | "FIXED">("CDI");
   const [percentRate, setPercentRate] = useState<number>(100); // 100% of CDI/Selic or 10% Fixed
   const [investmentType, setInvestmentType] = useState<"CDB" | "LCI" | "FREE">("CDB");
+  const [viewMode, setViewMode] = useState<"YEARLY" | "MONTHLY">("YEARLY");
   
   // Sincroniza dados API
   const baseRate = useMemo(() => {
@@ -30,7 +32,7 @@ export function FixedIncomeSimulator() {
   const annualRate = rateType === "FIXED" ? percentRate : (baseRate * percentRate) / 100;
 
   const results = useMemo(() => {
-    const months = years * 12;
+    const months = termType === "YEARS" ? term * 12 : term;
     const monthlyRate = Math.pow(1 + (annualRate / 100), 1 / 12) - 1;
     
     let totalInvested = initialAmount;
@@ -42,16 +44,13 @@ export function FixedIncomeSimulator() {
       balance = balance * (1 + monthlyRate) + monthlyContribution;
       totalInvested += monthlyContribution;
       
-      // Salva dados anuais para a tabela
-      if (i % 12 === 0 || i === months) {
-        monthlyData.push({
-          month: i,
-          year: Math.ceil(i / 12),
-          invested: totalInvested,
-          grossBalance: balance,
-          grossYield: balance - totalInvested
-        });
-      }
+      monthlyData.push({
+        month: i,
+        year: Math.ceil(i / 12),
+        invested: totalInvested,
+        grossBalance: balance,
+        grossYield: balance - totalInvested
+      });
     }
 
     const grossYield = balance - totalInvested;
@@ -80,9 +79,14 @@ export function FixedIncomeSimulator() {
       netYield,
       netBalance,
       monthlyData,
-      taxRate: taxRate * 100
+      taxRate: taxRate * 100,
+      months
     };
-  }, [initialAmount, monthlyContribution, years, annualRate, investmentType]);
+  }, [initialAmount, monthlyContribution, term, termType, annualRate, investmentType]);
+
+  const visibleData = viewMode === "YEARLY" 
+    ? results.monthlyData.filter(d => d.month % 12 === 0 || d.month === results.months)
+    : results.monthlyData;
 
   const handleExportPDF = () => {
     exportCalculatorToPDF({
@@ -101,8 +105,8 @@ export function FixedIncomeSimulator() {
         { label: "Imposto Retido", value: moneyUtils.format(results.totalTax, 'BRL') }
       ],
       tableHead: ["Tempo", "Total Investido", "Saldo Bruto", "Rendimento Bruto"],
-      tableBody: results.monthlyData.map(d => [
-        `Ano ${d.year} (${d.month} meses)`,
+      tableBody: visibleData.map(d => [
+        `Mês ${d.month} (Ano ${d.year})`,
         moneyUtils.format(d.invested, 'BRL'),
         moneyUtils.format(d.grossBalance, 'BRL'),
         moneyUtils.format(d.grossYield, 'BRL')
@@ -138,13 +142,24 @@ export function FixedIncomeSimulator() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Prazo (Anos)</Label>
-              <Input 
-                type="number" 
-                value={years || ''} 
-                onChange={e => setYears(Number(e.target.value))}
-                className="font-mono bg-background"
-              />
+              <Label>Prazo</Label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="number" 
+                  value={term || ''} 
+                  onChange={e => setTerm(Number(e.target.value))}
+                  className="font-mono bg-background flex-1"
+                />
+                <Select value={termType} onValueChange={(v: any) => setTermType(v)}>
+                  <SelectTrigger className="w-[110px] bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="YEARS">Anos</SelectItem>
+                    <SelectItem value="MONTHS">Meses</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             <div className="space-y-2 pt-4 border-t border-border/50">
@@ -163,7 +178,7 @@ export function FixedIncomeSimulator() {
 
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="space-y-2">
-                <Label>Indexador</Label>
+                <Label className="flex h-5 items-center">Indexador</Label>
                 <Select value={rateType} onValueChange={(v: any) => setRateType(v)}>
                   <SelectTrigger className="bg-background">
                     <SelectValue />
@@ -176,7 +191,7 @@ export function FixedIncomeSimulator() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="flex justify-between items-center">
+                <Label className="flex h-5 justify-between items-center">
                   <span>{rateType === 'FIXED' ? 'Taxa (a.a)' : 'Percentual'}</span>
                   {rateType !== 'FIXED' && (
                     <TooltipProvider>
@@ -205,7 +220,12 @@ export function FixedIncomeSimulator() {
             
             <div className="p-3 bg-muted/50 rounded-xl flex items-center justify-between text-sm border border-border/50">
               <span className="text-muted-foreground font-medium">Rentabilidade Bruta:</span>
-              <span className="font-bold text-primary font-mono">{annualRate.toFixed(2)}% ao ano</span>
+              <div className="flex flex-col items-end">
+                <span className="font-bold text-primary font-mono">{annualRate.toFixed(2)}% a.a</span>
+                <span className="text-[10px] text-muted-foreground font-mono">
+                  ({((Math.pow(1 + annualRate / 100, 1 / 12) - 1) * 100).toFixed(2)}% a.m)
+                </span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -248,14 +268,25 @@ export function FixedIncomeSimulator() {
         </div>
 
         <Card className="bg-card/50 border-border/50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
             <div>
               <CardTitle className="text-lg">Evolução do Patrimônio</CardTitle>
               <CardDescription>O poder dos juros compostos com o tempo</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
-              <Download className="h-4 w-4" /> Exportar PDF
-            </Button>
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
+                <SelectTrigger className="w-[130px] h-8 text-xs bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="YEARLY">Visão Anual</SelectItem>
+                  <SelectItem value="MONTHLY">Visão Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2 h-8">
+                <Download className="h-4 w-4" /> PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="rounded-xl border border-border/50 overflow-hidden mt-4">
@@ -270,10 +301,10 @@ export function FixedIncomeSimulator() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
-                    {results.monthlyData.map((d) => (
+                    {visibleData.map((d) => (
                       <tr key={d.month} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 font-medium text-xs">
-                          Ano {d.year} <span className="text-muted-foreground font-normal">({d.month}m)</span>
+                          Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
                         </td>
                         <td className="px-4 py-3 font-mono text-right text-xs text-muted-foreground">
                           {moneyUtils.format(d.invested, 'BRL')}
