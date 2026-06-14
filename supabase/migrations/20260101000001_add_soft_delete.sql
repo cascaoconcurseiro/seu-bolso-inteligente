@@ -82,7 +82,7 @@ RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 BEGIN
   -- Soft delete da transação
   UPDATE transactions 
@@ -107,14 +107,14 @@ BEGIN
     deleted_by = auth.uid()
   WHERE source_transaction_id = p_transaction_id;
 END;
-$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.soft_delete_account(p_account_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 BEGIN
   -- Verificar se conta pertence ao usuário
   IF NOT EXISTS (
@@ -140,14 +140,14 @@ BEGIN
   WHERE (account_id = p_account_id OR destination_account_id = p_account_id)
     AND deleted_at IS NULL;
 END;
-$;
+$$;
 
 CREATE OR REPLACE FUNCTION public.restore_transaction(p_transaction_id UUID)
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 BEGIN
   -- Restaurar transação
   UPDATE transactions 
@@ -171,7 +171,7 @@ BEGIN
     deleted_by = NULL
   WHERE source_transaction_id = p_transaction_id;
 END;
-$;
+$$;
 
 -- 5. FUNÇÃO DE LIMPEZA PERMANENTE (HARD DELETE)
 -- =====================================================
@@ -181,7 +181,7 @@ RETURNS INTEGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $
+AS $$
 DECLARE
   v_count INTEGER := 0;
   v_cutoff_date TIMESTAMPTZ;
@@ -203,7 +203,7 @@ BEGIN
   
   RETURN v_count;
 END;
-$;
+$$;
 
 -- 6. COMENTÁRIOS
 -- =====================================================
