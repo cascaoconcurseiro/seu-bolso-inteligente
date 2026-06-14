@@ -10,6 +10,17 @@ export const useSyncAssetPrices = () => {
 
   return useMutation({
     mutationFn: async () => {
+      // Check rate limit (e.g., 60 seconds)
+      const lastSync = localStorage.getItem('last_asset_sync');
+      if (lastSync) {
+        const timeSinceLastSync = Date.now() - parseInt(lastSync, 10);
+        const cooldown = 60000; // 60 seconds
+        if (timeSinceLastSync < cooldown) {
+          const remainingSeconds = Math.ceil((cooldown - timeSinceLastSync) / 1000);
+          throw new Error(`Aguarde ${remainingSeconds} segundos antes de atualizar novamente.`);
+        }
+      }
+
       // Call the secure Supabase Edge Function
       const { data, error: functionError } = await supabase.functions.invoke('sync-asset-prices');
 
@@ -37,6 +48,9 @@ export const useSyncAssetPrices = () => {
       return { updated: data?.updated || 0 };
     },
     onSuccess: (data) => {
+      // Update last sync time
+      localStorage.setItem('last_asset_sync', Date.now().toString());
+      
       if (data.updated > 0) {
         toast({
           title: "Cotações Sincronizadas",

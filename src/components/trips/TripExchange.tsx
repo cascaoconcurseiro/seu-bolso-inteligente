@@ -91,6 +91,12 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
   if (!isLoading && purchases.length === 0) {
     return (
       <div className="space-y-6">
+        <div className="bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 p-4 rounded-xl text-sm flex gap-3">
+          <Info className="w-5 h-5 shrink-0 mt-0.5" />
+          <p>
+            <strong>Cotações em Tempo Real:</strong> Em breve, a cotação oficial da moeda ({trip.currency}) será sincronizada em tempo real com a BRAPI para ajudar no seu planejamento.
+          </p>
+        </div>
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="font-display font-semibold text-lg mb-2">
@@ -119,6 +125,13 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
 
   return (
     <div className="space-y-6">
+      <div className="bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 p-4 rounded-xl text-sm flex gap-3">
+        <Info className="w-5 h-5 shrink-0 mt-0.5" />
+        <p>
+          <strong>Dica:</strong> Em breve, os valores das moedas estrangeiras aparecerão com o aviso de <em>cotação em tempo real</em> integrados à BRAPI, ajudando na conversão automática de gastos.
+        </p>
+      </div>
+
       {/* Resumo */}
       {summary && <ExchangeSummaryCard summary={summary} currency={trip.currency} totalExpenses={totalExpenses} />}
 

@@ -13,35 +13,33 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    );
-
-    // Fetch user context
-    const {
-      data: { user },
-      error: userError
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
-      console.error("Auth error:", userError);
-      return new Response(JSON.stringify({ 
-        error: 'Unauthorized', 
-        details: userError,
-        authHeader: req.headers.get('Authorization') ? 'Present' : 'Missing'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      });
-    }
-
-    // Initialize Supabase Admin client for database operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response('Missing Authorization header', {
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        status: 401,
+      });
+    }
+
+    const jwt = authHeader.replace('Bearer ', '');
+    
+    // Fetch user context
+    const {
+      data: { user },
+      error: userError
+    } = await supabaseAdmin.auth.getUser(jwt);
+
+    if (userError || !user) {
+      return new Response(`Auth error: ${userError?.message || 'User not found'}`, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        status: 401,
+      });
+    }
 
     // Fetch assets for this user that have a ticker
     const { data: assets, error: fetchError } = await supabaseAdmin
@@ -126,8 +124,8 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Erro na sincronização:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(`Error: ${error.message}`, {
+      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
       status: 500,
     });
   }
