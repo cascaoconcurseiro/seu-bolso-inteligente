@@ -145,13 +145,14 @@ export function CreditCards() {
   const deleteTransaction = useDeleteTransaction();
   const { toast: toastHook } = useToast();
 
+  const [deleteCardConfirm, setDeleteCardConfirm] = useState<{ isOpen: boolean; card: CreditCardAccount | null }>({ isOpen: false, card: null });
+
   const { data: deleteCardDeps } = useAccountDependencies(deleteCardConfirm.card?.id);
   const deleteCardHasTransactions = (deleteCardDeps?.total_transactions || 0) > 0;
 
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({ isOpen: false, transaction: null });
   const [showEditCardDialog, setShowEditCardDialog] = useState(false);
-  const [deleteCardConfirm, setDeleteCardConfirm] = useState<{ isOpen: boolean; card: CreditCardAccount | null }>({ isOpen: false, card: null });
   
   const [editCardName, setEditCardName] = useState("");
   const [editClosingDay, setEditClosingDay] = useState("");
