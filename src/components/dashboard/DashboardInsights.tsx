@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Bell } from "lucide-react";
+import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Bell, Sparkles } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useDashboardData } from "@/hooks/useDashboard";
@@ -42,50 +44,68 @@ export function DashboardInsights() {
   if (insights.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-2">
-        <Bell className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold tracking-tight">Insights Proativos</h3>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {insights.map((insight) => {
-          let colorClass = "";
-          let Icon = Bell;
-          
-          switch (insight.type) {
-            case "DANGER":
-              colorClass = "border-red-500/20 bg-red-500/10 text-red-500";
-              Icon = insight.icon === 'trending-down' ? TrendingDown : XCircle;
-              break;
-            case "WARNING":
-              colorClass = "border-amber-500/20 bg-amber-500/10 text-amber-500";
-              Icon = insight.icon === 'credit-card' ? CreditCard : AlertTriangle;
-              break;
-            case "SUCCESS":
-              colorClass = "border-emerald-500/20 bg-emerald-500/10 text-emerald-500";
-              Icon = TrendingUp;
-              break;
-            case "INFO":
-              colorClass = "border-blue-500/20 bg-blue-500/10 text-blue-500";
-              break;
-          }
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 bg-blue-500/10 border-blue-500 text-blue-600 hover:bg-blue-500/20"
+          title="Insights Proativos"
+        >
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+          </span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[340px] p-4 rounded-2xl shadow-xl border-border/50">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/50">
+          <div className="p-2 bg-blue-500/10 text-blue-500 rounded-full">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <h3 className="font-semibold tracking-tight text-base">Insights Proativos</h3>
+        </div>
+        
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+          {insights.map((insight) => {
+            let colorClass = "";
+            let Icon = Bell;
+            
+            switch (insight.type) {
+              case "DANGER":
+                colorClass = "border-red-500/20 bg-red-500/10 text-red-500";
+                Icon = insight.icon === 'trending-down' ? TrendingDown : XCircle;
+                break;
+              case "WARNING":
+                colorClass = "border-amber-500/20 bg-amber-500/10 text-amber-500";
+                Icon = insight.icon === 'credit-card' ? CreditCard : AlertTriangle;
+                break;
+              case "SUCCESS":
+                colorClass = "border-emerald-500/20 bg-emerald-500/10 text-emerald-500";
+                Icon = TrendingUp;
+                break;
+              case "INFO":
+                colorClass = "border-blue-500/20 bg-blue-500/10 text-blue-500";
+                break;
+            }
 
-          return (
-            <div key={insight.id} className={`p-4 rounded-xl border flex gap-3 items-start ${colorClass}`}>
-              <div className="mt-0.5">
-                <Icon className="w-5 h-5" />
+            return (
+              <div key={insight.id} className={`p-3.5 rounded-xl border flex gap-3 items-start ${colorClass}`}>
+                <div className="mt-0.5">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold leading-tight">{insight.title}</h4>
+                  <p className="text-xs opacity-90 mt-1.5 leading-relaxed">
+                    {insight.message}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-bold">{insight.title}</h4>
-                <p className="text-xs opacity-90 mt-1 leading-relaxed">
-                  {insight.message}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

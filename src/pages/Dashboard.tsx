@@ -233,6 +233,7 @@ export function Dashboard() {
               <Plane className="h-5 w-5" />
             </Button>
           )}
+          <DashboardInsights />
 
           {currenciesData.length > 1 && (
             <div className="w-32">
@@ -259,8 +260,6 @@ export function Dashboard() {
         </div>
       ) : (
         <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
-          
-          <DashboardInsights />
           
           <DashboardQuickAccess />
 
