@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { Plane, Calendar, MapPin, Wallet, PiggyBank, Receipt, TrendingUp, AlertCircle } from "lucide-react";
+import { Plane, Calendar, MapPin, Wallet, PiggyBank, Receipt, TrendingUp, AlertCircle, RefreshCcw } from "lucide-react";
 import { useTrips, useTripFinancialSummary, useTripTransactions } from "@/hooks/useTrips";
+import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { moneyUtils } from "@/utils/money";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,6 +51,9 @@ export function TripDashboardView() {
   const currency = activeTrip.currency || 'BRL';
   const formatValue = (val: number) => moneyUtils.format(val, currency);
 
+  // Cotação em tempo real se não for BRL
+  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
+
   const budget = summary?.total_budget || activeTrip.budget || 0;
   const spent = summary?.total_spent || 0;
   const remaining = Math.max(0, budget - spent);
@@ -73,6 +77,19 @@ export function TripDashboardView() {
                 <span className="text-sm font-medium flex items-center gap-1 text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {activeTrip.destination}
                 </span>
+              )}
+              {currency !== 'BRL' && (
+                <Badge variant="outline" className="ml-2 flex items-center gap-1 bg-background shadow-sm">
+                  {isRateLoading ? (
+                    <RefreshCcw className="h-3 w-3 animate-spin text-muted-foreground" />
+                  ) : realTimeRate ? (
+                    <span className="font-mono text-xs">
+                      1 {currency} = R$ {realTimeRate.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Cotação indisponível</span>
+                  )}
+                </Badge>
               )}
             </div>
             
