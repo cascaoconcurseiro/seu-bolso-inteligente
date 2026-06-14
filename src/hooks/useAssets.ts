@@ -179,6 +179,33 @@ export const useAssets = () => {
   // Deletar investimento (soft delete)
   const deleteAsset = useMutation({
     mutationFn: async (id: string) => {
+      // 1. Fetch the asset to know its name/ticker
+      const { data: asset, error: fetchError } = await supabase
+        .from('assets')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError || !asset) throw fetchError || new Error('Investimento não encontrado');
+
+      const assetIdentifier = asset.ticker || asset.name;
+
+      // 2. Delete auto-generated transactions (Efeito Cascata)
+      if (assetIdentifier) {
+        await supabase
+          .from('transactions')
+          .delete()
+          .like('description', `Compra de Ativo: ${assetIdentifier}%`)
+          .eq('user_id', asset.user_id);
+      }
+
+      // 3. Delete from asset_transactions (Efeito Cascata)
+      await supabase
+        .from('asset_transactions')
+        .delete()
+        .eq('asset_id', id);
+
+      // 4. Finally, delete the asset
       const { error } = await supabase
         .from('assets')
         .delete()

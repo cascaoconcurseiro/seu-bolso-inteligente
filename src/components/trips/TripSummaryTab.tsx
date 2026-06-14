@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { moneyUtils } from "@/utils/money";
 import { parseLocalDate } from "@/utils/dateUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface TripSummaryTabProps {
   selectedTrip: any;
@@ -70,6 +72,29 @@ export function TripSummaryTab({
     .filter(t => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // Busca cotação em tempo real se não for BRL
+  const { data: realTimeRate } = useQuery({
+    queryKey: ["currency-quote", currency],
+    queryFn: async () => {
+      if (currency === 'BRL') return null;
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const { data, error } = await supabase.functions.invoke('get-currency-quote', {
+        body: { currency },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      return data.rate as number;
+    },
+    enabled: currency !== 'BRL',
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+
   return (
     <div className="space-y-8 mt-6 animate-fade-in">
       {/* Grid de Informações Principais */}
@@ -122,6 +147,22 @@ export function TripSummaryTab({
                 <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
                   {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
                 </p>
+              </div>
+            )}
+            
+            {/* Aviso de Cotação em Tempo Real para Moedas Estrangeiras */}
+            {currency !== 'BRL' && realTimeRate && (
+              <div className="mt-4 p-3 rounded-lg border border-orange-500/30 bg-orange-500/10 backdrop-blur-sm relative overflow-hidden group">
+                <div className="flex items-start gap-2 relative z-10">
+                  <Info className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-0.5">Cotação Oficial de Hoje</p>
+                    <p className="text-xs text-muted-foreground">
+                      Seu gasto pelo <strong>PM atual</strong> é {moneyUtils.format(myTotalSpent, currency)}. 
+                      Pela cotação de hoje (R$ {realTimeRate.toFixed(2)}), custaria <strong className="text-orange-600 dark:text-orange-400">R$ {(myTotalSpent * realTimeRate).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

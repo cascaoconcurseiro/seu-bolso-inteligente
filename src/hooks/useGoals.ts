@@ -242,6 +242,23 @@ export const useGoals = () => {
   // Deletar meta (soft delete)
   const deleteGoal = useMutation({
     mutationFn: async (id: string) => {
+      // 1. Fetch the goal to know its name
+      const { data: goal, error: fetchError } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      // 2. Delete auto-generated transactions (Efeito Cascata)
+      if (!fetchError && goal) {
+        await supabase
+          .from('transactions')
+          .delete()
+          .like('notes', `%meta "${goal.name}"%`)
+          .eq('user_id', goal.user_id);
+      }
+
+      // 3. Soft delete the goal
       const { error } = await supabase
         .from('goals')
         .update({ deleted: true })
