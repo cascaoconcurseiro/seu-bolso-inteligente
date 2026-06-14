@@ -26,6 +26,7 @@ import {
   Target,
   Eye,
   EyeOff,
+  Calculator,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +57,7 @@ const navigationItems = [
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
   { path: "/metas", label: "Metas & Inv.", icon: Target },
+  { path: "/simuladores", label: "Simuladores", icon: Calculator },
 ];
 
 interface AppLayoutProps {

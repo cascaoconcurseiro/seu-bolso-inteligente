@@ -36,6 +36,7 @@ const Settings = lazy(() => import("./pages/Settings").then(m => ({ default: m.S
 const Family = lazy(() => import("./pages/Family").then(m => ({ default: m.Family })));
 const Budgets = lazy(() => import("./pages/Budgets").then(m => ({ default: m.Budgets })));
 const GoalsAndInvestments = lazy(() => import("./pages/GoalsAndInvestments").then(m => ({ default: m.GoalsAndInvestments })));
+const Calculators = lazy(() => import("./pages/Calculators").then(m => ({ default: m.Calculators })));
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -242,6 +243,20 @@ const App = () => (
                           <AppLayout>
                             <Suspense fallback={<PageLoader />}>
                               <GoalsAndInvestments />
+                            </Suspense>
+                          </AppLayout>
+                        </PinWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/simuladores"
+                    element={
+                      <ProtectedRoute>
+                        <PinWrapper>
+                          <AppLayout>
+                            <Suspense fallback={<PageLoader />}>
+                              <Calculators />
                             </Suspense>
                           </AppLayout>
                         </PinWrapper>
