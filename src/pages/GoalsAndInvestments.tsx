@@ -19,6 +19,8 @@ import { GoalCard } from '@/components/goals/GoalCard';
 import { AssetCard } from '@/components/investments/AssetCard';
 import { InvestmentSummarySection } from '@/components/investments/InvestmentSummarySection';
 import { InvestmentIRPanel } from '@/components/investments/InvestmentIRPanel';
+import { useSyncAssetPrices } from '@/hooks/useSyncAssetPrices';
+import { RefreshCw } from 'lucide-react';
 
 export function GoalsAndInvestments() {
   const [activeTab, setActiveTab] = useState<'GOALS' | 'INVESTMENTS' | 'IRPF'>('GOALS');
@@ -38,6 +40,9 @@ export function GoalsAndInvestments() {
 
   // Delete state
   const [itemToDelete, setItemToDelete] = useState<{type: 'goal'|'asset', id: string, name: string} | null>(null);
+
+  // Sync state
+  const syncPrices = useSyncAssetPrices();
 
   const handleEditGoal = (goal: Goal) => {
     setSelectedGoal(goal);
@@ -107,22 +112,35 @@ export function GoalsAndInvestments() {
           </div>
           
           {activeTab !== 'IRPF' && (
-            <Button 
-              onClick={() => {
-                if (activeTab === 'GOALS') {
-                  setSelectedGoal(null);
-                  setShowGoalForm(true);
-                } else {
-                  setSelectedAsset(null);
-                  setShowAssetForm(true);
-                }
-              }}
-              size="default"
-              className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold"
-            >
-              <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-              {activeTab === 'GOALS' ? 'Nova Meta' : 'Novo Ativo'}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {activeTab === 'INVESTMENTS' && (
+                <Button 
+                  onClick={() => syncPrices.mutate()}
+                  disabled={syncPrices.isPending}
+                  variant="outline"
+                  className="shadow-sm transition-all h-11 font-medium bg-background/50 backdrop-blur-sm"
+                >
+                  <RefreshCw className={cn("w-4 h-4 mr-2", syncPrices.isPending && "animate-spin")} />
+                  {syncPrices.isPending ? 'Sincronizando...' : 'Atualizar Cotações'}
+                </Button>
+              )}
+              <Button 
+                onClick={() => {
+                  if (activeTab === 'GOALS') {
+                    setSelectedGoal(null);
+                    setShowGoalForm(true);
+                  } else {
+                    setSelectedAsset(null);
+                    setShowAssetForm(true);
+                  }
+                }}
+                size="default"
+                className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold"
+              >
+                <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
+                {activeTab === 'GOALS' ? 'Nova Meta' : 'Novo Ativo'}
+              </Button>
+            </div>
           )}
         </div>
       </div>
