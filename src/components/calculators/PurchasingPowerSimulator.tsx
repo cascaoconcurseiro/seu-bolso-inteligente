@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useEconomicIndicators } from "@/hooks/useEconomicIndicators";
 import { moneyUtils } from "@/utils/money";
@@ -14,8 +14,10 @@ export function PurchasingPowerSimulator() {
   const { data: indicators, isLoading } = useEconomicIndicators();
   
   const [initialAmount, setInitialAmount] = useState<number>(10000);
-  const [years, setYears] = useState<number>(5);
+  const [term, setTerm] = useState<number>(5);
+  const [termType, setTermType] = useState<"YEARS" | "MONTHS">("YEARS");
   const [inflationRate, setInflationRate] = useState<number>(4.5);
+  const [viewMode, setViewMode] = useState<"YEARLY" | "MONTHLY">("YEARLY");
   
   // Sincroniza com a API quando carrega, mas permite edição
   const [hasSynced, setHasSynced] = useState(false);
@@ -25,21 +27,21 @@ export function PurchasingPowerSimulator() {
   }
 
   const results = useMemo(() => {
-    // Cálculo do montante necessário no futuro para manter o poder de compra: Valor * (1 + IPCA)^Anos
-    // Cálculo do poder de compra futuro do dinheiro de hoje: Valor / (1 + IPCA)^Anos
-    
     const rateDecimal = inflationRate / 100;
-    const requiredFutureAmount = initialAmount * Math.pow(1 + rateDecimal, years);
-    const futurePurchasingPower = initialAmount / Math.pow(1 + rateDecimal, years);
+    const months = termType === "YEARS" ? term * 12 : term;
+    const monthlyRate = Math.pow(1 + rateDecimal, 1 / 12) - 1;
+    
+    const requiredFutureAmount = initialAmount * Math.pow(1 + monthlyRate, months);
+    const futurePurchasingPower = initialAmount / Math.pow(1 + monthlyRate, months);
     const lostPower = initialAmount - futurePurchasingPower;
     
-    // Gera a tabela ano a ano
-    const yearlyData = [];
-    for (let i = 0; i <= years; i++) {
-      yearlyData.push({
-        year: i,
-        requiredToMaintain: initialAmount * Math.pow(1 + rateDecimal, i),
-        purchasingPowerOfInitial: initialAmount / Math.pow(1 + rateDecimal, i),
+    const monthlyData = [];
+    for (let i = 1; i <= months; i++) {
+      monthlyData.push({
+        month: i,
+        year: Math.ceil(i / 12),
+        requiredToMaintain: initialAmount * Math.pow(1 + monthlyRate, i),
+        purchasingPowerOfInitial: initialAmount / Math.pow(1 + monthlyRate, i),
       });
     }
 
@@ -47,16 +49,21 @@ export function PurchasingPowerSimulator() {
       requiredFutureAmount,
       futurePurchasingPower,
       lostPower,
-      yearlyData
+      monthlyData,
+      months
     };
-  }, [initialAmount, years, inflationRate]);
+  }, [initialAmount, term, termType, inflationRate]);
+
+  const visibleData = viewMode === "YEARLY"
+    ? results.monthlyData.filter(d => d.month % 12 === 0 || d.month === results.months)
+    : results.monthlyData;
 
   const handleExportPDF = () => {
     exportCalculatorToPDF({
       title: "Simulação de Poder de Compra (Inflação)",
       parameters: [
         { label: "Valor Base", value: moneyUtils.format(initialAmount, 'BRL') },
-        { label: "Prazo", value: `${years} anos` },
+        { label: "Prazo", value: `${term} ${termType === 'YEARS' ? 'anos' : 'meses'}` },
         { label: "Inflação (IPCA) Projetada", value: `${inflationRate.toFixed(2)}% ao ano` }
       ],
       summary: [
@@ -64,9 +71,9 @@ export function PurchasingPowerSimulator() {
         { label: "Poder de compra real no futuro", value: moneyUtils.format(results.futurePurchasingPower, 'BRL'), isWarning: true },
         { label: "Poder de compra perdido", value: moneyUtils.format(results.lostPower, 'BRL'), isWarning: true }
       ],
-      tableHead: ["Ano", "Necessário p/ Manter Padrão", "Poder de Compra Real"],
-      tableBody: results.yearlyData.map(d => [
-        `Ano ${d.year}`,
+      tableHead: ["Período", "Necessário p/ Manter Padrão", "Poder de Compra Real"],
+      tableBody: visibleData.map(d => [
+        `Mês ${d.month} (Ano ${d.year})`,
         moneyUtils.format(d.requiredToMaintain, 'BRL'),
         moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')
       ])
@@ -91,18 +98,25 @@ export function PurchasingPowerSimulator() {
             />
           </div>
           
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <Label>Prazo ({years} anos)</Label>
-              <span className="text-sm font-bold text-primary">{years} anos</span>
+          <div className="space-y-2">
+            <Label>Prazo</Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                type="number" 
+                value={term || ''} 
+                onChange={e => setTerm(Number(e.target.value))}
+                className="font-mono bg-background flex-1"
+              />
+              <Select value={termType} onValueChange={(v: any) => setTermType(v)}>
+                <SelectTrigger className="w-[110px] bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="YEARS">Anos</SelectItem>
+                  <SelectItem value="MONTHS">Meses</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Slider 
-              value={[years]} 
-              min={1} 
-              max={30} 
-              step={1} 
-              onValueChange={val => setYears(val[0])} 
-            />
           </div>
 
           <div className="space-y-3 pt-2 border-t border-border/50">
@@ -149,7 +163,7 @@ export function PurchasingPowerSimulator() {
           <Card className="bg-primary/5 border-primary/20 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-6 relative z-10">
-              <p className="text-sm font-medium text-muted-foreground mb-1">Necessário em {years} anos</p>
+              <p className="text-sm font-medium text-muted-foreground mb-1">Necessário no futuro</p>
               <p className="text-3xl font-mono font-bold text-foreground">
                 {moneyUtils.format(results.requiredFutureAmount, 'BRL')}
               </p>
@@ -174,14 +188,25 @@ export function PurchasingPowerSimulator() {
         </div>
 
         <Card className="bg-card/50 border-border/50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
             <div>
               <CardTitle className="text-lg">Evolução da Desvalorização</CardTitle>
               <CardDescription>Mesa a mês, como a inflação corrói o dinheiro</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
-              <Download className="h-4 w-4" /> Exportar PDF
-            </Button>
+            <div className="flex items-center gap-2">
+              <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
+                <SelectTrigger className="w-[130px] h-8 text-xs bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="YEARLY">Visão Anual</SelectItem>
+                  <SelectItem value="MONTHLY">Visão Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2 h-8">
+                <Download className="h-4 w-4" /> PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="rounded-xl border border-border/50 overflow-hidden mt-4">
@@ -195,11 +220,13 @@ export function PurchasingPowerSimulator() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
-                    {results.yearlyData.map((d) => (
-                      <tr key={d.year} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-medium">Ano {d.year}</td>
-                        <td className="px-4 py-3 font-mono text-right">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
-                        <td className="px-4 py-3 font-mono text-right text-amber-600 dark:text-amber-500">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
+                    {visibleData.map((d) => (
+                      <tr key={d.month} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-xs">
+                          Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-right text-xs">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
+                        <td className="px-4 py-3 font-mono text-right text-amber-600 dark:text-amber-500 text-xs font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
                       </tr>
                     ))}
                   </tbody>
