@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
@@ -30,6 +30,8 @@ interface CreditCardDetailViewProps {
   installments: any[];
   allYearTransactions?: any[];
   canDelete?: boolean;
+  onArchive: (card: any) => void;
+  onUnarchive: (card: any) => void;
 }
 
 export function CreditCardDetailView({
@@ -55,6 +57,8 @@ export function CreditCardDetailView({
   installments,
   allYearTransactions = [],
   canDelete = false,
+  onArchive,
+  onUnarchive,
 }: CreditCardDetailViewProps) {
   return (
     <div className="space-y-8 animate-fade-in">
@@ -85,6 +89,22 @@ export function CreditCardDetailView({
               <Pencil className="h-4 w-4 mr-2" />
               Editar Cartão
             </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => selectedCard.is_archived ? onUnarchive(selectedCard) : onArchive(selectedCard)}>
+              {selectedCard.is_archived ? (
+                <>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Desarquivar Cartão
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Arquivar Cartão
+                </>
+              )}
+            </DropdownMenuItem>
+
             {canDelete && (
               <>
                 <DropdownMenuSeparator />

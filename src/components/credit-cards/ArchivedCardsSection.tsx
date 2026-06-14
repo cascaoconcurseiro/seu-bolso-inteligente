@@ -8,13 +8,15 @@ interface ArchivedCardsSectionProps {
   formatCurrency: (value: number) => string;
   onUnarchive: (id: string) => void;
   isUnarchiving: boolean;
+  onCardSelect: (card: any) => void;
 }
 
 export function ArchivedCardsSection({
   archivedCards,
   formatCurrency,
   onUnarchive,
-  isUnarchiving
+  isUnarchiving,
+  onCardSelect
 }: ArchivedCardsSectionProps) {
   const cards = archivedCards.filter(c => c.type === 'CREDIT_CARD');
   
@@ -36,14 +38,15 @@ export function ArchivedCardsSection({
             return (
               <div
                 key={card.id}
-                className="p-4 rounded-xl border border-border bg-muted/30"
+                className="group p-4 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
                 style={{ borderColor: bank.color + '40' }}
+                onClick={() => onCardSelect(card)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <BankIcon bankId={card.bank_id} accountName={card.name} size="md" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{card.name}</p>
+                      <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">{card.name}</p>
                       <p className="text-xs text-muted-foreground">Cartão de Crédito</p>
                     </div>
                   </div>
@@ -60,12 +63,15 @@ export function ArchivedCardsSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onUnarchive(card.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUnarchive(card.id);
+                    }}
                     disabled={isUnarchiving}
-                    className="w-full gap-2"
+                    className="w-full gap-2 relative z-10"
                   >
                     <RotateCcw className="h-3 w-3" />
-                    Desarquivar
+                    Restaurar
                   </Button>
                 </div>
               </div>

@@ -322,6 +322,8 @@ export function CreditCards() {
           }} setDeleteConfirm={setDeleteConfirm} installments={getCardInstallments(invoiceData.transactions)}
           allYearTransactions={exportTransactions}
           canDelete={selectedCardCanDelete}
+          onArchive={async (card) => { await archiveAccountMutation.mutateAsync(card.id); toast.success("Cartão arquivado!"); setView("list"); setSelectedCard(null); }}
+          onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); setView("list"); setSelectedCard(null); }}
         />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
@@ -448,7 +450,7 @@ export function CreditCards() {
         </div>
       )}
 
-      <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} />
+      <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={(card) => { setSelectedCard(card); setView("detail"); }} />
 
       <NewCardDialog open={showNewCardDialog} onOpenChange={setShowNewCardDialog} onSubmit={handleCreateCard} isLoading={createAccount.isPending} bankId={newBankId} setBankId={setNewBankId} brand={newBrand} setBrand={setNewBrand} cardName={newCardName} setCardName={setNewCardName} closingDay={newClosingDay} setClosingDay={setNewClosingDay} dueDay={newDueDay} setDueDay={setNewDueDay} limit={newLimit} setLimit={setNewLimit} isInternational={newIsInternational} setIsInternational={setNewIsInternational} currency={newCurrency} setCurrency={setNewCurrency} />
     </div>

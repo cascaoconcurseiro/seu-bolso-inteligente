@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
+import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useUnarchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
@@ -53,6 +53,7 @@ export function AccountDetail() {
   const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
   const deleteAccount = useDeleteAccount();
   const archiveAccount = useArchiveAccount();
+  const unarchiveAccount = useUnarchiveAccount();
   const updateAccount = useUpdateAccount();
   const deleteTransaction = useDeleteTransaction();
   const { data: dependencies } = useAccountDependencies(id);
@@ -110,9 +111,22 @@ export function AccountDetail() {
   };
 
   const handleConfirmArchive = async () => {
-    if (!account) return;
-    await archiveAccount.mutateAsync(id!);
-    navigate("/contas");
+    try {
+      await archiveAccount.mutateAsync(id || "");
+      toast.success("Conta arquivada com sucesso!");
+      navigate("/");
+    } catch (error) {
+      toast.error("Erro ao arquivar a conta.");
+    }
+  };
+
+  const handleUnarchive = async () => {
+    try {
+      await unarchiveAccount.mutateAsync(id || "");
+      toast.success("Conta desarquivada com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao desarquivar a conta.");
+    }
   };
 
   const handleEditAccount = () => {
@@ -183,6 +197,8 @@ export function AccountDetail() {
         onWithdrawal={() => setShowWithdrawalModal(true)}
         onEdit={handleEditAccount}
         onDelete={() => setShowDeleteConfirmDialog(true)}
+        onArchive={handleConfirmArchive}
+        onUnarchive={handleUnarchive}
       />
 
       <AccountStatement

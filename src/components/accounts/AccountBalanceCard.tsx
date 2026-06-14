@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeftRight, Banknote, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeftRight, Banknote, Pencil, Trash2, Archive, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 
@@ -30,6 +30,8 @@ interface AccountBalanceCardProps {
   onWithdrawal: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onArchive: () => void;
+  onUnarchive: () => void;
 }
 
 export function AccountBalanceCard({
@@ -42,7 +44,9 @@ export function AccountBalanceCard({
   onTransfer,
   onWithdrawal,
   onEdit,
-  onDelete
+  onDelete,
+  onArchive,
+  onUnarchive
 }: AccountBalanceCardProps) {
   const { isPrivate } = usePrivacy();
   const shouldHideBalance = isPrivate || account.hide_balance;
@@ -100,6 +104,23 @@ export function AccountBalanceCard({
         >
           <Pencil className="h-4 w-4" />
           Editar
+        </Button>
+        <Button
+          variant="outline"
+          className={isCredit ? "flex-1 gap-2" : "gap-2"}
+          onClick={account.is_archived ? onUnarchive : onArchive}
+        >
+          {account.is_archived ? (
+            <>
+              <RotateCcw className="h-4 w-4" />
+              Desarquivar
+            </>
+          ) : (
+            <>
+              <Archive className="h-4 w-4" />
+              Arquivar
+            </>
+          )}
         </Button>
         {canDelete && (
           <Button
