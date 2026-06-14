@@ -14,11 +14,24 @@ export const useSyncAssetPrices = () => {
       const { data, error: functionError } = await supabase.functions.invoke('sync-asset-prices');
 
       if (functionError) {
-        throw new Error(functionError.message || 'Erro ao invocar função de sincronização');
+        // Log the error to console for debugging
+        console.error("Function Error:", functionError);
+        
+        // If it's a FunctionsHttpError, it might have a context/body
+        const errorMessage = functionError.message || 'Erro ao invocar função de sincronização';
+        let details = '';
+        if ((functionError as any).context) {
+           try {
+             const contextBody = await (functionError as any).context.json();
+             details = JSON.stringify(contextBody);
+           } catch(e) {}
+        }
+
+        throw new Error(`${errorMessage} ${details}`);
       }
 
       if (data?.error) {
-        throw new Error(data.error);
+        throw new Error(JSON.stringify(data));
       }
 
       return { updated: data?.updated || 0 };
