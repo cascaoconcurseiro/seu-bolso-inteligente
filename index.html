@@ -83,6 +83,35 @@
             document.documentElement.classList.add('dark');
           }
         } catch (e) {}
+
+        // Listener global para capturar erros de carregamento de chunk (comum pós-update de PWA)
+        window.addEventListener('error', function(e) {
+          var isChunkError = e.message && (
+            e.message.includes('dynamically imported module') || 
+            e.message.includes('Failed to fetch') ||
+            e.message.includes('Importing a module script failed') ||
+            e.message.includes('resolving a module specifier')
+          );
+          
+          if (isChunkError || e.name === 'ChunkLoadError') {
+            console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache e recarregamento...');
+            
+            // Tenta limpar os caches do navegador para remover index.html preso
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                for (var i = 0; i < names.length; i++) {
+                  caches.delete(names[i]);
+                }
+              });
+            }
+            
+            // Previne loop infinito: só recarrega se não tentou recentemente
+            if (!sessionStorage.getItem('chunk_retried')) {
+              sessionStorage.setItem('chunk_retried', 'true');
+              window.location.reload();
+            }
+          }
+        }, true); // true para capturar na fase de captura (antes que pare a execução)
       })();
     </script>
   </head>

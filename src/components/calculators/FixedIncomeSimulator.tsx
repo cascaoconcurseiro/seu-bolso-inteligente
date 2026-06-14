@@ -94,8 +94,8 @@ export function FixedIncomeSimulator() {
       parameters: [
         { label: "Investimento Inicial", value: moneyUtils.format(initialAmount, 'BRL') },
         { label: "Aporte Mensal", value: moneyUtils.format(monthlyContribution, 'BRL') },
-        { label: "Prazo", value: `${years} anos (${years * 12} meses)` },
-        { label: "Tipo / Imposto", value: `${investmentType} (IR: ${results.taxRate}%)` },
+        { label: "Prazo", value: `${term} ${termType === 'YEARS' ? 'anos' : 'meses'} (${results.months} meses)` },
+        { label: "Tipo / Imposto", value: `${investmentType} (IR: ${results.taxRate.toFixed(1)}%)` },
         { label: "Taxa Bruta Projetada", value: `${annualRate.toFixed(2)}% ao ano` }
       ],
       summary: [
