@@ -74,6 +74,8 @@ export interface InvoiceItem {
   canAnticipate: boolean;
   blockReason?: string;
   settledAt?: string | null;
+  originalDate: string;
+  accountName?: string;
 }
 
 type DBTransaction = Database['public']['Tables']['transactions']['Row'] & {
@@ -89,7 +91,7 @@ type DBSplit = Database['public']['Tables']['transaction_splits']['Row'] & {
   settled_by_creditor: boolean;
 };
 
-type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id'>;
+type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id' | 'name'>;
 
 export const calculateSharedDisplayDate = (
   transactionDate: string, 
@@ -214,6 +216,8 @@ export const generateInvoices = (
           canAnticipate: settlementStatus.canAnticipate,
           blockReason: settlementStatus.blockReason,
           settledAt: split.settled_at,
+          originalDate: tx.date,
+          accountName: accounts.find(a => a.id === tx.account_id)?.name,
         });
       });
     } else {
@@ -260,6 +264,8 @@ export const generateInvoices = (
               canAnticipate: settlementStatus.canAnticipate,
               blockReason: settlementStatus.blockReason,
               settledAt: mySplit.settled_at,
+              originalDate: tx.date,
+              accountName: accounts.find(a => a.id === tx.account_id)?.name,
             });
           }
         }
@@ -308,6 +314,8 @@ export const generateInvoices = (
       canAnticipate: !tx.is_settled,
       blockReason: tx.is_settled ? 'Esta transação já foi acertada e não pode ser modificada' : undefined,
       settledAt: tx.settled_at,
+      originalDate: tx.date,
+      accountName: accounts.find(a => a.id === tx.account_id)?.name,
     });
   });
 
@@ -355,6 +363,8 @@ export const generateInvoices = (
             canDelete: !tx.is_settled,
             canAnticipate: !tx.is_settled,
             settledAt: tx.settled_at,
+            originalDate: tx.date,
+            accountName: accounts.find(a => a.id === tx.account_id)?.name,
           });
         }
       } else {
@@ -391,6 +401,8 @@ export const generateInvoices = (
               canDelete: !tx.is_settled,
               canAnticipate: !tx.is_settled,
               settledAt: tx.settled_at,
+              originalDate: tx.date,
+              accountName: accounts.find(a => a.id === tx.account_id)?.name,
             });
           }
         }
@@ -430,6 +442,8 @@ export const generateInvoices = (
             canDelete: true,
             canAnticipate: false,
             settledAt: tx.settled_at || tx.created_at,
+            originalDate: tx.date,
+            accountName: accounts.find(a => a.id === tx.account_id)?.name,
           });
         }
       }

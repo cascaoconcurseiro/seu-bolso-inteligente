@@ -292,14 +292,21 @@ export function SharedExpenseCard({
                       </div>
                     </div>
 
-                    <div className="col-start-2 md:col-start-auto md:col-span-2 text-xs text-muted-foreground flex items-center justify-between md:justify-start w-full md:w-auto">
-                      <span>{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
-                      <span className={cn(
-                        "font-mono text-sm font-bold md:hidden",
-                        item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
-                      )}>
-                        {formatCurrency(item.amount, item.currency)}
-                      </span>
+                    <div className="col-start-2 md:col-start-auto md:col-span-2 flex flex-col justify-center w-full md:w-auto">
+                      <div className="text-xs text-muted-foreground flex items-center justify-between md:justify-start">
+                        <span>{dateFns.format(new Date((item.originalDate || item.date) + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
+                        <span className={cn(
+                          "font-mono text-sm font-bold md:hidden",
+                          item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
+                        )}>
+                          {formatCurrency(item.amount, item.currency)}
+                        </span>
+                      </div>
+                      {item.accountName && (
+                        <span className="text-[9px] text-muted-foreground/70 truncate max-w-[130px] font-medium" title={item.accountName}>
+                          {item.accountName}
+                        </span>
+                      )}
                     </div>
 
                     <div className="hidden md:block md:col-span-2 text-right">

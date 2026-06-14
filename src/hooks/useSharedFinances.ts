@@ -26,7 +26,7 @@ type DBSplit = Database['public']['Tables']['transaction_splits']['Row'] & {
   settled_by_debtor: boolean; 
   settled_by_creditor: boolean; 
 };
-type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id'>;
+type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id' | 'name'>;
 
 interface UseSharedFinancesProps {
   currentDate?: Date;
