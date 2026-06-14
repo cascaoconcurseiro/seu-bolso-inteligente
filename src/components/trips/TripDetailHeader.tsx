@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Pencil, MoreVertical, Plus, Archive, ArchiveRestore, Trash2, MapPin, Globe, Download, FileDown } from "lucide-react";
+import { ArrowLeft, User, Coins, Pencil, MoreVertical, Plus, Archive, ArchiveRestore, Trash2, MapPin, Globe, Download, FileDown, RefreshCcw } from "lucide-react";
+import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,9 @@ export function TripDetailHeader({
   onExportPDF,
   onExportExcel
 }: TripDetailHeaderProps) {
+  const currency = trip.currency || 'BRL';
+  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
+
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 pb-6">
       <Button 
@@ -80,6 +84,19 @@ export function TripDetailHeader({
             <Globe className="h-3.5 w-3.5 text-primary" />
             Moeda: {trip.currency}
           </span>
+          {currency !== 'BRL' && (
+            <span className="flex items-center gap-1.5 font-medium px-2 py-0.5 bg-background border border-border/50 rounded-md">
+              {isRateLoading ? (
+                <RefreshCcw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+              ) : realTimeRate ? (
+                <span className="font-mono text-xs">
+                  1 {currency} = R$ {realTimeRate.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })}
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">Cotação indisponível</span>
+              )}
+            </span>
+          )}
           <span className="flex items-center gap-1.5 font-medium">
             <User className="h-3.5 w-3.5 text-primary" />
             {permissions?.isOwner ? "Proprietário" : "Colaborador"}
