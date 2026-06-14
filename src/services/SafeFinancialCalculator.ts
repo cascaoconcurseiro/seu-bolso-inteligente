@@ -147,4 +147,29 @@ export class SafeFinancialCalculator {
 
     return result;
   }
+
+  /**
+   * Calculate inflation-adjusted target amount
+   * @param targetAmount The original target amount in today's money
+   * @param monthsToTarget Number of months until the target date
+   * @param annualInflationRate Annual inflation rate in percentage (e.g., 4.72 for 4.72%)
+   */
+  static calculateInflationAdjustedTarget(
+    targetAmount: number,
+    monthsToTarget: number,
+    annualInflationRate: number
+  ): number {
+    if (monthsToTarget <= 0 || targetAmount <= 0) return targetAmount;
+    
+    // Convert annual rate (e.g., 4.72%) to decimal (0.0472)
+    const annualRateDecimal = annualInflationRate / 100;
+    
+    // Convert annual rate to monthly rate: (1 + annual)^(1/12) - 1
+    const monthlyRateDecimal = Math.pow(1 + annualRateDecimal, 1 / 12) - 1;
+    
+    // Compound interest: target * (1 + monthlyRate)^months
+    const adjustedAmount = targetAmount * Math.pow(1 + monthlyRateDecimal, monthsToTarget);
+    
+    return SafeFinancialCalculator.round(adjustedAmount);
+  }
 }

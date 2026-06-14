@@ -1,7 +1,11 @@
-import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from '@/utils/money';
+import { useEconomicIndicators } from "@/hooks/useEconomicIndicators";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { differenceInMonths } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Goal } from '../../types/database';
 
 interface GoalCardProps {
@@ -15,6 +19,25 @@ interface GoalCardProps {
 export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCardProps) {
   const percentage = goal.target_amount > 0 ? Math.min(100, Math.max(0, ((goal.current_amount ?? 0) / goal.target_amount) * 100)) : 0;
   const remaining = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
+  
+  const { data: indicators } = useEconomicIndicators();
+  
+  let adjustedTarget = goal.target_amount;
+  let monthsToTarget = 0;
+  
+  if (goal.target_date && indicators?.ipca) {
+    const targetDate = new Date(goal.target_date);
+    const now = new Date();
+    monthsToTarget = differenceInMonths(targetDate, now);
+    
+    if (monthsToTarget > 0) {
+      adjustedTarget = SafeFinancialCalculator.calculateInflationAdjustedTarget(
+        goal.target_amount,
+        monthsToTarget,
+        indicators.ipca.value
+      );
+    }
+  }
   
   return (
     <div 
@@ -79,6 +102,24 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
               <p className="text-sm font-mono font-bold text-foreground/70">
                 {moneyUtils.format(goal.target_amount, 'BRL')}
               </p>
+              {monthsToTarget > 0 && adjustedTarget > goal.target_amount && (
+                <TooltipProvider>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <p className="text-[10px] font-mono font-bold text-amber-500/80 mt-0.5 flex items-center justify-end gap-1 cursor-help hover:text-amber-500 transition-colors">
+                        Real: {moneyUtils.format(adjustedTarget, 'BRL')} <Info className="h-3 w-3" />
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent className="w-64 p-3 bg-card border-border/50 shadow-xl rounded-xl z-50">
+                      <p className="text-xs leading-relaxed text-foreground/90">
+                        Devido à inflação atual de <strong className="text-amber-500">{indicators?.ipca?.value}% ao ano</strong> (IPCA BCB), 
+                        você precisará de <strong className="font-mono">{moneyUtils.format(adjustedTarget, 'BRL')}</strong> em {monthsToTarget} meses 
+                        para ter o mesmo poder de compra de {moneyUtils.format(goal.target_amount, 'BRL')} hoje.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </div>
 
