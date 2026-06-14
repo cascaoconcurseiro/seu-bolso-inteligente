@@ -217,6 +217,8 @@ export function Dashboard() {
           formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
           wealthHistory={wealthHistory}
           monthlyBudget={profile?.monthly_budget}
+          realTimeRate={realTimeRate}
+          isRateLoading={isRateLoading}
         />
 
         <div className="flex justify-end items-center gap-3 pt-1">
@@ -238,37 +240,19 @@ export function Dashboard() {
           <DashboardInsights />
 
           {currenciesData.length > 1 && (
-            <div className="flex items-center gap-3">
-              {selectedCurrency !== "BRL" && (
-                <div className="flex flex-col items-end mr-1 animate-in fade-in zoom-in duration-300">
-                  <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Cotação Agora</span>
-                  {isRateLoading ? (
-                    <div className="h-5 w-20 bg-muted animate-pulse rounded mt-0.5" />
-                  ) : realTimeRate ? (
-                    <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium border border-primary/20 shadow-sm mt-0.5">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
-                      </span>
-                      1 {selectedCurrency} = {moneyUtils.format(realTimeRate, "BRL")}
-                    </div>
-                  ) : null}
-                </div>
-              )}
-              <div className="w-32">
-                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                  <SelectTrigger className="h-10 bg-card border-border shadow-sm">
-                    <SelectValue placeholder="Moeda" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currenciesData.map((c) => (
-                      <SelectItem key={c.currency} value={c.currency} className="font-medium">
-                        {c.currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="w-32">
+              <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                <SelectTrigger className="h-10 bg-card border-border shadow-sm">
+                  <SelectValue placeholder="Moeda" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currenciesData.map((c) => (
+                    <SelectItem key={c.currency} value={c.currency} className="font-medium">
+                      {c.currency}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
         </div>

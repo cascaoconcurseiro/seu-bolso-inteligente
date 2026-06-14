@@ -18,6 +18,8 @@ interface DashboardHeroProps {
   formatCurrency: (value: number) => string;
   wealthHistory?: { month_label: string; balance: number; }[];
   monthlyBudget?: number | null;
+  realTimeRate?: number | null;
+  isRateLoading?: boolean;
 }
 
 export function DashboardHero({
@@ -31,6 +33,8 @@ export function DashboardHero({
   formatCurrency,
   wealthHistory,
   monthlyBudget,
+  realTimeRate,
+  isRateLoading,
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
 
@@ -44,14 +48,32 @@ export function DashboardHero({
 
       <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="space-y-4 flex-1">
-          <div className="flex items-center gap-2">
-             <div className="p-1.5 rounded-lg bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-             </div>
-             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
-               Saldo Mensal Previsto ({currency})
-               <InfoTooltip content="Este saldo é calculado somando seu Saldo Atual com as Entradas Pendentes, menos as Saídas Pendentes do mês corrente." />
-             </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+               <div className="p-1.5 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+               </div>
+               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
+                 Saldo Mensal Previsto ({currency})
+                 <InfoTooltip content="Este saldo é calculado somando seu Saldo Atual com as Entradas Pendentes, menos as Saídas Pendentes do mês corrente." />
+               </p>
+            </div>
+
+            {currency !== "BRL" && (
+              <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-bold border border-primary/20 shadow-sm animate-in fade-in zoom-in duration-300">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                {isRateLoading ? (
+                  <span className="h-3 w-16 bg-primary/20 animate-pulse rounded" />
+                ) : realTimeRate ? (
+                  <span>1 {currency} = {moneyUtils.format(realTimeRate, "BRL")}</span>
+                ) : (
+                  <span>Cotando...</span>
+                )}
+              </div>
+            )}
           </div>
           
           <h1 className={cn(
