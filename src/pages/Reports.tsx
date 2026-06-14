@@ -558,10 +558,10 @@ export function Reports() {
 
   const savingsGoalStatus = useMemo(() => {
     const rate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0;
-    if (rate >= 20) return { text: "Excelente! Meta batida (Economizou > 20%)", color: "text-green-500 bg-green-500/10 border-green-500/20" };
-    if (rate >= 10) return { text: "Bom caminho! (Economizou > 10%)", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" };
-    if (rate > 0) return { text: "Resultado positivo, busque economizar pelo menos 10%", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" };
-    return { text: "Atenção: despesas superaram ou igualaram as receitas", color: "text-red-500 bg-red-500/10 border-red-500/20" };
+    if (rate >= 20) return { text: "Excelente! (Economizou > 20%)", color: "text-green-500 bg-green-500/10 border-green-500/20" };
+    if (rate >= 10) return { text: "No caminho! (Economizou > 10%)", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" };
+    if (rate > 0) return { text: "Bom, mas tente poupar 10%", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" };
+    return { text: "Alerta: Gastos superaram receitas", color: "text-red-500 bg-red-500/10 border-red-500/20" };
   }, [totalIncome, balance]);
 
   const filteredTxList = useMemo(() => {

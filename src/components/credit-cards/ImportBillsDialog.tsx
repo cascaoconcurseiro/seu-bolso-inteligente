@@ -33,7 +33,7 @@ const formatCurrency = (val: number) => {
 
 export function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDialogProps) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("global");
+  const [activeTab, setActiveTab] = useState("installment");
 
   // Tab 1: Global state
   const [year, setYear] = useState(new Date().getFullYear());
@@ -235,8 +235,8 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="global">Valores Mensais Globais</TabsTrigger>
+          {/* Aba 'global' removida provisoriamente conforme solicitado */}
+          <TabsList className="grid w-full grid-cols-1 hidden">
             <TabsTrigger value="installment">Compra Parcelada</TabsTrigger>
           </TabsList>
 

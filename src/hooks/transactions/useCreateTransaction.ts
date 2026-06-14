@@ -26,11 +26,12 @@ export function useCreateTransaction() {
       await queryClient.cancelQueries({ queryKey: ["transactions"] });
       await queryClient.cancelQueries({ queryKey: ["dashboard_data"] });
 
-      const previousTransactions = queryClient.getQueryData(["transactions"]);
+      // Save previous data for all transaction queries in case we need to rollback
+      const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
 
-      // Injetar transação temporária na UI
+      // Injetar transação temporária em todas as consultas relacionadas a transações na UI
       if (user) {
-        queryClient.setQueryData(["transactions"], (old: any[]) => {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
           const optimisticTx = {
             id: `temp-${Date.now()}`,
             user_id: user.id,
@@ -50,7 +51,7 @@ export function useCreateTransaction() {
           };
           
           if (!old) return [optimisticTx];
-          return [optimisticTx, ...old];
+          return [optimisticTx, ...(Array.isArray(old) ? old : [])];
         });
       }
 
@@ -486,7 +487,9 @@ export function useCreateTransaction() {
     onError: (error, _newTx, context: any) => {
       // Rollback da cache em caso de erro
       if (context?.previousTransactions) {
-        queryClient.setQueryData(["transactions"], context.previousTransactions);
+        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
       }
       transactionToasts.error('criar', error);
     },

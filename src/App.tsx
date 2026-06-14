@@ -1,7 +1,10 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import localforage from "localforage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MonthProvider } from "@/contexts/MonthContext";
@@ -10,6 +13,7 @@ import { PrivacyProvider } from "@/contexts/PrivacyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout";
 import { PinWrapper } from "@/components/auth/PinWrapper";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 import { lazy, Suspense } from "react";
 
 // Páginas críticas — carregadas imediatamente (impacto direto no primeiro acesso)
@@ -61,17 +65,30 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 2, // 2 minutos mantendo dados locais "frescos"
-      gcTime: 1000 * 60 * 10, // 10 minutos em memória cache
+      gcTime: 1000 * 60 * 60 * 24, // 24 horas em memória cache persistente
       refetchOnWindowFocus: false, // Menos agressivo ao focar a aba
     },
   },
 });
 
+localforage.config({
+  name: 'SeuBolsoInteligente',
+  storeName: 'reactQueryCache',
+});
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: localforage,
+});
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ErrorBoundary>
-      <AuthProvider>
-        <MonthProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <PersistQueryClientProvider 
+      client={queryClient}
+      persistOptions={{ persister: asyncStoragePersister, maxAge: 1000 * 60 * 60 * 24 }} // 24 horas
+    >
+      <ErrorBoundary>
+        <AuthProvider>
+          <MonthProvider>
           <TransactionModalProvider>
             <PrivacyProvider>
             <TooltipProvider>
@@ -250,11 +267,12 @@ const App = () => (
               </BrowserRouter>
             </TooltipProvider>
             </PrivacyProvider>
-          </TransactionModalProvider>
-        </MonthProvider>
-      </AuthProvider>
-    </ErrorBoundary>
-  </QueryClientProvider>
+            </TransactionModalProvider>
+          </MonthProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </PersistQueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

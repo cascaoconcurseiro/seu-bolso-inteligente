@@ -1,6 +1,7 @@
 import { ExchangeSummary } from "@/types/tripExchange";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
-import { TrendingUp, Wallet, ArrowRightLeft, Hash, DollarSign } from "lucide-react";
+import { TrendingUp, Wallet, ArrowRightLeft, Hash, DollarSign, RefreshCcw, Activity } from "lucide-react";
+import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 
 interface ExchangeSummaryCardProps {
   summary: ExchangeSummary;
@@ -25,13 +26,15 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
     ? calculateBRLEquivalent(totalExpenses, summary.weightedAverageRate)
     : null;
 
+  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency, "BRL");
+
   return (
     <div className="p-6 rounded-xl border border-border bg-muted/30">
       <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-4">
         Resumo do Câmbio
       </h3>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {/* Total em moeda estrangeira */}
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-muted-foreground">
@@ -85,6 +88,33 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
           <p className="font-mono text-xl font-bold">
             {summary.purchaseCount}
           </p>
+        {/* Cotação em Tempo Real */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Activity className="h-4 w-4" />
+            <span className="text-xs">Cotação Atual</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className="font-mono text-xl font-bold text-primary">
+              {isRateLoading ? (
+                <RefreshCcw className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : realTimeRate ? (
+                `R$ ${realTimeRate.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4,
+                  })}`
+              ) : (
+                "—"
+              )}
+            </p>
+            {!isRateLoading && realTimeRate && summary.weightedAverageRate > 0 && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                realTimeRate < summary.weightedAverageRate ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
+              }`}>
+                {((realTimeRate / summary.weightedAverageRate - 1) * 100).toFixed(1)}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

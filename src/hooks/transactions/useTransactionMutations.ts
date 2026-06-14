@@ -65,6 +65,18 @@ export function useUpdateTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async (updateData: Partial<Transaction> & { id: string }) => {
+      await queryClient.cancelQueries({ queryKey: ["transactions"] });
+      const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
+
+      if (user) {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+          if (!Array.isArray(old)) return old;
+          return old.map(tx => tx.id === updateData.id ? { ...tx, ...updateData } : tx);
+        });
+      }
+      return { previousTransactions };
+    },
     mutationFn: async ({ id, ...updateData }: Partial<Transaction> & { id: string }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
@@ -199,7 +211,12 @@ export function useUpdateTransaction() {
       invalidateTripQueries(queryClient);
       transactionToasts.updated();
     },
-    onError: (error) => {
+    onError: (error, _variables, context: any) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
       transactionToasts.error('atualizar', error);
     },
   });
@@ -210,6 +227,18 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async ({ id, cascadeType = 'NONE' }) => {
+      await queryClient.cancelQueries({ queryKey: ["transactions"] });
+      const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
+
+      if (user) {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+          if (!Array.isArray(old)) return old;
+          return old.filter(tx => tx.id !== id);
+        });
+      }
+      return { previousTransactions };
+    },
     mutationFn: async ({ id, cascadeType = 'NONE' }: { id: string, cascadeType?: 'ALL' | 'NEXT' | 'NONE' }) => {
       // 1. Buscar a transação antes de deletar
       const { data: existingTx } = await supabase
@@ -286,7 +315,12 @@ export function useDeleteTransaction() {
         generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-exclusão', e));
       }
     },
-    onError: (error) => {
+    onError: (error, _variables, context: any) => {
+      if (context?.previousTransactions) {
+        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
       transactionToasts.error('remover', error);
     },
   });

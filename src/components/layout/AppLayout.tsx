@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
@@ -63,15 +64,11 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== "undefined") {
-      // Persistência: lê do localStorage primeiro
-      const saved = localStorage.getItem("theme");
-      if (saved) return saved === "dark";
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
+  const { theme, setTheme, systemTheme } = useTheme();
+  
+  // Resolvemos o tema atual (se 'system', olhamos para systemTheme)
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const isDark = currentTheme === "dark";
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -83,11 +80,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   useGlobalRealtime();
 
   const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    document.documentElement.classList.toggle("dark", newIsDark);
-    // Persistência: salva no localStorage
-    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+    setTheme(isDark ? "light" : "dark");
   };
 
   const handleSignOut = async () => {
