@@ -86,12 +86,14 @@
 
         // Listener global para capturar erros de carregamento de chunk (comum pós-update de PWA)
         window.addEventListener('error', function(e) {
-          var isChunkError = e.message && (
+          var isChunkError = (e.message && (
             e.message.includes('dynamically imported module') || 
             e.message.includes('Failed to fetch') ||
             e.message.includes('Importing a module script failed') ||
-            e.message.includes('resolving a module specifier')
-          );
+            e.message.includes('resolving a module specifier') ||
+            e.message.includes('Failed to load module script') ||
+            e.message.includes('text/html')
+          )) || (e.target && e.target.nodeName === 'SCRIPT');
           
           if (isChunkError || e.name === 'ChunkLoadError') {
             console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache, SW e recarregamento...');
