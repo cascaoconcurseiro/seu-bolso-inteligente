@@ -23,6 +23,8 @@ export function useTransactions(filters?: TransactionFilters) {
 
   return useQuery({
     queryKey: ["transactions", user?.id, effectiveFilters, currentDate],
+    staleTime: 1000 * 60 * 5, // 5 minutes cache to avoid excessive refetching
+    ...defaultQueryConfig,
     queryFn: async () => {
       if (!user) return [];
 

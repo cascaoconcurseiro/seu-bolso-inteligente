@@ -124,7 +124,9 @@
               
               // Pequeno delay para garantir que o SW foi desregistrado e o cache limpo
               setTimeout(function() {
-                window.location.reload();
+                var currentUrl = window.location.href.split('#')[0];
+                var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+                window.location.href = currentUrl + separator + 't=' + Date.now();
               }, 500);
             } else {
               console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');

@@ -41,7 +41,7 @@ export function useMonthlyProjection(currency: string = "BRL") {
       });
 
       if (error) {
-        console.error('Erro ao buscar projeção mensal:', error);
+        console.error('Erro ao buscar projeção mensal:', JSON.stringify(error, null, 2));
         return null;
       }
 

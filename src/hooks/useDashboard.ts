@@ -41,6 +41,7 @@ export function useDashboardData() {
 
   return useQuery({
     queryKey: ['dashboard-data', user?.id, monthKey],
+    staleTime: 1000 * 60 * 5, // 5 minutes cache to avoid excessive refetching
     queryFn: async (): Promise<DashboardSummary> => {
       if (!user) return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
 
@@ -51,7 +52,7 @@ export function useDashboardData() {
       });
 
       if (error) {
-        console.error('[useDashboardData] Erro RPC:', error);
+        console.error('[useDashboardData] Erro RPC:', JSON.stringify(error, null, 2));
         return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
       }
 
@@ -66,7 +67,6 @@ export function useDashboardData() {
       };
     },
     enabled: !!user,
-    staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 }
