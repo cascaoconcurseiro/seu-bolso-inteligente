@@ -358,6 +358,23 @@ export function useUpdateAccount() {
 }
 
 
+export function useAccountDependencies(accountId: string | undefined) {
+  return useQuery({
+    queryKey: ["account_dependencies", accountId],
+    queryFn: async () => {
+      if (!accountId) return null;
+      try {
+        const deps = await callRPCWithRetry('check_account_dependencies', { p_account_id: accountId }) as AccountDependenciesResponse;
+        return deps;
+      } catch (e) {
+        console.warn("Failed to fetch account dependencies:", e);
+        return null;
+      }
+    },
+    enabled: !!accountId,
+  });
+}
+
 export function useDeleteAccount() {
   const queryClient = useQueryClient();
 

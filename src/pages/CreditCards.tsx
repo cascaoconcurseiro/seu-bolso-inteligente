@@ -30,7 +30,7 @@ import {
 import { useMonth } from "@/contexts/MonthContext";
 import { exportCardsToCSV, exportCardsToPDF } from "@/utils/exportData";
 import { getBankById } from "@/lib/banks";
-import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice } from "@/hooks/useAccounts";
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice, useAccountDependencies } from "@/hooks/useAccounts";
 import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCreateTransactions } from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -144,6 +144,9 @@ export function CreditCards() {
   const bulkCreateTransactions = useBulkCreateTransactions();
   const deleteTransaction = useDeleteTransaction();
   const { toast: toastHook } = useToast();
+
+  const { data: deleteCardDeps } = useAccountDependencies(deleteCardConfirm.card?.id);
+  const deleteCardHasTransactions = (deleteCardDeps?.total_transactions || 0) > 0;
 
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({ isOpen: false, transaction: null });
@@ -373,7 +376,9 @@ export function CreditCards() {
             <AlertDialogHeader><AlertDialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</AlertDialogTitle></AlertDialogHeader>
             <div className="flex flex-col gap-3 py-4">
                <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
-               <Button variant="destructive" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await deleteAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); setView("list"); refetchAccounts(); } }}><Trash2 className="h-4 w-4" /> Excluir Permanentemente</Button>
+               {!deleteCardHasTransactions && (
+                 <Button variant="destructive" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await deleteAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); setView("list"); refetchAccounts(); } }}><Trash2 className="h-4 w-4" /> Excluir Permanentemente</Button>
+               )}
             </div>
             <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel></AlertDialogFooter>
           </AlertDialogContent>

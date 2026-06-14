@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount } from "@/hooks/useAccounts";
+import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
@@ -55,6 +55,8 @@ export function AccountDetail() {
   const archiveAccount = useArchiveAccount();
   const updateAccount = useUpdateAccount();
   const deleteTransaction = useDeleteTransaction();
+  const { data: dependencies } = useAccountDependencies(id);
+  const hasTransactions = (dependencies?.total_transactions || 0) > 0;
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
@@ -299,19 +301,21 @@ export function AccountDetail() {
                     </div>
                   </div>
                 </div>
-                <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
-                  <div className="flex items-start gap-3">
-                    <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm text-red-900 dark:text-red-100">Excluir Permanentemente</p>
-                      <p className="text-xs text-red-700 dark:text-red-300">
-                        • A conta será removida do sistema<br />
-                        • Todas as transações serão deletadas<br />
-                        • Esta ação não pode ser desfeita
-                      </p>
+                {!hasTransactions && (
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                    <div className="flex items-start gap-3">
+                      <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="font-medium text-sm text-red-900 dark:text-red-100">Excluir Permanentemente</p>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          • A conta será removida do sistema<br />
+                          • Todas as transações serão deletadas<br />
+                          • Esta ação não pode ser desfeita
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -320,9 +324,11 @@ export function AccountDetail() {
             <Button variant="outline" onClick={() => { setShowDeleteConfirmDialog(false); handleConfirmArchive(); }} className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20">
               <Archive className="h-4 w-4" /> Arquivar
             </Button>
-            <Button variant="destructive" onClick={() => { setShowDeleteConfirmDialog(false); handleConfirmDelete(); }} className="w-full sm:w-auto gap-2">
-              <Trash2 className="h-4 w-4" /> Excluir
-            </Button>
+            {!hasTransactions && (
+              <Button variant="destructive" onClick={() => { setShowDeleteConfirmDialog(false); handleConfirmDelete(); }} className="w-full sm:w-auto gap-2">
+                <Trash2 className="h-4 w-4" /> Excluir
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

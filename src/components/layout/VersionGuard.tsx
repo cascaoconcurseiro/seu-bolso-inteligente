@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 
 export function VersionGuard() {
   const location = useLocation();
@@ -34,8 +36,22 @@ export function VersionGuard() {
           initialTimestampRef.current = data.buildTimestamp;
           console.log("[VersionGuard] Monitoramento ativo. Versão inicial do app:", data.version, "Build:", data.buildTimestamp);
         } else if (data.buildTimestamp > initialTimestampRef.current) {
-          console.log("[VersionGuard] Nova versão detectada no servidor! Nova compilada em:", data.buildTimestamp);
-          updateAvailableRef.current = true;
+          if (!updateAvailableRef.current) {
+            console.log("[VersionGuard] Nova versão detectada no servidor! Nova compilada em:", data.buildTimestamp);
+            updateAvailableRef.current = true;
+
+            toast('Nova versão disponível!', {
+              description: 'Acabamos de lançar novos recursos e correções. Atualize para continuar.',
+              icon: <RefreshCw className="h-4 w-4 animate-spin text-primary" />,
+              duration: Infinity,
+              action: {
+                label: '🚀 Atualizar Agora',
+                onClick: () => {
+                  window.location.reload();
+                },
+              },
+            });
+          }
           
           // Se houver Service Worker ativo do Vite PWA, forçar silenciosamente a checagem e atualização do service worker
           if ("serviceWorker" in navigator) {
@@ -78,18 +94,8 @@ export function VersionGuard() {
     };
   }, []);
 
-  // Janela de oportunidade ideal: Quando o usuário muda de página (rota)
-  // Se houver uma atualização pendente, recarrega a página de forma silenciosa e limpa
-  useEffect(() => {
-    if (updateAvailableRef.current) {
-      console.log("[VersionGuard] Nova versão disponível. Efetuando recarregamento silencioso do app na troca de tela...");
-      
-      // Pequeno delay para garantir que a navegação do router não conflite com o reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    }
-  }, [location.pathname]);
+  // O recarregamento silencioso na troca de tela foi removido a pedido do usuário,
+  // favorecendo o aviso explícito pelo toast acima.
 
   return null;
 }
