@@ -94,9 +94,9 @@
           );
           
           if (isChunkError || e.name === 'ChunkLoadError') {
-            console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache e recarregamento...');
+            console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache, SW e recarregamento...');
             
-            // Tenta limpar os caches do navegador para remover index.html preso
+            // Tenta limpar os caches do navegador para remover assets presos
             if ('caches' in window) {
               caches.keys().then(function(names) {
                 for (var i = 0; i < names.length; i++) {
@@ -104,11 +104,44 @@
                 }
               });
             }
+
+            // Desregistra o Service Worker que pode estar servindo arquivos velhos
+            if ('serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (var i = 0; i < registrations.length; i++) {
+                  registrations[i].unregister();
+                }
+              });
+            }
             
-            // Previne loop infinito: só recarrega se não tentou recentemente
-            if (!sessionStorage.getItem('chunk_retried')) {
-              sessionStorage.setItem('chunk_retried', 'true');
-              window.location.reload();
+            // Previne loop infinito: só recarrega se não tentou recentemente (a cada 3 segundos)
+            var lastRetry = sessionStorage.getItem('chunk_retry_timestamp');
+            var now = Date.now();
+            if (!lastRetry || (now - parseInt(lastRetry)) > 3000) {
+              sessionStorage.setItem('chunk_retry_timestamp', now.toString());
+              
+              // Pequeno delay para garantir que o SW foi desregistrado e o cache limpo
+              setTimeout(function() {
+                window.location.reload();
+              }, 500);
+            } else {
+              console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');
+              // Mostrar botão de recarregar manual na tela
+              var splash = document.getElementById('native-splash');
+              if (splash) {
+                var btn = document.createElement('button');
+                btn.innerHTML = 'Forçar Atualização';
+                btn.style.marginTop = '20px';
+                btn.style.padding = '10px 20px';
+                btn.style.backgroundColor = '#10b981';
+                btn.style.color = 'white';
+                btn.style.border = 'none';
+                btn.style.borderRadius = '8px';
+                btn.style.cursor = 'pointer';
+                btn.style.fontFamily = 'Inter, sans-serif';
+                btn.onclick = function() { window.location.href = window.location.href.split('#')[0] + '?t=' + Date.now(); };
+                splash.appendChild(btn);
+              }
             }
           }
         }, true); // true para capturar na fase de captura (antes que pare a execução)
