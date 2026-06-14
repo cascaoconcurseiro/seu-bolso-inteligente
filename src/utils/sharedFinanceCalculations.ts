@@ -97,7 +97,9 @@ export const calculateSharedDisplayDate = (
   transactionDate: string, 
   competenceDate: string | null,
   accountId: string | null, 
-  accounts: DBAccount[]
+  accounts: DBAccount[],
+  profile?: any,
+  family?: any
 ): string => {
   if (!competenceDate) {
     return transactionDate;
@@ -122,8 +124,14 @@ export const calculateSharedDisplayDate = (
     return dateUtils.getCompetenceDate(dueDate);
   }
 
-  const closingDay = account.closing_day || 1;
-  const dueDay = account.due_day || 10;
+  let closingDay = account.closing_day || 1;
+  let dueDay = account.due_day || 10;
+
+  if (profile?.shared_credit_card_behavior === 'FAMILY_CYCLE' && family) {
+    closingDay = family.shared_closing_day || closingDay;
+    dueDay = family.shared_due_day || dueDay;
+  }
+
   const closingMonth = dateUtils.parseDate(competenceDate);
   
   let dueMonth = closingMonth.getMonth();
@@ -146,7 +154,9 @@ export const generateInvoices = (
   accounts: DBAccount[],
   paidByOthersTransactions: DBTransaction[],
   members: Record<string, any>[],
-  userId: string | undefined
+  userId: string | undefined,
+  profile?: any,
+  family?: any
 ): Record<string, InvoiceItem[]> => {
   const invoiceMap: Record<string, InvoiceItem[]> = {};
   const processedTxIds = new Set<string>();
@@ -187,7 +197,7 @@ export const generateInvoices = (
           split as Record<string, any>
         );
         
-        const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+        const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
         
         invoiceMap[memberId].push({
           id: uniqueKey,
@@ -235,7 +245,7 @@ export const generateInvoices = (
               { ...mySplit, member_id: mySplit.member_id || "" } as Record<string, any>
             );
             
-            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
             
             invoiceMap[creatorMember.id].push({
               id: uniqueKey,
@@ -286,7 +296,7 @@ export const generateInvoices = (
     processedTxIds.add(uniqueKey);
     
     if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
-    const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+    const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
     
     invoiceMap[targetMemberId].push({
       id: uniqueKey,
@@ -335,7 +345,7 @@ export const generateInvoices = (
         if (!processedTxIds.has(uniqueKey)) {
           processedTxIds.add(uniqueKey);
           const member = members.find(m => m.id === targetMemberId);
-          const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+          const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
           if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
           
           invoiceMap[targetMemberId].push({
@@ -373,7 +383,7 @@ export const generateInvoices = (
           const uniqueKey = `${tx.id}-debit-${creatorMember.id}`;
           if (!processedTxIds.has(uniqueKey)) {
             processedTxIds.add(uniqueKey);
-            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+            const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
             if (!invoiceMap[creatorMember.id]) invoiceMap[creatorMember.id] = [];
             
             invoiceMap[creatorMember.id].push({
@@ -417,7 +427,7 @@ export const generateInvoices = (
         
         if (!processedTxIds.has(uniqueKey)) {
           processedTxIds.add(uniqueKey);
-          const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts);
+          const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
           if (!invoiceMap[targetMemberId]) invoiceMap[targetMemberId] = [];
           
           invoiceMap[targetMemberId].push({

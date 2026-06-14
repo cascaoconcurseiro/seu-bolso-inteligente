@@ -3,7 +3,8 @@ import { useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFamilyMembers } from './useFamily';
+import { useFamilyMembers, useFamily } from './useFamily';
+import { useUserProfile } from './useUserProfile';
 import { toast } from 'sonner';
 import { Database } from '@/types/database';
 import { logger } from '@/utils/logger';
@@ -36,6 +37,8 @@ interface UseSharedFinancesProps {
 export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSharedFinancesProps) => {
   const { user } = useAuth();
   const { data: members = [] } = useFamilyMembers();
+  const { data: family } = useFamily();
+  const { data: profile } = useUserProfile();
   const queryClient = useQueryClient();
 
   // Invalida a query consolidada (única fonte de dados)
@@ -141,9 +144,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       accounts,
       paidByOthersTransactions,
       members,
-      user?.id
+      user?.id,
+      profile,
+      family
     );
-  }, [transactionsWithSplits, paidByOthersTransactions, members, user?.id]);
+  }, [transactionsWithSplits, paidByOthersTransactions, members, user?.id, profile, family]);
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
