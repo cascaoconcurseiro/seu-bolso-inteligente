@@ -206,14 +206,14 @@ export const exportMonthlyReport = async (data: ExportData) => {
       console.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');
       workbook.addWorksheet('Fluxo de Caixa');
       workbook.addWorksheet('Transações Mês a Mês');
-      workbook.addWorksheet('Compartilhado Fran (Compras Mês)');
+      workbook.addWorksheet('Compartilhado Fran (Compras)');
       workbook.addWorksheet('Dívidas Fran');
     } else {
       const arrayBuffer = await templateData.arrayBuffer();
       await workbook.xlsx.load(arrayBuffer);
       
       const mercadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'mercado');
-      if (mercadoSheet) mercadoSheet.name = 'Compartilhado Fran (Compras Mês)';
+      if (mercadoSheet) mercadoSheet.name = 'Compartilhado Fran (Compras)';
 
       const compartilhadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'compartilhado fran');
       if (compartilhadoSheet) compartilhadoSheet.name = 'Dívidas Fran';
@@ -224,26 +224,28 @@ export const exportMonthlyReport = async (data: ExportData) => {
     }
 
     const transacoesSheet = workbook.getWorksheet('Transações Mês a Mês')!;
-    transacoesSheet.spliceRows(2, Math.max(transacoesSheet.rowCount, 2));
-    transacoesSheet.getRow(1).values = ['Data', 'Descrição', 'Categoria', 'Conta', 'Valor', 'Tipo'];
-    transacoesSheet.getRow(1).font = { bold: true };
-    
-    data.transactions.forEach((tx) => {
-      transacoesSheet.addRow([
-        format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
-        tx.description,
-        tx.category?.name || '',
-        Array.isArray(tx.account) ? tx.account[0]?.name : tx.account?.name || '',
-        tx.amount,
-        tx.type
-      ]);
-    });
+    if (transacoesSheet) {
+      transacoesSheet.spliceRows(2, Math.max(transacoesSheet.rowCount, 2));
+      transacoesSheet.getRow(1).values = ['Data', 'Descrição', 'Categoria', 'Conta', 'Valor', 'Tipo'];
+      transacoesSheet.getRow(1).font = { bold: true };
+      
+      (data.transactions || []).forEach((tx) => {
+        transacoesSheet.addRow([
+          format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
+          tx.description,
+          tx.category?.name || '',
+          Array.isArray(tx.account) ? tx.account[0]?.name : tx.account?.name || '',
+          tx.amount,
+          tx.type
+        ]);
+      });
+    }
 
-    const comprasSheet = workbook.getWorksheet('Compartilhado Fran (Compras Mês)');
+    const comprasSheet = workbook.getWorksheet('Compartilhado Fran (Compras)');
     if (comprasSheet) {
       comprasSheet.spliceRows(2, Math.max(comprasSheet.rowCount, 2));
       comprasSheet.getRow(1).values = ['Data', 'Descrição', 'Valor Total', 'Sua Parte', 'Parte Fran', 'Status'];
-      data.sharedPurchases.forEach(tx => {
+      (data.sharedPurchases || []).forEach(tx => {
         const meuValor = tx.transaction_splits?.find((s:any) => s.member_id !== null)?.amount || (tx.amount / 2);
         const franValor = tx.amount - meuValor;
         comprasSheet.addRow([
@@ -261,7 +263,7 @@ export const exportMonthlyReport = async (data: ExportData) => {
     if (dividasSheet) {
       dividasSheet.spliceRows(2, Math.max(dividasSheet.rowCount, 2));
       dividasSheet.getRow(1).values = ['Dívida/Fatura', 'Valor Original', 'Falta Pagar'];
-      data.debts.forEach(debt => {
+      (data.debts || []).forEach(debt => {
         dividasSheet.addRow([
           debt.description || debt.name,
           debt.total_amount || debt.amount,
