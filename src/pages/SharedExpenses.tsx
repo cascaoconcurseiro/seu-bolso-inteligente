@@ -113,6 +113,7 @@ export function SharedExpenses() {
   const [settleDate, setSettleDate] = useState(dateFns.format(new Date(), 'yyyy-MM-dd'));
   const [settleType, setSettleType] = useState<"PAY" | "RECEIVE">("PAY");
   const [isSettling, setIsSettling] = useState(false);
+  const [settlingMode, setSettlingMode] = useState<"ALL" | "SINGLE">("ALL");
 
   const [confirmReceiptDialog, setConfirmReceiptDialog] = useState<{ isOpen: boolean; items: InvoiceItem[] }>({ isOpen: false, items: [] });
   const [confirmPaymentDialog, setConfirmPaymentDialog] = useState<{ isOpen: boolean; items: InvoiceItem[] }>({ isOpen: false, items: [] });
@@ -144,10 +145,12 @@ export function SharedExpenses() {
     if (specificItem) {
       setSelectedItems([specificItem.id]);
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+      setSettlingMode("SINGLE");
     } else {
       const pending = getFilteredInvoice(id).filter(i => !i.isPaid);
       setSelectedItems(pending.map(i => i.id));
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+      setSettlingMode("ALL");
     }
     setShowSettleDialog(true);
   };
@@ -158,10 +161,12 @@ export function SharedExpenses() {
     if (specificItem) {
       setSelectedItems([specificItem.id]);
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+      setSettlingMode("SINGLE");
     } else {
       const pending = getFilteredInvoice(id).filter(i => !i.isPaid && i.tripId === tripId);
       setSelectedItems(pending.map(i => i.id));
       setSettleAmount(Math.abs(amt).toFixed(2).replace(".", ","));
+      setSettlingMode("ALL");
     }
     setShowSettleDialog(true);
   };
@@ -435,7 +440,13 @@ export function SharedExpenses() {
         onOpenChange={setShowSettleDialog}
         selectedMember={selectedMember}
         members={members}
-        pendingMemberItems={selectedMember ? getFilteredInvoice(selectedMember).filter(i => !i.isPaid) : []}
+        pendingMemberItems={
+          selectedMember 
+            ? getFilteredInvoice(selectedMember).filter(i => 
+                !i.isPaid && (settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true)
+              ) 
+            : []
+        }
         selectedItems={selectedItems}
         onToggleItem={(id) => setSelectedItems(prev => {
           const ni = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
