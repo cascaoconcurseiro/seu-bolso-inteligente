@@ -35,8 +35,8 @@ import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
 import { AccountingDRE } from "@/components/settings/AccountingDRE";
-
-
+import { useToast } from "@/hooks/use-toast";
+import { exportMonthlyReport } from "@/services/exportService";
 const getTransactionCurrency = (tx: any): string => {
   if (tx.currency && tx.currency !== 'BRL') return tx.currency;
   if (Array.isArray(tx.account) && tx.account.length > 0 && tx.account[0].currency) return tx.account[0].currency;
@@ -54,6 +54,7 @@ export function Reports() {
   }, [currentDate]);
 
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+  const { toast } = useToast();
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
 
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
@@ -582,6 +583,33 @@ export function Reports() {
     else exportToPDF(filteredTxList, totalIncome, totalExpense, `relatorio-${exportViewType}`);
   };
 
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+
+  const handleExportFechamento = async () => {
+    setIsExportingExcel(true);
+    try {
+      await exportMonthlyReport({
+        month: safeCurrentDate,
+        transactions: filteredTxList,
+        sharedPurchases: sharedTransactions,
+        debts: invoices,
+        cashFlow: { totalIncome, totalExpense }
+      });
+      toast({
+        title: "Sucesso!",
+        description: "A planilha de fechamento foi exportada.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erro na exportação",
+        description: "Não foi possível gerar a planilha. Verifique se o template existe.",
+      });
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   // monthlyData: calculado localmente a partir de allCombinedTransactions
   // Garante harmonia matemática com os totais do período e respeita a regra
   // de liquidação (settlements). Cobre os últimos 6 meses.
@@ -738,6 +766,12 @@ export function Reports() {
                 )}
               >
                 Exportar em Excel (CSV)
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleExportFechamento}
+                disabled={isExportingExcel}
+              >
+                {isExportingExcel ? "Gerando Planilha..." : "Exportar Fechamento (Planilha Excel)"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

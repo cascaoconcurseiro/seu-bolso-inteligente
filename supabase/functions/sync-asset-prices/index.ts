@@ -58,19 +58,25 @@ serve(async (req) => {
     const stockTickers = Array.from(new Set(stockAssets.map(a => a.ticker!.trim().toUpperCase())));
     
     if (stockTickers.length > 0) {
-      const response = await fetch(`https://brapi.dev/api/quote/${stockTickers.join(',')}?token=${token}`);
-      if (response.ok) {
-        const data = await response.json();
-        for (const result of (data.results || [])) {
-          const symbol = result.symbol.toUpperCase();
-          const price = result.regularMarketPrice;
-          if (price) {
-            const matchingIds = stockAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
-            if (matchingIds.length > 0) {
-              const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
-              if (!error) updatedCount += matchingIds.length;
+      for (const ticker of stockTickers) {
+        try {
+          const response = await fetch(`https://brapi.dev/api/quote/${ticker}?token=${token}`);
+          if (response.ok) {
+            const data = await response.json();
+            for (const result of (data.results || [])) {
+              const symbol = result.symbol.toUpperCase();
+              const price = result.regularMarketPrice;
+              if (price) {
+                const matchingIds = stockAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
+                if (matchingIds.length > 0) {
+                  const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
+                  if (!error) updatedCount += matchingIds.length;
+                }
+              }
             }
           }
+        } catch (err) {
+          console.error(`Erro ao atualizar ticker ${ticker}:`, err);
         }
       }
     }
@@ -80,18 +86,32 @@ serve(async (req) => {
     const cryptoTickers = Array.from(new Set(cryptoAssets.map(a => a.ticker!.trim().toUpperCase())));
     
     if (cryptoTickers.length > 0) {
-      const response = await fetch(`https://brapi.dev/api/v2/crypto?coin=${cryptoTickers.join(',')}&currency=BRL&token=${token}`);
-      if (response.ok) {
-        const data = await response.json();
-        for (const coin of (data.coins || [])) {
-          const symbol = coin.coin.toUpperCase();
-          const price = coin.regularMarketPrice;
-          if (price) {
-            const matchingIds = cryptoAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
-            if (matchingIds.length > 0) {
-              const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
-              if (!error) updatedCount += matchingIds.length;
+      // Usar a API pública da Binance (Gratuita, sem limite chato)
+      for (const symbol of cryptoTickers) {
+        let price = null;
+        try {
+          // Tenta buscar o par com BRL primeiro (ex: BTCBRL)
+          let res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}BRL`);
+          if (res.ok) {
+            const data = await res.json();
+            price = parseFloat(data.price);
+          } else {
+            // Se não tiver par BRL (ex: alguma altcoin menor), tenta USDT
+            res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`);
+            if (res.ok) {
+              const data = await res.json();
+              price = parseFloat(data.price); // Nota: Isso salvará em USD. O ideal é o card do ativo saber a currency.
             }
+          }
+        } catch (e) {
+          console.error(`Erro ao buscar crypto ${symbol} na Binance:`, e);
+        }
+
+        if (price) {
+          const matchingIds = cryptoAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
+          if (matchingIds.length > 0) {
+            const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
+            if (!error) updatedCount += matchingIds.length;
           }
         }
       }

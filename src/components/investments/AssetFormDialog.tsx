@@ -9,6 +9,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { Asset } from '@/types/database';
 import { BR_BROKERS, ABROAD_BROKERS, getBrokerById, isCustomBroker } from '@/lib/brokers';
 import { searchAbroadAssets, AbroadAsset } from '@/lib/abroadAssets';
+import { searchCryptoAssets } from '@/lib/cryptoAssets';
 import { useB3TickersSearch, B3Ticker } from '@/hooks/useB3TickersSearch';
 import { Globe, Building2, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -152,7 +153,11 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
     setTicker(val.toUpperCase());
     
     if (val.length >= 2) {
-      if (location === 'ABROAD') {
+      if (type === 'CRYPTO') {
+        const results = searchCryptoAssets(val);
+        setSuggestions(results as any[]);
+        setShowSuggestions(results.length > 0);
+      } else if (location === 'ABROAD') {
         const results = searchAbroadAssets(val);
         setSuggestions(results as any[]);
         setShowSuggestions(results.length > 0);
@@ -165,11 +170,11 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   // Effect to sync B3 results with suggestions dropdown when location is BR
   useEffect(() => {
-    if (location === 'BR' && tickerSearch.length >= 2) {
+    if (location === 'BR' && type !== 'CRYPTO' && tickerSearch.length >= 2) {
       setSuggestions(b3Results as any[]);
       setShowSuggestions(b3Results.length > 0);
     }
-  }, [b3Results, location, tickerSearch]);
+  }, [b3Results, location, type, tickerSearch]);
 
   const handleSelectSuggestion = (stock: any) => {
     setTicker(stock.ticker);
