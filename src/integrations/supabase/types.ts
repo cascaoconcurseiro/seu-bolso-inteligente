@@ -246,6 +246,33 @@ export type Database = {
           },
         ]
       }
+      b3_tickers_cache: {
+        Row: {
+          ticker: string
+          name: string
+          sector: string | null
+          type: string | null
+          logo_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ticker: string
+          name: string
+          sector?: string | null
+          type?: string | null
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ticker?: string
+          name?: string
+          sector?: string | null
+          type?: string | null
+          logo_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           created_at: string | null

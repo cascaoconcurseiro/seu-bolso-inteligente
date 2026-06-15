@@ -8,9 +8,9 @@ import { useAssets } from '@/hooks/useAssets';
 import { useAccounts } from '@/hooks/useAccounts';
 import { Asset } from '@/types/database';
 import { BR_BROKERS, ABROAD_BROKERS, getBrokerById, isCustomBroker } from '@/lib/brokers';
-import { searchBrazilianStocks, BrazilianStock } from '@/lib/brazilianStocks';
 import { searchAbroadAssets, AbroadAsset } from '@/lib/abroadAssets';
-import { Globe, Building2, Search } from 'lucide-react';
+import { useB3TickersSearch, B3Ticker } from '@/hooks/useB3TickersSearch';
+import { Globe, Building2, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AssetFormDialogProps {
@@ -61,7 +61,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   // Autocomplete
   const [tickerSearch, setTickerSearch] = useState('');
-  const [suggestions, setSuggestions] = useState<BrazilianStock[]>([]);
+  const { results: b3Results, isLoading: isSearchingB3 } = useB3TickersSearch(tickerSearch);
+  const [suggestions, setSuggestions] = useState<(B3Ticker | AbroadAsset)[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
 
@@ -150,24 +151,38 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
     setTickerSearch(val);
     setTicker(val.toUpperCase());
     
-    if (val.length >= (location === 'BR' ? 2 : 1)) {
-      const results = location === 'BR' 
-        ? searchBrazilianStocks(val)
-        : searchAbroadAssets(val);
-      setSuggestions(results as any[]);
-      setShowSuggestions(results.length > 0);
+    if (val.length >= 2) {
+      if (location === 'ABROAD') {
+        const results = searchAbroadAssets(val);
+        setSuggestions(results as any[]);
+        setShowSuggestions(results.length > 0);
+      }
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
   };
 
-  const handleSelectSuggestion = (stock: BrazilianStock | AbroadAsset) => {
+  // Effect to sync B3 results with suggestions dropdown when location is BR
+  useEffect(() => {
+    if (location === 'BR' && tickerSearch.length >= 2) {
+      setSuggestions(b3Results as any[]);
+      setShowSuggestions(b3Results.length > 0);
+    }
+  }, [b3Results, location, tickerSearch]);
+
+  const handleSelectSuggestion = (stock: any) => {
     setTicker(stock.ticker);
     setTickerSearch(stock.ticker);
     setName(stock.name);
-    setSector(stock.sector);
-    setType(stock.type as Asset['type']);
+    setSector(stock.sector || '');
+    if (stock.type) {
+      // Map B3 type to our enum if possible, or fallback
+      const typeStr = stock.type.toUpperCase();
+      if (['STOCK', 'FII', 'ETF', 'BDR'].includes(typeStr)) {
+        setType(typeStr as any);
+      }
+    }
     setShowSuggestions(false);
   };
 
