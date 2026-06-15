@@ -263,7 +263,8 @@ export const exportMonthlyReport = async (data: ExportData) => {
     if (dividasSheet) {
       dividasSheet.spliceRows(2, Math.max(dividasSheet.rowCount, 2));
       dividasSheet.getRow(1).values = ['Dívida/Fatura', 'Valor Original', 'Falta Pagar'];
-      (data.debts || []).forEach(debt => {
+      const allDebts = Array.isArray(data.debts) ? data.debts : Object.values(data.debts || {}).flat();
+      allDebts.forEach((debt: any) => {
         dividasSheet.addRow([
           debt.description || debt.name,
           debt.total_amount || debt.amount,
