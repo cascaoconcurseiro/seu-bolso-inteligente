@@ -76,6 +76,7 @@ export const useAssets = () => {
           is_recurring: false,
           currency: assetData.currency || 'BRL',
           notes: `Compra de ${assetData.quantity} cotas de ${assetData.name}`,
+          asset_id: assetData.id,
         });
 
         if (txError) {
@@ -190,14 +191,9 @@ export const useAssets = () => {
 
       const assetIdentifier = asset.ticker || asset.name;
 
-      // 2. Delete auto-generated transactions (Efeito Cascata)
-      if (assetIdentifier) {
-        await supabase
-          .from('transactions')
-          .delete()
-          .like('description', `Compra de Ativo: ${assetIdentifier}%`)
-          .eq('user_id', asset.user_id);
-      }
+      // 2. Delete auto-generated transactions (Efeito Cascata via ON DELETE CASCADE no banco)
+      // O banco cuidará da exclusão na tabela transactions via FK asset_id ON DELETE CASCADE
+      // e na asset_transactions via FK asset_id ON DELETE CASCADE (se aplicável, mas já temos manual abaixo para garantir).
 
       // 3. Delete from asset_transactions (Efeito Cascata)
       await supabase

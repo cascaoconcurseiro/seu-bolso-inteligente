@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { usePrivacy } from "@/contexts/PrivacyContext";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FileText } from "lucide-react";
 
 interface AccountStatementProps {
   transactions: any[];
@@ -37,9 +39,11 @@ export function AccountStatement({
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           Extrato
         </h2>
-        <div className="p-8 text-center border border-dashed border-border rounded-xl">
-          <p className="text-muted-foreground">Nenhuma transação nesta conta</p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Extrato vazio"
+          description="Nenhuma transação foi registrada nesta conta até o momento."
+        />
       </div>
     );
   }

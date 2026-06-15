@@ -28,7 +28,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMonth } from "@/contexts/MonthContext";
-import { exportCardsToCSV, exportCardsToPDF } from "@/utils/exportData";
 import { getBankById } from "@/lib/banks";
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice, useAccountDependencies } from "@/hooks/useAccounts";
 import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCreateTransactions } from "@/hooks/useTransactions";
@@ -78,7 +77,8 @@ export function CreditCards() {
     endDate: `${currentDate.getFullYear()}-12-31`
   });
 
-  const handleExportCards = (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+  const handleExportCards = async (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+    const { exportCardsToCSV, exportCardsToPDF } = await import("@/utils/exportData");
     let filteredTxs = exportTransactions;
     let periodLabel = `${currentDate.getFullYear()}`;
 

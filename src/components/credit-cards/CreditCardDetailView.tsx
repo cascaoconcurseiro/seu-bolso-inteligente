@@ -3,9 +3,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } from "@/utils/exportData";
 
 interface CreditCardDetailViewProps {
   selectedCard: any;
@@ -60,6 +60,12 @@ export function CreditCardDetailView({
   onArchive,
   onUnarchive,
 }: CreditCardDetailViewProps) {
+  const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
+    const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
+    if (format === 'pdf') exportDetailedCardReportToPDF(txs, selectedCard, periodLabel);
+    else exportDetailedCardReportToCSV(txs, selectedCard, periodLabel);
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
@@ -261,10 +267,10 @@ export function CreditCardDetailView({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => exportDetailedCardReportToPDF(invoiceData.transactions, selectedCard, `Fatura ${monthName}`)}>
+              <DropdownMenuItem onClick={() => handleExportCard('pdf', invoiceData.transactions, `Fatura ${monthName}`)}>
                 Exportar Fatura Completa (PDF)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportDetailedCardReportToCSV(invoiceData.transactions, selectedCard, `Fatura ${monthName}`)}>
+              <DropdownMenuItem onClick={() => handleExportCard('csv', invoiceData.transactions, `Fatura ${monthName}`)}>
                 Exportar Fatura em Excel (CSV)
               </DropdownMenuItem>
               
@@ -273,13 +279,13 @@ export function CreditCardDetailView({
                   <div className="h-px bg-border my-1" />
                   <DropdownMenuItem onClick={() => {
                     const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                    exportDetailedCardReportToPDF(cardYearTxs, selectedCard, `Ano ${selectedDate.getFullYear()}`);
+                    handleExportCard('pdf', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
                   }}>
                     Exportar Relatório Anual (PDF)
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => {
                     const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                    exportDetailedCardReportToCSV(cardYearTxs, selectedCard, `Ano ${selectedDate.getFullYear()}`);
+                    handleExportCard('csv', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
                   }}>
                     Exportar Relatório Anual (CSV)
                   </DropdownMenuItem>
@@ -408,10 +414,11 @@ export function CreditCardDetailView({
       )}
 
       {invoiceData.transactions.length === 0 && (
-        <div className="py-12 text-center border border-dashed border-border rounded-xl">
-          <CreditCard className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">Nenhum lançamento nesta fatura</p>
-        </div>
+        <EmptyState
+          icon={CreditCard}
+          title="Nenhum lançamento"
+          description="Você ainda não possui compras registradas nesta fatura."
+        />
       )}
 
       {/* Installments */}

@@ -43,7 +43,6 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useMonth } from "@/contexts/MonthContext";
-import { exportAccountsToCSV, exportAccountsToPDF } from "@/utils/exportData";
 import * as dateFns from "date-fns";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
@@ -99,7 +98,8 @@ export function Accounts() {
 
   const totalBalanceBRL = balancesByCurrency.find(b => b.currency === 'BRL')?.balance || 0;
 
-  const handleExportAccounts = (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+  const handleExportAccounts = async (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+    const { exportAccountsToCSV, exportAccountsToPDF } = await import("@/utils/exportData");
     let filteredTxs = exportTransactions;
     let periodLabel = `${currentDate.getFullYear()}`;
 

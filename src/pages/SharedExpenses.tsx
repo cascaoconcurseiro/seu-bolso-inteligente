@@ -21,7 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { exportSharedToCSV, exportSharedToPDF } from "@/utils/exportData";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -66,7 +65,8 @@ export function SharedExpenses() {
     (searchParams.get("tab") as SharedTab) || "REGULAR"
   );
 
-  const handleExportShared = (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+  const handleExportShared = async (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
+    const { exportSharedToCSV, exportSharedToPDF } = await import("@/utils/exportData");
     const allItems: InvoiceItem[] = Object.values(invoices).flat();
     let filteredItems = allItems;
     let periodLabel = `${currentDate.getFullYear()}`;
@@ -442,9 +442,7 @@ export function SharedExpenses() {
         members={members}
         pendingMemberItems={
           selectedMember 
-            ? getFilteredInvoice(selectedMember).filter(i => 
-                !i.isPaid && (settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true)
-              ) 
+            ? getFilteredInvoice(selectedMember).filter(i => !i.isPaid) 
             : []
         }
         selectedItems={selectedItems}
@@ -484,6 +482,7 @@ export function SharedExpenses() {
         user={user}
         onSettle={handleSettle}
         isSettling={isSettling}
+        settlingMode={settlingMode}
       />
       
       <AlertDialog open={undoConfirm.isOpen} onOpenChange={(o) => !o && setUndoConfirm({ isOpen: false, item: null })}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Desfazer Acerto</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleUndoSettlement}>Desfazer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>

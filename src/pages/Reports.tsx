@@ -29,7 +29,6 @@ import { ptBR } from "date-fns/locale";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
-import { exportToCSV, exportToPDF } from "@/utils/exportData";
 
 // Modular Components
 import { ReportSummary } from "@/components/reports/ReportSummary";
@@ -56,6 +55,7 @@ export function Reports() {
 
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
+
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
   const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
   const [txSearch, setTxSearch] = useState<string>("");
@@ -575,6 +575,12 @@ export function Reports() {
       return matchesSearch && matchesType;
     });
   }, [periodTransactions, txSearch, txTypeFilter]);
+
+  const handleExport = async (format: 'csv' | 'pdf', exportViewType: 'MONTH' | 'YEAR' = viewType) => {
+    const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
+    if (format === 'csv') exportToCSV(filteredTxList, `relatorio-${exportViewType}`);
+    else exportToPDF(filteredTxList, totalIncome, totalExpense, `relatorio-${exportViewType}`);
+  };
 
   // monthlyData: calculado localmente a partir de allCombinedTransactions
   // Garante harmonia matemática com os totais do período e respeita a regra

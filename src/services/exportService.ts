@@ -1,4 +1,3 @@
-import { exportToPDF } from "@/utils/exportData";
 import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from "@/utils/exportCurrency";
 
 export interface ExportOptions {
@@ -54,7 +53,7 @@ export function downloadFile(content: string, filename: string, mimeType: string
   URL.revokeObjectURL(url);
 }
 
-export function exportTransactions(
+export async function exportTransactions(
   transactions: any[],
   format: "csv" | "json" | "pdf" = "csv"
 ) {
@@ -66,6 +65,7 @@ export function exportTransactions(
   const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
 
   if (format === "pdf") {
+    const { exportToPDF } = await import("@/utils/exportData");
     exportToPDF(transactions, totalIncome, totalExpense, `transacoes_${date}.pdf`);
   } else if (format === "csv") {
     // Formatação de Excel Premium em XML/HTML

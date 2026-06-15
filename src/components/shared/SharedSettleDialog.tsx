@@ -32,6 +32,7 @@ interface SharedSettleDialogProps {
   user: any;
   onSettle: () => void;
   isSettling: boolean;
+  settlingMode: "ALL" | "SINGLE";
 }
 
 export function SharedSettleDialog({
@@ -55,6 +56,7 @@ export function SharedSettleDialog({
   user,
   onSettle,
   isSettling,
+  settlingMode,
 }: SharedSettleDialogProps) {
   if (!selectedMember) return null;
 
@@ -186,12 +188,14 @@ export function SharedSettleDialog({
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-sm font-medium">Itens para acertar</Label>
-                <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs h-7 shrink-0">
-                  {selectedItems.length === pendingMemberItems.length ? "Desmarcar" : "Selecionar todos"}
-                </Button>
+                {settlingMode !== "SINGLE" && (
+                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs h-7 shrink-0">
+                    {selectedItems.length === pendingMemberItems.length ? "Desmarcar" : "Selecionar todos"}
+                  </Button>
+                )}
               </div>
               <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
-                {pendingMemberItems.map(item => {
+                {pendingMemberItems.filter(i => settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true).map(item => {
                   const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
                   const itemCurrency = itemTrip?.currency || "BRL";
                   const isCredit = item.type === "CREDIT";

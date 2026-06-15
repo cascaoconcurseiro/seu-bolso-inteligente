@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { parseDate } from "@/lib/dateUtils";
 import { parseDate } from "@/lib/dateUtils";
-import { ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, Activity } from "lucide-react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface DashboardRecentActivityProps {
   recentTransactions: any[];
@@ -31,9 +32,11 @@ export function DashboardRecentActivity({
       </div>
 
       {recentTransactions.length === 0 ? (
-        <div className="p-12 text-center border border-dashed border-border/60 rounded-[2rem] bg-muted/20 animate-fade-in">
-          <p className="text-sm text-muted-foreground">Nenhuma transação registrada ainda</p>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title="Nenhuma atividade"
+          description="Você ainda não registrou nenhuma transação recente no seu controle financeiro."
+        />
       ) : (
         <div className="space-y-2">
           {recentTransactions.map((tx, index) => {

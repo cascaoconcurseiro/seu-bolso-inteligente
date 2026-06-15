@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -1372,6 +1372,7 @@ export type Database = {
       transactions: {
         Row: {
           account_id: string | null
+          asset_id: string | null
           advanced_at: string | null
           amount: number
           category_id: string | null
@@ -1421,6 +1422,7 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          asset_id?: string | null
           advanced_at?: string | null
           amount: number
           category_id?: string | null
@@ -1470,6 +1472,7 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          asset_id?: string | null
           advanced_at?: string | null
           amount?: number
           category_id?: string | null

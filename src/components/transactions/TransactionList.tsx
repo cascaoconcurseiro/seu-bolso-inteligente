@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { TransactionItem } from "./TransactionItem";
 import { Transaction, DayGroup } from "@/utils/transactionUtils";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Receipt } from "lucide-react";
 
 interface FamilyMember {
   id: string;
@@ -54,10 +56,11 @@ export function TransactionList({
 }: TransactionListProps) {
   if (dayGroups.length === 0) {
     return (
-      <div className="text-center py-16 border border-dashed border-border rounded-xl">
-        <p className="text-muted-foreground">Nenhuma transação encontrada</p>
-        <p className="text-sm text-muted-foreground mt-2">Use o botão + para adicionar uma transação</p>
-      </div>
+      <EmptyState
+        icon={Receipt}
+        title="Nenhuma transação encontrada"
+        description="Você não possui nenhuma transação neste período. Adicione uma nova transação clicando no botão de '+', ou altere o filtro de pesquisa."
+      />
     );
   }
 
