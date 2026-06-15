@@ -24,10 +24,11 @@ export function AssetCard({
   formatAssetValue
 }: AssetCardProps) {
   const totalInvested = (asset.quantity || 0) * (asset.purchase_price || 0);
-  const currentValue = (asset.quantity || 0) * (asset.current_price || 0);
+  const currentValue = (asset.quantity || 0) * ((asset.current_price && asset.current_price > 0) ? asset.current_price : asset.purchase_price || 0);
   const pnl = currentValue - totalInvested;
   const pnlPercent = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
   const isPositive = pnl >= 0;
+  const hasCurrentPrice = asset.current_price && asset.current_price > 0;
 
   return (
     <div 
@@ -82,12 +83,24 @@ export function AssetCard({
         </div>
         <div className="text-right">
           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Retorno</p>
-          <p className={cn(
-            "text-sm font-mono font-bold",
-            isPositive ? "text-green-500" : "text-red-500"
-          )}>
-            {isPositive ? '+' : ''}{pnlPercent.toFixed(2)}%
-          </p>
+          {!hasCurrentPrice ? (
+            <p className="text-xs text-muted-foreground font-medium mt-1">Aguardando API</p>
+          ) : (
+            <div className="flex flex-col items-end">
+              <p className={cn(
+                "text-sm font-mono font-bold",
+                isPositive ? "text-green-500" : "text-red-500"
+              )}>
+                {isPositive ? '+' : ''}{formatAssetValue(pnl, asset.currency || 'BRL')}
+              </p>
+              <p className={cn(
+                "text-[10px] font-bold px-1.5 py-0.5 rounded-sm mt-0.5",
+                isPositive ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-red-500/10 text-red-600 dark:text-red-400"
+              )}>
+                {isPositive ? '▲' : '▼'} {Math.abs(pnlPercent).toFixed(2)}%
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
