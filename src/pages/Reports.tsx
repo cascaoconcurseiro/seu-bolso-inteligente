@@ -767,12 +767,7 @@ export function Reports() {
               >
                 Exportar em Excel (CSV)
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleExportFechamento}
-                disabled={isExportingExcel}
-              >
-                {isExportingExcel ? "Gerando Planilha..." : "Exportar Fechamento (Planilha Excel)"}
-              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
