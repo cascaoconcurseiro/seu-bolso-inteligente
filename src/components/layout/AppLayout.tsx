@@ -45,6 +45,7 @@ import { DraggableQuickAddFAB } from "@/components/ui/DraggableQuickAddFAB";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
+import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 
 const navigationItems = [
   { path: "/", label: "Início", icon: LayoutDashboard },
@@ -319,7 +320,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Main Content */}
       <main className="flex-1 pb-32 md:pb-12">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
-          {children}
+          <OnboardingGuard>
+            {children}
+          </OnboardingGuard>
         </div>
       </main>
 

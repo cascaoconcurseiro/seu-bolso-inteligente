@@ -106,10 +106,11 @@ export function Transactions() {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     switch (period) {
       case "today": return { start: today, end: today };
-      case "week":
+      case "week": {
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - 7);
         return { start: weekStart, end: today };
+      }
       case "month": return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
       case "lastMonth": return { start: new Date(now.getFullYear(), now.getMonth() - 1, 1), end: new Date(now.getFullYear(), now.getMonth(), 0) };
       default: return null;

@@ -200,7 +200,7 @@ export const exportMonthlyReport = async (data: ExportData) => {
       .from('templates')
       .download('template_base.xlsx');
 
-    let workbook = new ExcelJS.Workbook();
+    const workbook = new ExcelJS.Workbook();
 
     if (downloadError || !templateData) {
       console.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');

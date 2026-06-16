@@ -22,8 +22,6 @@ import { TransactionSplitData, TabType } from '@/types/transactions';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAccounts } from '@/hooks/useAccounts';
-import { useBudgets } from '@/hooks/useBudgets';
-import { useGoals } from '@/hooks/useGoals';
 import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
@@ -73,6 +71,9 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
   const { user } = useAuth();
+  const { contributeToGoal, goals } = useGoals();
+  const [transferType, setTransferType] = useState<'account'|'goal'>('account');
+  const [goalId, setGoalId] = useState<string>('');
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
@@ -171,57 +172,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
 
   const updateTransaction = useUpdateTransaction();
 
-  // Budget Warning Logic
-  const { data: budgetsWithProgress } = useBudgets();
-  const [budgetWarning, setBudgetWarning] = useState<{ exceeded: boolean; message: string; percentage: number } | null>(null);
-
-  const { contributeToGoal } = useGoals();
-  const [transferType, setTransferType] = useState<'account' | 'goal'>('account');
-  const [goalId, setGoalId] = useState<string>('');
-  
-  // Also load goals
-  const { data: goalsData } = useGoals();
-
-
-  useEffect(() => {
-    if (activeTab !== 'EXPENSE' || !categoryId || !budgetsWithProgress) {
-      setBudgetWarning(null);
-      return;
-    }
-
-    const categoryBudget = budgetsWithProgress.find(b => b.category_id === categoryId);
-    if (!categoryBudget) {
-      setBudgetWarning(null);
-      return;
-    }
-
-    const numericAmount = moneyUtils.parse(amount) || 0;
-    const isEdit = !!initialData?.id;
-    const originalAmount = isEdit ? Number(initialData?.amount || 0) : 0;
-    
-    const adjustedSpent = isEdit ? Math.max(0, categoryBudget.spent_amount - originalAmount) : categoryBudget.spent_amount;
-    const projectedTotal = adjustedSpent + numericAmount;
-    
-    if (projectedTotal > categoryBudget.budget_amount) {
-      const percentage = Math.round((projectedTotal / categoryBudget.budget_amount) * 100);
-      setBudgetWarning({
-        exceeded: true,
-        percentage,
-        message: `Atenção: Este gasto excederá seu limite de ${categoryBudget.budget_name} em ${percentage - 100}%. (${moneyUtils.format(projectedTotal)} / ${moneyUtils.format(categoryBudget.budget_amount)})`
-      });
-    } else if (projectedTotal >= categoryBudget.budget_amount * 0.8) {
-      const percentage = Math.round((projectedTotal / categoryBudget.budget_amount) * 100);
-      setBudgetWarning({
-        exceeded: false,
-        percentage,
-        message: `Aviso: Você atingirá ${percentage}% do seu limite de ${categoryBudget.budget_name}. (${moneyUtils.format(projectedTotal)} / ${moneyUtils.format(categoryBudget.budget_amount)})`
-      });
-    } else {
-      setBudgetWarning(null);
-    }
-  }, [amount, categoryId, activeTab, budgetsWithProgress, initialData]);
-
-
   // Populate from initialData
   useEffect(() => {
     if (initialData && typeof initialData === 'object') {
@@ -256,8 +206,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   }, [initialData]);
 
   // Validation & Warnings
-  const [duplicateWarning,
-    budgetWarning, setDuplicateWarning] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -408,21 +357,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         return false;
       }
       if (activeTab === 'TRANSFER') {
-        if (transferType === 'goal') {
-          if (!goalId) {
-            setValidationErrors(['Selecione uma meta de destino.']);
-            setPendingSubmit(false);
-            return;
-          }
-          await contributeToGoal.mutateAsync({
-            id: goalId,
-            amount: numericAmount,
-            accountId: accountId,
-            description: description || 'Transferência para Meta'
-          });
-          onSuccess?.();
-          return;
-        }
         return true;
       }
       if (selectedTrip) {
@@ -486,7 +420,28 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (!description.trim()) { toast.error('A descrição é obrigatória'); return; }
     if (activeTab === 'EXPENSE' && !categoryId) { toast.error('A categoria é obrigatória para despesas'); return; }
     if (!accountId && payerId === 'me') { toast.error('A conta de origem é obrigatória'); return; }
-    if (activeTab === 'TRANSFER' && !destinationAccountId) { toast.error('A conta de destino é obrigatória'); return; }
+    if (activeTab === 'TRANSFER') {
+      if (transferType === 'goal') {
+        if (!goalId) { toast.error('Selecione uma meta de destino'); return; }
+        setPendingSubmit(true);
+        contributeToGoal({
+          id: goalId,
+          amount: numericAmount,
+          accountId: accountId,
+          description: description || 'Transferência para Meta'
+        }, {
+          onSuccess: () => {
+            setPendingSubmit(false);
+            onSuccess?.();
+          },
+          onError: () => {
+            setPendingSubmit(false);
+          }
+        });
+        return;
+      }
+      if (!destinationAccountId) { toast.error('A conta de destino é obrigatória'); return; }
+    }
 
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {

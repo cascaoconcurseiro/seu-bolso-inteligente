@@ -20,6 +20,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // E2E Mock Auth Bypass
+    const isMockAuth = localStorage.getItem('PLAYWRIGHT_MOCK_AUTH') === 'true';
+    if (isMockAuth) {
+      setUser({ id: 'mock-user-123', email: 'test@example.com' } as User);
+      setSession({ access_token: 'mock-token' } as Session);
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {

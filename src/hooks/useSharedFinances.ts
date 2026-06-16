@@ -165,7 +165,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             // Apenas transações de viagens
             return !!item.tripId;
           
-          case 'date_range':
+          case 'date_range': {
             // Apenas transações no período
             if (!member.scope_start_date && !member.scope_end_date) return true;
             const itemDate = new Date(item.date);
@@ -175,6 +175,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             if (startDate && itemDate < startDate) return false;
             if (endDate && itemDate > endDate) return false;
             return true;
+          }
           
           case 'specific_trip':
             // Apenas transações de uma viagem específica

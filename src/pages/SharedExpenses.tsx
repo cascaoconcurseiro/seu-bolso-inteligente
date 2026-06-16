@@ -224,7 +224,7 @@ export function SharedExpenses() {
         switch (m.sharing_scope) {
           case 'trips_only':
             return !!item.tripId;
-          case 'date_range':
+          case 'date_range': {
             if (!m.scope_start_date && !m.scope_end_date) return true;
             const itemDate = new Date(item.date);
             const startDate = m.scope_start_date ? new Date(m.scope_start_date) : null;
@@ -232,6 +232,7 @@ export function SharedExpenses() {
             if (startDate && itemDate < startDate) return false;
             if (endDate && itemDate > endDate) return false;
             return true;
+          }
           case 'specific_trip':
             return item.tripId === m.scope_trip_id;
           default:

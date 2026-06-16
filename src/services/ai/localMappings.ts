@@ -1,0 +1,1018 @@
+export interface LocalMapping {
+  keywords: string[];
+  suggestion: string;
+  categoryMatch: string; // Termo normalizado da categoria alvo
+  type: 'receita' | 'despesa';
+}
+
+// Dicionário exaustivo sintonizado na realidade de consumo brasileira
+export const LOCAL_BRAZILIAN_MAPPINGS: LocalMapping[] = [
+  // --- DESPESAS: DELIVERY ---
+  {
+    keywords: ["uber eats", "ubereats", "uber eat", "ubereat"],
+    suggestion: "Uber Eats",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+  {
+    keywords: ["ifood", "ifod", "ifood eats", "ifood com", "ifod com"],
+    suggestion: "iFood",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+  {
+    keywords: ["rappi", "rapi", "rapil"],
+    suggestion: "Rappi",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+  {
+    keywords: ["ze delivery", "ze da cerveja", "ze cerveja", "zedelivery"],
+    suggestion: "Zé Delivery",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+  {
+    keywords: ["aiqfome", "aiq fome"],
+    suggestion: "Aiqfome",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+  {
+    keywords: ["tele entrega", "teleentrega", "telepizza", "tele pizza", "delivery burguer", "delivery pizza", "tele-entrega"],
+    suggestion: "Tele-entrega",
+    categoryMatch: "delivery",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: TRANSPORTE ---
+  {
+    keywords: ["uber", "ubr", "uuber", "uber trip", "uber taxi", "uberx", "uber comfort"],
+    suggestion: "Uber",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["99pop", "99 pop", "99", "99 taxi", "99app", "99run", "99moto"],
+    suggestion: "99",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["taxi", "taxis", "taxista"],
+    suggestion: "Táxi",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["cabify", "cabifai"],
+    suggestion: "Cabify",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["metro", "subway metro", "passagem metro", "bilhete metro"],
+    suggestion: "Metrô",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["onibus", "tarifa onibus", "passagem onibus", "circular"],
+    suggestion: "Ônibus",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["trem", "passagem trem", "ferrovia", "cptm", "supervia"],
+    suggestion: "Trem",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["riocard", "rio card"],
+    suggestion: "RioCard",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["bilhete unico", "bilheteunico", "sptrans"],
+    suggestion: "Bilhete Único",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["passe facil", "passefacil"],
+    suggestion: "Passe Fácil",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["pedagio", "pedagios", "tarifa pedagio"],
+    suggestion: "Pedágio",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["sem parar", "semparar"],
+    suggestion: "Sem Parar",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["conectcar", "conect car"],
+    suggestion: "ConectCar",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["veloe", "veloi"],
+    suggestion: "Veloe",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["estacionamento", "estac", "valet", "garagem"],
+    suggestion: "Estacionamento",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["zona azul", "zonaazul", "cartao zona azul"],
+    suggestion: "Zona Azul",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["mecanico", "mecanica", "oficina", "oficina mecanica", "auto center", "autocenter", "conserto carro", "funilaria", "funileiro", "pintura carro", "parachoque", "pastilha freio", "conserto motor"],
+    suggestion: "Oficina Mecânica",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["pneu", "pneus", "borracharia", "borracheiro", "vulcanizacao", "alinhamento", "balanceamento"],
+    suggestion: "Borracharia (Pneus)",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["autopecas", "auto pecas", "pecas carro", "acessorios carro"],
+    suggestion: "Autopeças",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["seguro carro", "seguro auto", "porto seguro", "seguro veiculo"],
+    suggestion: "Seguro Auto",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["ipva", "ipva pago", "ipva carro", "ipva moto"],
+    suggestion: "IPVA",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["licenciamento", "taxa licenciamento", "dpvat"],
+    suggestion: "Licenciamento",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["lavajato", "lava jato", "lavagem", "lavagem carro", "estetica automotiva", "ducha"],
+    suggestion: "Lava Jato",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+  {
+    keywords: ["carro", "craro", "veiculo", "moto", "motocicleta"],
+    suggestion: "Carro",
+    categoryMatch: "transporte",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: GASOLINA ---
+  {
+    keywords: ["combustivel", "combust", "abastecimento", "gasola", "gasolina"],
+    suggestion: "Gasolina",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["etanol", "alcool", "alco"],
+    suggestion: "Etanol",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["diesel", "oleo diesel"],
+    suggestion: "Diesel",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["gnv", "gas natural veicular"],
+    suggestion: "GNV",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["posto", "postos"],
+    suggestion: "Posto de Combustível",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["ipiranga", "posto ipiranga", "ampm", "am pm"],
+    suggestion: "Posto Ipiranga",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["shell", "posto shell", "shell box", "shellbox"],
+    suggestion: "Posto Shell",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["petrobras", "brmania", "posto br", "br mania"],
+    suggestion: "Posto Petrobras",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+  {
+    keywords: ["ale", "posto ale"],
+    suggestion: "Posto ALE",
+    categoryMatch: "gasolina",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: RESTAURANTES E LANCHES ---
+  {
+    keywords: ["mcdonalds", "mcdonald", "mc donalds", "mequi", "mc", "mc dia feliz"],
+    suggestion: "McDonald's",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["burger king", "burgerking", "bk", "b king"],
+    suggestion: "Burger King",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["subway", "sabuei"],
+    suggestion: "Subway",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["starbucks", "starbuck", "cafe starbucks"],
+    suggestion: "Starbucks",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["habibs", "habib", "habibis"],
+    suggestion: "Habib's",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["pizza hut", "pizzahut"],
+    suggestion: "Pizza Hut",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["dominos", "domino", "dominos pizza"],
+    suggestion: "Domino's Pizza",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["bacio di latte", "bacio"],
+    suggestion: "Bacio di Latte",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["cacau show", "cacaushow"],
+    suggestion: "Cacau Show",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["kopenhagen", "copenhagen"],
+    suggestion: "Kopenhagen",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["coco bambu", "cocobambu"],
+    suggestion: "Coco Bambu",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["outback", "outback steakhouse"],
+    suggestion: "Outback",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["madero", "madeiro"],
+    suggestion: "Madero",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["giraffas", "girafas"],
+    suggestion: "Giraffas",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["bobs", "bob"],
+    suggestion: "Bob's",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["almoco", "jantar", "refeicao", "comida", "prato feito", "pf", "comercial", "marmita", "marmitex"],
+    suggestion: "Almoço",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["restaurante", "churrascaria", "rodizio", "pizzaria", "sushi", "temaki", "hamburgueria", "lanchonete", "pastelaria", "doceria", "sorveteria"],
+    suggestion: "Restaurante",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["barzinho", "bar", "chopp", "cerveja", "churras", "boteco", "pub", "adega"],
+    suggestion: "Barzinho & Lazer",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["cafe", "cafeteria", "padoca", "pao de queijo", "expresso"],
+    suggestion: "Café",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+  {
+    keywords: ["pastel", "dogao", "cachorro quente", "xis", "sorvete", "lanche", "salgado"],
+    suggestion: "Lanche",
+    categoryMatch: "restaurantes e lanches",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: SUPERMERCADO ---
+  {
+    keywords: ["pao", "pao frances", "pão", "cacetinho", "pao de sal", "bisnaguinha"],
+    suggestion: "Pão (Padaria)",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["leite", "queijo", "presunto", "margarina", "manteiga", "requeijao", "iogurte", "frios"],
+    suggestion: "Laticínios e Frios",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["mercado", "supermercado", "hipermercado", "minimercado", "compras casa", "feira", "sacolao", "hortifruti", "frutaria", "acougue", "mercearia"],
+    suggestion: "Supermercado",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["carrefour", "carrefur"],
+    suggestion: "Carrefour",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["pao de acucar", "paodeacucar"],
+    suggestion: "Pão de Açúcar",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["extra", "extra supermercado", "mini extra"],
+    suggestion: "Supermercado Extra",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["assai", "assai atacadista", "asai"],
+    suggestion: "Assaí Atacadista",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["atacadao", "atacadao supermercados"],
+    suggestion: "Atacadão",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["sams club", "sams", "samsclub"],
+    suggestion: "Sam's Club",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["bourbon", "zaffari", "zafari"],
+    suggestion: "Zaffari Bourbon",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["muffato", "super muffato", "mufato"],
+    suggestion: "Muffato",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["guanabara", "supermercados guanabara"],
+    suggestion: "Supermercados Guanabara",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["mundial", "supermercados mundial"],
+    suggestion: "Supermercados Mundial",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["zona sul", "zona sul supermercados"],
+    suggestion: "Supermercados Zona Sul",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+  {
+    keywords: ["swift", "lojas swift", "carne swift"],
+    suggestion: "Swift",
+    categoryMatch: "supermercado",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: CONTAS E ASSINATURAS ---
+  {
+    keywords: ["netflix", "netflis"],
+    suggestion: "Netflix",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["spotify", "spotifai"],
+    suggestion: "Spotify",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["amazon prime", "prime video", "amazonprime"],
+    suggestion: "Amazon Prime",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["disney plus", "disney", "disney+"],
+    suggestion: "Disney+",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["hbo max", "hbo", "max hbo", "max streaming"],
+    suggestion: "Max (HBO)",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["deezer", "dizer"],
+    suggestion: "Deezer",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["youtube premium", "youtube sub", "youtube"],
+    suggestion: "YouTube Premium",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["icloud", "icloud storage", "apple cloud"],
+    suggestion: "iCloud",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["google one", "google storage", "google drive"],
+    suggestion: "Google One",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["microsoft 365", "office 365", "onedrive"],
+    suggestion: "Microsoft 365",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["playstation plus", "ps plus", "psn"],
+    suggestion: "PlayStation Plus",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["xbox game pass", "game pass", "xbox live"],
+    suggestion: "Xbox Game Pass",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["internet", "wifi", "wi fi", "banda larga", "virtua", "claro fibra", "vivo fibra", "tim ultra"],
+    suggestion: "Internet Residencial",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["celular", "recarga", "recarga vivo", "recarga claro", "recarga tim", "vivo controle", "claro controle", "tim controle"],
+    suggestion: "Plano de Celular",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+  {
+    keywords: ["tv a cabo", "sky", "sky tv", "claro tv"],
+    suggestion: "TV a Cabo",
+    categoryMatch: "contas e assinaturas",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: MORADIA ---
+  {
+    keywords: ["aluguel", "aluguel casa", "aluguel ap"],
+    suggestion: "Aluguel",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["condominio", "taxa condominio"],
+    suggestion: "Condomínio",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["iptu", "iptu parcelado"],
+    suggestion: "IPTU",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["luz", "energia", "energia eletrica", "enel", "light", "copel", "cemig", "neoenergia", "cpfl", "ceb", "equatorial"],
+    suggestion: "Conta de Luz",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["agua", "saneamento", "sabesp", "cedae", "copasa", "sanepar", "embasa", "cagece"],
+    suggestion: "Conta de Água",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["gas de cozinha", "botijao", "botijao gas", "congás", "gas canalizado"],
+    suggestion: "Gás de Cozinha",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["leroy merlin", "leroy", "telhanorte", "c&c", "casa e construcao", "deposito construcao", "material construcao", "obra", "reforma", "pintura casa", "tinta suvinil", "cimento", "tijolo"],
+    suggestion: "Material de Construção",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+  {
+    keywords: ["faxina", "faxineira", "diarista", "limpeza casa"],
+    suggestion: "Diarista / Faxina",
+    categoryMatch: "moradia",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: COMPRAS ---
+  {
+    keywords: ["shopping", "compras shopping", "vestuario", "roupas", "roupa", "tenis", "sapato", "sapatilha", "calçado", "calçados", "mochila", "bolsa"],
+    suggestion: "Compras e Roupas",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["zara", "renner", "c&a", "cea", "riachuelo", "marisa", "hering", "centauro", "decathlon", "arezzo", "schutz"],
+    suggestion: "Roupas / Moda",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["americanas", "lojas americanas"],
+    suggestion: "Lojas Americanas",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["magalu", "magazine luiza", "magazinedeluiza"],
+    suggestion: "Magazine Luiza",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["casas bahia", "casasbahia"],
+    suggestion: "Casas Bahia",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["ponto frio", "ponto"],
+    suggestion: "Ponto",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["mercado livre", "mercadolivre", "mercado pago compra", "meli"],
+    suggestion: "Mercado Livre",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["shopee", "shope", "chopi"],
+    suggestion: "Shopee",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["aliexpress", "ali express", "alixpress"],
+    suggestion: "AliExpress",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["amazon", "amazon.com", "amazon compra"],
+    suggestion: "Amazon",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["shein", "sheing", "shein compra"],
+    suggestion: "Shein",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["kabum", "pichau", "terabyte", "terabyteshop", "computador", "notebook", "celular", "iphone", "xiaomi", "samsung celular", "placa video", "teclado", "mouse", "eletronicos"],
+    suggestion: "Eletrônicos & Tecnologia",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+  {
+    keywords: ["boticario", "natura", "avon", "sephora", "perfume", "cosmeticos", "maquiagem", "rimel", "batom"],
+    suggestion: "Cosméticos & Beleza",
+    categoryMatch: "compras",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: SAÚDE ---
+  {
+    keywords: ["farmacia", "drogaria", "remedio", "remedios", "medicamento", "dorflex", "dipirona", "curativo", "farmaco"],
+    suggestion: "Farmácia",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["drogasil", "droga raia", "drogaraia", "pague menos", "paguemenos", "pacheco", "drogaria pacheco", "sao paulo", "drogaria sao paulo", "panvel"],
+    suggestion: "Drogaria / Farmácia",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["consulta", "medico", "consulta medica", "hospital", "clinica", "pediatra", "cardiologista", "ginecologista", "oftalmologista", "exame", "exames", "laboratorio", "laboratorio exames", "fleury", "delboni", "hermes pardini", "ultrassom", "raio x"],
+    suggestion: "Serviços Médicos",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["dentista", "ortodontista", "clinica dentaria", "obturacao", "aparelho dente", "limpeza dente"],
+    suggestion: "Dentista",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["psicologo", "terapia", "sessao terapia", "psicanalista", "psiquiatra"],
+    suggestion: "Psicólogo & Terapia",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["academia", "smart fit", "smartfit", "bluefit", "musculacao", "treino", "pilates", "crossfit", "natacao"],
+    suggestion: "Academia",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+  {
+    keywords: ["plano de saude", "convenio", "convenio medico", "unimed", "amil", "sulamerica", "bradesco saude"],
+    suggestion: "Plano de Saúde",
+    categoryMatch: "saude",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: EDUCAÇÃO ---
+  {
+    keywords: ["escola", "colegio", "mensalidade escolar", "matricula", "creche", "mensalidade creche"],
+    suggestion: "Mensalidade Escolar",
+    categoryMatch: "educacao",
+    type: "despesa"
+  },
+  {
+    keywords: ["faculdade", "universidade", "pós", "pos-graduacao", "mba", "pos", "vestibular"],
+    suggestion: "Faculdade",
+    categoryMatch: "educacao",
+    type: "despesa"
+  },
+  {
+    keywords: ["udemy", "hotmart", "alura", "coursera", "eduzz", "curso", "cursos", "curso ingles", "curso programacao", "idiomas"],
+    suggestion: "Cursos & EAD",
+    categoryMatch: "educacao",
+    type: "despesa"
+  },
+  {
+    keywords: ["livro didatico", "material escolar", "papelaria", "caderno", "estojo", "caneta", "mochila escolar"],
+    suggestion: "Material Escolar",
+    categoryMatch: "educacao",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: LAZER ---
+  {
+    keywords: ["cinema", "cinemark", "uci", "playarte", "kinoplex", "ingresso cinema", "pipoca cinema"],
+    suggestion: "Cinema",
+    categoryMatch: "lazer",
+    type: "despesa"
+  },
+  {
+    keywords: ["teatro", "show", "ingresso", "sympla", "eventim", "ticket360", "ingresso rapido", "lollapalooza", "rock in rio"],
+    suggestion: "Shows & Eventos",
+    categoryMatch: "lazer",
+    type: "despesa"
+  },
+  {
+    keywords: ["balada", "festa", "clube", "rave", "danceteria", "noitada"],
+    suggestion: "Lazer & Noite",
+    categoryMatch: "lazer",
+    type: "despesa"
+  },
+  {
+    keywords: ["steam", "epic games", "epicgames", "nintendo eshop", "playstation store", "jogos", "jogo", "game", "games", "riot points", "vbucks"],
+    suggestion: "Jogos & Entretenimento",
+    categoryMatch: "lazer",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: VIAGENS ---
+  {
+    keywords: ["hotel", "pousada", "hostel", "motel", "aluguel temporada", "airbnb", "air bnb"],
+    suggestion: "Hospedagem",
+    categoryMatch: "viagens",
+    type: "despesa"
+  },
+  {
+    keywords: ["passagem aerea", "passagem aviao", "voo", "decolar", "booking", "booking.com", "123 milhas", "hurb", "cvc", "viajanet", "latam", "gol", "azul linhas"],
+    suggestion: "Passagens Aéreas",
+    categoryMatch: "viagens",
+    type: "despesa"
+  },
+  {
+    keywords: ["passagem onibus", "passagem rodoviaria", "buser", "clickbus", "rodoviaria"],
+    suggestion: "Passagem de Ônibus",
+    categoryMatch: "viagens",
+    type: "despesa"
+  },
+  {
+    keywords: ["localiza", "movida", "unidas", "aluguel carro viagem", "rentcars"],
+    suggestion: "Aluguel de Carro",
+    categoryMatch: "viagens",
+    type: "despesa"
+  },
+  {
+    keywords: ["dolar", "euro", "casa de cambio", "cambio", "moeda estrangeira", "nomad", "wise"],
+    suggestion: "Câmbio / Viagem",
+    categoryMatch: "viagens",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: FAMÍLIA E PETS ---
+  {
+    keywords: ["petshop", "pet shop", "cobasi", "petz", "racao", "racao gato", "racao cachorro", "pet", "pets", "banho e tosa", "veterinario", "consulta veterinaria", "remedio pet", "antipulgas"],
+    suggestion: "Pet Shop",
+    categoryMatch: "familia e pets",
+    type: "despesa"
+  },
+  {
+    keywords: ["fralda", "fraldas", "pampers", "huggies", "leite em po", "aptamil", "nestogeno", "chupeta", "mamadeira", "itens bebe", "creche bebe"],
+    suggestion: "Cuidados com Bebê",
+    categoryMatch: "familia e pets",
+    type: "despesa"
+  },
+  {
+    keywords: ["mesada", "mesada filhos"],
+    suggestion: "Mesada",
+    categoryMatch: "familia e pets",
+    type: "despesa"
+  },
+  {
+    keywords: ["pensao alimenticia", "pensao filho"],
+    suggestion: "Pensão Alimentícia",
+    categoryMatch: "familia e pets",
+    type: "despesa"
+  },
+
+  // --- DESPESAS: FINANCEIRO E IMPOSTOS ---
+  {
+    keywords: ["imposto", "taxa", "darf", "das", "multa", "juros", "iof", "imposto renda", "irpf"],
+    suggestion: "Impostos",
+    categoryMatch: "impostos",
+    type: "despesa"
+  },
+  {
+    keywords: ["tarifa bancaria", "manutencao conta", "anuidade", "taxa cartao", "juros cheque especial", "tarifa"],
+    suggestion: "Taxas e Tarifas Bancárias",
+    categoryMatch: "financeiro",
+    type: "despesa"
+  },
+  {
+    keywords: ["emprestimo", "financiamento", "parcela emprestimo", "consignado", "juros emprestimo"],
+    suggestion: "Empréstimos e Financiamentos",
+    categoryMatch: "financeiro",
+    type: "despesa"
+  },
+
+  // ==========================================
+  // --- RECEITAS: TRABALHO ---
+  {
+    keywords: ["salario", "salário", "pagamento salario", "prolabore", "pro-labore", "folha", "folha pagamento", "holerite"],
+    suggestion: "Salário",
+    categoryMatch: "salario",
+    type: "receita"
+  },
+  {
+    keywords: ["quinzena", "adiantamento", "adiantamento salarial", "vale"],
+    suggestion: "Adiantamento Salarial",
+    categoryMatch: "salario",
+    type: "receita"
+  },
+  {
+    keywords: ["13 salario", "decimo terceiro", "13o", "13o salario", "13º", "13º salário"],
+    suggestion: "Décimo Terceiro",
+    categoryMatch: "salario",
+    type: "receita"
+  },
+  {
+    keywords: ["ferias", "abono pecuniario", "ferias remuneradas"],
+    suggestion: "Férias",
+    categoryMatch: "salario",
+    type: "receita"
+  },
+  {
+    keywords: ["plr", "participacao lucros", "bonus", "bonificacao", "premio", "premiacao"],
+    suggestion: "PLR / Bônus",
+    categoryMatch: "freelance",
+    type: "receita"
+  },
+  {
+    keywords: ["freelance", "freelancer", "freela", "job", "servico freela", "bico", "projeto"],
+    suggestion: "Freelancer / Job",
+    categoryMatch: "freelance",
+    type: "receita"
+  },
+  {
+    keywords: ["prestacao servicos", "prestacao de servicos", "prestacao de servico", "consultoria", "honorarios", "honorario"],
+    suggestion: "Prestação de Serviços",
+    categoryMatch: "freelance",
+    type: "receita"
+  },
+  {
+    keywords: ["venda comissao", "comissao", "comissao vendas"],
+    suggestion: "Comissão de Vendas",
+    categoryMatch: "vendas",
+    type: "receita"
+  },
+
+  // --- RECEITAS: INVESTIMENTOS ---
+  {
+    keywords: ["dividendos", "dividendo", "proventos dividendos"],
+    suggestion: "Dividendos",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+  {
+    keywords: ["jcp", "juros sobre capital proprio"],
+    suggestion: "Juros s/ Capital Próprio",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+  {
+    keywords: ["rendimento", "rendimento poupanca", "rendimentos", "rendimento cdb", "rendimento fundo", "nubank rendimento", "tesouro direto rendimento"],
+    suggestion: "Rendimentos de Aplicação",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+  {
+    keywords: ["fii", "fiis", "fundos imobiliarios", "rendimento fii"],
+    suggestion: "Proventos FIIs",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+  {
+    keywords: ["resgate", "resgate cdb", "resgate investimentos", "venda acoes", "resgate fundo"],
+    suggestion: "Resgate de Investimento",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+  {
+    keywords: ["bitcoin", "btc", "cripto", "venda cripto", "lucro cripto"],
+    suggestion: "Criptoativos",
+    categoryMatch: "investimento",
+    type: "receita"
+  },
+
+  // --- RECEITAS: RENDA EXTRA ---
+  {
+    keywords: ["pix recebido", "pix amigo", "recebido pix", "pix mae", "pix pai", "transferencia recebida"],
+    suggestion: "Pix Recebido",
+    categoryMatch: "transferencia recebida",
+    type: "receita"
+  },
+  {
+    keywords: ["venda usado", "desapego", "venda desapego", "enjoei", "olx", "brecho", "venda olx", "venda brecho"],
+    suggestion: "Venda de Desapegos",
+    categoryMatch: "vendas",
+    type: "receita"
+  },
+  {
+    keywords: ["aluguel recebido", "aluguel ap recebido", "aluguel sala"],
+    suggestion: "Aluguel Recebido",
+    categoryMatch: "outros",
+    type: "receita"
+  },
+  {
+    keywords: ["presente", "presente aniversario", "pix aniversario", "dinheiro presente"],
+    suggestion: "Presente / Doação",
+    categoryMatch: "presente",
+    type: "receita"
+  },
+  {
+    keywords: ["reembolso", "reembolso despesa", "reembolso Uber", "reembolso corporativo", "estorno"],
+    suggestion: "Reembolso",
+    categoryMatch: "reembolso",
+    type: "receita"
+  },
+  {
+    keywords: ["cashback", "cash back", "meliuz", "ame cashback", "nubank cashback"],
+    suggestion: "Cashback",
+    categoryMatch: "cashback",
+    type: "receita"
+  },
+  {
+    keywords: ["doacao", "ajuda financeira", "emprestimo recebido"],
+    suggestion: "Ajuda / Doação",
+    categoryMatch: "outros",
+    type: "receita"
+  },
+  {
+    keywords: ["lote", "loteria", "mega sena", "mega-sena", "premios", "premiacao recebida"],
+    suggestion: "Premiação / Sorteio",
+    categoryMatch: "outros",
+    type: "receita"
+  },
+  {
+    keywords: ["aposentadoria", "pensao recebida", "inss"],
+    suggestion: "Aposentadoria / INSS",
+    categoryMatch: "outros",
+    type: "receita"
+  },
+
+  // --- RECEITAS: SISTEMA ---
+  {
+    keywords: ["saldo inicial", "aporte inicial", "abertura conta", "saldo abertura"],
+    suggestion: "Saldo Inicial de Conta",
+    categoryMatch: "outros",
+    type: "receita"
+  },
+  {
+    keywords: ["ajuste", "ajuste saldo", "ajuste de saldo", "acerto", "acerto contabil"],
+    suggestion: "Ajuste de Saldo",
+    categoryMatch: "outros",
+    type: "receita"
+  }
+];

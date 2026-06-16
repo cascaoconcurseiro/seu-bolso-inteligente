@@ -25,6 +25,9 @@ export function TripDashboardView() {
   const { data: summary, isLoading: summaryLoading } = useTripFinancialSummary(activeTrip?.id || null);
   const { data: transactions, isLoading: txLoading } = useTripTransactions(activeTrip?.id || null);
 
+  const currency = activeTrip?.currency || 'BRL';
+  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
+
   if (tripsLoading || summaryLoading || txLoading) {
     return (
       <div className="space-y-6 animate-pulse">
@@ -38,21 +41,18 @@ export function TripDashboardView() {
     );
   }
 
+
   if (!activeTrip) {
     return (
-      <div className="text-center py-16 bg-card/50 rounded-[2rem] border border-border/50">
-        <Plane className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+      <div className="text-center py-12 bg-card/50 rounded-2xl border border-border/50">
+        <PlaneTakeoff className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
         <h2 className="text-xl font-semibold mb-2">Nenhuma viagem em andamento</h2>
         <p className="text-muted-foreground">O Modo Viagem fica mais interessante quando você tem uma viagem ativa ou planejada.</p>
       </div>
     );
   }
 
-  const currency = activeTrip.currency || 'BRL';
   const formatValue = (val: number) => moneyUtils.format(val, currency);
-
-  // Cotação em tempo real se não for BRL
-  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
 
   const budget = summary?.total_budget || activeTrip.budget || 0;
   const spent = summary?.total_spent || 0;
