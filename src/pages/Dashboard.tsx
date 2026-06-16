@@ -208,7 +208,7 @@ export function Dashboard() {
       <div className="space-y-4">
         <DashboardHero
           currency={activeCurrencyData.currency}
-          balance={activeCurrencyData.balance}
+          balance={projectedBalance}
           totalPatrimony={activeCurrencyData.total_patrimony}
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}

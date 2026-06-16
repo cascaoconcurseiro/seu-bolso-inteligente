@@ -38,7 +38,7 @@ export function DashboardHero({
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
 
-  const predictedBalance = balance + pendingIncome - pendingExpense;
+  const predictedBalance = balance;
 
   return (
     <div className="relative group overflow-hidden p-6 md:p-8 rounded-[2rem] border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
@@ -54,8 +54,8 @@ export function DashboardHero({
                   <TrendingUp className="h-4 w-4 text-primary" />
                </div>
                <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
-                 Saldo Mensal Previsto ({currency})
-                 <InfoTooltip content="Este saldo é calculado somando seu Saldo Atual com as Entradas Pendentes, menos as Saídas Pendentes do mês corrente." />
+                 Saldo Previsto ({currency})
+                 <InfoTooltip content="Projeção exata para o final do mês selecionado, considerando seu saldo real atual e todas as movimentações pendentes até lá." />
                </p>
             </div>
 
