@@ -232,22 +232,7 @@ export function Reports() {
     return allCombinedTransactions.filter(tx => {
       let txDateStr = tx.date;
       
-      // Se for regime de vencimento e for despesa em cartão, usar data de vencimento da fatura
-      if (dateCriterion === 'DUE_DATE' && tx.type === 'EXPENSE' && tx.account_id) {
-        const acc = accounts.find(a => a.id === tx.account_id);
-        if (acc && acc.type === 'CREDIT_CARD') {
-          const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
-          const dueDay = acc.due_day || 10;
-          const closingDay = acc.closing_day || 1;
-          
-          let dueMonthDate = compDate;
-          if (dueDay <= closingDay) {
-            dueMonthDate = dateFns.addMonths(compDate, 1);
-          }
-          
-          txDateStr = dateFns.format(dueMonthDate, 'yyyy-MM-dd');
-        }
-      }
+
 
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
@@ -689,23 +674,6 @@ export function Reports() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
-            <Select 
-              value={dateCriterion} 
-              onValueChange={(value: 'COMPETENCE' | 'DUE_DATE') => setDateCriterion(value)}
-            >
-              <SelectTrigger className="w-[180px] bg-muted/30 border-border/50 rounded-xl">
-                <SelectValue placeholder="Visualizar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="COMPETENCE">
-                  <span className="flex items-center gap-2">📅 Data da Compra</span>
-                </SelectItem>
-                <SelectItem value="DUE_DATE">
-                  <span className="flex items-center gap-2">💳 Vencimento Fatura</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
             <div className="flex bg-muted/50 rounded-xl p-1 mr-2 border border-border/50 shadow-inner">
               <Button 
                 variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
