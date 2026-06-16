@@ -98,6 +98,14 @@ export function TransactionForm(props: TransactionFormProps) {
       </div>
 
       {form.duplicateWarning && <Alert className="border-destructive/50 bg-destructive/10 animate-pulse"><BellRing className="h-4 w-4 text-destructive" /><AlertDescription className="text-destructive font-medium">⚠️ Possível transação duplicada detectada!</AlertDescription></Alert>}
+      {form.budgetWarning && (
+        <Alert className={cn(form.budgetWarning.exceeded ? "border-destructive/50 bg-destructive/10" : "border-yellow-500/50 bg-yellow-500/10", "animate-in slide-in-from-top-2")}>
+          <BellRing className={cn("h-4 w-4", form.budgetWarning.exceeded ? "text-destructive" : "text-yellow-600")} />
+          <AlertDescription className={cn("font-medium", form.budgetWarning.exceeded ? "text-destructive" : "text-yellow-700")}>
+            {form.budgetWarning.message}
+          </AlertDescription>
+        </Alert>
+      )}
       {form.validationErrors.length > 0 && <Alert className="border-destructive bg-destructive/10"><BellRing className="h-4 w-4 text-destructive" /><AlertDescription><p className="font-semibold text-destructive mb-2">Corrija os erros:</p><ul className="list-disc list-inside space-y-1 text-sm text-destructive">{form.validationErrors.map((e, i) => <li key={i}>{e}</li>)}</ul></AlertDescription></Alert>}
 
       <form onSubmit={form.handleSubmit} className="space-y-6">
@@ -118,7 +126,24 @@ export function TransactionForm(props: TransactionFormProps) {
           isPredicting={form.isPredicting}
         /> 
 
-        <AccountSelector accountId={form.accountId} setAccountId={form.setAccountId} activeTab={form.activeTab} destinationAccountId={form.destinationAccountId} setDestinationAccountId={form.setDestinationAccountId} filteredAccounts={form.filteredAccounts} transferAccounts={form.transferAccounts} selectedTrip={form.selectedTrip} selectedAccount={form.selectedAccount} isPaidByOther={form.isPaidByOther} payerName={form.payerId !== 'me' ? (form.familyMembers || []).find(m => m.id === form.payerId)?.name || 'outro' : ''} />
+        <AccountSelector 
+          accountId={form.accountId} 
+          setAccountId={form.setAccountId} 
+          activeTab={form.activeTab} 
+          destinationAccountId={form.destinationAccountId} 
+          setDestinationAccountId={form.setDestinationAccountId} 
+          filteredAccounts={form.filteredAccounts} 
+          transferAccounts={form.transferAccounts} 
+          selectedTrip={form.selectedTrip} 
+          selectedAccount={form.selectedAccount} 
+          isPaidByOther={form.isPaidByOther} 
+          payerName={form.payerId !== 'me' ? (form.familyMembers || []).find(m => m.id === form.payerId)?.name || 'outro' : ''} 
+          transferType={form.transferType}
+          setTransferType={form.setTransferType}
+          goalId={form.goalId}
+          setGoalId={form.setGoalId}
+          goals={form.goals}
+        />
 
         {form.showExchangePanel && (
           <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-4 animate-slide-in shadow-sm">

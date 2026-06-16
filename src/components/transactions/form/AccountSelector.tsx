@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTransactionModal } from '@/hooks/useTransactionModal';
 import { getBankById } from '@/lib/banks';
 import { TabType } from '@/types/transactions';
+import { Target } from 'lucide-react';
 
 interface AccountSelectorProps {
   accountId: string;
@@ -177,7 +178,29 @@ export function AccountSelector({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label>Vai para (Destino)</Label>
+        
+        <div className="flex items-center justify-between">
+          <Label>Vai para (Destino)</Label>
+          {setTransferType && (
+            <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setTransferType('account')}
+                className={`text-[10px] px-2 py-1 rounded-md transition-colors ${transferType === 'account' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+              >
+                Conta
+              </button>
+              <button
+                type="button"
+                onClick={() => setTransferType('goal')}
+                className={`text-[10px] px-2 py-1 rounded-md transition-colors ${transferType === 'goal' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+              >
+                Meta
+              </button>
+            </div>
+          )}
+        </div>
+
         <Select
           value={destinationAccountId}
           onValueChange={setDestinationAccountId}
