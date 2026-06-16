@@ -126,7 +126,7 @@ export function Auth() {
           {/* Title */}
           <div className="text-center">
             <div className="mx-auto w-24 h-24 flex items-center justify-center mb-4">
-              <img src="/icon.svg" alt="Pé de Meia" className="w-full h-full object-contain drop-shadow-sm" />
+              <img src="/icon-512.png" alt="Pé de Meia" className="w-full h-full object-contain drop-shadow-sm" />
             </div>
             <h1 className="font-display font-bold text-3xl tracking-tight">
               {isResetting ? "Recuperar senha" : isLogin ? "Bem-vindo de volta" : "Crie sua conta"}
