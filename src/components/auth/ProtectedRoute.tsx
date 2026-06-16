@@ -13,8 +13,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (loading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-[9999]">
-        <div className="w-[72px] h-[72px] bg-primary rounded-[20px] flex items-center justify-center animate-pulse shadow-[0_10px_25px_-5px_rgba(16,185,129,0.3)]">
-          <Wallet className="w-9 h-9 text-white" />
+        <div className="w-24 h-24 flex items-center justify-center animate-pulse">
+          <img src="/icon.svg" alt="Pé de Meia" className="w-full h-full object-contain drop-shadow-sm" />
         </div>
         <div className="mt-5 font-display font-bold text-[26px] tracking-[-0.05em] text-foreground">
           pé de meia
