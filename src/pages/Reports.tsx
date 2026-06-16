@@ -231,6 +231,23 @@ export function Reports() {
     console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
     return allCombinedTransactions.filter(tx => {
       let txDateStr = tx.date;
+
+      // Aplicar lógica de Fatura automaticamente se Cartões estiver selecionado
+      if (showOnlyCreditCards && tx.type === 'EXPENSE' && tx.account_id) {
+        const acc = accounts.find(a => a.id === tx.account_id);
+        if (acc && acc.type === 'CREDIT_CARD') {
+          const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
+          const dueDay = acc.due_day || 10;
+          const closingDay = acc.closing_day || 1;
+          
+          let dueMonthDate = compDate;
+          if (dueDay <= closingDay) {
+            dueMonthDate = dateFns.addMonths(compDate, 1);
+          }
+          
+          txDateStr = dateFns.format(dueMonthDate, 'yyyy-MM-dd');
+        }
+      }
       
 
 
@@ -668,7 +685,7 @@ export function Reports() {
           <div>
             <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Relatórios</h1>
             <p className="text-muted-foreground mt-1 font-medium">
-              Análise das suas finanças - {viewType === 'MONTH' 
+              {showOnlyCreditCards ? 'Faturas com vencimento em' : 'Análise das suas finanças -'} {viewType === 'MONTH' 
                 ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
                 : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
             </p>
@@ -679,9 +696,8 @@ export function Reports() {
                 variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
                 size="sm" 
                 className={viewType === 'MONTH' ? "shadow-sm rounded-lg" : "rounded-lg"}
-                onClick={() => setViewType('MONTH')}
-              >
-                Mensal
+                onClick={() => setViewType('MONTH')}>
+                {showOnlyCreditCards ? 'Ciclos' : 'Mensal'}
               </Button>
               <Button 
                 variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
