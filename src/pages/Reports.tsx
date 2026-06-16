@@ -232,8 +232,8 @@ export function Reports() {
     return allCombinedTransactions.filter(tx => {
       let txDateStr = tx.date;
 
-      // Aplicar lógica de Fatura automaticamente se Cartões estiver selecionado
-      if (showOnlyCreditCards && tx.type === 'EXPENSE' && tx.account_id) {
+      // Aplicar lógica de Fatura automaticamente para cartões de crédito (Regime de Caixa)
+      if (tx.type === 'EXPENSE' && tx.account_id) {
         const acc = accounts.find(a => a.id === tx.account_id);
         if (acc && acc.type === 'CREDIT_CARD') {
           const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
