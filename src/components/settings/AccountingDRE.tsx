@@ -36,8 +36,6 @@ export function AccountingDRE() {
     years, availableCurrencies, months,
     dreData, balanceSheetData,
     isLoading,
-    generatePDF,
-    generateExcelBalanceSheet,
     formatCurrency,
     formatNegativeCurrency,
     renderSubcategories

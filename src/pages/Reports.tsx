@@ -58,7 +58,6 @@ export function Reports() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
 
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
-  const [dateCriterion, setDateCriterion] = useState<'COMPETENCE' | 'DUE_DATE'>('COMPETENCE');
   const [txSearch, setTxSearch] = useState<string>("");
   const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [showOnlyCreditCards, setShowOnlyCreditCards] = useState(false);
@@ -275,7 +274,7 @@ export function Reports() {
       
       return matchesCurrency && matchesCC;
     });
-  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, dateCriterion, accounts, showOnlyCreditCards]);
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts, showOnlyCreditCards]);
 
   const sharedPeriodTransactions = useMemo(() => {
     const targetYear = safeCurrentDate.getFullYear();
