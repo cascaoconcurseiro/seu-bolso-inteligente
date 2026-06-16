@@ -38,6 +38,8 @@ export function DashboardHero({
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
 
+  // O balance já é o saldo real das contas. Os pendentes são apenas informativos (chips abaixo).
+  // Somar pending aqui causaria duplicação pois eles já fazem parte do saldo bancário registrado.
   const predictedBalance = balance;
 
   return (
@@ -54,8 +56,8 @@ export function DashboardHero({
                   <TrendingUp className="h-4 w-4 text-primary" />
                </div>
                <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
-                 Saldo Previsto ({currency})
-                 <InfoTooltip content="Projeção exata para o final do mês selecionado, considerando seu saldo real atual e todas as movimentações pendentes até lá." />
+                 Saldo das Contas ({currency})
+                 <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
                </p>
             </div>
 
