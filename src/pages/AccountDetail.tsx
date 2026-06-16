@@ -46,6 +46,7 @@ import { AccountBalanceCard } from "@/components/accounts/AccountBalanceCard";
 import { AccountStatement } from "@/components/accounts/AccountStatement";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
+import { moneyUtils } from "@/utils/money";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -143,7 +144,7 @@ export function AccountDetail() {
 
   const handleSaveEdit = async () => {
     if (!account || !editAccountName.trim()) return;
-    const yRate = editYieldType !== "NONE" ? parseFloat(editYieldRate) : null;
+    const yRate = editYieldType !== "NONE" ? moneyUtils.parse(editYieldRate) : null;
     const yType = editYieldType !== "NONE" ? editYieldType : null;
     await updateAccount.mutateAsync({
       id: account.id,

@@ -1,3 +1,4 @@
+import { moneyUtils } from "@/utils/money";
 /**
  * Currency Formatting Utilities
  * Centralized currency formatting for consistent display across the app
@@ -136,7 +137,7 @@ export const parseCurrencyInput = (value: string): number => {
   const cleaned = value.replace(/[R$\s]/g, '');
   // Replace comma with dot for decimal
   const normalized = cleaned.replace(',', '.');
-  return parseFloat(normalized) || 0;
+  return moneyUtils.parse(normalized) || 0;
 };
 
 /**

@@ -355,7 +355,7 @@ export function SplitModal({
                     step={0.1}
                     value={mySplitPercentage}
                     onChange={(e) => {
-                      const val = parseFloat(e.target.value);
+                      const val = moneyUtils.parse(e.target.value);
                       setMySplitPercentage(isNaN(val) ? 0 : Math.min(100, Math.max(0, val)));
                     }}
                     className="h-10 pr-8 text-center font-bold text-sm rounded-xl"
@@ -495,7 +495,7 @@ export function SplitModal({
                       step="1"
                       value={totalOtherPct}
                       onChange={(e) => {
-                        const otherPct = parseFloat(e.target.value);
+                        const otherPct = moneyUtils.parse(e.target.value);
                         applyPreset(100 - otherPct);
                       }}
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"

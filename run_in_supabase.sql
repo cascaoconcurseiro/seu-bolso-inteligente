@@ -7,7 +7,13 @@
 
 -- 1. Adiciona coluna asset_id na tabela transactions
 ALTER TABLE public.transactions
-ADD COLUMN IF NOT EXISTS asset_id UUID REFERENCES public.assets(id) ON DELETE CASCADE;
+ADD COLUMN IF NOT EXISTS asset_id UUID REFERENCES public.assets(id) ON DELETE RESTRICT;
+
+-- Caso a constraint já exista com CASCADE, remova e recrie com RESTRICT (Segurança Financeira)
+ALTER TABLE public.transactions 
+DROP CONSTRAINT IF EXISTS transactions_asset_id_fkey,
+ADD CONSTRAINT transactions_asset_id_fkey 
+FOREIGN KEY (asset_id) REFERENCES public.assets(id) ON DELETE RESTRICT;
 
 -- Criar índice para performance
 CREATE INDEX IF NOT EXISTS idx_transactions_asset_id ON public.transactions(asset_id);

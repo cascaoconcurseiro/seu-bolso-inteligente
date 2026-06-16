@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTransfer } from "@/hooks/useTransfer";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { moneyUtils } from "@/utils/money";
 
 interface TransferModalProps {
   open: boolean;
@@ -72,7 +73,7 @@ export function TransferModal({
   useEffect(() => {
     if (isCrossCurrency && exchangeRate) {
       const numericAmount = getNumericAmount();
-      const rate = parseFloat(exchangeRate.replace(",", ".")) || 0;
+      const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (numericAmount > 0 && rate > 0) {
         // Se origem é BRL, dividir pela taxa; se destino é BRL, multiplicar
         const destValue = fromAccountCurrency === "BRL" 
@@ -96,7 +97,7 @@ export function TransferModal({
   };
 
   const getNumericAmount = () => {
-    return parseFloat(amount) || 0;
+    return moneyUtils.parse(amount) || 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,14 +119,14 @@ export function TransferModal({
 
     // Validar taxa de câmbio para transferências cross-currency
     if (isCrossCurrency) {
-      const rate = parseFloat(exchangeRate.replace(",", ".")) || 0;
+      const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (rate <= 0) {
         return;
       }
     }
 
-    const rate = isCrossCurrency ? parseFloat(exchangeRate.replace(",", ".")) : undefined;
-    const destAmount = isCrossCurrency ? parseFloat(destinationAmount.replace(",", ".")) : undefined;
+    const rate = isCrossCurrency ? moneyUtils.parse(exchangeRate.replace(",", ".")) : undefined;
+    const destAmount = isCrossCurrency ? moneyUtils.parse(destinationAmount.replace(",", ".")) : undefined;
 
     await transfer.mutateAsync({
       fromAccountId,
@@ -148,7 +149,7 @@ export function TransferModal({
 
   const numericAmount = getNumericAmount();
   const isInvalid = numericAmount > fromAccountBalance;
-  const isMissingExchangeRate = isCrossCurrency && (!exchangeRate || parseFloat(exchangeRate.replace(",", ".")) <= 0);
+  const isMissingExchangeRate = isCrossCurrency && (!exchangeRate || moneyUtils.parse(exchangeRate.replace(",", ".")) <= 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

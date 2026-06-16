@@ -1,4 +1,5 @@
 import { logger } from "@/utils/logger";
+import { moneyUtils } from "@/utils/money";
 
 export interface CurrencyRate {
   code: string;
@@ -37,7 +38,7 @@ export async function getCurrencyRate(
   // Checar cache em memória
   const cached = cache.get(pairKey);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return parseFloat(cached.data.bid);
+    return moneyUtils.parse(cached.data.bid);
   }
 
   try {
@@ -61,7 +62,7 @@ export async function getCurrencyRate(
     // Salvar no cache
     cache.set(pairKey, { data: rateData, timestamp: Date.now() });
 
-    return parseFloat(rateData.bid);
+    return moneyUtils.parse(rateData.bid);
   } catch (error) {
     logger.error(`Erro ao buscar cotação de ${pair}:`, error);
     return null;
@@ -98,13 +99,13 @@ export async function getMultipleCurrencyRates(
       }
       const pairKey = `${currency}${targetCode}`;
       if (data[pairKey]) {
-        const rate = parseFloat(data[pairKey].bid);
+        const rate = moneyUtils.parse(data[pairKey].bid);
         results[currency] = rate;
         cache.set(pairKey, { data: data[pairKey], timestamp: Date.now() });
       } else {
         // Se não conseguiu da API, tenta ver se tem no cache antigo
         const cached = cache.get(pairKey);
-        results[currency] = cached ? parseFloat(cached.data.bid) : 0;
+        results[currency] = cached ? moneyUtils.parse(cached.data.bid) : 0;
       }
     }
 
@@ -120,7 +121,7 @@ export async function getMultipleCurrencyRates(
         continue;
       }
       const cached = cache.get(`${currency}${targetCode}`);
-      results[currency] = cached ? parseFloat(cached.data.bid) : 0;
+      results[currency] = cached ? moneyUtils.parse(cached.data.bid) : 0;
     }
     return results;
   }

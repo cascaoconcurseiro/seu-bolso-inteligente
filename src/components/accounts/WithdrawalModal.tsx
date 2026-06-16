@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Loader2, Banknote } from "lucide-react";
 import { useWithdrawal } from "@/hooks/useWithdrawal";
+import { moneyUtils } from "@/utils/money";
 
 interface WithdrawalModalProps {
   open: boolean;
@@ -32,7 +33,7 @@ export function WithdrawalModal({
   };
 
   const getNumericAmount = () => {
-    return parseFloat(amount) || 0;
+    return moneyUtils.parse(amount) || 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -338,7 +338,7 @@ export function Trips() {
             destination: tripDestination, 
             start_date: tripStartDate, 
             end_date: tripEndDate, 
-            budget: tripBudget ? parseFloat(tripBudget) : undefined, 
+            budget: tripBudget ? moneyUtils.parse(tripBudget) : undefined, 
             currency: tripCurrency, 
             memberIds: mids 
           }); 

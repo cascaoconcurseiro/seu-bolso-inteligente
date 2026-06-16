@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, Wallet } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
+import { moneyUtils } from "@/utils/money";
 
 const currencies = [
   { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
@@ -78,15 +79,15 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
     return `${symbol} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const currentAmountToPay = parseFloat(amountToPay) || 0;
+  const currentAmountToPay = moneyUtils.parse(amountToPay) || 0;
 
   const calculatedBrlAmount = needsExchange && exchangeRate 
-    ? currentAmountToPay * parseFloat(exchangeRate) 
+    ? currentAmountToPay * moneyUtils.parse(exchangeRate) 
     : currentAmountToPay;
 
   const handlePay = () => {
     if (needsExchange && exchangeRate) {
-      onPay(selectedAccountId, currentAmountToPay, parseFloat(exchangeRate));
+      onPay(selectedAccountId, currentAmountToPay, moneyUtils.parse(exchangeRate));
     } else {
       onPay(selectedAccountId, currentAmountToPay);
     }

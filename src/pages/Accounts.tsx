@@ -49,6 +49,7 @@ import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 // Modular Components
 import { AccountCard } from "@/components/accounts/AccountCard";
 import { AccountSummary } from "@/components/accounts/AccountSummary";
+import { moneyUtils } from "@/utils/money";
 
 const accountTypeLabels: Record<string, string> = {
   CHECKING: "Conta Corrente", SAVINGS: "Poupança", INVESTMENT: "Investimento", CASH: "Dinheiro", EMERGENCY_FUND: "Reserva de Emergência", GLOBAL_ACCOUNT: "Conta Global",
@@ -147,9 +148,9 @@ export function Accounts() {
 
   const handleCreate = async () => {
     const bank = bankId ? getBankById(bankId) : null;
-    const yRate = yieldType !== "NONE" ? parseFloat(yieldRate) : null;
+    const yRate = yieldType !== "NONE" ? moneyUtils.parse(yieldRate) : null;
     const yType = yieldType !== "NONE" ? yieldType : null;
-    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: parseFloat(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL', hide_balance: hideBalance, yield_rate: yRate, yield_type: yType });
+    await createAccount.mutateAsync({ name: bank ? `${bank.name} - ${accountTypeLabels[type] || type}` : accountTypeLabels[type] || type, type: type as any, bank_id: bankId || null, balance: moneyUtils.parse(balance) || 0, is_international: isInternational, currency: isInternational ? currency : 'BRL', hide_balance: hideBalance, yield_rate: yRate, yield_type: yType });
     setShowAddDialog(false);
     resetForm();
   };
@@ -294,7 +295,7 @@ export function Accounts() {
               <Switch checked={editHideBalance} onCheckedChange={setEditHideBalance} />
             </div>
           </div>
-          <DialogFooter><Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button><Button onClick={async () => { if (editingAccount) { await updateAccount.mutateAsync({ id: editingAccount.id, name: editName, balance: parseFloat(editBalance) || 0, hide_balance: editHideBalance }); setShowEditDialog(false); } }}>Salvar</Button></DialogFooter>
+          <DialogFooter><Button variant="outline" onClick={() => setShowEditDialog(false)}>Cancelar</Button><Button onClick={async () => { if (editingAccount) { await updateAccount.mutateAsync({ id: editingAccount.id, name: editName, balance: moneyUtils.parse(editBalance) || 0, hide_balance: editHideBalance }); setShowEditDialog(false); } }}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 

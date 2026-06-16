@@ -13,6 +13,7 @@ import { searchCryptoAssets } from '@/lib/cryptoAssets';
 import { useB3TickersSearch, B3Ticker } from '@/hooks/useB3TickersSearch';
 import { Globe, Building2, Search, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { moneyUtils } from "@/utils/money";
 
 interface AssetFormDialogProps {
   isOpen: boolean;
@@ -79,8 +80,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   // PM calculado automaticamente
   const avgPrice = useMemo(() => {
-    const qty = parseFloat(quantity);
-    const invested = parseFloat(investedAmount.replace(',', '.'));
+    const qty = moneyUtils.parse(quantity);
+    const invested = moneyUtils.parse(investedAmount.replace(',', '.'));
     if (qty > 0 && invested > 0) return (invested / qty).toFixed(2);
     return null;
   }, [quantity, investedAmount]);
@@ -193,8 +194,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const qty = parseFloat(quantity) || 0;
-    const invested = parseFloat(investedAmount.replace(',', '.')) || 0;
+    const qty = moneyUtils.parse(quantity) || 0;
+    const invested = moneyUtils.parse(investedAmount.replace(',', '.')) || 0;
     const calcAvgPrice = qty > 0 && invested > 0 ? invested / qty : 0;
 
     const finalBrokerName = isCustomBroker(brokerId) ? customBrokerName :
@@ -425,7 +426,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border">
                 <span className="text-xs text-muted-foreground font-medium">Preço Médio calculado:</span>
                 <span className="font-mono font-bold text-sm text-foreground">
-                  {currencySymbol} {parseFloat(avgPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
+                  {currencySymbol} {moneyUtils.parse(avgPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
                 </span>
               </div>
             )}

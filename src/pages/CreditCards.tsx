@@ -50,6 +50,7 @@ import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
 import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
+import { moneyUtils } from "@/utils/money";
 
 type CardView = "list" | "detail";
 
@@ -238,7 +239,7 @@ export function CreditCards() {
 
   const handleCreateCard = async () => {
     const bank = getBankById(newBankId);
-    await createAccount.mutateAsync({ name: newCardName.trim() || bank.name, type: "CREDIT_CARD", bank_id: newBankId, credit_limit: parseFloat(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
+    await createAccount.mutateAsync({ name: newCardName.trim() || bank.name, type: "CREDIT_CARD", bank_id: newBankId, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
     setShowNewCardDialog(false);
     resetNewCardForm();
   };
@@ -275,7 +276,7 @@ export function CreditCards() {
 
   const handleEditCard = async () => {
     if (!selectedCard) return;
-    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? parseFloat(editLimit) : null });
+    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? moneyUtils.parse(editLimit) : null });
     toast.success("Cartão atualizado!");
     setShowEditCardDialog(false);
     refetchAccounts();

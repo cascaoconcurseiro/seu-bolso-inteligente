@@ -53,6 +53,7 @@ import { BasicInfoSection } from './form/BasicInfoSection';
 import { TripSelector } from './form/TripSelector';
 import { AccountSelector } from './form/AccountSelector';
 import { AdvancedOptions } from './form/AdvancedOptions';
+import { moneyUtils } from "@/utils/money";
 
 
 interface TransactionFormProps {
@@ -224,7 +225,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       return;
     }
     const handler = setTimeout(() => {
-      const numericAmount = parseFloat(amount) || 0;
+      const numericAmount = moneyUtils.parse(amount) || 0;
       if (!description || numericAmount === 0 || !date) {
         setDuplicateWarning(false);
         return;
@@ -305,8 +306,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
   const handleDestAmountChange = (val: string) => {
     setDestinationAmount(val);
-    const numAmount = parseFloat(amount);
-    const numDest = parseFloat(val);
+    const numAmount = moneyUtils.parse(amount);
+    const numDest = moneyUtils.parse(val);
     if (numAmount > 0 && numDest > 0) {
       const computedRate = (numAmount / numDest).toFixed(4);
       setExchangeRate(computedRate);
@@ -318,8 +319,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
   // Se o amount de origem mudar, recalcular a taxa de câmbio
   useEffect(() => {
     if (showExchangePanel) {
-      const numAmount = parseFloat(amount);
-      const numDest = parseFloat(destinationAmount);
+      const numAmount = moneyUtils.parse(amount);
+      const numDest = moneyUtils.parse(destinationAmount);
       if (numAmount > 0 && numDest > 0) {
         const computedRate = (numAmount / numDest).toFixed(4);
         setExchangeRate(computedRate);
@@ -399,7 +400,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
     e.preventDefault();
     setValidationErrors([]);
     setValidationWarnings([]);
-    const numericAmount = parseFloat(amount) || 0;
+    const numericAmount = moneyUtils.parse(amount) || 0;
     const transactionSplits = activeTab === 'EXPENSE' ? splits.map((s) => ({
       member_id: s.memberId,
       percentage: s.percentage,
@@ -420,7 +421,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
 
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {
-        if (!destinationAmount || parseFloat(destinationAmount) <= 0) {
+        if (!destinationAmount || moneyUtils.parse(destinationAmount) <= 0) {
           toast.error(`Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`);
           return;
         }
@@ -477,8 +478,8 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
       is_installment: isActuallyInstallment,
       total_installments: isActuallyInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
-      exchange_rate: showExchangePanel && exchangeRate ? parseFloat(exchangeRate) : undefined,
-      destination_amount: showExchangePanel && destinationAmount ? parseFloat(destinationAmount) : undefined,
+      exchange_rate: showExchangePanel && exchangeRate ? moneyUtils.parse(exchangeRate) : undefined,
+      destination_amount: showExchangePanel && destinationAmount ? moneyUtils.parse(destinationAmount) : undefined,
       destination_currency: isExchangeTransfer && selectedDestAccount ? selectedDestAccount.currency : (isCrossCurrencyTripExpense && selectedTrip ? selectedTrip.currency : undefined),
       splits: transactionSplits,
       is_refund: isRefund,
@@ -621,7 +622,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
             </div>
             
             <p className="text-[10px] text-muted-foreground leading-normal">
-              💡 Digite apenas o valor exato que chegou no destino. O sistema irá calcular automaticamente a taxa de câmbio efetiva (incluindo spread, IOF e outras taxas) baseada no valor de origem de {getCurrencySymbol(selectedAccount?.currency || 'BRL')} {parseFloat(amount || '0').toFixed(2)}.
+              💡 Digite apenas o valor exato que chegou no destino. O sistema irá calcular automaticamente a taxa de câmbio efetiva (incluindo spread, IOF e outras taxas) baseada no valor de origem de {getCurrencySymbol(selectedAccount?.currency || 'BRL')} {moneyUtils.parse(amount || '0').toFixed(2)}.
             </p>
           </div>
         )}
@@ -641,11 +642,11 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
                 <SelectValue placeholder="Selecione o parcelamento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1x de {getCurrencySymbol(transactionCurrency)} {(parseFloat(amount) || 0).toFixed(2).replace('.', ',')} (À vista)</SelectItem>
+                <SelectItem value="1">1x de {getCurrencySymbol(transactionCurrency)} {(moneyUtils.parse(amount) || 0).toFixed(2).replace('.', ',')} (À vista)</SelectItem>
                 {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
                   <SelectItem key={n} value={n.toString()}>
                     {n}x de {getCurrencySymbol(transactionCurrency)}{' '}
-                    {((parseFloat(amount) || 0) / n).toFixed(2).replace('.', ',')}
+                    {((moneyUtils.parse(amount) || 0) / n).toFixed(2).replace('.', ',')}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -678,7 +679,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
           notificationDate={notificationDate}
           setNotificationDate={setNotificationDate}
           currencySymbol={getCurrencySymbol(transactionCurrency)}
-          numericAmount={parseFloat(amount) || 0}
+          numericAmount={moneyUtils.parse(amount) || 0}
           
           tripId={tripId}
           setTripId={setTripId}
@@ -701,7 +702,7 @@ export function TransactionForm({ onSuccess, onCancel, context, initialData }: T
         splits={splits}
         setSplits={setSplits}
         familyMembers={familyMembers}
-        activeAmount={parseFloat(amount) || 0}
+        activeAmount={moneyUtils.parse(amount) || 0}
         onNavigateToFamily={() => navigate('/familia')}
         isInstallment={isInstallment}
         setIsInstallment={setIsInstallment}

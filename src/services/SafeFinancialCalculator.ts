@@ -1,3 +1,4 @@
+import { moneyUtils } from "@/utils/money";
 /**
  * SafeFinancialCalculator
  * Provides safe financial calculations avoiding floating point errors
@@ -11,7 +12,7 @@ export class SafeFinancialCalculator {
    * Convert to safe integer representation (cents)
    */
   static toSafeNumber(value: number | string, defaultValue: number = 0): number {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
+    const num = typeof value === 'string' ? moneyUtils.parse(value) : value;
     if (isNaN(num)) return defaultValue;
     return Math.round(num * SafeFinancialCalculator.MULTIPLIER);
   }

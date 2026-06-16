@@ -13,6 +13,7 @@ import {
 } from "@/services/notificationService";
 
 import { FamilyMember } from "@/hooks/useFamily";
+import { moneyUtils } from "@/utils/money";
 
 
 interface SharedExpensesActionsProps {
@@ -88,7 +89,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
-      const amount = parseFloat(settleAmount.replace(".", "").replace(",", "."));
+      const amount = moneyUtils.parse(settleAmount.replace(".", "").replace(",", "."));
       if (isNaN(amount) || amount < 0) {
         toast.error("Valor inválido");
         setIsSettling(false);

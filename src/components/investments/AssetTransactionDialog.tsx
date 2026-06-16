@@ -14,6 +14,7 @@ import { TrendingDown, TrendingUp, RefreshCw, AlertCircle, Info, Coins } from 'l
 import * as dateFns from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { moneyUtils } from "@/utils/money";
 
 interface AssetTransactionDialogProps {
   isOpen: boolean;
@@ -90,8 +91,8 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
   const currentAvgPrice = asset.purchase_price || 0;
 
   // ── CÁLCULOS EM TEMPO REAL ────────────────────────────────
-  const qty = parseFloat(quantity) || 0;
-  const prc = parseFloat(price) || 0;
+  const qty = moneyUtils.parse(quantity) || 0;
+  const prc = moneyUtils.parse(price) || 0;
   const totalOp = qty * prc;
 
   // Simulação do PM após operação

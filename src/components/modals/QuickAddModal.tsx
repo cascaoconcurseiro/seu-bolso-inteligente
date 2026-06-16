@@ -159,7 +159,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const numericAmount = parseFloat(amount.replace(',', '.'));
+    const numericAmount = moneyUtils.parse(amount.replace(',', '.'));
     
     if (!numericAmount || numericAmount <= 0) {
       toast.error('Informe um valor válido.');
@@ -365,12 +365,12 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">
-                    1x de {moneyUtils.getSymbol(currentCurrency)} {(parseFloat(amount.replace(',', '.')) || 0).toFixed(2).replace('.', ',')} (À vista)
+                    1x de {moneyUtils.getSymbol(currentCurrency)} {(moneyUtils.parse(amount.replace(',', '.')) || 0).toFixed(2).replace('.', ',')} (À vista)
                   </SelectItem>
                   {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
                     <SelectItem key={n} value={n.toString()}>
                       {n}x de {moneyUtils.getSymbol(currentCurrency)}{' '}
-                      {((parseFloat(amount.replace(',', '.')) || 0) / n).toFixed(2).replace('.', ',')}
+                      {((moneyUtils.parse(amount.replace(',', '.')) || 0) / n).toFixed(2).replace('.', ',')}
                     </SelectItem>
                   ))}
                 </SelectContent>

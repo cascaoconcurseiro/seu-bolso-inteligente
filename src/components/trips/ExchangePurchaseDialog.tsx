@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
+import { moneyUtils } from "@/utils/money";
 
 interface ExchangePurchaseDialogProps {
   open: boolean;
@@ -57,8 +58,8 @@ export function ExchangePurchaseDialog({
   }, [purchase, open]);
 
   // Cálculos em tempo real
-  const foreignAmountNum = parseFloat(foreignAmount) || 0;
-  const localAmountNum = parseFloat(localAmount) || 0;
+  const foreignAmountNum = moneyUtils.parse(foreignAmount) || 0;
+  const localAmountNum = moneyUtils.parse(localAmount) || 0;
 
   let exchangeRateNum = 0;
   if (foreignAmountNum > 0 && localAmountNum > 0) {

@@ -39,6 +39,7 @@ import * as dateFns from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CategorySelector } from '@/components/transactions/CategorySelector';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { moneyUtils } from "@/utils/money";
 
 interface SharedInstallmentImportProps {
   isOpen: boolean;
@@ -100,7 +101,7 @@ export function SharedInstallmentImport({
   }, [isOpen, availableMembers.length]);
 
   const parseAmount = (val: string) => {
-    return parseFloat(val) || 0;
+    return moneyUtils.parse(val) || 0;
   };
 
   const installmentAmount = parseAmount(amount);

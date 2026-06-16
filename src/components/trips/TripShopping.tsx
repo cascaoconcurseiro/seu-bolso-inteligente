@@ -7,6 +7,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { AITripSuggestions } from './AITripSuggestions';
+import { moneyUtils } from "@/utils/money";
 
 interface ShoppingItem {
   id: string;
@@ -63,7 +64,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
   };
 
   const getNumericCost = () => {
-    return parseFloat(newCost) || 0;
+    return moneyUtils.parse(newCost) || 0;
   };
 
   const handleAddItem = async () => {

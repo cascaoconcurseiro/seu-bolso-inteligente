@@ -1,6 +1,7 @@
 import { forwardRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { moneyUtils } from "@/utils/money";
 
 interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string;
@@ -13,7 +14,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     // Inicializa o estado visual a partir do value (caso venha preenchido)
     const [displayValue, setDisplayValue] = useState(() => {
       if (!value) return "";
-      const numericValue = parseFloat(value);
+      const numericValue = moneyUtils.parse(value);
       if (isNaN(numericValue)) return "";
       return numericValue.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
@@ -27,8 +28,8 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         setDisplayValue("");
         return;
       }
-      const numericValue = parseFloat(value);
-      const currentParsedDisplay = parseFloat(displayValue.replace(/\./g, "").replace(",", "."));
+      const numericValue = moneyUtils.parse(value);
+      const currentParsedDisplay = moneyUtils.parse(displayValue.replace(/\./g, "").replace(",", "."));
       
       // Se o valor real for diferente do que está sendo exibido, atualiza o display
       // Isso impede que ele pisque/reset se estivermos apenas digitando (e.g. 1.00 vs 1,00)

@@ -53,7 +53,7 @@ export function Budgets() {
       
     const data = { 
       name: generatedName, 
-      amount: parseFloat(amount), 
+      amount: moneyUtils.parse(amount), 
       category_id: categoryId || null, 
       currency, 
       period: "MONTHLY" as const, 

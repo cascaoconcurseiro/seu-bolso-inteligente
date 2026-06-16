@@ -17,6 +17,7 @@ import { useCreateTransaction } from "@/hooks/useTransactions";
 import { useAuth } from "@/contexts/AuthContext";
 import { CategorySelector } from "@/components/transactions/CategorySelector";
 import { toast } from "sonner";
+import { moneyUtils } from "@/utils/money";
 
 type CreditCardAccount = any;
 
@@ -113,7 +114,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   const handleSaveGlobal = () => {
     const transactionsToCreate = months
-      .filter(m => m.amount && parseFloat(m.amount) > 0)
+      .filter(m => m.amount && moneyUtils.parse(m.amount) > 0)
       .map(m => {
         const [y, month] = m.date.split('-').map(Number);
         const closingDay = account.closing_day || 1;
@@ -122,7 +123,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         return {
           date: formatLocalDate(transactionDate),
           competence_date: formatLocalDate(new Date(y, month - 1, 1)),
-          amount: parseFloat(m.amount),
+          amount: moneyUtils.parse(m.amount),
           type: "EXPENSE",
           description: `Fatura Importada - ${m.label}`,
           account_id: account.id,
@@ -136,7 +137,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
   };
 
   const handleSaveInstallments = async () => {
-    const valueNum = parseFloat(instValue.replace(/\./g, '').replace(',', '.')); // in case user types with comma
+    const valueNum = moneyUtils.parse(instValue.replace(/\./g, '').replace(',', '.')); // in case user types with comma
     const currNum = parseInt(currentInst);
     const totNum = parseInt(totalInst);
 
@@ -216,7 +217,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
   }
 
   // Valores da divisão
-  const parsedValue = parseFloat(instValue) || 0;
+  const parsedValue = moneyUtils.parse(instValue) || 0;
   const assigneeParcelAmount = (parsedValue * assigneePercentage) / 100;
   const creatorParcelAmount = parsedValue - assigneeParcelAmount;
 
@@ -282,7 +283,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
               <Button 
                 onClick={handleSaveGlobal}
-                disabled={!months.some(m => m.amount && parseFloat(m.amount) > 0) || isSubmitting}
+                disabled={!months.some(m => m.amount && moneyUtils.parse(m.amount) > 0) || isSubmitting}
               >
                 <Save className="h-4 w-4 mr-2" />
                 Salvar Faturas
@@ -409,7 +410,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
             <DialogFooter className="mt-auto pt-4 border-t">
               <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-              <Button onClick={handleSaveInstallments} disabled={!desc || !instValue || parseFloat(instValue) <= 0 || isSubmitting}>
+              <Button onClick={handleSaveInstallments} disabled={!desc || !instValue || moneyUtils.parse(instValue) <= 0 || isSubmitting}>
                 {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 Importar Parcelas
               </Button>

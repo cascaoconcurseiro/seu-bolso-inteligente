@@ -18,6 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Trip } from "@/hooks/useTrips";
+import { moneyUtils } from "@/utils/money";
 
 const CURRENCIES = [
   { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
@@ -78,7 +79,7 @@ export function EditTripDialog({
       start_date: startDate,
       end_date: endDate,
       currency,
-      budget: parseFloat(budget),
+      budget: moneyUtils.parse(budget),
     });
   };
 
