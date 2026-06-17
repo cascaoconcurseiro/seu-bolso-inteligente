@@ -231,26 +231,6 @@ export function Reports() {
     console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
     return allCombinedTransactions.filter(tx => {
       let txDateStr = tx.date;
-
-      // Aplicar lógica de Fatura automaticamente para cartões de crédito (Regime de Caixa)
-      if (tx.type === 'EXPENSE' && tx.account_id) {
-        const acc = accounts.find(a => a.id === tx.account_id);
-        if (acc && acc.type === 'CREDIT_CARD') {
-          const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
-          const dueDay = acc.due_day || 10;
-          const closingDay = acc.closing_day || 1;
-          
-          let dueMonthDate = compDate;
-          if (dueDay <= closingDay) {
-            dueMonthDate = dateFns.addMonths(compDate, 1);
-          }
-          
-          txDateStr = dateFns.format(dueMonthDate, 'yyyy-MM-dd');
-        }
-      }
-      
-
-
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return false;
