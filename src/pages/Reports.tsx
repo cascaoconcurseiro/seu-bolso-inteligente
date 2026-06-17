@@ -683,7 +683,7 @@ export function Reports() {
                 size="sm" 
                 className={viewType === 'MONTH' ? "shadow-sm rounded-lg" : "rounded-lg"}
                 onClick={() => setViewType('MONTH')}>
-                {showOnlyCreditCards ? 'Ciclos' : 'Mensal'}
+                {selectedCardFilter !== 'NONE' ? 'Ciclos' : 'Mensal'}
               </Button>
               <Button 
                 variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
