@@ -95,42 +95,48 @@
           if (isChunkError || e.name === 'ChunkLoadError') {
             console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache, SW e recarregamento...');
             
-            // Tenta limpar os caches do navegador para remover assets presos
-            if ('caches' in window) {
-              caches.keys().then(function(names) {
-                for (var i = 0; i < names.length; i++) {
-                  caches.delete(names[i]);
-                }
+            function hardReload() {
+              var currentUrl = window.location.href.split('#')[0];
+              var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+              window.location.href = currentUrl + separator + 't=' + Date.now();
+            }
+
+            function clearAndReload() {
+              var p1 = Promise.resolve();
+              var p2 = Promise.resolve();
+
+              if ('serviceWorker' in navigator) {
+                p1 = navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  return Promise.all(registrations.map(function(r) { return r.unregister(); }));
+                });
+              }
+
+              if ('caches' in window) {
+                p2 = caches.keys().then(function(names) {
+                  return Promise.all(names.map(function(name) { return caches.delete(name); }));
+                });
+              }
+
+              Promise.all([p1, p2]).then(function() {
+                setTimeout(hardReload, 200);
+              }).catch(function() {
+                setTimeout(hardReload, 200);
               });
             }
 
-            // Desregistra o Service Worker que pode estar servindo arquivos velhos
-            if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (var i = 0; i < registrations.length; i++) {
-                  registrations[i].unregister();
-                }
-              });
-            }
-            
-            // Previne loop infinito: só recarrega se não tentou recentemente (a cada 3 segundos)
+            // Previne loop infinito: só recarrega se não tentou recentemente (a cada 5 segundos)
             var lastRetry = sessionStorage.getItem('chunk_retry_timestamp');
             var now = Date.now();
-            if (!lastRetry || (now - parseInt(lastRetry)) > 3000) {
+            if (!lastRetry || (now - parseInt(lastRetry)) > 5000) {
               sessionStorage.setItem('chunk_retry_timestamp', now.toString());
-              
-              // Pequeno delay para garantir que o SW foi desregistrado e o cache limpo
-              setTimeout(function() {
-                var currentUrl = window.location.href.split('#')[0];
-                var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
-                window.location.href = currentUrl + separator + 't=' + Date.now();
-              }, 500);
+              clearAndReload();
             } else {
               console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');
               // Mostrar botão de recarregar manual na tela
               var splash = document.getElementById('native-splash');
-              if (splash) {
+              if (splash && !document.getElementById('force-reload-btn')) {
                 var btn = document.createElement('button');
+                btn.id = 'force-reload-btn';
                 btn.innerHTML = 'Forçar Atualização';
                 btn.style.marginTop = '20px';
                 btn.style.padding = '10px 20px';
@@ -140,7 +146,10 @@
                 btn.style.borderRadius = '8px';
                 btn.style.cursor = 'pointer';
                 btn.style.fontFamily = 'Inter, sans-serif';
-                btn.onclick = function() { window.location.href = window.location.href.split('#')[0] + '?t=' + Date.now(); };
+                btn.onclick = function() { 
+                  btn.innerHTML = 'Limpando...';
+                  clearAndReload(); 
+                };
                 splash.appendChild(btn);
               }
             }
