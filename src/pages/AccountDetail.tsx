@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useUnarchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
-import { useAccountStatement } from "@/hooks/useAccountStatement";
+import { useAccountStatement, StatementPeriod, getPeriodDates } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
@@ -48,11 +48,27 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { moneyUtils } from "@/utils/money";
 
+const PERIOD_LABELS: Record<StatementPeriod, string> = {
+  "30d": "Últimos 30 dias",
+  "90d": "Últimos 3 meses",
+  "current_month": "Mês atual",
+  "current_year": "Este ano",
+  "all": "Todo o histórico",
+};
+
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: accounts = [] } = useAccounts();
-  const { data: statementData, refetch: refetchStatement } = useAccountStatement({ accountId: id || "" });
+
+  // Período do extrato — padrão: todo o histórico (como conta bancária real)
+  const [statementPeriod, setStatementPeriod] = useState<StatementPeriod>("all");
+
+  const { data: statementData, refetch: refetchStatement } = useAccountStatement({
+    accountId: id || "",
+    period: statementPeriod,
+  });
+
   const deleteAccount = useDeleteAccount();
   const archiveAccount = useArchiveAccount();
   const unarchiveAccount = useUnarchiveAccount();
@@ -77,8 +93,9 @@ export function AccountDetail() {
     transaction: null,
   });
 
-  const account = accounts.find(a => a.id === id);
+  const account = accounts.find((a) => a.id === id);
   const transactions = statementData?.transactions || [];
+  const openingBalance = statementData?.openingBalance ?? 0;
 
   const groupedTransactions = transactions.reduce((groups, tx) => {
     const date = dateFns.startOfDay(new Date(tx.date)).toISOString();
@@ -89,7 +106,7 @@ export function AccountDetail() {
     return groups;
   }, {} as Record<string, typeof transactions>);
 
-  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => 
+  const sortedDates = Object.keys(groupedTransactions).sort((a, b) =>
     new Date(b).getTime() - new Date(a).getTime()
   );
 
@@ -104,7 +121,7 @@ export function AccountDetail() {
     const date = new Date(dateStr);
     if (dateFns.isToday(date)) return "Hoje";
     if (dateFns.isYesterday(date)) return "Ontem";
-    return dateFns.format(date, "dd 'de' MMMM", { locale: ptBR });
+    return dateFns.format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
   const handleConfirmDelete = async () => {
@@ -156,8 +173,6 @@ export function AccountDetail() {
     setShowEditDialog(false);
   };
 
-
-
   const handleDeleteTransaction = async (cascadeType: "NONE" | "NEXT" | "ALL") => {
     const tx = deleteConfirm.transaction;
     if (!tx) return;
@@ -185,6 +200,7 @@ export function AccountDetail() {
 
   const bank = account.bank_id ? getBankById(account.bank_id) : null;
   const isCredit = account.type === "CREDIT_CARD";
+  const showOpeningBalance = statementPeriod !== "all" && openingBalance !== 0;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -205,6 +221,23 @@ export function AccountDetail() {
         onUnarchive={handleUnarchive}
       />
 
+      {/* Seletor de período do extrato */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          Extrato
+        </h2>
+        <Select value={statementPeriod} onValueChange={(v) => setStatementPeriod(v as StatementPeriod)}>
+          <SelectTrigger className="w-auto min-w-[180px] h-8 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.entries(PERIOD_LABELS) as [StatementPeriod, string][]).map(([value, label]) => (
+              <SelectItem key={value} value={value}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <AccountStatement
         transactions={transactions}
         sortedDates={sortedDates}
@@ -212,7 +245,8 @@ export function AccountDetail() {
         getDateLabel={getDateLabel}
         formatCurrency={formatCurrency}
         accountCurrency={accountCurrency}
-
+        openingBalance={openingBalance}
+        showOpeningBalance={showOpeningBalance}
         onDeleteTransaction={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
       />
 
@@ -242,11 +276,11 @@ export function AccountDetail() {
         }}
       />
 
-      <DeleteTransactionModal 
-        isOpen={deleteConfirm.isOpen} 
-        onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })} 
-        onConfirm={handleDeleteTransaction} 
-        transaction={deleteConfirm.transaction} 
+      <DeleteTransactionModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, transaction: null })}
+        onConfirm={handleDeleteTransaction}
+        transaction={deleteConfirm.transaction}
       />
 
       <ArchiveConfirmModal
