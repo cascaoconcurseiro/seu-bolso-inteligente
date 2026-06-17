@@ -22,6 +22,7 @@ import { TransactionSplitData, TabType } from '@/types/transactions';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useGoals } from '@/hooks/useGoals';
 import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
   useCreateTransaction,
