@@ -11,6 +11,8 @@ interface CategoryDistributionProps {
   currency: string;
 }
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 export function CategoryDistribution({ data, formatCurrency, currency }: CategoryDistributionProps) {
   return (
     <section className="p-6 rounded-xl border border-border">
@@ -20,28 +22,30 @@ export function CategoryDistribution({ data, formatCurrency, currency }: Categor
       {data.length === 0 ? (
         <div className="py-8 text-center text-muted-foreground">Nenhuma despesa registrada</div>
       ) : (
-        <div className="space-y-3 max-h-[460px] overflow-y-auto pr-2 scrollbar-thin">
-          {data.map((cat, index) => (
-            <div key={cat.category} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium truncate flex-1">{cat.category}</span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono">{formatCurrency(cat.value, currency)}</span>
-                  <span className="text-xs text-muted-foreground w-10 text-right">{cat.percent}%</span>
+        <ScrollArea className="h-[460px] pr-4">
+          <div className="space-y-3">
+            {data.map((cat, index) => (
+              <div key={cat.category} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium truncate flex-1">{cat.category}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono">{formatCurrency(cat.value, currency)}</span>
+                    <span className="text-xs text-muted-foreground w-10 text-right">{cat.percent}%</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-foreground rounded-full transition-all"
+                    style={{ 
+                      width: `${cat.percent}%`,
+                      opacity: 1 - (index * 0.08)
+                    }}
+                  />
                 </div>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-foreground rounded-full transition-all"
-                  style={{ 
-                    width: `${cat.percent}%`,
-                    opacity: 1 - (index * 0.08)
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       )}
     </section>
   );
