@@ -29,6 +29,11 @@ interface AccountSelectorProps {
   payerName: string;
   customLabel?: string;
   customPlaceholder?: string;
+  transferType?: 'account' | 'goal';
+  setTransferType?: (type: 'account' | 'goal') => void;
+  goalId?: string;
+  setGoalId?: (v: string) => void;
+  goals?: any[];
 }
 
 export function AccountSelector({
@@ -44,7 +49,12 @@ export function AccountSelector({
   isPaidByOther,
   payerName,
   customLabel,
-  customPlaceholder
+  customPlaceholder,
+  transferType,
+  setTransferType,
+  goalId,
+  setGoalId,
+  goals
 }: AccountSelectorProps) {
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();

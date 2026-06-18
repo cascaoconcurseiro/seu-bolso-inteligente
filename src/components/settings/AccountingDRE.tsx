@@ -38,7 +38,9 @@ export function AccountingDRE() {
     isLoading,
     formatCurrency,
     formatNegativeCurrency,
-    renderSubcategories
+    renderSubcategories,
+    handleExportPDF,
+    handleExportCSV
   } = useAccountingDRE();
   
   const b = balanceSheetData;

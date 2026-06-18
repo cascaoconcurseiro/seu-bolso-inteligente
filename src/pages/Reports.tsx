@@ -230,7 +230,7 @@ export function Reports() {
   const periodTransactions = useMemo(() => {
     console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
     return allCombinedTransactions.filter(tx => {
-      let txDateStr = tx.date;
+      const txDateStr = tx.date;
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return false;

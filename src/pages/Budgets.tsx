@@ -174,7 +174,7 @@ export function Budgets() {
 
             <div className="space-y-2">
               <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
-              <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
+              <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover} modal={true}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"

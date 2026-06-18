@@ -860,6 +860,8 @@ export function useAccountingDRE() {
     isLoading,
     formatCurrency,
     formatNegativeCurrency,
-    renderSubcategories
+    renderSubcategories,
+    handleExportPDF,
+    handleExportCSV
   };
 }
