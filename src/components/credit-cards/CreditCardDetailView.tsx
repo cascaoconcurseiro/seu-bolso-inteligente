@@ -4,6 +4,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { CreditCardCategories } from "./CreditCardCategories";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, X } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
@@ -420,6 +421,11 @@ export function CreditCardDetailView({
             </TabsList>
           </Tabs>
         </div>
+      )}
+
+      {/* Category Breakdown */}
+      {localInvoiceData.transactions.length > 0 && (
+        <CreditCardCategories transactions={localInvoiceData.transactions} />
       )}
 
       {/* Transactions List */}
