@@ -261,7 +261,6 @@ export function Reports() {
       }
       
       const matchesCurrency = selectedCurrency === 'ALL' || txCurr === selectedCurrency;
-      const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
       
       let matchesCC = true;
       if (selectedCardFilter === 'ALL') {
