@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const authSchema = z.object({
   email: z.string().trim().email("Email inválido").max(255),
@@ -27,6 +28,7 @@ export function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [keepConnected, setKeepConnected] = useState(true);
 
   // Redirect if already logged in
   if (!loading && user) {
@@ -65,6 +67,7 @@ export function Auth() {
       }
 
       if (isLogin) {
+        localStorage.setItem('keepMeLoggedIn', keepConnected.toString());
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
@@ -77,6 +80,7 @@ export function Auth() {
           navigate("/");
         }
       } else {
+        localStorage.setItem('keepMeLoggedIn', keepConnected.toString());
         const { error } = await signUp(email, password, fullName);
         if (error) {
           if (error.message.includes("already registered")) {
@@ -260,6 +264,21 @@ export function Auth() {
                     )}
                   </Button>
                 </div>
+                {isLogin && (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox 
+                      id="keepConnected" 
+                      checked={keepConnected}
+                      onCheckedChange={(checked) => setKeepConnected(checked as boolean)}
+                    />
+                    <Label 
+                      htmlFor="keepConnected" 
+                      className="text-sm font-medium leading-none cursor-pointer"
+                    >
+                      Manter conectado
+                    </Label>
+                  </div>
+                )}
               </div>
             )}
 

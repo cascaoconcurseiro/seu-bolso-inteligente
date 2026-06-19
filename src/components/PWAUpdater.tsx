@@ -29,7 +29,16 @@ export function PWAUpdater() {
         duration: Infinity, // Toast não some até o usuário clicar ou fechar
         action: {
           label: 'Atualizar Agora',
-          onClick: () => updateServiceWorker(true),
+          onClick: async () => {
+            await updateServiceWorker(true);
+            if ('caches' in window) {
+              try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+              } catch (e) {}
+            }
+            window.location.reload();
+          },
         },
         onDismiss: () => setNeedRefresh(false), // Se o usuário fechar o toast
       });
