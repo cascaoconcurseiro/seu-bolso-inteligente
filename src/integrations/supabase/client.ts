@@ -8,28 +8,8 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY |
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-const customStorage = {
-  getItem: (key: string) => {
-    const keepConnected = localStorage.getItem('keepMeLoggedIn') !== 'false';
-    return keepConnected ? localStorage.getItem(key) : sessionStorage.getItem(key);
-  },
-  setItem: (key: string, value: string) => {
-    const keepConnected = localStorage.getItem('keepMeLoggedIn') !== 'false';
-    if (keepConnected) {
-      localStorage.setItem(key, value);
-    } else {
-      sessionStorage.setItem(key, value);
-    }
-  },
-  removeItem: (key: string) => {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  }
-};
-
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: customStorage,
     persistSession: true,
     autoRefreshToken: true,
   }
