@@ -1,6 +1,8 @@
+import React from "react";
 import { useSharedCreditCards, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, X } from "lucide-react";
@@ -8,6 +10,7 @@ import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/contexts/AuthContext";
+import { getInvoiceData } from "@/lib/invoiceUtils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -39,6 +42,7 @@ interface CreditCardDetailViewProps {
   setDeleteConfirm: (v: { isOpen: boolean; transaction: any | null }) => void;
   installments: any[];
   allYearTransactions?: any[];
+  dependentTransactions?: any[];
   canDelete?: boolean;
   onArchive: (card: any) => void;
   onUnarchive: (card: any) => void;
@@ -67,6 +71,7 @@ export function CreditCardDetailView({
   setDeleteConfirm,
   installments,
   allYearTransactions = [],
+  dependentTransactions = [],
   canDelete = false,
   onArchive,
   onUnarchive,
@@ -193,6 +198,24 @@ export function CreditCardDetailView({
         </DropdownMenu>
       </div>
 
+      {/* Dependent Tabs (Only for owner of shared card) */}
+      {isOwner && sharedCards.length > 0 && (
+        <div className="bg-muted/30 p-1 rounded-xl mb-4 overflow-x-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full justify-start h-auto p-1 bg-transparent border-none">
+              <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
+              {sharedCards.map((sc: any) => (
+                <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="xs" />
+                  <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
+                </TabsTrigger>
+              ))}
+              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Fatura Completa</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
       {/* Month Navigation */}
       <div className="flex items-center justify-between bg-muted/30 p-2 rounded-xl">
         <Button 
@@ -247,17 +270,17 @@ export function CreditCardDetailView({
         )}
         <div className={cn(
           "absolute top-0 left-0 right-0 h-1",
-          invoiceData.status === 'CLOSED' && new Date() > invoiceData.dueDate && invoiceData.invoiceTotal > 0
+          localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0
             ? "bg-red-500 animate-pulse" 
-            : invoiceData.status === 'CLOSED' 
+            : localInvoiceData.status === 'CLOSED' 
               ? "bg-amber-500" 
               : "bg-blue-400"
         )} />
         
         <div className="flex items-start justify-between mb-4">
           {(() => {
-            const isOverdue = invoiceData.status === 'CLOSED' && new Date() > invoiceData.dueDate && invoiceData.invoiceTotal > 0;
-            const isClosed = invoiceData.status === 'CLOSED';
+            const isOverdue = localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0;
+            const isClosed = localInvoiceData.status === 'CLOSED';
             return (
               <span className={cn(
                 "text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
@@ -274,27 +297,27 @@ export function CreditCardDetailView({
         <p className="text-sm opacity-80 mb-1">Valor da Fatura</p>
         <div className="flex items-baseline gap-3">
           <p className="font-display font-bold text-4xl tracking-tight">
-            {formatCurrency(invoiceData.invoiceTotal)}
+            {formatCurrency(localInvoiceData.invoiceTotal)}
           </p>
-          {Math.abs(selectedCard.balance) > invoiceData.invoiceTotal + 0.01 && (
+          {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
             <div className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider animate-pulse">
-              + {formatCurrency(Math.abs(selectedCard.balance) - invoiceData.invoiceTotal)} pendente
+              + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)} pendente
             </div>
           )}
         </div>
         
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm opacity-80">
-            {invoiceData.status === 'OPEN' 
+            {localInvoiceData.status === 'OPEN' 
               ? `Fecha em ${invoiceData.daysToClose} dias`
-              : `Vence ${dateFns.format(invoiceData.dueDate, "dd 'de' MMMM", { locale: ptBR })}`
+              : `Vence ${dateFns.format(localInvoiceData.dueDate, "dd 'de' MMMM", { locale: ptBR })}`
             }
           </p>
           <div className="flex flex-col items-end">
             <span className="text-xs px-2 py-1 rounded-full bg-white/20">
               {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
             </span>
-            {Math.abs(selectedCard.balance) > invoiceData.invoiceTotal + 0.01 && (
+            {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
               <span className="text-[9px] opacity-70 mt-1">Total acumulado: {formatCurrency(Math.abs(selectedCard.balance))}</span>
             )}
           </div>
@@ -333,10 +356,10 @@ export function CreditCardDetailView({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleExportCard('pdf', invoiceData.transactions, `Fatura ${monthName}`)}>
+              <DropdownMenuItem onClick={() => handleExportCard('pdf', localInvoiceData.transactions, `Fatura ${monthName}`)}>
                 Exportar Fatura Completa (PDF)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportCard('csv', invoiceData.transactions, `Fatura ${monthName}`)}>
+              <DropdownMenuItem onClick={() => handleExportCard('csv', localInvoiceData.transactions, `Fatura ${monthName}`)}>
                 Exportar Fatura em Excel (CSV)
               </DropdownMenuItem>
               
@@ -365,18 +388,18 @@ export function CreditCardDetailView({
 
 
       {/* Transactions List */}
-      {invoiceData.transactions.length > 0 && (
+      {localInvoiceData.transactions.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-            Lançamentos ({invoiceData.transactions.length})
+            Lançamentos ({localInvoiceData.transactions.length})
           </h2>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
-            {invoiceData.transactions.map((tx: any, index: number) => (
+            {localInvoiceData.transactions.map((tx: any, index: number) => (
               <div 
                 key={tx.id} 
                 className={cn(
                   "group flex items-start gap-4 p-4 hover:bg-muted/30 transition-colors",
-                  index !== invoiceData.transactions.length - 1 && "border-b border-border"
+                  index !== localInvoiceData.transactions.length - 1 && "border-b border-border"
                 )}
               >
                 <div className={cn(
@@ -454,7 +477,7 @@ export function CreditCardDetailView({
         </div>
       )}
 
-      {invoiceData.transactions.length === 0 && (
+      {localInvoiceData.transactions.length === 0 && (
         <EmptyState
           icon={CreditCard}
           title="Nenhum lançamento"

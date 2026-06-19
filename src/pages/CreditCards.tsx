@@ -141,6 +141,13 @@ export function CreditCards() {
     endDate: extendedEndDate,
     limit: 5000,
   });
+
+  const ownedCardIds = useMemo(() => creditCards.filter(c => !c.is_shared_with_me).map(c => c.id), [creditCards]);
+  const { data: dependentTransactions = [] } = useDependentTransactions({
+    cardIds: ownedCardIds,
+    startDate: extendedStartDate,
+    endDate: extendedEndDate,
+  });
   
   const createAccount = useCreateAccount();
   const updateAccount = useUpdateAccount();
