@@ -67,7 +67,6 @@ export function Reports() {
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
   const [txSearch, setTxSearch] = useState<string>("");
   const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
-  const [selectedCardFilter, setSelectedCardFilter] = useState<string | 'ALL' | 'NONE'>('NONE');
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   
   const { user } = useAuth();
@@ -262,16 +261,9 @@ export function Reports() {
       
       const matchesCurrency = selectedCurrency === 'ALL' || txCurr === selectedCurrency;
       
-      let matchesCC = true;
-      if (selectedCardFilter === 'ALL') {
-        matchesCC = tx.account_id ? creditCardIds.includes(tx.account_id) : false;
-      } else if (selectedCardFilter !== 'NONE') {
-        matchesCC = tx.account_id === selectedCardFilter;
-      }
-      
-      return matchesCurrency && matchesCC;
+      return matchesCurrency;
     });
-  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts, selectedCardFilter]);
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts]);
 
   const sharedPeriodTransactions = useMemo(() => {
     const targetYear = safeCurrentDate.getFullYear();
@@ -728,35 +720,7 @@ export function Reports() {
               </Button>
             </div>
 
-            {accounts.some(a => a.type === 'CREDIT_CARD') && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant={selectedCardFilter !== 'NONE' ? "default" : "outline"}
-                    size="sm"
-                    className={selectedCardFilter !== 'NONE' ? "bg-primary text-primary-foreground shadow-sm" : ""}
-                  >
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    {selectedCardFilter === 'ALL' ? 'Todos os Cartões' : 
-                     selectedCardFilter === 'NONE' ? 'Cartões' : 
-                     accounts.find(c => c.id === selectedCardFilter)?.name || 'Cartão'}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSelectedCardFilter('NONE')}>
-                    <span className={selectedCardFilter === 'NONE' ? "font-bold" : ""}>Mostrar Tudo</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSelectedCardFilter('ALL')}>
-                    <span className={selectedCardFilter === 'ALL' ? "font-bold" : ""}>Todos os Cartões</span>
-                  </DropdownMenuItem>
-                  {accounts.filter(a => a.type === 'CREDIT_CARD').map(card => (
-                    <DropdownMenuItem key={card.id} onClick={() => setSelectedCardFilter(card.id)}>
-                      <span className={selectedCardFilter === card.id ? "font-bold" : ""}>Apenas {card.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+
           {availableCurrencies.length > 1 && (
             <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
               <SelectTrigger className="w-[140px]"><SelectValue><span className="flex items-center gap-2"><span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>{selectedCurrency}</span></SelectValue></SelectTrigger>
