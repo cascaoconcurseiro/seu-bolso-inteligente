@@ -373,8 +373,9 @@ export function CreditCards() {
                 description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
                 date: formatLocalDate(new Date()),
                 competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-                type: "INCOME",
+                type: "TRANSFER",
                 account_id: selectedCard.id,
+                destination_account_id: selectedCard.id,
                 domain: "PERSONAL",
                 currency: selectedCard.currency || 'BRL'
               });
@@ -385,8 +386,9 @@ export function CreditCards() {
                 description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
                 date: formatLocalDate(new Date()),
                 competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
-                type: "EXPENSE",
+                type: "TRANSFER",
                 account_id: selectedCard.id,
+                destination_account_id: selectedCard.id,
                 domain: "PERSONAL",
                 currency: selectedCard.currency || 'BRL'
               });

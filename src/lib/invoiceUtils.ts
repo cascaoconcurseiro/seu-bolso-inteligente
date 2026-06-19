@@ -83,6 +83,14 @@ export const getInvoiceData = (
     const amount = Number(t.amount);
     if (t.type === 'EXPENSE') return acc + amount;
     if (t.type === 'INCOME') return acc - amount;
+    
+    // Tratamento especial para Saldo Rotativo (Self-Transfers)
+    if (t.type === 'TRANSFER' && t.account_id === account.id && t.destination_account_id === account.id) {
+      if (t.description?.includes('Estorno Saldo Rotativo')) return acc - amount; // Funciona como pagamento
+      if (t.description?.includes('Saldo Rotativo Fatura Anterior')) return acc + amount; // Funciona como cobrança
+      return acc; // Ignora outros self-transfers
+    }
+
     if (t.type === 'TRANSFER' && t.destination_account_id === account.id) return acc - amount;
     if (t.type === 'TRANSFER' && t.account_id === account.id) return acc + amount;
     return acc;
