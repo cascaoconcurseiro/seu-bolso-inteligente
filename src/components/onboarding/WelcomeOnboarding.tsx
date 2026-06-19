@@ -94,9 +94,12 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   </div>
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-col gap-2 sm:flex-col mt-4">
                 <Button onClick={handleNext} className="w-full h-12 text-lg">
                   Próximo <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button variant="ghost" onClick={onComplete} className="w-full text-muted-foreground">
+                  Pular configuração inicial
                 </Button>
               </DialogFooter>
             </div>

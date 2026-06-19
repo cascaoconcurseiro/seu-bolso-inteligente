@@ -110,6 +110,12 @@ export function AssetCard({
             Qtd: <span className="text-foreground font-medium font-mono">{(asset.quantity || 0).toFixed(8).replace(/\.?0+$/, '')}</span>
             <span className="opacity-30">·</span>
             PM: <span className="text-foreground font-medium font-mono">{formatAssetValue(asset.purchase_price || 0, asset.currency || 'BRL')}</span>
+            {hasCurrentPrice && (
+              <>
+                <span className="opacity-30">·</span>
+                Atual: <span className="text-foreground font-medium font-mono">{formatAssetValue(asset.current_price || 0, asset.currency || 'BRL')}</span>
+              </>
+            )}
           </div>
           {((asset as any).broker_name || (asset as any).broker_id) && (
             <span className="text-[9px] opacity-60">

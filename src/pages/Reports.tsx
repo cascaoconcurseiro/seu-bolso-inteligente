@@ -236,8 +236,11 @@ export function Reports() {
 
   const periodTransactions = useMemo(() => {
     console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
-    return allCombinedTransactions.filter(tx => {
-      const txDateStr = tx.date;
+    return allCombinedTransactions.filter((tx: any) => {
+      const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
+      const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
+      
+      const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return false;
@@ -276,8 +279,12 @@ export function Reports() {
     const targetMonth = safeCurrentDate.getMonth();
     
     return sharedTransactions.filter((tx: any) => {
-      if (!tx.date) return false;
-      const parts = tx.date.split('-');
+      const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
+      const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
+      
+      const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
+      if (!txDateStr) return false;
+      const parts = txDateStr.split('-');
       if (parts.length < 2) return false;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
@@ -468,8 +475,12 @@ export function Reports() {
     const targetMonth = safeCurrentDate.getMonth();
 
     sharedTransactions.filter((tx: any) => tx.is_installment && tx.series_id && (selectedCurrency === 'ALL' || getTransactionCurrency(tx) === selectedCurrency)).forEach((tx: any) => {
-      if (!tx.date) return;
-      const parts = tx.date.split('-');
+      const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
+      const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
+      const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
+      
+      if (!txDateStr) return;
+      const parts = txDateStr.split('-');
       if (parts.length < 2) return;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
@@ -627,8 +638,12 @@ export function Reports() {
       const month = monthDate.getMonth();
 
       const monthTxs = allCombinedTransactions.filter(tx => {
-        if (!tx.date) return false;
-        const parts = tx.date.split('-');
+        const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
+        const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
+        const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
+        
+        if (!txDateStr) return false;
+        const parts = txDateStr.split('-');
         if (parts.length < 2) return false;
         const txYear = parseInt(parts[0], 10);
         const txMonth = parseInt(parts[1], 10) - 1;

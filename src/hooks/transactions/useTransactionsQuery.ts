@@ -52,11 +52,11 @@ export function useTransactions(filters?: TransactionFilters) {
           transaction_splits:transaction_splits!transaction_id(*)
         `);
 
-      // Filtro OR: transações minhas OU transações onde sou o pagador
+      // Filtro OR: transações minhas (onde sou o pagador ou payer_id é nulo e a conta é minha)
       if (memberId) {
-        query = query.or(`user_id.eq."${user.id}",payer_id.eq."${memberId}"`);
+        query = query.or(`and(user_id.eq."${user.id}",payer_id.is.null),payer_id.eq."${memberId}"`);
       } else {
-        query = query.eq("user_id", user.id);
+        query = query.eq("user_id", user.id).is("payer_id", null);
       }
 
       if (effectiveFilters?.startDate) {

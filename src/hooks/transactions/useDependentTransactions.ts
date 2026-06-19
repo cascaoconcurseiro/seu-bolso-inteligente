@@ -29,6 +29,13 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
         endDate
       });
 
+      const { data: memberData } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('linked_user_id', user.id)
+        .maybeSingle();
+      const memberId = memberData?.id;
+
       let query = supabase
         .from("transactions")
         .select(`
@@ -38,7 +45,11 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
           transaction_splits:transaction_splits!transaction_id(*)
         `)
         .in('account_id', cardIds)
-        .neq('user_id', user.id);
+        .not('payer_id', 'is', null);
+
+      if (memberId) {
+        query = query.neq('payer_id', memberId);
+      }
 
       if (startDate) {
         query = query.gte("date", startDate);
