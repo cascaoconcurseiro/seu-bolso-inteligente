@@ -39,7 +39,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      
+      credit_card_invoices: {
+        Row: {
+          id: string
+          account_id: string
+          month: number
+          year: number
+          status: 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIAL'
+          total_amount: number
+          due_date: string
+          closing_date: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          month: number
+          year: number
+          status?: 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIAL'
+          total_amount?: number
+          due_date: string
+          closing_date: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          account_id?: string
+          month?: number
+          year?: number
+          status?: 'OPEN' | 'CLOSED' | 'PAID' | 'PARTIAL'
+          total_amount?: number
+          due_date?: string
+          closing_date?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_card_invoices_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      shared_credit_cards: {
+        Row: {
+          id: string
+          account_id: string
+          user_id: string
+          status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED'
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          user_id: string
+          status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED'
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          account_id?: string
+          user_id?: string
+          status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED'
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_credit_cards_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_credit_cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      accounts: {
           is_archived: boolean | null
         Insert: {
           balance?: number

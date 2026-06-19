@@ -979,18 +979,31 @@ export const exportDetailedCardReportToPDF = (transactions: any[], card: any, pe
 
   // Calcular TOTAIS e CATEGORIAS
   let totalExpense = 0;
+  let ownerExpense = 0;
+  let otherExpense = 0;
   const categoriesMap: Record<string, number> = {};
   
   const currency = card?.currency || 'BRL';
+  const ownerId = card?.user_id;
 
   transactions.forEach(t => {
      const amt = Number(t.amount || 0);
      if (t.type === 'EXPENSE') {
        totalExpense += amt;
+       if (t.user_id === ownerId) {
+         ownerExpense += amt;
+       } else {
+         otherExpense += amt;
+       }
        const catName = t.category?.name || 'Outros';
        categoriesMap[catName] = (categoriesMap[catName] || 0) + amt;
      } else if (t.type === 'INCOME') {
        totalExpense -= amt;
+       if (t.user_id === ownerId) {
+         ownerExpense -= amt;
+       } else {
+         otherExpense -= amt;
+       }
      }
   });
 

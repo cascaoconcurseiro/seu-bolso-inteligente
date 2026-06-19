@@ -337,10 +337,21 @@ export function Reports() {
         categoryName = "Sem categoria";
       }
 
-      if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };
-      map[categoryName].value += Number(tx.amount);
-      map[categoryName].count += 1;
-    });
+      let finalAmount = Number(tx.amount || 0);
+      if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
+        tx.transaction_splits.forEach((split: any) => {
+          if (split.is_settled) {
+            // Se já foi pago pelo devedor (acerto), subtrai da despesa para o relatório
+            finalAmount -= Number(split.amount || 0);
+          }
+        });
+      }
+
+      if (finalAmount > 0) {
+        if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };
+        map[categoryName].value += finalAmount;
+        map[categoryName].count += 1;
+      }
     const total = Object.values(map).reduce((sum, c) => sum + c.value, 0);
     return Object.entries(map)
       .map(([category, d]) => ({ 

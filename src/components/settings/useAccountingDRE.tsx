@@ -189,13 +189,24 @@ export function useAccountingDRE() {
           map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, amount);
         }
       } else if (tx.type === 'EXPENSE') {
+        let finalAmount = amount;
+
+        // Deduz a parte já paga (settled) pelos outros membros
+        if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
+          tx.transaction_splits.forEach((split: any) => {
+            if (split.is_settled) {
+              finalAmount = SafeFinancialCalculator.subtract(finalAmount, Number(split.amount || 0));
+            }
+          });
+        }
+
         const classification = classifyCategory(catName);
         let target: DRELineType = 'VARIABLE_EXP';
         if (classification === 'FIXED_EXP') target = 'FIXED_EXP';
         else if (classification === 'FINANCIAL_EXP') target = 'FINANCIAL_EXP';
         
-        map[target].total = SafeFinancialCalculator.add(map[target].total, amount);
-        map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, amount);
+        map[target].total = SafeFinancialCalculator.add(map[target].total, finalAmount);
+        map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, finalAmount);
       }
     });
 

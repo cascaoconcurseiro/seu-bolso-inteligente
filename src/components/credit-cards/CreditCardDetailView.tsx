@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2 } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -32,6 +32,7 @@ interface CreditCardDetailViewProps {
   canDelete?: boolean;
   onArchive: (card: any) => void;
   onUnarchive: (card: any) => void;
+  setShowSharingDialog: (v: boolean) => void;
 }
 
 export function CreditCardDetailView({
@@ -59,6 +60,7 @@ export function CreditCardDetailView({
   canDelete = false,
   onArchive,
   onUnarchive,
+  setShowSharingDialog,
 }: CreditCardDetailViewProps) {
   const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
     const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
@@ -109,6 +111,10 @@ export function CreditCardDetailView({
                   Arquivar Cartão
                 </>
               )}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowSharingDialog(true)}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Compartilhar Cartão
             </DropdownMenuItem>
 
             {canDelete && (

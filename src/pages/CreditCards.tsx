@@ -37,6 +37,7 @@ import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUt
 import { formatLocalDate, getMonthDateRange } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
@@ -50,6 +51,7 @@ import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
 import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
+import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
 import { moneyUtils } from "@/utils/money";
 
 type CardView = "list" | "detail";
@@ -67,6 +69,7 @@ interface CreditCardAccount {
 }
 
 export function CreditCards() {
+  const { user } = useAuth();
   const { currentDate } = useMonth();
   const [view, setView] = useState<CardView>("list");
   const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
@@ -107,6 +110,7 @@ export function CreditCards() {
   };
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showPayDialog, setShowPayDialog] = useState(false);
+  const [showSharingDialog, setShowSharingDialog] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -327,7 +331,10 @@ export function CreditCards() {
           canDelete={selectedCardCanDelete}
           onArchive={(card) => setShowArchiveConfirmModal(true)}
           onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); setView("list"); setSelectedCard(null); }}
+          setShowSharingDialog={setShowSharingDialog}
         />
+
+        <ShareCardDialog isOpen={showSharingDialog} onClose={() => setShowSharingDialog(false)} card={selectedCard} />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
           await bulkCreateTransactions.mutateAsync(txs as any); 
@@ -353,7 +360,39 @@ export function CreditCards() {
               domain: "PERSONAL",
               currency: rate ? 'BRL' : (selectedCard.currency || 'BRL')
             });
-            toastHook({ title: "Fatura paga!" });
+
+            // Rotative Logic (Partial Payment)
+            const remaining = invoiceData.invoiceTotal - amt;
+            if (remaining > 0.01) {
+              const nextMonth = dateFns.addMonths(selectedDate, 1);
+              const nextMonthFmt = dateFns.format(nextMonth, "MMMM/yyyy", { locale: ptBR });
+              
+              // 1. Estorno no mês atual para anular o impacto duplicado
+              await createTransaction.mutateAsync({
+                amount: remaining,
+                description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
+                date: formatLocalDate(new Date()),
+                competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
+                type: "INCOME",
+                account_id: selectedCard.id,
+                domain: "PERSONAL",
+                currency: selectedCard.currency || 'BRL'
+              });
+              
+              // 2. Cobrança do saldo rotativo no mês seguinte
+              await createTransaction.mutateAsync({
+                amount: remaining,
+                description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
+                date: formatLocalDate(new Date()),
+                competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
+                type: "EXPENSE",
+                account_id: selectedCard.id,
+                domain: "PERSONAL",
+                currency: selectedCard.currency || 'BRL'
+              });
+            }
+
+            toastHook({ title: "Pagamento processado!" });
             setShowPayDialog(false);
             refetchAccounts();
             refetchTransactions();
@@ -374,8 +413,20 @@ export function CreditCards() {
             <DialogHeader><DialogTitle>Editar Cartão</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2"><Label>Nome</Label><Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>Fechamento</Label><Input type="number" value={editClosingDay} onChange={(e) => setEditClosingDay(e.target.value)} /></div><div className="space-y-2"><Label>Vencimento</Label><Input type="number" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} /></div></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Fechamento</Label>
+                  <Input type="number" value={editClosingDay} onChange={(e) => setEditClosingDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Vencimento</Label>
+                  <Input type="number" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                </div>
+              </div>
               <div className="space-y-2"><Label>Limite</Label><Input type="number" value={editLimit} onChange={(e) => setEditLimit(e.target.value)} /></div>
+              {selectedCard?.user_id !== user?.id && (
+                <p className="text-xs text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
+              )}
             </div>
             <DialogFooter><Button variant="outline" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button><Button onClick={handleEditCard}>Salvar</Button></DialogFooter>
           </DialogContent>
