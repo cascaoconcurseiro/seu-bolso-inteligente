@@ -7,6 +7,7 @@ import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet,
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useAuth } from "@/contexts/AuthContext";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -71,8 +72,10 @@ export function CreditCardDetailView({
   onUnarchive,
   setShowSharingDialog,
 }: CreditCardDetailViewProps) {
+  const { user } = useAuth();
   const { data: sharedCards = [] } = useSharedCreditCards(selectedCard.id);
   const revokeMutation = useRevokeSharedCard();
+  const isOwner = selectedCard.user_id === user?.id;
 
   const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
     const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
@@ -99,7 +102,7 @@ export function CreditCardDetailView({
 
           <div className="flex flex-col">
             <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
-            {sharedCards.length > 0 && (
+            {isOwner && sharedCards.length > 0 && (
               <div className="flex items-center gap-1 mt-1 flex-wrap">
                 <span className="text-xs text-muted-foreground mr-1">Compartilhado com:</span>
                 {sharedCards.map(sc => (
@@ -125,25 +128,27 @@ export function CreditCardDetailView({
         </div>
 
         {/* Share Button highlighted */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                onClick={() => setShowSharingDialog(true)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center gap-2 px-4 transition-all hover:scale-105"
-              >
-                <Share2 className="h-4 w-4" />
-                Compartilhar
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
-              <p className="font-bold text-sm">Dividindo os Gastos?</p>
-              <p className="text-xs text-muted-foreground">
-                Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {isOwner && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  onClick={() => setShowSharingDialog(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center gap-2 px-4 transition-all hover:scale-105"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Compartilhar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
+                <p className="font-bold text-sm">Dividindo os Gastos?</p>
+                <p className="text-xs text-muted-foreground">
+                  Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

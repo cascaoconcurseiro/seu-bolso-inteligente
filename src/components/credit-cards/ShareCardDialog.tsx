@@ -75,7 +75,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                 {sharedCards.map((sc) => (
                   <div key={sc.id} className="flex items-center justify-between p-2 border rounded-lg bg-card">
                     <div className="flex items-center gap-3">
-                      <UserAvatar name={sc.user?.full_name || 'Usuário'} size="sm" />
+                      <UserAvatar name={sc.user?.full_name || 'Usuário'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" />
                       <div>
                         <p className="text-sm font-medium">{sc.user?.full_name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -109,7 +109,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                   return (
                     <div key={member.id} className="flex items-center justify-between p-2 border border-transparent hover:border-border rounded-lg transition-colors">
                       <div className="flex items-center gap-3">
-                        <UserAvatar name={member.name} avatarUrl={member.avatar_url} size="sm" />
+                        <UserAvatar name={member.name} avatarUrl={member.avatar_url} iconId={member.avatar_icon} colorId={member.avatar_color} size="sm" />
                         <div>
                           <p className="text-sm font-medium">{member.name}</p>
                           <p className="text-xs text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>
