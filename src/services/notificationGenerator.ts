@@ -214,7 +214,7 @@ async function generateInvoiceDueNotifications(
 
       // Se já existe notificação para esta fatura, pular
       if (existingNotifications) {
-        const hasExisting = existingNotifications.some((n: any) => n.metadata?.invoice_key === invoiceKey);
+        const hasExisting = existingNotifications.some((n: any /* any */) => n.metadata?.invoice_key === invoiceKey);
         if (hasExisting) {
           logger.debug(`  Notificação já existe para fatura ${invoiceKey}`);
           continue;
@@ -318,7 +318,7 @@ async function generateBudgetWarningNotifications(
       // Precisamos garantir que não criamos a mesma notificação (ex: 80% já notificado)
       if (existingNotification && existingNotification.length > 0) {
         const isExceeded = percentage >= 100;
-        const alreadyNotified = existingNotification.some((n: any) => 
+        const alreadyNotified = existingNotification.some((n: any /* any */) => 
           (isExceeded && n.metadata?.exceeded === true) || 
           (!isExceeded && n.metadata?.exceeded === false)
         );

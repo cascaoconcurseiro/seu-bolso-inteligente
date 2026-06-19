@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Calendar, DollarSign, Save, Info, Users, AlertCircle, Loader2 } from "lucide-react";
-import { formatLocalDate } from "@/utils/dateUtils";
+import { formatDateISO } from "@/utils/dateUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -89,7 +89,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
         
         nextMonths.push({
-          date: formatLocalDate(targetDate),
+          date: formatDateISO(targetDate),
           label,
           amount: '',
           isPast
@@ -121,8 +121,8 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         const transactionDate = new Date(y, month - 1, closingDay);
         
         return {
-          date: formatLocalDate(transactionDate),
-          competence_date: formatLocalDate(new Date(y, month - 1, 1)),
+          date: formatDateISO(transactionDate),
+          competence_date: formatDateISO(new Date(y, month - 1, 1)),
           amount: moneyUtils.parse(m.amount),
           type: "EXPENSE",
           description: `Fatura Importada - ${m.label}`,
@@ -160,7 +160,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
       // caia exatamente no mês selecionado, de acordo com o ciclo do cartão.
       const closingDay = account?.closing_day || 1;
       const transactionDate = new Date(Number(yearStr), Number(monthStr) - 1, closingDay - 1);
-      const transactionDateStr = formatLocalDate(transactionDate);
+      const transactionDateStr = formatDateISO(transactionDate);
 
       // Quantas parcelas vamos criar
       const installmentsToCreate = totNum - currNum + 1;

@@ -35,7 +35,7 @@ import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCre
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
-import { formatLocalDate, getMonthDateRange } from "@/utils/dateUtils";
+import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -360,7 +360,7 @@ export function CreditCards() {
             await createTransaction.mutateAsync({
               amount: debit,
               description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
-              date: formatLocalDate(new Date()),
+              date: formatDateISO(new Date()),
               competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
               type: "TRANSFER",
               account_id: fromId,
@@ -379,7 +379,7 @@ export function CreditCards() {
               await createTransaction.mutateAsync({
                 amount: remaining,
                 description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
-                date: formatLocalDate(new Date()),
+                date: formatDateISO(new Date()),
                 competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
                 type: "TRANSFER",
                 account_id: selectedCard.id,
@@ -392,7 +392,7 @@ export function CreditCards() {
               await createTransaction.mutateAsync({
                 amount: remaining,
                 description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
-                date: formatLocalDate(new Date()),
+                date: formatDateISO(new Date()),
                 competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
                 type: "TRANSFER",
                 account_id: selectedCard.id,

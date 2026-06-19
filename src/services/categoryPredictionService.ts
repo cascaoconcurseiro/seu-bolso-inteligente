@@ -68,9 +68,10 @@ export class CategoryPredictionService {
       /\bvisa\s+\d{4}\b/g,
       /\bmastercard\s+\d{4}\b/g,
       /\belo\s+\d{4}\b/g,
-      /\bcartao\s+\d{4}\b/g,
+      /\bcartao\b/g,
       /\bfinal\s+\d{4}\b/g,
       /\bparcela\s+\d{1,2}\/\d{1,2}\b/g,
+      /\bcompra\b/g,
     ];
     
     transactionalGarbage.forEach(regex => {
@@ -78,7 +79,9 @@ export class CategoryPredictionService {
     });
     
     // 4. Remover códigos sequenciais, hashes ou números aleatórios maiores que 3 dígitos
-    clean = clean.replace(/\b[a-z0-9\-]{5,}\b/g, '');
+    clean = clean.replace(/\b[a-z0-9\-]{6,}\b/g, (match) => {
+      return (/\d/.test(match) && /[a-z]/.test(match)) ? '' : match;
+    });
     clean = clean.replace(/\b\d{4,}\b/g, '');
     clean = clean.replace(/#\d+\b/g, '');
     

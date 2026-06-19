@@ -45,7 +45,7 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
         categoryName = "Sem categoria";
       }
 
-      let finalAmount = Number(tx.amount || 0);
+      const finalAmount = Number(tx.amount || 0);
 
       if (finalAmount > 0) {
         if (!map[categoryName]) map[categoryName] = { value: 0, count: 0, icon: categoryIcon };

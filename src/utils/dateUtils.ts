@@ -167,7 +167,7 @@ export function formatDateISO(date: Date): string {
 /**
  * Alias para formatDateISO para compatibilidade
  */
-export const formatLocalDate = formatDateISO;
+
 
 /**
  * Obtém o range de datas do mês atual

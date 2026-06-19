@@ -48,12 +48,6 @@ import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
 import { haptics } from '@/utils/haptics';
 
-// Refactored Sub-components
-import { AmountInput } from './form/AmountInput';
-import { BasicInfoSection } from './form/BasicInfoSection';
-import { TripSelector } from './form/TripSelector';
-import { AccountSelector } from './form/AccountSelector';
-import { AdvancedOptions } from './form/AdvancedOptions';
 import { moneyUtils } from "@/utils/money";
 
 

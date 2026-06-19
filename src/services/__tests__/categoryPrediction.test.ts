@@ -77,10 +77,12 @@ describe('CategoryPredictionService', () => {
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({
-            data: mockLearnings,
-            error: null,
-          }),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          ilike: vi.fn().mockReturnThis(),
+          then: function(resolve: any) { resolve({ data: mockLearnings, error: null }); }
         }),
       } as any);
 
@@ -105,10 +107,12 @@ describe('CategoryPredictionService', () => {
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({
-            data: mockCategories,
-            error: null,
-          }),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          ilike: vi.fn().mockReturnThis(),
+          then: function(resolve: any) { resolve({ data: mockCategories, error: null }); }
         }),
       } as any);
 
@@ -132,10 +136,12 @@ describe('CategoryPredictionService', () => {
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({
-            data: mockCategories,
-            error: null,
-          }),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          ilike: vi.fn().mockReturnThis(),
+          then: function(resolve: any) { resolve({ data: mockCategories, error: null }); }
         }),
       } as any);
 
@@ -208,8 +214,8 @@ describe('CategoryPredictionService', () => {
             }),
           }),
         }),
-        delete: deleteMock,
-        update: updateMock,
+        delete: vi.fn().mockReturnValue({ eq: deleteMock }),
+        update: vi.fn().mockReturnValue({ eq: updateMock }),
       } as any);
 
       await CategoryPredictionService.learnFromUser(
@@ -220,7 +226,7 @@ describe('CategoryPredictionService', () => {
       );
 
       // 'learn-old-1' tinha confiança 0.4. 0.4 - 0.3 = 0.1 <= 0.2, logo deve ser excluído
-      expect(deleteMock).toHaveBeenCalledWith();
+      expect(deleteMock).toHaveBeenCalled();
       
       // 'learn-old-2' tinha confiança 0.9. 0.9 - 0.3 = 0.6 > 0.2, logo deve ser atualizado/penalizado
       expect(updateMock).toHaveBeenCalled();

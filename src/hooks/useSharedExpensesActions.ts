@@ -26,7 +26,7 @@ interface SharedExpensesActionsProps {
   members: FamilyMember[];
   getFilteredInvoice: (memberId: string) => InvoiceItem[];
   createTransaction: any; // Facilitando a integração de tipos complexos do Tanstack Query
-  queryClient?: any;
+  queryClient?: any; /* any */
   user: User | null;
   invalidateRelated: (txId: string) => Promise<void>;
   refetch: () => Promise<void | any>;
@@ -122,13 +122,13 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       setShowSettleDialog(false);
       const previousState = queryClient ? queryClient.getQueryData(['shared-transactions-consolidated']) : null;
       if (queryClient) {
-        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any /* any */) => {
           if (!old) return old;
-          return old.map((tx: any) => {
+          return old.map((tx: any /* any */) => {
             if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
               return {
                 ...tx,
-                transaction_splits: tx.transaction_splits.map((split: any) => {
+                transaction_splits: tx.transaction_splits.map((split: any /* any */) => {
                   if (splitIds.includes(split.id)) {
                     const isPerfectComp = Math.abs(itemsTotal) < 0.01;
                     return {
@@ -457,13 +457,13 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       // ATUALIZAÇÃO OTIMISTA
       if (queryClient) {
-        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any /* any */) => {
           if (!old) return old;
-          return old.map((tx: any) => {
+          return old.map((tx: any /* any */) => {
             if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
               return {
                 ...tx,
-                transaction_splits: tx.transaction_splits.map((split: any) => {
+                transaction_splits: tx.transaction_splits.map((split: any /* any */) => {
                   if (items.some(i => i.splitId === split.id)) {
                     return { ...split, settled_by_creditor: true, is_settled: true };
                   }
@@ -624,13 +624,13 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       
       // ATUALIZAÇÃO OTIMISTA
       if (queryClient) {
-        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any) => {
+        queryClient.setQueryData(['shared-transactions-consolidated'], (old: any /* any */) => {
           if (!old) return old;
-          return old.map((tx: any) => {
+          return old.map((tx: any /* any */) => {
             if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
               return {
                 ...tx,
-                transaction_splits: tx.transaction_splits.map((split: any) => {
+                transaction_splits: tx.transaction_splits.map((split: any /* any */) => {
                   if (splitIds.includes(split.id)) {
                     return { ...split, settled_by_debtor: true };
                   }

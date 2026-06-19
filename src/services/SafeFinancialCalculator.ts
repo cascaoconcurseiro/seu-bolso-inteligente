@@ -12,6 +12,11 @@ export class SafeFinancialCalculator {
    * Convert to safe integer representation (cents)
    */
   static toSafeNumber(value: number | string, defaultValue: number = 0): number {
+    if (typeof value === 'number' && isNaN(value)) return defaultValue;
+    if (typeof value === 'string') {
+      const stripped = value.replace(/[^0-9.-]+/g, "");
+      if (!stripped || isNaN(parseFloat(stripped))) return defaultValue;
+    }
     const num = typeof value === 'string' ? moneyUtils.parse(value) : value;
     if (isNaN(num)) return defaultValue;
     return Math.round(num * SafeFinancialCalculator.MULTIPLIER);

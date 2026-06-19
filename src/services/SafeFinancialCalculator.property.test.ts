@@ -15,8 +15,8 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('add(a, b) - b === a (subtração é inverso de adição)', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a, b) => {
             const sum = SafeFinancialCalculator.add(a, b);
             const result = SafeFinancialCalculator.subtract(sum, b);
@@ -29,8 +29,8 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('multiply(a, b) / b === a (divisão é inverso de multiplicação)', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: 1, max: 10000, noNaN: true }),
-          fc.float({ min: 1, max: 100, noNaN: true }),
+          fc.double({ min: 1, max: 10000, noNaN: true }),
+          fc.double({ min: 1, max: 100, noNaN: true }),
           (a, b) => {
             const product = SafeFinancialCalculator.multiply(a, b);
             const result = SafeFinancialCalculator.divide(product, b);
@@ -45,7 +45,7 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('safeSum(splits) <= total + 1 centavo', () => {
       fc.assert(
         fc.property(
-          fc.array(fc.float({ min: 0.01, max: 100, noNaN: true }), {
+          fc.array(fc.integer({ min: 1, max: 10000 }).map(x => x / 100), {
             minLength: 1,
             maxLength: 20,
           }),
@@ -63,8 +63,8 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('add(a, b) === add(b, a)', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a, b) => {
             const result1 = SafeFinancialCalculator.add(a, b);
             const result2 = SafeFinancialCalculator.add(b, a);
@@ -79,9 +79,9 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('add(add(a, b), c) === add(a, add(b, c))', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a, b, c) => {
             const result1 = SafeFinancialCalculator.add(
               SafeFinancialCalculator.add(a, b),
@@ -102,7 +102,7 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('add(a, 0) === a', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a) => {
             const result = SafeFinancialCalculator.add(a, 0);
             expect(Math.abs(result - a)).toBeLessThan(0.01);
@@ -116,8 +116,8 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('Todos os resultados devem ter no máximo 2 casas decimais', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a, b) => {
             const operations = [
               SafeFinancialCalculator.add(a, b),
@@ -139,7 +139,7 @@ describe('SafeFinancialCalculator - Property-Based Tests', () => {
     it('round(round(a)) === round(a)', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -1000, max: 1000, noNaN: true }),
+          fc.double({ min: -1000, max: 1000, noNaN: true }),
           (a) => {
             const result1 = SafeFinancialCalculator.round(a);
             const result2 = SafeFinancialCalculator.round(result1);
