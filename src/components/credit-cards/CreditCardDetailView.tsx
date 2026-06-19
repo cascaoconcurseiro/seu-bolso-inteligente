@@ -6,6 +6,12 @@ import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CreditCardDetailViewProps {
   selectedCard: any;
