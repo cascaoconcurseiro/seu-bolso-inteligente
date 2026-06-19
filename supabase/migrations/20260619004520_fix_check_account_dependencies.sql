@@ -15,13 +15,13 @@ BEGIN
   FROM public.transactions 
   WHERE account_id = p_account_id AND (deleted = FALSE OR deleted IS NULL);
   
-  -- Verificar outras pendências (usando group_id em vez do antigo installment_id)
+  -- Verificar outras pendências (usando series_id em vez do antigo installment_id)
   SELECT COUNT(*) INTO v_future_installments 
   FROM public.transactions 
   WHERE account_id = p_account_id 
     AND date > CURRENT_DATE 
     AND (deleted = FALSE OR deleted IS NULL)
-    AND (group_id IS NOT NULL OR is_recurring = TRUE);
+    AND (series_id IS NOT NULL OR is_recurring = TRUE);
   
   SELECT COUNT(*) INTO v_linked_goals 
   FROM public.goals 

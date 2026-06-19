@@ -166,7 +166,7 @@ export function CreditCardDetailView({
                 <span className="text-xs text-muted-foreground mr-1">Compartilhado com:</span>
                 {sharedCards.map(sc => (
                   <div key={sc.id} className="flex items-center gap-1 bg-secondary/50 rounded-full pr-2 pl-1 py-0.5 border">
-                    <UserAvatar name={sc.user?.full_name || 'U'} size="xs" className="w-5 h-5 text-[10px]" />
+                    <UserAvatar name={sc.user?.full_name || 'U'} size="sm" className="w-5 h-5 text-[10px]" />
                     <span className="text-[10px] font-medium max-w-[80px] truncate">{sc.user?.full_name?.split(' ')[0]}</span>
                     {sc.status === 'PENDING' && (
                       <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-200 ml-1">Aguardando</Badge>
@@ -260,7 +260,7 @@ export function CreditCardDetailView({
               <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
               {sharedCards.map((sc: any) => (
                 <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="xs" />
+                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-[10px]" />
                   <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
                 </TabsTrigger>
               ))}
