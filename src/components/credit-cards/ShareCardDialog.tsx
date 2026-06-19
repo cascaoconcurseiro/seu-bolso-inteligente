@@ -21,7 +21,6 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
   const inviteMutation = useInviteSharedCard();
   const revokeMutation = useRevokeSharedCard();
   const [inviteLimits, setInviteLimits] = useState<Record<string, string>>({});
-  const [invitingMemberId, setInvitingMemberId] = useState<string | null>(null);
 
   if (!card) return null;
 
@@ -39,7 +38,6 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
       cardName: card.name,
       creditLimit: Number(limit)
     });
-    setInvitingMemberId(null);
   };
 
   const handleRevoke = (inviteId: string) => {
@@ -122,41 +120,22 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                        {invitingMemberId === member.id ? (
-                          <>
-                            <Input 
-                              type="number" 
-                              placeholder="Defina o Limite" 
-                              className="w-32 h-8 text-xs" 
-                              value={inviteLimits[member.id] || ''} 
-                              onChange={(e) => setInviteLimits({...inviteLimits, [member.id]: e.target.value})} 
-                              autoFocus
-                            />
-                            <div className="flex gap-1">
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => setInvitingMemberId(null)}
-                                className="px-2 h-8"
-                              >
-                                Cancelar
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleInvite(member)} 
-                                disabled={inviteMutation.isPending || !inviteLimits[member.id] || Number(inviteLimits[member.id]) <= 0}
-                                className="h-8"
-                              >
-                                Confirmar
-                              </Button>
-                            </div>
-                          </>
-                        ) : (
-                          <Button size="sm" variant="outline" onClick={() => setInvitingMemberId(member.id)}>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Convidar
-                          </Button>
-                        )}
+                        <Input 
+                          type="number" 
+                          placeholder="Limite (R$)" 
+                          className="w-28 h-8 text-xs" 
+                          value={inviteLimits[member.id] || ''} 
+                          onChange={(e) => setInviteLimits({...inviteLimits, [member.id]: e.target.value})} 
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleInvite(member)} 
+                          disabled={inviteMutation.isPending || !inviteLimits[member.id] || Number(inviteLimits[member.id]) <= 0}
+                          className="h-8"
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Convidar
+                        </Button>
                       </div>
                     </div>
                   );
