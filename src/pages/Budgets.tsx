@@ -8,7 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Plus, Wallet, Target, TrendingUp, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Wallet, Target, TrendingUp, Check, ChevronsUpDown, HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -98,7 +104,22 @@ export function Budgets() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Orçamentos</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Orçamentos</h1>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
+                    <p className="font-bold text-sm">Controle Inteligente</p>
+                    <p className="text-xs text-muted-foreground">
+                      Aqui você define limites de gastos por categoria. O sistema possui <strong>Rollover Automático</strong>: se você gastar menos que o limite em um mês, o que sobrou será somado ao limite do mês seguinte!
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <p className="text-muted-foreground mt-1 font-medium">
               Gestão de limites para {dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })}
             </p>

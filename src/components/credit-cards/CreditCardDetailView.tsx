@@ -68,15 +68,17 @@ export function CreditCardDetailView({
     else exportDetailedCardReportToCSV(txs, selectedCard, periodLabel);
   };
 
+  const onBack = () => goBack();
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 pb-20 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 mb-6">
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={goBack} 
-          className="rounded-full transition-transform hover:scale-105 active:scale-95"
+          onClick={onBack}
+          className="hover:bg-muted"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -86,9 +88,31 @@ export function CreditCardDetailView({
             <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
           </div>
         </div>
+
+        {/* Share Button highlighted */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={() => setShowSharingDialog(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center gap-2 px-4 transition-all hover:scale-105"
+              >
+                <Share2 className="h-4 w-4" />
+                Compartilhar
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
+              <p className="font-bold text-sm">Dividindo os Gastos?</p>
+              <p className="text-xs text-muted-foreground">
+                Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="rounded-xl border-border">
               <Settings className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -111,10 +135,6 @@ export function CreditCardDetailView({
                   Arquivar Cartão
                 </>
               )}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setShowSharingDialog(true)}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Compartilhar Cartão
             </DropdownMenuItem>
 
             {canDelete && (

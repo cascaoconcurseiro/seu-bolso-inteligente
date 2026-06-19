@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Edit2, Info, CreditCard, Wallet, ArrowUpRight, ArrowDownRight, Users, Layers, SlidersHorizontal } from "lucide-react";
+import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Edit2, Info, CreditCard, Wallet, ArrowUpRight, ArrowDownRight, Users, Layers, SlidersHorizontal, HelpCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -23,6 +23,12 @@ import { useCategories } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { SharedBalanceChart } from "@/components/shared/SharedBalanceChart";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
@@ -875,7 +881,25 @@ export function Reports() {
       </TabsContent>
 
       <TabsContent value="evolution" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
-        <section className="p-6 rounded-xl border border-border"><h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">Evolução do Saldo</h2><SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} /></section>
+        <section className="p-6 rounded-xl border border-border">
+          <div className="flex items-center gap-2 mb-6">
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Evolução do Saldo</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
+                  <p className="font-bold text-sm">O que é a Evolução do Saldo?</p>
+                  <p className="text-xs text-muted-foreground">
+                    Este gráfico cruza o seu saldo em caixa (contas bancárias) com todas as despesas e receitas futuras projetadas, incluindo faturas de cartão de crédito e parcelamentos ao longo do tempo. Ele mostra exatamente quanto dinheiro você terá nos próximos dias e meses!
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <SharedBalanceChart transactions={allTransactions} invoices={invoices} currentDate={safeCurrentDate} isGeneralReport={true} monthlyData={monthlyData} currency={displayCurrency} />
+        </section>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <MonthlyEvolution data={monthlyData} formatCurrency={formatCurrency} currency={displayCurrency} />
         </div>
