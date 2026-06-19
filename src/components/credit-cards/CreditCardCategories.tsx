@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
 import { formatCurrency } from "@/utils/currencyUtils";
-import { SafeFinancialCalculator } from "@/utils/SafeFinancialCalculator";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface CreditCardCategoriesProps {
   transactions: any[];
