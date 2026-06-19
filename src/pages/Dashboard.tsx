@@ -14,6 +14,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
+import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
 import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
@@ -168,6 +169,7 @@ export function Dashboard() {
       <div className="space-y-8 animate-fade-in">
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
+        <PendingSharedCardInvitationsAlert />
         <div className="text-center py-16 bg-background border border-border rounded-2xl">
           <div className="w-16 h-16 bg-negative/10 text-negative rounded-full flex items-center justify-center mb-4 mx-auto">
             <TrendingUp className="h-8 w-8 rotate-180" />
@@ -191,6 +193,7 @@ export function Dashboard() {
       <div className="space-y-8 animate-fade-in">
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
+        <PendingSharedCardInvitationsAlert />
         
         <div className="text-center py-16">
           <h1 className="font-display font-bold text-4xl tracking-tight mb-4">
@@ -216,6 +219,7 @@ export function Dashboard() {
       <GreetingCard className="animate-fade-in-down" />
       <PendingInvitationsAlert />
       <PendingTripInvitationsAlert />
+        <PendingSharedCardInvitationsAlert />
 
       <div className="space-y-4">
         <DashboardHero

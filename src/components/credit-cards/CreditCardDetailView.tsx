@@ -1,6 +1,9 @@
+import { useSharedCreditCards, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2 } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, X } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -68,6 +71,9 @@ export function CreditCardDetailView({
   onUnarchive,
   setShowSharingDialog,
 }: CreditCardDetailViewProps) {
+  const { data: sharedCards = [] } = useSharedCreditCards(selectedCard.id);
+  const revokeMutation = useRevokeSharedCard();
+
   const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
     const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
     if (format === 'pdf') exportDetailedCardReportToPDF(txs, selectedCard, periodLabel);
@@ -90,9 +96,32 @@ export function CreditCardDetailView({
         </Button>
         <div className="flex items-center gap-4 flex-1">
           <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="lg" />
-          <div>
+
+          <div className="flex flex-col">
             <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
+            {sharedCards.length > 0 && (
+              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                <span className="text-xs text-muted-foreground mr-1">Compartilhado com:</span>
+                {sharedCards.map(sc => (
+                  <div key={sc.id} className="flex items-center gap-1 bg-secondary/50 rounded-full pr-2 pl-1 py-0.5 border">
+                    <UserAvatar name={sc.user?.full_name || 'U'} size="xs" className="w-5 h-5 text-[10px]" />
+                    <span className="text-[10px] font-medium max-w-[80px] truncate">{sc.user?.full_name?.split(' ')[0]}</span>
+                    {sc.status === 'PENDING' && (
+                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-200 ml-1">Aguardando</Badge>
+                    )}
+                    <button 
+                      onClick={() => revokeMutation.mutate(sc.id)}
+                      className="ml-1 hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-full p-0.5 transition-colors"
+                      title="Remover"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
         </div>
 
         {/* Share Button highlighted */}

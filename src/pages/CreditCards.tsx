@@ -52,6 +52,7 @@ import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
+import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
 import { moneyUtils } from "@/utils/money";
 
 type CardView = "list" | "detail";

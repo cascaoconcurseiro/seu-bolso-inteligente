@@ -1,0 +1,71 @@
+import { useSharedCreditCards, useRespondSharedCardInvite } from "@/hooks/useSharedCreditCards";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { CreditCard, Check, X } from "lucide-react";
+import { BankIcon } from "@/components/financial/BankIcon";
+import { useAuth } from "@/contexts/AuthContext";
+
+export function PendingSharedCardInvitationsAlert() {
+  const { user } = useAuth();
+  // Se não passar accountId, ele busca todos os cartões compartilhados do usuário logado
+  const { data: sharedCards = [], isLoading } = useSharedCreditCards();
+  const respondInvite = useRespondSharedCardInvite();
+
+  if (isLoading) return null;
+
+  // Filtrar apenas os PENDING onde o usuário logado é o convidado (user_id)
+  const pendingInvites = sharedCards.filter(
+    (card) => card.status === "PENDING" && card.user_id === user?.id
+  );
+
+  if (pendingInvites.length === 0) return null;
+
+  return (
+    <div className="space-y-3 mb-6">
+      {pendingInvites.map((invite) => {
+        // Se a query joinar com accounts, teremos invite.account
+        // Mas por enquanto, nossa query no useSharedCreditCards não está dando JOIN em accounts!
+        // Espera, vamos verificar a query no hook: .select("*, user:profiles!...")
+        // Precisamos ajustar o hook para dar join em accounts se não der!
+        
+        return (
+          <Alert key={invite.id} className="border-emerald-500/50 bg-emerald-500/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex gap-3 items-center">
+              <div className="p-2 bg-emerald-500/20 rounded-full text-emerald-600">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Convite de Cartão Compartilhado</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Você foi convidado(a) para participar de um cartão de crédito. Ao aceitar, vocês poderão dividir faturas.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto border-red-500/30 text-red-600 hover:bg-red-50"
+                onClick={() => respondInvite.mutate({ inviteId: invite.id, status: 'REJECTED' })}
+                disabled={respondInvite.isPending}
+              >
+                <X className="w-4 h-4 mr-1.5" />
+                Recusar
+              </Button>
+              <Button
+                size="sm"
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={() => respondInvite.mutate({ inviteId: invite.id, status: 'ACCEPTED' })}
+                disabled={respondInvite.isPending}
+              >
+                <Check className="w-4 h-4 mr-1.5" />
+                Aceitar Convite
+              </Button>
+            </div>
+          </Alert>
+        );
+      })}
+    </div>
+  );
+}
