@@ -161,27 +161,7 @@ export function CreditCardDetailView({
 
           <div className="flex flex-col">
             <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
-            {isOwner && sharedCards.length > 0 && (
-              <div className="flex items-center gap-1 mt-1 flex-wrap">
-                <span className="text-xs text-muted-foreground mr-1">Compartilhado com:</span>
-                {sharedCards.map(sc => (
-                  <div key={sc.id} className="flex items-center gap-1 bg-secondary/50 rounded-full pr-2 pl-1 py-0.5 border">
-                    <UserAvatar name={sc.user?.full_name || 'U'} size="sm" className="w-5 h-5 text-[10px]" />
-                    <span className="text-[10px] font-medium max-w-[80px] truncate">{sc.user?.full_name?.split(' ')[0]}</span>
-                    {sc.status === 'PENDING' && (
-                      <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-600 border-amber-200 ml-1">Aguardando</Badge>
-                    )}
-                    <button 
-                      onClick={() => revokeMutation.mutate(sc.id)}
-                      className="ml-1 hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-full p-0.5 transition-colors"
-                      title="Remover"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+
           </div>
 
         </div>
@@ -252,23 +232,7 @@ export function CreditCardDetailView({
         </DropdownMenu>
       </div>
 
-      {/* Dependent Tabs (Only for owner of shared card) */}
-      {isOwner && sharedCards.length > 0 && (
-        <div className="bg-muted/30 p-1 rounded-xl mb-4 overflow-x-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-start h-auto p-1 bg-transparent border-none">
-              <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
-              {sharedCards.map((sc: any) => (
-                <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-[10px]" />
-                  <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
-                </TabsTrigger>
-              ))}
-              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Fatura Completa</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      )}
+
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between bg-muted/30 p-2 rounded-xl">
@@ -440,6 +404,23 @@ export function CreditCardDetailView({
       </div>
 
 
+      {/* Dependent Tabs (Only for owner of shared card) */}
+      {isOwner && sharedCards.length > 0 && (
+        <div className="bg-muted/30 p-1 rounded-xl mt-6 overflow-x-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full justify-start h-auto p-1 bg-transparent border-none">
+              <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
+              {sharedCards.map((sc: any) => (
+                <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
+                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-[10px]" />
+                  <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
+                </TabsTrigger>
+              ))}
+              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Fatura Completa</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
 
       {/* Transactions List */}
       {localInvoiceData.transactions.length > 0 && (

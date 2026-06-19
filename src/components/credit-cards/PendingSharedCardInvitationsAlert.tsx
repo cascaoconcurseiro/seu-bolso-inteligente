@@ -11,7 +11,7 @@ export function PendingSharedCardInvitationsAlert() {
   const { user } = useAuth();
   const { data: sharedCards = [], isLoading } = useSharedCreditCards();
   const respondInvite = useRespondSharedCardInvite();
-  const [limits, setLimits] = useState<Record<string, string>>({});
+
 
   if (isLoading) return null;
 
@@ -24,15 +24,12 @@ export function PendingSharedCardInvitationsAlert() {
   return (
     <div className="space-y-3 mb-6">
       {pendingInvites.map((invite) => {
-        const needsLimit = invite.credit_limit === null || invite.credit_limit === undefined;
-        const limitValue = limits[invite.id] || "";
-        const canAccept = !needsLimit || limitValue.trim() !== "";
+
 
         const handleAccept = () => {
           respondInvite.mutate({ 
             inviteId: invite.id, 
-            status: 'ACCEPTED',
-            creditLimit: needsLimit ? Number(limitValue) : undefined
+            status: 'ACCEPTED'
           });
         };
 
@@ -51,15 +48,7 @@ export function PendingSharedCardInvitationsAlert() {
             </div>
             
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              {needsLimit && (
-                <Input 
-                  type="number"
-                  placeholder="Seu Limite Mensal"
-                  className="w-full sm:w-36 h-8 text-xs bg-background"
-                  value={limitValue}
-                  onChange={(e) => setLimits({ ...limits, [invite.id]: e.target.value })}
-                />
-              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -74,7 +63,7 @@ export function PendingSharedCardInvitationsAlert() {
                 size="sm"
                 className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
                 onClick={handleAccept}
-                disabled={respondInvite.isPending || !canAccept}
+                disabled={respondInvite.isPending}
               >
                 <Check className="w-4 h-4 mr-1.5" />
                 Aceitar
