@@ -265,7 +265,7 @@ export function useDeleteTransaction() {
       }
 
       // 3. Deletar a transação (com lógica de cascata)
-      let deleteQuery = supabase.from("transactions").delete();
+      let deleteQuery = supabase.from("transactions").update({ deleted_at: new Date().toISOString() });
       
       if (cascadeType === 'ALL' && existingTx?.series_id) {
         deleteQuery = deleteQuery.eq('series_id', existingTx.series_id);

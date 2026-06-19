@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useSharedCreditCards, useInviteSharedCard, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
 import { Users, UserPlus, X, ShieldAlert } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface ShareCardDialogProps {
   isOpen: boolean;
@@ -70,9 +70,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                 {sharedCards.map((sc) => (
                   <div key={sc.id} className="flex items-center justify-between p-2 border rounded-lg bg-card">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback>{sc.user?.full_name?.substring(0,2) || 'US'}</AvatarFallback>
-                      </Avatar>
+                      <UserAvatar name={sc.user?.full_name || 'Usuário'} size="sm" />
                       <div>
                         <p className="text-sm font-medium">{sc.user?.full_name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -106,10 +104,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                   return (
                     <div key={member.id} className="flex items-center justify-between p-2 border border-transparent hover:border-border rounded-lg transition-colors">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={member.avatar_url || ''} />
-                          <AvatarFallback>{member.name.substring(0,2)}</AvatarFallback>
-                        </Avatar>
+                        <UserAvatar name={member.name} avatarUrl={member.avatar_url} size="sm" />
                         <div>
                           <p className="text-sm font-medium">{member.name}</p>
                           <p className="text-xs text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>

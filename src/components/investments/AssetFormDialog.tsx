@@ -82,7 +82,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
   const avgPrice = useMemo(() => {
     const qty = moneyUtils.parse(quantity);
     const invested = moneyUtils.parse(investedAmount.replace(',', '.'));
-    if (qty > 0 && invested > 0) return (invested / qty).toFixed(2);
+    if (qty > 0 && invested > 0) return moneyUtils.round(invested / qty).toString();
     return null;
   }, [quantity, investedAmount]);
 
@@ -98,7 +98,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
       setCurrency('BRL');
       setBrokerId('');
     }
-  }, [location]);
+  }, [location, currency]);
 
   // Populate form when editing
   useEffect(() => {
@@ -117,7 +117,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
       setQuantity(asset.quantity?.toString() || '');
       // Reconstruct invested amount from qty * purchase_price
       if (asset.quantity && asset.purchase_price) {
-        setInvestedAmount((asset.quantity * asset.purchase_price).toFixed(2));
+        setInvestedAmount(moneyUtils.round(asset.quantity * asset.purchase_price).toString());
       } else {
         setInvestedAmount('');
       }

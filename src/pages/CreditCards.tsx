@@ -179,7 +179,7 @@ export function CreditCards() {
       }
       setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
     }
-  }, [selectedCard?.id]);
+  }, [selectedCard?.id, selectedCard?.closing_day]);
 
   const { data: invoiceDataRPC, isFetching: invoiceFetching } = useCreditCardInvoice(
     selectedCard?.id || null,
@@ -209,7 +209,7 @@ export function CreditCards() {
         setSearchParams({}, { replace: true });
       }
     }
-  }, [searchParams, accounts, selectedCard]);
+  }, [searchParams, accounts, selectedCard, setSearchParams]);
 
   const invoiceData = useMemo(() => {
     if (!selectedCard) return null;
@@ -220,7 +220,7 @@ export function CreditCards() {
     return baseData;
   }, [selectedCard, invoiceDataRPC, transactions, selectedDate]);
 
-    const getCardInvoice = (card: CreditCardAccount) => {
+    const getCardInvoice = useCallback((card: CreditCardAccount) => {
       const targetDate = getTargetDate(new Date(), card.closing_day || 1);
       const data = getInvoiceData(card, transactions, targetDate);
       
@@ -233,7 +233,7 @@ export function CreditCards() {
       }
       
       return { value: data.invoiceTotal, dueDate: data.dueDate, status: data.status };
-    };
+    }, [transactions]);
 
   const getCardInstallments = (invoiceTxs: any[]) => invoiceTxs.filter(t => t.is_installment).map(t => ({ id: t.id, description: t.description, current: t.current_installment || 1, total: t.total_installments || 1, value: t.amount }));
 
@@ -252,7 +252,7 @@ export function CreditCards() {
     setNewBankId(""); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
   };
 
-  const totalInvoices = useMemo(() => creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0), [creditCards, transactions]);
+  const totalInvoices = useMemo(() => creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0), [creditCards, getCardInvoice]);
   
   const totalDebt = useMemo(() => {
     // Usar o saldo consolidado da conta (card.balance) mantido pelo banco de dados (trigger sync_account_balance)
@@ -265,7 +265,7 @@ export function CreditCards() {
   const nextDueDate = useMemo(() => {
     if (creditCards.length === 0) return 0;
     return Math.min(...creditCards.map(card => getDaysUntilDue(getCardInvoice(card).dueDate)));
-  }, [creditCards, transactions]);
+  }, [creditCards, getCardInvoice]);
 
   const handleDeleteTransaction = async (cascadeType: CascadeDeleteType) => {
     if (!deleteConfirm.transaction) return;

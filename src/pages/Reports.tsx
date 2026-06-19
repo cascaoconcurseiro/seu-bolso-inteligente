@@ -1,4 +1,5 @@
 import { moneyUtils } from "@/utils/money";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,10 +161,10 @@ export function Reports() {
       if (tx.is_shared && tx.transaction_splits && tx.transaction_splits.length > 0) {
         const settledByOthers = (tx.transaction_splits as any[])
           .filter((s: any) => s.member_id !== myMemberId && (s.is_settled === true || s.settled_by_debtor === true))
-          .reduce((sum: number, s: any) => moneyUtils.round(sum + Number(s.amount)), 0);
+          .reduce((sum: number, s: any) => SafeFinancialCalculator.add(sum, Number(s.amount)), 0);
 
         // Custo líquido real = total pago − o que os outros já devolveram
-        const netAmount = moneyUtils.round(Math.max(0, Number(tx.amount) - settledByOthers));
+        const netAmount = Math.max(0, SafeFinancialCalculator.subtract(Number(tx.amount), settledByOthers));
         return { ...tx, amount: netAmount };
       }
 
@@ -290,13 +291,13 @@ export function Reports() {
   const { totalIncome, totalExpense, balance } = useMemo(() => {
     const income = periodTransactions
       .filter(t => t.type === "INCOME" && !(t as any).is_refund)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+      .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
     const rawExpense = periodTransactions
       .filter(t => t.type === "EXPENSE")
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+      .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
     const refunds = periodTransactions
       .filter(t => t.type === "INCOME" && (t as any).is_refund)
-      .reduce((sum, t) => sum + Number(t.amount), 0);
+      .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
     const netExpense = Math.max(0, rawExpense - refunds);
     return { 
       totalIncome: income, 
@@ -342,16 +343,17 @@ export function Reports() {
         tx.transaction_splits.forEach((split: any) => {
           if (split.is_settled) {
             // Se já foi pago pelo devedor (acerto), subtrai da despesa para o relatório
-            finalAmount -= Number(split.amount || 0);
+            finalAmount = SafeFinancialCalculator.subtract(finalAmount, Number(split.amount || 0));
           }
         });
       }
 
       if (finalAmount > 0) {
         if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };
-        map[categoryName].value += finalAmount;
+        map[categoryName].value = SafeFinancialCalculator.add(map[categoryName].value, finalAmount);
         map[categoryName].count += 1;
       }
+    });
     const total = Object.values(map).reduce((sum, c) => sum + c.value, 0);
     return Object.entries(map)
       .map(([category, d]) => ({ 
@@ -388,7 +390,7 @@ export function Reports() {
         if (!map[payerName]) {
           map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
         }
-        map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
+        map[payerName].spent = SafeFinancialCalculator.add(map[payerName].spent, Number(tx.amount));
         involvedMembers.add(payerName);
 
         tx.transaction_splits.forEach((split: any) => {
@@ -398,7 +400,7 @@ export function Reports() {
           if (!map[name]) {
             map[name] = { name, spent: 0, received: 0, balance: 0, count: 0 };
           }
-          map[name].received = moneyUtils.round(map[name].received + Number(split.amount));
+          map[name].received = SafeFinancialCalculator.add(map[name].received, Number(split.amount));
           involvedMembers.add(name);
         });
 
@@ -418,8 +420,8 @@ export function Reports() {
         if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
         if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
         
-        map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
-        map[receiverName].received = moneyUtils.round(map[receiverName].received + Number(tx.amount));
+        map[payerName].spent = SafeFinancialCalculator.add(map[payerName].spent, Number(tx.amount));
+        map[receiverName].received = SafeFinancialCalculator.add(map[receiverName].received, Number(tx.amount));
         
         map[payerName].count += 1;
         if (payerName !== receiverName) {
@@ -439,8 +441,8 @@ export function Reports() {
           if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
           if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
           
-          map[payerName].spent = moneyUtils.round(map[payerName].spent + Number(tx.amount));
-          map[receiverName].received = moneyUtils.round(map[receiverName].received + Number(tx.amount));
+          map[payerName].spent = SafeFinancialCalculator.add(map[payerName].spent, Number(tx.amount));
+          map[receiverName].received = SafeFinancialCalculator.add(map[receiverName].received, Number(tx.amount));
           
           map[payerName].count += 1;
           map[receiverName].count += 1;
@@ -488,15 +490,15 @@ export function Reports() {
           map[name].series.add(tx.series_id!);
           const amt = Number(split.amount);
           
-          map[name].totalAmount = moneyUtils.round(map[name].totalAmount + amt);
+          map[name].totalAmount = SafeFinancialCalculator.add(map[name].totalAmount, amt);
           
           if (isInPeriod) {
-            map[name].periodAmount = moneyUtils.round(map[name].periodAmount + amt);
+            map[name].periodAmount = SafeFinancialCalculator.add(map[name].periodAmount, amt);
           }
 
           const isRemaining = !split.is_settled;
           if (isRemaining) {
-            map[name].remainingAmount = moneyUtils.round(map[name].remainingAmount + amt);
+            map[name].remainingAmount = SafeFinancialCalculator.add(map[name].remainingAmount, amt);
             map[name].remainingInstallments += 1;
           }
           map[name].totalInstallments += 1;
@@ -519,15 +521,15 @@ export function Reports() {
         map[name].series.add(tx.series_id!);
         const amt = Number(tx.amount);
         
-        map[name].totalAmount = moneyUtils.round(map[name].totalAmount + amt);
+        map[name].totalAmount = SafeFinancialCalculator.add(map[name].totalAmount, amt);
         
         if (isInPeriod) {
-          map[name].periodAmount = moneyUtils.round(map[name].periodAmount + amt);
+          map[name].periodAmount = SafeFinancialCalculator.add(map[name].periodAmount, amt);
         }
 
         const isRemaining = !tx.is_settled;
         if (isRemaining) {
-          map[name].remainingAmount = moneyUtils.round(map[name].remainingAmount + amt);
+          map[name].remainingAmount = SafeFinancialCalculator.add(map[name].remainingAmount, amt);
           map[name].remainingInstallments += 1;
         }
         map[name].totalInstallments += 1;
@@ -631,13 +633,13 @@ export function Reports() {
 
       const income = monthTxs
         .filter(t => t.type === 'INCOME' && !(t as any).is_refund)
-        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+        .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
       const rawExpense = monthTxs
         .filter(t => t.type === 'EXPENSE')
-        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+        .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
       const refunds = monthTxs
         .filter(t => t.type === 'INCOME' && (t as any).is_refund)
-        .reduce((sum, t) => moneyUtils.round(sum + Number(t.amount)), 0);
+        .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
       const netExpense = moneyUtils.round(Math.max(0, rawExpense - refunds));
 
       months.push({

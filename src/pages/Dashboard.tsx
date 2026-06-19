@@ -41,6 +41,18 @@ export function Dashboard() {
   const { data: profile } = useUserProfile();
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(selectedCurrency, "BRL");
 
+
+
+  useEffect(() => {
+    // Sincroniza fechamento de faturas (RPC process_credit_card_invoices)
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.rpc("process_credit_card_invoices").then(({ error }) => {
+        if (error) console.error("Falha ao sincronizar faturas:", error);
+        else console.log("Faturas sincronizadas com sucesso.");
+      });
+    });
+  }, []);
+
   useEffect(() => {
     const handleOpenModal = () => setShowTransactionModal(true);
     window.addEventListener('openTransactionModal', handleOpenModal);
@@ -96,7 +108,7 @@ export function Dashboard() {
     });
 
     return Array.from(map.values()).sort((a, b) => a.currency === 'BRL' ? -1 : 1);
-  }, [accounts, totalsByCurrency]);
+  }, [accounts, totalsByCurrency, currentDate]);
 
   const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
   const foreignData = currenciesData.filter(c => c.currency !== 'BRL');

@@ -143,7 +143,7 @@ export function useCreateTransaction() {
       const finalSplits = [...(input.splits || [])];
       
       if (input.is_shared) {
-        const totalPercentage = finalSplits.reduce((sum, s) => sum + Number(s.percentage || 0), 0);
+        const totalPercentage = finalSplits.reduce((sum, s) => SafeFinancialCalculator.add(sum, Number(s.percentage || 0)), 0);
         
         if (totalPercentage > 100) {
           throw new Error(`A soma das porcentagens não pode exceder 100% (atualmente: ${totalPercentage.toFixed(1)}%)`);
@@ -164,13 +164,13 @@ export function useCreateTransaction() {
             finalSplits[mySplitIndex] = {
               ...finalSplits[mySplitIndex],
               percentage: newPct,
-              amount: (input.amount * newPct) / 100
+              amount: SafeFinancialCalculator.percentage(input.amount, newPct)
             };
           } else {
             finalSplits.push({
               member_id: user!.id,
               percentage: remainingPercentage,
-              amount: (input.amount * remainingPercentage) / 100
+              amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage)
             });
           }
         }

@@ -35,6 +35,7 @@ import { TransactionModal } from "@/components/modals/TransactionModal";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { SharedExpenseCard } from "@/components/shared/SharedExpenseCard";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { SettlementConfirmationDialog } from "@/components/shared/SettlementConfirmationDialog";
 import { SharedSummarySection } from "@/components/shared/SharedSummarySection";
 import { SharedSettleDialog } from "@/components/shared/SharedSettleDialog";
@@ -451,7 +452,7 @@ export function SharedExpenses() {
           const ni = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
           if (selectedMember) {
             const items = getFilteredInvoice(selectedMember);
-            const tot = items.filter(i => ni.includes(i.id)).reduce((s, x) => x.type === "CREDIT" ? s + x.amount : s - x.amount, 0);
+            const tot = items.filter(i => ni.includes(i.id)).reduce((s, x) => x.type === "CREDIT" ? SafeFinancialCalculator.add(s, x.amount) : SafeFinancialCalculator.subtract(s, x.amount), 0);
             setSettleAmount(Math.abs(tot).toFixed(2).replace(".", ","));
             setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
           }
@@ -466,7 +467,7 @@ export function SharedExpenses() {
             setSettleType("PAY");
           } else {
             setSelectedItems(items.map(i => i.id));
-            const tot = items.reduce((s, x) => x.type === "CREDIT" ? s + x.amount : s - x.amount, 0);
+            const tot = items.reduce((s, x) => x.type === "CREDIT" ? SafeFinancialCalculator.add(s, x.amount) : SafeFinancialCalculator.subtract(s, x.amount), 0);
             setSettleAmount(Math.abs(tot).toFixed(2).replace(".", ","));
             setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
           }

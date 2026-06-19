@@ -82,7 +82,7 @@ export function SplitModal({
         }]);
       }
     }
-  }, [isOpen, payerId, familyMembers, currentUserMemberId, activeAmount]);
+  }, [isOpen, payerId, familyMembers, currentUserMemberId, activeAmount, setSplits, splits.length]);
 
   // Sempre que mySplitPercentage ou payerId mudar quando outro pagou (payerId !== 'me'), atualiza os splits no formato do banco
   useEffect(() => {
@@ -97,7 +97,7 @@ export function SplitModal({
         amount: partnerAmount
       }]);
     }
-  }, [mySplitPercentage, payerId, activeAmount, isOpen]);
+  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits]);
 
   console.log('🔵 [SplitModal] Renderizado com:', { 
     isOpen, 

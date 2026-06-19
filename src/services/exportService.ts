@@ -3,7 +3,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 export interface ExportOptions {
   format: "csv" | "json";
   dateRange?: { start: Date; end: Date };
@@ -64,8 +64,8 @@ export async function exportTransactions(
   const date = new Date().toISOString().split("T")[0];
   const today = new Date().toLocaleDateString('pt-BR');
   
-  const totalIncome = transactions.filter(t => t.type === 'INCOME' || t.type === 'RECEITA').reduce((sum, t) => sum + Number(t.amount || 0), 0);
-  const totalExpense = transactions.filter(t => t.type === 'EXPENSE' || t.type === 'DESPESA').reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalIncome = transactions.filter(t => t.type === 'INCOME' || t.type === 'RECEITA').reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
+  const totalExpense = transactions.filter(t => t.type === 'EXPENSE' || t.type === 'DESPESA').reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
   const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
 
   if (format === "pdf") {
@@ -73,7 +73,7 @@ export async function exportTransactions(
     exportToPDF(transactions, totalIncome, totalExpense, `transacoes_${date}.pdf`);
   } else if (format === "csv") {
     // Formatação de Excel Premium em XML/HTML
-    const balance = totalIncome - totalExpense;
+    const balance = SafeFinancialCalculator.subtract(totalIncome, totalExpense);
 
     let html = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -246,8 +246,8 @@ export const exportMonthlyReport = async (data: ExportData) => {
       comprasSheet.spliceRows(2, Math.max(comprasSheet.rowCount, 2));
       comprasSheet.getRow(1).values = ['Data', 'Descrição', 'Valor Total', 'Sua Parte', 'Parte Fran', 'Status'];
       (data.sharedPurchases || []).forEach(tx => {
-        const meuValor = tx.transaction_splits?.find((s:any) => s.member_id !== null)?.amount || (tx.amount / 2);
-        const franValor = tx.amount - meuValor;
+        const meuValor = tx.transaction_splits?.find((s:any) => s.member_id !== null)?.amount || SafeFinancialCalculator.divide(tx.amount, 2);
+        const franValor = SafeFinancialCalculator.subtract(tx.amount, meuValor);
         comprasSheet.addRow([
           format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
           tx.description,
