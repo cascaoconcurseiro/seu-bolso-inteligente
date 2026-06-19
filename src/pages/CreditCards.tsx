@@ -141,6 +141,7 @@ export function CreditCards() {
     endDate: extendedEndDate,
     limit: 5000,
   });
+  const creditCards = useMemo(() => (accounts || []).filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[], [accounts]);
 
   const ownedCardIds = useMemo(() => creditCards.filter(c => !c.is_shared_with_me).map(c => c.id), [creditCards]);
   const { data: dependentTransactions = [] } = useDependentTransactions({
@@ -176,8 +177,6 @@ export function CreditCards() {
   const [editClosingDay, setEditClosingDay] = useState("");
   const [editDueDay, setEditDueDay] = useState("");
   const [editLimit, setEditLimit] = useState("");
-
-  const creditCards = useMemo(() => (accounts || []).filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[], [accounts]);
 
   useEffect(() => {
     if (selectedCard) {
