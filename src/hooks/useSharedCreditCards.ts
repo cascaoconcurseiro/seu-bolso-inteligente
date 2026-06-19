@@ -50,15 +50,38 @@ export function useInviteSharedCard() {
 
   return useMutation({
     mutationFn: async ({ accountId, userId, cardName }: { accountId: string; userId: string; cardName: string }) => {
-      const { data, error } = await supabase
+      // First check if it exists
+      const { data: existing } = await supabase
         .from("shared_credit_cards")
-        .upsert({
-          account_id: accountId,
-          user_id: userId,
-          status: 'PENDING',
-        }, { onConflict: 'account_id,user_id' })
-        .select()
-        .single();
+        .select("id")
+        .eq("account_id", accountId)
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      let data, error;
+      
+      if (existing) {
+        const res = await supabase
+          .from("shared_credit_cards")
+          .update({ status: 'PENDING' })
+          .eq("id", existing.id)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from("shared_credit_cards")
+          .insert({
+            account_id: accountId,
+            user_id: userId,
+            status: 'PENDING',
+          })
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
 
