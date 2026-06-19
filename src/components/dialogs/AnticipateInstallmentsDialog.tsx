@@ -80,6 +80,7 @@ export function AnticipateInstallmentsDialog({
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       setNewCompetenceDate(dateFns.format(firstDay, 'yyyy-MM-dd'));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, seriesId]);
 
   const fetchFutureInstallments = async () => {

@@ -87,6 +87,7 @@ export function NotificationButton() {
     };
 
     generateNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile]);
 
   const handleNotificationClick = (notification: Notification) => {

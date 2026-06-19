@@ -75,10 +75,11 @@ export function Dashboard() {
     return current || trips[0];
   }, [trips]);
 
-  const totalsByCurrency = dashboardData?.totals_by_currency || [];
 
   const currenciesData = useMemo(() => {
     if (!accounts || !Array.isArray(accounts)) return [];
+    
+    const totalsByCurrency = dashboardData?.totals_by_currency || [];
     
     const map = new Map<string, { currency: string, balance: number, total_patrimony: number, income: number, expense: number, pending_income: number, pending_expense: number }>();
     
@@ -109,7 +110,8 @@ export function Dashboard() {
     });
 
     return Array.from(map.values()).sort((a, b) => a.currency === 'BRL' ? -1 : 1);
-  }, [accounts, totalsByCurrency, currentDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accounts, currentDate]);
 
   const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
   const foreignData = currenciesData.filter(c => c.currency !== 'BRL');

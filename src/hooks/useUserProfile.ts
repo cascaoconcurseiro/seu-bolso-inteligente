@@ -65,7 +65,7 @@ export function useUserProfile() {
           if (data.app_pin !== undefined) {
             localStorage.setItem('@pedemeia:app_pin', data.app_pin || '');
           }
-        } catch (e) {}
+        } catch (e) { /* ignore */ }
       }
 
       return { ...data, name: data.full_name } as UserProfile;
@@ -159,7 +159,7 @@ export function useUpdateUserProfile() {
         if (input.app_pin !== undefined) {
           localStorage.setItem('@pedemeia:app_pin', input.app_pin || '');
         }
-      } catch (e) {}
+      } catch (e) { /* ignore */ }
 
       // Also update auth metadata
       if (input.name) {

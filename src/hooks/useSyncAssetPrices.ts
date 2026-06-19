@@ -35,7 +35,7 @@ export const useSyncAssetPrices = () => {
            try {
              const contextBody = await (functionError as any).context.json();
              details = JSON.stringify(contextBody);
-           } catch(e) {}
+           } catch(e) { /* ignore */ }
         }
 
         throw new Error(`${errorMessage} ${details}`);

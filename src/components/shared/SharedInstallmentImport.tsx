@@ -98,6 +98,7 @@ export function SharedInstallmentImport({
         setAssigneeId(availableMembers[0].id);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, availableMembers.length]);
 
   const parseAmount = (val: string) => {

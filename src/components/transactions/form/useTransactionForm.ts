@@ -265,6 +265,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     const payerMemberId = payerId === 'me' ? myMemberRecord?.id : payerId;
     
     return familyMembersList.filter(m => m.id !== payerMemberId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId, tripMembers, familyMembers, user?.id, payerId]);
 
   // A limpeza automática de splits (setSplits([])) quando o payerId mudava 
@@ -360,6 +361,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       }
       return !acc.is_international;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts, accountId, selectedTrip, activeTab]);
 
   useEffect(() => {

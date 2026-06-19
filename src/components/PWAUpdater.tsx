@@ -35,7 +35,7 @@ export function PWAUpdater() {
               try {
                 const cacheNames = await caches.keys();
                 await Promise.all(cacheNames.map(name => caches.delete(name)));
-              } catch (e) {}
+              } catch (e) { /* ignore */ }
             }
             window.location.reload();
           },

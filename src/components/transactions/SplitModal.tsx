@@ -82,6 +82,7 @@ export function SplitModal({
         }]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, payerId, familyMembers, currentUserMemberId, activeAmount, setSplits, splits.length]);
 
   // Sempre que mySplitPercentage ou payerId mudar quando outro pagou (payerId !== 'me'), atualiza os splits no formato do banco

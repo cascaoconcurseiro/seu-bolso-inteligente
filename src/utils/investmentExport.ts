@@ -126,7 +126,7 @@ export const getIRDetails = (
       if (pYear === year) {
         purchasedThisYear = true;
       }
-    } catch (e) {}
+    } catch (e) { /* ignore */ }
   }
   
   const situacaoAnterior = calculatedPosAntCost !== undefined ? calculatedPosAntCost : (purchasedThisYear ? 0 : totalCost);

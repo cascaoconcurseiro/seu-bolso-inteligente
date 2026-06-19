@@ -100,7 +100,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(1);
   
-  const activeTrips = trips?.filter(t => t.status === 'ACTIVE' || t.status === 'PLANNING') || [];
+  const activeTrips = useMemo(() => trips?.filter(t => t.status === 'ACTIVE' || t.status === 'PLANNING') || [], [trips]);
   const [isTripMode, setIsTripMode] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string>('');
 

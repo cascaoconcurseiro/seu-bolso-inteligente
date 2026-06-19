@@ -187,6 +187,7 @@ export function CreditCards() {
       }
       setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCard?.id, selectedCard?.closing_day]);
 
   const { data: invoiceDataRPC, isFetching: invoiceFetching } = useCreditCardInvoice(

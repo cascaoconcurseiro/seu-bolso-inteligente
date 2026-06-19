@@ -40,6 +40,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const handleSave = async () => {
