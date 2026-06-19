@@ -1,19 +1,20 @@
 import { useSharedCreditCards, useRespondSharedCardInvite } from "@/hooks/useSharedCreditCards";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { CreditCard, Check, X } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 export function PendingSharedCardInvitationsAlert() {
   const { user } = useAuth();
-  // Se não passar accountId, ele busca todos os cartões compartilhados do usuário logado
   const { data: sharedCards = [], isLoading } = useSharedCreditCards();
   const respondInvite = useRespondSharedCardInvite();
+  const [limits, setLimits] = useState<Record<string, string>>({});
 
   if (isLoading) return null;
 
-  // Filtrar apenas os PENDING onde o usuário logado é o convidado (user_id)
   const pendingInvites = sharedCards.filter(
     (card) => card.status === "PENDING" && card.user_id === user?.id
   );
@@ -23,11 +24,18 @@ export function PendingSharedCardInvitationsAlert() {
   return (
     <div className="space-y-3 mb-6">
       {pendingInvites.map((invite) => {
-        // Se a query joinar com accounts, teremos invite.account
-        // Mas por enquanto, nossa query no useSharedCreditCards não está dando JOIN em accounts!
-        // Espera, vamos verificar a query no hook: .select("*, user:profiles!...")
-        // Precisamos ajustar o hook para dar join em accounts se não der!
-        
+        const needsLimit = invite.credit_limit === null || invite.credit_limit === undefined;
+        const limitValue = limits[invite.id] || "";
+        const canAccept = !needsLimit || limitValue.trim() !== "";
+
+        const handleAccept = () => {
+          respondInvite.mutate({ 
+            inviteId: invite.id, 
+            status: 'ACCEPTED',
+            creditLimit: needsLimit ? Number(limitValue) : undefined
+          });
+        };
+
         return (
           <Alert key={invite.id} className="border-emerald-500/50 bg-emerald-500/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex gap-3 items-center">
@@ -42,7 +50,16 @@ export function PendingSharedCardInvitationsAlert() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              {needsLimit && (
+                <Input 
+                  type="number"
+                  placeholder="Seu Limite Mensal"
+                  className="w-full sm:w-36 h-8 text-xs bg-background"
+                  value={limitValue}
+                  onChange={(e) => setLimits({ ...limits, [invite.id]: e.target.value })}
+                />
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -56,11 +73,11 @@ export function PendingSharedCardInvitationsAlert() {
               <Button
                 size="sm"
                 className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
-                onClick={() => respondInvite.mutate({ inviteId: invite.id, status: 'ACCEPTED' })}
-                disabled={respondInvite.isPending}
+                onClick={handleAccept}
+                disabled={respondInvite.isPending || !canAccept}
               >
                 <Check className="w-4 h-4 mr-1.5" />
-                Aceitar Convite
+                Aceitar
               </Button>
             </div>
           </Alert>

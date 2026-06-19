@@ -8,6 +8,7 @@ export interface SharedCreditCard {
   account_id: string;
   user_id: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED';
+  credit_limit?: number | null;
   created_at: string;
   updated_at: string;
   account?: any; // Para quando vier com join
@@ -49,7 +50,7 @@ export function useInviteSharedCard() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ accountId, userId, cardName }: { accountId: string; userId: string; cardName: string }) => {
+    mutationFn: async ({ accountId, userId, cardName, creditLimit }: { accountId: string; userId: string; cardName: string; creditLimit?: number | null }) => {
       // First check if it exists
       const { data: existing } = await supabase
         .from("shared_credit_cards")
@@ -63,7 +64,7 @@ export function useInviteSharedCard() {
       if (existing) {
         const res = await supabase
           .from("shared_credit_cards")
-          .update({ status: 'PENDING' })
+          .update({ status: 'PENDING', credit_limit: creditLimit || null })
           .eq("id", existing.id)
           .select()
           .single();
@@ -76,6 +77,7 @@ export function useInviteSharedCard() {
             account_id: accountId,
             user_id: userId,
             status: 'PENDING',
+            credit_limit: creditLimit || null,
           })
           .select()
           .single();
@@ -113,10 +115,10 @@ export function useRespondSharedCardInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ inviteId, status }: { inviteId: string; status: 'ACCEPTED' | 'REJECTED' }) => {
+    mutationFn: async ({ inviteId, status, creditLimit }: { inviteId: string; status: 'ACCEPTED' | 'REJECTED'; creditLimit?: number | null }) => {
       const { data, error } = await supabase
         .from("shared_credit_cards")
-        .update({ status })
+        .update({ status, ...(creditLimit ? { credit_limit: creditLimit } : {}) })
         .eq("id", inviteId)
         .select()
         .single();

@@ -5,6 +5,8 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { useSharedCreditCards, useInviteSharedCard, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
 import { Users, UserPlus, X, ShieldAlert } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { Input } from "@/components/ui/input";
 
 interface ShareCardDialogProps {
   isOpen: boolean;
@@ -13,21 +15,24 @@ interface ShareCardDialogProps {
 }
 
 export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps) {
+  const { user } = useAuth();
   const { data: familyMembers = [], isLoading: membersLoading } = useFamilyMembers();
   const { data: sharedCards = [], isLoading: sharedLoading } = useSharedCreditCards(card?.id);
   const inviteMutation = useInviteSharedCard();
   const revokeMutation = useRevokeSharedCard();
+  const [inviteLimits, setInviteLimits] = useState<Record<string, string>>({});
 
   if (!card) return null;
 
   // Filtra membros da família que têm usuário logado (linked_user_id)
-  const availableMembers = familyMembers.filter(m => m.linked_user_id && m.status === 'active');
+  const availableMembers = familyMembers.filter(m => m.linked_user_id && m.status === 'active' && m.linked_user_id !== user?.id);
 
   const handleInvite = (member: any) => {
     inviteMutation.mutate({
       accountId: card.id,
       userId: member.linked_user_id,
-      cardName: card.name
+      cardName: card.name,
+      creditLimit: inviteLimits[member.id] ? Number(inviteLimits[member.id]) : null
     });
   };
 
@@ -110,10 +115,19 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                           <p className="text-xs text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => handleInvite(member)} disabled={inviteMutation.isPending}>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Convidar
-                      </Button>
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                        <Input 
+                          type="number" 
+                          placeholder="Limite (Opcional)" 
+                          className="w-32 h-8 text-xs" 
+                          value={inviteLimits[member.id] || ''} 
+                          onChange={(e) => setInviteLimits({...inviteLimits, [member.id]: e.target.value})} 
+                        />
+                        <Button size="sm" variant="outline" onClick={() => handleInvite(member)} disabled={inviteMutation.isPending}>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Convidar
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
