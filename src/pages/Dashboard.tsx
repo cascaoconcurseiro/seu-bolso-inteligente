@@ -1,7 +1,7 @@
 import { moneyUtils } from "@/utils/money";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
-import { CreditCard, TrendingUp } from "lucide-react";
+import { CreditCard, TrendingUp, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -19,6 +19,7 @@ import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
+import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
@@ -197,21 +198,20 @@ export function Dashboard() {
         <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
         
-        <div className="text-center py-16">
-          <h1 className="font-display font-bold text-4xl tracking-tight mb-4">
-            Bem-vindo ao Pé de Meia
-          </h1>
-          <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
-            Comece adicionando uma conta bancária ou criando sua primeira transação.
-          </p>
-          <Link to="/contas">
-            <Button size="default" variant="outline" className="gap-2 h-11 shadow-sm font-medium">
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden sm:inline">Adicionar conta</span>
-              <span className="sm:hidden">Nova Conta</span>
-            </Button>
-          </Link>
-        </div>
+        <EmptyState
+          icon={Wallet}
+          title="Bem-vindo ao Pé de Meia"
+          description="Comece adicionando uma conta bancária ou criando sua primeira transação para gerenciar seu dinheiro."
+          action={
+            <Link to="/contas">
+              <Button size="default" variant="outline" className="gap-2 shadow-sm font-medium hover-lift">
+                <CreditCard className="h-4 w-4" />
+                <span>Adicionar conta</span>
+              </Button>
+            </Link>
+          }
+          className="mt-8 border-none bg-transparent"
+        />
       </div>
     );
   }

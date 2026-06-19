@@ -1,12 +1,8 @@
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TransactionForm } from '@/components/transactions/TransactionForm';
 import { useTransactionModal } from '@/contexts/TransactionModalContext';
+import { haptics } from '@/utils/haptics';
 
 interface TransactionModalProps {
   isOpen?: boolean;
@@ -31,6 +27,11 @@ export function TransactionModal({
     if (onOpenChange) onOpenChange(false);
   };
   
+  const handleSuccess = () => {
+    haptics.success();
+    actualClose();
+  };
+  
   return (
     <Dialog open={actualOpen} onOpenChange={actualClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
@@ -42,8 +43,8 @@ export function TransactionModal({
         <div className="px-6 pb-6">
           <TransactionForm 
             context={transactionContext}
-            onSuccess={onClose}
-            onCancel={onClose}
+            onSuccess={handleSuccess}
+            onCancel={actualClose}
             initialData={initialData}
           />
         </div>

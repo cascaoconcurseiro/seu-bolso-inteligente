@@ -42,6 +42,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
+import { EmptyState } from "@/components/ui/empty-state";
 
 // Modular Components
 import { CreditCardItem } from "@/components/credit-cards/CreditCardItem";
@@ -508,11 +509,14 @@ export function CreditCards() {
           </div>
         </>
       ) : (
-        <div className="py-16 text-center border border-dashed border-border rounded-xl">
-          <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-lg mb-2">Nenhum cartão cadastrado</h3>
-          <Button onClick={() => setShowNewCardDialog(true)} className="mt-4"><Plus className="h-5 w-5 mr-2" /> Novo cartão</Button>
-        </div>
+        <EmptyState
+          icon={CreditCard}
+          title="Nenhum cartão cadastrado"
+          description="Você ainda não possui cartões de crédito. Adicione um para controlar faturas e limites."
+          actionLabel="Novo cartão"
+          onAction={() => setShowNewCardDialog(true)}
+          className="my-8"
+        />
       )}
 
       <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={(card) => { setSelectedCard(card); setView("detail"); }} />
