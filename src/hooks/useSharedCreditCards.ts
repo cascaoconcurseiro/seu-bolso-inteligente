@@ -52,11 +52,11 @@ export function useInviteSharedCard() {
     mutationFn: async ({ accountId, userId, cardName }: { accountId: string; userId: string; cardName: string }) => {
       const { data, error } = await supabase
         .from("shared_credit_cards")
-        .insert({
+        .upsert({
           account_id: accountId,
           user_id: userId,
           status: 'PENDING',
-        })
+        }, { onConflict: 'account_id,user_id' })
         .select()
         .single();
 
