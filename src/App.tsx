@@ -25,7 +25,7 @@ import { Auth } from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { PWAUpdater } from "./components/PWAUpdater";
+
 
 // Páginas secundárias — carregadas sob demanda (lazy) para reduzir bundle inicial
 const SharedExpenses = lazy(() => import("./pages/SharedExpenses").then(m => ({ default: m.SharedExpenses })));
@@ -95,7 +95,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <PWAUpdater />
+
               <BrowserRouter>
                 <Routes>
                   {/* Public Routes */}
