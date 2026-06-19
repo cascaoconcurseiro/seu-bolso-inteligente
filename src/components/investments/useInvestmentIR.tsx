@@ -389,11 +389,13 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
     copiedField, setCopiedField,
     availableYears,
     assetTransactions, isLoadingAssetTxs,
-    irData,
-    summary,
-    copyToClipboard,
-    handleExportPDF,
-    handleExportExcel,
+    bensEDireitosList,
+    isentosMap,
+    tributacaoExclusivaMap,
+    monthlyResumo,
+    copyToClipboard: handleCopy,
+    handleExportPDF: exportToIRPDF,
+    handleExportExcel: exportToIRExcel,
     monthNames
   };
 }
