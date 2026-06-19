@@ -696,7 +696,7 @@ export function Reports() {
           <div>
             <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Relatórios</h1>
             <p className="text-muted-foreground mt-1 font-medium">
-              {selectedCardFilter !== 'NONE' ? 'Gastos no Cartão -' : 'Análise das suas finanças -'} {viewType === 'MONTH' 
+              {'Análise das suas finanças -'} {viewType === 'MONTH' 
                 ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
                 : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
             </p>
@@ -708,7 +708,7 @@ export function Reports() {
                 size="sm" 
                 className={viewType === 'MONTH' ? "shadow-sm rounded-lg" : "rounded-lg"}
                 onClick={() => setViewType('MONTH')}>
-                {selectedCardFilter !== 'NONE' ? 'Ciclos' : 'Mensal'}
+                {'Mensal'}
               </Button>
               <Button 
                 variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
