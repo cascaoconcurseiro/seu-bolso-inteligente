@@ -46,8 +46,22 @@ export function VersionGuard() {
               duration: Infinity,
               action: {
                 label: '🚀 Atualizar Agora',
-                onClick: () => {
-                  window.location.reload();
+                onClick: async () => {
+                  // Remove os service workers e limpa o cache local para forçar a nova versão
+                  if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                      await registration.unregister();
+                    }
+                  }
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (const key of keys) {
+                      await caches.delete(key);
+                    }
+                  }
+                  // Adiciona um timestamp na URL para quebrar o cache do navegador na raiz
+                  window.location.href = window.location.pathname + '?v=' + Date.now();
                 },
               },
             });
