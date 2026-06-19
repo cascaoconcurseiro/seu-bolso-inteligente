@@ -39,7 +39,7 @@ export default defineConfig(({ mode }) => {
     //   authToken: process.env.SENTRY_AUTH_TOKEN,
     // }),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {

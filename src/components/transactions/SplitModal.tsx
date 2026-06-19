@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { FamilyMember } from '@/hooks/useFamily';
 import { moneyUtils } from '@/utils/money';
+import { splitCalculator } from '@/utils/splitCalculator';
 
 import { TransactionSplitData } from '@/types/transactions';
 
@@ -137,19 +138,7 @@ export function SplitModal({
 
     // Auto-redistribute evenly
     if (newSplits.length > 0) {
-      const totalPeople = newSplits.length + 1; // +1 for current user
-      const splitAmounts = moneyUtils.splitSafely(activeAmount, totalPeople);
-      
-      // The first amount is mine (not in splits), the rest go to others
-      newSplits = newSplits.map((s, idx) => {
-        const amount = splitAmounts[idx + 1]; // Skipping the first one which is mine
-        return {
-          ...s,
-          percentage: Number(((amount / activeAmount) * 100).toFixed(1)),
-          amount: amount,
-        };
-      });
-      
+      newSplits = splitCalculator.redistributeSplits(newSplits, activeAmount, true);
       console.log('🔵 [SplitModal] Splits redistribuídos com precisão:', newSplits);
     } else {
       console.log('🔵 [SplitModal] ⚠️ Nenhum split após remoção');
@@ -161,16 +150,7 @@ export function SplitModal({
 
   const applyPreset = (myPct: number) => {
     console.log('🔵 [SplitModal] applyPreset chamado:', { myPct, currentSplits: splits });
-    
-    const otherPct = 100 - myPct;
-    const totalOtherAmount = (activeAmount * otherPct) / 100;
-    const otherAmounts = moneyUtils.splitSafely(totalOtherAmount, splits.length);
-
-    const newSplits = splits.map((s, idx) => ({
-      ...s,
-      percentage: Number((otherPct / splits.length).toFixed(1)),
-      amount: otherAmounts[idx],
-    }));
+    const newSplits = splitCalculator.applyPreset(splits, activeAmount, myPct);
     
     console.log('🔵 [SplitModal] Preset aplicado, novos splits:', newSplits);
     setSplits(newSplits);

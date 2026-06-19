@@ -45,12 +45,12 @@ import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/D
 import { EmptyState } from "@/components/ui/empty-state";
 
 // Modular Components
-import { CreditCardItem } from "@/components/credit-cards/CreditCardItem";
 import { CreditCardDetailView } from "@/components/credit-cards/CreditCardDetailView";
+import { CreditCardsList } from "@/components/credit-cards/CreditCardsList";
 import { NewCardDialog } from "@/components/credit-cards/NewCardDialog";
 import { ImportBillsDialog } from "@/components/credit-cards/ImportBillsDialog";
+
 import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
-import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
@@ -502,12 +502,18 @@ export function CreditCards() {
       </div>
 
       {creditCards.length > 0 ? (
-        <>
-          <CreditCardSummary totalInvoices={totalInvoices} totalDebt={totalDebt} nextDueDate={nextDueDate} formatCurrency={formatCurrency} onRefresh={() => { refetchAccounts(); refetchTransactions(); }} isLoading={isLoading || transactionsLoading} />
-          <div className="space-y-3">
-            {creditCards.map((card) => <CreditCardItem key={card.id} card={card} getCardInvoice={getCardInvoice} formatCurrency={formatCurrency} openCardDetail={(c) => { setSelectedCard(c); setView("detail"); }} />)}
-          </div>
-        </>
+        <CreditCardsList
+          creditCards={creditCards}
+          totalInvoices={totalInvoices}
+          totalDebt={totalDebt}
+          nextDueDate={nextDueDate}
+          formatCurrency={formatCurrency}
+          getCardInvoice={getCardInvoice}
+          isLoading={isLoading || transactionsLoading}
+          onRefresh={() => { refetchAccounts(); refetchTransactions(); }}
+          onSelectCard={(c) => { setSelectedCard(c); setView("detail"); }}
+          onNewCard={() => setShowNewCardDialog(true)}
+        />
       ) : (
         <EmptyState
           icon={CreditCard}
