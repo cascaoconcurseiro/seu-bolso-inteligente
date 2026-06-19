@@ -72,7 +72,7 @@ export function TransferModal({
   // Calcular valor de destino quando taxa de câmbio muda
   useEffect(() => {
     if (isCrossCurrency && exchangeRate) {
-      const numericAmount = getNumericAmount();
+      const numericAmount = moneyUtils.parse(amount) || 0;
       const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (numericAmount > 0 && rate > 0) {
         // Se origem é BRL, dividir pela taxa; se destino é BRL, multiplicar

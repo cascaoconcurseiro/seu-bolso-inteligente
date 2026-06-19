@@ -288,7 +288,7 @@ export function Reports() {
       const txCurr = getTransactionCurrency(tx);
       return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
     });
-  }, [sharedTransactions, safeCurrentDate, selectedCurrency, viewType]);
+  }, [sharedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts]);
 
   const displayCurrency = selectedCurrency;
 
@@ -544,7 +544,7 @@ export function Reports() {
       }
     });
     return Object.values(map).map(p => ({ ...p, seriesCount: p.series.size })).sort((a, b) => b.periodAmount - a.periodAmount);
-  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType, selectedCurrency]);
+  }, [sharedTransactions, familyMembers, safeCurrentDate, viewType, selectedCurrency, accounts]);
 
   // KPIs Financeiros Dinâmicos Avançados
   const largestExpense = useMemo(() => {
@@ -662,7 +662,7 @@ export function Reports() {
       });
     }
     return months;
-  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency]);
+  }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, accounts]);
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
