@@ -37,7 +37,7 @@ export function PendingSharedCardInvitationsAlert() {
               <div>
                 <p className="font-semibold text-sm">Convite de Cartão Compartilhado</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Você foi convidado(a) para participar de um cartão de crédito. Ao aceitar, vocês poderão dividir faturas.
+                  Você foi convidado(a) para participar do cartão de crédito <b>{invite.accounts?.name || 'Compartilhado'}</b>. Ao aceitar, vocês poderão dividir faturas.
                 </p>
               </div>
             </div>

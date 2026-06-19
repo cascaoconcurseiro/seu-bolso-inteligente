@@ -24,7 +24,7 @@ export function useSharedCreditCards(accountId?: string) {
 
       let query = supabase
         .from("shared_credit_cards")
-        .select("*, user:profiles!shared_credit_cards_user_id_fkey(full_name, email)");
+        .select("*, user:profiles!shared_credit_cards_user_id_fkey(full_name, email), accounts(name)");
 
       if (accountId) {
         query = query.eq("account_id", accountId);
