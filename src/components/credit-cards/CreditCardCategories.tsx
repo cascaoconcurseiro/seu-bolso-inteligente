@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
-import { formatCurrency } from "@/utils/currencyUtils";
+import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface CreditCardCategoriesProps {
@@ -95,7 +95,7 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-foreground leading-none">{formatCurrency(item.value)}</p>
+                <p className="text-sm font-bold text-foreground leading-none">{moneyUtils.format(item.value)}</p>
                 <p className="text-[11px] text-muted-foreground mt-1 font-semibold">{item.percent}%</p>
               </div>
             </div>
