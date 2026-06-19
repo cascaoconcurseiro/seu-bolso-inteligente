@@ -80,12 +80,16 @@ export function GoalsAndInvestments() {
   const brAssets = assets?.filter(a => a.location === 'BR') || [];
   const abroadAssets = assets?.filter(a => a.location === 'ABROAD') || [];
   
-  const totalBR = brAssets.reduce((sum, a) => sum + (Number(a.quantity) || 0) * (Number(a.current_price) || 0), 0);
+  const totalBR = brAssets.reduce((sum, a) => {
+    const price = (a.current_price && a.current_price > 0) ? a.current_price : (a.purchase_price || 0);
+    return sum + (Number(a.quantity) || 0) * price;
+  }, 0);
   
   // Agrupar totais por moeda para precisão matemática
   const totalsByCurrency = abroadAssets.reduce((acc, a) => {
     const currency = a.currency || 'USD';
-    const value = (Number(a.quantity) || 0) * (Number(a.current_price) || 0);
+    const price = (a.current_price && a.current_price > 0) ? a.current_price : (a.purchase_price || 0);
+    const value = (Number(a.quantity) || 0) * price;
     acc[currency] = (acc[currency] || 0) + value;
     return acc;
   }, {} as Record<string, number>);
