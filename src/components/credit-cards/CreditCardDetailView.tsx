@@ -82,6 +82,60 @@ export function CreditCardDetailView({
   const revokeMutation = useRevokeSharedCard();
   const isOwner = selectedCard.user_id === user?.id;
 
+  const [activeTab, setActiveTab] = React.useState("mine");
+
+  const myTransactions = React.useMemo(() => {
+    return allYearTransactions.filter(t => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id);
+  }, [allYearTransactions, selectedCard.id]);
+
+  const dependentTransactionsForCard = React.useMemo(() => {
+    return dependentTransactions.filter(t => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id);
+  }, [dependentTransactions, selectedCard.id]);
+
+  const cardTransactions = React.useMemo(() => {
+    if (!isOwner || sharedCards.length === 0) return myTransactions;
+    if (activeTab === "all") return [...myTransactions, ...dependentTransactionsForCard];
+    if (activeTab === "mine") return myTransactions;
+    // For a specific dependent:
+    return dependentTransactionsForCard.filter(t => t.user_id === activeTab);
+  }, [isOwner, sharedCards.length, activeTab, myTransactions, dependentTransactionsForCard]);
+
+  // Recalculate invoice based on selected tab transactions
+  const localInvoiceData = React.useMemo(() => {
+    // invoiceData originally comes from props (which is global), but we override it locally for tabs!
+    const baseData = getInvoiceData(selectedCard, cardTransactions, selectedDate);
+    // Preservar propriedades do invoiceData recebido via prop (como status) caso a gente não tenha calculado
+    return { ...baseData, status: invoiceData?.status || baseData.status };
+  }, [selectedCard, cardTransactions, selectedDate, invoiceData?.status]);
+
+  // Calculate category summary for the current tab
+  const categorySummary = React.useMemo(() => {
+    const summary: Record<string, { amount: number, name: string, icon: string, color: string }> = {};
+    let totalExpenses = 0;
+    
+    // Only use expenses that belong to the current invoice
+    localInvoiceData.transactions.forEach(t => {
+      if (t.type === 'EXPENSE' || (t.type === 'TRANSFER' && t.account_id === selectedCard.id)) {
+        const catId = t.category_id || 'uncategorized';
+        const catName = t.category?.name || 'Outros';
+        const catIcon = t.category?.icon || 'help-circle';
+        // Assign a random color if needed, or use a default
+        const amount = Number(t.amount);
+        
+        if (!summary[catId]) {
+          summary[catId] = { amount: 0, name: catName, icon: catIcon, color: 'bg-muted' };
+        }
+        summary[catId].amount += amount;
+        totalExpenses += amount;
+      }
+    });
+    
+    return Object.values(summary).sort((a, b) => b.amount - a.amount).map(cat => ({
+      ...cat,
+      percent: totalExpenses > 0 ? (cat.amount / totalExpenses) * 100 : 0
+    }));
+  }, [localInvoiceData.transactions, selectedCard.id]);
+
   const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
     const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
     if (format === 'pdf') exportDetailedCardReportToPDF(txs, selectedCard, periodLabel);
