@@ -30,6 +30,7 @@ import {
 import { useMonth } from "@/contexts/MonthContext";
 import { getBankById } from "@/lib/banks";
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice, useAccountDependencies } from "@/hooks/useAccounts";
+import { useDependentTransactions } from "@/hooks/transactions/useDependentTransactions";
 import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCreateTransactions } from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
