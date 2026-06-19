@@ -134,10 +134,10 @@ export function CreditCardDetailView({
               <TooltipTrigger asChild>
                 <Button 
                   onClick={() => setShowSharingDialog(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center gap-2 px-4 transition-all hover:scale-105"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center justify-center transition-all hover:scale-105 shrink-0 px-3 md:px-4"
                 >
                   <Share2 className="h-4 w-4" />
-                  Compartilhar
+                  <span className="hidden md:inline md:ml-2">Compartilhar</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
@@ -152,7 +152,7 @@ export function CreditCardDetailView({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-xl border-border">
+            <Button variant="outline" size="icon" className="rounded-xl border-border shrink-0">
               <Settings className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -362,32 +362,7 @@ export function CreditCardDetailView({
         </div>
       </div>
 
-      {/* Limit Usage */}
-      {selectedCard.credit_limit && selectedCard.credit_limit > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Limite utilizado</span>
-            <span className="font-mono">{usagePercent.toFixed(0)}%</span>
-          </div>
-          <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div 
-              className="h-full rounded-full transition-all duration-500"
-              style={{ 
-                width: `${Math.min(usagePercent, 100)}%`,
-                backgroundColor: usagePercent > 80 
-                  ? 'hsl(var(--negative))' 
-                  : usagePercent > 50 
-                    ? 'hsl(var(--warning))' 
-                    : bank.color 
-              }}
-            />
-          </div>
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{formatCurrency(invoiceData.invoiceTotal)} usado</span>
-            <span>{formatCurrency(selectedCard.credit_limit)} limite</span>
-          </div>
-        </div>
-      )}
+
 
       {/* Transactions List */}
       {invoiceData.transactions.length > 0 && (

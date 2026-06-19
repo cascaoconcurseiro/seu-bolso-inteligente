@@ -785,11 +785,11 @@ export function Reports() {
       {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
 
       <Tabs defaultValue="overview" className="space-y-6 w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl">
+        <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold">Visão Geral</TabsTrigger>
           <TabsTrigger value="evolution" className="rounded-lg text-xs font-semibold">Evolução</TabsTrigger>
           <TabsTrigger value="categories" className="rounded-lg text-xs font-semibold">Categorias</TabsTrigger>
-          <TabsTrigger value="dre" className="rounded-lg text-xs font-semibold">DRE & Balanço</TabsTrigger>
+          {/* <TabsTrigger value="dre" className="rounded-lg text-xs font-semibold">DRE & Balanço</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
@@ -911,9 +911,11 @@ export function Reports() {
         </div>
       </TabsContent>
 
+      {/*
       <TabsContent value="dre" className="mt-4 animate-in fade-in-50 duration-500">
         <AccountingDRE />
       </TabsContent>
+      */}
       </Tabs>
 
 
