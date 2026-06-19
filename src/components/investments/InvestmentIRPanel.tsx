@@ -51,6 +51,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
     isentosMap,
     tributacaoExclusivaMap,
     monthlyResumo,
+    operationsOfYear,
     copyToClipboard,
     handleExportPDF,
     handleExportExcel,

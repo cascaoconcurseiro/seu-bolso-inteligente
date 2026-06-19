@@ -393,6 +393,7 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
     isentosMap,
     tributacaoExclusivaMap,
     monthlyResumo,
+    operationsOfYear,
     copyToClipboard: handleCopy,
     handleExportPDF: exportToIRPDF,
     handleExportExcel: exportToIRExcel,
