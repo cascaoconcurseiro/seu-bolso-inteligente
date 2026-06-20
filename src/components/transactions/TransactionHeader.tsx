@@ -23,23 +23,23 @@ interface TransactionHeaderProps {
 
 export function TransactionHeader({ count, filteredTransactions, filteredAnnualTransactions, onImportOFX }: TransactionHeaderProps) {
   return (
-    <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 mb-6">
+    <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 mb-6">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Transações</h1>
-          <p className="text-muted-foreground mt-1 font-medium">{count} registros</p>
+          <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Transações</h1>
+          <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">{count} registros</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="default" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95" onClick={onImportOFX}>
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
+          <Button variant="default" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-11 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 px-2" onClick={onImportOFX}>
           <FileSpreadsheet className="h-4 w-4" />
-          <span className="hidden sm:inline">Importar OFX</span>
+          <span className="text-xs md:text-sm truncate">Importar OFX</span>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-2 h-11 md:h-9">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-11 px-2">
               <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar</span>
+              <span className="text-xs md:text-sm">Exportar</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

@@ -166,7 +166,7 @@ export function TransactionItem({
       {/* Main Content (slides left) */}
       <div
         className={cn(
-          "flex items-center justify-between py-4 px-4 bg-background transition-transform duration-200 cursor-pointer relative z-10",
+          "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background transition-transform duration-200 cursor-pointer relative z-10",
           settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10",
           isSwiped ? "-translate-x-20" : "translate-x-0"
         )}
@@ -187,11 +187,11 @@ export function TransactionItem({
           isTransfer ? "bg-blue-500/10 text-blue-500" :
           transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
         )}>
-          {isTransfer ? <FastForward className="h-5 w-5 rotate-90" /> : 
+          {isTransfer ? <FastForward className="h-4 w-4 md:h-5 md:w-5 rotate-90" /> : 
            transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
         </div>
-        <div className="flex-1 min-w-0 pt-0.5">
-          <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
+          <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
             <p className={cn(
               "font-medium text-sm md:text-base truncate",
               settled && "line-through opacity-60"

@@ -255,19 +255,19 @@ export function CreditCards() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Cartões</h1>
-            <p className="text-muted-foreground mt-1 font-medium">Gerencie faturas e limites</p>
+            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Cartões</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Gerencie faturas e limites</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-11">
-                  <Download className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span>Exportar</span>
+                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-11 px-2">
+                  <Download className="h-4 w-4" />
+                  <span className="text-xs md:text-sm">Exportar</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
@@ -286,9 +286,9 @@ export function CreditCards() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-11 font-bold">
-              <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" /> 
-              Novo cartão
+            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-11 font-bold px-2">
+              <Plus className="h-4 w-4 mr-1 md:mr-2 group-hover:scale-110 transition-transform" /> 
+              <span className="text-xs md:text-sm">Novo cartão</span>
             </Button>
           </div>
         </div>
