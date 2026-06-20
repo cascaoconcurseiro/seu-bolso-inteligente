@@ -1,85 +1,4 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Shield,
-  AlertTriangle,
-  Loader2,
-  Lock,
-  Key,
-  Trash2,
-  Users,
-  Eye,
-  EyeOff,
-  Wrench,
-  FileWarning,
-  Coins,
-  Database,
-  TrendingUp,
-  Activity,
-  History,
-  CheckCircle2,
-  AlertCircle,
-  Briefcase,
-  Search,
-  RefreshCw,
-  Sparkles,
-  Info,
-  Calendar,
-  XCircle,
-  Clock,
-  Sparkle,
-  Bug,
-  Code
-} from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -666,14 +585,22 @@ export function useAdminActions() {
     isLoadingDetails, setIsLoadingDetails,
     selectedErrorLog, setSelectedErrorLog,
     errorDetailOpen, setErrorDetailOpen,
-    handleAuth,
-    refreshAll,
-    handlePurgeUser,
-    handleClearCache,
-    recalculateAllUsersBalances,
-    injectMissingCategories,
-    fetchUserDetails,
+    handleAuthenticate,
+    handleLogout,
+    handlePurgeSoftDeleted,
+    handleClearErrorLogs,
+    handleRecalculateTargetBalances,
+    handleInjectDefaultCategories,
+    handleReset,
     filteredUsers,
-    handleClearErrorLogs
+    loadAllAdminData,
+    loadAuditLogs,
+    loadErrorLogs,
+    parseAuditLog,
+    formatCurrency,
+    getInitials,
+    getUserEmail,
+    resolveErrorLog,
+    openUserDetailModal
   };
 }

@@ -127,7 +127,8 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (context?.tripId) store.setTripId(context.tripId);
     if (context?.accountId) store.setAccountId(context.accountId);
     if (context?.categoryId) store.setCategoryId(context.categoryId);
-  }, [context, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context]);
 
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
@@ -147,7 +148,8 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setHasUserSelectedCategoryManually(false);
       }
     }
-  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId]);
 
   const handleCategoryChange = (val: string) => {
     store.setCategoryId(val);
@@ -159,16 +161,20 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
     store.setAccountId('');
-  }, [tripId, context?.accountId, context?.tripId, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripId, context?.accountId, context?.tripId]);
 
   const updateTransaction = useUpdateTransaction();
 
   // Populate from initialData
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
+    if (!hasInitialized.current && initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
       store.initFromData(initialData);
+      hasInitialized.current = true;
     }
-  }, [initialData, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -259,7 +265,8 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     } else if (myMemberRecord?.id && payerId === myMemberRecord.id) {
       store.setPayerId('me');
     }
-  }, [user?.id, myMemberRecord?.id, payerId, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, myMemberRecord?.id, payerId]);
   
   const isExchangeTransfer = activeTab === 'TRANSFER' && 
     selectedAccount && 
@@ -297,19 +304,22 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setExchangeRate('');
       }
     }
-  }, [amount, showExchangePanel, destinationAmount, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount, showExchangePanel, destinationAmount]);
 
   // Limpar contas caso não aplicável
   useEffect(() => {
     if (isPaidByOther) store.setAccountId('');
-  }, [isPaidByOther, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaidByOther]);
 
   // Limpar conta selecionada se mudar para receita e for um cartão de crédito
   useEffect(() => {
     if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD') {
       store.setAccountId('');
     }
-  }, [activeTab, selectedAccount, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedAccount]);
 
   const transactionCurrency = selectedTrip?.currency || (selectedAccount?.is_international ? selectedAccount.currency : null) || 'BRL';
 
@@ -341,7 +351,8 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setAccountId('');
       }
     }
-  }, [filteredAccounts, accountId, store]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredAccounts, accountId]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = { 'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$', 'JPY': '¥' };
@@ -349,21 +360,26 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   };
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
-    if (initialData && initialData.id) {
-      await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
-    } else {
-      await createTransaction.mutateAsync(transactionData);
-    }
-    
-    if (user && categoryId && description && activeTab !== 'TRANSFER') {
-      try {
-        await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(prediction && prediction.categoryId !== categoryId));
-      } catch (error) {
-        logger.error('Erro ao registrar aprendizado de categoria:', error);
+    try {
+      if (initialData && initialData.id) {
+        await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
+      } else {
+        await createTransaction.mutateAsync(transactionData);
       }
+      
+      if (user && categoryId && description && activeTab !== 'TRANSFER') {
+        try {
+          await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(prediction && prediction.categoryId !== categoryId));
+        } catch (error) {
+          logger.error('Erro ao registrar aprendizado de categoria:', error);
+        }
+      }
+      haptics.success();
+      if (onSuccess) onSuccess(); else navigate('/transacoes');
+    } catch (error: any) {
+      logger.error('Erro ao salvar transação:', error);
+      toast.error(error.message || 'Erro de conexão ou timeout. Tente novamente.');
     }
-    haptics.success();
-    if (onSuccess) onSuccess(); else navigate('/transacoes');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

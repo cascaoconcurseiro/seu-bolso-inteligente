@@ -6,12 +6,16 @@
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError, retryWithBackoff } from './errorHandling';
 
+import { Database } from '@/integrations/supabase/types';
+
+export type ValidTable = keyof Database['public']['Tables'] | keyof Database['public']['Views'];
+
 /**
  * Fetch user data from a table
  * Generic function to fetch data filtered by user_id
  */
 export const fetchUserData = async <T>(
-  table: string,
+  table: ValidTable,
   userId: string,
   options?: {
     select?: string;
@@ -65,7 +69,7 @@ export const fetchUserData = async <T>(
  * Fetch single record by ID
  */
 export const fetchById = async <T>(
-  table: string,
+  table: ValidTable,
   id: string,
   select?: string
 ): Promise<T | null> => {
@@ -91,7 +95,7 @@ export const fetchById = async <T>(
  * Insert single record
  */
 export const insertRecord = async <T>(
-  table: string,
+  table: ValidTable,
   data: Partial<T>
 ): Promise<T> => {
   try {
@@ -116,7 +120,7 @@ export const insertRecord = async <T>(
  * Insert multiple records
  */
 export const insertRecords = async <T>(
-  table: string,
+  table: ValidTable,
   data: Partial<T>[]
 ): Promise<T[]> => {
   try {
@@ -140,7 +144,7 @@ export const insertRecords = async <T>(
  * Update record by ID
  */
 export const updateRecord = async <T>(
-  table: string,
+  table: ValidTable,
   id: string,
   data: Partial<T>
 ): Promise<T> => {
@@ -167,7 +171,7 @@ export const updateRecord = async <T>(
  * Delete record by ID
  */
 export const deleteRecord = async (
-  table: string,
+  table: ValidTable,
   id: string
 ): Promise<void> => {
   try {
@@ -188,7 +192,7 @@ export const deleteRecord = async (
  * Soft delete record (set deleted = true)
  */
 export const softDeleteRecord = async (
-  table: string,
+  table: ValidTable,
   id: string
 ): Promise<void> => {
   try {
@@ -209,7 +213,7 @@ export const softDeleteRecord = async (
  * Count records with filters
  */
 export const countRecords = async (
-  table: string,
+  table: ValidTable,
   filters?: Record<string, unknown>
 ): Promise<number> => {
   try {
@@ -242,7 +246,7 @@ export const countRecords = async (
  * Check if record exists
  */
 export const recordExists = async (
-  table: string,
+  table: ValidTable,
   filters: Record<string, unknown>
 ): Promise<boolean> => {
   const count = await countRecords(table, filters);
@@ -253,7 +257,7 @@ export const recordExists = async (
  * Fetch with date range filter
  */
 export const fetchWithDateRange = async <T>(
-  table: string,
+  table: ValidTable,
   userId: string,
   startDate: string,
   endDate: string,

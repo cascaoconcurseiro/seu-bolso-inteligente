@@ -89,59 +89,16 @@ import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 // A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";
 
-interface EnrichedUser {
-  id: string;
-  email: string;
-  full_name: string | null;
-  created_at: string;
-  avatar_color: string | null;
-  avatar_icon: string | null;
-  accountsCount: number;
-  transactionsCount: number;
-  assetsCount: number;
-  totalBalance: number;
-}
-
-interface AuditLog {
-  id: string;
-  user_id: string | null;
-  operation: string;
-  table_name: string;
-  record_id: string;
-  old_data: any | null;
-  new_data: any | null;
-  created_at: string;
-}
-
-interface ErrorLog {
-  id: string;
-  user_id: string | null;
-  user_email: string | null;
-  error_message: string;
-  stack_trace: string | null;
-  context: string | null;
-  status: string;
-  created_at: string;
-}
-
-interface SystemStats {
-  totalUsers: number;
-  totalTransactions: number;
-  totalVolume: number;
-  totalAccounts: number;
-  totalFamilies: number;
-  totalAssets: number;
-}
-
 import { useAdminActions } from './useAdminActions';
 
 export function AdminResetPanel() {
+  const recalculateBalances = useRecalculateBalances();
   const {
-    isAuthenticated, setIsAuthenticated,
+    isAuthenticated,
     password, setPassword,
     showPassword, setShowPassword,
     passwordError, setPasswordError,
-    enrichedUsers, setEnrichedUsers,
+    enrichedUsers,
     auditLogs, setAuditLogs,
     errorLogs, setErrorLogs,
     stats, setStats,
@@ -166,15 +123,23 @@ export function AdminResetPanel() {
     isLoadingDetails, setIsLoadingDetails,
     selectedErrorLog, setSelectedErrorLog,
     errorDetailOpen, setErrorDetailOpen,
-    handleAuth,
-    refreshAll,
-    handlePurgeUser,
-    handleClearCache,
-    recalculateAllUsersBalances,
-    injectMissingCategories,
-    fetchUserDetails,
+    handleAuthenticate,
+    handleLogout,
+    handlePurgeSoftDeleted,
+    handleClearErrorLogs,
+    handleRecalculateTargetBalances,
+    handleInjectDefaultCategories,
+    handleReset,
     filteredUsers,
-    handleClearErrorLogs
+    loadAllAdminData,
+    loadAuditLogs,
+    loadErrorLogs,
+    parseAuditLog,
+    formatCurrency,
+    getInitials,
+    getUserEmail,
+    resolveErrorLog,
+    openUserDetailModal
   } = useAdminActions();
 
   // Authenticator screen

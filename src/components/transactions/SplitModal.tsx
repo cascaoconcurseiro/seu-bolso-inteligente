@@ -233,7 +233,10 @@ export function SplitModal({
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={onNavigateToFamily}
+                        onClick={() => {
+                          onClose();
+                          onNavigateToFamily();
+                        }}
                         className="mt-2"
                       >
                         Cadastrar Família
@@ -393,7 +396,10 @@ export function SplitModal({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={onNavigateToFamily}
+                        onClick={() => {
+                          onClose();
+                          onNavigateToFamily();
+                        }}
                         className="mt-3"
                       >
                         Ir para Família
