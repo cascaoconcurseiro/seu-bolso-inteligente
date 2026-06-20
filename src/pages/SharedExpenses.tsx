@@ -40,6 +40,7 @@ import { SharedCycleSettingsModal } from "@/components/shared/SharedCycleSetting
 import { SharedRegularList } from "@/components/shared/SharedRegularList";
 import { SharedTravelList } from "@/components/shared/SharedTravelList";
 import { SharedSummarySection } from "@/components/shared/SharedSummarySection";
+import { SharedSettleDialog } from "@/components/shared/SharedSettleDialog";
 // Lazy-loaded heavy components — carregados apenas quando necessário
 const SharedBalanceChart = lazy(() =>
   import("@/components/shared/SharedBalanceChart").then(m => ({ default: m.SharedBalanceChart }))
