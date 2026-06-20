@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Bell, Sparkles } from "lucide-react";
+import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Sparkles } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -52,10 +52,9 @@ export function DashboardInsights() {
           className="relative rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 bg-blue-500/10 border-blue-500 text-blue-600 hover:bg-blue-500/20"
           title="Insights Proativos"
         >
-          <Bell className="h-5 w-5" />
+          <Sparkles className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
           </span>
         </Button>
       </PopoverTrigger>

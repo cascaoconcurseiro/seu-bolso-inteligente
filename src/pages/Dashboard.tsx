@@ -269,9 +269,9 @@ export function Dashboard() {
           <DashboardInsights />
 
           {currenciesData.length > 1 && (
-            <div className="w-32">
+            <div className="w-[85px]">
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                <SelectTrigger className="h-10 bg-card border-border shadow-sm">
+                <SelectTrigger className="h-10 rounded-full border-none bg-muted/50 hover:bg-muted shadow-none font-semibold px-3 focus:ring-0 focus:ring-offset-0 transition-colors">
                   <SelectValue placeholder="Moeda" />
                 </SelectTrigger>
                 <SelectContent>
