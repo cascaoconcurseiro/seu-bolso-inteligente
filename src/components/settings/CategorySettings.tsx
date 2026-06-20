@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, RefreshCw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
+import { useCreateDefaultCategories } from "@/hooks/useCategories";
+import { toast } from "sonner";
 
 interface CategorySettingsProps {
   categories: any[];
@@ -14,7 +16,16 @@ interface CategorySettingsProps {
 export function CategorySettings({ categories, isLoading, onAddCategory, onDeleteCategory }: CategorySettingsProps) {
   const { data: profile } = useUserProfile();
   const updateProfile = useUpdateUserProfile();
+  const createDefaultCategories = useCreateDefaultCategories();
   const useSubcategories = profile?.use_subcategories ?? false;
+
+  const handleRestoreDefaults = () => {
+    toast.promise(createDefaultCategories.mutateAsync({ force: true }), {
+      loading: "Restaurando categorias padrão...",
+      success: "Categorias padrão recriadas e atualizadas com sucesso!",
+      error: "Erro ao recriar categorias",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -33,10 +44,21 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
           <h2 className="font-display font-semibold text-lg">Categorias</h2>
           <p className="text-sm text-muted-foreground">Organize suas transações</p>
         </div>
-        <Button onClick={onAddCategory} className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
-          <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
-          Nova
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRestoreDefaults}
+            disabled={createDefaultCategories.isPending}
+            className="transition-all"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${createDefaultCategories.isPending ? 'animate-spin' : ''}`} />
+            Restaurar Padrão
+          </Button>
+          <Button onClick={onAddCategory} className="group transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90" />
+            Nova
+          </Button>
+        </div>
       </div>
 
       {/* Switch Premium para ativar/desativar subcategorias */}

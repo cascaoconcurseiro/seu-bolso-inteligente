@@ -160,60 +160,72 @@ export function useCreateDefaultCategories() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ force = false }: { force?: boolean } = {}) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Verificar se o usuário já possui categorias cadastradas
+      // Buscar as categorias existentes pelo nome para não duplicar
       const { data: existing, error: checkError } = await supabase
         .from("categories")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1);
+        .select("id, name")
+        .eq("user_id", user.id);
 
       if (checkError) throw checkError;
-      if (existing && existing.length > 0) {
-        logger.info("Usuário já possui categorias cadastradas. Ignorando criação padrão.");
+      
+      const existingNames = new Set((existing || []).map(c => c.name.toLowerCase()));
+
+      if (!force && existing && existing.length >= 20) {
+        logger.info("Usuário já possui estrutura completa de categorias. Ignorando criação padrão.");
         return;
       }
 
       // Importar categorias hierárquicas
       const { DEFAULT_CATEGORIES } = await import("@/lib/defaultCategories");
 
-      // Primeiro, criar todas as categorias pai
-      const parentCategories = DEFAULT_CATEGORIES.map(cat => ({
+      // Filtrar as categorias pai que ainda NÃO existem
+      const parentCategoriesToCreate = DEFAULT_CATEGORIES.filter(cat => !existingNames.has(cat.name.toLowerCase())).map(cat => ({
         user_id: user.id,
         name: cat.name,
         icon: cat.icon,
         type: cat.type,
-        parent_category_id: null, // Categoria pai não tem parent
+        parent_category_id: null,
       }));
 
-      const { data: createdParents, error: parentError } = await supabase
+      let createdParents: any[] = [];
+      if (parentCategoriesToCreate.length > 0) {
+        const { data, error: parentError } = await supabase
+          .from("categories")
+          .insert(parentCategoriesToCreate)
+          .select();
+        if (parentError) throw parentError;
+        createdParents = data || [];
+      }
+
+      // Buscar novamente todos os pais atualizados (os antigos + os novos criados)
+      const { data: allParents } = await supabase
         .from("categories")
-        .insert(parentCategories)
-        .select();
+        .select("id, name")
+        .eq("user_id", user.id)
+        .is("parent_category_id", null);
 
-      if (parentError) throw parentError;
+      const parentMap = new Map((allParents || []).map(cat => [cat.name.toLowerCase(), cat.id]));
 
-      // Criar mapa de nome → id das categorias pai
-      const parentMap = new Map(
-        createdParents.map(cat => [cat.name, cat.id])
-      );
-
-      // Agora criar todas as subcategorias
+      // Agora preparar as subcategorias
       const childCategories: unknown[] = [];
       
       DEFAULT_CATEGORIES.forEach(parent => {
-        const parentId = parentMap.get(parent.name);
+        const parentId = parentMap.get(parent.name.toLowerCase());
         if (parent.children && parentId) {
           parent.children.forEach(child => {
-            childCategories.push({
-              user_id: user.id,
-              name: child.name,
-              icon: child.icon,
-              type: child.type,
-              parent_category_id: parentId, // Link para categoria pai
-            });
+            // Se a subcategoria já existe com este nome, não cria de novo
+            if (!existingNames.has(child.name.toLowerCase())) {
+              childCategories.push({
+                user_id: user.id,
+                name: child.name,
+                icon: child.icon,
+                type: child.type,
+                parent_category_id: parentId,
+              });
+            }
           });
         }
       });

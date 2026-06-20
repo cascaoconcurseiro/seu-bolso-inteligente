@@ -149,6 +149,15 @@ export function useFamilyMembers() {
         };
       });
 
+      // Filtro de Visibilidade para Membros:
+      // O Owner da família vê todo mundo.
+      // Um membro normal (como Fran) vê: a si mesmo, o Owner, e as pessoas que ELA mesma convidou.
+      const filteredMembers = user.id === family.owner_id ? enrichedMembers : enrichedMembers.filter(m => 
+        m.linked_user_id === user.id || 
+        m.linked_user_id === family.owner_id ||
+        m.invited_by === user.id
+      );
+
       // Injetar o dono (owner) como administrador virtual na listagem
       if (familyWithOwner?.owner) {
         const ownerProfile = profileMap[familyWithOwner.owner.id] || {};
@@ -174,13 +183,13 @@ export function useFamilyMembers() {
           updated_at: new Date().toISOString()
         };
 
-        const alreadyExists = enrichedMembers.some(m => m.linked_user_id === familyWithOwner.owner.id);
+        const alreadyExists = filteredMembers.some(m => m.linked_user_id === familyWithOwner.owner.id);
         if (!alreadyExists) {
-          return [ownerAsMember, ...enrichedMembers];
+          return [ownerAsMember, ...filteredMembers];
         }
       }
 
-      return enrichedMembers;
+      return filteredMembers;
     },
     enabled: !!user && !!family,
     retry: false,

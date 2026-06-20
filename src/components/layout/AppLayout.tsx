@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useGlobalRealtime } from "@/hooks/useGlobalRealtime";
+import { useCategories, useCreateDefaultCategories } from "@/hooks/useCategories";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   LayoutDashboard,
@@ -80,6 +81,16 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Ativa a escuta de Realtime global para toda a aplicação
   useGlobalRealtime();
+
+  // Injeção automática de categorias padrão para novos usuários
+  const { data: categories, isSuccess: categoriesLoaded } = useCategories();
+  const createDefaultCategories = useCreateDefaultCategories();
+  
+  useEffect(() => {
+    if (categoriesLoaded && categories && categories.length === 0 && !createDefaultCategories.isPending) {
+      createDefaultCategories.mutate({ force: false });
+    }
+  }, [categoriesLoaded, categories, createDefaultCategories]);
 
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
