@@ -8,7 +8,7 @@ import {
   getTripItineraryPrompt
 } from "./ai/aiPrompts";
 
-const GROQ_API_URL = "/api/ai";
+const GROQ_API_URL = import.meta.env.DEV ? "/api/ai" : "https://api.groq.com/openai/v1/chat/completions";
 
 export interface FinancialReportData {
   totalIncome: number;
@@ -24,60 +24,79 @@ export interface FinancialReportData {
 
 export class AIAdvisorService {
 
+  private static async fetchGroq(payload: any): Promise<any> {
+    const isDev = import.meta.env.DEV;
+    const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
+
+    if (!isDev && !clientApiKey) {
+      console.warn("[AIAdvisorService] Chave VITE_GROQ_API_KEY ausente em produção. IA desativada silenciosamente.");
+      return null; // Falha silenciosa permitida para evitar quebrar a UI
+    }
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (!isDev && clientApiKey) {
+      headers['Authorization'] = `Bearer ${clientApiKey}`;
+    }
+
+    try {
+      const response = await fetch(GROQ_API_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error(`Status ${response.status}`);
+      }
+    } catch (error) {
+      console.warn(`[AIAdvisorService] Erro no fluxo principal para ${GROQ_API_URL}`, error);
+      
+      // Fallback para DEV
+      if (isDev && clientApiKey) {
+        try {
+          console.warn("[AIAdvisorService] Tentando fallback direto na API da Groq...");
+          const fallbackResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${clientApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+          });
+          if (fallbackResponse.ok) {
+            return await fallbackResponse.json();
+          }
+        } catch (fallbackError) {
+          console.error("[AIAdvisorService] Erro no fallback:", fallbackError);
+        }
+      }
+      return null;
+    }
+  }
+
   /**
    * Pede para a IA gerar uma análise financeira baseada no histórico mensal ou anual.
    */
   static async analyzeFinancialPeriod(data: FinancialReportData): Promise<string> {
     const prompt = getFinancialAnalysisPrompt(data);
 
-    try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant", // Modelo econômico de baixo custo-benefício
-          messages: [{ role: "system", content: prompt }],
-          temperature: 0.5,
-          max_tokens: 600,
-        })
-      });
+    const result = await this.fetchGroq({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.5,
+      max_tokens: 600,
+    });
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
-      }
-      throw new Error(`API servidora retornou status ${response.status}`);
-    } catch (error) {
-      console.warn("[AIAdvisorService] Falha na chamada da API servidora para análise financeira. Tentando fallback direto no cliente...", error);
-      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (clientApiKey) {
-        try {
-          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [{ role: "system", content: prompt }],
-              temperature: 0.5,
-              max_tokens: 600,
-            })
-          });
-
-          if (directResponse.ok) {
-            const result = await directResponse.json();
-            return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
-          }
-        } catch (fallbackError) {
-          console.error("[AIAdvisorService] Erro no fallback direto de análise financeira:", fallbackError);
-        }
-      }
-      throw new Error("Falha ao se comunicar com a Inteligência Artificial.");
+    if (result && result.choices && result.choices[0]) {
+      return result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora.";
     }
+
+    throw new Error("Falha ao se comunicar com a Inteligência Artificial.");
   }
 
   /**
@@ -210,106 +229,48 @@ export class AIAdvisorService {
     const categoryList = sanitizedCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
 
     const prompt = getAutocompletePrompt(sanitizedPartial, uniqueHistory, categoryList);
-try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{ role: "system", content: prompt }],
-          temperature: 0.5,
-          max_tokens: 300,
-          response_format: { type: "json_object" }
-        })
-      });
+    const result = await this.fetchGroq({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.5,
+      max_tokens: 300,
+      response_format: { type: "json_object" }
+    });
 
-      if (!response.ok) throw new Error("Falha ao comunicar com IA");
-      const result = await response.json();
-      const parsed = JSON.parse(result.choices[0].message.content);
-      return parsed.suggestions || [];
-    } catch (error) {
-      console.warn("Fallback direto no cliente para compras...", error);
-      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (clientApiKey) {
-        try {
-          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [{ role: "system", content: prompt }],
-              temperature: 0.5,
-              max_tokens: 300,
-              response_format: { type: "json_object" }
-            })
-          });
-          if (directResponse.ok) {
-            const result = await directResponse.json();
-            const parsed = JSON.parse(result.choices[0].message.content);
-            return parsed.suggestions || [];
-          }
-        } catch (e) {
-          console.error("Erro no fallback da Groq para compras:", e);
-        }
+    if (result && result.choices && result.choices[0]) {
+      try {
+        const parsed = JSON.parse(result.choices[0].message.content);
+        return parsed.suggestions || [];
+      } catch (e) {
+        return [];
       }
-      return [];
     }
+    
+    return [];
   }
 
   static async suggestTripItinerary(destination: string): Promise<Array<{ title: string; location: string; description: string; durationHours: number }>> {
     if (!destination) return [];
 
     const prompt = getTripItineraryPrompt(destination);
-try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{ role: "system", content: prompt }],
-          temperature: 0.4,
-          max_tokens: 600,
-          response_format: { type: "json_object" }
-        })
-      });
+    const result = await this.fetchGroq({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.4,
+      max_tokens: 600,
+      response_format: { type: "json_object" }
+    });
 
-      if (!response.ok) throw new Error("Falha ao comunicar com IA");
-      const result = await response.json();
-      const parsed = JSON.parse(result.choices[0].message.content);
-      return parsed.suggestions || [];
-    } catch (error) {
-      console.warn("Fallback direto no cliente para roteiro...", error);
-      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (clientApiKey) {
-        try {
-          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [{ role: "system", content: prompt }],
-              temperature: 0.4,
-              max_tokens: 600,
-              response_format: { type: "json_object" }
-            })
-          });
-          if (directResponse.ok) {
-            const result = await directResponse.json();
-            const parsed = JSON.parse(result.choices[0].message.content);
-            return parsed.suggestions || [];
-          }
-        } catch (e) {
-          console.error("Erro no fallback da Groq para roteiro:", e);
-        }
+    if (result && result.choices && result.choices[0]) {
+      try {
+        const parsed = JSON.parse(result.choices[0].message.content);
+        return parsed.suggestions || [];
+      } catch (e) {
+        return [];
       }
-      return [];
     }
+
+    return [];
   }
 
   static async suggestTripChecklist(destination: string): Promise<Array<{ item: string; category: string }>> {
@@ -329,52 +290,23 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
   ]
 }`;
 
-    try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [{ role: "system", content: prompt }],
-          temperature: 0.3,
-          max_tokens: 400,
-          response_format: { type: "json_object" }
-        })
-      });
+    const result = await this.fetchGroq({
+      model: "llama-3.1-8b-instant",
+      messages: [{ role: "system", content: prompt }],
+      temperature: 0.3,
+      max_tokens: 400,
+      response_format: { type: "json_object" }
+    });
 
-      if (!response.ok) throw new Error("Falha ao comunicar com IA");
-      const result = await response.json();
-      const parsed = JSON.parse(result.choices[0].message.content);
-      return parsed.suggestions || [];
-    } catch (error) {
-      console.warn("Fallback direto no cliente para checklist...", error);
-      const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (clientApiKey) {
-        try {
-          const directResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: "llama-3.1-8b-instant",
-              messages: [{ role: "system", content: prompt }],
-              temperature: 0.3,
-              max_tokens: 400,
-              response_format: { type: "json_object" }
-            })
-          });
-          if (directResponse.ok) {
-            const result = await directResponse.json();
-            const parsed = JSON.parse(result.choices[0].message.content);
-            return parsed.suggestions || [];
-          }
-        } catch (e) {
-          console.error("Erro no fallback da Groq para checklist:", e);
-        }
+    if (result && result.choices && result.choices[0]) {
+      try {
+        const parsed = JSON.parse(result.choices[0].message.content);
+        return parsed.suggestions || [];
+      } catch (e) {
+        return [];
       }
-      return [];
     }
+
+    return [];
   }
 }

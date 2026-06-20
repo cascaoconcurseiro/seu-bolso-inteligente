@@ -250,7 +250,7 @@ export function CreditCards() {
                     className="font-mono text-lg"
                     value={editClosingDay} 
                     onChange={(e) => {
-                      let val = e.target.value;
+                      const val = e.target.value;
                       if (val === '') { setEditClosingDay(''); return; }
                       const num = parseInt(val, 10);
                       if (!isNaN(num)) {
@@ -273,7 +273,7 @@ export function CreditCards() {
                     className="font-mono text-lg"
                     value={editDueDay} 
                     onChange={(e) => {
-                      let val = e.target.value;
+                      const val = e.target.value;
                       if (val === '') { setEditDueDay(''); return; }
                       const num = parseInt(val, 10);
                       if (!isNaN(num)) {

@@ -585,7 +585,7 @@ export function Reports() {
     });
   }, [periodTransactions, txSearch, txTypeFilter]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const handleExport = async (format: 'csv' | 'pdf', exportViewType: 'MONTH' | 'YEAR' = viewType) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
     if (format === 'csv') exportToCSV(filteredTxList, `relatorio-${exportViewType}`);

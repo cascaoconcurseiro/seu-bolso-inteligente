@@ -195,7 +195,7 @@ export function NewCardDialog({
                 className="font-mono text-lg"
                 value={closingDay}
                 onChange={(e) => {
-                  let val = e.target.value;
+                  const val = e.target.value;
                   if (val === '') {
                     setClosingDay('');
                     return;
@@ -221,7 +221,7 @@ export function NewCardDialog({
                 className="font-mono text-lg"
                 value={dueDay}
                 onChange={(e) => {
-                  let val = e.target.value;
+                  const val = e.target.value;
                   if (val === '') {
                     setDueDay('');
                     return;
