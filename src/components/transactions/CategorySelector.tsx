@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Check, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import {
@@ -8,6 +8,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCreateCategory } from "@/hooks/useCategories";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -36,6 +42,40 @@ export function CategorySelector({
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const { data: profile } = useUserProfile();
   const useSubcategories = profile?.use_subcategories ?? false;
+
+  // Estados para criação rápida de categoria
+  const createCategory = useCreateCategory();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatIcon, setNewCatIcon] = useState("🏷️");
+  const [newParentId, setNewParentId] = useState<string | null>(null);
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+
+    try {
+      const newCat = await createCategory.mutateAsync({
+        name: newCatName.trim(),
+        type: type,
+        icon: newCatIcon,
+        parent_category_id: newParentId
+      });
+      toast.success("Categoria criada com sucesso!");
+      setShowCreateDialog(false);
+      setNewCatName("");
+      setNewCatIcon("🏷️");
+      setNewParentId(null);
+      
+      // Auto-seleciona a categoria recém-criada
+      if (newCat && newCat.id) {
+        onValueChange(newCat.id);
+        setOpen(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar categoria");
+    }
+  };
 
   // Prevenir scroll da página quando o popover está aberto (mobile)
   React.useEffect(() => {
@@ -139,7 +179,8 @@ export function CategorySelector({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -255,7 +296,84 @@ export function CategorySelector({
             );
           })}
         </div>
+        <div className="border-t border-border p-2 bg-muted/20">
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full text-xs font-bold justify-center text-primary gap-1"
+            onClick={() => setShowCreateDialog(true)}
+          >
+            <Plus className="h-3 w-3" />
+            Criar Nova Categoria
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
+
+    <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <DialogContent className="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Nova Categoria</DialogTitle>
+          <DialogDescription>Crie uma nova categoria para organizar seus lançamentos de {type === 'expense' ? 'despesas' : 'receitas'}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleCreateCategory} className="space-y-4 mt-2">
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input placeholder="Ex: Mercado, Aluguel..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} required />
+          </div>
+          
+          {useSubcategories && (
+            <div className="space-y-2">
+              <Label>Categoria Pai (Opcional)</Label>
+              <Select value={newParentId || "none"} onValueChange={(v) => setNewParentId(v === "none" ? null : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma (Principal)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma (Principal)</SelectItem>
+                  {categories
+                    .filter(c => c.type === type && !c.parent_category_id)
+                    .map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Ícone</Label>
+            <div className="grid grid-cols-6 gap-2 max-h-[160px] overflow-y-auto p-1 border rounded-lg bg-background">
+              {[
+                "🍔", "🍕", "🍜", "🍱", "🍳", "☕", "🍺", "🍷",
+                "🚗", "🚌", "🚇", "✈️", "⛽", "🚕", "🚲", "🛵",
+                "🏠", "🔌", "💡", "🚿", "🛋️", "🧹", "🔧", "🏗️",
+                "💊", "🏥", "🩺", "💉", "🧘", "🏋️", "🦷", "👓",
+                "📚", "🎓", "✏️", "💻", "🎨", "🎵", "📖", "🧠",
+                "🎬", "🎮", "🎭", "🎪", "🏖️", "⚽", "🎾", "🎳",
+                "🛒", "👕", "👗", "👟", "💄", "🎁", "📦", "🛍️",
+                "💰", "💳", "🏦", "📈", "💵", "🪙", "💎", "📊",
+                "💼", "📱", "🖥️", "📧", "📝", "🗂️", "📋", "🔒",
+                "🐕", "🐈", "🐠", "🐦", "🐾", "🦴", "🐶", "🐱",
+                "❤️", "⭐", "🔥", "✨", "🎯", "🏆", "🎉", "📌",
+              ].map((icon) => (
+                <button type="button" key={icon} onClick={() => setNewCatIcon(icon)} className={cn("h-9 w-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted transition-colors text-lg", newCatIcon === icon && "bg-primary text-primary-foreground border-primary")}>
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2 flex gap-2">
+            <Button type="button" variant="outline" className="flex-1" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
+            <Button type="submit" className="flex-1" disabled={createCategory.isPending}>
+              {createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
