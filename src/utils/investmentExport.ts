@@ -351,7 +351,7 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
       0: { halign: 'left', fontStyle: 'bold' },
       6: { fontStyle: 'bold' }
     },
-    // @ts-expect-error Pula checagem de tipagem de biblioteca externa não tipada
+    
     didParseCell: (cellData: Record<string, any>) => {
       if (cellData.section === 'body' && cellData.column.index === 6) {
         const text = cellData.cell.text[0];
@@ -692,7 +692,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
         2: { halign: 'left' },
         3: { fontStyle: 'bold' }
       },
-      // @ts-expect-error Pula checagem de tipagem de biblioteca externa não tipada
+      
       didParseCell: (cellData: Record<string, any>) => {
         if (cellData.section === 'body' && cellData.column.index === 3) {
           const val = cellData.cell.text[0];

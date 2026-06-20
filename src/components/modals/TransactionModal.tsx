@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { TransactionForm } from '@/components/transactions/TransactionForm';
 import { useTransactionModal } from '@/contexts/TransactionModalContext';
 import { haptics } from '@/utils/haptics';

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { OrphanTransactionsManager } from "./OrphanTransactionsManager";
 import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 
 // A senha administrativa não é mais mantida em texto puro no código do frontend
@@ -117,8 +115,6 @@ export function useAdminActions() {
   const [selectedErrorLog, setSelectedErrorLog] = useState<ErrorLog | null>(null);
   const [errorDetailOpen, setErrorDetailOpen] = useState(false);
 
-  const recalculateBalances = useRecalculateBalances();
-
   // Unified parser for database change-data-capture logs
   const parseAuditLog = (log: AuditLog) => {
     const op = log.operation || 'OUTRO';
@@ -209,12 +205,12 @@ export function useAdminActions() {
       
       if (data) {
         setStats({
-          totalUsers: Number(data.totalUsers) || 0,
-          totalTransactions: Number(data.totalTransactions) || 0,
-          totalVolume: Number(data.totalVolume) || 0,
-          totalAccounts: Number(data.totalAccounts) || 0,
-          totalFamilies: Number(data.totalFamilies) || 0,
-          totalAssets: Number(data.totalAssets) || 0
+          totalUsers: Number((data as unknown as Record<string, any>).totalUsers) || 0,
+          totalTransactions: Number((data as unknown as Record<string, any>).totalTransactions) || 0,
+          totalVolume: Number((data as unknown as Record<string, any>).totalVolume) || 0,
+          totalAccounts: Number((data as unknown as Record<string, any>).totalAccounts) || 0,
+          totalFamilies: Number((data as unknown as Record<string, any>).totalFamilies) || 0,
+          totalAssets: Number((data as unknown as Record<string, any>).totalAssets) || 0
         });
       }
       
@@ -247,12 +243,12 @@ export function useAdminActions() {
       
       if (data) {
         setStats({
-          totalUsers: Number(data.totalUsers) || 0,
-          totalTransactions: Number(data.totalTransactions) || 0,
-          totalVolume: Number(data.totalVolume) || 0,
-          totalAccounts: Number(data.totalAccounts) || 0,
-          totalFamilies: Number(data.totalFamilies) || 0,
-          totalAssets: Number(data.totalAssets) || 0
+          totalUsers: Number((data as unknown as Record<string, any>).totalUsers) || 0,
+          totalTransactions: Number((data as unknown as Record<string, any>).totalTransactions) || 0,
+          totalVolume: Number((data as unknown as Record<string, any>).totalVolume) || 0,
+          totalAccounts: Number((data as unknown as Record<string, any>).totalAccounts) || 0,
+          totalFamilies: Number((data as unknown as Record<string, any>).totalFamilies) || 0,
+          totalAssets: Number((data as unknown as Record<string, any>).totalAssets) || 0
         });
       }
     } catch (error) {

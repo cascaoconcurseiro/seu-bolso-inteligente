@@ -15,7 +15,7 @@ export type ValidTable = keyof Database['public']['Tables'] | keyof Database['pu
  * Generic function to fetch data filtered by user_id
  */
 export const fetchUserData = async <T>(
-  table: ValidTable,
+  table: string,
   userId: string,
   options?: {
     select?: string;
@@ -27,7 +27,7 @@ export const fetchUserData = async <T>(
 ): Promise<T[]> => {
   try {
     let query = supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .select(options?.select || '*')
       .eq('user_id', userId);
 
@@ -69,13 +69,13 @@ export const fetchUserData = async <T>(
  * Fetch single record by ID
  */
 export const fetchById = async <T>(
-  table: ValidTable,
+  table: string,
   id: string,
   select?: string
 ): Promise<T | null> => {
   try {
     const { data, error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .select(select || '*')
       .eq('id', id)
       .maybeSingle();
@@ -95,12 +95,12 @@ export const fetchById = async <T>(
  * Insert single record
  */
 export const insertRecord = async <T>(
-  table: ValidTable,
+  table: string,
   data: Partial<T>
 ): Promise<T> => {
   try {
     const { data: result, error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .insert(data as never)
       .select()
       .single();
@@ -120,12 +120,12 @@ export const insertRecord = async <T>(
  * Insert multiple records
  */
 export const insertRecords = async <T>(
-  table: ValidTable,
+  table: string,
   data: Partial<T>[]
 ): Promise<T[]> => {
   try {
     const { data: result, error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .insert(data as never)
       .select();
 
@@ -144,13 +144,13 @@ export const insertRecords = async <T>(
  * Update record by ID
  */
 export const updateRecord = async <T>(
-  table: ValidTable,
+  table: string,
   id: string,
   data: Partial<T>
 ): Promise<T> => {
   try {
     const { data: result, error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .update(data as never)
       .eq('id', id)
       .select()
@@ -171,12 +171,12 @@ export const updateRecord = async <T>(
  * Delete record by ID
  */
 export const deleteRecord = async (
-  table: ValidTable,
+  table: string,
   id: string
 ): Promise<void> => {
   try {
     const { error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .delete()
       .eq('id', id);
 
@@ -192,12 +192,12 @@ export const deleteRecord = async (
  * Soft delete record (set deleted = true)
  */
 export const softDeleteRecord = async (
-  table: ValidTable,
+  table: string,
   id: string
 ): Promise<void> => {
   try {
     const { error } = await supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .update({ deleted: true, is_active: false } as never)
       .eq('id', id);
 
@@ -213,12 +213,12 @@ export const softDeleteRecord = async (
  * Count records with filters
  */
 export const countRecords = async (
-  table: ValidTable,
+  table: string,
   filters?: Record<string, unknown>
 ): Promise<number> => {
   try {
     let query = supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .select('*', { count: 'exact', head: true });
 
     if (filters) {
@@ -246,7 +246,7 @@ export const countRecords = async (
  * Check if record exists
  */
 export const recordExists = async (
-  table: ValidTable,
+  table: string,
   filters: Record<string, unknown>
 ): Promise<boolean> => {
   const count = await countRecords(table, filters);
@@ -257,7 +257,7 @@ export const recordExists = async (
  * Fetch with date range filter
  */
 export const fetchWithDateRange = async <T>(
-  table: ValidTable,
+  table: string,
   userId: string,
   startDate: string,
   endDate: string,
@@ -271,7 +271,7 @@ export const fetchWithDateRange = async <T>(
 ): Promise<T[]> => {
   try {
     let query = supabase
-      .from(table)
+      .from(table as keyof Database['public']['Tables'])
       .select(options?.select || '*')
       .eq('user_id', userId)
       .gte(dateField, startDate)

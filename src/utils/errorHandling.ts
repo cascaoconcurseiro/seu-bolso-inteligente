@@ -137,7 +137,7 @@ export const retryWithBackoff = async <T>(
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
       logger.warn(`Tentativa ${i + 1}/${maxRetries} falhou`, { error });
 
