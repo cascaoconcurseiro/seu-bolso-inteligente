@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { useTrips, useTrip, useTripParticipants, useTripTransactions, useTripFinancialSummary, useCreateTrip, useUpdateTrip, useDeleteTrip, useArchiveTrip, useUnarchiveTrip, useTripParticipantBalances, useRemoveTripParticipant } from "@/hooks/useTrips";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
-import { useTripMembers, useTripPermissions } from "@/hooks/useTripMembers";
+import { useTripPermissions } from "@/hooks/useTripMembers";
 import { EditTripDialog } from "@/components/trips/EditTripDialog";
 
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
@@ -68,7 +68,7 @@ export function Trips() {
   const { data: participants = [] } = useTripParticipants(selectedTripId);
   const { data: tripTransactions = [] } = useTripTransactions(selectedTripId);
   const { data: familyMembers = [] } = useFamilyMembers();
-  const { data: tripMembers = [] } = useTripMembers(selectedTripId);
+
   const { data: permissions } = useTripPermissions(selectedTripId);
   const { data: tripFinancialSummary } = useTripFinancialSummary(selectedTripId);
   const { data: participantBalances = [] } = useTripParticipantBalances(selectedTripId);
@@ -263,8 +263,8 @@ export function Trips() {
           onOpenBudget={() => setShowEditTripDialog(true)} 
           onUpdateTrip={async (u) => { await updateTrip.mutateAsync({ id: selectedTrip.id, ...u }); }} 
           formatCurrency={(val, cur) => moneyUtils.format(val, cur || 'BRL')} 
-          onExportPDF={() => exportTripToPDF({ trip: selectedTrip, participants, tripTransactions, balances, user })}
-          onExportExcel={() => exportTripToExcel({ trip: selectedTrip, participants, tripTransactions, balances, user })}
+          onExportPDF={() => { if(user) exportTripToPDF({ trip: selectedTrip, participants, tripTransactions, balances, user }) }}
+          onExportExcel={() => { if(user) exportTripToExcel({ trip: selectedTrip, participants, tripTransactions, balances, user }) }}
           onRemoveParticipantClick={(p, b) => {
             setRemovingParticipant(p);
             setRemovingParticipantBalance(b);

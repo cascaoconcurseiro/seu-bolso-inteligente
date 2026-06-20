@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
@@ -92,12 +93,12 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
           </div>
 
           <div className="space-y-2">
-            <Label>Valor ({currencySymbol})</Label>
-            <Input type="number" inputMode="decimal"
-              step="0.01"
+            <Label>Valor</Label>
+            <CurrencyInput
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
+              onChange={setAmount}
+              currency={goalCurrency}
+              placeholder="0,00"
               className="text-lg font-mono"
               autoFocus
               required

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, TrendingUp, Plus, Download, FileDown, ShieldCheck, Scale } from 'lucide-react';
+import { Target, TrendingUp, Plus, Download, FileDown, ShieldCheck } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, Asset } from '../types/database';

@@ -7,6 +7,7 @@ import { Users, UserPlus, X, ShieldAlert } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 interface ShareCardDialogProps {
   isOpen: boolean;
@@ -120,11 +121,12 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                        <Input type="number" inputMode="decimal" 
-                          placeholder="Limite (R$)" 
-                          className="w-28 h-8 text-xs" 
+                        <CurrencyInput 
+                          placeholder="Limite" 
+                          className="w-28 h-8 text-xs font-mono" 
                           value={inviteLimits[member.id] || ''} 
-                          onChange={(e) => setInviteLimits({...inviteLimits, [member.id]: e.target.value})} 
+                          onChange={(val) => setInviteLimits({...inviteLimits, [member.id]: val})} 
+                          currency={card?.currency || "BRL"}
                         />
                         <Button 
                           size="sm" 

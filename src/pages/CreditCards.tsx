@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -228,7 +229,14 @@ export function CreditCards() {
                   <Input type="number" inputMode="decimal" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
                 </div>
               </div>
-              <div className="space-y-2"><Label>Limite</Label><Input type="number" inputMode="decimal" value={editLimit} onChange={(e) => setEditLimit(e.target.value)} /></div>
+              <div className="space-y-2">
+                <Label>Limite</Label>
+                <CurrencyInput 
+                  value={editLimit} 
+                  onChange={setEditLimit} 
+                  currency={selectedCard?.currency || "BRL"} 
+                />
+              </div>
               {selectedCard?.user_id !== user?.id && (
                 <p className="text-xs text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}

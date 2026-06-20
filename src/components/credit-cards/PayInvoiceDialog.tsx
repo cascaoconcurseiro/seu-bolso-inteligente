@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -159,11 +160,11 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono font-medium">
                         {currencies.find(c => c.value === cardCurrency)?.symbol || (cardCurrency === 'BRL' ? 'R$' : cardCurrency)}
                       </span>
-                      <Input type="number" inputMode="decimal"
-                        step="0.01"
+                      <CurrencyInput
+                        currency={cardCurrency}
                         className="pl-12 h-14 font-mono text-xl font-bold bg-background/50 rounded-xl transition-all focus-visible:ring-primary/50 border-white/10"
                         value={amountToPay}
-                        onChange={(e) => setAmountToPay(e.target.value)}
+                        onChange={setAmountToPay}
                       />
                     </div>
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (

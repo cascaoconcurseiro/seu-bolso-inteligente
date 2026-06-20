@@ -172,6 +172,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
     .from('notifications')
     .insert({
       ...input,
+      metadata: input.metadata as any,
       priority: input.priority || 'NORMAL',
     })
     .select()

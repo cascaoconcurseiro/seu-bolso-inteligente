@@ -21,7 +21,7 @@ export class CategoryInsightsService {
    * @param financialSummary Resumo financeiro (receitas vs despesas)
    */
   static generateInsights(
-    transactions: Transaction[],
+    _transactions: Transaction[],
     budgets: any[],
     creditCards: any[],
     financialSummary: { income: number; expenses: number }
@@ -68,10 +68,7 @@ export class CategoryInsightsService {
     // 2. Insight de Cartão de Crédito Próximo ao Limite
     if (creditCards && creditCards.length > 0) {
       creditCards.forEach(card => {
-        // Encontrar gastos deste cartão no mês atual
-        const cardTxs = transactions.filter(t => t.account_id === card.id && t.type === "EXPENSE");
-        const spentOnCard = cardTxs.reduce((sum, t) => sum + t.amount, 0);
-        
+
         // Aqui assumimos que credit_limit existe, mas se houver fatura total, idealmente seria a soma.
         if (card.credit_limit && card.credit_limit > 0) {
           // Se o gasto atual + saldo da fatura for alto? Vamos usar uma lógica simplificada para demonstração:

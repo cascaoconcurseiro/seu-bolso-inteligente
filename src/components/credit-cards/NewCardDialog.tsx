@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -201,11 +202,12 @@ export function NewCardDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Limite {isInternational && `(${currency})`}</Label>
-            <Input 
-              placeholder="10000"
+            <Label>Limite</Label>
+            <CurrencyInput 
+              placeholder="0,00"
               value={limit}
-              onChange={(e) => setLimit(e.target.value.replace(/\D/g, ""))}
+              onChange={setLimit}
+              currency={isInternational ? currency : "BRL"}
             />
           </div>
         </div>

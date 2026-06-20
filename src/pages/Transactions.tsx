@@ -7,16 +7,7 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { TransactionModal } from "@/components/modals/TransactionModal";
+  AlertDialog, TransactionModal } from "@/components/modals/TransactionModal";
 import { AdvanceInstallmentsDialog } from "@/components/transactions/AdvanceInstallmentsDialog";
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
 import { OFXImportModal } from "@/components/modals/OFXImportModal";
@@ -57,7 +48,6 @@ export function Transactions() {
   });
   const { data: familyMembers = [] } = useFamilyMembers();
   const deleteTransaction = useDeleteTransaction();
-  const deleteInstallmentSeries = useDeleteInstallmentSeries();
   const { invalidateRelated } = useTransactionSync();
 
   useEffect(() => {
@@ -303,6 +293,7 @@ export function Transactions() {
       <TransactionList
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}
+        onSettlement={() => {}} // No settlement action in this view natively, or we can use setDetailsTransaction
         onAdvance={handleAdvance}
         onEdit={handleEdit}
         onDelete={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}

@@ -106,7 +106,7 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setAmount: (amount) => set({ amount }),
   setDescription: (description) => {
-    set((state) => {
+    set(() => {
       // Se limpar a descrição, reseta a escolha manual de categoria
       if (description.trim() === '') {
         return { description, hasUserSelectedCategoryManually: false, lastAppliedCategoryId: null };
@@ -142,8 +142,8 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
 
   reset: () => set({ ...initialState, date: new Date() }),
 
-  initFromData: (data: Partial<Transaction>) => {
-    set((state) => {
+  initFromData: (data: any) => {
+    set(() => {
       const updates: Partial<TransactionFormState> = {};
       
       if (data.type) updates.activeTab = data.type;

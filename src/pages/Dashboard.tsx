@@ -111,21 +111,13 @@ export function Dashboard() {
       map.set(c, current);
     });
 
-    return Array.from(map.values()).sort((a, b) => a.currency === 'BRL' ? -1 : 1);
+    return Array.from(map.values()).sort((a) => a.currency === 'BRL' ? -1 : 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accounts, currentDate]);
 
   const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
   const foreignData = currenciesData.filter(c => c.currency !== 'BRL');
   const activeCurrencyData = currenciesData.find(c => c.currency === selectedCurrency) || currenciesData[0] || brlData;
-
-  const savings = activeCurrencyData.income - activeCurrencyData.expense;
-  const projectedBalance = projection?.projected_balance ?? activeCurrencyData.balance;
-
-  const balancesByForeignCurrency = foreignData.reduce((acc, curr) => {
-    acc[curr.currency] = curr.balance;
-    return acc;
-  }, {} as Record<string, number>);
 
   const hasAccounts = accounts && accounts.length > 0;
   const hasTransactions = recentTransactions && recentTransactions.length > 0;
@@ -239,8 +231,6 @@ export function Dashboard() {
           totalPatrimony={activeCurrencyData.total_patrimony}
           income={activeCurrencyData.income}
           expenses={activeCurrencyData.expense}
-          pendingIncome={activeCurrencyData.pending_income}
-          pendingExpense={activeCurrencyData.pending_expense}
           formatCurrency={(val) => moneyUtils.format(val, activeCurrencyData.currency)}
           wealthHistory={wealthHistory}
           monthlyBudget={profile?.monthly_budget}

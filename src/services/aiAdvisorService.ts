@@ -1,13 +1,11 @@
 
-import { CategoryPrediction } from "@/types/categoryPrediction";
+
 import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from "./ai/localMappings";
-import { normalizeBrazilianText, cleanAiCategoryId } from "@/utils/formatting";
+import { normalizeBrazilianText } from "@/utils/formatting";
 import {
   getFinancialAnalysisPrompt,
   getAutocompletePrompt,
-  getTripShoppingPrompt,
-  getTripItineraryPrompt,
-  getTripChecklistPrompt
+  getTripItineraryPrompt
 } from "./ai/aiPrompts";
 
 const GROQ_API_URL = "/api/ai";
@@ -264,7 +262,7 @@ try {
   static async suggestTripItinerary(destination: string): Promise<Array<{ title: string; location: string; description: string; durationHours: number }>> {
     if (!destination) return [];
 
-    const prompt = getTripShoppingPrompt(destination, currency);
+    const prompt = getTripItineraryPrompt(destination);
 try {
       const response = await fetch(GROQ_API_URL, {
         method: 'POST',

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -365,20 +366,15 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               </div>
               
               <div className="space-y-2">
-                <Label>Valor Total Recebido ({currencySymbol})</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
-                    {currencySymbol}
-                  </span>
-                  <Input type="number" inputMode="decimal"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0,00"
-                    className="font-mono pl-10 text-lg font-semibold"
-                    required
-                  />
-                </div>
+                <Label>Valor Total Recebido</Label>
+                <CurrencyInput
+                  value={price}
+                  onChange={setPrice}
+                  currency={currency}
+                  placeholder="0,00"
+                  className="font-mono text-lg font-semibold"
+                  required
+                />
               </div>
             </div>
           ) : type !== 'update' ? (
@@ -395,7 +391,37 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 />
               </div>
               <div className="space-y-2">
-                <Label>Preço por Cota ({currencySymbol})</Label>
+                <Label>Preço por Cota</Label>
+                {asset.type === 'CRYPTO' ? (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
+                      {currencySymbol}
+                    </span>
+                    <Input type="number" inputMode="decimal"
+                      step="0.00000001"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="0,00"
+                      className="font-mono pl-10"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <CurrencyInput
+                    value={price}
+                    onChange={setPrice}
+                    currency={currency}
+                    placeholder="0,00"
+                    className="font-mono"
+                    required
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Nova Cotação Atual</Label>
+              {asset.type === 'CRYPTO' ? (
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
                     {currencySymbol}
@@ -409,24 +435,16 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                     required
                   />
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label>Nova Cotação Atual ({currencySymbol})</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
-                  {currencySymbol}
-                </span>
-                <Input type="number" inputMode="decimal"
-                  step="0.00000001"
+              ) : (
+                <CurrencyInput
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={setPrice}
+                  currency={currency}
                   placeholder="0,00"
-                  className="font-mono pl-10"
+                  className="font-mono"
                   required
                 />
-              </div>
+              )}
             </div>
           )}
 

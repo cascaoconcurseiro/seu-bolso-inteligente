@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Edit2, Info, CreditCard, Wallet, ArrowUpRight, ArrowDownRight, Users, Layers, SlidersHorizontal, HelpCircle } from "lucide-react";
+import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Info, CreditCard, Wallet, HelpCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -41,7 +41,7 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
-import { AccountingDRE } from "@/components/settings/AccountingDRE";
+
 import { useToast } from "@/hooks/use-toast";
 import { exportMonthlyReport } from "@/services/exportService";
 const getTransactionCurrency = (tx: any): string => {
@@ -65,8 +65,6 @@ export function Reports() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
 
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
-  const [txSearch, setTxSearch] = useState<string>("");
-  const [txTypeFilter, setTxTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   
   const { user } = useAuth();
@@ -585,6 +583,7 @@ export function Reports() {
     });
   }, [periodTransactions, txSearch, txTypeFilter]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleExport = async (format: 'csv' | 'pdf', exportViewType: 'MONTH' | 'YEAR' = viewType) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
     if (format === 'csv') exportToCSV(filteredTxList, `relatorio-${exportViewType}`);

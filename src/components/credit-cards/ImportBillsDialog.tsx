@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Calendar, DollarSign, Save, Users, Loader2 } from "lucide-react";
@@ -263,15 +264,13 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                     {month.isPast ? (
                       <span className="text-xs text-muted-foreground">Encerrado</span>
                     ) : (
-                      <div className="relative">
-                        <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input type="number" inputMode="decimal"
-                          placeholder="0,00"
-                          value={month.amount}
-                          onChange={(e) => handleAmountChange(index, e.target.value)}
-                          className="pl-7 h-8 text-sm"
-                        />
-                      </div>
+                      <CurrencyInput
+                        placeholder="0,00"
+                        value={month.amount}
+                        onChange={(val) => handleAmountChange(index, val)}
+                        currency={account?.currency || "BRL"}
+                        className="h-8 text-sm"
+                      />
                     )}
                   </div>
                 </div>
@@ -314,8 +313,13 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Valor da Parcela (R$)</Label>
-                  <Input type="number" inputMode="decimal" step="0.01" placeholder="0,00" value={instValue} onChange={e => setInstValue(e.target.value)} />
+                  <Label>Valor da Parcela</Label>
+                  <CurrencyInput 
+                    value={instValue} 
+                    onChange={setInstValue} 
+                    currency={account?.currency || "BRL"} 
+                    placeholder="0,00" 
+                  />
                 </div>
               </div>
 

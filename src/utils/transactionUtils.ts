@@ -1,6 +1,7 @@
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { TransactionType, TransactionDomain, DBTransactionSplit } from "@/hooks/transactions/types";
 export interface Transaction {
   id: string;
   user_id: string;
@@ -12,9 +13,9 @@ export interface Transaction {
   description: string;
   date: string;
   competence_date: string;
-  type: "EXPENSE" | "INCOME" | "TRANSFER";
+  type: TransactionType;
   currency: string | null;
-  domain: "PERSONAL" | "SHARED" | "TRAVEL";
+  domain: TransactionDomain;
   is_shared: boolean;
   payer_id: string | null;
   is_installment: boolean;
@@ -26,21 +27,13 @@ export interface Transaction {
   source_transaction_id: string | null;
   external_id: string | null;
   notes: string | null;
-  exchange_rate?: number | null;
-  destination_amount?: number | null;
-  destination_currency?: string | null;
+  exchange_rate: number | null;
+  destination_amount: number | null;
+  destination_currency: string | null;
   created_at: string;
   updated_at: string;
   creator_user_id?: string | null;
-  transaction_splits?: {
-    id: string;
-    member_id: string;
-    amount: number;
-    is_settled: boolean;
-    paid_at?: string | null;
-    settled_at?: string | null;
-    payer_account_id?: string | null;
-  }[];
+  transaction_splits?: DBTransactionSplit[];
   // Joined data
   account?: { id: string; name: string; currency?: string; bank_id?: string | null };
   category?: { id: string; name: string; icon: string | null };
