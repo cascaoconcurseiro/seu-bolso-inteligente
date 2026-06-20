@@ -1,35 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Trash2, Archive } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useUnarchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
@@ -41,12 +12,13 @@ import { getBankById } from "@/lib/banks";
 import { TransferModal } from "@/components/accounts/TransferModal";
 import { WithdrawalModal } from "@/components/accounts/WithdrawalModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
+import { AccountDeleteArchiveModal } from "@/components/modals/AccountDeleteArchiveModal";
+import { AccountFormModal } from "@/components/accounts/AccountFormModal";
 import { AccountHeader } from "@/components/accounts/AccountHeader";
 import { AccountBalanceCard } from "@/components/accounts/AccountBalanceCard";
 import { AccountStatement } from "@/components/accounts/AccountStatement";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
-import { moneyUtils } from "@/utils/money";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
 
@@ -75,10 +47,6 @@ export function AccountDetail() {
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
-  const [editAccountName, setEditAccountName] = useState("");
-  const [editHideBalance, setEditHideBalance] = useState(false);
-  const [editYieldType, setEditYieldType] = useState<string>("NONE");
-  const [editYieldRate, setEditYieldRate] = useState<string>("100");
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({
     isOpen: false,
     transaction: null,
@@ -124,8 +92,6 @@ export function AccountDetail() {
       navigate("/contas");
     } catch (error) {
       console.error("Erro ao excluir conta:", error);
-      // The useDeleteAccount hook already throws and catches to show a specific message,
-      // but if it rejects, we must prevent navigation and log the error.
     }
   };
 
@@ -149,25 +115,14 @@ export function AccountDetail() {
     }
   };
 
-  const handleEditAccount = () => {
+  const handleSaveEditAccountForm = async (data: any) => {
     if (!account) return;
-    setEditAccountName(account.name);
-    setEditHideBalance(account.hide_balance || false);
-    setEditYieldType(account.yield_type || "NONE");
-    setEditYieldRate(account.yield_rate ? account.yield_rate.toString() : "100");
-    setShowEditDialog(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!account || !editAccountName.trim()) return;
-    const yRate = editYieldType !== "NONE" ? moneyUtils.parse(editYieldRate) : null;
-    const yType = editYieldType !== "NONE" ? editYieldType : null;
     await updateAccount.mutateAsync({
       id: account.id,
-      name: editAccountName.trim(),
-      hide_balance: editHideBalance,
-      yield_type: yType,
-      yield_rate: yRate,
+      name: data.name,
+      hide_balance: data.hide_balance,
+      yield_type: data.yield_type,
+      yield_rate: data.yield_rate,
     });
     setShowEditDialog(false);
   };
@@ -213,7 +168,7 @@ export function AccountDetail() {
         accountCurrency={accountCurrency}
         onTransfer={() => setShowTransferModal(true)}
         onWithdrawal={() => setShowWithdrawalModal(true)}
-        onEdit={handleEditAccount}
+        onEdit={() => setShowEditDialog(true)}
         onDelete={() => setShowDeleteConfirmDialog(true)}
         onArchive={() => setShowArchiveConfirmModal(true)}
         onUnarchive={handleUnarchive}
@@ -280,149 +235,23 @@ export function AccountDetail() {
         isArchiving={archiveAccount.isPending}
       />
 
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Conta</DialogTitle>
-            <DialogDescription>Altere o nome da conta</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="account-name">Nome da Conta</Label>
-              <Input
-                id="account-name"
-                value={editAccountName}
-                onChange={(e) => setEditAccountName(e.target.value)}
-                placeholder="Digite o nome da conta"
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 border rounded-xl">
-              <div className="space-y-0.5">
-                <Label>Ocultar Saldo</Label>
-                <p className="text-xs text-muted-foreground">O valor ficará desfocado no painel.</p>
-              </div>
-              <Switch checked={editHideBalance} onCheckedChange={setEditHideBalance} />
-            </div>
+      <AccountFormModal
+        isOpen={showEditDialog}
+        onClose={() => setShowEditDialog(false)}
+        onSubmit={handleSaveEditAccountForm}
+        mode="edit"
+        initialData={account}
+        isLoading={updateAccount.isPending}
+      />
 
-            {(account?.type === "INVESTMENT" || account?.type === "EMERGENCY_FUND") &&
-              !account?.is_international && (
-                <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
-                  <div className="space-y-2">
-                    <Label>Rendimento Automático Diário</Label>
-                    <Select value={editYieldType} onValueChange={setEditYieldType}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="NONE">Nenhum</SelectItem>
-                        <SelectItem value="CDI">CDI (% do CDI)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {editYieldType === "CDI" && (
-                    <div className="space-y-2">
-                      <Label>Taxa (%)</Label>
-                      <Input type="number" inputMode="decimal"
-                        value={editYieldRate}
-                        onChange={(e) => setEditYieldRate(e.target.value)}
-                        placeholder="Ex: 100"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSaveEdit} disabled={!editAccountName.trim()}>
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Remover conta "{account?.name}"?</DialogTitle>
-            <DialogDescription className="space-y-4 pt-4">
-              <p className="text-sm">Escolha como deseja remover esta conta:</p>
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-                  <div className="flex items-start gap-3">
-                    <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
-                        Arquivar (Recomendado)
-                      </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300">
-                        • A conta não aparecerá mais nos formulários
-                        <br />
-                        • Todas as transações serão preservadas
-                        <br />• Histórico mantido para relatórios
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                {canDelete && (
-                  <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
-                    <div className="flex items-start gap-3">
-                      <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-                      <div className="space-y-1">
-                        <p className="font-medium text-sm text-red-900 dark:text-red-100">
-                          Excluir Permanentemente
-                        </p>
-                        <p className="text-xs text-red-700 dark:text-red-300">
-                          • A conta será removida do sistema
-                          <br />
-                          • Todas as transações serão deletadas
-                          <br />• Esta ação não pode ser desfeita
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteConfirmDialog(false)}
-              className="w-full sm:w-auto"
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDeleteConfirmDialog(false);
-                handleConfirmArchive();
-              }}
-              className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20"
-            >
-              <Archive className="h-4 w-4" /> Arquivar
-            </Button>
-            {canDelete && (
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setShowDeleteConfirmDialog(false);
-                  handleConfirmDelete();
-                }}
-                className="w-full sm:w-auto gap-2"
-              >
-                <Trash2 className="h-4 w-4" /> Excluir
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AccountDeleteArchiveModal
+        isOpen={showDeleteConfirmDialog}
+        onClose={() => setShowDeleteConfirmDialog(false)}
+        onArchive={handleConfirmArchive}
+        onDelete={handleConfirmDelete}
+        accountName={account?.name || ""}
+        canDelete={canDelete}
+      />
     </div>
   );
 }

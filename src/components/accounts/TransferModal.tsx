@@ -38,55 +38,42 @@ export function TransferModal({
   const { data: accounts = [] } = useAccounts();
   const transfer = useTransfer();
 
-  // Filtrar contas disponíveis para transferência:
-  // - Excluir a conta de origem
-  // - Excluir cartões de crédito (não podem receber transferências)
-  // - Se conta origem é internacional, só mostrar contas da mesma moeda OU contas BRL (com conversão)
   const availableAccounts = useMemo(() => {
     return accounts.filter((acc) => {
-      // Não pode transferir para si mesmo
       if (acc.id === fromAccountId) return false;
-      
-      // Cartões de crédito não podem receber transferências
       if (acc.type === "CREDIT_CARD") return false;
       
-      // Se conta origem é internacional (não-BRL)
       if (fromAccountCurrency !== "BRL") {
-        // Só pode transferir para:
-        // 1. Contas da mesma moeda
-        // 2. Contas BRL (com conversão)
         const accCurrency = acc.currency || "BRL";
         return accCurrency === fromAccountCurrency || accCurrency === "BRL";
       }
-      
-      // Se conta origem é BRL, pode transferir para qualquer conta
       return true;
     });
   }, [accounts, fromAccountId, fromAccountCurrency]);
 
-  // Detectar se é transferência cross-currency
   const selectedDestAccount = accounts.find((acc) => acc.id === toAccountId);
   const destCurrency = selectedDestAccount?.currency || "BRL";
   const isCrossCurrency = fromAccountCurrency !== destCurrency;
+  
+  const foreignCurrency = fromAccountCurrency === "BRL" ? destCurrency : fromAccountCurrency;
 
-  // Calcular valor de destino quando taxa de câmbio muda
   useEffect(() => {
     if (isCrossCurrency && exchangeRate) {
       const numericAmount = moneyUtils.parse(amount) || 0;
       const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (numericAmount > 0 && rate > 0) {
-        // Se origem é BRL, dividir pela taxa; se destino é BRL, multiplicar
         const destValue = fromAccountCurrency === "BRL" 
           ? numericAmount / rate 
           : numericAmount * rate;
         setDestinationAmount(destValue.toFixed(2).replace(".", ","));
+      } else {
+        setDestinationAmount("");
       }
     } else {
       setDestinationAmount("");
     }
   }, [exchangeRate, amount, isCrossCurrency, fromAccountCurrency]);
 
-  // Limpar taxa de câmbio quando mudar conta de destino
   useEffect(() => {
     setExchangeRate("");
     setDestinationAmount("");
@@ -105,24 +92,13 @@ export function TransferModal({
 
     const numericAmount = getNumericAmount();
 
-    if (!toAccountId) {
+    if (!toAccountId || numericAmount <= 0 || numericAmount > fromAccountBalance) {
       return;
     }
 
-    if (numericAmount <= 0) {
-      return;
-    }
-
-    if (numericAmount > fromAccountBalance) {
-      return;
-    }
-
-    // Validar taxa de câmbio para transferências cross-currency
     if (isCrossCurrency) {
       const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
-      if (rate <= 0) {
-        return;
-      }
+      if (rate <= 0) return;
     }
 
     const rate = isCrossCurrency ? moneyUtils.parse(exchangeRate.replace(",", ".")) : undefined;
@@ -138,7 +114,6 @@ export function TransferModal({
       destinationAmount: destAmount,
     });
 
-    // Reset form
     setToAccountId("");
     setAmount("");
     setDescription("Transferência");
@@ -153,61 +128,65 @@ export function TransferModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] border-border/50">
         <DialogHeader>
           <DialogTitle>Transferir entre contas</DialogTitle>
           <DialogDescription>
-            Transfira dinheiro de uma conta para outra
+            Transfira dinheiro de forma instantânea
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Conta de origem (readonly) */}
-          <div className="space-y-2">
-            <Label>De</Label>
-            <div className="p-3 rounded-xl border border-border bg-muted/30">
-              <p className="font-medium">{fromAccountName}</p>
-              <p className="text-sm text-muted-foreground">
-                Saldo disponível: {getCurrencySymbol(fromAccountCurrency)} {fromAccountBalance.toFixed(2)}
-              </p>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid gap-4">
+            {/* Conta de origem (readonly) */}
+            <div className="space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">De</Label>
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/20">
+                <p className="font-semibold text-sm">{fromAccountName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Saldo disponível: {getCurrencySymbol(fromAccountCurrency)} {fromAccountBalance.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-center">
-            <ArrowRight className="h-5 w-5 text-muted-foreground" />
-          </div>
+            <div className="flex items-center justify-center -my-2 relative z-10">
+              <div className="bg-background border border-border/50 rounded-full p-2 text-muted-foreground shadow-sm">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </div>
 
-          {/* Conta de destino */}
-          <div className="space-y-2">
-            <Label htmlFor="to-account">Para</Label>
-            <Select value={toAccountId} onValueChange={setToAccountId}>
-              <SelectTrigger id="to-account">
-                <SelectValue placeholder="Selecione a conta de destino" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id}>
-                    <div className="flex items-center gap-2">
-                      {account.name} {account.bank_id ? `- ${account.bank_id}` : ''}
-                      {account.is_international && (
-                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                          {account.currency}
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Conta de destino */}
+            <div className="space-y-2">
+              <Label htmlFor="to-account" className="text-xs uppercase tracking-wider text-muted-foreground">Para</Label>
+              <Select value={toAccountId} onValueChange={setToAccountId}>
+                <SelectTrigger id="to-account" className="h-12 rounded-xl">
+                  <SelectValue placeholder="Selecione a conta de destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableAccounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      <div className="flex items-center gap-2 font-medium">
+                        {account.name}
+                        {account.is_international && (
+                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            {account.currency}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Alerta de transferência cross-currency */}
           {isCrossCurrency && (
-            <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-              <ArrowRightLeft className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
-                Transferência entre moedas diferentes ({fromAccountCurrency} → {destCurrency}).
-                Informe a taxa de câmbio utilizada.
+            <Alert className="border-blue-200/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 rounded-xl">
+              <ArrowRightLeft className="h-4 w-4" />
+              <AlertDescription className="text-xs font-medium">
+                Transferência internacional ({fromAccountCurrency} → {destCurrency}).
+                A cotação é obrigatória.
               </AlertDescription>
             </Alert>
           )}
@@ -215,26 +194,26 @@ export function TransferModal({
           {/* Valor */}
           <div className="space-y-2">
             <AmountInput 
-              label={`Valor ${isCrossCurrency ? `(${fromAccountCurrency})` : ''}`}
+              label={`Valor a enviar ${isCrossCurrency ? `(${fromAccountCurrency})` : ''}`}
               value={amount}
               onChange={handleAmountChange}
               currency={fromAccountCurrency}
               currencySymbol={getCurrencySymbol(fromAccountCurrency)}
               size="md"
-              textColorClass={isInvalid ? "text-destructive" : ""}
+              textColorClass={isInvalid ? "text-destructive" : "text-primary"}
               autoFocus
             />
             {isInvalid && (
-              <p className="text-sm text-destructive text-center">Saldo insuficiente</p>
+              <p className="text-xs font-medium text-destructive mt-1">Saldo insuficiente</p>
             )}
           </div>
 
           {/* Taxa de câmbio (apenas para cross-currency) */}
           {isCrossCurrency && (
-            <>
+            <div className="space-y-4 p-4 border border-border/50 rounded-2xl bg-muted/10">
               <div className="space-y-2">
-                <Label htmlFor="exchange-rate">
-                  Taxa de câmbio (1 {destCurrency} = ? {fromAccountCurrency})
+                <Label htmlFor="exchange-rate" className="text-sm font-semibold">
+                  Cotação Atual (1 {foreignCurrency} = ? BRL)
                 </Label>
                 <Input
                   id="exchange-rate"
@@ -243,43 +222,42 @@ export function TransferModal({
                   placeholder="Ex: 5,50"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Informe quanto vale 1 {destCurrency} em {fromAccountCurrency}
-                </p>
               </div>
 
               {/* Valor de destino calculado */}
               {destinationAmount && (
-                <div className="p-3 rounded-xl border border-border bg-muted/30">
-                  <p className="text-sm text-muted-foreground">Valor a receber</p>
-                  <p className="font-mono font-semibold text-lg">
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex flex-col gap-1">
+                  <p className="text-[10px] text-blue-600/80 dark:text-blue-400/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
+                  <p className="font-mono font-black text-2xl text-blue-700 dark:text-blue-400">
                     {getCurrencySymbol(destCurrency)} {destinationAmount}
                   </p>
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="description" className="text-xs uppercase tracking-wider text-muted-foreground">Descrição (Opcional)</Label>
             <Input
               id="description"
               type="text"
               placeholder="Ex: Pagamento, Reserva..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="h-11 rounded-xl"
             />
           </div>
 
           {/* Botões */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 rounded-xl h-12"
             >
               Cancelar
             </Button>
@@ -292,15 +270,15 @@ export function TransferModal({
                 isMissingExchangeRate ||
                 transfer.isPending
               }
-              className="flex-1"
+              className="flex-1 rounded-xl h-12 font-bold shadow-lg shadow-primary/20"
             >
               {transfer.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Transferindo...
+                  Processando...
                 </>
               ) : (
-                "Transferir"
+                "Transferir Agora"
               )}
             </Button>
           </div>
