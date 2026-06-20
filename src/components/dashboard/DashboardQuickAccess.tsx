@@ -79,7 +79,7 @@ export function DashboardQuickAccess() {
   };
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative md:hidden">
       {/* Container com scroll horizontal fluido e sem barra de rolagem */}
       <div 
         className="flex overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-4 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
