@@ -31,12 +31,13 @@ export function BasicInfoSection({
   const date = useTransactionStore((state) => state.date);
   const setDate = useTransactionStore((state) => state.setDate);
   const categoryId = useTransactionStore((state) => state.categoryId);
-  const setCategoryId = useTransactionStore((state) => {
-    return (id: string) => {
-      state.setCategoryId(id);
-      state.setHasUserSelectedCategoryManually(true);
-    };
-  });
+  const _setCategoryId = useTransactionStore((state) => state.setCategoryId);
+  const _setHasUserSelectedCategoryManually = useTransactionStore((state) => state.setHasUserSelectedCategoryManually);
+  
+  const setCategoryId = (id: string) => {
+    _setCategoryId(id);
+    _setHasUserSelectedCategoryManually(true);
+  };
   const activeTab = useTransactionStore((state) => state.activeTab);
 
   const isTransfer = activeTab === 'TRANSFER';
