@@ -93,8 +93,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
 
           <div className="space-y-2">
             <Label>Valor ({currencySymbol})</Label>
-            <Input
-              type="number"
+            <Input type="number" inputMode="decimal"
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

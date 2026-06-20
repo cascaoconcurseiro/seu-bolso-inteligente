@@ -87,8 +87,7 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
 
           <div className="space-y-2">
             <Label>Valor Alvo (R$)</Label>
-            <Input
-              type="number"
+            <Input type="number" inputMode="decimal"
               step="0.01"
               value={targetAmount}
               onChange={(e) => setTargetAmount(e.target.value)}

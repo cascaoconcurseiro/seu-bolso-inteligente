@@ -428,14 +428,14 @@ export function CreditCards() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Fechamento</Label>
-                  <Input type="number" value={editClosingDay} onChange={(e) => setEditClosingDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                  <Input type="number" inputMode="decimal" value={editClosingDay} onChange={(e) => setEditClosingDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
                 </div>
                 <div className="space-y-2">
                   <Label>Vencimento</Label>
-                  <Input type="number" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                  <Input type="number" inputMode="decimal" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
                 </div>
               </div>
-              <div className="space-y-2"><Label>Limite</Label><Input type="number" value={editLimit} onChange={(e) => setEditLimit(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Limite</Label><Input type="number" inputMode="decimal" value={editLimit} onChange={(e) => setEditLimit(e.target.value)} /></div>
               {selectedCard?.user_id !== user?.id && (
                 <p className="text-xs text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}

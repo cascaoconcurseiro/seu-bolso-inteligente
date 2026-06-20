@@ -181,8 +181,7 @@ export function NewCardDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Fechamento</Label>
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 min={1} 
                 max={31} 
                 placeholder="20"
@@ -192,8 +191,7 @@ export function NewCardDialog({
             </div>
             <div className="space-y-2">
               <Label>Vencimento</Label>
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 min={1} 
                 max={31} 
                 placeholder="28"

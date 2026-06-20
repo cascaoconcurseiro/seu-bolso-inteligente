@@ -261,8 +261,7 @@ export function SplitModal({
                     {isInstallment && (
                       <div className="flex items-center gap-3">
                         <span className="text-sm">Nº de Parcelas:</span>
-                        <Input
-                          type="number"
+                        <Input type="number" inputMode="decimal"
                           min={2}
                           max={48}
                           value={totalInstallments}

@@ -144,7 +144,7 @@ export function Auth() {
 
           {!isResetting && (
             <>
-              {/* Google Button - Oculto temporariamente 
+              {/* Google Button */}
               <Button
                 variant="outline"
                 size="lg"
@@ -179,7 +179,6 @@ export function Auth() {
                   ou
                 </span>
               </div>
-              */}
             </>
           )}
 

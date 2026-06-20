@@ -316,8 +316,7 @@ export function AccountDetail() {
                   {editYieldType === "CDI" && (
                     <div className="space-y-2">
                       <Label>Taxa (%)</Label>
-                      <Input
-                        type="number"
+                      <Input type="number" inputMode="decimal"
                         value={editYieldRate}
                         onChange={(e) => setEditYieldRate(e.target.value)}
                         placeholder="Ex: 100"

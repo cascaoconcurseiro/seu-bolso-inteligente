@@ -370,8 +370,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
                     {currencySymbol}
                   </span>
-                  <Input
-                    type="number"
+                  <Input type="number" inputMode="decimal"
                     step="0.01"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -386,8 +385,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Quantidade</Label>
-                <Input
-                  type="number"
+                <Input type="number" inputMode="decimal"
                   step="0.00000001"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
@@ -402,8 +400,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
                     {currencySymbol}
                   </span>
-                  <Input
-                    type="number"
+                  <Input type="number" inputMode="decimal"
                     step="0.00000001"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -421,8 +418,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
                   {currencySymbol}
                 </span>
-                <Input
-                  type="number"
+                <Input type="number" inputMode="decimal"
                   step="0.00000001"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}

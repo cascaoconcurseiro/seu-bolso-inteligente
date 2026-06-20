@@ -398,8 +398,7 @@ export function AdvancedOptions({
               {frequency === 'MONTHLY' && (
                 <div className="space-y-2">
                   <Label className="text-xs">Dia do mês para repetição</Label>
-                  <Input
-                    type="number"
+                  <Input type="number" inputMode="decimal"
                     min="1"
                     max="31"
                     value={recurrenceDay}

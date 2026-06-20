@@ -309,8 +309,7 @@ export function SharedInstallmentImport({
             </div>
             <div className="space-y-2">
               <Label>Parcelas Restantes *</Label>
-              <Input
-                type="number"
+              <Input type="number" inputMode="decimal"
                 value={installments}
                 onChange={(e) => setInstallments(e.target.value)}
                 min="1"

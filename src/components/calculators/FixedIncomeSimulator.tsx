@@ -125,8 +125,7 @@ export function FixedIncomeSimulator() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Investimento Inicial (R$)</Label>
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 value={initialAmount || ''} 
                 onChange={e => setInitialAmount(Number(e.target.value))}
                 className="font-mono bg-background"
@@ -134,8 +133,7 @@ export function FixedIncomeSimulator() {
             </div>
             <div className="space-y-2">
               <Label>Aporte Mensal (R$)</Label>
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 value={monthlyContribution || ''} 
                 onChange={e => setMonthlyContribution(Number(e.target.value))}
                 className="font-mono bg-background"
@@ -144,8 +142,7 @@ export function FixedIncomeSimulator() {
             <div className="space-y-2">
               <Label>Prazo</Label>
               <div className="flex items-center gap-2">
-                <Input 
-                  type="number" 
+                <Input type="number" inputMode="decimal" 
                   value={term || ''} 
                   onChange={e => setTerm(Number(e.target.value))}
                   className="font-mono bg-background flex-1"
@@ -207,8 +204,7 @@ export function FixedIncomeSimulator() {
                   )}
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Input 
-                    type="number" 
+                  <Input type="number" inputMode="decimal" 
                     value={percentRate || ''} 
                     onChange={e => setPercentRate(Number(e.target.value))}
                     className="font-mono bg-background"

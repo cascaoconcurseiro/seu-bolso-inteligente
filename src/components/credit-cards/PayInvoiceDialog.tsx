@@ -120,8 +120,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">
                 {currencies.find(c => c.value === cardCurrency)?.symbol || (cardCurrency === 'BRL' ? 'R$' : cardCurrency)}
               </span>
-              <Input
-                type="number"
+              <Input type="number" inputMode="decimal"
                 step="0.01"
                 className="pl-10 font-mono text-lg font-bold"
                 value={amountToPay}
@@ -183,8 +182,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
               </div>
               <div className="space-y-2">
                 <Label>Taxa de câmbio ({cardCurrency} → BRL)</Label>
-                <Input
-                  type="number"
+                <Input type="number" inputMode="decimal"
                   step="0.0001"
                   placeholder="Ex: 5.50"
                   value={exchangeRate}

@@ -120,8 +120,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-                        <Input 
-                          type="number" 
+                        <Input type="number" inputMode="decimal" 
                           placeholder="Limite (R$)" 
                           className="w-28 h-8 text-xs" 
                           value={inviteLimits[member.id] || ''} 

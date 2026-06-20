@@ -262,7 +262,7 @@ export function Accounts() {
                 {yieldType === "CDI" && (
                   <div className="space-y-2">
                     <Label>Taxa (%)</Label>
-                    <Input type="number" value={yieldRate} onChange={(e) => setYieldRate(e.target.value)} placeholder="Ex: 100" />
+                    <Input type="number" inputMode="decimal" value={yieldRate} onChange={(e) => setYieldRate(e.target.value)} placeholder="Ex: 100" />
                     <p className="text-xs text-muted-foreground">O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.</p>
                   </div>
                 )}

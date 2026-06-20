@@ -23,6 +23,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
@@ -282,20 +283,28 @@ export function Dashboard() {
         </div>
       ) : (
         <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
-          
           <DashboardQuickAccess />
 
-          <div className="space-y-6 md:space-y-8">
-            <DashboardInvoices
-              creditCardsWithBalance={creditCardsWithBalance}
-              formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
-            />
+          <Tabs defaultValue="overview" className="w-full space-y-6">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="activity">Extrato</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="space-y-6 md:space-y-8 animate-in fade-in">
+              <DashboardInvoices
+                creditCardsWithBalance={creditCardsWithBalance}
+                formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
+              />
+            </TabsContent>
 
-            <DashboardRecentActivity
-              recentTransactions={recentTransactions}
-              formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
-            />
-          </div>
+            <TabsContent value="activity" className="space-y-6 md:space-y-8 animate-in fade-in">
+              <DashboardRecentActivity
+                recentTransactions={recentTransactions}
+                formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 

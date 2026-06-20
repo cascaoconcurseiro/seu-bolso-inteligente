@@ -354,8 +354,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
           {type === 'BOND' && (
             <div className="space-y-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
               <Label className="text-blue-600 dark:text-blue-400 font-bold">Rendimento (% do CDI)</Label>
-              <Input
-                type="number"
+              <Input type="number" inputMode="decimal"
                 value={cdiRate}
                 onChange={(e) => setCdiRate(e.target.value)}
                 placeholder="Ex: 110"
@@ -398,8 +397,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Quantidade de Cotas</Label>
-                <Input
-                  type="number"
+                <Input type="number" inputMode="decimal"
                   step="0.00000001"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
@@ -409,8 +407,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label>Valor Investido ({currencySymbol})</Label>
-                <Input
-                  type="number"
+                <Input type="number" inputMode="decimal"
                   step="0.01"
                   value={investedAmount}
                   onChange={(e) => setInvestedAmount(e.target.value)}

@@ -66,7 +66,6 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
   
   // Resolvemos o tema atual (se 'system', olhamos para systemTheme)
@@ -221,75 +220,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Mobile Menu Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden h-10 w-10 text-muted-foreground hover:text-foreground"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border animate-slide-down">
-            <nav className="max-w-7xl mx-auto px-3 py-4 space-y-1">
-              {navigationItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px]",
-                      isActive
-                        ? "bg-foreground text-background"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
-              {/* Theme toggle in mobile menu */}
-              <button
-                onClick={() => {
-                  toggleTheme();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
-              >
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                <span className="font-medium">{isDark ? "Tema Claro" : "Tema Escuro"}</span>
-              </button>
-              {/* Settings link in mobile menu */}
-              <Link
-                to="/configuracoes"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
-              >
-                <Settings className="h-5 w-5" />
-                <span className="font-medium">Configurações</span>
-              </Link>
-              {/* Logout in mobile menu */}
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  handleSignOut();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors min-h-[44px] text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">Sair</span>
-              </button>
-            </nav>
-          </div>
-        )}
+
 
         {/* Month Selector - Below TopBar */}
         {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}

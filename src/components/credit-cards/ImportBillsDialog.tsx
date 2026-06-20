@@ -265,8 +265,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                     ) : (
                       <div className="relative">
                         <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="number"
+                        <Input type="number" inputMode="decimal"
                           placeholder="0,00"
                           value={month.amount}
                           onChange={(e) => handleAmountChange(index, e.target.value)}
@@ -316,18 +315,18 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                 </div>
                 <div className="space-y-2">
                   <Label>Valor da Parcela (R$)</Label>
-                  <Input type="number" step="0.01" placeholder="0,00" value={instValue} onChange={e => setInstValue(e.target.value)} />
+                  <Input type="number" inputMode="decimal" step="0.01" placeholder="0,00" value={instValue} onChange={e => setInstValue(e.target.value)} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Parcela Atual (Ex: 3)</Label>
-                  <Input type="number" value={currentInst} onChange={e => setCurrentInst(e.target.value)} min="1" />
+                  <Input type="number" inputMode="decimal" value={currentInst} onChange={e => setCurrentInst(e.target.value)} min="1" />
                 </div>
                 <div className="space-y-2">
                   <Label>Total de Parcelas (Ex: 10)</Label>
-                  <Input type="number" value={totalInst} onChange={e => setTotalInst(e.target.value)} min="2" />
+                  <Input type="number" inputMode="decimal" value={totalInst} onChange={e => setTotalInst(e.target.value)} min="2" />
                 </div>
               </div>
 

@@ -193,11 +193,11 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Dia de Fechamento</Label>
-                          <Input type="number" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background" />
+                          <Input type="number" inputMode="decimal" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background" />
                         </div>
                         <div className="space-y-2">
                           <Label>Dia de Vencimento</Label>
-                          <Input type="number" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background" />
+                          <Input type="number" inputMode="decimal" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background" />
                         </div>
                       </div>
                     </div>
@@ -250,11 +250,11 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>Dia de Fechamento</Label>
-                          <Input type="number" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background" />
+                          <Input type="number" inputMode="decimal" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background" />
                         </div>
                         <div className="space-y-2">
                           <Label>Dia de Vencimento</Label>
-                          <Input type="number" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background" />
+                          <Input type="number" inputMode="decimal" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background" />
                         </div>
                       </div>
                     </div>

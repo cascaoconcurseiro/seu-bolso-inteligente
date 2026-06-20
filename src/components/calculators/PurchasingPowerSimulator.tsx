@@ -90,8 +90,7 @@ export function PurchasingPowerSimulator() {
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <Label>Valor Base (R$)</Label>
-            <Input 
-              type="number" 
+            <Input type="number" inputMode="decimal" 
               value={initialAmount || ''} 
               onChange={e => setInitialAmount(Number(e.target.value))}
               className="text-lg font-mono bg-background"
@@ -101,8 +100,7 @@ export function PurchasingPowerSimulator() {
           <div className="space-y-2">
             <Label>Prazo</Label>
             <div className="flex items-center gap-2">
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 value={term || ''} 
                 onChange={e => setTerm(Number(e.target.value))}
                 className="font-mono bg-background flex-1"
@@ -145,8 +143,7 @@ export function PurchasingPowerSimulator() {
               </Button>
             </div>
             <div className="flex items-center gap-2">
-              <Input 
-                type="number" 
+              <Input type="number" inputMode="decimal" 
                 step="0.01"
                 value={inflationRate || ''} 
                 onChange={e => setInflationRate(Number(e.target.value))}
