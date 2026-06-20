@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Sparkles } from "lucide-react";
+import { AlertTriangle, TrendingDown, TrendingUp, XCircle, CreditCard, Sparkles, Bell } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useTransactions } from "@/hooks/useTransactions";

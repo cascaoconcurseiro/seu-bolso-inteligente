@@ -1,52 +1,118 @@
 import { Link } from "react-router-dom";
-import { CreditCard, Users, ArrowUpRight } from "lucide-react";
+import { CreditCard, Users, Wallet, Plane } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface ShortcutProps {
+  to: string;
+  icon: any;
+  title: string;
+  colorName: "indigo" | "emerald" | "blue" | "orange";
+}
 
 export function DashboardQuickAccess() {
-  return (
-    <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3 sm:gap-4 w-full">
-      <Link
-        to="/cartoes"
-        className="flex-1 group relative overflow-hidden rounded-2xl p-3 sm:p-5 border border-border/80 bg-card hover:border-indigo-500/50 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col justify-center"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        <div className="relative flex flex-col sm:flex-row items-center sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto text-center sm:text-left">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center shadow-sm group-hover:bg-indigo-200 dark:group-hover:bg-indigo-500/30 transition-colors duration-300 shrink-0">
-              <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-300" />
-            </div>
-            <div className="flex flex-col items-center sm:items-start">
-              <p className="font-semibold text-sm sm:text-base text-foreground/90 group-hover:text-foreground transition-colors leading-tight">Cartões</p>
-              <p className="hidden sm:block text-xs text-muted-foreground mt-0.5 font-medium">Faturas e limites</p>
-            </div>
-          </div>
-          <div className="hidden sm:flex w-8 h-8 rounded-full bg-muted/50 items-center justify-center border border-border/50 group-hover:border-indigo-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 transition-all duration-300 shrink-0">
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
-          </div>
-        </div>
-      </Link>
+  const shortcuts: ShortcutProps[] = [
+    {
+      to: "/contas",
+      icon: Wallet,
+      title: "Contas",
+      colorName: "blue"
+    },
+    {
+      to: "/cartoes",
+      icon: CreditCard,
+      title: "Cartões",
+      colorName: "indigo"
+    },
+    {
+      to: "/viagens",
+      icon: Plane,
+      title: "Viagens",
+      colorName: "orange"
+    },
+    {
+      to: "/compartilhados",
+      icon: Users,
+      title: "Grupos",
+      colorName: "emerald"
+    }
+  ];
 
-      <Link
-        to="/compartilhados"
-        className="flex-1 group relative overflow-hidden rounded-2xl p-3 sm:p-5 border border-border/80 bg-card hover:border-emerald-500/50 transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col justify-center"
+  // Helper function to map colors to tailwind classes
+  const getColorClasses = (color: string) => {
+    switch (color) {
+      case "blue":
+        return {
+          borderHover: "hover:border-blue-500/50",
+          bgGradient: "from-blue-500/5",
+          iconBg: "bg-blue-100 dark:bg-blue-500/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-500/30",
+          iconColor: "text-blue-600 dark:text-blue-400"
+        };
+      case "indigo":
+        return {
+          borderHover: "hover:border-indigo-500/50",
+          bgGradient: "from-indigo-500/5",
+          iconBg: "bg-indigo-100 dark:bg-indigo-500/20 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-500/30",
+          iconColor: "text-indigo-600 dark:text-indigo-400"
+        };
+      case "emerald":
+        return {
+          borderHover: "hover:border-emerald-500/50",
+          bgGradient: "from-emerald-500/5",
+          iconBg: "bg-emerald-100 dark:bg-emerald-500/20 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-500/30",
+          iconColor: "text-emerald-600 dark:text-emerald-400"
+        };
+      case "orange":
+        return {
+          borderHover: "hover:border-orange-500/50",
+          bgGradient: "from-orange-500/5",
+          iconBg: "bg-orange-100 dark:bg-orange-500/20 group-hover:bg-orange-200 dark:group-hover:bg-orange-500/30",
+          iconColor: "text-orange-600 dark:text-orange-400"
+        };
+      default:
+        return {
+          borderHover: "hover:border-primary/50",
+          bgGradient: "from-primary/5",
+          iconBg: "bg-primary/10 group-hover:bg-primary/20",
+          iconColor: "text-primary"
+        };
+    }
+  };
+
+  return (
+    <div className="w-full relative">
+      {/* Container com scroll horizontal fluido e sem barra de rolagem */}
+      <div 
+        className="flex overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-4 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        <div className="relative flex flex-col sm:flex-row items-center sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4 w-full sm:w-auto text-center sm:text-left">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center shadow-sm group-hover:bg-emerald-200 dark:group-hover:bg-emerald-500/30 transition-colors duration-300 shrink-0">
-              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
-            </div>
-            <div className="flex flex-col items-center sm:items-start">
-              <p className="font-semibold text-sm sm:text-base text-foreground/90 group-hover:text-foreground transition-colors leading-tight">Grupos</p>
-              <p className="hidden sm:block text-xs text-muted-foreground mt-0.5 font-medium">Despesas divididas</p>
-            </div>
-          </div>
-          <div className="hidden sm:flex w-8 h-8 rounded-full bg-muted/50 items-center justify-center border border-border/50 group-hover:border-emerald-300 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 transition-all duration-300 shrink-0">
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
-          </div>
-        </div>
-      </Link>
+        {shortcuts.map((shortcut, index) => {
+          const colors = getColorClasses(shortcut.colorName);
+          const Icon = shortcut.icon;
+          
+          return (
+            <Link
+              key={index}
+              to={shortcut.to}
+              className={cn(
+                "snap-start shrink-0 w-[100px] sm:w-[120px] group relative overflow-hidden rounded-2xl p-4 border border-border/80 bg-card transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center justify-center gap-3",
+                colors.borderHover
+              )}
+            >
+              <div className={cn("absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500", colors.bgGradient)} />
+              
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm transition-colors duration-300 relative z-10", colors.iconBg)}>
+                <Icon className={cn("h-6 w-6 transition-transform duration-300 group-hover:scale-110", colors.iconColor)} />
+              </div>
+              
+              <p className="font-semibold text-sm text-foreground/90 group-hover:text-foreground transition-colors relative z-10">
+                {shortcut.title}
+              </p>
+            </Link>
+          );
+        })}
+      </div>
+      
+      {/* Sombra suave nas laterais para indicar que tem mais conteúdo (apenas no mobile se necessário) */}
+      <div className="absolute top-0 right-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
     </div>
   );
 }
