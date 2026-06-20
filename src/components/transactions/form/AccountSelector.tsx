@@ -12,15 +12,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useTransactionModal } from '@/hooks/useTransactionModal';
 import { getBankById } from '@/lib/banks';
-import { TabType } from '@/types/transactions';
 import { Target } from 'lucide-react';
+import { useTransactionStore } from '@/store/useTransactionStore';
 
 interface AccountSelectorProps {
-  accountId: string;
-  setAccountId: (v: string) => void;
-  activeTab: TabType;
-  destinationAccountId: string;
-  setDestinationAccountId: (v: string) => void;
   filteredAccounts: any[];
   transferAccounts: any[];
   selectedTrip?: any;
@@ -29,19 +24,10 @@ interface AccountSelectorProps {
   payerName: string;
   customLabel?: string;
   customPlaceholder?: string;
-  transferType?: 'account' | 'goal';
-  setTransferType?: (type: 'account' | 'goal') => void;
-  goalId?: string;
-  setGoalId?: (v: string) => void;
   goals?: any[];
 }
 
 export function AccountSelector({
-  accountId,
-  setAccountId,
-  activeTab,
-  destinationAccountId,
-  setDestinationAccountId,
   filteredAccounts,
   transferAccounts,
   selectedTrip,
@@ -50,12 +36,18 @@ export function AccountSelector({
   payerName,
   customLabel,
   customPlaceholder,
-  transferType,
-  setTransferType,
-  goalId,
-  setGoalId,
   goals
 }: AccountSelectorProps) {
+  const accountId = useTransactionStore((state) => state.accountId);
+  const setAccountId = useTransactionStore((state) => state.setAccountId);
+  const activeTab = useTransactionStore((state) => state.activeTab);
+  const destinationAccountId = useTransactionStore((state) => state.destinationAccountId);
+  const setDestinationAccountId = useTransactionStore((state) => state.setDestinationAccountId);
+  const transferType = useTransactionStore((state) => state.transferType);
+  const setTransferType = useTransactionStore((state) => state.setTransferType);
+  const goalId = useTransactionStore((state) => state.goalId);
+  const setGoalId = useTransactionStore((state) => state.setGoalId);
+
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
   const isExpense = activeTab === 'EXPENSE';

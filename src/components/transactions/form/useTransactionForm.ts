@@ -47,9 +47,9 @@ import { validateTransaction } from '@/services/validationService';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
 import { haptics } from '@/utils/haptics';
+import { useTransactionStore } from '@/store/useTransactionStore';
 
 import { moneyUtils } from "@/utils/money";
-
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -67,8 +67,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { setShowTransactionModal } = useTransactionModal();
   const { user } = useAuth();
   const { contributeToGoal, goals } = useGoals();
-  const [transferType, setTransferType] = useState<'account'|'goal'>('account');
-  const [goalId, setGoalId] = useState<string>('');
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
@@ -80,20 +78,37 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
 
-  // Form State
-  const [activeTab, setActiveTab] = useState<TabType>('EXPENSE');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState<Date>(new Date());
-  const [accountId, setAccountId] = useState('');
-  const [destinationAccountId, setDestinationAccountId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [hasUserSelectedCategoryManually, setHasUserSelectedCategoryManually] = useState(false);
+  // Zustand Store Integration
+  const store = useTransactionStore();
+  
+  const activeTab = store.activeTab;
+  const amount = store.amount;
+  const description = store.description;
+  const date = store.date;
+  const accountId = store.accountId;
+  const destinationAccountId = store.destinationAccountId;
+  const categoryId = store.categoryId;
+  const tripId = store.tripId;
+  const notes = store.notes;
+  const exchangeRate = store.exchangeRate;
+  const destinationAmount = store.destinationAmount;
+  
+  const isInstallment = store.isInstallment;
+  const totalInstallments = store.totalInstallments;
+  const showSplitModal = store.showSplitModal;
+  const payerId = store.payerId;
+  const splits = store.splits;
+  const isRefund = store.isRefund;
+  const isRecurring = store.isRecurring;
+  const frequency = store.frequency;
+  const recurrenceDay = store.recurrenceDay;
+  const enableNotification = store.enableNotification;
+  const notificationDate = store.notificationDate;
+
+  const transferType = store.transferType;
+  const goalId = store.goalId;
+
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
-  const [tripId, setTripId] = useState('');
-  const [notes, setNotes] = useState('');
-  const [exchangeRate, setExchangeRate] = useState('');
-  const [destinationAmount, setDestinationAmount] = useState('');
 
   const predictionType = useMemo(() => {
     if (activeTab === 'INCOME') return 'income';
@@ -107,19 +122,16 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     !!predictionType
   );
 
-  // Autocompletar a descrição não é mais utilizado conforme regra de negócio
-
   // Context application
   useEffect(() => {
-    if (context?.tripId) setTripId(context.tripId);
-    if (context?.accountId) setAccountId(context.accountId);
-    if (context?.categoryId) setCategoryId(context.categoryId);
+    if (context?.tripId) store.setTripId(context.tripId);
+    if (context?.accountId) store.setAccountId(context.accountId);
+    if (context?.categoryId) store.setCategoryId(context.categoryId);
   }, [context]);
 
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
     if (description.trim() === '') {
-      setHasUserSelectedCategoryManually(false);
       lastAppliedCategoryIdRef.current = null;
     }
   }, [description]);
@@ -127,76 +139,34 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   // AI Auto-categoria inteligente e blindada contra race conditions
   useEffect(() => {
     if (predictedCategoryId) {
-      // Se a categoria atual na tela foi colocada pela IA (igual a lastAppliedCategoryIdRef.current) 
-      // ou se o usuário ainda não alterou manualmente, podemos atualizar livremente!
       const isCurrentCategoryFromAI = categoryId === lastAppliedCategoryIdRef.current;
       
-      if (!hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
-        setCategoryId(predictedCategoryId);
+      if (!store.hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
+        store.setCategoryId(predictedCategoryId);
         lastAppliedCategoryIdRef.current = predictedCategoryId;
-        // Se foi atualizado pela IA, garante que não seja considerado escolha manual travada
-        setHasUserSelectedCategoryManually(false);
+        store.setHasUserSelectedCategoryManually(false);
       }
     }
-  }, [predictedCategoryId, hasUserSelectedCategoryManually, categoryId]);
+  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId]);
 
   const handleCategoryChange = (val: string) => {
-    setCategoryId(val);
-    setHasUserSelectedCategoryManually(true);
+    store.setCategoryId(val);
+    store.setHasUserSelectedCategoryManually(true);
   };
 
   const { data: tripMembers = [] } = useTripMembers(tripId || null);
 
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
-    setAccountId('');
+    store.setAccountId('');
   }, [tripId, context?.accountId, context?.tripId]);
-
-  // Advanced Options State
-  const [isInstallment, setIsInstallment] = useState(false);
-  const [totalInstallments, setTotalInstallments] = useState(1);
-  const [showSplitModal, setShowSplitModal] = useState(false);
-  const [payerId, setPayerId] = useState<string>('me');
-  const [splits, setSplits] = useState<TransactionSplitData[]>([]);
-  const [isRefund, setIsRefund] = useState(false);
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [frequency, setFrequency] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'>('MONTHLY');
-  const [recurrenceDay, setRecurrenceDay] = useState(1);
-  const [enableNotification, setEnableNotification] = useState(false);
-  const [notificationDate, setNotificationDate] = useState<Date | undefined>();
 
   const updateTransaction = useUpdateTransaction();
 
   // Populate from initialData
   useEffect(() => {
-    if (initialData && typeof initialData === 'object') {
-      const data = initialData as any;
-      if (data.type) setActiveTab(data.type);
-      if (data.amount !== undefined && data.amount !== null) setAmount(data.amount.toString());
-      if (data.description) setDescription(data.description);
-      if (data.date) setDate(typeof data.date === 'string' ? parseISO(data.date as string) : data.date as Date);
-      if (data.account_id) setAccountId(data.account_id);
-      if (data.destination_account_id) setDestinationAccountId(data.destination_account_id);
-      if (data.category_id) setCategoryId(data.category_id);
-      if (data.trip_id) setTripId(data.trip_id);
-      if (data.notes) setNotes(data.notes);
-      if (data.payer_id) setPayerId(data.payer_id);
-      if (data.is_installment) setIsInstallment(data.is_installment);
-      if (data.total_installments) setTotalInstallments(data.total_installments);
-      
-      if (data.transaction_splits && Array.isArray(data.transaction_splits) && data.transaction_splits.length > 0) {
-        setSplits(data.transaction_splits.map((s: any) => ({
-          memberId: s.member_id || s.memberId,
-          percentage: s.percentage,
-          amount: s.amount
-        })));
-      } else if (data.splits && Array.isArray(data.splits) && data.splits.length > 0) {
-        setSplits(data.splits.map((s: any) => ({
-          memberId: s.member_id || s.memberId,
-          percentage: s.percentage,
-          amount: s.amount
-        })));
-      }
+    if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
+      store.initFromData(initialData);
     }
   }, [initialData]);
 
@@ -285,9 +255,9 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   // Corrigir payerId vindo do banco caso seja o próprio usuário
   useEffect(() => {
     if (payerId === user?.id) {
-      setPayerId('me');
+      store.setPayerId('me');
     } else if (myMemberRecord?.id && payerId === myMemberRecord.id) {
-      setPayerId('me');
+      store.setPayerId('me');
     }
   }, [user?.id, myMemberRecord?.id, payerId]);
   
@@ -304,14 +274,14 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const showExchangePanel = isExchangeTransfer || isCrossCurrencyTripExpense;
 
   const handleDestAmountChange = (val: string) => {
-    setDestinationAmount(val);
+    store.setDestinationAmount(val);
     const numAmount = moneyUtils.parse(amount);
     const numDest = moneyUtils.parse(val);
     if (numAmount > 0 && numDest > 0) {
       const computedRate = (numAmount / numDest).toFixed(4);
-      setExchangeRate(computedRate);
+      store.setExchangeRate(computedRate);
     } else {
-      setExchangeRate('');
+      store.setExchangeRate('');
     }
   };
 
@@ -322,22 +292,22 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       const numDest = moneyUtils.parse(destinationAmount);
       if (numAmount > 0 && numDest > 0) {
         const computedRate = (numAmount / numDest).toFixed(4);
-        setExchangeRate(computedRate);
+        store.setExchangeRate(computedRate);
       } else {
-        setExchangeRate('');
+        store.setExchangeRate('');
       }
     }
   }, [amount, showExchangePanel, destinationAmount]);
 
   // Limpar contas caso não aplicável
   useEffect(() => {
-    if (isPaidByOther) setAccountId('');
+    if (isPaidByOther) store.setAccountId('');
   }, [isPaidByOther]);
 
   // Limpar conta selecionada se mudar para receita e for um cartão de crédito
   useEffect(() => {
     if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD') {
-      setAccountId('');
+      store.setAccountId('');
     }
   }, [activeTab, selectedAccount]);
 
@@ -368,7 +338,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (accountId && filteredAccounts && filteredAccounts.length > 0) {
       const isAccountValid = filteredAccounts.some(acc => acc.id === accountId);
       if (!isAccountValid) {
-        setAccountId('');
+        store.setAccountId('');
       }
     }
   }, [filteredAccounts, accountId]);
@@ -526,7 +496,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     await performSubmit(transactionData);
   };
 
-  
   return {
     navigate,
     setShowTransactionModal,
@@ -542,29 +511,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     createTransaction,
     updateTransaction,
     
-    activeTab, setActiveTab,
-    amount, setAmount,
-    description, setDescription,
-    date, setDate,
-    accountId, setAccountId,
-    destinationAccountId, setDestinationAccountId,
-    categoryId, handleCategoryChange,
-    tripId, setTripId,
-    notes, setNotes,
-    exchangeRate, setExchangeRate,
-    destinationAmount, setDestinationAmount,
-    
-    isInstallment, setIsInstallment,
-    totalInstallments, setTotalInstallments,
-    showSplitModal, setShowSplitModal,
-    payerId, setPayerId,
-    splits, setSplits,
-    isRefund, setIsRefund,
-    isRecurring, setIsRecurring,
-    frequency, setFrequency,
-    recurrenceDay, setRecurrenceDay,
-    enableNotification, setEnableNotification,
-    notificationDate, setNotificationDate,
+    ...store,
     
     duplicateWarning,
     validationErrors,
@@ -593,6 +540,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     handleDestAmountChange,
     getCurrencySymbol,
     handleSubmit,
-    performSubmit
+    performSubmit,
+    goals
   };
 }

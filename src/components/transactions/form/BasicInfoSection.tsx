@@ -9,41 +9,36 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CategorySelector } from '../CategorySelector';
 import { parseLocalDate } from '@/utils/dateUtils';
-import { TabType } from '@/types/transactions';
+import { useTransactionStore } from '@/store/useTransactionStore';
 
 interface BasicInfoSectionProps {
-  description: string;
-  setDescription: (v: string) => void;
-  date: Date;
-  setDate: (v: Date) => void;
-  categoryId: string;
-  setCategoryId: (v: string) => void;
-  activeTab: TabType;
   categories: any[];
   categoriesLoading: boolean;
   selectedTrip?: any;
-  suggestion?: string;
   predictedCategoryId?: string | null;
   isPredicting?: boolean;
-  onApplySuggestion?: () => void;
 }
 
 export function BasicInfoSection({
-  description,
-  setDescription,
-  date,
-  setDate,
-  categoryId,
-  setCategoryId,
-  activeTab,
   categories,
   categoriesLoading,
   selectedTrip,
-  suggestion,
   predictedCategoryId,
   isPredicting,
-  onApplySuggestion
 }: BasicInfoSectionProps) {
+  const description = useTransactionStore((state) => state.description);
+  const setDescription = useTransactionStore((state) => state.setDescription);
+  const date = useTransactionStore((state) => state.date);
+  const setDate = useTransactionStore((state) => state.setDate);
+  const categoryId = useTransactionStore((state) => state.categoryId);
+  const setCategoryId = useTransactionStore((state) => {
+    return (id: string) => {
+      state.setCategoryId(id);
+      state.setHasUserSelectedCategoryManually(true);
+    };
+  });
+  const activeTab = useTransactionStore((state) => state.activeTab);
+
   const isTransfer = activeTab === 'TRANSFER';
 
   return (

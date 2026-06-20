@@ -56,6 +56,7 @@ import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
 import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
 import { moneyUtils } from "@/utils/money";
+import { useCreditCardsDashboard } from "@/hooks/credit-cards/useCreditCardsDashboard";
 
 type CardView = "list" | "detail";
 
@@ -72,229 +73,73 @@ interface CreditCardAccount {
 }
 
 export function CreditCards() {
-  const { user } = useAuth();
-  const { currentDate } = useMonth();
-  const [view, setView] = useState<CardView>("list");
-  const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
-  const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
-  const urlParamsProcessed = useRef(false);
-  const [showNewCardDialog, setShowNewCardDialog] = useState(false);
-  const { data: exportTransactions = [] } = useTransactions({
-    startDate: `${currentDate.getFullYear()}-01-01`,
-    endDate: `${currentDate.getFullYear()}-12-31`
-  });
-
-  const handleExportCards = async (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
-    const { exportCardsToCSV, exportCardsToPDF } = await import("@/utils/exportData");
-    let filteredTxs = exportTransactions;
-    let periodLabel = `${currentDate.getFullYear()}`;
-
-    if (period === 'MONTH') {
-      const startOfM = dateFns.startOfMonth(currentDate);
-      const endOfM = dateFns.endOfMonth(currentDate);
-      filteredTxs = exportTransactions.filter(t => {
-        const d = new Date(t.date);
-        return d >= startOfM && d <= endOfM;
-      });
-      const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-      periodLabel = `${monthNames[currentDate.getMonth()]} de ${currentDate.getFullYear()}`;
-    } else {
-      periodLabel = `Ano ${currentDate.getFullYear()}`;
-    }
-
-    const totalLimit = creditCards.reduce((sum, c) => sum + (Number(c.credit_limit) || 0), 0);
-    const totalInvoicesVal = creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0);
-
-    if (formatType === 'PDF') {
-      exportCardsToPDF(filteredTxs, creditCards, periodLabel, totalLimit, totalInvoicesVal);
-    } else {
-      exportCardsToCSV(filteredTxs, creditCards, periodLabel);
-    }
-  };
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [showPayDialog, setShowPayDialog] = useState(false);
-  const [showSharingDialog, setShowSharingDialog] = useState(false);
-  const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  
-  // New Card State
-  const [newBankId, setNewBankId] = useState("");
-  const [newBrand, setNewBrand] = useState("");
-  const [newCardName, setNewCardName] = useState("");
-  const [newClosingDay, setNewClosingDay] = useState("");
-  const [newDueDay, setNewDueDay] = useState("");
-  const [newLimit, setNewLimit] = useState("");
-  const [newIsInternational, setNewIsInternational] = useState(false);
-  const [newCurrency, setNewCurrency] = useState("USD");
-
-  const { data: accounts = [], isLoading, refetch: refetchAccounts } = useAccounts();
-  
-  const { startDay } = useMonth();
-  // Expandir a janela de busca para garantir que compras de meses anteriores
-  // que caem na fatura atual sejam incluídas no cálculo da lista de cartões.
-  const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
-  const extendedStartDate = dateFns.subMonths(new Date(startDate), 2).toISOString();
-  const extendedEndDate = dateFns.addMonths(new Date(endDate), 1).toISOString();
-
-  const { data: transactions = [], isLoading: transactionsLoading, refetch: refetchTransactions } = useTransactions({
-    startDate: extendedStartDate,
-    endDate: extendedEndDate,
-    limit: 5000,
-  });
-  const creditCards = useMemo(() => (accounts || []).filter(acc => acc.type === "CREDIT_CARD") as CreditCardAccount[], [accounts]);
-
-  const ownedCardIds = useMemo(() => creditCards.filter(c => !c.is_shared_with_me).map(c => c.id), [creditCards]);
-  const { data: dependentTransactions = [] } = useDependentTransactions({
-    cardIds: ownedCardIds,
-    startDate: extendedStartDate,
-    endDate: extendedEndDate,
-  });
-  
-  const createAccount = useCreateAccount();
-  const updateAccount = useUpdateAccount();
-  const deleteAccountMutation = useDeleteAccount();
-  const archiveAccountMutation = useArchiveAccount();
-  const { data: archivedCards = [] } = useArchivedAccounts();
-  const unarchiveAccountMutation = useUnarchiveAccount();
-  const createTransaction = useCreateTransaction();
-  const bulkCreateTransactions = useBulkCreateTransactions();
-  const deleteTransaction = useDeleteTransaction();
-  const { toast: toastHook } = useToast();
-
-  const [deleteCardConfirm, setDeleteCardConfirm] = useState<{ isOpen: boolean; card: CreditCardAccount | null }>({ isOpen: false, card: null });
-
-  const { data: deleteCardDeps } = useAccountDependencies(deleteCardConfirm.card?.id);
-  const deleteCardCanDelete = deleteCardDeps?.can_delete === true;
-
-  const { data: selectedCardDeps } = useAccountDependencies(selectedCard?.id);
-  const selectedCardCanDelete = selectedCardDeps?.can_delete === true;
-
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; transaction: any | null }>({ isOpen: false, transaction: null });
-  const [showEditCardDialog, setShowEditCardDialog] = useState(false);
-  
-  const [editCardName, setEditCardName] = useState("");
-  const [editClosingDay, setEditClosingDay] = useState("");
-  const [editDueDay, setEditDueDay] = useState("");
-  const [editLimit, setEditLimit] = useState("");
-
-  useEffect(() => {
-    if (selectedCard) {
-      if (urlParamsProcessed.current) {
-        urlParamsProcessed.current = false;
-        return;
-      }
-      setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCard?.id, selectedCard?.closing_day]);
-
-  const { data: invoiceDataRPC, isFetching: invoiceFetching } = useCreditCardInvoice(
-    selectedCard?.id || null,
-    dateFns.format(dateFns.startOfMonth(selectedDate), "yyyy-MM-dd"),
-    dateFns.format(dateFns.endOfMonth(selectedDate), "yyyy-MM-dd")
-  );
-
-  useEffect(() => {
-    const cardId = searchParams.get("cardId");
-    const invoiceDateParam = searchParams.get("invoiceDate") || searchParams.get("month");
+  const {
+    view, setView,
+    selectedCard, setSelectedCard,
+    showArchiveConfirmModal, setShowArchiveConfirmModal,
+    showNewCardDialog, setShowNewCardDialog,
+    showImportDialog, setShowImportDialog,
+    showPayDialog, setShowPayDialog,
+    showSharingDialog, setShowSharingDialog,
+    showTransactionModal, setShowTransactionModal,
+    selectedDate, setSelectedDate,
     
-    if (cardId && accounts.length > 0 && (!selectedCard || selectedCard.id !== cardId || invoiceDateParam)) {
-      const card = accounts.find(a => a.id === cardId);
-      if (card) {
-        urlParamsProcessed.current = true;
-        setSelectedCard(card as CreditCardAccount);
-        setView("detail");
-        
-        // Se vier um mês de fatura específico na URL, navega para aquele mês
-        if (invoiceDateParam) {
-          const [year, month] = invoiceDateParam.split("-").map(Number);
-          if (year && month) {
-            setSelectedDate(new Date(year, month - 1, 1));
-          }
-        }
-        
-        setSearchParams({}, { replace: true });
-      }
-    }
-  }, [searchParams, accounts, selectedCard, setSearchParams]);
-
-  const invoiceData = useMemo(() => {
-    if (!selectedCard) return null;
-    const baseData = getInvoiceData(selectedCard, transactions, selectedDate);
-    if (invoiceDataRPC) {
-      return { ...baseData, invoiceTotal: Number(invoiceDataRPC.total) || 0, transactions: invoiceDataRPC.transactions || [] };
-    }
-    return baseData;
-  }, [selectedCard, invoiceDataRPC, transactions, selectedDate]);
-
-    const getCardInvoice = useCallback((card: CreditCardAccount) => {
-      const targetDate = getTargetDate(new Date(), card.closing_day || 1);
-      const data = getInvoiceData(card, transactions, targetDate);
-      
-      if (data.status === 'OPEN') {
-        const prevDate = dateFns.subMonths(targetDate, 1);
-        const prevData = getInvoiceData(card, transactions, prevDate);
-        if (prevData.status === 'CLOSED' && prevData.invoiceTotal > 0.01) {
-          return { value: prevData.invoiceTotal, dueDate: prevData.dueDate, status: prevData.status };
-        }
-      }
-      
-      return { value: data.invoiceTotal, dueDate: data.dueDate, status: data.status };
-    }, [transactions]);
-
-  const getCardInstallments = (invoiceTxs: any[]) => invoiceTxs.filter(t => t.is_installment).map(t => ({ id: t.id, description: t.description, current: t.current_installment || 1, total: t.total_installments || 1, value: t.amount }));
-
-  const formatCurrency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-  const getDaysUntilDue = (dueDate: Date) => Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-
-  const handleCreateCard = async () => {
-    const bank = getBankById(newBankId);
-    await createAccount.mutateAsync({ name: newCardName.trim() || bank.name, type: "CREDIT_CARD", bank_id: newBankId, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
-    setShowNewCardDialog(false);
-    resetNewCardForm();
-  };
-
-  const resetNewCardForm = () => {
-    setNewBankId(""); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
-  };
-
-  const totalInvoices = useMemo(() => creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0), [creditCards, getCardInvoice]);
-  
-  const totalDebt = useMemo(() => {
-    // Usar o saldo consolidado da conta (card.balance) mantido pelo banco de dados (trigger sync_account_balance)
-    // Se o saldo for negativo, representa uma dívida.
-    return creditCards.reduce((accTotal, card) => {
-      const balanceVal = Number(card.balance) || 0;
-      return accTotal + (balanceVal < 0 ? Math.abs(balanceVal) : 0);
-    }, 0);
-  }, [creditCards]);
-  const nextDueDate = useMemo(() => {
-    if (creditCards.length === 0) return 0;
-    return Math.min(...creditCards.map(card => getDaysUntilDue(getCardInvoice(card).dueDate)));
-  }, [creditCards, getCardInvoice]);
-
-  const handleDeleteTransaction = async (cascadeType: CascadeDeleteType) => {
-    if (!deleteConfirm.transaction) return;
-    await deleteTransaction.mutateAsync({ 
-      id: deleteConfirm.transaction.id, 
-      cascadeType 
-    });
-    toast.success("Transação(ões) excluída(s)!");
-    setDeleteConfirm({ isOpen: false, transaction: null });
-    refetchTransactions();
-  };
-
-  const handleEditCard = async () => {
-    if (!selectedCard) return;
-    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? moneyUtils.parse(editLimit) : null });
-    toast.success("Cartão atualizado!");
-    setShowEditCardDialog(false);
-    refetchAccounts();
-  };
+    newBankId, setNewBankId,
+    newBrand, setNewBrand,
+    newCardName, setNewCardName,
+    newClosingDay, setNewClosingDay,
+    newDueDay, setNewDueDay,
+    newLimit, setNewLimit,
+    newIsInternational, setNewIsInternational,
+    newCurrency, setNewCurrency,
+    
+    isLoading,
+    transactionsLoading,
+    creditCards,
+    archivedCards,
+    
+    createAccount,
+    archiveAccountMutation,
+    unarchiveAccountMutation,
+    deleteAccountMutation,
+    bulkCreateTransactions,
+    
+    deleteCardConfirm, setDeleteCardConfirm,
+    deleteCardCanDelete,
+    selectedCardCanDelete,
+    
+    editingTransaction, setEditingTransaction,
+    deleteConfirm, setDeleteConfirm,
+    
+    showEditCardDialog, setShowEditCardDialog,
+    editCardName, setEditCardName,
+    editClosingDay, setEditClosingDay,
+    editDueDay, setEditDueDay,
+    editLimit, setEditLimit,
+    
+    invoiceData,
+    invoiceFetching,
+    
+    getCardInvoice,
+    getCardInstallments,
+    formatCurrency,
+    getDaysUntilDue,
+    
+    handleCreateCard,
+    handleDeleteTransaction,
+    handleEditCard,
+    handleExportCards,
+    handlePayInvoice,
+    
+    totalInvoices,
+    totalDebt,
+    nextDueDate,
+    exportTransactions,
+    
+    refetchAccounts,
+    refetchTransactions,
+    user
+  } = useCreditCardsDashboard();
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -348,67 +193,13 @@ export function CreditCards() {
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
           await bulkCreateTransactions.mutateAsync(txs as any); 
-          toastHook({ title: "Faturas importadas!" }); 
+          toast.success("Faturas importadas!"); 
           setShowImportDialog(false); 
         }} />
         
         <PayInvoiceDialog 
-          isOpen={showPayDialog} onClose={() => setShowPayDialog(false)} card={selectedCard} invoiceTotal={invoiceData.invoiceTotal} accounts={(accounts || []).filter(a => a.type !== 'CREDIT_CARD')}
-          onPay={async (fromId, amt, rate) => {
-            const debit = rate ? amt * rate : amt;
-            const competenceFormatted = dateFns.format(selectedDate, "MMMM/yyyy", { locale: ptBR });
-            const capitalizedCompetence = competenceFormatted.charAt(0).toUpperCase() + competenceFormatted.slice(1);
-            
-            await createTransaction.mutateAsync({
-              amount: debit,
-              description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
-              date: formatDateISO(new Date()),
-              competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-              type: "TRANSFER",
-              account_id: fromId,
-              destination_account_id: selectedCard.id,
-              domain: "PERSONAL",
-              currency: rate ? 'BRL' : (selectedCard.currency || 'BRL')
-            });
-
-            // Rotative Logic (Partial Payment)
-            const remaining = invoiceData.invoiceTotal - amt;
-            if (remaining > 0.01) {
-              const nextMonth = dateFns.addMonths(selectedDate, 1);
-              const nextMonthFmt = dateFns.format(nextMonth, "MMMM/yyyy", { locale: ptBR });
-              
-              // 1. Estorno no mês atual para anular o impacto duplicado
-              await createTransaction.mutateAsync({
-                amount: remaining,
-                description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
-                date: formatDateISO(new Date()),
-                competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-                type: "TRANSFER",
-                account_id: selectedCard.id,
-                destination_account_id: selectedCard.id,
-                domain: "PERSONAL",
-                currency: selectedCard.currency || 'BRL'
-              });
-              
-              // 2. Cobrança do saldo rotativo no mês seguinte
-              await createTransaction.mutateAsync({
-                amount: remaining,
-                description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
-                date: formatDateISO(new Date()),
-                competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
-                type: "TRANSFER",
-                account_id: selectedCard.id,
-                destination_account_id: selectedCard.id,
-                domain: "PERSONAL",
-                currency: selectedCard.currency || 'BRL'
-              });
-            }
-
-            toastHook({ title: "Pagamento processado!" });
-            setShowPayDialog(false);
-            refetchAccounts();
-            refetchTransactions();
-          }}
+          isOpen={showPayDialog} onClose={() => setShowPayDialog(false)} card={selectedCard} invoiceTotal={invoiceData.invoiceTotal} accounts={accounts.filter(a => a.type !== 'CREDIT_CARD')}
+          onPay={handlePayInvoice}
         />
 
         <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditingTransaction(null); refetchTransactions(); }} initialData={editingTransaction} />

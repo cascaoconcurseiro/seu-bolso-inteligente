@@ -109,16 +109,13 @@ export function TransactionForm(props: TransactionFormProps) {
       {form.validationErrors.length > 0 && <Alert className="border-destructive bg-destructive/10"><BellRing className="h-4 w-4 text-destructive" /><AlertDescription><p className="font-semibold text-destructive mb-2">Corrija os erros:</p><ul className="list-disc list-inside space-y-1 text-sm text-destructive">{form.validationErrors.map((e, i) => <li key={i}>{e}</li>)}</ul></AlertDescription></Alert>}
 
       <form onSubmit={form.handleSubmit} className="space-y-6">
-        <AmountInput amount={form.amount} onAmountChange={form.setAmount} currency={form.transactionCurrency} currencySymbol={form.getCurrencySymbol(form.transactionCurrency)} activeTab={form.activeTab} selectedTrip={form.selectedTrip} />
+        <AmountInput 
+          currency={form.transactionCurrency} 
+          currencySymbol={form.getCurrencySymbol(form.transactionCurrency)} 
+          selectedTrip={form.selectedTrip} 
+        />
         
         <BasicInfoSection
-          description={form.description}
-          setDescription={form.setDescription}
-          date={form.date}
-          setDate={form.setDate}
-          categoryId={form.categoryId}
-          setCategoryId={form.handleCategoryChange}
-          activeTab={form.activeTab}
           categories={form.categories || []}
           categoriesLoading={form.categoriesLoading}
           selectedTrip={form.selectedTrip}
@@ -127,21 +124,12 @@ export function TransactionForm(props: TransactionFormProps) {
         /> 
 
         <AccountSelector 
-          accountId={form.accountId} 
-          setAccountId={form.setAccountId} 
-          activeTab={form.activeTab} 
-          destinationAccountId={form.destinationAccountId} 
-          setDestinationAccountId={form.setDestinationAccountId} 
           filteredAccounts={form.filteredAccounts} 
           transferAccounts={form.transferAccounts} 
           selectedTrip={form.selectedTrip} 
           selectedAccount={form.selectedAccount} 
           isPaidByOther={form.isPaidByOther} 
           payerName={form.payerId !== 'me' ? (form.familyMembers || []).find(m => m.id === form.payerId)?.name || 'outro' : ''} 
-          transferType={form.transferType}
-          setTransferType={form.setTransferType}
-          goalId={form.goalId}
-          setGoalId={form.setGoalId}
           goals={form.goals}
         />
 
@@ -236,31 +224,11 @@ export function TransactionForm(props: TransactionFormProps) {
         <AdvancedOptions
           isExpense={form.isExpense}
           isCreditCard={form.isCreditCard}
-          isInstallment={form.isInstallment}
-          setIsInstallment={form.setIsInstallment}
-          totalInstallments={form.totalInstallments}
-          setTotalInstallments={form.setTotalInstallments}
-          isRefund={form.isRefund}
-          setIsRefund={form.setIsRefund}
-          isRecurring={form.isRecurring}
-          setIsRecurring={form.setIsRecurring}
-          frequency={form.frequency}
-          setFrequency={form.setFrequency}
-          recurrenceDay={form.recurrenceDay}
-          setRecurrenceDay={form.setRecurrenceDay}
-          enableNotification={form.enableNotification}
-          setEnableNotification={form.setEnableNotification}
-          notificationDate={form.notificationDate}
-          setNotificationDate={form.setNotificationDate}
           currencySymbol={form.getCurrencySymbol(form.transactionCurrency)}
           numericAmount={moneyUtils.parse(form.amount) || 0}
           
-          tripId={form.tripId}
-          setTripId={form.setTripId}
           trips={form.trips || []}
           hasSharing={form.hasSharing}
-          setShowSplitModal={form.setShowSplitModal}
-          splits={form.splits}
           availableMembers={form.availableMembers}
         />
 

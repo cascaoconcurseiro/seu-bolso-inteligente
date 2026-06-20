@@ -2,25 +2,23 @@ import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { cn } from '@/lib/utils';
 import { Plane } from 'lucide-react';
-import { TabType } from '@/types/transactions';
+import { useTransactionStore } from '@/store/useTransactionStore';
 
 interface AmountInputProps {
-  amount: string;
-  onAmountChange: (value: string) => void;
   currency: string;
   currencySymbol: string;
-  activeTab: TabType;
   selectedTrip?: any;
 }
 
 export function AmountInput({
-  amount,
-  onAmountChange,
   currency,
   currencySymbol,
-  activeTab,
   selectedTrip
 }: AmountInputProps) {
+  const amount = useTransactionStore((state) => state.amount);
+  const setAmount = useTransactionStore((state) => state.setAmount);
+  const activeTab = useTransactionStore((state) => state.activeTab);
+
   const isExpense = activeTab === 'EXPENSE';
   const isIncome = activeTab === 'INCOME';
   const isTransfer = activeTab === 'TRANSFER';
@@ -38,7 +36,7 @@ export function AmountInput({
           <CurrencyInput
             placeholder="0,00"
             value={amount}
-            onChange={onAmountChange}
+            onChange={setAmount}
             currency={currency}
             className={cn(
               'h-20 md:h-24 text-5xl md:text-6xl font-display font-bold text-center bg-transparent border-none shadow-none focus-visible:ring-0 p-0 placeholder:text-muted-foreground/20',

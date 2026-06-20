@@ -17,70 +17,50 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
+import { useTransactionStore } from '@/store/useTransactionStore';
 
 interface AdvancedOptionsProps {
   isExpense: boolean;
   isCreditCard: boolean;
-  isInstallment: boolean;
-  setIsInstallment: (v: boolean) => void;
-  totalInstallments: number;
-  setTotalInstallments: (v: number) => void;
-  isRefund: boolean;
-  setIsRefund: (v: boolean) => void;
-  isRecurring: boolean;
-  setIsRecurring: (v: boolean) => void;
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
-  setFrequency: (v: any) => void;
-  recurrenceDay: number;
-  setRecurrenceDay: (v: number) => void;
-  enableNotification: boolean;
-  setEnableNotification: (v: boolean) => void;
-  notificationDate: Date | undefined;
-  setNotificationDate: (v: Date | undefined) => void;
   currencySymbol: string;
   numericAmount: number;
   
   // Novas propriedades integradas para Viagem e Partilha
-  tripId: string;
-  setTripId: (v: string) => void;
   trips: any[];
   hasSharing: boolean;
-  setShowSplitModal: (v: boolean) => void;
-  splits: any[];
   availableMembers: any[];
 }
 
 export function AdvancedOptions({
   isExpense,
   isCreditCard,
-  isInstallment,
-  setIsInstallment,
-  totalInstallments,
-  setTotalInstallments,
-  isRefund,
-  setIsRefund,
-  isRecurring,
-  setIsRecurring,
-  frequency,
-  setFrequency,
-  recurrenceDay,
-  setRecurrenceDay,
-  enableNotification,
-  setEnableNotification,
-  notificationDate,
-  setNotificationDate,
   currencySymbol,
   numericAmount,
   
   // Desestruturando novas propriedades
-  tripId,
-  setTripId,
   trips,
   hasSharing,
-  setShowSplitModal,
-  splits,
   availableMembers,
 }: AdvancedOptionsProps) {
+  const isInstallment = useTransactionStore((state) => state.isInstallment);
+  const setIsInstallment = useTransactionStore((state) => state.setIsInstallment);
+  const totalInstallments = useTransactionStore((state) => state.totalInstallments);
+  const setTotalInstallments = useTransactionStore((state) => state.setTotalInstallments);
+  const isRefund = useTransactionStore((state) => state.isRefund);
+  const setIsRefund = useTransactionStore((state) => state.setIsRefund);
+  const isRecurring = useTransactionStore((state) => state.isRecurring);
+  const setIsRecurring = useTransactionStore((state) => state.setIsRecurring);
+  const frequency = useTransactionStore((state) => state.frequency);
+  const setFrequency = useTransactionStore((state) => state.setFrequency);
+  const recurrenceDay = useTransactionStore((state) => state.recurrenceDay);
+  const setRecurrenceDay = useTransactionStore((state) => state.setRecurrenceDay);
+  const enableNotification = useTransactionStore((state) => state.enableNotification);
+  const setEnableNotification = useTransactionStore((state) => state.setEnableNotification);
+  const notificationDate = useTransactionStore((state) => state.notificationDate);
+  const setNotificationDate = useTransactionStore((state) => state.setNotificationDate);
+  const tripId = useTransactionStore((state) => state.tripId);
+  const setTripId = useTransactionStore((state) => state.setTripId);
+  const setShowSplitModal = useTransactionStore((state) => state.setShowSplitModal);
   const [isExpanded, setIsExpanded] = useState(false);
   const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification);
 
