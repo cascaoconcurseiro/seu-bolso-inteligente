@@ -328,7 +328,7 @@ export function useCreditCardsDashboard() {
     showTransactionModal, setShowTransactionModal,
     selectedDate, setSelectedDate,
     
-    newBankId, setNewBankId,
+    newCardColor, setNewCardColor,
     newBrand, setNewBrand,
     newCardName, setNewCardName,
     newClosingDay, setNewClosingDay,

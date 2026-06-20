@@ -2,7 +2,7 @@ import { moneyUtils } from "@/utils/money";
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { useTrips, useTrip, useTripParticipants, useTripTransactions, useTripFinancialSummary, useCreateTrip, useUpdateTrip, useDeleteTrip, useArchiveTrip, useUnarchiveTrip, useTripParticipantBalances, useRemoveTripParticipant } from "@/hooks/useTrips";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
@@ -428,20 +428,23 @@ export function Trips() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
                 if (tripToDelete) {
                   try {
                     await deleteTrip.mutateAsync(tripToDelete);
                     toast.success("Viagem excluída com sucesso");
                     setView("list");
+                    setShowDeleteConfirm(false);
                   } catch (err: any) {
                     toast.error(err.message || "Erro ao excluir viagem");
                   }
                 }
               }} 
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 min-w-[120px]"
               disabled={deleteTrip.isPending}
             >
+              {deleteTrip.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
               {deleteTrip.isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>

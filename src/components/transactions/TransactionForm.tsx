@@ -153,16 +153,15 @@ export function TransactionForm(props: TransactionFormProps) {
                   {form.isCrossCurrencyTripExpense ? `Valor na Viagem (${form.selectedTrip?.currency})` : `Valor Recebido (${form.selectedDestAccount?.currency})`}
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-semibold">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold z-10">
                     {form.getCurrencySymbol(form.isCrossCurrencyTripExpense ? (form.selectedTrip?.currency || 'USD') : (form.selectedDestAccount?.currency || 'USD'))}
                   </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
+                  <CurrencyInput
+                    placeholder="0,00"
                     value={form.destinationAmount}
-                    onChange={(e) => form.handleDestAmountChange(e.target.value)}
-                    className="w-full h-11 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary shadow-sm"
+                    onChange={(val) => form.handleDestAmountChange(val)}
+                    currency={form.isCrossCurrencyTripExpense ? (form.selectedTrip?.currency || 'USD') : (form.selectedDestAccount?.currency || 'USD')}
+                    className="w-full h-11 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
                   />
                 </div>
               </div>
@@ -170,14 +169,13 @@ export function TransactionForm(props: TransactionFormProps) {
               <div className="space-y-2 opacity-70">
                 <Label className="text-xs font-semibold text-foreground">Taxa de Câmbio Efetiva</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-[10px] text-muted-foreground font-semibold">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-semibold z-10">
                     {form.selectedAccount?.currency}/{form.isCrossCurrencyTripExpense ? form.selectedTrip?.currency : form.selectedDestAccount?.currency}
                   </span>
                   <input
-                    type="number"
-                    step="0.0001"
-                    placeholder="0.0000"
-                    value={form.exchangeRate}
+                    type="text"
+                    placeholder="0,0000"
+                    value={form.exchangeRate ? Number(form.exchangeRate).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : ''}
                     readOnly
                     className="w-full h-11 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
                   />

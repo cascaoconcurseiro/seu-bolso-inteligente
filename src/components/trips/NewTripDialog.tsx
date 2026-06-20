@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/dialog";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, Calendar } from "lucide-react";
+import { Users, Calendar, Loader2 } from "lucide-react";
 import * as dateFns from "date-fns";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 const CURRENCIES = [
   { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
@@ -174,10 +175,11 @@ export function NewTripDialog({
                 Orçamento Total da Viagem
                 <span className="ml-1 text-xs text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <Input 
+              <CurrencyInput 
                 placeholder="5000" 
                 value={budget}
-                onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
+                onChange={setBudget}
+                currency={localCurrency}
               />
               <p className="text-xs text-muted-foreground">
                 Valor total previsto para toda a viagem. Cada viajante pode definir seu próprio orçamento pessoal separadamente.
@@ -233,7 +235,14 @@ export function NewTripDialog({
             onClick={handleSubmit} 
             disabled={isLoading || !destination || !startDate || !endDate}
           >
-            {isLoading ? "Criando..." : "Criar"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              "Criar"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

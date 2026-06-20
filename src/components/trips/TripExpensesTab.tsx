@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];
@@ -251,8 +252,8 @@ export function TripExpensesTab({
 
                         {/* Detalhes: categoria, data */}
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Tag className="h-3 w-3 text-muted-foreground/60" />
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                            <Tag className="h-2.5 w-2.5" />
                             {categoryName}
                           </span>
                           <span className="text-muted-foreground/30">•</span>
@@ -261,6 +262,28 @@ export function TripExpensesTab({
                             {dateFns.format(new Date(expense.date), "dd MMM", { locale: ptBR })}
                           </span>
                         </div>
+
+                        {/* Divisão de Custos (Avatars) */}
+                        {expense.transaction_splits && expense.transaction_splits.length > 0 && (
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Dividido com:</span>
+                            <div className="flex -space-x-1.5">
+                              {expense.transaction_splits.map((split: any) => {
+                                const member = participants.find((p: any) => p.id === split.member_id);
+                                return (
+                                  <div key={split.id} className="hover:scale-110 transition-transform">
+                                    <UserAvatar
+                                      name={member?.name || '?'}
+                                      avatarUrl={member?.avatar_url}
+                                      size="sm"
+                                      className="w-5 h-5 border-2 border-background shadow-sm text-[8px] ring-1 ring-border/20"
+                                    />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Impacto no orçamento — mostrar apenas se EU paguei */}
                         {iPaid && (
@@ -403,13 +426,13 @@ export function TripExpensesTab({
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Tag className="h-3.5 w-3.5 text-muted-foreground/60" />
+                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                            <Tag className="h-2.5 w-2.5" />
                             {categoryName}
                           </span>
                           <span className="text-muted-foreground/30">•</span>
                           <span className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground/60" />
+                            <Calendar className="h-3 w-3 text-muted-foreground/60" />
                             {dateFns.format(new Date(expense.date), "dd MMM yyyy", { locale: ptBR })}
                           </span>
                         </div>
