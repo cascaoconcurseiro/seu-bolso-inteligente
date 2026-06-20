@@ -206,17 +206,17 @@ export const exportMonthlyReport = async (data: ExportData) => {
       console.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');
       workbook.addWorksheet('Fluxo de Caixa');
       workbook.addWorksheet('Transações Mês a Mês');
-      workbook.addWorksheet('Compartilhado Fran (Compras)');
-      workbook.addWorksheet('Dívidas Fran');
+      workbook.addWorksheet('Compras Compartilhadas');
+      workbook.addWorksheet('Dívidas');
     } else {
       const arrayBuffer = await templateData.arrayBuffer();
       await workbook.xlsx.load(arrayBuffer);
       
       const mercadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'mercado');
-      if (mercadoSheet) mercadoSheet.name = 'Compartilhado Fran (Compras)';
+      if (mercadoSheet) mercadoSheet.name = 'Compras Compartilhadas';
 
-      const compartilhadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'compartilhado fran');
-      if (compartilhadoSheet) compartilhadoSheet.name = 'Dívidas Fran';
+      const compartilhadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'compartilhado fran' || s.name.toLowerCase() === 'dívidas');
+      if (compartilhadoSheet) compartilhadoSheet.name = 'Dívidas';
 
       if (!workbook.worksheets.find(s => s.name === 'Transações Mês a Mês')) {
         workbook.addWorksheet('Transações Mês a Mês');
@@ -241,25 +241,25 @@ export const exportMonthlyReport = async (data: ExportData) => {
       });
     }
 
-    const comprasSheet = workbook.getWorksheet('Compartilhado Fran (Compras)');
+    const comprasSheet = workbook.getWorksheet('Compras Compartilhadas');
     if (comprasSheet) {
       comprasSheet.spliceRows(2, Math.max(comprasSheet.rowCount, 2));
-      comprasSheet.getRow(1).values = ['Data', 'Descrição', 'Valor Total', 'Sua Parte', 'Parte Fran', 'Status'];
+      comprasSheet.getRow(1).values = ['Data', 'Descrição', 'Valor Total', 'Sua Parte', 'Parte Terceiros', 'Status'];
       (data.sharedPurchases || []).forEach(tx => {
         const meuValor = tx.transaction_splits?.find((s:any) => s.member_id !== null)?.amount || SafeFinancialCalculator.divide(tx.amount, 2);
-        const franValor = SafeFinancialCalculator.subtract(tx.amount, meuValor);
+        const outroValor = SafeFinancialCalculator.subtract(tx.amount, meuValor);
         comprasSheet.addRow([
           format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
           tx.description,
           tx.amount,
           meuValor,
-          franValor,
+          outroValor,
           tx.status
         ]);
       });
     }
 
-    const dividasSheet = workbook.getWorksheet('Dívidas Fran');
+    const dividasSheet = workbook.getWorksheet('Dívidas');
     if (dividasSheet) {
       dividasSheet.spliceRows(2, Math.max(dividasSheet.rowCount, 2));
       dividasSheet.getRow(1).values = ['Dívida/Fatura', 'Valor Original', 'Falta Pagar'];

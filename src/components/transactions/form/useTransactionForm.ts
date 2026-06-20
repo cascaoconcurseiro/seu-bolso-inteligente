@@ -473,7 +473,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       if (payerId !== 'me') return payerId || undefined;
       const me = familyMembers.find(m => m.linked_user_id === user?.id);
       if (me) return me.id;
-      const meFallback = familyMembers.find(m => m.name.toLowerCase().includes('wesley') || m.role === 'admin');
+      const meFallback = familyMembers.find(m => m.email === user?.email || m.role === 'admin');
       return meFallback?.id;
     })();
 
