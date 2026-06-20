@@ -294,7 +294,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               currency={currentCurrency}
               currencySymbol={moneyUtils.getSymbol(currentCurrency)}
               size="md"
-              textColorClass={type === 'EXPENSE' ? 'text-destructive' : type === 'INCOME' ? 'text-positive' : 'text-primary'}
+              textColorClass={'text-destructive'}
               autoFocus
             />
             <div className="space-y-2">
