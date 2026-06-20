@@ -18,7 +18,7 @@ import { splitCalculator } from '@/utils/splitCalculator';
 
 import { TransactionSplitData } from '@/types/transactions';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 
 interface SplitModalProps {
   isOpen: boolean;
@@ -60,56 +60,60 @@ export function SplitModal({
   // Estado local para a minha porcentagem de partilha quando o parceiro pagou
   const [mySplitPercentage, setMySplitPercentage] = useState<number>(50);
 
+  // Ref para rastrear o último split enviado ao store e evitar loop de comparação com floats
+  const lastSetSplitRef = useRef<{ memberId: string; percentage: number; amount: number } | null>(null);
+
   // Sincroniza o estado local ao abrir o modal para carregar splits existentes se houver
+  // NOTA: `splits` propositalmente não está nas deps para evitar loop; lemos apenas na abertura
   useEffect(() => {
     if (isOpen) {
       if (payerId !== 'me' && splits.length > 0) {
         const newPct = Number((100 - splits[0].percentage).toFixed(1));
-        if (mySplitPercentage !== newPct) {
-          setMySplitPercentage(newPct);
-        }
+        setMySplitPercentage(newPct);
+        lastSetSplitRef.current = splits[0]; // sincroniza ref com valor atual
       } else if (splits.length === 0 && payerId !== 'me') {
-        if (mySplitPercentage !== 50) setMySplitPercentage(50);
+        setMySplitPercentage(50);
+        lastSetSplitRef.current = null;
       }
-      
+
       // Auto-inicializar 50/50 com o primeiro membro disponível se splits estiver vazio
       const otherMembersList = (familyMembers || []).filter((m) => m.id !== currentUserMemberId);
       if (payerId === 'me' && splits.length === 0 && otherMembersList.length > 0) {
         const memberId = otherMembersList[0].id;
         const totalPeople = 2; // eu + 1 parceiro
         const splitAmounts = moneyUtils.splitSafely(activeAmount, totalPeople);
-        
-        setSplits([{
-          memberId,
-          percentage: 50,
-          amount: splitAmounts[1] // O parceiro fica com a segunda fatia
-        }]);
+        const newSplit = { memberId, percentage: 50, amount: splitAmounts[1] };
+        lastSetSplitRef.current = newSplit;
+        setSplits([newSplit]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, payerId, familyMembers, currentUserMemberId, activeAmount, setSplits, splits.length]);
+  }, [isOpen, payerId]);
 
-  // Sempre que mySplitPercentage ou payerId mudar quando outro pagou (payerId !== 'me'), atualiza os splits no formato do banco
+  // Sempre que mySplitPercentage/payerId/activeAmount mudarem (quando outro pagou), atualiza os splits.
+  // IMPORTANTE: `splits` NÃO está nas deps — usamos ref para evitar loop infinito (React Error #185).
   useEffect(() => {
-    if (isOpen && payerId !== 'me') {
-      const partnerPercentage = 100 - mySplitPercentage;
-      const partnerAmount = Number(((activeAmount * partnerPercentage) / 100).toFixed(2));
-      
-      const isSame = splits.length === 1 && 
-                     splits[0].memberId === payerId && 
-                     splits[0].percentage === partnerPercentage && 
-                     splits[0].amount === partnerAmount;
+    if (!isOpen || payerId === 'me') return;
 
-      if (!isSame) {
-        // Define o split contendo apenas o parceiro que pagou
-        setSplits([{
-          memberId: payerId,
-          percentage: partnerPercentage,
-          amount: partnerAmount
-        }]);
-      }
+    const partnerPercentage = 100 - mySplitPercentage;
+    // Usa centavos inteiros para comparação e evita imprecisão de float
+    const partnerAmountCents = Math.round((activeAmount * partnerPercentage) / 100 * 100);
+    const partnerAmount = partnerAmountCents / 100;
+
+    const last = lastSetSplitRef.current;
+    const lastCents = last ? Math.round(last.amount * 100) : -1;
+    const isSame =
+      last !== null &&
+      last.memberId === payerId &&
+      last.percentage === partnerPercentage &&
+      lastCents === partnerAmountCents;
+
+    if (!isSame) {
+      const newSplit = { memberId: payerId, percentage: partnerPercentage, amount: partnerAmount };
+      lastSetSplitRef.current = newSplit;
+      setSplits([newSplit]);
     }
-  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits, splits]);
+  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits]);
 
   console.log('🔵 [SplitModal] Renderizado com:', { 
     isOpen, 
