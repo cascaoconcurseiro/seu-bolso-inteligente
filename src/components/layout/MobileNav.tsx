@@ -59,7 +59,7 @@ export function MobileNav() {
     { label: 'Início', icon: Home, path: '/' },
     { label: 'Extrato', icon: ArrowLeftRight, path: '/transacoes' },
     { label: 'Add', icon: Plus, isAction: true },
-    { label: 'Grupos', icon: Users, path: '/compartilhados' },
+    { label: 'Viagens', icon: Plane, path: '/viagens' },
     { label: 'Menu', icon: Menu, isMenu: true },
   ];
 

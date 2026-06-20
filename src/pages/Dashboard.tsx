@@ -194,25 +194,33 @@ export function Dashboard() {
 
   if (!hasAccounts && !hasTransactions) {
     return (
-      <div className="space-y-8 animate-fade-in">
+      <div className="space-y-8 animate-fade-in flex flex-col items-center justify-center min-h-[60vh]">
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
         
-        <EmptyState
-          icon={Wallet}
-          title="Bem-vindo ao Pé de Meia"
-          description="Comece adicionando uma conta bancária ou criando sua primeira transação para gerenciar seu dinheiro."
-          action={
+        <div className="relative overflow-hidden w-full max-w-2xl mx-auto rounded-[2.5rem] bg-gradient-to-br from-card to-card/50 border border-border/50 shadow-2xl p-10 text-center backdrop-blur-xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
+          
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-24 h-24 bg-background rounded-3xl flex items-center justify-center shadow-lg border border-white/5 mb-8 rotate-3 transition-transform hover:rotate-6">
+              <Wallet className="w-12 h-12 text-primary" />
+            </div>
+            
+            <h1 className="text-3xl font-display font-bold mb-4 tracking-tight">O palco está montado</h1>
+            <p className="text-muted-foreground text-lg mb-10 max-w-md mx-auto">
+              Seu império financeiro começa aqui. Adicione sua primeira conta para ver a mágica do Pé de Meia acontecer.
+            </p>
+            
             <Link to="/contas">
-              <Button size="default" variant="outline" className="gap-2 shadow-sm font-medium hover-lift">
-                <CreditCard className="h-4 w-4" />
-                <span>Adicionar conta</span>
+              <Button size="lg" className="h-14 px-8 text-lg rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
+                <CreditCard className="h-5 w-5 mr-3" />
+                Adicionar Primeira Conta
               </Button>
             </Link>
-          }
-          className="mt-8 border-none bg-transparent"
-        />
+          </div>
+        </div>
       </div>
     );
   }
@@ -244,16 +252,18 @@ export function Dashboard() {
           {activeTrip && (
             <Button
               variant="outline"
-              size="icon"
               onClick={() => setIsTripMode(!isTripMode)}
-              className={`rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 z-10 ${
+              className={`rounded-full h-10 px-4 flex items-center gap-2 border transition-all duration-500 shadow-md hover:shadow-lg active:scale-95 z-10 font-semibold backdrop-blur-md ${
                 isTripMode 
-                  ? "bg-green-500/10 border-green-500 text-green-600 hover:bg-green-500/20" 
-                  : "bg-red-500/10 border-red-500 text-red-600 hover:bg-red-500/20"
+                  ? "bg-primary/20 border-primary text-primary hover:bg-primary/30 shadow-primary/20" 
+                  : "bg-background/80 border-border text-muted-foreground hover:bg-background shadow-black/5"
               }`}
-              title={isTripMode ? "Desativar Modo Viagem" : "Ativar Modo Viagem"}
+              title={isTripMode ? "Sair do Modo Viagem" : "Entrar no Modo Viagem"}
             >
-              <Plane className="h-5 w-5" />
+              <div className={`flex items-center justify-center rounded-full p-1 transition-transform duration-500 ${isTripMode ? "bg-primary text-primary-foreground rotate-12" : "bg-muted text-muted-foreground"}`}>
+                <Plane className="h-4 w-4" />
+              </div>
+              <span>{isTripMode ? "Viagem Ativa" : "Modo Viagem"}</span>
             </Button>
           )}
           <DashboardInsights />
