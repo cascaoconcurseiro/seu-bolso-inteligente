@@ -8,8 +8,9 @@ export function Calculators() {
   const [activeTab, setActiveTab] = useState("fixed-income");
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+    <div className="space-y-6 pb-24 animate-fade-in">
+      {/* Header com Design System */}
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-8 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
         <div className="relative z-10 flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
@@ -21,10 +22,9 @@ export function Calculators() {
               <span className="text-xs font-bold uppercase tracking-widest text-primary">Inteligência Financeira</span>
             </div>
             
-            <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-display font-black tracking-tight">
               Simuladores
             </h1>
-            
             <p className="text-muted-foreground font-medium max-w-lg">
               Projete o futuro do seu patrimônio usando dados reais do Banco Central. Simule investimentos e o impacto da inflação.
             </p>

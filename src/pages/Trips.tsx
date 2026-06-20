@@ -198,7 +198,7 @@ export function Trips() {
 
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 border border-border/50 bg-card/50">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="skeleton h-10 w-36 rounded-xl" />
@@ -297,12 +297,12 @@ export function Trips() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="space-y-1">
-            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Viagens</h1>
-            <p className="text-muted-foreground mt-1 font-medium">Organize despesas e roteiros em grupo</p>
+            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Viagens</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Organize despesas e roteiros em grupo</p>
           </div>
           <Button 
             size="default" 

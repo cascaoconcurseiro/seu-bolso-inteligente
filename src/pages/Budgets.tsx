@@ -80,36 +80,38 @@ export function Budgets() {
   const totalBudgeted = useMemo(() => budgetsWithProgress.reduce((sum, b) => sum + b.budget_amount, 0), [budgetsWithProgress]);
   const totalSpent = useMemo(() => budgetsWithProgress.reduce((sum, b) => sum + b.spent_amount, 0), [budgetsWithProgress]);
 
-  if (isLoading) return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
-        <div className="space-y-3">
-          <div className="skeleton h-10 w-56 rounded-xl" />
-          <div className="skeleton h-4 w-72 rounded-lg" />
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in pb-20">
+        <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 border border-border/50 bg-card/50">
+          <div className="space-y-3">
+            <div className="skeleton h-10 w-56 rounded-xl" />
+            <div className="skeleton h-4 w-72 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-64 bg-muted rounded-2xl animate-pulse" />
+          ))}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="skeleton h-24 rounded-3xl" />
-        <div className="skeleton h-24 rounded-3xl" />
-      </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map(i => <div key={i} className="skeleton h-40 rounded-3xl" />)}
-      </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Orçamentos</h1>
+              <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Orçamentos</h1>
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors" />
+                  <TooltipTrigger asChild>
+                    <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center cursor-help transition-transform hover:scale-110">
+                      <HelpCircle className="h-3.5 w-3.5" />
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                     <p className="font-bold text-sm">Controle Inteligente</p>

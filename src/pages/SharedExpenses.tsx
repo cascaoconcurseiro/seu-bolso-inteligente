@@ -314,14 +314,14 @@ export function SharedExpenses() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-3xl md:text-4xl tracking-tighter">Compartilhados</h1>
-            <p className="text-muted-foreground mt-1 font-medium">Despesas divididas com a família e amigos</p>
+            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Compartilhados</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Despesas divididas com a família e amigos</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+          <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
             <Button size="default" variant="outline" className="shadow-sm border-border/80 w-full sm:w-11 h-11 px-0 flex items-center justify-center" onClick={() => setShowSettingsModal(true)} title="Configurações de Ciclo">
               <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
