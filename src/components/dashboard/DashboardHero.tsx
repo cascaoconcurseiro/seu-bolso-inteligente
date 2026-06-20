@@ -90,38 +90,38 @@ export function DashboardHero({
             {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 group/patrimony transition-all hover:bg-blue-500/15">
-              <div className="p-1.5 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/20 group-hover/patrimony:scale-110 transition-transform">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 group/patrimony transition-all hover:bg-blue-500/15 overflow-hidden">
+              <div className="shrink-0 p-1.5 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/20 group-hover/patrimony:scale-110 transition-transform">
                 <Globe className="h-3 w-3" />
               </div>
-              <div>
-                <p className="text-[9px] text-blue-600/70 font-bold uppercase tracking-wider">Patrimônio</p>
-                <p className={cn("text-sm font-bold text-blue-600", isPrivate && "blur-md opacity-50 select-none")}>
+              <div className="min-w-0">
+                <p className="text-[8px] sm:text-[9px] text-blue-600/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-blue-600 truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-green-500/10 border border-green-500/20 group/income transition-all hover:bg-green-500/15">
-              <div className="p-1.5 rounded-full bg-green-500 text-white shadow-lg shadow-green-500/20 group-hover/income:scale-110 transition-transform">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-green-500/10 border border-green-500/20 group/income transition-all hover:bg-green-500/15 overflow-hidden">
+              <div className="shrink-0 p-1.5 rounded-full bg-green-500 text-white shadow-lg shadow-green-500/20 group-hover/income:scale-110 transition-transform">
                 <TrendingUp className="h-3 w-3" />
               </div>
-              <div>
-                <p className="text-[9px] text-green-600/70 font-bold uppercase tracking-wider">Entradas</p>
-                <p className={cn("text-sm font-bold text-green-600", isPrivate && "blur-md opacity-50 select-none")}>
+              <div className="min-w-0">
+                <p className="text-[8px] sm:text-[9px] text-green-600/70 font-bold uppercase tracking-wider truncate">Entradas</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-green-600 truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-red-500/10 border border-red-500/20 group/expense transition-all hover:bg-red-500/15">
-              <div className="p-1.5 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/20 group-hover/expense:scale-110 transition-transform">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-red-500/10 border border-red-500/20 group/expense transition-all hover:bg-red-500/15 overflow-hidden">
+              <div className="shrink-0 p-1.5 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/20 group-hover/expense:scale-110 transition-transform">
                 <TrendingDown className="h-3 w-3" />
               </div>
-              <div>
-                <p className="text-[9px] text-red-600/70 font-bold uppercase tracking-wider">Saídas</p>
-                <p className={cn("text-sm font-bold text-red-600", isPrivate && "blur-md opacity-50 select-none")}>
+              <div className="min-w-0">
+                <p className="text-[8px] sm:text-[9px] text-red-600/70 font-bold uppercase tracking-wider truncate">Saídas</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-red-600 truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
               </div>
@@ -129,22 +129,22 @@ export function DashboardHero({
 
             {income > 0 && (
               <div className={cn(
-                "flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15",
+                "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15 overflow-hidden",
                 savingsRate >= 0 
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/15" 
                   : "bg-amber-500/10 border-amber-500/20 text-amber-600 hover:bg-amber-500/15"
               )}>
                 <div className={cn(
-                  "p-1.5 rounded-full text-white shadow-lg",
+                  "shrink-0 p-1.5 rounded-full text-white shadow-lg",
                   savingsRate >= 0 
                     ? "bg-emerald-500 shadow-emerald-500/20" 
                     : "bg-amber-500 shadow-amber-500/20"
                 )}>
                   <Target className="h-3 w-3" />
                 </div>
-                <div>
-                  <p className="text-[9px] opacity-75 font-bold uppercase tracking-wider">Taxa Poupança</p>
-                  <p className="text-sm font-bold">
+                <div className="min-w-0">
+                  <p className="text-[8px] sm:text-[9px] opacity-75 font-bold uppercase tracking-wider truncate">Taxa Poupança</p>
+                  <p className="text-xs sm:text-sm font-bold truncate">
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>
                 </div>

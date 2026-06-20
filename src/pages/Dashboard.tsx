@@ -27,7 +27,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { DashboardInsights } from "@/components/dashboard/DashboardInsights";
 
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
@@ -255,8 +254,6 @@ export function Dashboard() {
               <span>{isTripMode ? "Viagem Ativa" : "Modo Viagem"}</span>
             </Button>
           )}
-          <DashboardInsights />
-
           {currenciesData.length > 1 && (
             <div className="w-[85px]">
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
