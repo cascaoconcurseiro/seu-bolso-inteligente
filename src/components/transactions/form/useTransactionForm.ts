@@ -109,6 +109,10 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const goalId = store.goalId;
 
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
+  // Refs anti-loop para effects que chamam setters derivados de variáveis compostas
+  const lastSetPayerIdRef = useRef<string>(store.payerId);
+  const lastClearedAccountForPaidByOtherRef = useRef<boolean | null>(null);
+  const lastClearedAccountForTabRef = useRef<string | null>(null);
 
   const predictionType = useMemo(() => {
     if (activeTab === 'INCOME') return 'income';
@@ -259,11 +263,17 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const selectedDestAccount = accounts?.find((a) => a.id === destinationAccountId);
 
   // Corrigir payerId vindo do banco caso seja o próprio usuário
+  // ANTI-LOOP: usa ref para não chamar setPayerId se o valor já é 'me'
   useEffect(() => {
-    if (payerId === user?.id) {
+    const shouldNormalize =
+      (user?.id && payerId === user.id) ||
+      (myMemberRecord?.id && payerId === myMemberRecord.id);
+
+    if (shouldNormalize && lastSetPayerIdRef.current !== 'me') {
+      lastSetPayerIdRef.current = 'me';
       store.setPayerId('me');
-    } else if (myMemberRecord?.id && payerId === myMemberRecord.id) {
-      store.setPayerId('me');
+    } else if (!shouldNormalize) {
+      lastSetPayerIdRef.current = payerId;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, myMemberRecord?.id, payerId]);
@@ -308,18 +318,27 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   }, [amount, showExchangePanel, destinationAmount]);
 
   // Limpar contas caso não aplicável
+  // ANTI-LOOP: só chama setAccountId se isPaidByOther mudou de false→true
   useEffect(() => {
-    if (isPaidByOther) store.setAccountId('');
+    if (isPaidByOther && lastClearedAccountForPaidByOtherRef.current !== true) {
+      lastClearedAccountForPaidByOtherRef.current = true;
+      store.setAccountId('');
+    } else if (!isPaidByOther) {
+      lastClearedAccountForPaidByOtherRef.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaidByOther]);
 
   // Limpar conta selecionada se mudar para receita e for um cartão de crédito
+  // ANTI-LOOP: só chama setAccountId se o combo activeTab+accountId ainda não foi limpo
   useEffect(() => {
-    if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD') {
+    const key = `${activeTab}:${accountId}`;
+    if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD' && lastClearedAccountForTabRef.current !== key) {
+      lastClearedAccountForTabRef.current = key;
       store.setAccountId('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selectedAccount]);
+  }, [activeTab, selectedAccount?.type, accountId]);
 
   const transactionCurrency = selectedTrip?.currency || (selectedAccount?.is_international ? selectedAccount.currency : null) || 'BRL';
 
