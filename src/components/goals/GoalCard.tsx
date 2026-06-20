@@ -92,13 +92,13 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
         <div className="space-y-4">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Acumulado</p>
-              <p className="text-2xl font-mono font-bold text-foreground tracking-tighter">
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-widest mb-1">Acumulado</p>
+              <p className="font-display text-2xl xs:text-3xl font-black text-foreground tracking-tighter">
                 {moneyUtils.format(goal.current_amount ?? 0, 'BRL')}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Objetivo</p>
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-widest mb-1">Objetivo</p>
               <p className="text-sm font-mono font-bold text-foreground/70">
                 {moneyUtils.format(goal.target_amount, 'BRL')}
               </p>
@@ -123,28 +123,41 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             </div>
           </div>
 
-          <div className="relative w-full bg-muted/50 rounded-full h-3 overflow-hidden">
-            <div 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary via-primary/80 to-blue-400 rounded-full transition-all duration-1000 ease-out" 
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-
-          <div className="flex justify-between items-center pt-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-primary/5">
-                <TrendingUp className="w-3 h-3 text-primary" />
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "flex items-center justify-center w-6 h-6 rounded-lg",
+                  percentage >= 100 ? "bg-positive/10" : "bg-primary/10"
+                )}>
+                  <TrendingUp className={cn(
+                    "w-3 h-3",
+                    percentage >= 100 ? "text-positive" : "text-primary"
+                  )} />
+                </div>
+                <span className="text-xs font-bold text-foreground/80">
+                  {percentage.toFixed(0)}% <span className="text-muted-foreground font-medium">concluído</span>
+                </span>
               </div>
-              <span className="text-xs font-bold text-foreground/80">
-                {percentage.toFixed(0)}% <span className="text-muted-foreground font-medium">concluído</span>
-              </span>
+              
+              {remaining > 0 && (
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  Faltam <span className="text-foreground font-bold">{moneyUtils.format(remaining, 'BRL')}</span>
+                </p>
+              )}
             </div>
-            
-            {remaining > 0 && (
-              <p className="text-[11px] font-medium text-muted-foreground">
-                Faltam <span className="text-foreground font-bold">{moneyUtils.format(remaining, 'BRL')}</span>
-              </p>
-            )}
+
+            <div className="relative w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner border border-border/30">
+              <div 
+                className={cn(
+                  "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.1)]",
+                  percentage >= 100 
+                    ? "bg-gradient-to-r from-positive/80 to-positive" 
+                    : "bg-gradient-to-r from-primary via-primary/80 to-blue-400"
+                )}
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
           </div>
 
           <Button 

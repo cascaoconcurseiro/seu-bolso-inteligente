@@ -100,14 +100,25 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             </div>
           </div>
           
-          <div className="relative h-2.5 bg-muted rounded-full overflow-hidden shadow-inner">
+          <div className="relative w-full bg-muted/60 rounded-full h-3.5 overflow-hidden shadow-inner border border-border/40">
             <div 
               className={cn(
-                "h-full rounded-full transition-all duration-1000 ease-out", 
-                isOverBudget ? "bg-red-500 shadow-lg shadow-red-500/20" : isWarning ? "bg-amber-500 shadow-lg shadow-amber-500/20" : "bg-primary shadow-lg shadow-primary/20"
+                "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.15)]", 
+                isOverBudget ? "bg-gradient-to-r from-red-600 to-red-400" : isWarning ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-primary via-primary/80 to-blue-400"
               )} 
               style={{ width: `${Math.min(percentage, 100)}%` }} 
             />
+            {/* Efeito de listras animadas para overbudget */}
+            {isOverBudget && (
+              <div 
+                className="absolute top-0 left-0 h-full w-full opacity-30" 
+                style={{ 
+                  backgroundImage: 'linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)',
+                  backgroundSize: '1rem 1rem',
+                  animation: 'progress-stripes 1s linear infinite'
+                }}
+              />
+            )}
           </div>
         </div>
 

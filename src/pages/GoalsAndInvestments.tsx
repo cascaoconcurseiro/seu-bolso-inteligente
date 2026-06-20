@@ -103,14 +103,16 @@ export function GoalsAndInvestments() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header com Glassmorphism */}
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter text-foreground">
+            <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter text-foreground">
               Metas e Investimentos
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
+            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
+              <Target className="w-4 h-4" />
               {activeTab === 'IRPF' ? 'Relatório de Imposto de Renda (IRPF)' : 'Gestão de Patrimônio'}
             </p>
           </div>
@@ -242,15 +244,20 @@ export function GoalsAndInvestments() {
         {activeTab === 'GOALS' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals?.length === 0 ? (
-               <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
-                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
-                   <Target className="w-10 h-10 text-primary" />
+               <div className="col-span-full relative overflow-hidden flex flex-col items-center justify-center py-24 px-4 text-center bg-card/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 shadow-sm">
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                 <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+                   <Target className="w-12 h-12 text-primary" />
                  </div>
-                 <h3 className="text-2xl font-display font-bold text-foreground mb-3 tracking-tight">Nenhuma meta cadastrada</h3>
-                 <p className="text-muted-foreground text-center max-w-md text-base mb-8">
-                   Defina seus sonhos (como uma viagem, um carro novo ou reserva de emergência) e acompanhe seu progresso até alcançá-los.
+                 <h3 className="relative z-10 text-3xl font-display font-black text-foreground mb-3 tracking-tighter">Alcance seus objetivos</h3>
+                 <p className="relative z-10 text-muted-foreground text-center max-w-md text-base mb-10 font-medium leading-relaxed">
+                   Defina seus sonhos, seja uma viagem inesquecível, a casa própria ou sua reserva de segurança, e acompanhe cada passo do seu progresso.
                  </p>
-                 <Button onClick={() => setShowGoalForm(true)} size="lg" className="h-12 px-8 rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold">
+                 <Button 
+                   onClick={() => setShowGoalForm(true)} 
+                   size="lg" 
+                   className="relative z-10 h-14 px-10 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all duration-300 font-bold text-base"
+                 >
                    <Plus className="w-5 h-5 mr-2" />
                    Criar Minha Primeira Meta
                  </Button>

@@ -108,12 +108,13 @@ export function Budgets() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      {/* Header com Glassmorphism */}
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Orçamentos</h1>
+              <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter">Orçamentos</h1>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -130,47 +131,81 @@ export function Budgets() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <p className="text-muted-foreground mt-1 font-medium">
+            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
               Gestão de limites para {dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })}
             </p>
           </div>
           <Button 
             onClick={() => setShowNewBudgetDialog(true)} 
             size="default"
-            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold"
+            className="shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 px-6 w-full sm:w-auto font-bold rounded-2xl"
           >
-            <Plus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" /> 
+            <Plus className="h-5 w-5 mr-2 transition-transform group-hover:scale-110" /> 
             Novo Orçamento
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-6 rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-            <Target className="h-6 w-6" />
+      {/* Mini Dashboard de Orçamentos */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+            <Target className="w-16 h-16 text-primary" />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Total Planejado</p>
-            <p className="text-2xl font-display font-bold">{moneyUtils.format(totalBudgeted, 'BRL')}</p>
+          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Target className="h-6 w-6 sm:h-7 sm:w-7" />
+          </div>
+          <div className="relative z-10 min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Planejado</p>
+            <p className="text-xl sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalBudgeted, 'BRL')}</p>
           </div>
         </div>
-        <div className="p-6 rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-            <TrendingUp className="h-6 w-6" />
+        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+            <TrendingUp className="w-16 h-16 text-amber-500" />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Total Consumido</p>
-            <p className="text-2xl font-display font-bold">{moneyUtils.format(totalSpent, 'BRL')}</p>
+          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+            <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7" />
+          </div>
+          <div className="relative z-10 min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Consumido</p>
+            <p className="text-xl sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalSpent, 'BRL')}</p>
+          </div>
+        </div>
+        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-gradient-to-br from-positive/10 to-card shadow-sm flex items-center gap-4 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+            <Wallet className="w-16 h-16 text-positive" />
+          </div>
+          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-positive/10 flex items-center justify-center text-positive shrink-0">
+            <Wallet className="h-6 w-6 sm:h-7 sm:w-7" />
+          </div>
+          <div className="relative z-10 min-w-0">
+            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Disponível Total</p>
+            <p className="text-xl sm:text-3xl font-display font-black truncate text-positive">
+              {moneyUtils.format(Math.max(0, totalBudgeted - totalSpent), 'BRL')}
+            </p>
           </div>
         </div>
       </div>
 
       {budgets.length === 0 ? (
-        <div className="py-24 text-center border border-dashed rounded-[2rem] bg-muted/20">
-          <Wallet className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-          <p className="text-muted-foreground font-medium text-lg">Comece a planejar seus gastos mensais</p>
-          <Button variant="ghost" onClick={() => setShowNewBudgetDialog(true)} className="mt-4 text-primary">Criar meu primeiro orçamento</Button>
+        <div className="col-span-full relative overflow-hidden flex flex-col items-center justify-center py-24 px-4 text-center bg-card/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 shadow-sm">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+            <Wallet className="w-12 h-12 text-primary" />
+          </div>
+          <h3 className="relative z-10 text-3xl font-display font-black text-foreground mb-3 tracking-tighter">Comece a planejar seus gastos</h3>
+          <p className="relative z-10 text-muted-foreground text-center max-w-md text-base mb-10 font-medium leading-relaxed">
+            Estabeleça limites para suas despesas e conquiste paz de espírito acompanhando tudo em tempo real.
+          </p>
+          <Button 
+            onClick={() => setShowNewBudgetDialog(true)} 
+            size="lg" 
+            className="relative z-10 h-14 px-10 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all duration-300 font-bold text-base"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Criar Meu Primeiro Orçamento
+          </Button>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
