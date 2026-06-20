@@ -81,82 +81,88 @@
           }
         } catch (e) {}
 
-        // Listener global para capturar erros de carregamento de chunk (comum pós-update de PWA)
+        // ─── PWA CHUNK ERROR RECOVERY ───────────────────────────────────────────
+        // Quando o Service Worker serve um JS com hash antigo e o servidor retorna
+        // index.html (404→HTML), o browser lança "Failed to load module script".
+        // Esta lógica limpa TODOS os caches e desregistra o SW de forma bloqueante
+        // antes de recarregar, garantindo que o reload pegue os assets novos.
+        // ────────────────────────────────────────────────────────────────────────
+        var RECOVERY_KEY = 'pwa_chunk_recovery_ts';
+        var RECOVERY_LIMIT_MS = 15000; // 15s entre tentativas automáticas
+
+        function showManualButton() {
+          var splash = document.getElementById('native-splash');
+          if (splash && !document.getElementById('force-reload-btn')) {
+            var btn = document.createElement('button');
+            btn.id = 'force-reload-btn';
+            btn.innerHTML = 'Atualizar App';
+            btn.style.cssText = 'margin-top:20px;padding:12px 24px;background:#10b981;color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:15px;font-weight:600;';
+            btn.onclick = function() {
+              btn.innerHTML = 'Limpando...';
+              btn.disabled = true;
+              localStorage.removeItem(RECOVERY_KEY); // libera nova tentativa
+              hardClearAndReload();
+            };
+            splash.appendChild(btn);
+          }
+          console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');
+        }
+
+        function hardClearAndReload() {
+          var swDone = ('serviceWorker' in navigator)
+            ? navigator.serviceWorker.getRegistrations().then(function(regs) {
+                return Promise.all(regs.map(function(r) { return r.unregister(); }));
+              })
+            : Promise.resolve();
+
+          var cacheDone = ('caches' in window)
+            ? caches.keys().then(function(names) {
+                return Promise.all(names.map(function(n) { return caches.delete(n); }));
+              })
+            : Promise.resolve();
+
+          Promise.all([swDone, cacheDone]).then(function() {
+            // Usa replace() sem query string: evita que o SW (já desregistrado)
+            // responda ao request. O history.pushState não ajuda aqui.
+            window.location.replace(window.location.pathname);
+          }).catch(function() {
+            window.location.replace(window.location.pathname);
+          });
+        }
+
         window.addEventListener('error', function(e) {
           var isChunkError = (e.message && (
-            e.message.includes('dynamically imported module') || 
+            e.message.includes('dynamically imported module') ||
             e.message.includes('Failed to fetch') ||
             e.message.includes('Importing a module script failed') ||
             e.message.includes('resolving a module specifier') ||
             e.message.includes('Failed to load module script') ||
             e.message.includes('text/html')
-          )) || (e.target && e.target.nodeName === 'SCRIPT');
-          
-          if (isChunkError || e.name === 'ChunkLoadError') {
-            console.warn('[PWA] Erro de carregamento de módulo detectado. Forçando limpeza de cache, SW e recarregamento...');
-            
-            function hardReload() {
-              var currentUrl = window.location.href.split('#')[0];
-              var separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
-              window.location.href = currentUrl + separator + 't=' + Date.now();
-            }
+          )) || (e.target && e.target.nodeName === 'SCRIPT' && e.type === 'error');
 
-            function clearAndReload() {
-              var p1 = Promise.resolve();
-              var p2 = Promise.resolve();
+          if (!isChunkError && e.name !== 'ChunkLoadError') return;
 
-              if ('serviceWorker' in navigator) {
-                p1 = navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  return Promise.all(registrations.map(function(r) { return r.unregister(); }));
-                });
-              }
+          console.warn('[PWA] Erro de carregamento de módulo detectado. Iniciando recuperação...');
 
-              if ('caches' in window) {
-                p2 = caches.keys().then(function(names) {
-                  return Promise.all(names.map(function(name) { return caches.delete(name); }));
-                });
-              }
+          var now = Date.now();
+          var lastRetry = parseInt(localStorage.getItem(RECOVERY_KEY) || '0');
 
-              Promise.all([p1, p2]).then(function() {
-                setTimeout(hardReload, 200);
-              }).catch(function() {
-                setTimeout(hardReload, 200);
-              });
-            }
-
-            // Previne loop infinito: só recarrega se não tentou recentemente (a cada 5 segundos)
-            var lastRetry = sessionStorage.getItem('chunk_retry_timestamp');
-            var now = Date.now();
-            if (!lastRetry || (now - parseInt(lastRetry)) > 5000) {
-              sessionStorage.setItem('chunk_retry_timestamp', now.toString());
-              clearAndReload();
-            } else {
-              console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');
-              // Mostrar botão de recarregar manual na tela
-              var splash = document.getElementById('native-splash');
-              if (splash && !document.getElementById('force-reload-btn')) {
-                var btn = document.createElement('button');
-                btn.id = 'force-reload-btn';
-                btn.innerHTML = 'Forçar Atualização';
-                btn.style.marginTop = '20px';
-                btn.style.padding = '10px 20px';
-                btn.style.backgroundColor = '#10b981';
-                btn.style.color = 'white';
-                btn.style.border = 'none';
-                btn.style.borderRadius = '8px';
-                btn.style.cursor = 'pointer';
-                btn.style.fontFamily = 'Inter, sans-serif';
-                btn.onclick = function() { 
-                  btn.innerHTML = 'Limpando...';
-                  clearAndReload(); 
-                };
-                splash.appendChild(btn);
-              }
-            }
+          if (!lastRetry || (now - lastRetry) > RECOVERY_LIMIT_MS) {
+            localStorage.setItem(RECOVERY_KEY, now.toString());
+            hardClearAndReload();
+          } else {
+            showManualButton();
           }
-        }, true); // true para capturar na fase de captura (antes que pare a execução)
+        }, true);
+
+        // Limpa o flag de recovery se a página carregou com sucesso após N segundos
+        // (significa que o reload funcionou e não estamos em loop)
+        setTimeout(function() {
+          localStorage.removeItem(RECOVERY_KEY);
+        }, 8000);
       })();
     </script>
+
   </head>
 
   <body>
