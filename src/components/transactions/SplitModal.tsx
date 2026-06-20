@@ -179,7 +179,7 @@ export function SplitModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col gap-0 p-0 overflow-hidden">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-background h-full max-h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-2xl border-0 sm:border">
         <DialogHeader className="p-6 pb-4 border-b border-border shrink-0">
           <DialogTitle>Divisão e Pagamento</DialogTitle>
           <DialogDescription>

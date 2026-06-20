@@ -762,13 +762,28 @@ export function Reports() {
 
       {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
 
-      <Tabs defaultValue="overview" className="space-y-6 w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold">Visão Geral</TabsTrigger>
-          <TabsTrigger value="evolution" className="rounded-lg text-xs font-semibold">Evolução</TabsTrigger>
-          <TabsTrigger value="categories" className="rounded-lg text-xs font-semibold">Categorias</TabsTrigger>
-          {/* <TabsTrigger value="dre" className="rounded-lg text-xs font-semibold">DRE & Balanço</TabsTrigger> */}
-        </TabsList>
+      {periodTransactions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
+          <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-border/50">
+            <Calendar className="w-10 h-10 text-muted-foreground/60" />
+          </div>
+          <h2 className="text-2xl font-display font-bold mb-3 tracking-tight">Nenhum dado neste período</h2>
+          <p className="text-muted-foreground max-w-md mx-auto mb-8 text-base">
+            Seus relatórios ganham vida quando você adiciona transações. Volte ao painel principal ou mude o mês/ano selecionado para explorar seus dados.
+          </p>
+          <Button onClick={() => setViewType('YEAR')} variant="outline" className="h-12 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
+            <Search className="w-4 h-4 mr-2" />
+            Ver Ano Completo
+          </Button>
+        </div>
+      ) : (
+        <Tabs defaultValue="overview" className="space-y-6 w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold">Visão Geral</TabsTrigger>
+            <TabsTrigger value="evolution" className="rounded-lg text-xs font-semibold">Evolução</TabsTrigger>
+            <TabsTrigger value="categories" className="rounded-lg text-xs font-semibold">Categorias</TabsTrigger>
+            {/* <TabsTrigger value="dre" className="rounded-lg text-xs font-semibold">DRE & Balanço</TabsTrigger> */}
+          </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -895,6 +910,7 @@ export function Reports() {
       </TabsContent>
       */}
       </Tabs>
+      )}
 
 
       <TransactionModal 

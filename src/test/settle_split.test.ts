@@ -40,7 +40,7 @@ describe('settle_split() RPC Function', () => {
 
       // Mock the RPC call
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -49,16 +49,17 @@ describe('settle_split() RPC Function', () => {
       const { data, error } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
       expect(error).toBeNull();
       expect(data).toBeDefined();
-      expect(data.success).toBe(true);
-      expect(data.split_id).toBe(mockSplitId);
-      expect(data.payment_transaction_id).toBeDefined();
-      expect(data.amount).toBe(mockAmount);
-      expect(data.settled_at).toBeDefined();
+      expect((data as any).success).toBe(true);
+      expect((data as any).split_id).toBe(mockSplitId);
+      expect((data as any).payment_transaction_id).toBeDefined();
+      expect((data as any).amount).toBe(mockAmount);
+      expect((data as any).settled_at).toBeDefined();
     });
 
     it('should return payment transaction ID for account balance update', async () => {
@@ -76,7 +77,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -85,12 +86,13 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.payment_transaction_id).toBe(paymentTxId);
-      expect(data.payment_transaction_id).not.toBeNull();
-      expect(data.payment_transaction_id).not.toBeUndefined();
+      expect((data as any).payment_transaction_id).toBe(paymentTxId);
+      expect((data as any).payment_transaction_id).not.toBeNull();
+      expect((data as any).payment_transaction_id).not.toBeUndefined();
     });
 
     it('should handle different amount values correctly', async () => {
@@ -110,7 +112,7 @@ describe('settle_split() RPC Function', () => {
         };
 
         vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-          data: mockResponse,
+          data: mockResponse as any,
           error: null,
           status: 200,
           statusText: 'OK'
@@ -122,7 +124,7 @@ describe('settle_split() RPC Function', () => {
           p_amount: amount
         });
 
-        expect(data.amount).toBe(amount);
+        expect((data as any).amount).toBe(amount);
       }
     });
   });
@@ -139,7 +141,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -148,11 +150,12 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: '00000000-0000-0000-0000-000000000000',
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Split não encontrado.');
+      expect((data as any).success).toBe(false);
+      expect((data as any).error).toBe('Split não encontrado.');
     });
 
     it('should return error when split is already settled', async () => {
@@ -166,7 +169,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -175,11 +178,12 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Este split já foi liquidado.');
+      expect((data as any).success).toBe(false);
+      expect((data as any).error).toBe('Este split já foi liquidado.');
     });
 
     it('should handle invalid account ID gracefully', async () => {
@@ -193,7 +197,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -202,11 +206,12 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: '00000000-0000-0000-0000-000000000000',
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
-      expect(data.error).toContain('Conta');
+      expect((data as any).success).toBe(false);
+      expect((data as any).error).toContain('Conta');
     });
 
     it('should handle negative amounts appropriately', async () => {
@@ -220,7 +225,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -232,8 +237,8 @@ describe('settle_split() RPC Function', () => {
         p_amount: -100.00
       });
 
-      expect(data.success).toBe(false);
-      expect(data.error).toContain('positivo');
+      expect((data as any).success).toBe(false);
+      expect((data as any).error).toContain('positivo');
     });
 
     it('should handle zero amount appropriately', async () => {
@@ -247,7 +252,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -256,11 +261,12 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: 0
+        p_amount: 0,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
-      expect(data.error).toContain('zero');
+      expect((data as any).success).toBe(false);
+      expect((data as any).error).toContain('zero');
     });
   });
 
@@ -282,7 +288,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -291,15 +297,16 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
       // All three conditions must be true for atomicity
-      expect(data.success).toBe(true);
-      expect(data.split_id).toBe(mockSplitId);
-      expect(data.payment_transaction_id).toBeDefined();
-      expect(data.amount).toBe(mockAmount);
-      expect(data.settled_at).toBeDefined();
+      expect((data as any).success).toBe(true);
+      expect((data as any).split_id).toBe(mockSplitId);
+      expect((data as any).payment_transaction_id).toBeDefined();
+      expect((data as any).amount).toBe(mockAmount);
+      expect((data as any).settled_at).toBeDefined();
     });
 
     it('should rollback on any error (no partial updates)', async () => {
@@ -313,7 +320,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -322,12 +329,13 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
       // On error, no partial updates should occur
-      expect(data.success).toBe(false);
-      expect(data.payment_transaction_id).toBeUndefined();
+      expect((data as any).success).toBe(false);
+      expect((data as any).payment_transaction_id).toBeUndefined();
     });
   });
 
@@ -347,7 +355,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -359,8 +367,8 @@ describe('settle_split() RPC Function', () => {
         p_amount: largeAmount
       });
 
-      expect(data.success).toBe(true);
-      expect(data.amount).toBe(largeAmount);
+      expect((data as any).success).toBe(true);
+      expect((data as any).amount).toBe(largeAmount);
     });
 
     it('should handle very small amounts (cents)', async () => {
@@ -378,7 +386,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -390,8 +398,8 @@ describe('settle_split() RPC Function', () => {
         p_amount: smallAmount
       });
 
-      expect(data.success).toBe(true);
-      expect(data.amount).toBe(smallAmount);
+      expect((data as any).success).toBe(true);
+      expect((data as any).amount).toBe(smallAmount);
     });
 
     it('should return settled_at timestamp in ISO format', async () => {
@@ -409,7 +417,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -418,12 +426,13 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.settled_at).toBeDefined();
-      expect(new Date(data.settled_at)).toBeInstanceOf(Date);
-      expect(new Date(data.settled_at).getTime()).toBeGreaterThan(0);
+      expect((data as any).settled_at).toBeDefined();
+      expect(new Date((data as any).settled_at)).toBeInstanceOf(Date);
+      expect(new Date((data as any).settled_at).getTime()).toBeGreaterThan(0);
     });
   });
 
@@ -439,7 +448,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -448,10 +457,11 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: null,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
+      expect((data as any).success).toBe(false);
     });
 
     it('should require account_id parameter', async () => {
@@ -465,7 +475,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -474,10 +484,11 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: null,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
-      expect(data.success).toBe(false);
+      expect((data as any).success).toBe(false);
     });
 
     it('should require amount parameter', async () => {
@@ -491,7 +502,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -503,7 +514,7 @@ describe('settle_split() RPC Function', () => {
         p_amount: null
       });
 
-      expect(data.success).toBe(false);
+      expect((data as any).success).toBe(false);
     });
   });
 
@@ -522,7 +533,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -531,11 +542,12 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: mockSplitId,
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
       expect(data).toHaveProperty('success');
-      expect(typeof data.success).toBe('boolean');
+      expect(typeof (data as any).success).toBe('boolean');
     });
 
     it('should include error message on failure', async () => {
@@ -549,7 +561,7 @@ describe('settle_split() RPC Function', () => {
       };
 
       vi.spyOn(supabase, 'rpc').mockResolvedValueOnce({
-        data: mockResponse,
+        data: mockResponse as any,
         error: null,
         status: 200,
         statusText: 'OK'
@@ -558,12 +570,13 @@ describe('settle_split() RPC Function', () => {
       const { data } = await supabase.rpc('settle_split', {
         p_split_id: '00000000-0000-0000-0000-000000000000',
         p_account_id: mockAccountId,
-        p_amount: mockAmount
+        p_amount: mockAmount,
+        p_user_id: 'mock-user-id'
       });
 
       expect(data).toHaveProperty('error');
-      expect(typeof data.error).toBe('string');
-      expect(data.error.length).toBeGreaterThan(0);
+      expect(typeof (data as any).error).toBe('string');
+      expect((data as any).error.length).toBeGreaterThan(0);
     });
   });
 });

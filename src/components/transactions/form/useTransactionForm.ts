@@ -375,6 +375,12 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         }
       }
       haptics.success();
+      
+      // Blur active element to hide keyboard on mobile
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
       if (onSuccess) onSuccess(); else navigate('/transacoes');
     } catch (error: any) {
       logger.error('Erro ao salvar transação:', error);

@@ -119,8 +119,14 @@ export function AccountDetail() {
 
   const handleConfirmDelete = async () => {
     if (!account) return;
-    await deleteAccount.mutateAsync(id!);
-    navigate("/contas");
+    try {
+      await deleteAccount.mutateAsync(id!);
+      navigate("/contas");
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error);
+      // The useDeleteAccount hook already throws and catches to show a specific message,
+      // but if it rejects, we must prevent navigation and log the error.
+    }
   };
 
   const handleConfirmArchive = async () => {

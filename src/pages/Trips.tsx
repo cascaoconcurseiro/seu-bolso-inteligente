@@ -22,6 +22,7 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { RemoveParticipantDialog } from "@/components/trips/RemoveParticipantDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { dismissRelatedNotifications } from "@/services/notificationGenerator";
+import { toast } from "sonner";
 
 
 export function Trips() {
@@ -87,8 +88,10 @@ export function Trips() {
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-    } catch (err) {
+      toast.success("Membro removido da viagem com sucesso");
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.message || "Erro ao remover membro da viagem");
     } finally {
       setIsRemovingState(false);
     }
@@ -132,8 +135,10 @@ export function Trips() {
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-    } catch (err) {
+      toast.success("Membro removido e acerto de contas registrado");
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.message || "Erro ao remover membro e acertar contas");
     } finally {
       setIsRemovingState(false);
     }
@@ -176,8 +181,10 @@ export function Trips() {
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-    } catch (err) {
+      toast.success("Membro removido e dívida perdoada");
+    } catch (err: any) {
       console.error(err);
+      toast.error(err.message || "Erro ao remover membro e perdoar dívida");
     } finally {
       setIsRemovingState(false);
     }
@@ -286,7 +293,17 @@ export function Trips() {
           open={showEditTripDialog} 
           onOpenChange={setShowEditTripDialog} 
           trip={selectedTrip} 
-          onSubmit={async (d) => { await updateTrip.mutateAsync({ id: selectedTripId!, ...d }); setShowEditTripDialog(false); }} 
+          onSubmit={async (d) => { 
+            try {
+              await updateTrip.mutateAsync({ id: selectedTripId!, ...d }); 
+              setShowEditTripDialog(false); 
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
+            } catch (err) {
+              console.error("Erro ao editar viagem", err);
+            }
+          }} 
           isLoading={updateTrip.isPending} 
         />
         
@@ -333,24 +350,33 @@ export function Trips() {
         open={showNewTripDialog} 
         onOpenChange={setShowNewTripDialog} 
         onSubmit={async (mids) => { 
-          await createTrip.mutateAsync({ 
-            name: tripDestination, 
-            destination: tripDestination, 
-            start_date: tripStartDate, 
-            end_date: tripEndDate, 
-            budget: tripBudget ? moneyUtils.parse(tripBudget) : undefined, 
-            currency: tripCurrency, 
-            memberIds: mids 
-          }); 
-          setShowNewTripDialog(false); 
-          setTripName(""); 
-          setTripDestination(""); 
-          setTripStartDate(""); 
-          setTripEndDate(""); 
-          setTripBudget(""); 
-          setTripCurrency("BRL"); 
+          try {
+            await createTrip.mutateAsync({ 
+              name: tripDestination, 
+              destination: tripDestination, 
+              start_date: tripStartDate, 
+              end_date: tripEndDate, 
+              budget: tripBudget ? moneyUtils.parse(tripBudget) : undefined, 
+              currency: tripCurrency, 
+              memberIds: mids 
+            }); 
+            setShowNewTripDialog(false); 
+            setTripName(""); 
+            setTripDestination(""); 
+            setTripStartDate(""); 
+            setTripEndDate(""); 
+            setTripBudget(""); 
+            setTripCurrency("BRL");
+            
+            // Close keyboard on mobile
+            if (document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+          } catch (err) {
+            console.error("Erro ao criar viagem", err);
+          }
         }} 
-        isLoading={createTrip.isPending} 
+        isLoading={createTrip.isPending}
         name={tripName} 
         setName={setTripName} 
         destination={tripDestination} 

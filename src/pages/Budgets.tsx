@@ -52,7 +52,7 @@ export function Budgets() {
 
   const resetForm = () => { setAmount(""); setCategoryId(""); setCurrency("BRL"); };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const generatedName = categoryId 
       ? categories.find((c) => c.id === categoryId)?.name || "Orçamento"
       : "Orçamento Global";
@@ -67,14 +67,22 @@ export function Budgets() {
       start_date: null, 
       end_date: null 
     };
-    if (editingBudget) { 
-      updateBudget({ id: editingBudget.id, ...data }); 
-      setEditingBudget(null); 
-    } else { 
-      createBudget(data); 
-      setShowNewBudgetDialog(false); 
+    
+    try {
+      if (editingBudget) { 
+        await updateBudget({ id: editingBudget.id, ...data }); 
+        setEditingBudget(null); 
+      } else { 
+        await createBudget(data); 
+        setShowNewBudgetDialog(false); 
+      }
+      resetForm();
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    } catch (err) {
+      console.error("Erro ao salvar orçamento", err);
     }
-    resetForm();
   };
 
   const totalBudgeted = useMemo(() => budgetsWithProgress.reduce((sum, b) => sum + b.budget_amount, 0), [budgetsWithProgress]);

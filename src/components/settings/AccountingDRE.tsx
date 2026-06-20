@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,19 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { useTransactions } from "@/hooks/useTransactions";
-import { useCategories } from "@/hooks/useCategories";
-import { useAccounts } from "@/hooks/useAccounts";
-import { useAssets } from "@/hooks/useAssets";
 import { Download, Printer, Eye, EyeOff, Scale, BadgePercent, Activity } from "lucide-react";
-import * as dateFns from "date-fns";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { formatExportMoney } from "@/utils/exportCurrency";
-import { toast } from "sonner";
-import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-
-type DRELineType = 'OPERATIONAL_INC' | 'FINANCIAL_INC' | 'DEDUCTION' | 'VARIABLE_EXP' | 'FIXED_EXP' | 'FINANCIAL_EXP';
 
 import { useAccountingDRE } from './useAccountingDRE';
 
@@ -44,6 +31,15 @@ export function AccountingDRE() {
   } = useAccountingDRE();
   
   const b = balanceSheetData;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 py-6 animate-pulse">
+        <div className="h-10 w-1/3 bg-muted rounded-xl" />
+        <div className="h-40 bg-muted rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -846,14 +846,7 @@ export function useAccountingDRE() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 py-6 animate-pulse">
-        <div className="h-10 w-1/3 bg-muted rounded-xl" />
-        <div className="h-40 bg-muted rounded-2xl" />
-      </div>
-    );
-  }
+
 
   const b = balanceSheetData;
 

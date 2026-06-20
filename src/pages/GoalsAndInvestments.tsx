@@ -242,12 +242,18 @@ export function GoalsAndInvestments() {
         {activeTab === 'GOALS' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals?.length === 0 ? (
-               <div className="col-span-full flex flex-col items-center justify-center p-16 border-2 border-dashed border-border rounded-2xl bg-muted/30">
-                 <Target className="w-16 h-16 text-muted-foreground/30 mb-4" />
-                 <h3 className="text-xl font-display font-semibold text-foreground mb-2">Nenhuma meta cadastrada</h3>
-                 <p className="text-muted-foreground text-center max-w-md text-sm">
-                   Defina seus sonhos e acompanhe seu progresso até alcançá-los.
+               <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
+                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+                   <Target className="w-10 h-10 text-primary" />
+                 </div>
+                 <h3 className="text-2xl font-display font-bold text-foreground mb-3 tracking-tight">Nenhuma meta cadastrada</h3>
+                 <p className="text-muted-foreground text-center max-w-md text-base mb-8">
+                   Defina seus sonhos (como uma viagem, um carro novo ou reserva de emergência) e acompanhe seu progresso até alcançá-los.
                  </p>
+                 <Button onClick={() => setShowGoalForm(true)} size="lg" className="h-12 px-8 rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold">
+                   <Plus className="w-5 h-5 mr-2" />
+                   Criar Minha Primeira Meta
+                 </Button>
                </div>
             ) : (
               goals?.map((goal, index) => (

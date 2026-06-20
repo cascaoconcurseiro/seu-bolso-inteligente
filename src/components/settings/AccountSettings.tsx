@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Loader2, Mail, Lock, LogOut, AlertTriangle, Check, Download, FileSpreadsheet, FileJson, KeyRound } from "lucide-react";
 import { AvatarCustomizer } from "./AvatarCustomizer";
@@ -270,7 +271,23 @@ export function AccountSettings({
                 <p className="text-sm text-muted-foreground">Encerrar sessão neste dispositivo</p>
               </div>
             </div>
-            <Button variant="outline" onClick={signOut}>Sair</Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline">Sair</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Você deseja realmente sair?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Você precisará fazer login novamente para acessar seus dados financeiros.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={signOut}>Sair</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

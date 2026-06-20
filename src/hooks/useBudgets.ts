@@ -202,9 +202,9 @@ export const useBudgets = () => {
     budgetsWithProgress, // Novo: orçamentos com progresso calculado pelo banco
     isLoading,
     getBudgetProgress,
-    createBudget: createBudget.mutate,
-    updateBudget: updateBudget.mutate,
-    deleteBudget: deleteBudget.mutate,
+    createBudget: createBudget.mutateAsync,
+    updateBudget: updateBudget.mutateAsync,
+    deleteBudget: deleteBudget.mutateAsync,
     isCreating: createBudget.isPending,
     isUpdating: updateBudget.isPending,
     isDeleting: deleteBudget.isPending,

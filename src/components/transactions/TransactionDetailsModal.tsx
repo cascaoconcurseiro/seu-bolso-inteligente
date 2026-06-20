@@ -88,7 +88,7 @@ export function TransactionDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-lg">
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -100,6 +100,7 @@ export function TransactionDetailsModal({
               </div>
               <div>
                 <DialogTitle className="text-left">{transaction.description}</DialogTitle>
+                <DialogDescription className="sr-only">Detalhes da transação</DialogDescription>
                 <p className="text-sm text-muted-foreground">
                   {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
                 </p>
