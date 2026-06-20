@@ -11,7 +11,6 @@ import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { TransactionModal } from "@/components/modals/TransactionModal";
-import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsAlert";
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";

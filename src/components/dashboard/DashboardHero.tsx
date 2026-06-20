@@ -1,7 +1,7 @@
 import { moneyUtils } from "@/utils/money";
 import { Globe, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -35,6 +35,12 @@ export function DashboardHero({
   isRateLoading,
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
+
+  const savingsRate = useMemo(() => {
+    if (income <= 0) return 0;
+    const rate = ((income - expenses) / income) * 100;
+    return Math.round(rate);
+  }, [income, expenses]);
 
   // O balance já é o saldo real das contas. Os pendentes são apenas informativos (chips abaixo).
   // Somar pending aqui causaria duplicação pois eles já fazem parte do saldo bancário registrado.
@@ -120,6 +126,30 @@ export function DashboardHero({
                 </p>
               </div>
             </div>
+
+            {income > 0 && (
+              <div className={cn(
+                "flex items-center gap-3 px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15",
+                savingsRate >= 0 
+                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/15" 
+                  : "bg-amber-500/10 border-amber-500/20 text-amber-600 hover:bg-amber-500/15"
+              )}>
+                <div className={cn(
+                  "p-1.5 rounded-full text-white shadow-lg",
+                  savingsRate >= 0 
+                    ? "bg-emerald-500 shadow-emerald-500/20" 
+                    : "bg-amber-500 shadow-amber-500/20"
+                )}>
+                  <Target className="h-3 w-3" />
+                </div>
+                <div>
+                  <p className="text-[9px] opacity-75 font-bold uppercase tracking-wider">Taxa Poupança</p>
+                  <p className="text-sm font-bold">
+                    {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
