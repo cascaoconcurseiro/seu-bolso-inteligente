@@ -42,7 +42,7 @@ export function Trips() {
   const queryClient = useQueryClient();
   const [view, setView] = useState<"list" | "detail">("list");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("expenses");
+  const [activeTab, setActiveTab] = useState("summary");
   const [tripFilter, setTripFilter] = useState<"active" | "archived">("active");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEditTripDialog, setShowEditTripDialog] = useState(false);

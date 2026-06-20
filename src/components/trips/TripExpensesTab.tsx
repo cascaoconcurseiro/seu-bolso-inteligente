@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
+import { Plus } from "lucide-react";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];
@@ -34,6 +36,7 @@ export function TripExpensesTab({
   const currency = selectedTrip.currency || "BRL";
   
   const { data: profile } = useUserProfile();
+  const { setShowTransactionModal } = useTransactionModal();
   const baseCurrency = profile?.base_currency || "BRL";
   const isInternational = currency !== baseCurrency;
   const { data: rate } = useCurrencyRate(isInternational ? currency : "", baseCurrency);
@@ -373,12 +376,15 @@ export function TripExpensesTab({
             )}
           </div>
         ) : (
-          <div className="py-10 text-center border border-dashed border-purple-200 dark:border-purple-900 rounded-2xl bg-purple-500/3">
-            <Users className="h-9 w-9 mx-auto mb-2.5 text-purple-400/60" />
+          <div className="py-10 text-center border border-dashed border-purple-200 dark:border-purple-900 rounded-2xl bg-purple-500/3 flex flex-col items-center">
+            <Users className="h-9 w-9 mb-2.5 text-purple-400/60" />
             <p className="text-sm font-semibold text-foreground">Nenhuma despesa compartilhada</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 mb-4">
               Despesas marcadas como compartilhadas aparecerão aqui
             </p>
+            <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-purple-600 hover:bg-purple-700">
+              <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
+            </Button>
           </div>
         )}
       </section>
@@ -400,12 +406,15 @@ export function TripExpensesTab({
       {/* ===== SEÇÃO: DESPESAS PESSOAIS ===== */}
       <section className="space-y-4">
         {personalExpenses.length === 0 && sharedExpenses.length === 0 ? (
-          <div className="py-12 text-center border border-dashed border-border rounded-2xl bg-card/30">
-            <DollarSign className="h-10 w-10 mx-auto mb-2.5 text-muted-foreground/60 animate-bounce" />
-            <p className="text-sm font-semibold text-foreground">Nenhuma despesa registrada</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Todas as despesas da viagem aparecerão aqui
+          <div className="py-10 text-center border border-dashed border-border rounded-2xl bg-card/10 flex flex-col items-center">
+            <User className="h-9 w-9 mb-2.5 text-muted-foreground/40" />
+            <p className="text-sm font-semibold text-foreground">Nenhuma despesa pessoal</p>
+            <p className="text-xs text-muted-foreground mt-1 mb-4">
+              Seus gastos privados na viagem aparecerão aqui
             </p>
+            <Button size="sm" variant="outline" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })}>
+              <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
+            </Button>
           </div>
         ) : personalExpenses.length > 0 ? (
           <>
