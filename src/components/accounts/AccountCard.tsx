@@ -25,6 +25,21 @@ interface SimpleTransaction {
   destination_amount?: number | null;
 }
 
+const getCurrencyFlag = (currency: string) => {
+  switch (currency) {
+    case "USD": return "🇺🇸";
+    case "EUR": return "🇪🇺";
+    case "GBP": return "🇬🇧";
+    case "CAD": return "🇨🇦";
+    case "AUD": return "🇦🇺";
+    case "JPY": return "🇯🇵";
+    case "CHF": return "🇨🇭";
+    case "CNY": return "🇨🇳";
+    case "BRL": return "🇧🇷";
+    default: return "🌐";
+  }
+};
+
 interface AccountCardProps {
   account: AccountInfo;
   lastTransactions: SimpleTransaction[];
@@ -69,8 +84,8 @@ export function AccountCard({
               </div>
             </div>
             {isInternational && (
-              <span className="text-[10px] bg-white/20 dark:bg-black/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 backdrop-blur-sm" style={{ color: bank.textColor }}>
-                <Globe className="h-3 w-3" />
+              <span className="text-[10px] bg-white/20 dark:bg-black/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1.5 backdrop-blur-sm" style={{ color: bank.textColor }}>
+                <span>{getCurrencyFlag(account.currency)}</span>
                 {account.currency}
               </span>
             )}

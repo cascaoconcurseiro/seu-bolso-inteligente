@@ -35,7 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Wallet, Plus, Globe, Download } from "lucide-react";
+import { Wallet, Plus, Globe, Download, Loader2 } from "lucide-react";
 import { banks, internationalBanks, getBankById } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, Account } from "@/hooks/useAccounts";
@@ -100,30 +100,39 @@ export function Accounts() {
   const totalBalanceBRL = balancesByCurrency.find(b => b.currency === 'BRL')?.balance || 0;
 
   const handleExportAccounts = async (formatType: 'PDF' | 'CSV', period: 'MONTH' | 'YEAR') => {
-    const { exportAccountsToCSV, exportAccountsToPDF } = await import("@/utils/exportData");
-    let filteredTxs = exportTransactions;
-    let periodLabel = `${currentDate.getFullYear()}`;
+    if (isExporting) return;
+    setIsExporting(true);
+    try {
+      const { exportAccountsToCSV, exportAccountsToPDF } = await import("@/utils/exportData");
+      let filteredTxs = exportTransactions;
+      let periodLabel = `${currentDate.getFullYear()}`;
 
-    if (period === 'MONTH') {
-      const startOfM = dateFns.startOfMonth(currentDate);
-      const endOfM = dateFns.endOfMonth(currentDate);
-      filteredTxs = exportTransactions.filter(t => {
-        const d = new Date(t.date);
-        return d >= startOfM && d <= endOfM;
-      });
-      const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-      periodLabel = `${monthNames[currentDate.getMonth()]} de ${currentDate.getFullYear()}`;
-    } else {
-      periodLabel = `Ano ${currentDate.getFullYear()}`;
-    }
+      if (period === 'MONTH') {
+        const startOfM = dateFns.startOfMonth(currentDate);
+        const endOfM = dateFns.endOfMonth(currentDate);
+        filteredTxs = exportTransactions.filter(t => {
+          const d = new Date(t.date);
+          return d >= startOfM && d <= endOfM;
+        });
+        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        periodLabel = `${monthNames[currentDate.getMonth()]} de ${currentDate.getFullYear()}`;
+      } else {
+        periodLabel = `Ano ${currentDate.getFullYear()}`;
+      }
 
-    if (formatType === 'PDF') {
-      exportAccountsToPDF(filteredTxs, regularAccounts, periodLabel, totalBalanceBRL);
-    } else {
-      exportAccountsToCSV(filteredTxs, regularAccounts, periodLabel);
+      if (formatType === 'PDF') {
+        exportAccountsToPDF(filteredTxs, regularAccounts, periodLabel, totalBalanceBRL);
+      } else {
+        exportAccountsToCSV(filteredTxs, regularAccounts, periodLabel);
+      }
+    } catch (err) {
+      console.error("Erro ao exportar contas", err);
+    } finally {
+      setIsExporting(false);
     }
   };
 
+  const [isExporting, setIsExporting] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingAccount] = useState<Account | null>(null);
@@ -188,22 +197,28 @@ export function Accounts() {
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-11 px-2">
-                  <Download className="h-4 w-4" />
-                  <span className="text-xs md:text-sm">Exportar</span>
+                <Button size="default" variant="outline" disabled={isExporting} className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-11 px-2">
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  <span className="text-xs md:text-sm">
+                    {isExporting ? "Exportando..." : "Exportar"}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem onClick={() => handleExportAccounts('PDF', 'MONTH')}>
+                <DropdownMenuItem disabled={isExporting} onClick={() => handleExportAccounts('PDF', 'MONTH')}>
                   Mensal em PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportAccounts('CSV', 'MONTH')}>
+                <DropdownMenuItem disabled={isExporting} onClick={() => handleExportAccounts('CSV', 'MONTH')}>
                   Mensal em Excel (CSV)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportAccounts('PDF', 'YEAR')}>
+                <DropdownMenuItem disabled={isExporting} onClick={() => handleExportAccounts('PDF', 'YEAR')}>
                   Anual em PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportAccounts('CSV', 'YEAR')}>
+                <DropdownMenuItem disabled={isExporting} onClick={() => handleExportAccounts('CSV', 'YEAR')}>
                   Anual em Excel (CSV)
                 </DropdownMenuItem>
               </DropdownMenuContent>
