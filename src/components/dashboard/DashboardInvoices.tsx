@@ -141,7 +141,7 @@ export function DashboardInvoices({
               key={card.id}
               to={`/cartoes?cardId=${card.id}&invoiceDate=${invoiceDateParam}`}
               className={cn(
-                "group flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 card-animated hover-lift animate-stagger",
+                "group flex items-center justify-between py-4 border-b border-border/40 last:border-0 hover:bg-card/30 transition-colors animate-stagger -mx-2 px-2 rounded-xl",
                 `stagger-${index + 1}`
               )}
             >

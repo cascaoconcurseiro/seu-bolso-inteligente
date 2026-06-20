@@ -457,103 +457,7 @@
   }
 }
 
-/* Shake */
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  10%, 30%, 50%, 70%, 90% {
-    transform: translateX(-5px);
-  }
-  20%, 40%, 60%, 80% {
-    transform: translateX(5px);
-  }
-}
 
-/* Swing */
-@keyframes swing {
-  20% {
-    transform: rotate(15deg);
-  }
-  40% {
-    transform: rotate(-10deg);
-  }
-  60% {
-    transform: rotate(5deg);
-  }
-  80% {
-    transform: rotate(-5deg);
-  }
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-/* Rubber band */
-@keyframes rubberBand {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scaleX(1.25) scaleY(0.75);
-  }
-  40% {
-    transform: scaleX(0.75) scaleY(1.25);
-  }
-  50% {
-    transform: scaleX(1.15) scaleY(0.85);
-  }
-  65% {
-    transform: scaleX(0.95) scaleY(1.05);
-  }
-  75% {
-    transform: scaleX(1.05) scaleY(0.95);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Jello */
-@keyframes jello {
-  0%, 100% {
-    transform: scale3d(1, 1, 1);
-  }
-  30% {
-    transform: scale3d(1.25, 0.75, 1);
-  }
-  40% {
-    transform: scale3d(0.75, 1.25, 1);
-  }
-  50% {
-    transform: scale3d(1.15, 0.85, 1);
-  }
-  65% {
-    transform: scale3d(0.95, 1.05, 1);
-  }
-  75% {
-    transform: scale3d(1.05, 0.95, 1);
-  }
-}
-
-/* Tada */
-@keyframes tada {
-  0% {
-    transform: scale(1);
-  }
-  10%, 20% {
-    transform: scale(0.9) rotate(-3deg);
-  }
-  30%, 50%, 70%, 90% {
-    transform: scale(1.1) rotate(3deg);
-  }
-  40%, 60%, 80% {
-    transform: scale(1.1) rotate(-3deg);
-  }
-  100% {
-    transform: scale(1) rotate(0);
-  }
-}
 
 /* Glow pulse */
 @keyframes glowPulse {
@@ -650,30 +554,20 @@
   animation: float 3s ease-in-out infinite;
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
 .animate-heartbeat {
   animation: heartbeat 1.5s ease-in-out infinite;
 }
 
-.animate-shake {
-  animation: shake 0.5s ease-in-out;
-}
 
-.animate-swing {
-  animation: swing 1s ease-in-out;
-  transform-origin: top center;
-}
-
-.animate-rubber-band {
-  animation: rubberBand 1s ease-in-out;
-}
-
-.animate-jello {
-  animation: jello 1s ease-in-out;
-}
-
-.animate-tada {
-  animation: tada 1s ease-in-out;
-}
 
 .animate-glow-pulse {
   animation: glowPulse 2s ease-in-out infinite;
@@ -744,21 +638,7 @@
   transform: rotate(5deg);
 }
 
-.hover-shake:hover {
-  animation: shake 0.5s ease-in-out;
-}
 
-.hover-bounce:hover {
-  animation: softBounce 0.5s ease-in-out;
-}
-
-.hover-wiggle:hover {
-  animation: wiggle 0.5s ease-in-out;
-}
-
-.hover-rubber:hover {
-  animation: rubberBand 0.8s ease-in-out;
-}
 
 /* Active animations */
 .active-scale:active {
