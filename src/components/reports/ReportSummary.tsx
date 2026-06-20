@@ -20,15 +20,17 @@ export function ReportSummary({
   currency
 }: ReportSummaryProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {/* 1. Entradas */}
-      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 truncate">
-          <TrendingUp className="h-4 w-4 text-positive shrink-0" />
+      <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-gradient-to-br from-positive/10 to-card min-w-0 flex flex-col justify-between shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <TrendingUp className="w-16 h-16 text-positive" />
+        </div>
+        <div className="relative z-10 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           <span className="truncate">Entradas</span>
         </div>
         <p 
-          className="font-mono text-sm xs:text-base sm:text-2xl font-bold text-positive truncate select-all" 
+          className="relative z-10 font-display text-lg xs:text-xl sm:text-3xl font-black text-positive truncate select-all tracking-tight" 
           title={formatCurrency(totalIncome, currency)}
         >
           {formatCurrency(totalIncome, currency)}
@@ -36,13 +38,15 @@ export function ReportSummary({
       </div>
 
       {/* 2. Saídas */}
-      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-2 truncate">
-          <TrendingDown className="h-4 w-4 text-negative shrink-0" />
+      <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-gradient-to-br from-negative/10 to-card min-w-0 flex flex-col justify-between shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <TrendingDown className="w-16 h-16 text-negative" />
+        </div>
+        <div className="relative z-10 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           <span className="truncate">Saídas</span>
         </div>
         <p 
-          className="font-mono text-sm xs:text-base sm:text-2xl font-bold text-negative truncate select-all" 
+          className="relative z-10 font-display text-lg xs:text-xl sm:text-3xl font-black text-negative truncate select-all tracking-tight" 
           title={formatCurrency(totalExpense, currency)}
         >
           {formatCurrency(totalExpense, currency)}
@@ -50,13 +54,13 @@ export function ReportSummary({
       </div>
 
       {/* 3. Resultado */}
-      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl border border-border min-w-0 flex flex-col justify-between">
-        <div className="text-xs sm:text-sm text-muted-foreground mb-2 truncate">
+      <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md min-w-0 flex flex-col justify-between shadow-sm">
+        <div className="text-xs sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           Resultado
         </div>
         <p 
           className={cn(
-            "font-mono text-sm xs:text-base sm:text-2xl font-bold truncate select-all",
+            "font-display text-lg xs:text-xl sm:text-3xl font-black truncate select-all tracking-tight",
             balance >= 0 ? "text-positive" : "text-negative"
           )}
           title={`${balance >= 0 ? "+" : ""}${formatCurrency(balance, currency)}`}
@@ -66,13 +70,15 @@ export function ReportSummary({
       </div>
 
       {/* 4. Taxa de Economia */}
-      <div className="p-3.5 xs:p-4 sm:p-5 rounded-xl bg-foreground text-background min-w-0 flex flex-col justify-between">
-        <div className="text-xs sm:text-sm opacity-70 mb-2 truncate">
+      <div className="p-4 sm:p-6 rounded-[2rem] bg-gradient-to-br from-primary to-primary/80 text-primary-foreground min-w-0 flex flex-col justify-between shadow-md relative overflow-hidden">
+        <div className="text-xs sm:text-sm font-medium opacity-80 mb-3 truncate uppercase tracking-widest">
           Taxa de Economia
         </div>
-        <p className="font-display text-xl xs:text-2xl sm:text-3xl font-bold truncate">
-          {savingsRate.toFixed(0)}%
-        </p>
+        <div className="flex items-end gap-2">
+          <p className="font-display text-3xl xs:text-4xl sm:text-5xl font-black truncate tracking-tighter">
+            {savingsRate.toFixed(0)}%
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -332,10 +332,10 @@ export function CreditCardDetailView({
           </div>
           
           {/* Action Buttons */}
-          <div className="flex gap-3 mt-8 flex-wrap pt-6 border-t border-white/10">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-8 pt-6 border-t border-white/10">
             <Button 
               variant="secondary" 
-              className="flex-1 md:flex-none h-12 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform"
+              className="h-12 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1"
               onClick={() => setShowPayDialog(true)}
             >
               <Wallet className="h-4 w-4 mr-2" />
@@ -343,7 +343,7 @@ export function CreditCardDetailView({
             </Button>
             <Button 
               variant="secondary" 
-              className="flex-1 md:flex-none h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
+              className="h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
               onClick={() => setShowImportDialog(true)}
             >
               <Download className="h-4 w-4 mr-2" />
@@ -354,7 +354,7 @@ export function CreditCardDetailView({
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="secondary" 
-                  className="flex-1 md:flex-none h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
+                  className="h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Exportar

@@ -691,30 +691,32 @@ export function Reports() {
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header com Glassmorphism */}
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Relatórios</h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
+            <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter">Relatórios</h1>
+            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
               {'Análise das suas finanças -'} {viewType === 'MONTH' 
                 ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
                 : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex bg-muted/50 rounded-xl p-1 mr-2 border border-border/50 shadow-inner">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex bg-muted/40 rounded-xl p-1 border border-border/30 shadow-inner">
               <Button 
                 variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
                 size="sm" 
-                className={viewType === 'MONTH' ? "shadow-sm rounded-lg" : "rounded-lg"}
+                className={viewType === 'MONTH' ? "shadow-sm rounded-lg font-bold" : "rounded-lg"}
                 onClick={() => setViewType('MONTH')}>
                 {'Mensal'}
               </Button>
               <Button 
                 variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
                 size="sm" 
-                className={viewType === 'YEAR' ? "shadow-sm rounded-lg" : "rounded-lg"}
+                className={viewType === 'YEAR' ? "shadow-sm rounded-lg font-bold" : "rounded-lg"}
                 onClick={() => setViewType('YEAR')}
               >
                 Anual
@@ -724,18 +726,21 @@ export function Reports() {
 
           {availableCurrencies.length > 1 && (
             <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-              <SelectTrigger className="w-[140px]"><SelectValue><span className="flex items-center gap-2"><span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>{selectedCurrency}</span></SelectValue></SelectTrigger>
-              <SelectContent>{availableCurrencies.map(currency => <SelectItem key={currency} value={currency}><span className="flex items-center gap-2"><span className="font-mono w-6">{getCurrencySymbol(currency)}</span>{currency}</span></SelectItem>)}</SelectContent>
+              <SelectTrigger className="w-[140px] rounded-xl border-border/40 bg-card/50"><SelectValue><span className="flex items-center gap-2"><span className="font-mono">{getCurrencySymbol(selectedCurrency)}</span>{selectedCurrency}</span></SelectValue></SelectTrigger>
+              <SelectContent className="rounded-xl"><SelectGroup>{availableCurrencies.map(currency => <SelectItem key={currency} value={currency} className="rounded-lg"><span className="flex items-center gap-2"><span className="font-mono w-6">{getCurrencySymbol(currency)}</span>{currency}</span></SelectItem>)}</SelectGroup></SelectContent>
             </Select>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
+              <Button 
+                variant="outline" 
+                className="rounded-xl border-border/40 bg-card/50 hover:bg-card/80 transition-colors"
+              >
+                <Download className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Exportar</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuItem 
                 onClick={() => exportToPDF(
                   periodTransactions, 
