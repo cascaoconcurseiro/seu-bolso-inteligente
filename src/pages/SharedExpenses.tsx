@@ -319,9 +319,10 @@ export function SharedExpenses() {
             <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Compartilhados</h1>
             <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Despesas divididas com a família e amigos</p>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-            <Button size="default" variant="outline" className="shadow-sm border-border/80 w-full sm:w-11 h-11 px-0 flex items-center justify-center" onClick={() => setShowSettingsModal(true)} title="Configurações de Ciclo">
-              <Settings className="h-5 w-5 text-muted-foreground" />
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto mt-4 sm:mt-0">
+            <Button size="default" variant="secondary" className="gap-2 shadow-sm border border-border/80 w-full sm:w-auto h-11 font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground" onClick={() => setShowSettingsModal(true)}>
+              <Settings className="h-4 w-4" />
+              <span>Regras de Fechamento</span>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -360,18 +361,24 @@ export function SharedExpenses() {
       <SharedSummarySection totalsByCurrency={totalsByCurrency} travelTotalsByCurrency={travelTotalsByCurrency} formatCurrency={formatCurrency} activeTab={activeTab} />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)} className="w-full">
-        <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-8 h-12 bg-muted/40 p-1.5 rounded-xl shadow-inner border border-border/50">
-          <TabsTrigger value="REGULAR" className="rounded-lg gap-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground hover:text-foreground">
-            <Users className="h-4 w-4" /> 
-            Regular
+        <TabsList className="grid grid-cols-3 w-full h-auto p-1.5 bg-secondary/30 rounded-2xl mb-8 shadow-inner border border-border/40">
+          <TabsTrigger value="REGULAR" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+            <div className="flex flex-col items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Regular</span>
+            </div>
           </TabsTrigger>
-          <TabsTrigger value="TRAVEL" className="rounded-lg gap-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground hover:text-foreground">
-            <Plane className="h-4 w-4" /> 
-            Viagens
+          <TabsTrigger value="TRAVEL" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+            <div className="flex flex-col items-center gap-1.5">
+              <Plane className="h-4 w-4" />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Viagens</span>
+            </div>
           </TabsTrigger>
-          <TabsTrigger value="HISTORY" className="rounded-lg gap-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground hover:text-foreground">
-            <History className="h-4 w-4" /> 
-            Histórico
+          <TabsTrigger value="HISTORY" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+            <div className="flex flex-col items-center gap-1.5">
+              <History className="h-4 w-4" />
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Histórico</span>
+            </div>
           </TabsTrigger>
         </TabsList>
 

@@ -158,8 +158,8 @@ export function SharedExpenseCard({
                 variant={iOwe ? "destructive" : "default"}
                 size="default"
                 className={cn(
-                  "flex-1 sm:flex-none h-11 sm:h-11 px-4 sm:px-6 text-sm sm:text-base shadow-md active:scale-95 transition-all shrink-0 font-bold", 
-                  !iOwe && "bg-green-600 hover:bg-green-700 shadow-green-600/20",
+                  "flex-1 sm:flex-none h-12 px-5 sm:px-6 text-sm sm:text-base shadow-lg transition-all shrink-0 font-bold rounded-xl active:scale-95", 
+                  !iOwe && "bg-green-600 hover:bg-green-700 text-white shadow-green-600/20",
                   iOwe && "shadow-red-600/20"
                 )}
                 onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
@@ -207,11 +207,11 @@ export function SharedExpenseCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-amber-600/10 active:scale-95 transition-all"
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-9 px-4"
                 onClick={() => onConfirmReceipt(item)}
               >
-                <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                {itemsWaitingMe.length === 1 ? "Confirmar e Escolher Conta" : `Confirmar R$ ${item.amount.toFixed(2).replace('.', ',')}`}
+                <CheckCircle className="h-4 w-4 mr-1.5" />
+                {itemsWaitingMe.length === 1 ? "Confirmar Acerto" : `Confirmar R$ ${item.amount.toFixed(2).replace('.', ',')}`}
               </Button>
             ))}
             {onRejectSettlement && itemsWaitingMe.length === 1 && (
@@ -277,9 +277,12 @@ export function SharedExpenseCard({
                           {item.description}
                         </p>
                         {item.creatorName && (
-                          <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold inline-flex items-center gap-1 shrink-0">
-                            💳 {item.creatorName.split(' ')[0]}
-                          </span>
+                          <div className="flex items-center gap-1.5 ml-2 shrink-0 bg-secondary/50 rounded-full pr-2">
+                            <UserAvatar name={item.creatorName} className="h-5 w-5" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-secondary-foreground truncate max-w-[80px]">
+                              {item.creatorName.split(' ')[0]}
+                            </span>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
