@@ -177,68 +177,67 @@ export function TripDetailHeader({
                     <MoreVertical className="h-5 w-5 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl p-2 shadow-xl border-border/50 backdrop-blur-sm">
-                <DropdownMenuItem
-                  onClick={onAddParticipant}
-                  className="gap-3 rounded-lg py-2.5 cursor-pointer"
-                >
-                  <Plus className="h-4 w-4 text-primary" />
-                  <span>Adicionar participante</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator className="my-1" />
-                
-                <DropdownMenuItem
-                  onClick={onExportPDF}
-                  className="gap-3 rounded-lg py-2.5 cursor-pointer"
-                >
-                  <FileDown className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Exportar Relatório PDF</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem
-                  onClick={onExportExcel}
-                  className="gap-3 rounded-lg py-2.5 cursor-pointer"
-                >
-                  <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Exportar Planilha Excel</span>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator className="my-1" />
-                
-                {trip.is_archived ? (
+                <DropdownMenuContent align="end" className="w-56 rounded-xl p-2 shadow-xl border-border/50 backdrop-blur-sm">
                   <DropdownMenuItem
-                    onClick={onUnarchive}
+                    onClick={onAddParticipant}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
                   >
-                    <ArchiveRestore className="h-4 w-4 text-primary" />
-                    <span>Desarquivar viagem</span>
+                    <Plus className="h-4 w-4 text-primary" />
+                    <span>Adicionar participante</span>
                   </DropdownMenuItem>
-                ) : (
+                  
+                  <DropdownMenuSeparator className="my-1" />
+                  
                   <DropdownMenuItem
-                    onClick={onArchive}
+                    onClick={onExportPDF}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
                   >
-                    <Archive className="h-4 w-4 text-muted-foreground" />
-                    <span>Arquivar viagem</span>
+                    <FileDown className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Exportar Relatório PDF</span>
                   </DropdownMenuItem>
-                )}
-                
-                <DropdownMenuSeparator className="my-1" />
-                
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  className="gap-3 rounded-lg py-2.5 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span>Excluir viagem</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  
+                  <DropdownMenuItem
+                    onClick={onExportExcel}
+                    className="gap-3 rounded-lg py-2.5 cursor-pointer"
+                  >
+                    <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Exportar Planilha Excel</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator className="my-1" />
+                  
+                  {trip.is_archived ? (
+                    <DropdownMenuItem
+                      onClick={onUnarchive}
+                      className="gap-3 rounded-lg py-2.5 cursor-pointer"
+                    >
+                      <ArchiveRestore className="h-4 w-4 text-primary" />
+                      <span>Desarquivar viagem</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={onArchive}
+                      className="gap-3 rounded-lg py-2.5 cursor-pointer"
+                    >
+                      <Archive className="h-4 w-4 text-muted-foreground" />
+                      <span>Arquivar viagem</span>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  <DropdownMenuSeparator className="my-1" />
+                  
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="gap-3 rounded-lg py-2.5 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Excluir viagem</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
           </>
         )}
         </div>
-      </div>
       </div>
     </div>
   );
