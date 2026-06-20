@@ -120,7 +120,7 @@ export function useCreditCardsDashboard() {
       }
       setSelectedDate(getTargetDate(new Date(), selectedCard.closing_day || 1));
     }
-  }, [selectedCard?.id, selectedCard?.closing_day]);
+  }, [selectedCard]);
 
   const { data: invoiceDataRPC, isFetching: invoiceFetching } = useCreditCardInvoice(
     selectedCard?.id || null,

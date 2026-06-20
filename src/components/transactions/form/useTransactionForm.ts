@@ -127,7 +127,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (context?.tripId) store.setTripId(context.tripId);
     if (context?.accountId) store.setAccountId(context.accountId);
     if (context?.categoryId) store.setCategoryId(context.categoryId);
-  }, [context]);
+  }, [context, store]);
 
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
@@ -147,7 +147,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setHasUserSelectedCategoryManually(false);
       }
     }
-  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId]);
+  }, [predictedCategoryId, store.hasUserSelectedCategoryManually, categoryId, store]);
 
   const handleCategoryChange = (val: string) => {
     store.setCategoryId(val);
@@ -159,7 +159,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
     store.setAccountId('');
-  }, [tripId, context?.accountId, context?.tripId]);
+  }, [tripId, context?.accountId, context?.tripId, store]);
 
   const updateTransaction = useUpdateTransaction();
 
@@ -168,7 +168,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
       store.initFromData(initialData);
     }
-  }, [initialData]);
+  }, [initialData, store]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -259,7 +259,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     } else if (myMemberRecord?.id && payerId === myMemberRecord.id) {
       store.setPayerId('me');
     }
-  }, [user?.id, myMemberRecord?.id, payerId]);
+  }, [user?.id, myMemberRecord?.id, payerId, store]);
   
   const isExchangeTransfer = activeTab === 'TRANSFER' && 
     selectedAccount && 
@@ -297,19 +297,19 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setExchangeRate('');
       }
     }
-  }, [amount, showExchangePanel, destinationAmount]);
+  }, [amount, showExchangePanel, destinationAmount, store]);
 
   // Limpar contas caso não aplicável
   useEffect(() => {
     if (isPaidByOther) store.setAccountId('');
-  }, [isPaidByOther]);
+  }, [isPaidByOther, store]);
 
   // Limpar conta selecionada se mudar para receita e for um cartão de crédito
   useEffect(() => {
     if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD') {
       store.setAccountId('');
     }
-  }, [activeTab, selectedAccount]);
+  }, [activeTab, selectedAccount, store]);
 
   const transactionCurrency = selectedTrip?.currency || (selectedAccount?.is_international ? selectedAccount.currency : null) || 'BRL';
 
@@ -341,7 +341,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.setAccountId('');
       }
     }
-  }, [filteredAccounts, accountId]);
+  }, [filteredAccounts, accountId, store]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = { 'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$', 'JPY': '¥' };

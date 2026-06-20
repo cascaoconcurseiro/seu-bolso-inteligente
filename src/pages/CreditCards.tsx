@@ -141,6 +141,8 @@ export function CreditCards() {
     user
   } = useCreditCardsDashboard();
 
+  const { data: accounts = [] } = useAccounts();
+
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
