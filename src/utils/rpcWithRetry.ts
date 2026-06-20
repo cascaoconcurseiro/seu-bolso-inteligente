@@ -92,7 +92,7 @@ export async function rpcWithRetry<T = unknown>(
       });
 
       // Criar promise com timeout
-      const rpcPromise = supabase.rpc(functionName as never, params);
+      const rpcPromise = supabase.rpc(functionName as never, params as never);
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
@@ -100,10 +100,10 @@ export async function rpcWithRetry<T = unknown>(
         )
       );
 
-      const { data, error } = await Promise.race([
+      const { data, error } = (await Promise.race([
         rpcPromise,
         timeoutPromise,
-      ]) as Promise<{ data: unknown; error: Error | null }>;
+      ])) as { data: unknown; error: Error | null };
 
       if (error) {
         throw error;
@@ -179,7 +179,7 @@ export async function rpcWithRetryDetailed<T = unknown>(
     try {
       logger.debug(`[RPC] Tentativa ${attempt + 1}/${maxRetries}: ${functionName}`);
 
-      const rpcPromise = supabase.rpc(functionName as never, params);
+      const rpcPromise = supabase.rpc(functionName as never, params as never);
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
@@ -187,10 +187,10 @@ export async function rpcWithRetryDetailed<T = unknown>(
         )
       );
 
-      const { data, error } = await Promise.race([
+      const { data, error } = (await Promise.race([
         rpcPromise,
         timeoutPromise,
-      ]) as Promise<{ data: unknown; error: Error | null }>;
+      ])) as { data: unknown; error: Error | null };
 
       if (error) {
         throw error;
@@ -228,7 +228,7 @@ export async function rpcWithRetryDetailed<T = unknown>(
           data: null,
           error: lastError,
           attempts: attempt + 1,
-          lastError,
+          lastError: lastError || undefined,
         };
       }
 
@@ -241,7 +241,7 @@ export async function rpcWithRetryDetailed<T = unknown>(
     data: null,
     error: lastError || new Error(`RPC falhou após ${maxRetries} tentativas`),
     attempts: attempt,
-    lastError,
+    lastError: lastError || undefined,
   };
 }
 

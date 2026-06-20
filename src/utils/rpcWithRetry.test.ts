@@ -127,7 +127,7 @@ describe('rpcWithRetry', () => {
       () =>
         new Promise(resolve =>
           setTimeout(() => resolve({ data: null, error: null }), 100)
-        )
+        ) as any
     );
 
     await expect(

@@ -18,7 +18,7 @@ export interface TripExportData {
 const safeFormatDate = (dateVal: unknown): string => {
   if (!dateVal) return 'N/A';
   try {
-    const d = new Date(dateVal);
+    const d = new Date(dateVal as string | number | Date);
     if (isNaN(d.getTime())) return 'N/A';
     return format(d, 'dd/MM/yyyy');
   } catch (e) {
@@ -122,7 +122,6 @@ export const exportTripToPDF = (data: TripExportData) => {
       columnStyles: {
         3: { fontStyle: 'bold' }
       },
-      // @ts-expect-error Pula tipagem da lib jsPDF
       didParseCell: (cellData: Record<string, any>) => {
         if (cellData.section === 'body' && cellData.column.index === 3) {
           const text = cellData.cell.text[0];

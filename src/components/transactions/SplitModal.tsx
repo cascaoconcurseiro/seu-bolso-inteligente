@@ -64,9 +64,12 @@ export function SplitModal({
   useEffect(() => {
     if (isOpen) {
       if (payerId !== 'me' && splits.length > 0) {
-        setMySplitPercentage(Number((100 - splits[0].percentage).toFixed(1)));
-      } else {
-        setMySplitPercentage(50);
+        const newPct = Number((100 - splits[0].percentage).toFixed(1));
+        if (mySplitPercentage !== newPct) {
+          setMySplitPercentage(newPct);
+        }
+      } else if (splits.length === 0 && payerId !== 'me') {
+        if (mySplitPercentage !== 50) setMySplitPercentage(50);
       }
       
       // Auto-inicializar 50/50 com o primeiro membro disponível se splits estiver vazio
@@ -92,14 +95,21 @@ export function SplitModal({
       const partnerPercentage = 100 - mySplitPercentage;
       const partnerAmount = Number(((activeAmount * partnerPercentage) / 100).toFixed(2));
       
-      // Define o split contendo apenas o parceiro que pagou
-      setSplits([{
-        memberId: payerId,
-        percentage: partnerPercentage,
-        amount: partnerAmount
-      }]);
+      const isSame = splits.length === 1 && 
+                     splits[0].memberId === payerId && 
+                     splits[0].percentage === partnerPercentage && 
+                     splits[0].amount === partnerAmount;
+
+      if (!isSame) {
+        // Define o split contendo apenas o parceiro que pagou
+        setSplits([{
+          memberId: payerId,
+          percentage: partnerPercentage,
+          amount: partnerAmount
+        }]);
+      }
     }
-  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits]);
+  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits, splits]);
 
   console.log('🔵 [SplitModal] Renderizado com:', { 
     isOpen, 

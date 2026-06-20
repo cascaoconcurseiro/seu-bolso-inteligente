@@ -97,7 +97,7 @@ export const insertRecord = async <T>(
   try {
     const { data: result, error } = await supabase
       .from(table)
-      .insert(data)
+      .insert(data as never)
       .select()
       .single();
 
@@ -122,7 +122,7 @@ export const insertRecords = async <T>(
   try {
     const { data: result, error } = await supabase
       .from(table)
-      .insert(data)
+      .insert(data as never)
       .select();
 
     if (error) {
@@ -147,7 +147,7 @@ export const updateRecord = async <T>(
   try {
     const { data: result, error } = await supabase
       .from(table)
-      .update(data)
+      .update(data as never)
       .eq('id', id)
       .select()
       .single();
@@ -194,7 +194,7 @@ export const softDeleteRecord = async (
   try {
     const { error } = await supabase
       .from(table)
-      .update({ deleted: true, is_active: false })
+      .update({ deleted: true, is_active: false } as never)
       .eq('id', id);
 
     if (error) {
@@ -310,7 +310,7 @@ export const callRPC = async <T>(
   params?: Record<string, unknown>
 ): Promise<T> => {
   try {
-    const { data, error } = await supabase.rpc(functionName as any, params);
+    const { data, error } = await supabase.rpc(functionName as never, params as never);
 
     if (error) {
       handleSupabaseError(error, `chamar função ${functionName}`);

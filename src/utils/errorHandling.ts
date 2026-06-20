@@ -6,6 +6,19 @@
 import { toast } from 'sonner';
 import { logger } from './logger';
 
+export interface AppError {
+  message?: string;
+  code?: string;
+  error_code?: string;
+  error_description?: string;
+  status?: number;
+}
+
+export const getError = (e: unknown): AppError => {
+  if (typeof e === 'object' && e !== null) return e as AppError;
+  return {};
+};
+
 /**
  * Handle query errors
  * Logs error and throws it for React Query to handle
@@ -51,10 +64,11 @@ export const handleSupabaseError = (
     '42P01': 'Tabela não encontrada',
   };
 
-  const code = error.code || error.error_code;
-  const userMessage = errorMessages[code] || error.message;
+  const err = getError(error);
+  const code = String(err.code || err.error_code || '');
+  const userMessage = errorMessages[code] || err.message || 'Erro desconhecido';
 
-  throw new Error(userMessage);
+  throw new Error(userMessage as string);
 };
 
 /**
@@ -141,9 +155,10 @@ export const retryWithBackoff = async <T>(
  * Check if error is a network error
  */
 export const isNetworkError = (error: unknown): boolean => {
+  const err = getError(error);
   return (
-    error.message === 'Network request failed' ||
-    error.message === 'Failed to fetch' ||
+    err.message === 'Network request failed' ||
+    err.message === 'Failed to fetch' ||
     !navigator.onLine
   );
 };
@@ -152,10 +167,11 @@ export const isNetworkError = (error: unknown): boolean => {
  * Check if error is an authentication error
  */
 export const isAuthError = (error: unknown): boolean => {
+  const err = getError(error);
   return (
-    error.status === 401 ||
-    error.code === 'PGRST301' ||
-    error.message?.includes('JWT')
+    err.status === 401 ||
+    err.code === 'PGRST301' ||
+    err.message?.includes('JWT') || false
   );
 };
 
@@ -163,9 +179,10 @@ export const isAuthError = (error: unknown): boolean => {
  * Check if error is a permission error
  */
 export const isPermissionError = (error: unknown): boolean => {
+  const err = getError(error);
   return (
-    error.status === 403 ||
-    error.code === '42501'
+    err.status === 403 ||
+    err.code === '42501'
   );
 };
 
@@ -176,7 +193,8 @@ export const isPermissionError = (error: unknown): boolean => {
 export const formatErrorMessage = (error: unknown): string => {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
-  if (error.message) return error.message;
-  if (error.error_description) return error.error_description;
+  const err = getError(error);
+  if (err.message) return err.message;
+  if (err.error_description) return err.error_description;
   return 'Ocorreu um erro inesperado';
 };

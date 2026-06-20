@@ -129,7 +129,30 @@ export type Database = {
         ]
       }
       accounts: {
+        Row: {
+          balance: number
+          bank_color: string | null
+          bank_id: string | null
+          bank_logo: string | null
+          closing_day: number | null
+          created_at: string
+          credit_limit: number | null
+          currency: string
+          deleted: boolean | null
+          due_day: number | null
+          hide_balance: boolean | null
+          id: string
+          initial_balance: number | null
+          is_active: boolean
           is_archived: boolean | null
+          is_international: boolean | null
+          name: string
+          type: Database["public"]["Enums"]["account_type"]
+          updated_at: string
+          user_id: string
+          yield_rate: number | null
+          yield_type: string | null
+        }
         Insert: {
           balance?: number
           bank_color?: string | null
@@ -454,8 +477,19 @@ export type Database = {
           },
         ]
       }
-      
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          deleted_at: string | null
+          icon: string | null
+          id: string
           is_archived: boolean | null
+          name: string
+          parent_category_id: string | null
+          type: string
+          user_id: string
+        }
         Insert: {
           color?: string | null
           created_at?: string
@@ -3881,6 +3915,7 @@ export type Database = {
     }
   }
 }
+
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
