@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { AmountInput } from '@/components/ui/amount-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
@@ -93,18 +94,17 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
           </div>
 
           <div className="space-y-2">
-            <Label>Valor</Label>
-            <CurrencyInput
+            <AmountInput
+              label="Valor"
               value={amount}
               onChange={setAmount}
               currency={goalCurrency}
-              placeholder="0,00"
-              className="text-lg font-mono"
+              size="md"
+              textColorClass={type === 'withdraw' ? 'text-destructive' : 'text-positive'}
               autoFocus
-              required
             />
             {goalCurrency !== 'BRL' && (
-              <p className="text-xs text-amber-500 font-medium">
+              <p className="text-xs text-amber-500 font-medium text-center">
                 Operação em moeda estrangeira ({goalCurrency})
               </p>
             )}

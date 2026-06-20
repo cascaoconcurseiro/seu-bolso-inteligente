@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '@/components/ui/currency-input';
+import { AmountInput } from '@/components/ui/amount-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAssets } from '@/hooks/useAssets';
@@ -393,30 +393,28 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
           </div>
 
           {/* 5. QUANTIDADE + VALOR INVESTIDO → CALCULA PM */}
-          <div className="space-y-3 p-4 rounded-xl bg-muted/40 border border-border">
-            <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Posição</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Quantidade de Cotas</Label>
-                <Input type="number" inputMode="decimal"
-                  step="0.00000001"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="0"
-                  className="font-mono"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Valor Investido</Label>
-                <CurrencyInput
-                  value={investedAmount}
-                  onChange={setInvestedAmount}
-                  currency={currency}
-                  placeholder="0,00"
-                  className="font-mono"
-                />
-                <p className="text-[10px] text-muted-foreground">Total pago pela posição</p>
-              </div>
+          <div className="space-y-6 pt-4 border-t border-border">
+            <div className="space-y-2">
+              <Label>Quantidade de Cotas</Label>
+              <Input type="number" inputMode="decimal"
+                step="0.00000001"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="0"
+                className="font-mono h-12 text-lg text-center"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <AmountInput
+                label="Valor Investido"
+                value={investedAmount}
+                onChange={setInvestedAmount}
+                currency={currency}
+                currencySymbol={currencySymbol}
+                size="sm"
+              />
+              <p className="text-[10px] text-muted-foreground text-center">Total pago pela posição</p>
             </div>
 
             {/* PM calculado em tempo real */}

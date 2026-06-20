@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CurrencyInput } from "@/components/ui/currency-input";
+import { AmountInput } from "@/components/ui/amount-input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -174,18 +174,15 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   </div>
 
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold">Qual valor deseja pagar agora?</Label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono font-medium">
-                        {currencies.find(c => c.value === cardCurrency)?.symbol || (cardCurrency === 'BRL' ? 'R$' : cardCurrency)}
-                      </span>
-                      <CurrencyInput
-                        currency={cardCurrency}
-                        className="pl-12 h-14 font-mono text-xl font-bold bg-background/50 rounded-xl transition-all focus-visible:ring-primary/50 border-white/10"
-                        value={amountToPay}
-                        onChange={setAmountToPay}
-                      />
-                    </div>
+                    <AmountInput
+                      label="Qual valor deseja pagar agora?"
+                      value={amountToPay}
+                      onChange={setAmountToPay}
+                      currency={cardCurrency}
+                      currencySymbol={currencies.find(c => c.value === cardCurrency)?.symbol || (cardCurrency === 'BRL' ? 'R$' : cardCurrency)}
+                      size="lg"
+                      autoFocus
+                    />
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (
                       <p className="text-xs text-amber-500 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
                         ⚠️ Pagamento parcial: restará {formatCurrencyValue(invoiceTotal - currentAmountToPay, cardCurrency)} para o próximo mês.

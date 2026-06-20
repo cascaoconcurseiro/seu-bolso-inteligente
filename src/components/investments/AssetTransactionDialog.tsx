@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { AmountInput } from '@/components/ui/amount-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -365,15 +366,15 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 </Select>
               </div>
               
-              <div className="space-y-2">
-                <Label>Valor Total Recebido</Label>
-                <CurrencyInput
+              <div className="space-y-2 pt-4 border-t border-border mt-4">
+                <AmountInput
+                  label="Valor Total Recebido"
                   value={price}
                   onChange={setPrice}
                   currency={currency}
-                  placeholder="0,00"
-                  className="font-mono text-lg font-semibold"
-                  required
+                  currencySymbol={currencySymbol}
+                  size="sm"
+                  textColorClass="text-positive"
                 />
               </div>
             </div>

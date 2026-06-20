@@ -8,7 +8,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '@/components/ui/currency-input';
+import { CurrencyInput } from '../ui/currency-input';
+import { AmountInput } from '../ui/amount-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAccounts } from '@/hooks/useAccounts';
@@ -286,23 +287,16 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label>Valor ({currentCurrency})</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                  {moneyUtils.getSymbol(currentCurrency)}
-                </span>
-                <CurrencyInput 
-                  placeholder="0,00"
-                  value={amount} 
-                  onChange={setAmount} 
-                  currency={currentCurrency}
-                  className="pl-9 h-14 text-2xl font-bold bg-transparent"
-                  autoFocus
-                  required
-                />
-              </div>
-            </div>
+            <AmountInput 
+              label={`Valor`}
+              value={amount} 
+              onChange={setAmount} 
+              currency={currentCurrency}
+              currencySymbol={moneyUtils.getSymbol(currentCurrency)}
+              size="md"
+              textColorClass={type === 'EXPENSE' ? 'text-destructive' : type === 'INCOME' ? 'text-positive' : 'text-primary'}
+              autoFocus
+            />
             <div className="space-y-2">
               <Label>Descrição</Label>
               <div className="relative">

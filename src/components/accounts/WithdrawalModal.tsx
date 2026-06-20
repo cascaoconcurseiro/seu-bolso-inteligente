@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CurrencyInput } from "@/components/ui/currency-input";
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
+import { AmountInput } from '@/components/ui/amount-input';
 import { Loader2, Banknote } from "lucide-react";
 import { useWithdrawal } from "@/hooks/useWithdrawal";
 import { moneyUtils } from "@/utils/money";
@@ -92,21 +93,16 @@ export function WithdrawalModal({
 
           {/* Valor */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Valor do saque</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
-                R$
-              </span>
-              <CurrencyInput
-                id="amount"
-                placeholder="0,00"
-                value={amount}
-                onChange={handleAmountChange}
-                className="pl-12"
-              />
-            </div>
+            <AmountInput 
+              label="Valor do saque"
+              value={amount}
+              onChange={handleAmountChange}
+              size="md"
+              textColorClass={isInvalid ? "text-destructive" : ""}
+              autoFocus
+            />
             {isInvalid && (
-              <p className="text-sm text-destructive">Saldo insuficiente</p>
+              <p className="text-sm text-destructive text-center">Saldo insuficiente</p>
             )}
           </div>
 

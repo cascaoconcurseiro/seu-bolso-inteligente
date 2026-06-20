@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CurrencyInput } from "@/components/ui/currency-input";
+import { AmountInput } from "@/components/ui/amount-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ArrowRight, ArrowRightLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -214,22 +214,18 @@ export function TransferModal({
 
           {/* Valor */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Valor {isCrossCurrency && `(${fromAccountCurrency})`}</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm z-10">
-                {getCurrencySymbol(fromAccountCurrency)}
-              </span>
-              <CurrencyInput
-                id="amount"
-                placeholder="0,00"
-                value={amount}
-                onChange={handleAmountChange}
-                currency={fromAccountCurrency}
-                className="pl-12"
-              />
-            </div>
+            <AmountInput 
+              label={`Valor ${isCrossCurrency ? `(${fromAccountCurrency})` : ''}`}
+              value={amount}
+              onChange={handleAmountChange}
+              currency={fromAccountCurrency}
+              currencySymbol={getCurrencySymbol(fromAccountCurrency)}
+              size="md"
+              textColorClass={isInvalid ? "text-destructive" : ""}
+              autoFocus
+            />
             {isInvalid && (
-              <p className="text-sm text-destructive">Saldo insuficiente</p>
+              <p className="text-sm text-destructive text-center">Saldo insuficiente</p>
             )}
           </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '@/components/ui/currency-input';
+import { AmountInput } from '@/components/ui/amount-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
@@ -86,15 +86,12 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Valor Alvo</Label>
-            <CurrencyInput
-              value={targetAmount}
-              onChange={setTargetAmount}
-              placeholder="0,00"
-              required
-            />
-          </div>
+          <AmountInput
+            label="Valor Alvo"
+            value={targetAmount}
+            onChange={setTargetAmount}
+            size="md"
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
