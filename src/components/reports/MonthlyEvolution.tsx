@@ -26,8 +26,8 @@ export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvol
   const maxMonthValue = Math.max(...data.flatMap(m => [m.income, m.expense]), 1);
 
   return (
-    <section className="p-6 rounded-xl border border-border">
-      <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">
+    <section className="p-4 md:p-6 rounded-xl border border-border">
+      <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-4 md:mb-6">
         Evolução Mensal
       </h2>
       <div className="space-y-4">

@@ -50,7 +50,7 @@ export function AccountCard({
     <div className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden">
       <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
         {/* Card Header visual mimicry */}
-        <div className="p-5 relative overflow-hidden" style={{ backgroundColor: bank.color }}>
+        <div className="p-4 md:p-5 relative overflow-hidden" style={{ backgroundColor: bank.color }}>
           {/* Subtle glowing orb */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
           
@@ -76,7 +76,7 @@ export function AccountCard({
             )}
           </div>
           
-          <div className="mt-6 relative z-10">
+          <div className="mt-4 md:mt-6 relative z-10">
             <p className="text-[10px] uppercase tracking-wider font-bold opacity-75" style={{ color: bank.textColor }}>Saldo Disponível</p>
             <p className={cn("font-mono text-2xl sm:text-3xl font-black tracking-tight mt-1", shouldHideBalance && "blur-md opacity-50 select-none")} style={{ color: bank.textColor }}>
               {shouldHideBalance ? "•••••" : (isInternational 
@@ -89,7 +89,7 @@ export function AccountCard({
         </div>
 
         {/* Card transactions footer */}
-        <div className="p-5 space-y-3.5 flex-1 bg-gradient-to-b from-card to-background border-t border-border/40">
+        <div className="p-4 md:p-5 space-y-3.5 flex-1 bg-gradient-to-b from-card to-background border-t border-border/40">
           <div className="flex items-center justify-between mb-1">
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Últimas transações</p>
             <span className="text-[10px] text-primary font-bold flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

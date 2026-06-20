@@ -23,7 +23,7 @@ export function CreditCardItem({
   return (
     <div 
       onClick={() => openCardDetail(card)}
-      className="group relative overflow-hidden p-5 bg-card hover:bg-muted/30 rounded-2xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer flex items-center gap-4 hover:shadow-lg hover:shadow-primary/5"
+      className="group relative overflow-hidden p-4 md:p-5 bg-card hover:bg-muted/30 rounded-2xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer flex items-center gap-3 md:gap-4 hover:shadow-lg hover:shadow-primary/5"
     >
       {/* Decorative credit card accent glow */}
       <div className="absolute top-0 right-0 -mr-6 -mt-6 w-16 h-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />

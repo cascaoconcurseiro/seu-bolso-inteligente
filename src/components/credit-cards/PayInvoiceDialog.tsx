@@ -42,7 +42,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
       setAmountToPay(invoiceTotal.toString());
       setStep(1);
     }
-  }, [invoiceTotal, isOpen]);
+  }, [invoiceTotal, isOpen, step]);
 
   const cardCurrency = card.currency || 'BRL';
   const isInternationalCard = card.is_international || cardCurrency !== 'BRL';
