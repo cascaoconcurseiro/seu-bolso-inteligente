@@ -66,6 +66,8 @@ export function Reports() {
 
   const [viewType, setViewType] = useState<'MONTH' | 'YEAR'>('MONTH');
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
+  const [txSearch, setTxSearch] = useState<string>("");
+  const [txTypeFilter, setTxTypeFilter] = useState<string>("ALL");
   
   const { user } = useAuth();
   const { data: allTransactions = [], isLoading } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });

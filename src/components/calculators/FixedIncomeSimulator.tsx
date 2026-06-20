@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,8 +14,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export function FixedIncomeSimulator() {
   const { data: indicators } = useEconomicIndicators();
   
-  const [initialAmount, setInitialAmount] = useState<number>(1000);
-  const [monthlyContribution, setMonthlyContribution] = useState<number>(500);
+  const [initialAmount, setInitialAmount] = useState<string>("1000");
+  const [monthlyContribution, setMonthlyContribution] = useState<string>("500");
   const [term, setTerm] = useState<number>(5);
   const [termType, setTermType] = useState<"YEARS" | "MONTHS">("YEARS");
   const [rateType, setRateType] = useState<"CDI" | "SELIC" | "FIXED">("CDI");
@@ -35,14 +36,17 @@ export function FixedIncomeSimulator() {
     const months = termType === "YEARS" ? term * 12 : term;
     const monthlyRate = Math.pow(1 + (annualRate / 100), 1 / 12) - 1;
     
-    let totalInvested = initialAmount;
-    let balance = initialAmount;
+    const initAmt = moneyUtils.parse(initialAmount) || 0;
+    const monthlyCont = moneyUtils.parse(monthlyContribution) || 0;
+    
+    let totalInvested = initAmt;
+    let balance = initAmt;
     
     const monthlyData = [];
     
     for (let i = 1; i <= months; i++) {
-      balance = balance * (1 + monthlyRate) + monthlyContribution;
-      totalInvested += monthlyContribution;
+      balance = balance * (1 + monthlyRate) + monthlyCont;
+      totalInvested += monthlyCont;
       
       monthlyData.push({
         month: i,
@@ -124,19 +128,19 @@ export function FixedIncomeSimulator() {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Investimento Inicial (R$)</Label>
-              <Input type="number" inputMode="decimal" 
-                value={initialAmount || ''} 
-                onChange={e => setInitialAmount(Number(e.target.value))}
-                className="font-mono bg-background"
+              <Label>Investimento Inicial</Label>
+              <CurrencyInput 
+                value={initialAmount} 
+                onChange={setInitialAmount}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label>Aporte Mensal (R$)</Label>
-              <Input type="number" inputMode="decimal" 
-                value={monthlyContribution || ''} 
-                onChange={e => setMonthlyContribution(Number(e.target.value))}
-                className="font-mono bg-background"
+              <Label>Aporte Mensal</Label>
+              <CurrencyInput 
+                value={monthlyContribution} 
+                onChange={setMonthlyContribution}
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
