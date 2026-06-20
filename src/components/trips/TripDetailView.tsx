@@ -1,4 +1,4 @@
-import { TrendingUp, DollarSign, ShoppingCart, Plane, Route, ListChecks } from "lucide-react";
+import { TrendingUp, DollarSign, ShoppingCart, Plane, Route, ListChecks, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripDetailHeader } from "@/components/trips/TripDetailHeader";
 import { TripDetailSummary } from "@/components/trips/TripDetailSummary";
@@ -8,6 +8,7 @@ import { TripShopping } from "@/components/trips/TripShopping";
 import { TripExchange } from "@/components/trips/TripExchange";
 import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -43,6 +44,7 @@ export function TripDetailView({
   myPersonalBudget, balances, onBack, onEdit, onAddParticipant, onArchive, onUnarchive, onDelete, onOpenBudget, onUpdateTrip, formatCurrency,
   onExportPDF, onExportExcel, onRemoveParticipantClick, pendingInvitations, onCancelInvitation
 }: TripDetailViewProps) {
+  const { setShowTransactionModal } = useTransactionModal();
   const relevantTransactions = tripTransactions.filter(t => t.type === "EXPENSE" && (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id));
   const totalExpenses = relevantTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
   
@@ -65,20 +67,55 @@ export function TripDetailView({
   const myTotalSpent = myIndividualExpenses + myShareOfShared;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <TripDetailHeader trip={trip} permissions={permissions} onBack={onBack} onEdit={onEdit} onAddParticipant={onAddParticipant} onArchive={onArchive} onUnarchive={onUnarchive} onDelete={onDelete} onOpenBudget={onOpenBudget} hasPersonalBudget={!!myPersonalBudget} onExportPDF={onExportPDF} onExportExcel={onExportExcel} />
+    <div className="space-y-6 animate-fade-in pb-20">
+      <TripDetailHeader trip={trip} permissions={permissions} participants={participants} onBack={onBack} onEdit={onEdit} onAddParticipant={onAddParticipant} onArchive={onArchive} onUnarchive={onUnarchive} onDelete={onDelete} onOpenBudget={onOpenBudget} hasPersonalBudget={!!myPersonalBudget} onExportPDF={onExportPDF} onExportExcel={onExportExcel} />
       <TripDetailSummary totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} startDate={trip.start_date} endDate={trip.end_date} currency={trip.currency} formatCurrency={formatCurrency} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mb-4">
-          <TabsList className="w-full h-auto grid grid-cols-2 sm:flex sm:flex-wrap md:flex-nowrap gap-1">
-            <TabsTrigger value="summary" className="flex-1 gap-2"><TrendingUp className="h-4 w-4" /> <span className="truncate">Resumo</span></TabsTrigger>
-            <TabsTrigger value="expenses" className="flex-1 gap-2"><DollarSign className="h-4 w-4" /> <span className="truncate">Gastos</span></TabsTrigger>
-            <TabsTrigger value="shopping" className="flex-1 gap-2"><ShoppingCart className="h-4 w-4" /> <span className="truncate">Compras</span></TabsTrigger>
-            {trip.currency !== "BRL" && <TabsTrigger value="exchange" className="flex-1 gap-2"><Plane className="h-4 w-4" /> <span className="truncate">Câmbio</span></TabsTrigger>}
-            <TabsTrigger value="itinerary" className="flex-1 gap-2"><Route className="h-4 w-4" /> <span className="truncate">Roteiro</span></TabsTrigger>
-            <TabsTrigger value="checklist" className="flex-1 gap-2"><ListChecks className="h-4 w-4" /> <span className="truncate">Checklist</span></TabsTrigger>
+        <div className="mb-4 relative">
+          <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-secondary/30 rounded-2xl shadow-inner border border-border/40 p-1.5 gap-1 justify-start">
+            <TabsTrigger value="summary" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" /> 
+                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Resumo</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" /> 
+                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Gastos</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="shopping" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" /> 
+                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Compras</span>
+              </div>
+            </TabsTrigger>
+            {trip.currency !== "BRL" && (
+              <TabsTrigger value="exchange" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+                <div className="flex items-center gap-2">
+                  <Plane className="h-4 w-4" /> 
+                  <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Câmbio</span>
+                </div>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="itinerary" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2">
+                <Route className="h-4 w-4" /> 
+                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Roteiro</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-4 w-4" /> 
+                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Checklist</span>
+              </div>
+            </TabsTrigger>
           </TabsList>
+          
+          {/* Sombra para indicar scroll no mobile */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
         </div>
 
         <TabsContent value="summary"><TripSummaryTab selectedTrip={trip} totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} participants={participants} balances={balances} tripTransactions={tripTransactions} tripFinancialSummary={tripFinancialSummary} user={user} onAddParticipant={onAddParticipant} permissions={permissions} dateFns={dateFns} ptBR={ptBR} onRemoveClick={onRemoveParticipantClick} pendingInvitations={pendingInvitations} onCancelInvitation={onCancelInvitation} /></TabsContent>
@@ -88,6 +125,15 @@ export function TripDetailView({
         <TabsContent value="itinerary"><TripItinerary trip={trip} /></TabsContent>
         <TabsContent value="checklist"><TripChecklist trip={trip} /></TabsContent>
       </Tabs>
+      
+      {/* Floating Action Button para Lançar Despesa */}
+      <button
+        onClick={() => setShowTransactionModal(true, { tripId: trip.id })}
+        className="fixed bottom-20 right-6 z-50 md:hidden w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300"
+        title="Lançar Despesa na Viagem"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
   );
 }

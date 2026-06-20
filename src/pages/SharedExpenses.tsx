@@ -320,9 +320,8 @@ export function SharedExpenses() {
             <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Despesas divididas com a família e amigos</p>
           </div>
           <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-            <Button size="default" variant="secondary" className="gap-2 shadow-sm border border-border/80 w-full sm:w-auto h-11 font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground" onClick={() => setShowSettingsModal(true)}>
-              <Settings className="h-4 w-4" />
-              <span>Regras de Fechamento</span>
+            <Button size="icon" variant="outline" className="shadow-sm border-border/80 h-11 w-11 shrink-0 bg-background/50 backdrop-blur-sm" onClick={() => setShowSettingsModal(true)} title="Configurações de Fechamento">
+              <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

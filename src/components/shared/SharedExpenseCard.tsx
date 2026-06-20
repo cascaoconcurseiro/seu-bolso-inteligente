@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -9,7 +10,9 @@ import {
   Trash2, 
   Clock,
   CheckCircle,
-  FastForward
+  FastForward,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FamilyMember } from "@/hooks/useFamily";
@@ -54,6 +57,7 @@ export function SharedExpenseCard({
   formatCurrency,
   currentUserId
 }: SharedExpenseCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const iOwe = netAmount < 0;
   const theyOweMe = netAmount > 0;
   
@@ -228,8 +232,27 @@ export function SharedExpenseCard({
         </div>
       )}
 
-      <div className="divide-y divide-border border-t border-border">
-        {Object.entries(groups).map(([tripKey, group]) => (
+      {/* Accordion Toggle Button */}
+      {items.length > 0 && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-muted/20 hover:bg-muted/40 border-t border-border transition-colors text-xs font-semibold text-muted-foreground uppercase tracking-widest"
+        >
+          {isExpanded ? (
+            <>
+              Ocultar Extrato <ChevronUp className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Ver Extrato ({items.length} {items.length === 1 ? 'item' : 'itens'}) <ChevronDown className="h-4 w-4" />
+            </>
+          )}
+        </button>
+      )}
+
+      {isExpanded && (
+        <div className="divide-y divide-border border-t border-border animate-in slide-in-from-top-2 fade-in duration-300">
+          {Object.entries(groups).map(([tripKey, group]) => (
           <div key={tripKey}>
             <div className="divide-y divide-border">
               {group.items.map(item => {
@@ -387,8 +410,9 @@ export function SharedExpenseCard({
               })}
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

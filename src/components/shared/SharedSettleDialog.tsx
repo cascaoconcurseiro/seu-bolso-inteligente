@@ -87,10 +87,14 @@ export function SharedSettleDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            {settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento"}
+            {settlingMode === "SINGLE" 
+              ? "Acertar Item Específico" 
+              : (settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento")}
           </DialogTitle>
           <DialogDescription>
-            {settleType === "PAY" ? "Registre o pagamento da sua dívida" : "Registre o recebimento do valor devido"}
+            {settlingMode === "SINGLE"
+              ? "Registre o acerto apenas deste item específico"
+              : (settleType === "PAY" ? "Registre o pagamento da sua dívida total" : "Registre o recebimento do valor total devido")}
           </DialogDescription>
         </DialogHeader>
 

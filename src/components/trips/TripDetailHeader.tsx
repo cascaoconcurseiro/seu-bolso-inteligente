@@ -3,10 +3,12 @@ import { ArrowLeft, User, Coins, Pencil, MoreVertical, Plus, Archive, ArchiveRes
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 interface TripDetailHeaderProps {
   trip: any;
   permissions: any;
+  participants?: any[];
   onBack: () => void;
   onEdit: () => void;
   onAddParticipant: () => void;
@@ -22,6 +24,7 @@ interface TripDetailHeaderProps {
 export function TripDetailHeader({
   trip,
   permissions,
+  participants,
   onBack,
   onEdit,
   onAddParticipant,
@@ -54,12 +57,12 @@ export function TripDetailHeader({
           </h1>
           <div className="flex gap-2">
             {trip.is_archived && (
-              <span className="px-2.5 py-0.5 rounded-full bg-muted text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border/50">
+              <span className="px-2.5 py-0.5 rounded-full bg-muted text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border/50 flex items-center">
                 Arquivada
               </span>
             )}
             <span className={cn(
-              "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border",
+              "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border flex items-center",
               trip.status === "ACTIVE" 
                 ? "bg-green-500/10 text-green-600 border-green-500/20" 
                 : trip.status === "PLANNING"
@@ -70,6 +73,35 @@ export function TripDetailHeader({
                trip.status === "ACTIVE" ? "Em andamento" :
                trip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
             </span>
+            
+            {participants && participants.length > 0 && (
+              <div 
+                className="flex -space-x-2 ml-2 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={onAddParticipant}
+                title="Gerenciar participantes"
+              >
+                {participants.slice(0, 4).map((p) => (
+                  <div key={p.id || p.user_id} className="hover:scale-110 transition-transform hover:z-10 relative z-0">
+                    <UserAvatar 
+                      name={p.name} 
+                      avatarUrl={p.avatar_url} 
+                      size="sm" 
+                      className="w-7 h-7 border-2 border-background shadow-sm"
+                    />
+                  </div>
+                ))}
+                {participants.length > 4 && (
+                  <div className="w-7 h-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] font-bold text-muted-foreground z-0 relative">
+                    +{participants.length - 4}
+                  </div>
+                )}
+                {permissions?.isOwner && (
+                  <div className="w-7 h-7 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-primary z-0 relative ml-1 hover:bg-primary/20 transition-colors">
+                    <Plus className="h-3 w-3" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

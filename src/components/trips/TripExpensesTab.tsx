@@ -1,4 +1,5 @@
-import { DollarSign, Tag, Calendar, Users, User, CheckCircle, Clock, ArrowRight, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { DollarSign, Tag, Calendar, Users, User, CheckCircle, Clock, ArrowRight, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,8 @@ export function TripExpensesTab({
   balances = [],
   myTotalSpent,
 }: TripExpensesTabProps) {
+  const [isSharedExpanded, setIsSharedExpanded] = useState(false);
+  const [isPersonalExpanded, setIsPersonalExpanded] = useState(false);
   const navigate = useNavigate();
   const currency = selectedTrip.currency || "BRL";
   
@@ -173,8 +176,22 @@ export function TripExpensesTab({
         )}
 
         {sharedExpenses.length > 0 ? (
-          <div className="grid gap-3">
-            {sharedExpenses.map((expense) => {
+          <div className="border border-border rounded-2xl overflow-hidden bg-card/20">
+            <button
+              onClick={() => setIsSharedExpanded(!isSharedExpanded)}
+              className="w-full flex items-center justify-between p-4 bg-muted/10 hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">
+                  Ver {sharedExpenses.length} {sharedExpenses.length === 1 ? "despesa compartilhada" : "despesas compartilhadas"}
+                </span>
+              </div>
+              {isSharedExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+            
+            {isSharedExpanded && (
+              <div className="p-3 grid gap-3 border-t border-border animate-in slide-in-from-top-2 fade-in duration-300">
+                {sharedExpenses.map((expense) => {
               const iPaid = expense.creator_user_id === user?.id || expense.user_id === user?.id;
               const payerName = getParticipantName(expense.user_id);
               const status = getSettlementStatus(expense);
@@ -352,6 +369,8 @@ export function TripExpensesTab({
                 </div>
               );
             })}
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-10 text-center border border-dashed border-purple-200 dark:border-purple-900 rounded-2xl bg-purple-500/3">
@@ -398,8 +417,22 @@ export function TripExpensesTab({
                 </h2>
               </div>
             )}
-            <div className="grid gap-3">
-              {personalExpenses.map((expense) => {
+            <div className="border border-border rounded-2xl overflow-hidden bg-card/20">
+              <button
+                onClick={() => setIsPersonalExpanded(!isPersonalExpanded)}
+                className="w-full flex items-center justify-between p-4 bg-muted/10 hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">
+                    Ver {personalExpenses.length} {personalExpenses.length === 1 ? "despesa pessoal" : "despesas pessoais"}
+                  </span>
+                </div>
+                {isPersonalExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+
+              {isPersonalExpanded && (
+                <div className="p-3 grid gap-3 border-t border-border animate-in slide-in-from-top-2 fade-in duration-300">
+                  {personalExpenses.map((expense) => {
                 const categoryIcon = expense.category?.icon || "💸";
                 const categoryName = expense.category?.name || "Sem categoria";
                 const amount = Number(expense.amount);
@@ -457,6 +490,8 @@ export function TripExpensesTab({
                   </div>
                 );
               })}
+                </div>
+              )}
             </div>
           </>
         ) : null}
