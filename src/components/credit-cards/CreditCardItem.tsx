@@ -1,5 +1,5 @@
-import { ChevronRight, CalendarClock, AlertCircle, CreditCard } from "lucide-react";
-import { CardBrandIcon } from "@/components/financial/BankIcon";
+import { ChevronRight, CalendarClock, AlertCircle, Wifi } from "lucide-react";
+import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -20,63 +20,90 @@ export function CreditCardItem({
 }: CreditCardItemProps) {
   const invoice = getCardInvoice(card);
   const isOverdue = invoice.status === 'CLOSED' && new Date() > invoice.dueDate && invoice.value > 0;
-  const bankColor = card.bank_color || getBankById(card.bank_id).color;
+  const bank = getBankById(card.bank_id);
   
   return (
     <div 
       onClick={() => openCardDetail(card)}
-      className="group relative overflow-hidden p-4 md:p-5 bg-card hover:bg-muted/30 rounded-2xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer flex items-center gap-3 md:gap-4 hover:shadow-lg hover:shadow-primary/5"
+      className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-[1.5rem] p-[1.5px] w-full max-w-md mx-auto"
+      style={{
+        background: `linear-gradient(135deg, ${bank.color}80 0%, ${bank.color}20 100%)`
+      }}
     >
-      {/* Decorative credit card accent glow */}
-      <div className="absolute top-0 right-0 -mr-6 -mt-6 w-16 h-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+      <div 
+        className="relative overflow-hidden rounded-[calc(1.5rem-1.5px)] bg-card border border-white/5 p-5 w-full flex flex-col justify-between min-h-[200px]"
+        style={{
+          background: `linear-gradient(135deg, ${bank.color}15 0%, transparent 100%)`,
+          backdropFilter: "blur(20px)"
+        }}
+      >
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full blur-[50px] opacity-40 transition-opacity group-hover:opacity-60" style={{ backgroundColor: bank.color }} />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full blur-[50px] opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: bank.color }} />
 
-      <div className="relative">
-        <div 
-          className="p-1 rounded-xl ring-1 ring-border group-hover:ring-primary/20 transition-all text-white flex items-center justify-center w-10 h-10 shadow-sm"
-          style={{ backgroundColor: bankColor }}
-        >
-          <CreditCard className="w-5 h-5" />
+        {/* Top Section: Bank Logo and Contactless */}
+        <div className="relative z-10 flex justify-between items-start">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-white/10 dark:bg-black/10 backdrop-blur-md rounded-xl shadow-sm border border-white/10 dark:border-white/5">
+              <BankIcon bankId={card.bank_id} accountName={card.name} size="sm" />
+            </div>
+            <span className="font-semibold text-sm opacity-90 tracking-tight">{bank.name}</span>
+          </div>
+          <Wifi className="h-5 w-5 opacity-40 rotate-90" />
         </div>
-        <div className="absolute -bottom-1.5 -right-1.5 bg-background border border-border/50 rounded-full p-0.5 shadow-sm">
-          <CardBrandIcon brand="visa" size="sm" />
+
+        {/* Middle Section: Chip and Due Date */}
+        <div className="relative z-10 flex items-center justify-between mt-6">
+          <div className="w-11 h-8 rounded-md bg-gradient-to-br from-[#ffd700] via-[#d4af37] to-[#aa8c2c] opacity-90 border border-yellow-600/50 shadow-inner flex items-center justify-center overflow-hidden">
+            <div className="w-full h-px bg-yellow-900/20 absolute" />
+            <div className="h-full w-px bg-yellow-900/20 absolute" />
+            <div className="w-6 h-4 border border-yellow-900/20 rounded-sm absolute" />
+          </div>
+          
+          <div className="text-right">
+            {isOverdue ? (
+              <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-red-500/20">
+                <AlertCircle className="h-3 w-3" />
+                ATRASADA
+              </span>
+            ) : (
+              <span className={cn(
+                "text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm",
+                invoice.status === 'CLOSED' 
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" 
+                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+              )}>
+                {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom Section: Name, Value and Brand */}
+        <div className="relative z-10 flex items-end justify-between mt-auto pt-6">
+          <div className="flex-1 min-w-0 pr-4">
+            <h3 className="font-bold text-base truncate tracking-tight text-foreground/90 uppercase mb-1">
+              {card.name}
+            </h3>
+            <div className="flex items-center gap-2">
+              <p className={cn(
+                "font-mono font-black text-2xl tracking-tighter leading-none",
+                isOverdue ? "text-red-600 dark:text-red-400 drop-shadow-sm" : "text-foreground"
+              )}>
+                {formatCurrency(invoice.value)}
+              </p>
+              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold bg-background/40 px-1.5 py-0.5 rounded backdrop-blur-sm border border-border/50">
+                Vence {dateFns.format(invoice.dueDate, "dd/MM", { locale: ptBR })}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-end shrink-0">
+            {/* O helper CardBrandIcon exibe a rede se existir. A prop 'brand' será pega do banco ou fallbacks. Se não houver, exibe mastercard fallback */}
+            <CardBrandIcon brand={card.brand || "mastercard"} size="lg" />
+          </div>
         </div>
       </div>
-      
-      <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">
-          {card.name}
-        </h3>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1 mt-0.5">
-          <CalendarClock className="h-3 w-3 text-muted-foreground/60" />
-          Vence dia {card.due_day || "-"}
-        </p>
-      </div>
-
-      <div className="text-right">
-        <p className={cn(
-          "font-mono font-black text-lg tracking-tight leading-none mb-1",
-          isOverdue ? "text-negative" : "text-foreground"
-        )}>
-          {formatCurrency(invoice.value)}
-        </p>
-        <div className="flex items-center justify-end gap-1.5">
-          {isOverdue ? (
-            <span className="text-[9px] font-bold text-negative bg-negative/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 animate-pulse">
-              <AlertCircle className="h-2.5 w-2.5" />
-              ATRASADA
-            </span>
-          ) : (
-            <span className="text-[9px] font-bold text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">
-              {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
-            </span>
-          )}
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-            {dateFns.format(invoice.dueDate, "dd MMM", { locale: ptBR })}
-          </p>
-        </div>
-      </div>
-
-      <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
     </div>
   );
 }

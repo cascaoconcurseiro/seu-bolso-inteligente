@@ -131,15 +131,13 @@ export function CreditCardDetailView({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-4 flex-1">
-          <div 
-            className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 flex items-center justify-center"
-            style={{ backgroundColor: selectedCard.bank_color || bank.color }}
-          >
-            <CreditCard className="w-8 h-8 text-white" />
-          </div> 
+          <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="lg" />
+
           <div className="flex flex-col">
-              <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
+            <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
+
           </div>
+
         </div>
 
         {/* Share Button highlighted */}
@@ -252,130 +250,144 @@ export function CreditCardDetailView({
 
       <div 
         className={cn(
-          "p-6 rounded-2xl text-white transition-all hover:shadow-lg relative overflow-hidden",
+          "p-6 md:p-8 rounded-[2rem] text-white transition-all relative overflow-hidden shadow-2xl mx-auto w-full max-w-2xl",
           invoiceFetching && "opacity-80"
         )}
-        style={{ backgroundColor: selectedCard.bank_color || bank.color }}
+        style={{ 
+          background: `linear-gradient(135deg, ${bank.color} 0%, ${bank.color}80 100%)`
+        }}
       >
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full blur-[60px] opacity-30 bg-white" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full blur-[60px] opacity-20 bg-black" />
+
+        {/* Decorative Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+
         {invoiceFetching && (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center backdrop-blur-[1px] z-10">
-            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-sm z-20">
+            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
         )}
-        <div className={cn(
-          "absolute top-0 left-0 right-0 h-1",
-          localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0
-            ? "bg-red-500 animate-pulse" 
-            : localInvoiceData.status === 'CLOSED' 
-              ? "bg-amber-500" 
-              : "bg-blue-400"
-        )} />
         
-        <div className="flex items-start justify-between mb-4">
-          {(() => {
-            const isOverdue = localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0;
-            const isClosed = localInvoiceData.status === 'CLOSED';
-            return (
-              <span className={cn(
-                "text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wider",
-                isOverdue ? "bg-red-500 text-white" : 
-                isClosed ? "bg-amber-500/30 text-amber-100" :
-                "bg-blue-400/30 text-blue-100"
-              )}>
-                {isOverdue ? '⚠️ ATRASADA' : isClosed ? '🔴 FECHADA' : '🔵 ABERTA'}
-              </span>
-            );
-          })()}
-        </div>
-        
-        <p className="text-sm opacity-80 mb-1">Valor da Fatura</p>
-        <div className="flex items-baseline gap-3">
-          <p className="font-display font-bold text-4xl tracking-tight">
-            {formatCurrency(localInvoiceData.invoiceTotal)}
-          </p>
-          {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
-            <div className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider animate-pulse">
-              + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)} pendente
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl shadow-sm border border-white/20">
+                <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="md" />
+              </div>
+              <div>
+                <p className="font-bold text-lg tracking-tight leading-none">{selectedCard.name}</p>
+                <p className="text-xs opacity-80 mt-0.5">{bank.name}</p>
+              </div>
             </div>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm opacity-80">
-            {localInvoiceData.status === 'OPEN' 
-              ? `Fecha em ${invoiceData.daysToClose} dias`
-              : `Vence ${dateFns.format(localInvoiceData.dueDate, "dd 'de' MMMM", { locale: ptBR })}`
-            }
-          </p>
-          <div className="flex flex-col items-end">
-            <span className="text-xs px-2 py-1 rounded-full bg-white/20">
-              {daysUntilDue > 0 ? `${daysUntilDue} dias` : "Vencida"}
-            </span>
-            {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
-              <span className="text-[9px] opacity-70 mt-1">Total acumulado: {formatCurrency(Math.abs(selectedCard.balance))}</span>
-            )}
+            
+            {(() => {
+              const isOverdue = localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0;
+              const isClosed = localInvoiceData.status === 'CLOSED';
+              return (
+                <span className={cn(
+                  "text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
+                  isOverdue ? "bg-red-500/20 text-red-100 border-red-500/50 animate-pulse" : 
+                  isClosed ? "bg-amber-500/20 text-amber-100 border-amber-500/50" :
+                  "bg-blue-400/20 text-blue-100 border-blue-400/50"
+                )}>
+                  {isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Fatura Fechada' : '🔵 Fatura Aberta'}
+                </span>
+              );
+            })()}
           </div>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex gap-2 mt-6 flex-wrap">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
-            onClick={() => setShowPayDialog(true)}
-          >
-            <Wallet className="h-4 w-4 mr-2" />
-            Pagar Fatura
-          </Button>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
-            onClick={() => setShowImportDialog(true)}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Importar
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className="flex-1 min-w-[120px] bg-white/20 hover:bg-white/30 text-white border-0"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => handleExportCard('pdf', localInvoiceData.transactions, `Fatura ${monthName}`)}>
-                Exportar Fatura Completa (PDF)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportCard('csv', localInvoiceData.transactions, `Fatura ${monthName}`)}>
-                Exportar Fatura em Excel (CSV)
-              </DropdownMenuItem>
-              
-              {allYearTransactions.length > 0 && (
-                <>
-                  <div className="h-px bg-border my-1" />
-                  <DropdownMenuItem onClick={() => {
-                    const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                    handleExportCard('pdf', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
-                  }}>
-                    Exportar Relatório Anual (PDF)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                    handleExportCard('csv', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
-                  }}>
-                    Exportar Relatório Anual (CSV)
-                  </DropdownMenuItem>
-                </>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            <div>
+              <p className="text-sm opacity-80 mb-1 font-medium uppercase tracking-wider">Valor da Fatura</p>
+              <div className="flex items-baseline gap-3">
+                <p className="font-display font-black text-5xl tracking-tighter drop-shadow-sm">
+                  {formatCurrency(localInvoiceData.invoiceTotal)}
+                </p>
+              </div>
+              {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
+                <div className="inline-block mt-2 bg-white/10 border border-white/20 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                  + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)} a mais
+                </div>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+
+            <div className="flex flex-col md:items-end justify-end space-y-2">
+              <div className="flex items-center gap-2 bg-black/20 px-3 py-2 rounded-xl backdrop-blur-md border border-white/10 w-fit md:w-auto">
+                <CalendarClock className="w-4 h-4 opacity-70" />
+                <span className="text-sm font-medium">
+                  {localInvoiceData.status === 'OPEN' 
+                    ? `Fecha em ${invoiceData.daysToClose} dias`
+                    : `Vence em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
+                  }
+                </span>
+              </div>
+              {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
+                <p className="text-[11px] opacity-70 font-medium tracking-wide">
+                  Total gasto acumulado: {formatCurrency(Math.abs(selectedCard.balance))}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-3 mt-8 flex-wrap pt-6 border-t border-white/10">
+            <Button 
+              variant="secondary" 
+              className="flex-1 md:flex-none h-12 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform"
+              onClick={() => setShowPayDialog(true)}
+            >
+              <Wallet className="h-4 w-4 mr-2" />
+              Pagar Fatura
+            </Button>
+            <Button 
+              variant="secondary" 
+              className="flex-1 md:flex-none h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
+              onClick={() => setShowImportDialog(true)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="secondary" 
+                  className="flex-1 md:flex-none h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
+                <DropdownMenuItem onClick={() => handleExportCard('pdf', localInvoiceData.transactions, `Fatura ${monthName}`)} className="cursor-pointer">
+                  Exportar Fatura em PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportCard('csv', localInvoiceData.transactions, `Fatura ${monthName}`)} className="cursor-pointer">
+                  Exportar Fatura em Excel
+                </DropdownMenuItem>
+                
+                {allYearTransactions.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => {
+                      const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
+                      handleExportCard('pdf', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
+                    }} className="cursor-pointer">
+                      Exportar Relatório Anual (PDF)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
+                      handleExportCard('csv', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
+                    }} className="cursor-pointer">
+                      Exportar Relatório Anual (Excel)
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -414,48 +426,50 @@ export function CreditCardDetailView({
               <div 
                 key={tx.id} 
                 className={cn(
-                  "group flex items-start gap-4 p-4 hover:bg-muted/30 transition-colors",
+                  "group flex items-start gap-4 p-4 hover:bg-muted/50 transition-all duration-200 hover:pl-5 cursor-pointer relative",
                   index !== localInvoiceData.transactions.length - 1 && "border-b border-border"
                 )}
               >
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform origin-center" />
+                
                 <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0",
-                  tx.type === "INCOME" ? "bg-positive/10" : "bg-muted"
+                  "w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 shadow-sm border border-border/50 group-hover:scale-110 transition-transform",
+                  tx.type === "INCOME" ? "bg-positive/10" : "bg-background"
                 )}>
                   {tx.category?.icon || (tx.type === "INCOME" ? "💰" : "💸")}
                 </div>
                 
                 <div className="flex-1 min-w-0 pt-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium truncate">{tx.description}</p>
+                    <p className="font-semibold truncate text-foreground/90 group-hover:text-foreground transition-colors">{tx.description}</p>
                     {tx.is_installment && tx.current_installment && tx.total_installments && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-medium">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-bold tracking-wider">
                         {tx.current_installment}/{tx.total_installments}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap mt-1">
                     <span className="truncate">{tx.category?.name || "Sem categoria"}</span>
-                    <span>·</span>
+                    <span className="opacity-50">•</span>
                     <span>{dateFns.format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}</span>
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-3 shrink-0 pt-0.5">
+                <div className="flex items-center gap-3 shrink-0 pt-0.5">
                   <div className="flex flex-col items-end gap-0.5">
                     {(() => {
                       const isCredit = tx.type === "INCOME" || (tx.type === "TRANSFER" && tx.destination_account_id === selectedCard.id);
                       return (
                         <>
                           <span className={cn(
-                            "font-mono font-medium text-right whitespace-nowrap",
-                            isCredit ? "text-positive" : "text-negative"
+                            "font-mono font-bold text-right whitespace-nowrap",
+                            isCredit ? "text-positive" : "text-foreground"
                           )}>
-                            {isCredit ? "+" : "-"}{formatCurrency(tx.amount)}
+                            {isCredit ? "+" : ""}{formatCurrency(tx.amount)}
                           </span>
                           <span className={cn(
-                            "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
-                            isCredit ? "text-positive" : "text-negative"
+                            "text-[9px] font-bold uppercase tracking-widest whitespace-nowrap opacity-70",
+                            isCredit ? "text-positive" : "text-muted-foreground"
                           )}>
                             {isCredit ? "Crédito" : "Débito"}
                           </span>
@@ -467,21 +481,21 @@ export function CreditCardDetailView({
                   <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditTransaction(tx)}>
+                      <DropdownMenuContent align="end" className="rounded-xl shadow-xl">
+                        <DropdownMenuItem onClick={() => handleEditTransaction(tx)} className="cursor-pointer">
                           <Pencil className="h-4 w-4 mr-2" />
-                          Editar
+                          Editar Lançamento
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => setDeleteConfirm({ isOpen: true, transaction: tx })}
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive focus:text-destructive cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
+                          Excluir Lançamento
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -523,7 +537,7 @@ export function CreditCardDetailView({
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
                         width: `${(inst.current / inst.total) * 100}%`,
-                        backgroundColor: selectedCard.bank_color || bank.color 
+                        backgroundColor: bank.color 
                       }}
                     />
                   </div>

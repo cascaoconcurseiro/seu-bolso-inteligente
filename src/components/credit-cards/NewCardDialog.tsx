@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe } from "lucide-react";
+import { Globe, Loader2, CreditCard, AlertCircle } from "lucide-react";
 import { banks, cardBrands, internationalBanks } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 
@@ -27,8 +27,8 @@ interface NewCardDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: () => void;
   isLoading: boolean;
-  cardColor: string;
-  setCardColor: (v: string) => void;
+  bankId: string;
+  setBankId: (v: string) => void;
   brand: string;
   setBrand: (v: string) => void;
   cardName: string;
@@ -45,28 +45,13 @@ interface NewCardDialogProps {
   setCurrency: (v: string) => void;
 }
 
-const CARD_COLORS = [
-  "#1e293b", // Slate 800 (Dark)
-  "#0f172a", // Slate 900 (Blackish)
-  "#3b82f6", // Blue 500
-  "#8b5cf6", // Violet 500
-  "#ec4899", // Pink 500
-  "#f43f5e", // Rose 500
-  "#ef4444", // Red 500
-  "#f97316", // Orange 500
-  "#eab308", // Yellow 500
-  "#22c55e", // Green 500
-  "#14b8a6", // Teal 500
-  "#06b6d4", // Cyan 500
-];
-
 export function NewCardDialog({
   open,
   onOpenChange,
   onSubmit,
   isLoading,
-  cardColor,
-  setCardColor,
+  bankId,
+  setBankId,
   brand,
   setBrand,
   cardName,
@@ -82,47 +67,25 @@ export function NewCardDialog({
   currency,
   setCurrency,
 }: NewCardDialogProps) {
-  // Reset when switching between national/international
+  // Reset bank when switching between national/international
   const handleInternationalChange = (checked: boolean) => {
     setIsInternational(checked);
+    setBankId("");
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Novo Cartão</DialogTitle>
-          <DialogDescription>Personalize seu cartão de crédito</DialogDescription>
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <CreditCard className="w-5 h-5 text-primary" />
+            Adicionar Novo Cartão
+          </DialogTitle>
+          <DialogDescription>Cadastre um cartão para acompanhar suas faturas e lançamentos em tempo real.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Nome do cartão <span className="text-red-500">*</span></Label>
-            <Input 
-              placeholder="Ex: Cartão Principal"
-              value={cardName}
-              onChange={(e) => setCardName(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Cor do cartão</Label>
-            <div className="flex flex-wrap gap-2">
-              {CARD_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    cardColor === color ? "border-primary scale-110" : "border-transparent hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setCardColor(color)}
-                />
-              ))}
-            </div>
-          </div>
-
+        <div className="space-y-5 py-4">
           {/* Toggle Internacional */}
-          <div className="p-4 rounded-xl border border-border space-y-4">
+          <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 transition-all">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-blue-500" />
@@ -136,6 +99,36 @@ export function NewCardDialog({
                 onCheckedChange={handleInternationalChange} 
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{isInternational ? 'Instituição' : 'Banco'}</Label>
+            <Select value={bankId} onValueChange={setBankId}>
+              <SelectTrigger><SelectValue placeholder={isInternational ? "Selecione a instituição" : "Selecione o banco"} /></SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {isInternational ? (
+                  // Bancos internacionais
+                  Object.values(internationalBanks).map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={bank.id} size="sm" />
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  // Bancos nacionais
+                  Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id}>
+                      <div className="flex items-center gap-3">
+                        <BankIcon bankId={bank.id} size="sm" />
+                        <span>{bank.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Moeda (apenas para internacional) */}
@@ -181,26 +174,65 @@ export function NewCardDialog({
               </SelectContent>
             </Select>
           </div>
-          
+          <div className="space-y-2">
+            <Label>Nome do cartão (opcional)</Label>
+            <Input 
+              placeholder="Ex: Cartão Principal"
+              value={cardName}
+              onChange={(e) => setCardName(e.target.value)}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Fechamento</Label>
-              <Input type="number" inputMode="decimal" 
+              <Label className="flex justify-between items-center">
+                Fechamento
+                <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+              </Label>
+              <Input type="number" inputMode="numeric" 
                 min={1} 
                 max={31} 
-                placeholder="20"
+                placeholder="Ex: 20"
+                className="font-mono text-lg"
                 value={closingDay}
-                onChange={(e) => setClosingDay(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val === '') {
+                    setClosingDay('');
+                    return;
+                  }
+                  const num = parseInt(val, 10);
+                  if (!isNaN(num)) {
+                    if (num < 1) setClosingDay("1");
+                    else if (num > 31) setClosingDay("31");
+                    else setClosingDay(num.toString());
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">
-              <Label>Vencimento</Label>
-              <Input type="number" inputMode="decimal" 
+              <Label className="flex justify-between items-center">
+                Vencimento
+                <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+              </Label>
+              <Input type="number" inputMode="numeric" 
                 min={1} 
                 max={31} 
-                placeholder="28"
+                placeholder="Ex: 28"
+                className="font-mono text-lg"
                 value={dueDay}
-                onChange={(e) => setDueDay(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val === '') {
+                    setDueDay('');
+                    return;
+                  }
+                  const num = parseInt(val, 10);
+                  if (!isNaN(num)) {
+                    if (num < 1) setDueDay("1");
+                    else if (num > 31) setDueDay("31");
+                    else setDueDay(num.toString());
+                  }
+                }}
               />
             </div>
           </div>
@@ -214,10 +246,15 @@ export function NewCardDialog({
             />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={onSubmit} disabled={isLoading || !cardName.trim()}>
-            {isLoading ? "Adicionando..." : "Adicionar"}
+        <DialogFooter className="border-t border-border/50 pt-4 mt-2">
+          <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
+          <Button className="rounded-xl h-12 px-8 font-semibold shadow-md" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
+            {isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Adicionando...
+              </>
+            ) : "Adicionar Cartão"}
           </Button>
         </DialogFooter>
       </DialogContent>

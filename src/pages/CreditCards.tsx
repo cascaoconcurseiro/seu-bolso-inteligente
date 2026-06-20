@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, CreditCard, Trash2, Archive, Download } from "lucide-react";
+import { Plus, CreditCard, Trash2, Archive, Download, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -241,12 +241,50 @@ export function CreditCards() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Fechamento</Label>
-                  <Input type="number" inputMode="decimal" value={editClosingDay} onChange={(e) => setEditClosingDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                  <Label className="flex justify-between items-center">
+                    Fechamento
+                    <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                  </Label>
+                  <Input type="number" inputMode="numeric" 
+                    min={1} max={31} 
+                    className="font-mono text-lg"
+                    value={editClosingDay} 
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val === '') { setEditClosingDay(''); return; }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        if (num < 1) setEditClosingDay("1");
+                        else if (num > 31) setEditClosingDay("31");
+                        else setEditClosingDay(num.toString());
+                      }
+                    }} 
+                    disabled={selectedCard?.user_id !== user?.id} 
+                    title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} 
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label>Vencimento</Label>
-                  <Input type="number" inputMode="decimal" value={editDueDay} onChange={(e) => setEditDueDay(e.target.value)} disabled={selectedCard?.user_id !== user?.id} title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} />
+                  <Label className="flex justify-between items-center">
+                    Vencimento
+                    <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                  </Label>
+                  <Input type="number" inputMode="numeric" 
+                    min={1} max={31} 
+                    className="font-mono text-lg"
+                    value={editDueDay} 
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val === '') { setEditDueDay(''); return; }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        if (num < 1) setEditDueDay("1");
+                        else if (num > 31) setEditDueDay("31");
+                        else setEditDueDay(num.toString());
+                      }
+                    }} 
+                    disabled={selectedCard?.user_id !== user?.id} 
+                    title={selectedCard?.user_id !== user?.id ? "Apenas o dono do cartão pode alterar o ciclo" : ""} 
+                  />
                 </div>
               </div>
               <div className="space-y-2">
@@ -261,7 +299,12 @@ export function CreditCards() {
                 <p className="text-xs text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}
             </div>
-            <DialogFooter><Button variant="outline" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button><Button onClick={handleEditCard}>Salvar</Button></DialogFooter>
+            <DialogFooter className="border-t border-border/50 pt-4 mt-2">
+              <Button variant="outline" className="rounded-xl h-11 px-6" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
+              <Button className="rounded-xl h-11 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit}>
+                Salvar Alterações
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 

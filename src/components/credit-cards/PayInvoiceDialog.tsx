@@ -5,7 +5,7 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Wallet, ChevronRight, ArrowLeft, CreditCard } from "lucide-react";
+import { Globe, Wallet, ChevronRight, ArrowLeft, CreditCard, Loader2 } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { moneyUtils } from "@/utils/money";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +19,19 @@ const currencies = [
   { value: "JPY", label: "JPY - Iene Japonês", symbol: "¥" },
   { value: "CHF", label: "CHF - Franco Suíço", symbol: "CHF" },
 ];
+
+const getCurrencyFlag = (currency: string) => {
+  switch (currency) {
+    case 'USD': return '🇺🇸';
+    case 'EUR': return '🇪🇺';
+    case 'GBP': return '🇬🇧';
+    case 'CAD': return '🇨🇦';
+    case 'AUD': return '🇦🇺';
+    case 'JPY': return '🇯🇵';
+    case 'CHF': return '🇨🇭';
+    default: return '🇧🇷';
+  }
+};
 
 type CreditCardAccount = any;
 
@@ -37,6 +50,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [exchangeRate, setExchangeRate] = useState("");
   const [showExchangeField, setShowExchangeField] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   React.useEffect(() => {
     if (invoiceTotal > 0 && isOpen && step === 1) {
@@ -82,15 +96,20 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
     ? currentAmountToPay * moneyUtils.parse(exchangeRate) 
     : currentAmountToPay;
 
-  const handlePay = () => {
-    if (needsExchange && exchangeRate) {
-      onPay(selectedAccountId, currentAmountToPay, moneyUtils.parse(exchangeRate));
-    } else {
-      onPay(selectedAccountId, currentAmountToPay);
+  const handlePay = async () => {
+    setIsProcessing(true);
+    try {
+      if (needsExchange && exchangeRate) {
+        await onPay(selectedAccountId, currentAmountToPay, moneyUtils.parse(exchangeRate));
+      } else {
+        await onPay(selectedAccountId, currentAmountToPay);
+      }
+      setTimeout(() => {
+        setStep(1);
+      }, 500);
+    } finally {
+      setIsProcessing(false);
     }
-    setTimeout(() => {
-      setStep(1);
-    }, 500);
   };
 
   const variants = {
@@ -215,9 +234,9 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                               <div className="flex items-center gap-3 w-full">
                                 <BankIcon bankId={acc.bank_id} size="sm" />
                                 <div className="flex flex-col text-left">
-                                  <span className="font-medium flex items-center gap-1">
+                                  <span className="font-medium flex items-center gap-1.5">
                                     {acc.name}
-                                    {acc.is_international && <Globe className="h-3 w-3 text-blue-500" />}
+                                    <span className="text-xs bg-background border border-border/50 px-1 rounded shadow-sm">{getCurrencyFlag(accCurrency)}</span>
                                   </span>
                                   <span className="text-xs text-muted-foreground flex gap-1">
                                     Saldo: {formatCurrencyValue(acc.balance, accCurrency)}
@@ -269,11 +288,20 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 <div className="pt-4">
                   <Button 
                     onClick={handlePay}
-                    disabled={!selectedAccountId || currentAmountToPay <= 0 || (showExchangeField && !exchangeRate)}
+                    disabled={!selectedAccountId || currentAmountToPay <= 0 || (showExchangeField && !exchangeRate) || isProcessing}
                     className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all"
                   >
-                    <Wallet className="h-5 w-5 mr-2" />
-                    Confirmar Pagamento
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="h-5 w-5 mr-2" />
+                        Confirmar Pagamento
+                      </>
+                    )}
                   </Button>
                 </div>
               </motion.div>
