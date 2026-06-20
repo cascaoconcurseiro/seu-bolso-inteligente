@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ArrowDownRight, Globe, ArrowRight } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Globe, ArrowRight, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { getBankById } from "@/lib/banks";
@@ -13,6 +13,7 @@ interface AccountInfo {
   bank_id: string | null;
   currency: string;
   is_international: boolean | null;
+  bank_color?: string | null;
   hide_balance?: boolean;
 }
 
@@ -65,14 +66,18 @@ export function AccountCard({
     <div className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden">
       <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
         {/* Card Header visual mimicry */}
-        <div className="p-4 md:p-5 relative overflow-hidden" style={{ backgroundColor: bank.color }}>
+        <div className="p-4 md:p-5 relative overflow-hidden" style={{ backgroundColor: account.bank_color || bank.color }}>
           {/* Subtle glowing orb */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
           
           <div className="flex items-center justify-between gap-3 relative z-10">
             <div className="flex items-center gap-3">
-              <div className="p-1 rounded-xl bg-white/15 backdrop-blur-sm">
-                <BankIcon bankId={account.bank_id} size="md" />
+              <div className="p-1 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                {account.type === 'CREDIT_CARD' ? (
+                  <CreditCard className="w-8 h-8 opacity-90" style={{ color: bank.textColor }} />
+                ) : (
+                  <BankIcon bankId={account.bank_id} size="md" />
+                )}
               </div>
               <div>
                 <p className="font-display font-bold text-base tracking-tight" style={{ color: bank.textColor }}>

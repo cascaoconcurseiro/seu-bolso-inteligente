@@ -1,8 +1,9 @@
-import { ChevronRight, CalendarClock, AlertCircle } from "lucide-react";
-import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
+import { ChevronRight, CalendarClock, AlertCircle, CreditCard } from "lucide-react";
+import { CardBrandIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getBankById } from "@/lib/banks";
 
 interface CreditCardItemProps {
   card: any;
@@ -19,6 +20,7 @@ export function CreditCardItem({
 }: CreditCardItemProps) {
   const invoice = getCardInvoice(card);
   const isOverdue = invoice.status === 'CLOSED' && new Date() > invoice.dueDate && invoice.value > 0;
+  const bankColor = card.bank_color || getBankById(card.bank_id).color;
   
   return (
     <div 
@@ -29,8 +31,11 @@ export function CreditCardItem({
       <div className="absolute top-0 right-0 -mr-6 -mt-6 w-16 h-16 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
 
       <div className="relative">
-        <div className="p-1 bg-muted rounded-xl ring-1 ring-border group-hover:ring-primary/20 transition-all">
-          <BankIcon bankId={card.bank_id} accountName={card.name} size="md" />
+        <div 
+          className="p-1 rounded-xl ring-1 ring-border group-hover:ring-primary/20 transition-all text-white flex items-center justify-center w-10 h-10 shadow-sm"
+          style={{ backgroundColor: bankColor }}
+        >
+          <CreditCard className="w-5 h-5" />
         </div>
         <div className="absolute -bottom-1.5 -right-1.5 bg-background border border-border/50 rounded-full p-0.5 shadow-sm">
           <CardBrandIcon brand="visa" size="sm" />

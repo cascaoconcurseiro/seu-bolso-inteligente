@@ -85,7 +85,7 @@ export function CreditCards() {
     showTransactionModal, setShowTransactionModal,
     selectedDate, setSelectedDate,
     
-    newBankId, setNewBankId,
+    newCardColor, setNewCardColor,
     newBrand, setNewBrand,
     newCardName, setNewCardName,
     newClosingDay, setNewClosingDay,
@@ -171,7 +171,7 @@ export function CreditCards() {
       <>
         <CreditCardDetailView 
           selectedCard={selectedCard} goBack={() => { setView("list"); setSelectedCard(null); }}
-          openEditCardDialog={(card) => { setEditCardName(card.name); setEditClosingDay(card.closing_day?.toString() || ""); setEditDueDay(card.due_day?.toString() || ""); setEditLimit(card.credit_limit?.toString() || ""); setShowEditCardDialog(true); }}
+          openEditCardDialog={(card) => { setEditCardName(card.name); setEditCardColor(card.bank_color || getBankById(card.bank_id).color || "#3b82f6"); setEditClosingDay(card.closing_day?.toString() || ""); setEditDueDay(card.due_day?.toString() || ""); setEditLimit(card.credit_limit?.toString() || ""); setShowEditCardDialog(true); }}
           setDeleteCardConfirm={setDeleteCardConfirm} selectedDate={selectedDate} changeMonth={(offset) => setSelectedDate(prev => dateFns.addMonths(prev, offset))}
           goToCurrentMonth={() => setSelectedDate(dateFns.startOfMonth(new Date()))} monthName={dateFns.format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })}
           cycleRange={formatCycleRange(invoiceData.startDate, invoiceData.closingDate)} invoiceFetching={invoiceFetching} invoiceData={invoiceData}
@@ -219,6 +219,26 @@ export function CreditCards() {
             <DialogHeader><DialogTitle>Editar Cartão</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2"><Label>Nome</Label><Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} /></div>
+              <div className="space-y-2">
+                <Label>Cor do cartão</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "#0f172a", "#3b82f6", "#8b5cf6", "#ec4899", 
+                    "#f43f5e", "#ef4444", "#f97316", "#eab308", 
+                    "#22c55e", "#14b8a6", "#06b6d4", "#64748b"
+                  ].map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        editCardColor === color ? "border-primary scale-110" : "border-transparent hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setEditCardColor(color)}
+                    />
+                  ))}
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Fechamento</Label>
@@ -327,7 +347,28 @@ export function CreditCards() {
 
       <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={(card) => { setSelectedCard(card); setView("detail"); }} />
 
-      <NewCardDialog open={showNewCardDialog} onOpenChange={setShowNewCardDialog} onSubmit={handleCreateCard} isLoading={createAccount.isPending} bankId={newBankId} setBankId={setNewBankId} brand={newBrand} setBrand={setNewBrand} cardName={newCardName} setCardName={setNewCardName} closingDay={newClosingDay} setClosingDay={setNewClosingDay} dueDay={newDueDay} setDueDay={setNewDueDay} limit={newLimit} setLimit={setNewLimit} isInternational={newIsInternational} setIsInternational={setNewIsInternational} currency={newCurrency} setCurrency={setNewCurrency} />
+      <NewCardDialog 
+        open={showNewCardDialog} 
+        onOpenChange={setShowNewCardDialog} 
+        onSubmit={handleCreateCard} 
+        isLoading={createAccount.isPending} 
+        cardColor={newCardColor} 
+        setCardColor={setNewCardColor} 
+        brand={newBrand} 
+        setBrand={setNewBrand} 
+        cardName={newCardName} 
+        setCardName={setNewCardName} 
+        closingDay={newClosingDay} 
+        setClosingDay={setNewClosingDay} 
+        dueDay={newDueDay} 
+        setDueDay={setNewDueDay} 
+        limit={newLimit} 
+        setLimit={setNewLimit} 
+        isInternational={newIsInternational} 
+        setIsInternational={setNewIsInternational} 
+        currency={newCurrency} 
+        setCurrency={setNewCurrency} 
+      />
       
       {selectedCard && (
         <ArchiveConfirmModal

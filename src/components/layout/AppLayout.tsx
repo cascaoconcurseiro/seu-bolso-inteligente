@@ -87,7 +87,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const createDefaultCategories = useCreateDefaultCategories();
   
   useEffect(() => {
-    if (categoriesLoaded && categories && categories.length === 0 && !createDefaultCategories.isPending) {
+    if (categoriesLoaded && categories && categories.length < 10 && !createDefaultCategories.isPending) {
       createDefaultCategories.mutate({ force: false });
     }
   }, [categoriesLoaded, categories, createDefaultCategories]);

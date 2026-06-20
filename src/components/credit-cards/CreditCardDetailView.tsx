@@ -131,13 +131,15 @@ export function CreditCardDetailView({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-4 flex-1">
-          <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="lg" />
-
+          <div 
+            className="p-3 bg-white/20 backdrop-blur-md rounded-2xl shadow-xl border border-white/20 flex items-center justify-center"
+            style={{ backgroundColor: selectedCard.bank_color || bank.color }}
+          >
+            <CreditCard className="w-8 h-8 text-white" />
+          </div> 
           <div className="flex flex-col">
-            <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
-
+              <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
           </div>
-
         </div>
 
         {/* Share Button highlighted */}
@@ -253,7 +255,7 @@ export function CreditCardDetailView({
           "p-6 rounded-2xl text-white transition-all hover:shadow-lg relative overflow-hidden",
           invoiceFetching && "opacity-80"
         )}
-        style={{ backgroundColor: bank.color }}
+        style={{ backgroundColor: selectedCard.bank_color || bank.color }}
       >
         {invoiceFetching && (
           <div className="absolute inset-0 bg-black/10 flex items-center justify-center backdrop-blur-[1px] z-10">
@@ -521,7 +523,7 @@ export function CreditCardDetailView({
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
                         width: `${(inst.current / inst.total) * 100}%`,
-                        backgroundColor: bank.color 
+                        backgroundColor: selectedCard.bank_color || bank.color 
                       }}
                     />
                   </div>

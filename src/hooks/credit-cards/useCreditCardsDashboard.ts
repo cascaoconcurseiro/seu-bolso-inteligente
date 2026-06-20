@@ -53,7 +53,7 @@ export function useCreditCardsDashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   
   // New Card State
-  const [newBankId, setNewBankId] = useState("");
+  const [newCardColor, setNewCardColor] = useState("#3b82f6"); // Default to Blue
   const [newBrand, setNewBrand] = useState("");
   const [newCardName, setNewCardName] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("");
@@ -108,6 +108,7 @@ export function useCreditCardsDashboard() {
   const [showEditCardDialog, setShowEditCardDialog] = useState(false);
   
   const [editCardName, setEditCardName] = useState("");
+  const [editCardColor, setEditCardColor] = useState("");
   const [editClosingDay, setEditClosingDay] = useState("");
   const [editDueDay, setEditDueDay] = useState("");
   const [editLimit, setEditLimit] = useState("");
@@ -183,14 +184,17 @@ export function useCreditCardsDashboard() {
   const getDaysUntilDue = (dueDate: Date) => Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
   const handleCreateCard = async () => {
-    const bank = getBankById(newBankId);
-    await createAccount.mutateAsync({ name: newCardName.trim() || bank.name, type: "CREDIT_CARD", bank_id: newBankId, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
+    if (!newCardName.trim()) {
+      toast.error("O nome do cartão é obrigatório");
+      return;
+    }
+    await createAccount.mutateAsync({ name: newCardName.trim(), type: "CREDIT_CARD", bank_id: null, bank_color: newCardColor, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
     setShowNewCardDialog(false);
     resetNewCardForm();
   };
 
   const resetNewCardForm = () => {
-    setNewBankId(""); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
+    setNewCardColor("#3b82f6"); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
   };
 
   const totalInvoices = useMemo(() => creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0), [creditCards, getCardInvoice]);
@@ -220,7 +224,7 @@ export function useCreditCardsDashboard() {
 
   const handleEditCard = async () => {
     if (!selectedCard) return;
-    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? moneyUtils.parse(editLimit) : null });
+    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? moneyUtils.parse(editLimit) : null, bank_color: editCardColor });
     toast.success("Cartão atualizado!");
     setShowEditCardDialog(false);
     refetchAccounts();
@@ -353,6 +357,7 @@ export function useCreditCardsDashboard() {
     
     showEditCardDialog, setShowEditCardDialog,
     editCardName, setEditCardName,
+    editCardColor, setEditCardColor,
     editClosingDay, setEditClosingDay,
     editDueDay, setEditDueDay,
     editLimit, setEditLimit,

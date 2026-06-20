@@ -62,6 +62,7 @@ export interface Account {
   type: AccountType;
   balance: number;
   bank_id: string | null;
+  bank_color: string | null;
   currency: string;
   is_international: boolean | null;
   is_active: boolean;
@@ -81,6 +82,7 @@ export interface CreateAccountInput {
   type: AccountType;
   balance?: number;
   bank_id?: string | null;
+  bank_color?: string | null;
   currency?: string;
   is_international?: boolean;
   closing_day?: number;
@@ -227,6 +229,7 @@ export function useCreateAccount() {
           balance: 0, // Sempre começa com zero, trigger calcula
           initial_balance: 0, // Definido como 0 para evitar duplicação, já que criamos a transação histórica abaixo
           bank_id: input.bank_id || null,
+          bank_color: input.bank_color || null,
           currency: input.currency || 'BRL',
           is_international: input.is_international || false,
           closing_day: input.closing_day || null,
