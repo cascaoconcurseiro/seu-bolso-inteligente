@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, Unlock, Delete } from 'lucide-react';
+import { Lock, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { haptics } from '@/utils/haptics';
 import { hashPin } from '@/utils/crypto';

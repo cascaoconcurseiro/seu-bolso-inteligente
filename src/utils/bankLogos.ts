@@ -114,8 +114,7 @@ export function getBankLogo(bankName: string): string | undefined {
   
   const normalized = bankName.toLowerCase().replace(/\s+/g, '');
   
-  // Mapeamento de nomes comuns e aliases
-  const aliases: Record<string, BankCode> = {
+  const aliases: Record<string, string> = {
     // Banco do Brasil
     'bancodobrasil': 'bb',
     'bb': 'bb',
@@ -188,15 +187,11 @@ export function getBankLogo(bankName: string): string | undefined {
     'bancoarbi': 'arbi',
   };
   
-  // Busca direta
-  if (BANK_LOGOS[normalized as BankCode]) {
-    return BANK_LOGOS[normalized as BankCode];
-  }
+  const code = aliases[normalized] || normalized;
   
-  // Busca por alias
-  const code = aliases[normalized];
-  if (code) {
-    return BANK_LOGOS[code];
+  // Busca direta usando asserção as any (já que as chaves podem faltar no tipo)
+  if ((BANK_LOGOS as Record<string, string>)[code]) {
+    return (BANK_LOGOS as Record<string, string>)[code];
   }
   
   return undefined;

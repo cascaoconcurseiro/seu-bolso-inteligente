@@ -1,12 +1,11 @@
 import React from "react";
 import { useSharedCreditCards, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { CreditCardCategories } from "./CreditCardCategories";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, X } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2 } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -64,7 +63,7 @@ export function CreditCardDetailView({
   invoiceData,
   formatCurrency,
   daysUntilDue,
-  usagePercent,
+
   bank,
   setShowPayDialog,
   setShowImportDialog,
@@ -80,7 +79,7 @@ export function CreditCardDetailView({
 }: CreditCardDetailViewProps) {
   const { user } = useAuth();
   const { data: sharedCards = [] } = useSharedCreditCards(selectedCard.id);
-  const revokeMutation = useRevokeSharedCard();
+
   const isOwner = selectedCard.user_id === user?.id;
 
   const [activeTab, setActiveTab] = React.useState("mine");
@@ -109,33 +108,7 @@ export function CreditCardDetailView({
     return { ...baseData, status: invoiceData?.status || baseData.status };
   }, [selectedCard, cardTransactions, selectedDate, invoiceData?.status]);
 
-  // Calculate category summary for the current tab
-  const categorySummary = React.useMemo(() => {
-    const summary: Record<string, { amount: number, name: string, icon: string, color: string }> = {};
-    let totalExpenses = 0;
-    
-    // Only use expenses that belong to the current invoice
-    localInvoiceData.transactions.forEach(t => {
-      if (t.type === 'EXPENSE' || (t.type === 'TRANSFER' && t.account_id === selectedCard.id)) {
-        const catId = t.category_id || 'uncategorized';
-        const catName = t.category?.name || 'Outros';
-        const catIcon = t.category?.icon || 'help-circle';
-        // Assign a random color if needed, or use a default
-        const amount = Number(t.amount);
-        
-        if (!summary[catId]) {
-          summary[catId] = { amount: 0, name: catName, icon: catIcon, color: 'bg-muted' };
-        }
-        summary[catId].amount += amount;
-        totalExpenses += amount;
-      }
-    });
-    
-    return Object.values(summary).sort((a, b) => b.amount - a.amount).map(cat => ({
-      ...cat,
-      percent: totalExpenses > 0 ? (cat.amount / totalExpenses) * 100 : 0
-    }));
-  }, [localInvoiceData.transactions, selectedCard.id]);
+
 
   const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
     const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");

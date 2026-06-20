@@ -267,9 +267,14 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                     <div className="flex items-center gap-3">
                       <Checkbox
                         checked={item.is_completed}
-                        onCheckedChange={(checked) =>
-                          toggleItem.mutate({ id: item.id, is_completed: !!checked })
-                        }
+                        disabled={toggleItem.isPending && toggleItem.variables?.id === item.id}
+                        onCheckedChange={async (checked) => {
+                          try {
+                            await toggleItem.mutateAsync({ id: item.id, is_completed: !!checked });
+                          } catch (err: any) {
+                            toast.error(err.message || "Erro ao atualizar item");
+                          }
+                        }}
                       />
                       <span className={cn(item.is_completed && "line-through text-muted-foreground")}>
                         {item.item}
@@ -278,10 +283,21 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteItem.mutate(item.id)}
+                      disabled={deleteItem.isPending && deleteItem.variables === item.id}
+                      onClick={async () => {
+                        try {
+                          await deleteItem.mutateAsync(item.id);
+                        } catch (err: any) {
+                          toast.error(err.message || "Erro ao excluir item");
+                        }
+                      }}
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deleteItem.isPending && deleteItem.variables === item.id ? (
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 ))}

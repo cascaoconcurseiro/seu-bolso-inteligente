@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEconomicIndicators } from "@/hooks/useEconomicIndicators";
 import { moneyUtils } from "@/utils/money";
-import { RefreshCcw, Download, TrendingUp, Info } from "lucide-react";
+import { Download, Info } from "lucide-react";
 import { exportCalculatorToPDF } from "@/utils/calculatorExport";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function FixedIncomeSimulator() {
-  const { data: indicators, isLoading } = useEconomicIndicators();
+  const { data: indicators } = useEconomicIndicators();
   
   const [initialAmount, setInitialAmount] = useState<number>(1000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(500);

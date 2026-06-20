@@ -82,7 +82,7 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
       </h3>
       
       <div className="space-y-4">
-        {categoryData.map((item, index) => (
+        {categoryData.map((item) => (
           <div key={item.category} className="group relative">
             <div className="flex justify-between items-end mb-2">
               <div className="flex items-center gap-2.5">

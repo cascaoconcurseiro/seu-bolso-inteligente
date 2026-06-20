@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { RefreshCcw, CreditCard, ShieldAlert, CalendarClock } from "lucide-react";
+import { CreditCard, ShieldAlert, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CreditCardSummaryProps {
@@ -7,8 +6,6 @@ interface CreditCardSummaryProps {
   totalDebt: number;
   nextDueDate: number;
   formatCurrency: (value: number) => string;
-  onRefresh: () => void;
-  isLoading: boolean;
 }
 
 export function CreditCardSummary({
@@ -16,8 +13,6 @@ export function CreditCardSummary({
   totalDebt,
   nextDueDate,
   formatCurrency,
-  onRefresh,
-  isLoading
 }: CreditCardSummaryProps) {
   return (
     <div className="space-y-4 mb-6 animate-fade-in-up">

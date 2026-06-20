@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Plus, CreditCard } from "lucide-react";
+
 import { CreditCardSummary } from "@/components/credit-cards/CreditCardSummary";
 import { CreditCardItem } from "@/components/credit-cards/CreditCardItem";
 
@@ -7,13 +6,12 @@ interface CreditCardsListProps {
   creditCards: any[];
   totalInvoices: number;
   totalDebt: number;
-  nextDueDate: Date | null;
+  nextDueDate: number;
   formatCurrency: (value: number) => string;
   getCardInvoice: (card: any) => { value: number; dueDate: Date | null; status: string };
   isLoading: boolean;
   onRefresh: () => void;
   onSelectCard: (card: any) => void;
-  onNewCard: () => void;
 }
 
 export function CreditCardsList({
@@ -26,7 +24,6 @@ export function CreditCardsList({
   isLoading,
   onRefresh,
   onSelectCard,
-  onNewCard
 }: CreditCardsListProps) {
   if (creditCards.length === 0) {
     return null; // O EmptyState é gerenciado no componente pai (CreditCards.tsx)
@@ -39,8 +36,6 @@ export function CreditCardsList({
         totalDebt={totalDebt} 
         nextDueDate={nextDueDate} 
         formatCurrency={formatCurrency} 
-        onRefresh={onRefresh} 
-        isLoading={isLoading} 
       />
       <div className="space-y-3">
         {creditCards.map((card) => (

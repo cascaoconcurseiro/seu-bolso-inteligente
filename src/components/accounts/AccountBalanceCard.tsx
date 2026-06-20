@@ -12,6 +12,7 @@ interface AccountInfo {
   currency: string;
   type: string;
   hide_balance?: boolean;
+  is_archived?: boolean | null;
 }
 
 interface BankInfo {

@@ -2,6 +2,7 @@ import { SettlementValidator } from '@/services/settlementValidation';
 import { dateUtils } from '@/lib/dateUtils';
 import { Database } from '@/types/database';
 import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
+import type { TransactionSplit } from '@/services/settlementValidation';
 
 export interface SplitInput {
   member_id: string;
@@ -194,7 +195,7 @@ export const generateInvoices = (
         
         const settlementStatus = SettlementValidator.getSettlementStatus(
           { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled || false },
-          split as Record<string, any>
+          split as unknown as TransactionSplit
         );
         
         const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);
@@ -242,7 +243,7 @@ export const generateInvoices = (
             
             const settlementStatus = SettlementValidator.getSettlementStatus(
               { id: tx.id, user_id: tx.user_id, is_settled: tx.is_settled || false },
-              { ...mySplit, member_id: mySplit.member_id || "" } as Record<string, any>
+              { ...mySplit, member_id: mySplit.member_id || "" } as unknown as TransactionSplit
             );
             
             const displayDate = calculateSharedDisplayDate(tx.date, tx.competence_date, tx.account_id, accounts, profile, family);

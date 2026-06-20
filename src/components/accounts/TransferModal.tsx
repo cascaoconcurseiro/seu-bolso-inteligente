@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ArrowRight, ArrowRightLeft, AlertCircle } from "lucide-react";
+import { Loader2, ArrowRight, ArrowRightLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTransfer } from "@/hooks/useTransfer";
@@ -188,7 +188,7 @@ export function TransferModal({
                 {availableAccounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
                     <div className="flex items-center gap-2">
-                      {account.name} - {account.bank}
+                      {account.name} {account.bank_id ? `- ${account.bank_id}` : ''}
                       {account.is_international && (
                         <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                           {account.currency}

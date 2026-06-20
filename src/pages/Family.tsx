@@ -105,8 +105,36 @@ export function Family() {
 
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Membros ({activeMembers.length})</h2>
-        {activeMembers.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl"><Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" /><p>Nenhum membro ativo</p></div> : (
-          <div className="space-y-2">{activeMembers.map(m => <FamilyMemberCard key={m.id} member={m} isSelf={m.linked_user_id === user?.id} roleLabels={roleLabels} getInitials={getInitials} onUpdateRole={(id, r) => updateMember.mutate({ id, role: r })} onRemove={(id) => removeMember.mutate(id)} />)}</div>
+        {activeMembers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
+              <Users className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-xl font-display font-bold text-foreground mb-2">Nenhum membro ativo</h3>
+            <p className="text-muted-foreground text-center max-w-md text-sm mb-6">
+              Convide familiares para participarem da sua conta, compartilharem viagens ou cartões de crédito em conjunto.
+            </p>
+            <Button onClick={() => setShowInviteDialog(true)} className="h-11 px-6 rounded-full shadow-lg shadow-primary/20">
+              <Plus className="w-4 h-4 mr-2" />
+              Convidar Membro
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">{activeMembers.map(m => <FamilyMemberCard key={m.id} member={m} isSelf={m.linked_user_id === user?.id} roleLabels={roleLabels} getInitials={getInitials} onUpdateRole={async (id, r) => {
+            try {
+              await updateMember.mutateAsync({ id, role: r });
+              toast.success("Permissão atualizada com sucesso");
+            } catch (e: any) {
+              toast.error(e.message || "Erro ao atualizar permissão");
+            }
+          }} onRemove={async (id) => {
+            try {
+              await removeMember.mutateAsync(id);
+              toast.success("Membro removido com sucesso");
+            } catch (e: any) {
+              toast.error(e.message || "Erro ao remover membro");
+            }
+          }} />)}</div>
         )}
       </div>
 
@@ -117,7 +145,18 @@ export function Family() {
             {pendingInvitations.map((i: any) => (
               <div key={i.id} className="p-4 rounded-xl border border-dashed bg-muted/30 flex items-center justify-between">
                 <div className="flex items-center gap-4"><div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-sm">{getInitials(i.member_name || i.name)}</div><div><p className="font-display font-semibold">{i.member_name || i.name}</p><p className="text-xs text-muted-foreground">Convite pendente</p></div></div>
-                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => i.member_name ? cancelInvitation.mutate(i.id) : removeMember.mutate(i.id)}><X className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 transition-colors" disabled={cancelInvitation.isPending || removeMember.isPending} onClick={async () => {
+                  try {
+                    if (i.member_name) {
+                      await cancelInvitation.mutateAsync(i.id);
+                    } else {
+                      await removeMember.mutateAsync(i.id);
+                    }
+                    toast.success("Convite cancelado");
+                  } catch (e: any) {
+                    toast.error(e.message || "Erro ao cancelar convite");
+                  }
+                }}><X className="h-4 w-4" /></Button>
               </div>
             ))}
           </div>

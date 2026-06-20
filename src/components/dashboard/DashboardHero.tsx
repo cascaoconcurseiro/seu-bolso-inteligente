@@ -1,7 +1,7 @@
 import { moneyUtils } from "@/utils/money";
-import { Globe, Wallet, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { Globe, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useMemo, lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -12,8 +12,7 @@ interface DashboardHeroProps {
   totalPatrimony?: number;
   income: number;
   expenses: number;
-  pendingIncome?: number;
-  pendingExpense?: number;
+
   currency: string;
   formatCurrency: (value: number) => string;
   wealthHistory?: { month_label: string; balance: number; }[];
@@ -27,8 +26,7 @@ export function DashboardHero({
   totalPatrimony = 0,
   income,
   expenses,
-  pendingIncome = 0,
-  pendingExpense = 0,
+
   currency,
   formatCurrency,
   wealthHistory,

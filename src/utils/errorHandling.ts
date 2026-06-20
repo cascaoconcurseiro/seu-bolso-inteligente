@@ -42,7 +42,7 @@ export const handleMutationError = (
 ): void => {
   const message = `Erro ao ${action} ${entity}`;
   logger.error(message, { error });
-  toast.error(`${message}: ${error.message}`);
+  toast.error(`${message}: ${(error as Error)?.message || 'Erro desconhecido'}`);
 };
 
 /**

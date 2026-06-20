@@ -6,12 +6,23 @@ import { Plus } from "lucide-react";
 import { useTrips, useTrip, useTripParticipants, useTripTransactions, useTripFinancialSummary, useCreateTrip, useUpdateTrip, useDeleteTrip, useArchiveTrip, useUnarchiveTrip, useTripParticipantBalances, useRemoveTripParticipant } from "@/hooks/useTrips";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
-import { useTripMembers, useTripPermissions, useUpdatePersonalBudget } from "@/hooks/useTripMembers";
+import { useTripMembers, useTripPermissions } from "@/hooks/useTripMembers";
 import { EditTripDialog } from "@/components/trips/EditTripDialog";
 
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { AddParticipantDialog } from "@/components/trips/AddParticipantDialog";
 import { useCreateTripInvitation, useSentTripInvitations, useCancelTripInvitation } from "@/hooks/useTripInvitations";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TripEmptyState } from "@/components/trips/TripEmptyState";
 import { useAuth } from "@/contexts/AuthContext";
 import { TripListView } from "@/components/trips/TripListView";
@@ -42,6 +53,8 @@ export function Trips() {
   const [removingParticipantBalance, setRemovingParticipantBalance] = useState<any | null>(null);
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [isRemovingState, setIsRemovingState] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [tripToDelete, setTripToDelete] = useState<string | null>(null);
   
   const [tripName, setTripName] = useState("");
   const [tripDestination, setTripDestination] = useState("");
@@ -98,7 +111,7 @@ export function Trips() {
   };
 
   const handleConfirmSettleRemove = async (accountId: string) => {
-    if (!removingParticipant || !selectedTripId || !removingParticipantBalance || !user) return;
+    if (!removingParticipant || !selectedTripId || !removingParticipantBalance || !user || !selectedTrip) return;
     setIsRemovingState(true);
     try {
       const balanceVal = removingParticipantBalance.balance;
@@ -145,7 +158,7 @@ export function Trips() {
   };
 
   const handleConfirmForgiveRemove = async () => {
-    if (!removingParticipant || !selectedTripId || !removingParticipantBalance || !user) return;
+    if (!removingParticipant || !selectedTripId || !removingParticipantBalance || !user || !selectedTrip) return;
     setIsRemovingState(true);
     try {
       const balanceVal = removingParticipantBalance.balance;
@@ -238,8 +251,15 @@ export function Trips() {
           onEdit={() => setShowEditTripDialog(true)} 
           onAddParticipant={() => setShowAddParticipantDialog(true)} 
           onArchive={async () => { await archiveTrip.mutateAsync(selectedTripId!); setView("list"); }} 
-          onUnarchive={() => unarchiveTrip.mutate(selectedTripId!)} 
-          onDelete={() => { if (confirm("Excluir viagem?")) { deleteTrip.mutate(selectedTripId!); setView("list"); } }} 
+          onUnarchive={async () => {
+            try {
+              await unarchiveTrip.mutateAsync(selectedTripId!);
+              toast.success("Viagem desarquivada com sucesso!");
+            } catch (err: any) {
+              toast.error(err.message || "Erro ao desarquivar viagem");
+            }
+          }} 
+          onDelete={() => { setTripToDelete(selectedTripId!); setShowDeleteConfirm(true); }} 
           onOpenBudget={() => setShowEditTripDialog(true)} 
           onUpdateTrip={async (u) => { await updateTrip.mutateAsync({ id: selectedTrip.id, ...u }); }} 
           formatCurrency={(val, cur) => moneyUtils.format(val, cur || 'BRL')} 
@@ -342,7 +362,14 @@ export function Trips() {
           tripFilter={tripFilter} 
           setTripFilter={setTripFilter} 
           onTripClick={(id) => { setSelectedTripId(id); setView("detail"); setActiveTab("summary"); }} 
-          onUnarchive={(id) => unarchiveTrip.mutate(id)} 
+          onUnarchive={async (id) => {
+            try {
+              await unarchiveTrip.mutateAsync(id);
+              toast.success("Viagem desarquivada com sucesso!");
+            } catch (err: any) {
+              toast.error(err.message || "Erro ao desarquivar viagem");
+            }
+          }} 
         />
       )}
 
@@ -390,6 +417,36 @@ export function Trips() {
         currency={tripCurrency} 
         setCurrency={setTripCurrency} 
       />
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent className="border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é irreversível. A viagem e todos os seus dados associados serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={async () => {
+                if (tripToDelete) {
+                  try {
+                    await deleteTrip.mutateAsync(tripToDelete);
+                    toast.success("Viagem excluída com sucesso");
+                    setView("list");
+                  } catch (err: any) {
+                    toast.error(err.message || "Erro ao excluir viagem");
+                  }
+                }
+              }} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteTrip.isPending}
+            >
+              {deleteTrip.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

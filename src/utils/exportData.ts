@@ -48,7 +48,7 @@ const safeFormatDate = (dateVal: any): string => {
 };
 
 // Helper para disparar download de CSV com caractere BOM para Excel BR
-const downloadCSV = (csvContent: string, filename: string) => {
+export const downloadCSV = (csvContent: string, filename: string) => {
   const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
@@ -1109,7 +1109,6 @@ export const exportDetailedCardReportToCSV = (transactions: any[], card: any, pe
     return;
   }
 
-  const today = new Date().toLocaleDateString('pt-BR');
   const currency = card?.currency || 'BRL';
   
   let totalExpense = 0;

@@ -74,7 +74,7 @@ class Logger {
    * Enviar para serviço de monitoramento (Sentry, etc)
    * TODO: Implementar integração com Sentry
    */
-  private sendToMonitoring(level: LogLevel, message: string, data?: unknown): void {
+  private sendToMonitoring(_level: LogLevel, _message: string, _data?: unknown): void {
     // Placeholder para integração futura com Sentry
     // Sentry.captureMessage(message, { level, extra: data });
   }

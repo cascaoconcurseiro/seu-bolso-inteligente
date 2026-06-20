@@ -1,11 +1,8 @@
 import { useSharedCreditCards, useRespondSharedCardInvite } from "@/hooks/useSharedCreditCards";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { CreditCard, Check, X } from "lucide-react";
-import { BankIcon } from "@/components/financial/BankIcon";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
 
 export function PendingSharedCardInvitationsAlert() {
   const { user } = useAuth();
@@ -42,7 +39,7 @@ export function PendingSharedCardInvitationsAlert() {
               <div>
                 <p className="font-semibold text-sm">Convite de Cartão Compartilhado</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Você foi convidado(a) para participar do cartão de crédito <b>{invite.accounts?.name || 'Compartilhado'}</b>. Ao aceitar, vocês poderão dividir faturas.
+                  Você foi convidado(a) para participar do cartão de crédito <b>{invite.account?.name || 'Compartilhado'}</b>. Ao aceitar, vocês poderão dividir faturas.
                 </p>
               </div>
             </div>

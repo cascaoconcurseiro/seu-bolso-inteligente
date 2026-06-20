@@ -70,8 +70,7 @@ export const exportCalculatorToPDF = (data: CalculatorExportData) => {
       0: { fontStyle: 'bold', textColor: [100, 110, 120], cellWidth: 80 },
       1: { fontStyle: 'bold', textColor: TEXT_COLOR }
     },
-    // @ts-expect-error type override
-    didParseCell: (cellData: Record<string, any>) => {
+    didParseCell: (cellData) => {
       const rowIndex = cellData.row.index;
       if (cellData.section === 'body' && data.summary[rowIndex].isWarning && cellData.column.index === 1) {
         cellData.cell.styles.textColor = [5, 150, 105]; // Highlight as primary color (or warning depending on logic, here we use primary green for good outcomes)

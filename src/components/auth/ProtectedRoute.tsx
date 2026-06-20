@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Wallet } from "lucide-react";
 import { AppLock } from "./AppLock";
 
 interface ProtectedRouteProps {

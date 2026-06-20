@@ -305,7 +305,6 @@ export function CreditCards() {
           isLoading={isLoading || transactionsLoading}
           onRefresh={() => { refetchAccounts(); refetchTransactions(); }}
           onSelectCard={(c) => { setSelectedCard(c); setView("detail"); }}
-          onNewCard={() => setShowNewCardDialog(true)}
         />
       ) : (
         <EmptyState

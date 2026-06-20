@@ -8,6 +8,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 interface FAQItem {
@@ -20,6 +30,7 @@ interface FAQItem {
 export function HelpSettings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "general" | "shared" | "cards" | "goals" | "reports" | "investments" | "trips" | "security">("all");
+  const [showClearCacheDialog, setShowClearCacheDialog] = useState(false);
 
   const faqs: FAQItem[] = [
     // ==========================================
@@ -760,24 +771,42 @@ export function HelpSettings() {
         <Button 
           variant="destructive" 
           size="sm"
-          onClick={() => {
-            if(confirm("Deseja realmente limpar o cache local? O aplicativo será recarregado.")) {
-              localStorage.clear();
-              sessionStorage.clear();
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                  for(const registration of registrations) {
-                    registration.unregister();
-                  }
-                });
-              }
-              window.location.reload();
-            }
-          }}
+          onClick={() => setShowClearCacheDialog(true)}
         >
           Limpar Dados Locais e Recarregar
         </Button>
       </div>
+
+      <AlertDialog open={showClearCacheDialog} onOpenChange={setShowClearCacheDialog}>
+        <AlertDialogContent className="border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deseja realmente limpar o cache local?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação removerá dados salvos em cache para acelerar o aplicativo e recarregará a página. Nenhum dado contábil ou financeiro do servidor será perdido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(const registration of registrations) {
+                      registration.unregister();
+                    }
+                  });
+                }
+                window.location.reload();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Limpar e Recarregar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

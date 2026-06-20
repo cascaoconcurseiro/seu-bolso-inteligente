@@ -360,15 +360,23 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       }
       return !acc.is_international;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, accountId, selectedTrip, activeTab]);
+    // ANTI-LOOP: accountId removido das deps — não influencia quais contas são listadas,
+    // apenas causava recalcular a lista ao mudar a seleção, retroalimentando o loop #185.
+  }, [accounts, selectedTrip, activeTab]);
 
+  // ANTI-LOOP: Ref guarda o último accountId que foi invalidado para evitar chamar
+  // setAccountId('') repetidamente quando já está vazio (loop: filteredAccounts → setAccountId → filteredAccounts).
+  const lastInvalidatedAccountRef = useRef<string>('');
   useEffect(() => {
     if (accountId && filteredAccounts && filteredAccounts.length > 0) {
       const isAccountValid = filteredAccounts.some(acc => acc.id === accountId);
-      if (!isAccountValid) {
+      if (!isAccountValid && lastInvalidatedAccountRef.current !== accountId) {
+        lastInvalidatedAccountRef.current = accountId;
         store.setAccountId('');
       }
+    } else if (!accountId) {
+      // Reset ref quando conta já está vazia — próxima seleção inválida pode ser detectada
+      lastInvalidatedAccountRef.current = '';
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredAccounts, accountId]);

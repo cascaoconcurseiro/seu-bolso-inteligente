@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe, Wallet, ChevronRight, ArrowLeft, CreditCard } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
@@ -26,7 +26,7 @@ interface PayInvoiceDialogProps {
   onClose: () => void;
   card: CreditCardAccount & { currency?: string; is_international?: boolean };
   invoiceTotal: number;
-  accounts: unknown[];
+  accounts: any[];
   onPay: (fromAccountId: string, amount: number, exchangeRate?: number) => void;
 }
 

@@ -90,8 +90,13 @@ export function SplitModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, payerId]);
 
+  // Ref estável para setSplits — evita que mudança de referência da prop recrie o efeito
+  const setSplitsRef = useRef(setSplits);
+  useEffect(() => { setSplitsRef.current = setSplits; }, [setSplits]);
+
   // Sempre que mySplitPercentage/payerId/activeAmount mudarem (quando outro pagou), atualiza os splits.
   // IMPORTANTE: `splits` NÃO está nas deps — usamos ref para evitar loop infinito (React Error #185).
+  // `setSplits` também NÃO está nas deps — usamos setSplitsRef para evitar referência instável de prop.
   useEffect(() => {
     if (!isOpen || payerId === 'me') return;
 
@@ -111,9 +116,10 @@ export function SplitModal({
     if (!isSame) {
       const newSplit = { memberId: payerId, percentage: partnerPercentage, amount: partnerAmount };
       lastSetSplitRef.current = newSplit;
-      setSplits([newSplit]);
+      setSplitsRef.current([newSplit]);
     }
-  }, [mySplitPercentage, payerId, activeAmount, isOpen, setSplits]);
+  }, [mySplitPercentage, payerId, activeAmount, isOpen]);
+
 
   console.log('🔵 [SplitModal] Renderizado com:', { 
     isOpen, 

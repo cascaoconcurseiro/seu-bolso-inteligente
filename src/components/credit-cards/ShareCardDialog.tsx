@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -113,7 +113,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                   return (
                     <div key={member.id} className="flex items-center justify-between p-2 border border-transparent hover:border-border rounded-lg transition-colors">
                       <div className="flex items-center gap-3">
-                        <UserAvatar name={member.name} avatarUrl={member.avatar_url} iconId={member.avatar_icon} colorId={member.avatar_color} size="sm" />
+                        <UserAvatar name={member.name} avatarUrl={member.avatar_url || undefined} iconId={member.avatar_icon || undefined} colorId={member.avatar_color || undefined} size="sm" />
                         <div>
                           <p className="text-sm font-medium">{member.name}</p>
                           <p className="text-xs text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>
