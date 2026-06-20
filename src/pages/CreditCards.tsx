@@ -117,6 +117,7 @@ export function CreditCards() {
     editClosingDay, setEditClosingDay,
     editDueDay, setEditDueDay,
     editLimit, setEditLimit,
+    editCardColor, setEditCardColor,
     
     invoiceData,
     invoiceFetching,
