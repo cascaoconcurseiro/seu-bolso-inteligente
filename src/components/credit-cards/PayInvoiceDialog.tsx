@@ -132,7 +132,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b overflow-hidden bg-background">
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b overflow-hidden bg-background">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-12 h-1.5 bg-muted rounded-full" />
         </div>
@@ -155,8 +155,8 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
           </div>
         </DialogHeader>
         
-        <div className="relative min-h-[350px]">
-          <AnimatePresence mode="wait" custom={direction}>
+        <div className="relative overflow-hidden flex flex-col">
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
             {step === 1 && (
               <motion.div 
                 key="step1"
@@ -166,7 +166,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute inset-0 p-6 flex flex-col"
+                className="p-6 flex flex-col flex-1"
               >
                 <div className="flex-1 space-y-6">
                   <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 flex flex-col items-center justify-center text-center">
@@ -194,7 +194,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-6 mt-auto shrink-0">
                   <Button 
                     onClick={nextStep} 
                     className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20"
@@ -215,7 +215,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute inset-0 p-6 flex flex-col"
+                className="p-6 flex flex-col flex-1"
               >
                 <div className="flex-1 space-y-6">
                   <div className="space-y-3">
