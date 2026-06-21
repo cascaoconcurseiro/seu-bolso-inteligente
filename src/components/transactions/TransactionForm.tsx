@@ -229,8 +229,19 @@ export function TransactionForm(props: TransactionFormProps) {
           availableMembers={form.availableMembers}
         />
 
-        <Button type="submit" size="default" className="w-full h-11 md:h-12 text-base font-bold" disabled={form.createTransaction.isPending}>
-          {form.createTransaction.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
+        {form.validationErrors.length > 0 && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm animate-fade-in">
+            <p className="font-semibold mb-1">Corrija os seguintes erros:</p>
+            <ul className="list-disc list-inside space-y-1">
+              {form.validationErrors.map((err: string, i: number) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <Button type="submit" size="default" className="w-full h-11 md:h-12 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
+          {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
         </Button>
       </form>
 

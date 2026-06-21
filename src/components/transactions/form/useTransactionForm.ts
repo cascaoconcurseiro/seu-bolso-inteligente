@@ -358,7 +358,8 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         if (selectedTrip.currency === 'BRL') return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
       }
-      return !acc.is_international;
+      // Se não for viagem, permite contas normais E cartões de crédito (mesmo que marcados como internacionais, pois o usuário usa no dia a dia)
+      return !acc.is_international || acc.type === 'CREDIT_CARD';
     });
     // ANTI-LOOP: accountId removido das deps — não influencia quais contas são listadas,
     // apenas causava recalcular a lista ao mudar a seleção, retroalimentando o loop #185.
