@@ -93,8 +93,11 @@ export function RemoveParticipantDialog({
         setSelectedAccountId("");
       }
     }}>
-      <DialogContent className="max-w-md rounded-3xl p-6 border border-border/50 bg-card/95 backdrop-blur-xl shadow-2xl">
-        <DialogHeader className="space-y-3">
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-card overflow-hidden">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight text-foreground">
             <UserMinus className="h-5 w-5 text-destructive animate-pulse" />
             Remover Viajante
@@ -104,6 +107,7 @@ export function RemoveParticipantDialog({
           </DialogDescription>
         </DialogHeader>
 
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
         {activeMode === "choose" ? (
           <div className="space-y-6 my-4 max-h-[60vh] overflow-y-auto pr-2">
             {/* Visualização de Saldos do Participante */}
@@ -308,6 +312,7 @@ export function RemoveParticipantDialog({
             </Button>
           )}
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

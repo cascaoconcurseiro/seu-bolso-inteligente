@@ -226,8 +226,11 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col no-scrollbar">
-        <DialogHeader>
+      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <span>Importar Transações - {account?.name}</span>
           </DialogTitle>

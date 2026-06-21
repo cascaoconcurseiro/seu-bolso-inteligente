@@ -131,22 +131,25 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(v) => { if (!v) { onClose(); setTimeout(() => setStep(1), 300); } }}>
-      <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl rounded-t-[2rem] sm:rounded-2xl">
-        <DialogHeader className="p-6 pb-2 border-b border-border/50 bg-muted/30">
-          <div className="flex items-center justify-between mb-2">
-            {step === 2 && (
-              <Button variant="ghost" size="icon" onClick={prevStep} className="h-8 w-8 -ml-2 rounded-full hover:bg-background">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <DialogTitle className="text-xl font-display font-semibold flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-primary" />
-              Pagamento de Fatura
-            </DialogTitle>
-            {step === 1 && <div className="w-8" />} {/* Balancer */}
-          </div>
-          <div className="flex items-center gap-1 mt-2">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b overflow-hidden bg-background">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Wallet className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold">Pagar Fatura</span>
+              <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                <BankIcon bankId={card.bank_id} size="sm" />
+                {card.name}
+              </span>
+            </div>
+          </DialogTitle>
+          <div className="flex gap-2 mt-4">
             <div className={`h-1.5 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`h-1.5 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
           </div>

@@ -7,6 +7,7 @@ import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvi
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
 import { FamilyMemberCard } from "@/components/family/FamilyMemberCard";
+import { toast } from "sonner";
 
 const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
   admin: { label: "Administrador", description: "Acesso total, pode gerenciar membros" },

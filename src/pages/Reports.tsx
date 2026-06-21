@@ -752,20 +752,12 @@ export function Reports() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuItem 
-                onClick={() => exportToPDF(
-                  periodTransactions, 
-                  totalIncome, 
-                  totalExpense, 
-                  `relatorio-${dateFns.format(safeCurrentDate, viewType === 'MONTH' ? 'yyyy-MM' : 'yyyy')}.pdf`
-                )}
+                onClick={() => handleExport("pdf")}
               >
                 Exportar em PDF
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => exportToCSV(
-                  periodTransactions, 
-                  `relatorio-${dateFns.format(safeCurrentDate, viewType === 'MONTH' ? 'yyyy-MM' : 'yyyy')}.csv`
-                )}
+                onClick={() => handleExport("csv")}
               >
                 Exportar em Excel (CSV)
               </DropdownMenuItem>

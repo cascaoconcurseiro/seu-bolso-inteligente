@@ -85,20 +85,24 @@ export function EditTripDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle>Editar Viagem</DialogTitle>
           <DialogDescription>
             Apenas o criador da viagem pode editar estes campos
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
+          <div className="space-y-2 mt-2">
             <Label>Destino</Label>
             <Input
               placeholder="Ex: Rio de Janeiro, RJ"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
+              className="h-12 rounded-xl"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -108,6 +112,7 @@ export function EditTripDialog({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                className="h-12 rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -117,6 +122,7 @@ export function EditTripDialog({
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
+                className="h-12 rounded-xl"
               />
             </div>
           </div>
@@ -124,10 +130,10 @@ export function EditTripDialog({
             <div className="space-y-2">
               <Label>Moeda</Label>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {CURRENCIES.map((curr) => (
                     <SelectItem key={curr.code} value={curr.code}>
                       {curr.symbol} {curr.name}
@@ -142,21 +148,23 @@ export function EditTripDialog({
                 placeholder="5000"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
+                className="h-12 rounded-xl"
               />
             </div>
           </div>
+          <div className="pt-2 flex gap-3">
+            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 rounded-xl h-12 font-bold"
+              onClick={handleSubmit}
+              disabled={isLoading || !destination || !startDate || !endDate || !budget}
+            >
+              {isLoading ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || !destination || !startDate || !endDate || !budget}
-          >
-            {isLoading ? "Salvando..." : "Salvar"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

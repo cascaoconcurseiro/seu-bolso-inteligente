@@ -79,74 +79,75 @@ export function NewCardDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader className="pb-4">
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <CreditCard className="w-5 h-5 text-primary" />
             Adicionar Novo Cartão
           </DialogTitle>
           <DialogDescription>Cadastre um cartão para acompanhar suas faturas e lançamentos em tempo real.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-5 py-4">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-5">
           {/* Toggle Internacional */}
-          <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 transition-all">
+          <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 transition-all mt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="font-medium">Cartão Internacional</p>
-                  <p className="text-sm text-muted-foreground">Fatura em moeda estrangeira</p>
+                  <p className="font-medium text-sm">Cartão Internacional</p>
+                  <p className="text-xs text-muted-foreground">Fatura em moeda estrangeira</p>
                 </div>
               </div>
-              <Switch 
-                checked={isInternational} 
-                onCheckedChange={handleInternationalChange} 
-              />
+              <Switch checked={isInternational} onCheckedChange={handleInternationalChange} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>{isInternational ? 'Instituição' : 'Banco'}</Label>
+            <Label>Banco Emissor</Label>
+            {bankId === "other" && (
+              <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium border border-amber-500/20">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>O banco será salvo com o ícone padrão.</span>
+              </div>
+            )}
             <Select value={bankId} onValueChange={setBankId}>
-              <SelectTrigger><SelectValue placeholder={isInternational ? "Selecione a instituição" : "Selecione o banco"} /></SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {isInternational ? (
-                  // Bancos internacionais
-                  Object.values(internationalBanks).map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-3">
-                        <BankIcon bankId={bank.id} size="sm" />
-                        <span>{bank.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))
-                ) : (
-                  // Bancos nacionais
-                  Object.values(banks).map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      <div className="flex items-center gap-3">
-                        <BankIcon bankId={bank.id} size="sm" />
-                        <span>{bank.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o banco" />
+              </SelectTrigger>
+              <SelectContent>
+                {(isInternational ? Object.values(internationalBanks) : Object.values(banks)).map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    <div className="flex items-center gap-2">
+                      <BankIcon bankId={b.id} size="sm" />
+                      {b.name}
+                    </div>
+                  </SelectItem>
+                ))}
+                <SelectItem value="other" className="text-amber-500 focus:text-amber-500 font-medium border-t mt-1 pt-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-amber-500/10 rounded flex items-center justify-center">
+                      <CreditCard className="w-3 h-3" />
+                    </div>
+                    Outro Banco (Personalizado)
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
+            {bankId === "other" && (
+              <div className="pt-2 animate-fade-in">
+                <Input 
+                  placeholder="Ex: Carrefour, C&A, Renner..." 
+                  value={customBankName}
+                  onChange={(e) => setCustomBankName(e.target.value)}
+                  className="border-amber-500/30 focus-visible:ring-amber-500"
+                />
+              </div>
+            )}
           </div>
 
-          {(bankId === 'default' || bankId === 'default_international') && (
-            <div className="space-y-2">
-              <Label>Nome da Instituição</Label>
-              <Input
-                placeholder="Ex: Cartão Supermercado"
-                value={customBankName}
-                onChange={(e) => setCustomBankName(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* Moeda (apenas para internacional) */}
           {isInternational && (
             <div className="space-y-2">
               <Label>Moeda da Fatura</Label>
@@ -260,20 +261,20 @@ export function NewCardDialog({
               currency={isInternational ? currency : "BRL"}
             />
           </div>
+
+          <div className="pt-2 flex gap-3">
+            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
+            <Button className="flex-1 rounded-xl h-12 font-bold" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Adicionando...
+                </>
+              ) : "Adicionar Cartão"}
+            </Button>
+          </div>
         </div>
-        <DialogFooter className="border-t border-border/50 pt-4 mt-2">
-          <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
-          <Button className="rounded-xl h-12 px-8 font-semibold shadow-md" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Adicionando...
-              </>
-            ) : "Adicionar Cartão"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

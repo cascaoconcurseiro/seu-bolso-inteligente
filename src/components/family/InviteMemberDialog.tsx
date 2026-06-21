@@ -181,8 +181,11 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
           <DialogTitle>Convidar membro</DialogTitle>
           <DialogDescription>
             {userExists 
@@ -191,211 +194,219 @@ export function InviteMemberDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <div className="relative">
-              <Input
-                type="email"
-                placeholder="email@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={cn(
-                  "pr-10",
-                  userExists === true && "border-positive focus-visible:ring-positive",
-                  userExists === false && "border-warning focus-visible:ring-warning"
-                )}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                {!isChecking && userExists === true && <Check className="h-4 w-4 text-positive" />}
-                {!isChecking && userExists === false && <X className="h-4 w-4 text-warning" />}
-              </div>
-            </div>
-            {userExists === true && foundUser?.full_name && (
-              <p className="text-sm text-positive flex items-center gap-1">
-                <Check className="h-3 w-3" />
-                Usuário cadastrado: {foundUser.full_name}
-              </p>
-            )}
-            {userExists === false && (
-              <p className="text-sm text-muted-foreground">
-                Usuário não cadastrado. Os dados ficarão salvos localmente.
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input
-              placeholder="Nome do membro"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Permissão</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">
-                  <div className="flex flex-col items-start">
-                    <span>Administrador</span>
-                    <span className="text-xs text-muted-foreground">Acesso total</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="editor">
-                  <div className="flex flex-col items-start">
-                    <span>Editor</span>
-                    <span className="text-xs text-muted-foreground">Pode criar e editar</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="viewer">
-                  <div className="flex flex-col items-start">
-                    <span>Visualizador</span>
-                    <span className="text-xs text-muted-foreground">Apenas visualização</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Advanced Options */}
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 w-full justify-start">
-                <Settings className="h-4 w-4" />
-                Opções Avançadas
-                <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>Escopo de Compartilhamento</Label>
-                <Select value={sharingScope} onValueChange={(v) => setSharingScope(v as SharingScope)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      <div className="flex flex-col items-start">
-                        <span>Tudo</span>
-                        <span className="text-xs text-muted-foreground">Compartilhar todas as transações</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="trips_only">
-                      <div className="flex flex-col items-start">
-                        <span>🧳 Apenas Viagens</span>
-                        <span className="text-xs text-muted-foreground">Apenas transações de viagens</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="date_range">
-                      <div className="flex flex-col items-start">
-                        <span>📅 Período Específico</span>
-                        <span className="text-xs text-muted-foreground">Transações em um período</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="specific_trip">
-                      <div className="flex flex-col items-start">
-                        <span>🎯 Viagem Específica</span>
-                        <span className="text-xs text-muted-foreground">Apenas uma viagem</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {sharingScope === "date_range" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Data Início</Label>
-                    <Input
-                      type="date"
-                      value={scopeStartDate}
-                      onChange={(e) => setScopeStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data Fim</Label>
-                    <Input
-                      type="date"
-                      value={scopeEndDate}
-                      onChange={(e) => setScopeEndDate(e.target.value)}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    📆 Transações antigas do período permanecerão visíveis
-                  </p>
-                </>
-              )}
-
-              {sharingScope === "specific_trip" && (
-                <div className="space-y-2">
-                  <Label>Viagem</Label>
-                  <Select value={scopeTripId} onValueChange={setScopeTripId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma viagem" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {trips.map((trip) => (
-                        <SelectItem key={trip.id} value={trip.id}>
-                          <div className="flex flex-col items-start">
-                            <span>{trip.name}</span>
-                            {trip.destination && (
-                              <span className="text-xs text-muted-foreground">
-                                📍 {trip.destination}
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {trips.length === 0 && (
-                    <p className="text-xs text-warning">
-                      ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
-                    </p>
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <div className="relative">
+                <Input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={cn(
+                    "pr-10 h-12 rounded-xl",
+                    userExists === true && "border-positive focus-visible:ring-positive",
+                    userExists === false && "border-warning focus-visible:ring-warning"
                   )}
-                  {trips.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      🧳 Apenas transações desta viagem serão compartilhadas
-                    </p>
-                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  {!isChecking && userExists === true && <Check className="h-4 w-4 text-positive" />}
+                  {!isChecking && userExists === false && <X className="h-4 w-4 text-warning" />}
                 </div>
-              )}
-
-              {sharingScope === "trips_only" && (
-                <p className="text-xs text-muted-foreground">
-                  ✈️ Apenas transações vinculadas a viagens serão compartilhadas
+              </div>
+              {userExists === true && foundUser?.full_name && (
+                <p className="text-sm text-positive flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Usuário cadastrado: {foundUser.full_name}
                 </p>
               )}
-            </CollapsibleContent>
-          </Collapsible>
-
-          {userExists === true && (
-            <div className="p-3 rounded-lg bg-positive/10 border border-positive/20">
-              <p className="text-sm text-positive">
-                ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
-              </p>
+              {userExists === false && (
+                <p className="text-sm text-muted-foreground">
+                  Usuário não cadastrado. Os dados ficarão salvos localmente.
+                </p>
+              )}
             </div>
-          )}
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => handleClose(false)}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!name || !email || isPending}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            {isPending ? "Adicionando..." : "Adicionar membro"}
-          </Button>
-        </DialogFooter>
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                placeholder="Nome do membro"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Permissão</Label>
+              <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="admin">
+                    <div className="flex flex-col items-start py-1">
+                      <span>Administrador</span>
+                      <span className="text-xs text-muted-foreground">Acesso total</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="editor">
+                    <div className="flex flex-col items-start py-1">
+                      <span>Editor</span>
+                      <span className="text-xs text-muted-foreground">Pode criar e editar</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="viewer">
+                    <div className="flex flex-col items-start py-1">
+                      <span>Visualizador</span>
+                      <span className="text-xs text-muted-foreground">Apenas visualização</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Advanced Options */}
+            <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border border-border/50 rounded-xl overflow-hidden bg-muted/10">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="gap-2 w-full justify-between h-12 px-4 hover:bg-muted/20">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <Settings className="h-4 w-4" />
+                    Opções Avançadas
+                  </div>
+                  <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-4 p-4 border-t border-border/50">
+                <div className="space-y-2">
+                  <Label>Escopo de Compartilhamento</Label>
+                  <Select value={sharingScope} onValueChange={(v) => setSharingScope(v as SharingScope)}>
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="all">
+                        <div className="flex flex-col items-start py-1">
+                          <span>Tudo</span>
+                          <span className="text-xs text-muted-foreground">Compartilhar todas as transações</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="trips_only">
+                        <div className="flex flex-col items-start py-1">
+                          <span>🧳 Apenas Viagens</span>
+                          <span className="text-xs text-muted-foreground">Apenas transações de viagens</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="date_range">
+                        <div className="flex flex-col items-start py-1">
+                          <span>📅 Período Específico</span>
+                          <span className="text-xs text-muted-foreground">Transações em um período</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="specific_trip">
+                        <div className="flex flex-col items-start py-1">
+                          <span>🎯 Viagem Específica</span>
+                          <span className="text-xs text-muted-foreground">Apenas uma viagem</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {sharingScope === "date_range" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Data Início</Label>
+                      <Input
+                        type="date"
+                        value={scopeStartDate}
+                        onChange={(e) => setScopeStartDate(e.target.value)}
+                        className="h-12 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Fim</Label>
+                      <Input
+                        type="date"
+                        value={scopeEndDate}
+                        onChange={(e) => setScopeEndDate(e.target.value)}
+                        className="h-12 rounded-xl"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                      📆 Transações antigas do período permanecerão visíveis
+                    </p>
+                  </>
+                )}
+
+                {sharingScope === "specific_trip" && (
+                  <div className="space-y-2">
+                    <Label>Viagem</Label>
+                    <Select value={scopeTripId} onValueChange={setScopeTripId}>
+                      <SelectTrigger className="h-12 rounded-xl">
+                        <SelectValue placeholder="Selecione uma viagem" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {trips.map((trip) => (
+                          <SelectItem key={trip.id} value={trip.id} className="py-2">
+                            <div className="flex flex-col items-start">
+                              <span>{trip.name}</span>
+                              {trip.destination && (
+                                <span className="text-xs text-muted-foreground">
+                                  📍 {trip.destination}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {trips.length === 0 && (
+                      <p className="text-xs text-warning bg-warning/10 p-2 rounded-lg">
+                        ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
+                      </p>
+                    )}
+                    {trips.length > 0 && (
+                      <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                        🧳 Apenas transações desta viagem serão compartilhadas
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {sharingScope === "trips_only" && (
+                  <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                    ✈️ Apenas transações vinculadas a viagens serão compartilhadas
+                  </p>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+
+            {userExists === true && (
+              <div className="p-3 rounded-xl bg-positive/10 border border-positive/20">
+                <p className="text-sm text-positive">
+                  ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 flex gap-3">
+            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => handleClose(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 rounded-xl h-12 font-bold"
+              onClick={handleSubmit}
+              disabled={!name || !email || isPending}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              {isPending ? "Adicionando..." : "Convidar"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
