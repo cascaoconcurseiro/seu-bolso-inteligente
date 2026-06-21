@@ -332,32 +332,32 @@ export function CreditCardDetailView({
           </div>
           
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-8 pt-6 border-t border-white/10">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mt-8 pt-6 border-t border-white/10">
             <Button 
               variant="secondary" 
-              className="h-12 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1"
+              className="min-h-12 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-xs sm:text-sm"
               onClick={() => setShowPayDialog(true)}
             >
-              <Wallet className="h-4 w-4 mr-2" />
-              Pagar Fatura
+              <Wallet className="h-4 w-4 shrink-0" />
+              <span>Pagar Fatura</span>
             </Button>
             <Button 
               variant="secondary" 
-              className="h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm"
+              className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm whitespace-normal text-center leading-tight text-xs sm:text-sm"
               onClick={() => setShowImportDialog(true)}
             >
-              <Download className="h-4 w-4 mr-2" />
-              Importar
+              <Download className="h-4 w-4 shrink-0" />
+              <span>Importar</span>
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="secondary" 
-                  className="h-12 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full"
+                  className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full whitespace-normal text-center leading-tight text-xs sm:text-sm"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
+                  <Download className="h-4 w-4 shrink-0" />
+                  <span>Exportar</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">

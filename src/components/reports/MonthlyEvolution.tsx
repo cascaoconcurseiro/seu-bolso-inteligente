@@ -14,7 +14,7 @@ interface MonthlyEvolutionProps {
 export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvolutionProps) {
   if (data.length === 0) {
     return (
-      <section className="p-6 rounded-xl border border-border">
+      <section className="p-5 md:p-8 rounded-[2rem] border border-border/40 bg-card/50 backdrop-blur-md shadow-sm">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-6">
           Evolução Mensal
         </h2>
@@ -26,7 +26,7 @@ export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvol
   const maxMonthValue = Math.max(...data.flatMap(m => [m.income, m.expense]), 1);
 
   return (
-    <section className="p-4 md:p-6 rounded-xl border border-border">
+    <section className="p-5 md:p-8 rounded-[2rem] border border-border/40 bg-card/50 backdrop-blur-md shadow-sm">
       <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-4 md:mb-6">
         Evolução Mensal
       </h2>

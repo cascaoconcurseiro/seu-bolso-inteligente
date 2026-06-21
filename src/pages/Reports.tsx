@@ -1,5 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -706,22 +707,30 @@ export function Reports() {
             </p>
           </div>
           <div className="flex flex-wrap gap-3 items-center">
-            <div className="flex bg-muted/40 rounded-xl p-1 border border-border/30 shadow-inner">
-              <Button 
-                variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
-                size="sm" 
-                className={viewType === 'MONTH' ? "shadow-sm rounded-lg font-bold" : "rounded-lg"}
-                onClick={() => setViewType('MONTH')}>
-                {'Mensal'}
-              </Button>
-              <Button 
-                variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
-                size="sm" 
-                className={viewType === 'YEAR' ? "shadow-sm rounded-lg font-bold" : "rounded-lg"}
+            {/* Segmented Control: Mês / Ano */}
+            <div className="flex p-1 bg-card/60 backdrop-blur-md rounded-[1.5rem] border border-border/40 shadow-inner w-fit mx-auto sm:mx-0">
+              <button
+                className={cn(
+                  "px-5 py-2 rounded-[1.25rem] text-[11px] md:text-sm font-bold transition-all duration-300",
+                  viewType === 'MONTH' 
+                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
+                    : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
+                )}
+                onClick={() => setViewType('MONTH')}
+              >
+                Mensal
+              </button>
+              <button
+                className={cn(
+                  "px-5 py-2 rounded-[1.25rem] text-[11px] md:text-sm font-bold transition-all duration-300",
+                  viewType === 'YEAR' 
+                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
+                    : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
+                )}
                 onClick={() => setViewType('YEAR')}
               >
                 Anual
-              </Button>
+              </button>
             </div>
 
 
@@ -785,11 +794,10 @@ export function Reports() {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="space-y-6 w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger value="overview" className="rounded-lg text-xs font-semibold">Visão Geral</TabsTrigger>
-            <TabsTrigger value="evolution" className="rounded-lg text-xs font-semibold">Evolução</TabsTrigger>
-            <TabsTrigger value="categories" className="rounded-lg text-xs font-semibold">Categorias</TabsTrigger>
-            {/* <TabsTrigger value="dre" className="rounded-lg text-xs font-semibold">DRE & Balanço</TabsTrigger> */}
+          <TabsList className="grid w-full grid-cols-3 bg-card/60 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-border/40 shadow-inner overflow-x-auto">
+            <TabsTrigger value="overview" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Visão Geral</TabsTrigger>
+            <TabsTrigger value="evolution" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Evolução</TabsTrigger>
+            <TabsTrigger value="categories" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Categorias</TabsTrigger>
           </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">

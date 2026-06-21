@@ -15,7 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function CategoryDistribution({ data, formatCurrency, currency }: CategoryDistributionProps) {
   return (
-    <section className="p-4 md:p-6 rounded-xl border border-border">
+    <section className="p-5 md:p-8 rounded-[2rem] border border-border/40 bg-card/50 backdrop-blur-md shadow-sm">
       <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-4 md:mb-6">
         Gastos por Categoria
       </h2>
