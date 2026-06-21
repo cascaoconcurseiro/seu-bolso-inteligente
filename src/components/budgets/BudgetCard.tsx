@@ -18,8 +18,13 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
 
   return (
     <div
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button')) return;
+        onEdit(budget);
+      }}
       className={cn(
-        "group relative p-6 rounded-[2rem] border transition-all duration-500 overflow-hidden",
+        "group relative p-6 rounded-[2rem] border transition-all duration-500 overflow-hidden cursor-pointer",
         isOverBudget 
           ? "border-red-500/30 bg-red-500/5 shadow-lg shadow-red-500/5"
           : isWarning

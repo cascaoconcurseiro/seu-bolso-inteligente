@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Users, Crown, X, UserPlus, Check } from "lucide-react";
+import { Users, Crown, X, UserPlus, Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFamily, useFamilyMembers, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
 import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvitations";
