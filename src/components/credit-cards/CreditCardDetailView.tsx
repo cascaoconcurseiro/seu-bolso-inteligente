@@ -425,6 +425,11 @@ export function CreditCardDetailView({
             {localInvoiceData.transactions.map((tx: any, index: number) => (
               <div 
                 key={tx.id} 
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button')) return; // ignora botões internos (dropdown de opções)
+                  handleEditTransaction(tx);
+                }}
                 className={cn(
                   "group flex items-start gap-4 p-4 hover:bg-muted/50 transition-all duration-200 hover:pl-5 cursor-pointer relative",
                   index !== localInvoiceData.transactions.length - 1 && "border-b border-border"
