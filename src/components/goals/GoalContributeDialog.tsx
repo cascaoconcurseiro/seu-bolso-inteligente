@@ -60,15 +60,19 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader>
+      <DialogContent className="w-full sm:w-[400px] max-w-sm !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-[2rem] rounded-b-none sm:rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="text-xl font-display font-bold">
             Movimentar: {goal.name}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          <div className="flex bg-secondary p-1 rounded-xl border border-border">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex bg-secondary p-1 rounded-xl border border-border">
             <button
               type="button"
               onClick={() => setType('add')}
@@ -144,6 +148,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
             </Button>
           </div>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -127,7 +127,15 @@ export function AccountCard({
                   ? Math.abs(Number(tx.destination_amount))
                   : Math.abs(Number(tx.amount));
                 return (
-                  <div key={tx.id} className="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div 
+                    key={tx.id} 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.dispatchEvent(new CustomEvent('openTransactionModal', { detail: { transaction: tx } }));
+                    }}
+                    className="flex items-center justify-between text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <div className={cn(
                         "p-1 rounded-md shrink-0",

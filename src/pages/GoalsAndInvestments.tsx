@@ -152,52 +152,56 @@ export function GoalsAndInvestments() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="relative flex p-1 bg-muted/60 rounded-2xl w-full sm:w-fit border border-border/50 shadow-inner">
-          {/* Sliding indicator */}
-          <div
-            className={cn(
-              "absolute top-1 bottom-1 rounded-xl bg-background shadow-sm transition-all duration-300 ease-out",
-              activeTab === 'GOALS' && "left-1 right-[66.66%]",
-              activeTab === 'INVESTMENTS' && "left-[33.33%] right-[33.33%]",
-              activeTab === 'IRPF' && "left-[66.66%] right-1"
-            )}
-          />
-          <button
-            onClick={() => setActiveTab('GOALS')}
-            className={cn(
-              "relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium transition-colors duration-200",
-              activeTab === 'GOALS' 
-                ? "text-foreground" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Target className="w-4 h-4" />
-            Sonhos & Metas
-          </button>
-          <button
-            onClick={() => setActiveTab('INVESTMENTS')}
-            className={cn(
-              "relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium transition-colors duration-200",
-              activeTab === 'INVESTMENTS' 
-                ? "text-foreground" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <TrendingUp className="w-4 h-4" />
-            Investimentos
-          </button>
-          <button
-            onClick={() => setActiveTab('IRPF')}
-            className={cn(
-              "relative z-10 flex-1 sm:flex-none flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-sm font-medium transition-colors duration-200",
-              activeTab === 'IRPF' 
-                ? "text-foreground" 
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            Imposto de Renda (IRPF)
-          </button>
+        <div className="w-full sm:w-auto overflow-x-auto pb-1 -mb-1 hide-scrollbar">
+          <div className="relative flex p-1 bg-muted/60 rounded-2xl w-full sm:w-fit border border-border/50 shadow-inner min-w-[320px]">
+            {/* Sliding indicator */}
+            <div
+              className={cn(
+                "absolute top-1 bottom-1 rounded-xl bg-background shadow-sm transition-all duration-300 ease-out",
+                activeTab === 'GOALS' && "left-1 right-[66.66%]",
+                activeTab === 'INVESTMENTS' && "left-[33.33%] right-[33.33%]",
+                activeTab === 'IRPF' && "left-[66.66%] right-1"
+              )}
+            />
+            <button
+              onClick={() => setActiveTab('GOALS')}
+              className={cn(
+                "relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 px-2 sm:px-6 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap",
+                activeTab === 'GOALS' 
+                  ? "text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Target className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Sonhos & Metas</span>
+              <span className="sm:hidden">Metas</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('INVESTMENTS')}
+              className={cn(
+                "relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 px-2 sm:px-6 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap",
+                activeTab === 'INVESTMENTS' 
+                  ? "text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <TrendingUp className="w-4 h-4 shrink-0" />
+              Investimentos
+            </button>
+            <button
+              onClick={() => setActiveTab('IRPF')}
+              className={cn(
+                "relative z-10 flex-1 flex items-center justify-center gap-2 py-2.5 px-2 sm:px-6 rounded-xl text-sm font-medium transition-colors duration-200 whitespace-nowrap",
+                activeTab === 'IRPF' 
+                  ? "text-foreground" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Imposto de Renda (IRPF)</span>
+              <span className="sm:hidden">IRPF</span>
+            </button>
+          </div>
         </div>
 
         {activeTab === 'INVESTMENTS' && assets && assets.length > 0 && (

@@ -31,6 +31,7 @@ import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
   const [isTripMode, setIsTripMode] = useState(false);
   
   const { currentDate } = useMonth();
@@ -55,7 +56,14 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const handleOpenModal = () => setShowTransactionModal(true);
+    const handleOpenModal = (e: any) => {
+      if (e.detail?.transaction) {
+        setTransactionToEdit(e.detail.transaction);
+      } else {
+        setTransactionToEdit(null);
+      }
+      setShowTransactionModal(true);
+    };
     window.addEventListener('openTransactionModal', handleOpenModal);
     return () => window.removeEventListener('openTransactionModal', handleOpenModal);
   }, []);
@@ -298,6 +306,7 @@ export function Dashboard() {
       <TransactionModal
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
+        initialData={transactionToEdit}
       />
     </div>
   );

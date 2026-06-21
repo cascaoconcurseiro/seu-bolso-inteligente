@@ -43,7 +43,7 @@ export function TransactionModal({
         </div>
         <DialogHeader className="px-6 pt-4 sm:pt-6 pb-0">
           <DialogTitle className="font-display text-xl sm:text-2xl">
-            Nova Transação
+            {initialData ? "Editar Transação" : "Nova Transação"}
           </DialogTitle>
           <DialogDescription className="sr-only">
             Formulário para criar ou editar uma transação.

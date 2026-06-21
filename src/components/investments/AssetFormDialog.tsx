@@ -229,8 +229,11 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { resetForm(); onClose(); } }}>
-      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="w-full sm:w-[520px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-[2rem] rounded-b-none sm:rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="text-xl font-display font-bold">
             {asset ? 'Editar Ativo' : 'Novo Investimento'}
           </DialogTitle>
@@ -239,7 +242,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
           {/* 1. LOCALIZAÇÃO (sempre primeiro - condiciona tudo) */}
           <div className="space-y-2">
@@ -511,6 +515,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             </Button>
           </div>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
