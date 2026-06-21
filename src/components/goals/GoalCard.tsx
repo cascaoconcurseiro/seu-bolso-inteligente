@@ -41,13 +41,18 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
   
   return (
     <div 
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('button')) return;
+        onEdit(goal);
+      }}
       className={cn(
-        "group relative bg-card border border-border/50 p-6 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 animate-stagger",
+        "group relative bg-card border border-border/50 p-6 rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 animate-stagger cursor-pointer",
         `stagger-${(index % 5) + 1}`
       )}
     >
       {/* Decoração de fundo */}
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none" />
 
       <div className="relative">
         <div className="flex justify-between items-start mb-6">
