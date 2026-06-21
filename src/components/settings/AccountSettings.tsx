@@ -311,7 +311,7 @@ export function AccountSettings({
       </div>
 
       <Dialog open={showPinSetup} onOpenChange={setShowPinSetup}>
-        <DialogContent>
+        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
             <DialogTitle>Configurar PIN</DialogTitle>
             <DialogDescription>Digite um PIN de 4 números para bloquear o app.</DialogDescription>

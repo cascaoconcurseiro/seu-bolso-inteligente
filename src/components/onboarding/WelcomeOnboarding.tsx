@@ -50,7 +50,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
   return (
     <Dialog open={true} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border border-border/50 bg-background/80 backdrop-blur-xl shadow-2xl" hideClose>
+      <DialogContent className="sm:max-w-[500px] overflow-hidden shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background" hideClose>
         {/* Banner header with Glassmorphism */}
         <div className="relative p-8 flex flex-col items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent z-0"></div>
