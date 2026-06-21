@@ -359,17 +359,17 @@ export function AccountFormModal({
             </div>
             <Switch checked={hideBalance} onCheckedChange={setHideBalance} />
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSubmit} disabled={!isFormValid() || isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === "create" ? "Criar" : "Salvar"}
-          </Button>
-        </DialogFooter>
+          <div className="pt-2 flex gap-3">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit} disabled={!isFormValid() || isLoading} className="flex-1">
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {mode === "create" ? "Criar Conta" : "Salvar"}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

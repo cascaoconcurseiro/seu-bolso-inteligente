@@ -208,12 +208,15 @@ export function Settings() {
 
       {/* Dialogs */}
       <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+          <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+            <div className="w-12 h-1.5 bg-muted rounded-full" />
+          </div>
+          <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle>Nova Categoria</DialogTitle>
             <DialogDescription>Crie uma nova categoria para suas transações</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input placeholder="Ex: Mercado, Aluguel..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
@@ -268,20 +271,23 @@ export function Settings() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddCategoryDialog(false)}>Cancelar</Button>
-            <Button onClick={handleCreateCategory} disabled={!newCategoryName || createCategory.isPending}>{createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar Categoria"}</Button>
-          </DialogFooter>
+          <div className="pt-2 flex gap-3">
+            <Button type="button" variant="outline" onClick={() => setShowAddCategoryDialog(false)} className="flex-1">Cancelar</Button>
+            <Button onClick={handleCreateCategory} disabled={!newCategoryName || createCategory.isPending} className="flex-1">{createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar Categoria"}</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+          <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+            <div className="w-12 h-1.5 bg-muted rounded-full" />
+          </div>
+          <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle>Alterar Senha</DialogTitle>
             <DialogDescription>Digite sua nova senha abaixo</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
             <div className="space-y-2">
               <Label>Nova Senha</Label>
               <div className="relative">
@@ -294,10 +300,10 @@ export function Settings() {
               <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChangePasswordDialog(false)}>Cancelar</Button>
-            <Button onClick={handleChangePassword} disabled={!newPassword || newPassword !== confirmPassword || newPassword.length < 6 || updatePassword.isPending}>{updatePassword.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Senha"}</Button>
-          </DialogFooter>
+          <div className="pt-2 flex gap-3">
+            <Button type="button" variant="outline" onClick={() => setShowChangePasswordDialog(false)} className="flex-1">Cancelar</Button>
+            <Button onClick={handleChangePassword} disabled={!newPassword || newPassword !== confirmPassword || newPassword.length < 6 || updatePassword.isPending} className="flex-1">{updatePassword.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Senha"}</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
