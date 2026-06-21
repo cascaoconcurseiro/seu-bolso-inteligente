@@ -230,15 +230,18 @@ export function Budgets() {
       )}
 
       <Dialog open={showNewBudgetDialog || !!editingBudget} onOpenChange={(o) => { if (!o) { setShowNewBudgetDialog(false); setEditingBudget(null); resetForm(); } }}>
-        <DialogContent className="rounded-[2rem] border-none shadow-2xl">
-          <DialogHeader>
+        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+          <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+            <div className="w-12 h-1.5 bg-muted rounded-full" />
+          </div>
+          <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle className="font-display text-2xl font-bold">
               {editingBudget ? "Ajustar Planejamento" : "Novo Limite Mensal"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-6 py-6">
+          <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-6">
 
-            <div className="space-y-2">
+            <div className="space-y-2 mt-4">
               <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
               <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover} modal={true}>
                 <PopoverTrigger asChild>
@@ -317,13 +320,14 @@ export function Budgets() {
                 </Select>
               </div>
             </div>
+
+            <div className="pt-2 flex gap-3">
+              <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => { setShowNewBudgetDialog(false); setEditingBudget(null); resetForm(); }}>Descartar</Button>
+              <Button className="flex-1 rounded-xl h-12 font-bold" onClick={handleSubmit} disabled={!amount || isCreating || isUpdating}>
+                {editingBudget ? "Salvar" : "Ativar"}
+              </Button>
+            </div>
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="ghost" className="rounded-xl h-12" onClick={() => { setShowNewBudgetDialog(false); setEditingBudget(null); resetForm(); }}>Descartar</Button>
-            <Button className="rounded-xl h-12 px-8 font-bold" onClick={handleSubmit} disabled={!amount || isCreating || isUpdating}>
-              {editingBudget ? "Salvar Alterações" : "Ativar Orçamento"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
