@@ -260,14 +260,17 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                   <div
                     key={item.id}
                     className={cn(
-                      "flex items-center justify-between p-3 rounded-lg border border-border hover:border-foreground/20 transition-colors",
-                      item.is_completed && "opacity-60"
+                      "flex items-center justify-between p-3 rounded-xl border transition-all duration-300",
+                      item.is_completed 
+                        ? "bg-muted/30 border-transparent opacity-70" 
+                        : "bg-card/40 border-border/50 hover:bg-card/80 hover:shadow-sm"
                     )}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Checkbox
                         checked={item.is_completed}
                         disabled={toggleItem.isPending && toggleItem.variables?.id === item.id}
+                        className="rounded-full h-5 w-5 border-muted-foreground/30 data-[state=checked]:bg-positive data-[state=checked]:border-positive data-[state=checked]:text-white shadow-sm transition-all duration-300"
                         onCheckedChange={async (checked) => {
                           try {
                             await toggleItem.mutateAsync({ id: item.id, is_completed: !!checked });
@@ -276,7 +279,10 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                           }
                         }}
                       />
-                      <span className={cn(item.is_completed && "line-through text-muted-foreground")}>
+                      <span className={cn(
+                        "text-sm font-medium transition-all duration-300 truncate",
+                        item.is_completed ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
                         {item.item}
                       </span>
                     </div>

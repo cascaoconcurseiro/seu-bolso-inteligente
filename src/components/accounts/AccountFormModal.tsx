@@ -89,6 +89,7 @@ export function AccountFormModal({
   // Create state
   const [isInternational, setIsInternational] = useState(false);
   const [bankId, setBankId] = useState("");
+  const [customBankName, setCustomBankName] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [type, setType] = useState<string>("CHECKING");
   const [balance, setBalance] = useState("");
@@ -112,6 +113,7 @@ export function AccountFormModal({
         // Reset create form
         setIsInternational(false);
         setBankId("");
+        setCustomBankName("");
         setCurrency("USD");
         setType("CHECKING");
         setBalance("");
@@ -125,8 +127,18 @@ export function AccountFormModal({
 
   const handleSubmit = async () => {
     if (mode === "create") {
-      const bank = bankId ? (isInternational ? internationalBanks[bankId] : banks[bankId]) : null;
-      const bankName = bank ? bank.name : "";
+      const isCustom = bankId === "default" || bankId === "default_international";
+      const finalBankId = isCustom && customBankName.trim() 
+        ? `custom:${customBankName.trim()}` 
+        : bankId;
+        
+      let bankName = "";
+      if (isCustom) {
+        bankName = customBankName.trim();
+      } else if (finalBankId) {
+        const bank = isInternational ? internationalBanks[finalBankId] : banks[finalBankId];
+        bankName = bank ? bank.name : "";
+      }
       
       const defaultName = bankName 
         ? `${bankName} - ${accountTypeLabels[type] || type}` 
@@ -138,7 +150,7 @@ export function AccountFormModal({
       await onSubmit({
         name: defaultName,
         type,
-        bank_id: bankId || null,
+        bank_id: finalBankId || null,
         balance: moneyUtils.parse(balance) || 0,
         is_international: isInternational,
         currency: isInternational ? currency : "BRL",
@@ -161,6 +173,8 @@ export function AccountFormModal({
 
   const isFormValid = () => {
     if (mode === "create") {
+      const isCustom = bankId === "default" || bankId === "default_international";
+      if (isCustom && !customBankName.trim()) return false;
       return !!bankId;
     }
     return !!name.trim();
@@ -215,7 +229,6 @@ export function AccountFormModal({
                           </SelectItem>
                         ))
                       : Object.values(banks)
-                          .filter((b) => b.id !== "default")
                           .map((b) => (
                             <SelectItem key={b.id} value={b.id}>
                               <div className="flex items-center gap-2">
@@ -227,6 +240,17 @@ export function AccountFormModal({
                   </SelectContent>
                 </Select>
               </div>
+
+              {(bankId === "default" || bankId === "default_international") && (
+                <div className="space-y-2">
+                  <Label>Nome da Instituição</Label>
+                  <Input 
+                    value={customBankName}
+                    onChange={(e) => setCustomBankName(e.target.value)}
+                    placeholder="Digite o nome do banco"
+                  />
+                </div>
+              )}
 
               {isInternational && (
                 <div className="space-y-2">

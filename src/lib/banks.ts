@@ -454,6 +454,64 @@ export const banks: Record<string, BankConfig> = {
     icon: "EF",
   },
   
+  // Cartões de Loja e Financeiras
+  carrefour: {
+    id: "carrefour",
+    name: "Carrefour",
+    color: "#00387B",
+    textColor: "#FFFFFF",
+    icon: "C",
+  },
+  porto_seguro: {
+    id: "porto_seguro",
+    name: "Porto Seguro",
+    color: "#004B8D",
+    textColor: "#FFFFFF",
+    icon: "PS",
+  },
+  will_bank: {
+    id: "will_bank",
+    name: "Will Bank",
+    color: "#FFD500",
+    textColor: "#000000",
+    icon: "W",
+  },
+  digio: {
+    id: "digio",
+    name: "Digio",
+    color: "#1B1C4B",
+    textColor: "#FFFFFF",
+    icon: "D",
+  },
+  trigg: {
+    id: "trigg",
+    name: "Trigg",
+    color: "#00E0A6",
+    textColor: "#000000",
+    icon: "T",
+  },
+  credicard: {
+    id: "credicard",
+    name: "Credicard",
+    color: "#000000",
+    textColor: "#FFFFFF",
+    icon: "C",
+  },
+  renner: {
+    id: "renner",
+    name: "Renner (Realize)",
+    color: "#FF0000",
+    textColor: "#FFFFFF",
+    icon: "R",
+  },
+  riachuelo: {
+    id: "riachuelo",
+    name: "Riachuelo (Midway)",
+    color: "#004B8D",
+    textColor: "#FFFFFF",
+    icon: "R",
+  },
+  
   default: {
     id: "default",
     name: "Outro",
@@ -653,7 +711,20 @@ export function getBankByName(name: string): BankConfig {
 export function getBankById(id: string | null): BankConfig {
   if (!id) return banks.default;
   // Busca primeiro em bancos nacionais, depois em internacionais
-  return banks[id] || internationalBanks[id] || banks.default;
+  if (banks[id]) return banks[id];
+  if (internationalBanks[id]) return internationalBanks[id];
+  
+  if (id.startsWith("custom:")) {
+    const customName = id.replace("custom:", "");
+    return {
+      ...banks.default,
+      id: id,
+      name: customName,
+      icon: customName.charAt(0).toUpperCase() || "$",
+    };
+  }
+
+  return banks.default;
 }
 
 // Função para obter banco internacional pelo ID

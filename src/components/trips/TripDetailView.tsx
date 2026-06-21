@@ -72,50 +72,50 @@ export function TripDetailView({
       <TripDetailSummary totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} startDate={trip.start_date} endDate={trip.end_date} currency={trip.currency} formatCurrency={formatCurrency} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="mb-4 relative">
-          <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-secondary/30 rounded-2xl shadow-inner border border-border/40 p-1.5 gap-1 justify-start">
-            <TabsTrigger value="summary" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+        <div className="mb-6 relative">
+          <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-card/60 backdrop-blur-md rounded-[1.5rem] shadow-inner border border-border/40 p-2 gap-2 justify-start relative z-10">
+            <TabsTrigger value="summary" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Resumo</span>
+                <span className="font-bold uppercase tracking-widest text-[11px]">Resumo</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+            <TabsTrigger value="expenses" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Gastos</span>
+                <span className="font-bold uppercase tracking-widest text-[11px]">Gastos</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="shopping" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+            <TabsTrigger value="shopping" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Compras</span>
+                <span className="font-bold uppercase tracking-widest text-[11px]">Compras</span>
               </div>
             </TabsTrigger>
             {trip.currency !== "BRL" && (
-              <TabsTrigger value="exchange" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+              <TabsTrigger value="exchange" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
                 <div className="flex items-center gap-2">
                   <Plane className="h-4 w-4" /> 
-                  <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Câmbio</span>
+                  <span className="font-bold uppercase tracking-widest text-[11px]">Câmbio</span>
                 </div>
               </TabsTrigger>
             )}
-            <TabsTrigger value="itinerary" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+            <TabsTrigger value="itinerary" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <Route className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Roteiro</span>
+                <span className="font-bold uppercase tracking-widest text-[11px]">Roteiro</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="checklist" className="shrink-0 snap-start rounded-xl py-2.5 px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">
+            <TabsTrigger value="checklist" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-wider text-[11px] sm:text-xs">Checklist</span>
+                <span className="font-bold uppercase tracking-widest text-[11px]">Checklist</span>
               </div>
             </TabsTrigger>
           </TabsList>
           
           {/* Sombra para indicar scroll no mobile */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden z-20" />
         </div>
 
         <TabsContent value="summary"><TripSummaryTab selectedTrip={trip} totalExpenses={totalExpenses} myTotalSpent={myTotalSpent} myPersonalBudget={myPersonalBudget} participants={participants} balances={balances} tripTransactions={tripTransactions} tripFinancialSummary={tripFinancialSummary} user={user} onAddParticipant={onAddParticipant} permissions={permissions} dateFns={dateFns} ptBR={ptBR} onRemoveClick={onRemoveParticipantClick} pendingInvitations={pendingInvitations} onCancelInvitation={onCancelInvitation} setActiveTab={setActiveTab} /></TabsContent>

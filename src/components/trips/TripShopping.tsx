@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { toast } from 'sonner';
 import { AITripSuggestions } from './AITripSuggestions';
 import { moneyUtils } from "@/utils/money";
@@ -251,25 +253,31 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
           {shoppingList.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+              className={cn(
+                "flex items-center gap-4 p-4 rounded-xl border transition-all duration-300",
+                item.purchased 
+                  ? "bg-muted/30 border-transparent opacity-70" 
+                  : "bg-card/40 border-border/50 hover:bg-card/80 hover:shadow-sm"
+              )}
             >
               <Checkbox
                 checked={item.purchased}
                 onCheckedChange={() => handleTogglePurchased(item.id)}
-                className="flex-shrink-0"
+                className="flex-shrink-0 rounded-full h-5 w-5 border-muted-foreground/30 data-[state=checked]:bg-positive data-[state=checked]:border-positive data-[state=checked]:text-white shadow-sm transition-all duration-300"
               />
 
               <div className="flex-1 min-w-0">
                 <p
-                  className={`font-medium ${
+                  className={cn(
+                    "font-medium text-sm transition-all duration-300",
                     item.purchased
                       ? 'line-through text-muted-foreground'
                       : 'text-foreground'
-                  }`}
+                  )}
                 >
                   {item.item}
                 </p>
-                <p className="text-sm text-muted-foreground font-mono">
+                <p className="text-sm text-muted-foreground font-mono mt-0.5">
                   {trip.currency} {item.estimatedCost.toFixed(2)}
                 </p>
               </div>

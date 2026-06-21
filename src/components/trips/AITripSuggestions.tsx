@@ -99,10 +99,11 @@ export function AITripSuggestions({
         onClick={handleOpen} 
         variant="outline" 
         size="sm"
-        className={buttonClassName || "bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-blue-200 text-blue-700 dark:from-blue-900/30 dark:to-indigo-900/30 dark:border-blue-800/50 dark:text-blue-300"}
+        className={buttonClassName || "relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-none shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 active:scale-95"}
       >
-        <Sparkles className="h-4 w-4 mr-2 text-blue-500" />
-        Consultoria IA
+        <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-1000 -skew-x-12 -translate-x-full z-0" />
+        <Sparkles className="h-4 w-4 mr-2 text-blue-100 relative z-10" />
+        <span className="font-bold tracking-wide relative z-10">Consultoria IA</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

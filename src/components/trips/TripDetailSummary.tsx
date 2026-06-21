@@ -36,116 +36,151 @@ export function TripDetailSummary({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
       {/* Gasto Total da Viagem */}
-      <div className="group p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-all">
-        <div className="flex items-center justify-between mb-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-            <Banknote className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gasto Total</span>
+      <div className="group p-5 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <Banknote className="w-20 h-20 text-primary" />
         </div>
-        <p className="font-mono text-2xl font-black tracking-tighter text-foreground mb-1">
-          {moneyUtils.format(totalExpenses, currency)}
-        </p>
-        {isInternational && rate && (
-          <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-            ≈ {moneyUtils.format(totalExpenses * rate, baseCurrency)}
+        <div className="relative z-10 flex items-center justify-between mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <Banknote className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Gasto Total</span>
+        </div>
+        <div className="relative z-10">
+          <p className="font-display text-3xl font-black tracking-tighter text-foreground mb-1 truncate">
+            {moneyUtils.format(totalExpenses, currency)}
           </p>
-        )}
+          {isInternational && rate && (
+            <p className="text-xs text-muted-foreground font-bold flex items-center gap-1">
+              ≈ {moneyUtils.format(totalExpenses * rate, baseCurrency)}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Meu Gasto Individual */}
-      <div className="group p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-blue-500/30 transition-all">
-        <div className="flex items-center justify-between mb-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-            <Users className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Meu Gasto</span>
+      <div className="group p-5 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <Users className="w-20 h-20 text-blue-500" />
         </div>
-        <p className="font-mono text-2xl font-black tracking-tighter text-foreground mb-1">
-          {moneyUtils.format(myTotalSpent, currency)}
-        </p>
-        {isInternational && rate && (
-          <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1 mb-1">
-            ≈ {moneyUtils.format(myTotalSpent * rate, baseCurrency)}
+        <div className="relative z-10 flex items-center justify-between mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+            <Users className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Meu Gasto</span>
+        </div>
+        <div className="relative z-10">
+          <p className="font-display text-3xl font-black tracking-tighter text-foreground mb-1 truncate">
+            {moneyUtils.format(myTotalSpent, currency)}
           </p>
-        )}
-        <p className="text-[10px] text-muted-foreground/80 font-medium">
-          Inclui sua parte nos compartilhados
-        </p>
+          {isInternational && rate && (
+            <p className="text-xs text-muted-foreground font-bold flex items-center gap-1 mb-1">
+              ≈ {moneyUtils.format(myTotalSpent * rate, baseCurrency)}
+            </p>
+          )}
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-70">
+            Incl. compartilhados
+          </p>
+        </div>
       </div>
 
       {/* Meu Orçamento Individual */}
       <div className={cn(
-        "group p-5 rounded-2xl border transition-all",
+        "group p-5 rounded-[2rem] border transition-all shadow-sm relative overflow-hidden",
         myPersonalBudget 
-          ? "border-border/50 bg-card/50 backdrop-blur-sm hover:border-green-500/30" 
-          : "border-dashed border-border/50 bg-muted/5 opacity-60"
+          ? "border-border/40 bg-card/60 backdrop-blur-md hover:shadow-md" 
+          : "border-dashed border-border/40 bg-muted/5 opacity-80"
       )}>
-        <div className="flex items-center justify-between mb-3">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <Wallet className="w-20 h-20 text-green-500" />
+        </div>
+        <div className="relative z-10 flex items-center justify-between mb-4">
           <div className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform",
+            "w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform",
             myPersonalBudget ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
           )}>
-            <Wallet className="h-5 w-5" />
+            <Wallet className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Orçamento</span>
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Orçamento</span>
         </div>
         
-        {myPersonalBudget ? (
-          <div className="space-y-2">
-            <div>
-              <p className="font-mono text-2xl font-black tracking-tighter text-foreground">
-                {moneyUtils.format(myPersonalBudget, currency)}
-              </p>
-              {isInternational && rate && (
-                <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                  ≈ {moneyUtils.format(myPersonalBudget * rate, baseCurrency)}
+        <div className="relative z-10">
+          {myPersonalBudget ? (
+            <div className="space-y-2">
+              <div>
+                <p className="font-display text-3xl font-black tracking-tighter text-foreground truncate">
+                  {moneyUtils.format(myPersonalBudget, currency)}
                 </p>
-              )}
-            </div>
-            <div className="space-y-1 mt-2">
-              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                <div 
-                  className={cn(
-                    "h-full transition-all duration-1000",
-                    budgetUsagePercent > 90 ? "bg-red-500" : budgetUsagePercent > 70 ? "bg-orange-500" : "bg-green-500"
+                {isInternational && rate && (
+                  <p className="text-xs text-muted-foreground font-bold flex items-center gap-1">
+                    ≈ {moneyUtils.format(myPersonalBudget * rate, baseCurrency)}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5 mt-3">
+                <div className="h-2 w-full bg-muted/60 rounded-full overflow-hidden shadow-inner border border-border/40 relative">
+                  <div 
+                    className={cn(
+                      "absolute top-0 left-0 h-full rounded-full transition-all duration-1000",
+                      budgetUsagePercent > 90 ? "bg-gradient-to-r from-red-600 to-red-400" : budgetUsagePercent > 70 ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-green-500 to-green-400"
+                    )}
+                    style={{ width: `${budgetUsagePercent}%` }}
+                  />
+                  {budgetUsagePercent > 90 && (
+                    <div 
+                      className="absolute top-0 left-0 h-full w-full opacity-30" 
+                      style={{ 
+                        backgroundImage: 'linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)',
+                        backgroundSize: '1rem 1rem',
+                        animation: 'progress-stripes 1s linear infinite'
+                      }}
+                    />
                   )}
-                  style={{ width: `${budgetUsagePercent}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-[9px] font-bold uppercase">
-                <span className={cn(budgetUsagePercent > 90 ? "text-red-500" : "text-muted-foreground")}>
-                  {budgetUsagePercent.toFixed(0)}% USADO
-                </span>
-                <span className="text-muted-foreground">
-                  FALTA {moneyUtils.format(Math.max(0, myPersonalBudget - myTotalSpent), currency)}
-                </span>
+                </div>
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                  <span className={cn(budgetUsagePercent > 90 ? "text-red-500" : "text-muted-foreground")}>
+                    {budgetUsagePercent.toFixed(0)}% USADO
+                  </span>
+                  <span className="text-muted-foreground">
+                    FALTA {moneyUtils.format(Math.max(0, myPersonalBudget - myTotalSpent), currency)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <p className="text-xs font-medium text-muted-foreground italic">
-            Sem orçamento definido
-          </p>
-        )}
+          ) : (
+            <div className="flex flex-col items-start gap-2 pt-2">
+              <p className="text-sm font-bold text-muted-foreground/80">
+                Sem orçamento definido
+              </p>
+              <div className="text-[10px] font-bold text-primary flex items-center gap-1 uppercase tracking-widest hover:underline cursor-pointer">
+                Definir Orçamento <ArrowRight className="w-3 h-3" />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Período da Viagem */}
-      <div className="group p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm hover:border-orange-500/30 transition-all">
-        <div className="flex items-center justify-between mb-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
-            <Calendar className="h-5 w-5" />
-          </div>
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Duração</span>
+      <div className="group p-5 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm relative overflow-hidden transition-all hover:shadow-md">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+          <Calendar className="w-20 h-20 text-orange-500" />
         </div>
-        <p className="font-bold text-lg leading-tight text-foreground mb-1">
-          {dateFns.format(parseLocalDate(startDate), "dd 'de' MMM", { locale: ptBR })}
-          <span className="mx-2 text-muted-foreground/30 font-normal">→</span>
-          {dateFns.format(parseLocalDate(endDate), "dd 'de' MMM", { locale: ptBR })}
-        </p>
-        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
-          {dateFns.differenceInDays(parseLocalDate(endDate), parseLocalDate(startDate)) + 1} dias de viagem
-        </p>
+        <div className="relative z-10 flex items-center justify-between mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+            <Calendar className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Duração</span>
+        </div>
+        <div className="relative z-10 space-y-1">
+          <p className="font-display text-lg font-black tracking-tighter text-foreground flex items-center gap-2">
+            {dateFns.format(parseLocalDate(startDate), "dd 'de' MMM", { locale: ptBR })}
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            {dateFns.format(parseLocalDate(endDate), "dd 'de' MMM", { locale: ptBR })}
+          </p>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+            {dateFns.differenceInDays(parseLocalDate(endDate), parseLocalDate(startDate))} dias de viagem
+          </p>
+        </div>
       </div>
     </div>
   );
