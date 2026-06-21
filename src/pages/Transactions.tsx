@@ -1,13 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTransactions, useDeleteTransaction, useDeleteInstallmentSeries, Transaction } from "@/hooks/useTransactions";
+import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
-import {
-  AlertDialog, TransactionModal } from "@/components/modals/TransactionModal";
+import { TransactionModal } from "@/components/modals/TransactionModal";
 import { AdvanceInstallmentsDialog } from "@/components/transactions/AdvanceInstallmentsDialog";
 import { TransactionDetailsModal } from "@/components/transactions/TransactionDetailsModal";
 import { OFXImportModal } from "@/components/modals/OFXImportModal";

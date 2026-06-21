@@ -105,84 +105,67 @@ export function TripSummaryTab({
     }
   });
 
-  // ========== ONBOARDING (ZERO STATE) ==========
-  if (tripTransactions.length === 0) {
-    return (
-      <div className="space-y-6 mt-6 animate-fade-in pb-20">
-        <div className="p-8 rounded-[2rem] border border-primary/20 bg-gradient-to-br from-primary/5 to-card relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
-            <TrendingUp className="w-48 h-48" />
-          </div>
-          
-          <div className="relative z-10 max-w-2xl">
-            <h2 className="font-display font-black text-3xl mb-2 text-foreground">
-              Sua viagem está pronta! ✈️
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Comece a organizar os detalhes para ter controle total sobre os gastos e o roteiro.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button 
-                onClick={onAddParticipant}
-                className="flex items-start gap-4 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <Users className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm mb-1">Convidar Amigos</h4>
-                  <p className="text-xs text-muted-foreground">Divida despesas com outras pessoas.</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setActiveTab && setActiveTab("itinerary")}
-                className="flex items-start gap-4 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <Calendar className="h-5 w-5 text-orange-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm mb-1">Montar Roteiro</h4>
-                  <p className="text-xs text-muted-foreground">Adicione os passeios e atividades.</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setActiveTab && setActiveTab("expenses")}
-                className="flex items-start gap-4 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <DollarSign className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm mb-1">Lançar Despesa</h4>
-                  <p className="text-xs text-muted-foreground">Registre passagens, hotel ou gastos.</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => setActiveTab && setActiveTab("checklist")}
-                className="flex items-start gap-4 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/30 transition-all text-left group"
-              >
-                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <CheckCircle className="h-5 w-5 text-purple-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm mb-1">Fazer as Malas</h4>
-                  <p className="text-xs text-muted-foreground">Crie sua checklist de viagem.</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8 mt-6 animate-fade-in pb-20">
+      
+      {/* Mensagem de Boas Vindas caso não haja transações */}
+      {tripTransactions.length === 0 && (
+        <div className="p-6 rounded-[2rem] border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-card relative overflow-hidden text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="relative z-10 max-w-xl">
+            <h2 className="font-display font-black text-2xl mb-1 text-foreground">
+              Sua viagem está pronta! ✈️
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Use as ações rápidas abaixo para convidar amigos, montar seu roteiro e iniciar os lançamentos. O resumo da viagem será atualizado automaticamente.
+            </p>
+          </div>
+          <TrendingUp className="w-32 h-32 text-primary/5 absolute right-4 top-1/2 -translate-y-1/2 sm:-right-4" />
+        </div>
+      )}
+
+      {/* ===== AÇÕES RÁPIDAS (Sempre visíveis) ===== */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button 
+          onClick={onAddParticipant}
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all group backdrop-blur-sm"
+        >
+          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <Users className="h-6 w-6 text-blue-500" />
+          </div>
+          <span className="font-bold text-xs text-center leading-tight">Convidar<br/>Amigos</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab && setActiveTab("itinerary")}
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.1)] transition-all group backdrop-blur-sm"
+        >
+          <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <Calendar className="h-6 w-6 text-orange-500" />
+          </div>
+          <span className="font-bold text-xs text-center leading-tight">Montar<br/>Roteiro</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab && setActiveTab("expenses")}
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-green-500/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all group backdrop-blur-sm"
+        >
+          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <DollarSign className="h-6 w-6 text-green-500" />
+          </div>
+          <span className="font-bold text-xs text-center leading-tight">Lançar<br/>Despesa</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab && setActiveTab("checklist")}
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all group backdrop-blur-sm"
+        >
+          <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <CheckCircle className="h-6 w-6 text-purple-500" />
+          </div>
+          <span className="font-bold text-xs text-center leading-tight">Fazer as<br/>Malas</span>
+        </button>
+      </div>
+
       {/* Grid de Informações Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm">
