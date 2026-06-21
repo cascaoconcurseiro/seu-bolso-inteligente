@@ -174,7 +174,7 @@ export function TransactionFilters({
 
       {/* Mobile Filters (Drawer via Dialog) */}
       <Dialog open={showFilters} onOpenChange={setShowFilters}>
-        <DialogContent className="sm:hidden !bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
+        <DialogContent className="sm:hidden !bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] !rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
           <div className="w-full flex justify-center pt-3 pb-1">
             <div className="w-12 h-1.5 bg-muted rounded-full" />
           </div>
