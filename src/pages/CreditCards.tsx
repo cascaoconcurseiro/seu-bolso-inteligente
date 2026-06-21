@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, CreditCard, Trash2, Archive, Download, Loader2 } from "lucide-react";
+import { Plus, CreditCard, Trash2, Archive, Download, Loader2, AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +29,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMonth } from "@/contexts/MonthContext";
-import { getBankById } from "@/lib/banks";
+import { getBankById, banks, internationalBanks } from "@/lib/banks";
+import { BankIcon } from "@/components/financial/BankIcon";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useArchiveAccount, useArchivedAccounts, useUnarchiveAccount, useCreditCardInvoice, useAccountDependencies } from "@/hooks/useAccounts";
 import { useDependentTransactions } from "@/hooks/transactions/useDependentTransactions";
 import { useTransactions, useCreateTransaction, useDeleteTransaction, useBulkCreateTransactions } from "@/hooks/useTransactions";
@@ -119,6 +121,8 @@ export function CreditCards() {
     editDueDay, setEditDueDay,
     editLimit, setEditLimit,
     editCardColor, setEditCardColor,
+    editBankId, setEditBankId,
+    editCustomBankName, setEditCustomBankName,
     
     invoiceData,
     invoiceFetching,
@@ -173,7 +177,21 @@ export function CreditCards() {
       <>
         <CreditCardDetailView 
           selectedCard={selectedCard} goBack={() => { setView("list"); setSelectedCard(null); }}
-          openEditCardDialog={(card) => { setEditCardName(card.name); setEditCardColor(card.bank_color || getBankById(card.bank_id).color || "#3b82f6"); setEditClosingDay(card.closing_day?.toString() || ""); setEditDueDay(card.due_day?.toString() || ""); setEditLimit(card.credit_limit?.toString() || ""); setShowEditCardDialog(true); }}
+          openEditCardDialog={(card) => { 
+            setEditCardName(card.name); 
+            setEditCardColor(card.bank_color || getBankById(card.bank_id).color || "#3b82f6"); 
+            setEditClosingDay(card.closing_day?.toString() || ""); 
+            setEditDueDay(card.due_day?.toString() || ""); 
+            setEditLimit(card.credit_limit?.toString() || ""); 
+            if (card.bank_id && card.bank_id.startsWith("custom:")) {
+              setEditBankId("other");
+              setEditCustomBankName(card.bank_id.replace("custom:", ""));
+            } else {
+              setEditBankId(card.bank_id || "");
+              setEditCustomBankName("");
+            }
+            setShowEditCardDialog(true); 
+          }}
           setDeleteCardConfirm={setDeleteCardConfirm} selectedDate={selectedDate} changeMonth={(offset) => setSelectedDate(prev => dateFns.addMonths(prev, offset))}
           goToCurrentMonth={() => setSelectedDate(dateFns.startOfMonth(new Date()))} monthName={dateFns.format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })}
           cycleRange={formatCycleRange(invoiceData.startDate, invoiceData.closingDate)} invoiceFetching={invoiceFetching} invoiceData={invoiceData}
@@ -221,6 +239,50 @@ export function CreditCards() {
             <DialogHeader><DialogTitle>Editar Cartão</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2"><Label>Nome</Label><Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} /></div>
+              
+              <div className="space-y-2">
+                <Label>Banco Emissor</Label>
+                {editBankId === "other" && (
+                  <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium border border-amber-500/20 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>O banco será salvo com o ícone padrão.</span>
+                  </div>
+                )}
+                <Select value={editBankId} onValueChange={setEditBankId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o banco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(selectedCard?.is_international ? Object.values(internationalBanks) : Object.values(banks)).map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        <div className="flex items-center gap-2">
+                          <BankIcon bankId={b.id} size="sm" />
+                          {b.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other" className="text-amber-500 focus:text-amber-500 font-medium border-t mt-1 pt-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-amber-500/10 rounded flex items-center justify-center">
+                          <CreditCard className="w-3 h-3" />
+                        </div>
+                        Outro Banco (Personalizado)
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                {editBankId === "other" && (
+                  <div className="pt-2 animate-fade-in">
+                    <Input 
+                      placeholder="Ex: Carrefour, C&A, Renner..." 
+                      value={editCustomBankName}
+                      onChange={(e) => setEditCustomBankName(e.target.value)}
+                      className="border-amber-500/30 focus-visible:ring-amber-500"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Cor do cartão</Label>
                 <div className="flex flex-wrap gap-2">
@@ -303,7 +365,7 @@ export function CreditCards() {
             </div>
             <DialogFooter className="border-t border-border/50 pt-4 mt-2">
               <Button variant="outline" className="rounded-xl h-11 px-6" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
-              <Button className="rounded-xl h-11 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit}>
+              <Button className="rounded-xl h-11 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit || !editBankId || (editBankId === 'other' && !editCustomBankName.trim())}>
                 Salvar Alterações
               </Button>
             </DialogFooter>

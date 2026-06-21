@@ -191,7 +191,7 @@ export function useCreditCardsDashboard() {
       toast.error("O nome do cartão é obrigatório");
       return;
     }
-    const isCustom = newBankId === "default" || newBankId === "default_international";
+    const isCustom = newBankId === "default" || newBankId === "default_international" || newBankId === "other";
     const finalBankId = isCustom && newCustomBankName.trim() 
       ? `custom:${newCustomBankName.trim()}` 
       : newBankId;
@@ -232,7 +232,7 @@ export function useCreditCardsDashboard() {
 
   const handleEditCard = async () => {
     if (!selectedCard) return;
-    const isCustom = editBankId === "default";
+    const isCustom = editBankId === "default" || editBankId === "other";
     const finalBankId = isCustom && editCustomBankName.trim()
       ? `custom:${editCustomBankName.trim()}`
       : editBankId;

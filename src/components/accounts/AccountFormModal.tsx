@@ -109,6 +109,16 @@ export function AccountFormModal({
         setYieldRate(initialData.yield_rate ? initialData.yield_rate.toString() : "100");
         setIsInternational(initialData.is_international || false);
         setType(initialData.type || "CHECKING");
+        setCurrency(initialData.currency || "BRL");
+
+        const isCustomBank = initialData.bank_id?.startsWith("custom:");
+        if (isCustomBank) {
+          setBankId(initialData.is_international ? "default_international" : "default");
+          setCustomBankName(initialData.bank_id!.substring(7));
+        } else {
+          setBankId(initialData.bank_id || "");
+          setCustomBankName("");
+        }
       } else {
         // Reset create form
         setIsInternational(false);
@@ -126,12 +136,15 @@ export function AccountFormModal({
   }, [isOpen, mode, initialData]);
 
   const handleSubmit = async () => {
+    const isCustom = bankId === "default" || bankId === "default_international";
+    const finalBankId = isCustom && customBankName.trim() 
+      ? `custom:${customBankName.trim()}` 
+      : bankId;
+
+    const yRate = yieldType !== "NONE" ? moneyUtils.parse(yieldRate) : null;
+    const yType = yieldType !== "NONE" ? yieldType : null;
+
     if (mode === "create") {
-      const isCustom = bankId === "default" || bankId === "default_international";
-      const finalBankId = isCustom && customBankName.trim() 
-        ? `custom:${customBankName.trim()}` 
-        : bankId;
-        
       let bankName = "";
       if (isCustom) {
         bankName = customBankName.trim();
@@ -143,9 +156,6 @@ export function AccountFormModal({
       const defaultName = bankName 
         ? `${bankName} - ${accountTypeLabels[type] || type}` 
         : accountTypeLabels[type] || type;
-
-      const yRate = yieldType !== "NONE" ? moneyUtils.parse(yieldRate) : null;
-      const yType = yieldType !== "NONE" ? yieldType : null;
 
       await onSubmit({
         name: defaultName,
@@ -159,23 +169,26 @@ export function AccountFormModal({
         yield_type: yType,
       });
     } else {
-      const yRate = yieldType !== "NONE" ? moneyUtils.parse(yieldRate) : null;
-      const yType = yieldType !== "NONE" ? yieldType : null;
-
       await onSubmit({
         name: name.trim(),
         hide_balance: hideBalance,
         yield_type: yType,
         yield_rate: yRate,
+        bank_id: finalBankId || null,
+        type,
+        is_international: isInternational,
+        currency: isInternational ? currency : "BRL",
       });
     }
   };
 
   const isFormValid = () => {
+    const isCustom = bankId === "default" || bankId === "default_international";
+    if (isCustom && !customBankName.trim()) return false;
+    if (!bankId) return false;
+    
     if (mode === "create") {
-      const isCustom = bankId === "default" || bankId === "default_international";
-      if (isCustom && !customBankName.trim()) return false;
-      return !!bankId;
+      return true;
     }
     return !!name.trim();
   };
@@ -196,125 +209,125 @@ export function AccountFormModal({
         </DialogHeader>
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
-          {mode === "create" ? (
-            <>
-              <div className="flex items-center justify-between p-4 border rounded-xl">
-                <div className="flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <p className="font-medium">Conta Internacional</p>
-                  </div>
-                </div>
-                <Switch
-                  checked={isInternational}
-                  onCheckedChange={(v) => {
-                    setIsInternational(v);
-                    setBankId("");
-                    setType(v ? "GLOBAL_ACCOUNT" : "CHECKING");
-                  }}
-                />
+          <div className="flex items-center justify-between p-4 border rounded-xl">
+            <div className="flex items-center gap-3">
+              <Globe className="h-5 w-5 text-blue-500" />
+              <div>
+                <p className="font-medium">Conta Internacional</p>
               </div>
+            </div>
+            <Switch
+              checked={isInternational}
+              onCheckedChange={(v) => {
+                setIsInternational(v);
+                setBankId("");
+                setType(v ? "GLOBAL_ACCOUNT" : "CHECKING");
+              }}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label>{isInternational ? "Instituição" : "Banco"}</Label>
-                <Select value={bankId} onValueChange={setBankId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {isInternational
-                      ? Object.values(internationalBanks).map((b) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            <div className="flex items-center gap-2">
-                              <BankIcon bankId={b.id} size="sm" />
-                              {b.name}
-                            </div>
-                          </SelectItem>
-                        ))
-                      : Object.values(banks)
-                          .map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              <div className="flex items-center gap-2">
-                                <BankIcon bankId={b.id} size="sm" />
-                                {b.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {(bankId === "default" || bankId === "default_international") && (
-                <div className="space-y-2">
-                  <Label>Nome da Instituição</Label>
-                  <Input 
-                    value={customBankName}
-                    onChange={(e) => setCustomBankName(e.target.value)}
-                    placeholder="Digite o nome do banco"
-                  />
-                </div>
-              )}
-
-              {isInternational && (
-                <div className="space-y-2">
-                  <Label>Moeda</Label>
-                  <Select value={currency} onValueChange={setCurrency}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currencies.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>
-                          <span className="font-mono text-xs mr-2">{c.symbol}</span>
-                          {c.label}
+          <div className="space-y-2">
+            <Label>{isInternational ? "Instituição" : "Banco"}</Label>
+            <Select value={bankId} onValueChange={setBankId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {isInternational
+                  ? Object.values(internationalBanks).map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        <div className="flex items-center gap-2">
+                          <BankIcon bankId={b.id} size="sm" />
+                          {b.name}
+                        </div>
+                      </SelectItem>
+                    ))
+                  : Object.values(banks)
+                      .map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          <div className="flex items-center gap-2">
+                            <BankIcon bankId={b.id} size="sm" />
+                            {b.name}
+                          </div>
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="space-y-2">
-                <Label>Tipo</Label>
-                <Select value={type} onValueChange={setType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(isInternational
-                      ? [{ v: "GLOBAL_ACCOUNT", l: "Conta Global" }]
-                      : [
-                          { v: "CHECKING", l: "Conta Corrente" },
-                          { v: "SAVINGS", l: "Poupança" },
-                          { v: "INVESTMENT", l: "Investimento" },
-                          { v: "CASH", l: "Dinheiro" },
-                          { v: "EMERGENCY_FUND", l: "Reserva de Emergência" },
-                        ]
-                    ).map((t) => (
-                      <SelectItem key={t.v} value={t.v}>
-                        {t.l}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          {(bankId === "default" || bankId === "default_international") && (
+            <div className="space-y-2">
+              <Label>Nome da Instituição</Label>
+              <Input 
+                value={customBankName}
+                onChange={(e) => setCustomBankName(e.target.value)}
+                placeholder="Digite o nome do banco"
+              />
+            </div>
+          )}
 
-              <div className="space-y-2">
-                <Label>Saldo inicial</Label>
-                <CurrencyInput
-                  value={balance}
-                  onChange={setBalance}
-                  currency={isInternational ? currency : "BRL"}
-                />
-              </div>
-            </>
-          ) : (
+          {isInternational && (
+            <div className="space-y-2">
+              <Label>Moeda</Label>
+              <Select value={currency} onValueChange={setCurrency}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      <span className="font-mono text-xs mr-2">{c.symbol}</span>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Tipo</Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(isInternational
+                  ? [{ v: "GLOBAL_ACCOUNT", l: "Conta Global" }]
+                  : [
+                      { v: "CHECKING", l: "Conta Corrente" },
+                      { v: "SAVINGS", l: "Poupança" },
+                      { v: "INVESTMENT", l: "Investimento" },
+                      { v: "CASH", l: "Dinheiro" },
+                      { v: "EMERGENCY_FUND", l: "Reserva de Emergência" },
+                    ]
+                ).map((t) => (
+                  <SelectItem key={t.v} value={t.v}>
+                    {t.l}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {mode === "edit" && (
             <div className="space-y-2">
               <Label>Nome da Conta</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Nubank Principal"
+              />
+            </div>
+          )}
+
+          {mode === "create" && (
+            <div className="space-y-2">
+              <Label>Saldo inicial</Label>
+              <CurrencyInput
+                value={balance}
+                onChange={setBalance}
+                currency={isInternational ? currency : "BRL"}
               />
             </div>
           )}
