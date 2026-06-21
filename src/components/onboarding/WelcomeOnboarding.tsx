@@ -186,12 +186,17 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   </p>
                 </motion.div>
 
-                <div className="flex gap-3 mt-8">
-                  <Button variant="outline" onClick={() => setStep(1)} className="h-12 rounded-xl px-4 border-white/10 bg-background/50">
-                    Voltar
-                  </Button>
-                  <Button onClick={handleFinish} disabled={createAccount.isPending || !accountName} className="flex-1 h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
-                    {createAccount.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Concluir e Decolar"}
+                <div className="flex flex-col gap-3 mt-8">
+                  <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => setStep(1)} className="h-12 rounded-xl px-4 border-white/10 bg-background/50">
+                      Voltar
+                    </Button>
+                    <Button onClick={handleFinish} disabled={createAccount.isPending || !accountName} className="flex-1 h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
+                      {createAccount.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Concluir e Decolar"}
+                    </Button>
+                  </div>
+                  <Button variant="ghost" onClick={onComplete} className="w-full text-xs text-muted-foreground hover:bg-transparent hover:text-foreground">
+                    Pular configuração (não recomendado)
                   </Button>
                 </div>
               </motion.div>
