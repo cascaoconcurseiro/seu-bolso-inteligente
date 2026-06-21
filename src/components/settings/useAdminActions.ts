@@ -341,6 +341,25 @@ export function useAdminActions() {
     }
   };
 
+  const handleClearErrorLogs = async () => {
+    setIsPurging(true);
+    try {
+      const { error } = await supabase.rpc('clear_error_logs', {
+        admin_password: password
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Logs de erro apagados com sucesso");
+      loadErrorLogs();
+    } catch (error) {
+      toast.error("Erro ao apagar logs");
+      console.error(error);
+    } finally {
+      setIsPurging(false);
+    }
+  };
+
   const handleReset = async () => {
     if (confirmWord !== CONFIRM_WORD) {
       toast.error(`Digite "${CONFIRM_WORD}" para confirmar`);

@@ -113,6 +113,8 @@ export function useCreditCardsDashboard() {
   const [editClosingDay, setEditClosingDay] = useState("");
   const [editDueDay, setEditDueDay] = useState("");
   const [editLimit, setEditLimit] = useState("");
+  const [editBankId, setEditBankId] = useState("");
+  const [editCustomBankName, setEditCustomBankName] = useState("");
 
   useEffect(() => {
     if (selectedCard) {
@@ -230,7 +232,20 @@ export function useCreditCardsDashboard() {
 
   const handleEditCard = async () => {
     if (!selectedCard) return;
-    await updateAccount.mutateAsync({ id: selectedCard.id, name: editCardName, closing_day: editClosingDay ? parseInt(editClosingDay) : null, due_day: editDueDay ? parseInt(editDueDay) : null, credit_limit: editLimit ? moneyUtils.parse(editLimit) : null, bank_color: editCardColor });
+    const isCustom = editBankId === "default";
+    const finalBankId = isCustom && editCustomBankName.trim()
+      ? `custom:${editCustomBankName.trim()}`
+      : editBankId;
+
+    await updateAccount.mutateAsync({ 
+      id: selectedCard.id, 
+      name: editCardName, 
+      closing_day: editClosingDay ? parseInt(editClosingDay) : null, 
+      due_day: editDueDay ? parseInt(editDueDay) : null, 
+      credit_limit: editLimit ? moneyUtils.parse(editLimit) : null, 
+      bank_color: editCardColor,
+      bank_id: finalBankId || null
+    });
     toast.success("Cartão atualizado!");
     setShowEditCardDialog(false);
     refetchAccounts();
@@ -368,6 +383,8 @@ export function useCreditCardsDashboard() {
     editClosingDay, setEditClosingDay,
     editDueDay, setEditDueDay,
     editLimit, setEditLimit,
+    editBankId, setEditBankId,
+    editCustomBankName, setEditCustomBankName,
     
     invoiceData,
     invoiceFetching,
