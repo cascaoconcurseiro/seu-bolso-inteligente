@@ -99,7 +99,6 @@ export const calculateSharedDisplayDate = (
   competenceDate: string | null,
   accountId: string | null, 
   accounts: DBAccount[],
-  profile?: any,
   family?: any
 ): string => {
   if (!competenceDate) {
@@ -127,11 +126,6 @@ export const calculateSharedDisplayDate = (
 
   let closingDay = account.closing_day || 1;
   let dueDay = account.due_day || 10;
-
-  if (profile?.shared_credit_card_behavior === 'FAMILY_CYCLE' && family) {
-    closingDay = family.shared_closing_day || closingDay;
-    dueDay = family.shared_due_day || dueDay;
-  }
 
   const closingMonth = dateUtils.parseDate(competenceDate);
   
