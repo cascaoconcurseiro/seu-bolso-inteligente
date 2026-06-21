@@ -217,7 +217,7 @@ export function CreditCards() {
         />
 
         <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
-          <DialogContent>
+          <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
             <DialogHeader><DialogTitle>Editar Cartão</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2"><Label>Nome</Label><Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} /></div>
@@ -311,7 +311,7 @@ export function CreditCards() {
         </Dialog>
 
         <AlertDialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
-          <AlertDialogContent>
+          <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
             <AlertDialogHeader><AlertDialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</AlertDialogTitle></AlertDialogHeader>
             <div className="flex flex-col gap-3 py-4">
                <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
