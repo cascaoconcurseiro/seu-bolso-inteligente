@@ -131,6 +131,10 @@ export default defineConfig(({ mode }) => {
           if (id.includes('node_modules/sonner')) {
             return 'vendor-sonner';
           }
+          // Export utilities (PDF e Excel)
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) {
+            return 'vendor-export';
+          }
           // Lucide icons
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons';
