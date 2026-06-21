@@ -540,7 +540,11 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       myMemberRecord?.id,
       user?.id
     );
-    if (!validation.isValid) { setValidationErrors(validation.errors); toast.error('Corrija os erros antes de continuar'); return; }
+    if (!validation.isValid) { 
+      setValidationErrors(validation.errors); 
+      toast.error('Corrija os erros:', { description: validation.errors.join(' • ') }); 
+      return; 
+    }
     if (validation.warnings.length > 0) { setValidationWarnings(validation.warnings); setPendingSubmit(transactionData); setShowWarningModal(true); return; }
     await performSubmit(transactionData);
   };

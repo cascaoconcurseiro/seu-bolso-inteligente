@@ -166,13 +166,15 @@ export function TransactionItem({
       {/* Main Content (slides left) */}
       <div
         className={cn(
-          "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background transition-transform duration-200 cursor-pointer relative z-10",
+          "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background cursor-pointer relative z-10",
           settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10",
-          isSwiped ? "-translate-x-20" : "translate-x-0"
+          touchStartX.current === null && "transition-transform duration-200"
         )}
+        style={{ transform: `translateX(${isSwiped ? -80 : swipeOffset}px)` }}
         onClick={() => {
           if (isSwiped) {
             setIsSwiped(false);
+            setSwipeOffset(0);
           } else {
             onDetails(transaction);
           }

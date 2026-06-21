@@ -276,49 +276,48 @@ export function TransactionDetailsModal({
           )}
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t">
-            {isInstallment && transaction.series_id && onAdvance && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-blue-600 hover:text-blue-600"
-                onClick={() => {
-                  onOpenChange(false);
-                  onAdvance();
-                }}
-              >
-                <FastForward className="h-4 w-4" />
-                Adiantar Parcelas
-              </Button>
-            )}
+          <div className="flex flex-col gap-2 pt-4 border-t mt-4">
+            <div className="flex gap-2 w-full">
+              {onEdit && (
+                <Button
+                  variant="default"
+                  className="gap-2 flex-1"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onEdit();
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar
+                </Button>
+              )}
 
-            {onEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-primary hover:text-primary"
-                onClick={() => {
-                  onOpenChange(false);
-                  onEdit();
-                }}
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-            )}
+              {isInstallment && transaction.series_id && onAdvance && (
+                <Button
+                  variant="outline"
+                  className="gap-2 flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onAdvance();
+                  }}
+                >
+                  <FastForward className="h-4 w-4" />
+                  Adiantar
+                </Button>
+              )}
+            </div>
 
             {onDelete && (
               <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 text-destructive hover:text-destructive"
+                variant="ghost"
+                className="gap-2 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={() => {
                   onOpenChange(false);
                   onDelete();
                 }}
               >
                 <Trash2 className="h-4 w-4" />
-                Excluir
+                Excluir Transação
               </Button>
             )}
           </div>
