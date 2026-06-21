@@ -205,8 +205,13 @@ export function TripExpensesTab({
               return (
                 <div
                   key={expense.id}
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest('button')) return;
+                    window.dispatchEvent(new CustomEvent('openTransactionModal', { detail: { transaction: expense } }));
+                  }}
                   className={cn(
-                    "group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300",
+                    "group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 cursor-pointer",
                     iPaid
                       ? "border-purple-500/30 bg-purple-500/5 hover:border-purple-500/50 hover:bg-purple-500/10"
                       : "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40 hover:bg-blue-500/8"
@@ -449,7 +454,12 @@ export function TripExpensesTab({
                 return (
                   <div
                     key={expense.id}
-                    className="group p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex items-center justify-between gap-4"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button')) return;
+                      window.dispatchEvent(new CustomEvent('openTransactionModal', { detail: { transaction: expense } }));
+                    }}
+                    className="group p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex items-center justify-between gap-4 cursor-pointer"
                   >
                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
                       <div className="w-11 h-11 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center text-xl shrink-0 transition-colors duration-300">

@@ -182,9 +182,12 @@ export function AccountFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
+      <DialogContent className="w-full sm:w-[500px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-[2rem] rounded-b-none sm:rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
+          <DialogTitle className="text-xl font-display font-bold">{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
           {mode === "edit" && (
             <DialogDescription>
               Edite as preferências e o nome da sua conta. Para ajustar o saldo, registre uma nova transação.
@@ -192,7 +195,7 @@ export function AccountFormModal({
           )}
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           {mode === "create" ? (
             <>
               <div className="flex items-center justify-between p-4 border rounded-xl">
