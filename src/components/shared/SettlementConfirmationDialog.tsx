@@ -124,13 +124,12 @@ export function SettlementConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none shadow-2xl bg-background/95 backdrop-blur-xl">
-        <div className={cn(
-          "absolute inset-0 pointer-events-none",
-          isPayment ? "bg-gradient-to-br from-red-500/10 via-transparent to-primary/5" : "bg-gradient-to-br from-green-500/10 via-transparent to-primary/5"
-        )} />
+      <DialogContent className="w-full sm:max-w-[480px] !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
         
-        <div className="p-6 pb-0 relative">
+        <div className="p-6 pb-2 relative shrink-0">
           <DialogHeader>
             <div className={cn(
               "w-12 h-12 rounded-2xl flex items-center justify-center mb-4 animate-in zoom-in duration-300",
@@ -147,7 +146,7 @@ export function SettlementConfirmationDialog({
           </DialogHeader>
         </div>
 
-        <div className="p-6 space-y-5 relative">
+        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-5 relative">
           {/* Card de Resumo do Valor */}
           <div className={cn(
             "p-4 rounded-2xl border flex items-center justify-between group transition-all",
@@ -275,7 +274,7 @@ export function SettlementConfirmationDialog({
           )}
         </div>
 
-        <DialogFooter className="p-6 pt-0 flex gap-3 sm:gap-0">
+        <DialogFooter className="px-6 py-4 border-t border-border/40 bg-muted/10 gap-3 sm:gap-0 mt-auto shrink-0">
           <Button 
             variant="ghost" 
             onClick={() => onOpenChange(false)}
