@@ -201,6 +201,8 @@ export function Auth() {
                     onChange={(e) => setFullName(e.target.value)}
                     className="pl-10 h-12"
                     disabled={isSubmitting}
+                    autoComplete="name"
+                    autoCapitalize="words"
                   />
                 </div>
               </div>
@@ -219,6 +221,10 @@ export function Auth() {
                   className="pl-10 h-12"
                   disabled={isSubmitting}
                   required
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
             </div>
@@ -248,6 +254,7 @@ export function Auth() {
                     className="pl-10 pr-10 h-12"
                     disabled={isSubmitting}
                     required
+                    autoComplete={isLogin ? "current-password" : "new-password"}
                   />
                   <Button
                     type="button"

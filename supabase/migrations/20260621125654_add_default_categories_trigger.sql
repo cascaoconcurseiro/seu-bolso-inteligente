@@ -1,8 +1,8 @@
 -- Migration: Add default categories trigger for new users
 -- Description: Automatically populates the category hierarchy and system categories when a new user signs up
 
-CREATE OR REPLACE FUNCTION public.create_default_categories_for_new_user()
-RETURNS trigger
+CREATE OR REPLACE FUNCTION public.seed_default_categories(p_user_id UUID)
+RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -338,13 +338,25 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- Função wrapper para atuar como trigger
+CREATE OR REPLACE FUNCTION public.trigger_seed_default_categories()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  PERFORM public.seed_default_categories(NEW.id);
+  RETURN NEW;
+END;
+$$;
+
 -- Criar o trigger na tabela auth.users para executar a função sempre que um usuário for criado
 DROP TRIGGER IF EXISTS trigger_create_default_categories ON auth.users;
 
 CREATE TRIGGER trigger_create_default_categories
 AFTER INSERT ON auth.users
 FOR EACH ROW
-EXECUTE FUNCTION public.create_default_categories_for_new_user();
+EXECUTE FUNCTION public.trigger_seed_default_categories();
 
 -- =====================================================================
 -- BLOCO DE RETROATIVIDADE PARA USUÁRIOS QUE FORAM CRIADOS E NÃO TÊM CATEGORIAS
@@ -353,7 +365,6 @@ EXECUTE FUNCTION public.create_default_categories_for_new_user();
 DO $$
 DECLARE
   v_user_record RECORD;
-  v_fake_record auth.users%ROWTYPE;
 BEGIN
   -- Buscar usuários que têm menos de 5 categorias (provavelmente estão sem o pacote completo)
   FOR v_user_record IN 
@@ -364,11 +375,6 @@ BEGIN
     HAVING COUNT(c.id) < 5
   LOOP
     RAISE NOTICE 'Restaurando categorias para o usuário: %', v_user_record.id;
-    
-    -- Simulamos a trigger manualmente para esse usuário
-    v_fake_record.id := v_user_record.id;
-    PERFORM public.create_default_categories_for_new_user() 
-      FROM (SELECT v_fake_record AS NEW) fake_trigger;
-      
+    PERFORM public.seed_default_categories(v_user_record.id);
   END LOOP;
 END $$;
