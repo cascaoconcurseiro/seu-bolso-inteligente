@@ -29,6 +29,8 @@ interface NewCardDialogProps {
   isLoading: boolean;
   bankId: string;
   setBankId: (v: string) => void;
+  customBankName: string;
+  setCustomBankName: (v: string) => void;
   brand: string;
   setBrand: (v: string) => void;
   cardName: string;
@@ -52,6 +54,8 @@ export function NewCardDialog({
   isLoading,
   bankId,
   setBankId,
+  customBankName,
+  setCustomBankName,
   brand,
   setBrand,
   cardName,
@@ -118,7 +122,7 @@ export function NewCardDialog({
                   ))
                 ) : (
                   // Bancos nacionais
-                  Object.values(banks).filter(b => b.id !== 'default').map((bank) => (
+                  Object.values(banks).map((bank) => (
                     <SelectItem key={bank.id} value={bank.id}>
                       <div className="flex items-center gap-3">
                         <BankIcon bankId={bank.id} size="sm" />
@@ -130,6 +134,17 @@ export function NewCardDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {(bankId === 'default' || bankId === 'default_international') && (
+            <div className="space-y-2">
+              <Label>Nome da Instituição</Label>
+              <Input
+                placeholder="Ex: Cartão Supermercado"
+                value={customBankName}
+                onChange={(e) => setCustomBankName(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Moeda (apenas para internacional) */}
           {isInternational && (

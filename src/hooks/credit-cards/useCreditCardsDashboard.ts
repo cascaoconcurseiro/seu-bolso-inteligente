@@ -53,7 +53,8 @@ export function useCreditCardsDashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   
   // New Card State
-  const [newCardColor, setNewCardColor] = useState("#3b82f6"); // Default to Blue
+  const [newBankId, setNewBankId] = useState("");
+  const [newCustomBankName, setNewCustomBankName] = useState("");
   const [newBrand, setNewBrand] = useState("");
   const [newCardName, setNewCardName] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("");
@@ -188,13 +189,18 @@ export function useCreditCardsDashboard() {
       toast.error("O nome do cartão é obrigatório");
       return;
     }
-    await createAccount.mutateAsync({ name: newCardName.trim(), type: "CREDIT_CARD", bank_id: null, bank_color: newCardColor, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
+    const isCustom = newBankId === "default" || newBankId === "default_international";
+    const finalBankId = isCustom && newCustomBankName.trim() 
+      ? `custom:${newCustomBankName.trim()}` 
+      : newBankId;
+
+    await createAccount.mutateAsync({ name: newCardName.trim(), type: "CREDIT_CARD", bank_id: finalBankId || null, credit_limit: moneyUtils.parse(newLimit) || 0, closing_day: parseInt(newClosingDay) || undefined, due_day: parseInt(newDueDay) || undefined, is_international: newIsInternational, currency: newIsInternational ? newCurrency : 'BRL' });
     setShowNewCardDialog(false);
     resetNewCardForm();
   };
 
   const resetNewCardForm = () => {
-    setNewCardColor("#3b82f6"); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
+    setNewBankId(""); setNewCustomBankName(""); setNewBrand(""); setNewCardName(""); setNewClosingDay(""); setNewDueDay(""); setNewLimit(""); setNewIsInternational(false); setNewCurrency("USD");
   };
 
   const totalInvoices = useMemo(() => creditCards.reduce((sum, card) => sum + getCardInvoice(card).value, 0), [creditCards, getCardInvoice]);
@@ -328,7 +334,8 @@ export function useCreditCardsDashboard() {
     showTransactionModal, setShowTransactionModal,
     selectedDate, setSelectedDate,
     
-    newCardColor, setNewCardColor,
+    newBankId, setNewBankId,
+    newCustomBankName, setNewCustomBankName,
     newBrand, setNewBrand,
     newCardName, setNewCardName,
     newClosingDay, setNewClosingDay,

@@ -85,7 +85,8 @@ export function CreditCards() {
     showTransactionModal, setShowTransactionModal,
     selectedDate, setSelectedDate,
     
-    newCardColor, setNewCardColor,
+    newBankId, setNewBankId,
+    newCustomBankName, setNewCustomBankName,
     newBrand, setNewBrand,
     newCardName, setNewCardName,
     newClosingDay, setNewClosingDay,
@@ -383,8 +384,7 @@ export function CreditCards() {
           icon={CreditCard}
           title="Nenhum cartão cadastrado"
           description="Você ainda não possui cartões de crédito. Adicione um para controlar faturas e limites."
-          actionLabel="Novo cartão"
-          onAction={() => setShowNewCardDialog(true)}
+          action={<Button onClick={() => setShowNewCardDialog(true)}>Novo cartão</Button>}
           className="my-8"
         />
       )}
@@ -396,8 +396,10 @@ export function CreditCards() {
         onOpenChange={setShowNewCardDialog} 
         onSubmit={handleCreateCard} 
         isLoading={createAccount.isPending} 
-        cardColor={newCardColor} 
-        setCardColor={setNewCardColor} 
+        bankId={newBankId} 
+        setBankId={setNewBankId} 
+        customBankName={newCustomBankName}
+        setCustomBankName={setNewCustomBankName}
         brand={newBrand} 
         setBrand={setNewBrand} 
         cardName={newCardName} 
