@@ -89,236 +89,231 @@ export function TransactionDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-lg">
         <DialogDescription className="sr-only">Detalhes da transação</DialogDescription>
-        <DialogHeader>
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center text-xl",
-                isIncome ? "bg-positive/10" : isTransfer ? "bg-primary/10" : "bg-muted"
-              )}>
-                {isTransfer ? "🔄" : (transaction.category?.icon || (isIncome ? "💰" : "💸"))}
-              </div>
-              <div>
-                <DialogTitle className="text-left">{transaction.description}</DialogTitle>
-                <DialogDescription className="sr-only">Detalhes da transação</DialogDescription>
-                <p className="text-sm text-muted-foreground">
-                  {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
-                </p>
-              </div>
+        
+        {/* Header com ícone, título e subtítulo */}
+        <DialogHeader className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shrink-0",
+              isIncome ? "bg-positive/10" : isTransfer ? "bg-primary/10" : "bg-muted"
+            )}>
+              {isTransfer ? "🔄" : (transaction.category?.icon || (isIncome ? "💰" : "💸"))}
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="truncate">{transaction.description}</DialogTitle>
+              <p className="text-sm text-muted-foreground font-medium mt-1">
+                {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
+              </p>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Amount */}
-          <div className="text-center py-4 border-y">
+        <div className="space-y-8">
+          {/* Valor em destaque */}
+          <div className="rounded-3xl bg-muted/50 p-8 text-center">
             {isTransfer ? (
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  <span className="font-mono text-3xl font-bold text-negative">
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <span className="font-mono text-4xl font-black text-negative">
                     -{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
                   </span>
                   {transaction.destination_amount && (
                     <>
-                      <span className="text-base text-muted-foreground font-light">➔</span>
-                      <span className="font-mono text-3xl font-bold text-positive">
+                      <span className="text-2xl text-muted-foreground">➔</span>
+                      <span className="font-mono text-4xl font-black text-positive">
                         +{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || "BRL")}
                       </span>
                     </>
                   )}
                 </div>
                 {transaction.exchange_rate && (
-                  <p className="text-sm text-muted-foreground font-medium mt-1">
+                  <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
                     Câmbio: 1 {transaction.currency || "BRL"} = {Number(transaction.exchange_rate).toFixed(4)} {transaction.destination_currency || "BRL"}
                   </p>
                 )}
               </div>
             ) : (
-              <>
-                <p className={cn(
-                  "font-mono text-4xl font-bold",
-                  isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
-                )}>
-                  {isIncome ? "+" : isExpense ? "-" : ""}{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
-                </p>
-                {transaction.currency && transaction.currency !== "BRL" && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Moeda: {transaction.currency}
-                  </p>
-                )}
-              </>
+              <p className={cn(
+                "font-mono text-5xl font-black tracking-tight",
+                isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
+              )}>
+                {isIncome ? "+" : isExpense ? "-" : ""}{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
+              </p>
             )}
           </div>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Date */}
-            <div className="flex items-start gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-sm text-muted-foreground uppercase tracking-wider">Data</p>
-                <p className="text-sm font-medium">{formatDate(transaction.date)}</p>
+          {/* Grid de informações */}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Data */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Data
+                </p>
+                <p className="text-base font-medium">{formatDate(transaction.date)}</p>
               </div>
-            </div>
 
-            {/* Account */}
-            {transaction.account && (
-              <div className="flex items-start gap-2">
-                <Wallet className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Conta</p>
-                  <p className="text-sm font-medium">{transaction.account.name}</p>
+              {/* Conta */}
+              {transaction.account && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
+                    <Wallet className="h-4 w-4" />
+                    Conta
+                  </p>
+                  <p className="text-base font-medium">{transaction.account.name}</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Category */}
-            {(transaction.category || isTransfer) && (
-              <div className="flex items-start gap-2">
-                <Tag className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
+              {/* Categoria */}
+              {(transaction.category || isTransfer) && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
                     {isTransfer ? "Tipo" : "Categoria"}
                   </p>
-                  <p className="text-sm font-medium flex items-center gap-1">
-                    <span>{isTransfer ? "🔄" : (transaction.category?.icon || "🏷️")}</span>
+                  <p className="text-base font-medium flex items-center gap-2">
+                    <span className="text-xl">{isTransfer ? "🔄" : (transaction.category?.icon || "🏷️")}</span>
                     {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
                   </p>
                 </div>
+              )}
+
+              {/* Viagem */}
+              {transaction.trip && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
+                    <Plane className="h-4 w-4" />
+                    Viagem
+                  </p>
+                  <p className="text-base font-medium">{transaction.trip.name}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Badges */}
+            {(isInstallment || isShared || transaction.is_recurring) && (
+              <div className="flex flex-wrap gap-3">
+                {isInstallment && (
+                  <Badge variant="secondary" className="gap-2 px-4 py-2 text-sm rounded-2xl">
+                    <Repeat className="h-4 w-4" />
+                    Parcela {transaction.current_installment}/{transaction.total_installments}
+                  </Badge>
+                )}
+                {isShared && (
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "gap-2 px-4 py-2 text-sm rounded-2xl",
+                      isFullySettled && "bg-positive/10 text-positive border-positive/20",
+                      hasPendingSplits && "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                    )}
+                  >
+                    {isFullySettled ? (
+                      <><CheckCircle className="h-4 w-4" /> Acertado</>
+                    ) : hasPendingSplits ? (
+                      <><Clock className="h-4 w-4" /> Pendente</>
+                    ) : (
+                      <><Users className="h-4 w-4" /> Compartilhada</>
+                    )}
+                  </Badge>
+                )}
+                {transaction.is_recurring && (
+                  <Badge variant="secondary" className="gap-2 px-4 py-2 text-sm rounded-2xl">
+                    <Repeat className="h-4 w-4" />
+                    Recorrente
+                  </Badge>
+                )}
               </div>
             )}
 
-            {/* Trip */}
-            {transaction.trip && (
-              <div className="flex items-start gap-2">
-                <Plane className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Viagem</p>
-                  <p className="text-sm font-medium">{transaction.trip.name}</p>
+            {/* Divisão */}
+            {isShared && splits.length > 0 && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Divisão</p>
+                <div className="space-y-3">
+                  {splits.map((split: DBTransactionSplit) => (
+                    <div
+                      key={split.id}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        {split.is_settled ? (
+                          <CheckCircle className="h-5 w-5 text-positive" />
+                        ) : (
+                          <Clock className="h-5 w-5 text-amber-500" />
+                        )}
+                        <span className="text-base font-medium">{split.name}</span>
+                      </div>
+                      <span className={cn(
+                        "font-mono text-base font-bold",
+                        split.is_settled ? "text-positive" : "text-amber-600 dark:text-amber-400"
+                      )}>
+                        {formatCurrency(split.amount)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Badges */}
-          <div className="flex flex-wrap gap-2">
-            {isInstallment && (
-              <Badge variant="secondary" className="gap-1">
-                <Repeat className="h-3 w-3" />
-                Parcela {transaction.current_installment}/{transaction.total_installments}
-              </Badge>
-            )}
-            {isShared && (
-              <Badge 
-                variant="secondary" 
-                className={cn(
-                  "gap-1",
-                  isFullySettled && "bg-positive/10 text-positive",
-                  hasPendingSplits && "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
-                )}
-              >
-                {isFullySettled ? (
-                  <><CheckCircle className="h-3 w-3" /> Acertado</>
-                ) : hasPendingSplits ? (
-                  <><Clock className="h-3 w-3" /> Pendente</>
-                ) : (
-                  <><Users className="h-3 w-3" /> Compartilhada</>
-                )}
-              </Badge>
-            )}
-            {transaction.is_recurring && (
-              <Badge variant="secondary" className="gap-1">
-                <Repeat className="h-3 w-3" />
-                Recorrente
-              </Badge>
-            )}
-          </div>
-
-          {/* Splits Section */}
-          {isShared && splits.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-wider">Divisão</p>
-              <div className="space-y-2">
-                {splits.map((split: DBTransactionSplit) => (
-                  <div
-                    key={split.id}
-                    className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
-                  >
-                    <div className="flex items-center gap-2">
-                      {split.is_settled ? (
-                        <CheckCircle className="h-4 w-4 text-positive" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-amber-500" />
-                      )}
-                      <span className="text-sm">{split.name}</span>
-                    </div>
-                    <span className={cn(
-                      "font-mono text-sm font-medium",
-                      split.is_settled ? "text-positive" : "text-amber-600 dark:text-amber-400"
-                    )}>
-                      {formatCurrency(split.amount)}
-                    </span>
-                  </div>
-                ))}
+            {/* Observações */}
+            {transaction.notes && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Observações
+                </p>
+                <p className="text-base bg-muted/50 p-4 rounded-2xl border border-border/50">{transaction.notes}</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Notes */}
-          {transaction.notes && (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <FileText className="h-3 w-3" />
-                Observações
-              </p>
-              <p className="text-sm bg-muted/50 p-3 rounded-lg">{transaction.notes}</p>
-            </div>
-          )}
+          {/* Ações */}
+          <div className="space-y-3">
+            {onEdit && (
+              <Button
+                variant="default"
+                className="w-full gap-2"
+                size="default"
+                onClick={() => {
+                  onOpenChange(false);
+                  onEdit();
+                }}
+              >
+                <Edit className="h-5 w-5" />
+                Editar
+              </Button>
+            )}
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2 pt-4 border-t mt-4">
-            <div className="flex gap-2 w-full">
-              {onEdit && (
-                <Button
-                  variant="default"
-                  className="gap-2 flex-1"
-                  onClick={() => {
-                    onOpenChange(false);
-                    onEdit();
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                  Editar
-                </Button>
-              )}
-
-              {isInstallment && transaction.series_id && onAdvance && (
-                <Button
-                  variant="outline"
-                  className="gap-2 flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/50"
-                  onClick={() => {
-                    onOpenChange(false);
-                    onAdvance();
-                  }}
-                >
-                  <FastForward className="h-4 w-4" />
-                  Adiantar
-                </Button>
-              )}
-            </div>
+            {isInstallment && transaction.series_id && onAdvance && (
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                size="default"
+                onClick={() => {
+                  onOpenChange(false);
+                  onAdvance();
+                }}
+              >
+                <FastForward className="h-5 w-5" />
+                Adiantar Parcelas
+              </Button>
+            )}
 
             {onDelete && (
               <Button
                 variant="ghost"
-                className="gap-2 w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                size="default"
                 onClick={() => {
                   onOpenChange(false);
                   onDelete();
                 }}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-5 w-5" />
                 Excluir Transação
               </Button>
             )}
