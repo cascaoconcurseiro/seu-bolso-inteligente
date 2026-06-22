@@ -226,11 +226,11 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
-        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-4 pb-2 sm:hidden">
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
-        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
+        <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>Importar Transações - {account?.name}</span>
           </DialogTitle>
@@ -245,22 +245,22 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             <TabsTrigger value="installment">Compra Parcelada</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="global" className="flex-1 overflow-hidden flex flex-col mt-4">
-            <div className="flex items-center justify-center gap-4 py-1">
+          <TabsContent value="global" className="flex-1 overflow-hidden flex flex-col mt-6">
+            <div className="flex items-center justify-center gap-6 py-2">
               <Button variant="ghost" size="icon" onClick={() => setYear(y => y - 1)}>
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-6 w-6" />
               </Button>
               <span className="text-base font-bold font-mono">{year}</span>
               <Button variant="ghost" size="icon" onClick={() => setYear(y => y + 1)}>
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-6 w-6" />
               </Button>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-2 py-2 no-scrollbar pr-2">
+            <div className="flex-1 overflow-y-auto space-y-4 py-4 no-scrollbar pr-4">
               {months.map((month, index) => (
-                <div key={month.date} className="flex items-center gap-4 p-3 rounded-lg border border-border">
-                  <div className="flex items-center gap-3 flex-1">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                <div key={month.date} className="flex items-center gap-6 p-4 rounded-2xl border border-border">
+                  <div className="flex items-center gap-4 flex-1">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-sm">{month.label}</span>
                   </div>
                   <div className="w-32">
@@ -272,7 +272,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                         value={month.amount}
                         onChange={(val) => handleAmountChange(index, val)}
                         currency={account?.currency || "BRL"}
-                        className="h-8 text-sm"
+                        className="h-10 text-sm"
                       />
                     )}
                   </div>
@@ -280,13 +280,13 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               ))}
             </div>
 
-            <DialogFooter className="mt-4 pt-4 border-t">
+            <DialogFooter className="mt-6 pt-6 border-t">
               <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
               <Button 
                 onClick={handleSaveGlobal}
                 disabled={!months.some(m => m.amount && moneyUtils.parse(m.amount) > 0) || isSubmitting}
               >
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-5 w-5 mr-2" />
                 Salvar Faturas
               </Button>
             </DialogFooter>
@@ -338,7 +338,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               </div>
 
               {lastInstallmentText && (
-                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-2xl border border-border/50">
                   <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium">Última Parcela</p>
@@ -357,7 +357,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border">
+              <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border">
                 <div className="space-y-0.5">
                   <Label className="text-base flex items-center gap-2">
                     <Users className="h-4 w-4" />
@@ -374,7 +374,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               </div>
 
               {isShared && (
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/20 space-y-4 animate-in fade-in slide-in-from-top-2">
                   <div className="space-y-2">
                     <Label>Com quem você dividiu?</Label>
                     <Select value={assigneeId} onValueChange={setAssigneeId}>

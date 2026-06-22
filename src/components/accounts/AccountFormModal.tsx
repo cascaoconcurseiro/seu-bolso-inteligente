@@ -195,11 +195,11 @@ export function AccountFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full sm:w-[500px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
-        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+      <DialogContent className="w-full sm:w-[500px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+        <div className="w-full flex justify-center pt-4 pb-2 sm:hidden">
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
-        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
+        <DialogHeader>
           <DialogTitle className="text-base font-display font-bold">{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
           {mode === "edit" && (
             <DialogDescription>
@@ -208,8 +208,8 @@ export function AccountFormModal({
           )}
         </DialogHeader>
 
-        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-xl">
+        <div className="overflow-y-auto hide-scrollbar space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-2xl">
             <div className="flex items-center gap-3">
               <Globe className="h-5 w-5 text-blue-500" />
               <div>
@@ -334,7 +334,7 @@ export function AccountFormModal({
 
           {/* Opções de Rendimento para Investimentos/Reserva (Aplica tanto no Create quanto Edit) */}
           {(type === "INVESTMENT" || type === "EMERGENCY_FUND") && !isInternational && (
-            <div className="space-y-4 p-4 border rounded-xl bg-muted/20">
+            <div className="space-y-4 p-4 border rounded-2xl bg-muted/20">
               <div className="space-y-2">
                 <Label>Rendimento Automático Diário</Label>
                 <Select value={yieldType} onValueChange={setYieldType}>
@@ -365,7 +365,7 @@ export function AccountFormModal({
             </div>
           )}
 
-          <div className="flex items-center justify-between p-4 border rounded-xl">
+          <div className="flex items-center justify-between p-4 border rounded-2xl">
             <div className="space-y-0.5">
               <Label>Ocultar Saldo</Label>
               <p className="text-sm text-muted-foreground">O valor ficará desfocado no painel.</p>

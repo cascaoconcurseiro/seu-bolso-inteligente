@@ -83,10 +83,10 @@ export function SharedSettleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-lg overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
+            <Wallet className="h-6 w-6" />
             {settlingMode === "SINGLE" 
               ? "Acertar Item Específico" 
               : (settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento")}
@@ -98,7 +98,7 @@ export function SharedSettleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">
+        <div className="space-y-6">
           {isInternationalSettlement && (
             <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
               <Globe className="h-4 w-4 text-blue-600" />
@@ -125,7 +125,7 @@ export function SharedSettleDialog({
           })()}
 
           <div className={cn(
-            "flex items-center justify-center gap-6 p-4 rounded-xl",
+            "flex items-center justify-center gap-6 p-4 rounded-2xl",
             settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
           )}>
             {/* Lado esquerdo: quem ENVIA o dinheiro */}
@@ -193,12 +193,12 @@ export function SharedSettleDialog({
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-sm font-medium">Itens para acertar</Label>
                 {settlingMode !== "SINGLE" && (
-                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-sm h-7 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-sm h-8 shrink-0">
                     {selectedItems.length === pendingMemberItems.length ? "Desmarcar" : "Selecionar todos"}
                   </Button>
                 )}
               </div>
-              <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+              <div className="max-h-48 overflow-y-auto border rounded-2xl divide-y">
                 {pendingMemberItems.filter(i => settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true).map(item => {
                   const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
                   const itemCurrency = itemTrip?.currency || "BRL";

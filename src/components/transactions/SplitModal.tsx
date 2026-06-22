@@ -167,26 +167,26 @@ export function SplitModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-lg overflow-hidden h-full sm:h-auto flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
-        <DialogHeader className="p-6 pb-4 border-b border-border shrink-0">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-lg overflow-hidden h-full sm:h-auto flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
+        <DialogHeader>
           <DialogTitle>Divisão e Pagamento</DialogTitle>
           <DialogDescription>
             Configure como a despesa será dividida entre os participantes
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6">
           {/* 1. QUEM PAGOU? */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Label className="text-sm uppercase tracking-widest text-muted-foreground">
               Quem pagou?
             </Label>
-            <div className="flex gap-2 p-1 rounded-lg bg-muted">
+            <div className="flex gap-2 p-2 rounded-2xl bg-muted">
               <button
                 type="button"
                 onClick={() => setPayerId('me')}
                 className={cn(
-                  'flex-1 py-2.5 text-sm font-medium rounded-md transition-all',
+                  'flex-1 py-3 text-sm font-medium rounded-xl transition-all',
                   payerId === 'me'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -200,7 +200,7 @@ export function SplitModal({
                   setPayerId(otherMembers.length > 0 ? otherMembers[0].id : 'other')
                 }
                 className={cn(
-                  'flex-1 py-2.5 text-sm font-medium rounded-md transition-all',
+                  'flex-1 py-3 text-sm font-medium rounded-xl transition-all',
                   payerId !== 'me'
                     ? 'bg-background text-primary shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -211,7 +211,7 @@ export function SplitModal({
             </div>
 
             {payerId !== 'me' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {otherMembers.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground">
@@ -235,7 +235,7 @@ export function SplitModal({
                   <select
                     value={payerId}
                     onChange={(e) => setPayerId(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-border bg-background font-medium"
+                    className="w-full p-4 rounded-2xl border border-border bg-background font-medium"
                   >
                     {otherMembers.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -247,10 +247,10 @@ export function SplitModal({
 
                 {/* PARCELAMENTO quando Outro Pagou */}
                 {setIsInstallment && setTotalInstallments && (
-                  <div className="p-4 rounded-lg border border-border space-y-3">
-                    <label className="flex items-center justify-between cursor-pointer select-none py-1">
+                  <div className="p-6 rounded-2xl border border-border space-y-4">
+                    <label className="flex items-center justify-between cursor-pointer select-none py-2">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
                         <span className="text-sm font-medium">Foi parcelado?</span>
                       </div>
                       <Switch
@@ -260,7 +260,7 @@ export function SplitModal({
                     </label>
 
                     {isInstallment && (
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         <span className="text-sm">Nº de Parcelas:</span>
                         <Input type="number" inputMode="decimal"
                           min={2}
@@ -284,12 +284,12 @@ export function SplitModal({
 
           {payerId !== 'me' ? (
             /* NOVO PAINEL EXCLUSIVO: MINHA PARTICIPAÇÃO NO "OUTRO PAGOU" */
-            <div className="space-y-4 border border-border p-4 rounded-xl bg-card">
+            <div className="space-y-4 border border-border p-4 rounded-2xl bg-card">
               <div className="flex items-center justify-between">
                 <Label className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
                   Minha Participação
                 </Label>
-                <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <span className="text-sm font-bold text-primary bg-primary/10 px-3 py-2 rounded-2xl">
                   Outro Pagou
                 </span>
               </div>
@@ -312,7 +312,7 @@ export function SplitModal({
                       key={preset.label}
                       type="button"
                       variant={isActive ? 'default' : 'outline'}
-                      className="py-2 text-sm sm:text-sm font-medium rounded-xl h-10 flex flex-col items-center justify-center gap-0.5 leading-none shadow-sm"
+                      className="py-2 text-sm sm:text-sm font-medium rounded-2xl h-10 flex flex-col items-center justify-center gap-0.5 leading-none shadow-sm"
                       onClick={() => setMySplitPercentage(preset.pct)}
                     >
                       <span className="font-bold">{preset.pct}%</span>
@@ -339,7 +339,7 @@ export function SplitModal({
                       const val = moneyUtils.parse(e.target.value);
                       setMySplitPercentage(isNaN(val) ? 0 : Math.min(100, Math.max(0, val)));
                     }}
-                    className="h-10 pr-8 text-center font-bold text-sm rounded-xl"
+                    className="h-10 pr-8 text-center font-bold text-sm rounded-2xl"
                   />
                   <span className="absolute right-3 top-2.5 text-sm text-muted-foreground font-semibold">
                     %
@@ -349,7 +349,7 @@ export function SplitModal({
 
               {/* Resumo de Custos em Cards Horizontais */}
               <div className="grid grid-cols-2 gap-3 pt-3">
-                <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col justify-between">
+                <div className="p-3.5 rounded-2xl border border-primary/20 bg-primary/5 flex flex-col justify-between">
                   <span className="text-sm font-bold text-primary uppercase tracking-wider">Minha Fatia (A Pagar)</span>
                   <span className="text-base font-black text-primary mt-1.5 leading-none">
                     R$ {((activeAmount * mySplitPercentage) / 100).toFixed(2).replace('.', ',')}
@@ -357,7 +357,7 @@ export function SplitModal({
                   <span className="text-[9px] text-muted-foreground mt-1 font-medium">Sua dívida com {familyMembers.find(m => m.id === payerId)?.name || 'parceiro'}</span>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-border bg-muted/40 flex flex-col justify-between">
+                <div className="p-3.5 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between">
                   <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Custo do Parceiro</span>
                   <span className="text-base font-black text-foreground mt-1.5 leading-none">
                     R$ {((activeAmount * (100 - mySplitPercentage)) / 100).toFixed(2).replace('.', ',')}
@@ -370,13 +370,13 @@ export function SplitModal({
             /* AQUI FICA A RENDERIZAÇÃO ANTIGA (QUEM DIVIDE E PRESETS) QUANDO "EU PAGUEI" */
             <>
               {/* 2. QUEM DIVIDE? */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Label className="text-sm uppercase tracking-widest text-muted-foreground">
                   Dividir com quem?
                 </Label>
                 {checklistMembers.length === 0 ? (
-                  <div className="text-center py-8 border border-dashed border-border rounded-lg">
-                    <User className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <div className="text-center py-10 border border-dashed border-border rounded-2xl">
+                    <User className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
                       Adicione pessoas para dividir despesas.
                     </p>
@@ -388,14 +388,14 @@ export function SplitModal({
                           onClose();
                           onNavigateToFamily();
                         }}
-                        className="mt-3"
+                        className="mt-4"
                       >
                         Ir para Família
                       </Button>
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     {checklistMembers.map((member) => {
                       const split = splits.find((s) => s.memberId === member.id);
                       const isSelected = !!split;
@@ -404,14 +404,14 @@ export function SplitModal({
                           key={member.id}
                           onClick={() => toggleSplitMember(member.id)}
                           className={cn(
-                            'p-4 flex items-center justify-between cursor-pointer rounded-lg border transition-all',
+                            'p-6 flex items-center justify-between cursor-pointer rounded-2xl border transition-all',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:border-primary/50'
                           )}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center font-medium text-sm">
                               {getInitials(member.name)}
                             </div>
                             <div>
@@ -423,7 +423,7 @@ export function SplitModal({
                               )}
                             </div>
                           </div>
-                          {isSelected && <Check className="h-5 w-5 text-primary" />}
+                          {isSelected && <Check className="h-6 w-6 text-primary" />}
                         </div>
                       );
                     })}
@@ -433,11 +433,11 @@ export function SplitModal({
 
               {/* 3. PRESETS E AJUSTE DE DIVISÃO */}
               {splits.length > 0 && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <Label className="text-sm uppercase tracking-widest text-muted-foreground">
                     Divisão Rápida
                   </Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[
                       { label: '50/50', myPct: 50 },
                       { label: '60/40', myPct: 60 },
@@ -462,7 +462,7 @@ export function SplitModal({
                     })}
                   </div>
 
-                  <div className="space-y-3 pt-4 border-t border-border">
+                  <div className="space-y-4 pt-6 border-t border-border">
                     <div className="flex items-center justify-between text-sm">
                       <Label className="font-semibold text-foreground">
                         Porcentagem da outra pessoa ({totalOtherPct.toFixed(0)}%)
@@ -482,7 +482,7 @@ export function SplitModal({
                         const otherPct = moneyUtils.parse(e.target.value);
                         applyPreset(100 - otherPct);
                       }}
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                      className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
                     />
                     
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
@@ -494,7 +494,7 @@ export function SplitModal({
                 </div>
               )}
 
-              <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
+              <div className="p-4 rounded-2xl bg-muted/50 text-sm text-muted-foreground">
                 <p>
                   <strong>Nota:</strong> O valor que você dividiu com os membros
                   será registrado como saldo a receber ou dívida, dependendo de
@@ -505,7 +505,7 @@ export function SplitModal({
           )}
         </div>
 
-        <DialogFooter className="p-6 pt-4 border-t border-border shrink-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
