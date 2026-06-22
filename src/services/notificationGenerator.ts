@@ -26,6 +26,7 @@ import { SafeFinancialCalculator } from "./SafeFinancialCalculator";
 import { Database } from "@/integrations/supabase/types";
 
 // Type definitions for better type safety
+type Account = Database['public']['Tables']['accounts']['Row'];
 type Transaction = Database['public']['Tables']['transactions']['Row'];
 type Budget = Database['public']['Tables']['budgets']['Row'];
 interface TransactionData {
@@ -39,6 +40,20 @@ interface MemberPendingData {
   name: string;
   amount: number;
   count: number;
+}
+
+interface SplitWithRelations {
+  id: string;
+  amount: number;
+  member_id: string | null;
+  transaction: {
+    user_id: string;
+    payer_id: string | null;
+  } | null;
+  member: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface GenerationResult {
