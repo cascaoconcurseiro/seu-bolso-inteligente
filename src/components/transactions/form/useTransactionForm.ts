@@ -127,13 +127,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   );
 
   // Context application
-  useEffect(() => {
-    if (context?.tripId) store.setTripId(context.tripId);
-    if (context?.accountId) store.setAccountId(context.accountId);
-    if (context?.categoryId) store.setCategoryId(context.categoryId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context]);
-
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
     if (description.trim() === '') {
@@ -170,15 +163,34 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
 
   const updateTransaction = useUpdateTransaction();
 
-  // Populate from initialData
+  // Populate from initialData or context (Initialization)
+  // Reset hasInitialized when initialData changes to fix state persistence bug
   const hasInitialized = useRef(false);
+  const lastInitialDataId = useRef<string | undefined>(undefined);
+  
   useEffect(() => {
-    if (!hasInitialized.current && initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
-      store.initFromData(initialData);
+    const currentId = initialData?.id;
+    
+    // Reset initialization flag if we're opening a different transaction or creating a new one
+    if (lastInitialDataId.current !== currentId) {
+      hasInitialized.current = false;
+      lastInitialDataId.current = currentId;
+    }
+    
+    if (!hasInitialized.current) {
+      if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
+        store.initFromData(initialData);
+      } else {
+        store.reset();
+        // Apply context ONLY when creating a new transaction
+        if (context?.tripId) store.setTripId(context.tripId);
+        if (context?.accountId) store.setAccountId(context.accountId);
+        if (context?.categoryId) store.setCategoryId(context.categoryId);
+      }
       hasInitialized.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  }, [initialData, context]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
@@ -358,8 +370,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         if (selectedTrip.currency === 'BRL') return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
       }
-      // Se não for viagem, permite contas normais E cartões de crédito (mesmo que marcados como internacionais, pois o usuário usa no dia a dia)
-      return !acc.is_international || acc.type === 'CREDIT_CARD';
+      return !acc.is_international;
     });
     // ANTI-LOOP: accountId removido das deps — não influencia quais contas são listadas,
     // apenas causava recalcular a lista ao mudar a seleção, retroalimentando o loop #185.
@@ -426,9 +437,9 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       percentage: s.percentage,
       amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
     })) : [];
-    const isShared = transactionSplits.length > 0 || (activeTab === 'EXPENSE' && payerId !== 'me');
+    const isShared = transactionSplits.length > 0 || (activeTab === 'EXPENSE' && isPaidByOther);
 
-    if (isShared && payerId === 'me' && transactionSplits.length === 0) {
+    if (isShared && !isPaidByOther && transactionSplits.length === 0) {
       toast.error('Selecione pelo menos um membro para dividir a despesa');
       setShowSplitModal(true);
       return;
@@ -436,7 +447,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     if (numericAmount <= 0) { toast.error('O valor da transação deve ser maior que zero'); return; }
     if (!description.trim()) { toast.error('A descrição é obrigatória'); return; }
     if (activeTab === 'EXPENSE' && !categoryId) { toast.error('A categoria é obrigatória para despesas'); return; }
-    if (!accountId && payerId === 'me') { toast.error('A conta de origem é obrigatória'); return; }
+    if (!accountId && !isPaidByOther) { toast.error('A conta de origem é obrigatória'); return; }
     if (activeTab === 'TRANSFER') {
       if (transferType === 'goal') {
         if (!goalId) { toast.error('Selecione uma meta de destino'); return; }
@@ -508,7 +519,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       date: format(date, 'yyyy-MM-dd'),
       competence_date: calculatedCompetenceDate,
       type: activeTab as TransactionType,
-      account_id: payerId === 'me' ? accountId || undefined : undefined,
+      account_id: !isPaidByOther ? accountId || undefined : undefined,
       destination_account_id: activeTab === 'TRANSFER' ? destinationAccountId : undefined,
       category_id: categoryId || undefined,
       trip_id: tripId || undefined,

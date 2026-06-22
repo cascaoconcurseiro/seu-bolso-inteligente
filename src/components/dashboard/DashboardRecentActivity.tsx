@@ -64,10 +64,9 @@ export function DashboardRecentActivity({
             return (
               <div
                 key={tx.id}
-                onClick={() => window.dispatchEvent(new CustomEvent('openTransactionModal', { detail: { transaction: tx } }))}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
-                  "group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 hover:bg-card/50 hover:shadow-sm transition-all duration-300 animate-fade-in-up cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-primary/20",
+                  "group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 hover:bg-card/50 hover:shadow-sm transition-all duration-300 animate-fade-in-up text-left",
                 )}
               >
                 <div className="flex items-center gap-4 min-w-0">
