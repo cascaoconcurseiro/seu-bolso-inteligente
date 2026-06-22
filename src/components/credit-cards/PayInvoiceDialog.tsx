@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AmountInput } from "@/components/ui/amount-input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Globe, Wallet, ChevronRight, ArrowLeft, CreditCard, Loader2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Globe, Wallet, ChevronRight, CreditCard } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { moneyUtils } from "@/utils/money";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  EliteFormHeader,
+  EliteHighlightCard,
+  EliteFormSection,
+  EliteCurrencyInput,
+  ElitePrimaryButton,
+  EliteBottomActions,
+} from "@/components/ui/elite-form";
 
 const currencies = [
   { value: "USD", label: "USD - Dólar Americano", symbol: "$" },

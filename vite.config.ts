@@ -12,6 +12,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+      headers: {
+        // Security headers
+        'X-Frame-Options': 'SAMEORIGIN',
+        'X-Content-Type-Options': 'nosniff',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+      },
       proxy: {
         '/api/ai': {
           target: 'https://api.groq.com/openai/v1/chat/completions',
