@@ -68,12 +68,12 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full sm:w-[425px] max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+      <DialogContent className="w-full sm:w-[425px] max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left">
-          <DialogTitle className="text-xl font-display font-bold">
+          <DialogTitle className="text-base font-display font-bold">
             {goal ? 'Editar Meta' : 'Nova Meta Financeira'}
           </DialogTitle>
         </DialogHeader>

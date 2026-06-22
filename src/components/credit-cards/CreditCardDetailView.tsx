@@ -155,7 +155,7 @@ export function CreditCardDetailView({
               </TooltipTrigger>
               <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                 <p className="font-bold text-sm">Dividindo os Gastos?</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
                 </p>
               </TooltipContent>
@@ -221,7 +221,7 @@ export function CreditCardDetailView({
         
         <div className="text-center flex flex-col items-center">
           <div className="flex items-center gap-2">
-            <h3 className="font-display font-bold text-lg capitalize">
+            <h3 className="font-display font-bold text-base capitalize">
               {monthName}
             </h3>
             {!dateFns.isSameMonth(selectedDate, new Date()) && (
@@ -229,13 +229,13 @@ export function CreditCardDetailView({
                 variant="ghost" 
                 size="sm" 
                 onClick={goToCurrentMonth}
-                className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary hover:bg-primary/20 rounded-full"
+                className="h-6 px-2 text-sm font-bold uppercase tracking-wider bg-primary/10 text-primary hover:bg-primary/20 rounded-full"
               >
                 Hoje
               </Button>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Ciclo: {cycleRange}</p>
+          <p className="text-sm text-muted-foreground uppercase tracking-widest font-medium">Ciclo: {cycleRange}</p>
         </div>
 
         <Button 
@@ -250,7 +250,7 @@ export function CreditCardDetailView({
 
       <div 
         className={cn(
-          "p-6 md:p-8 rounded-[2rem] text-white transition-all relative overflow-hidden shadow-2xl mx-auto w-full max-w-2xl",
+          "p-6 md:p-8 rounded-4xl text-white transition-all relative overflow-hidden shadow-2xl mx-auto w-full max-w-2xl",
           invoiceFetching && "opacity-80"
         )}
         style={{ 
@@ -277,8 +277,8 @@ export function CreditCardDetailView({
                 <BankIcon bankId={selectedCard.bank_id} accountName={selectedCard.name} size="md" />
               </div>
               <div>
-                <p className="font-bold text-lg tracking-tight leading-none">{selectedCard.name}</p>
-                <p className="text-xs opacity-80 mt-0.5">{bank.name}</p>
+                <p className="font-bold text-base tracking-tight leading-none">{selectedCard.name}</p>
+                <p className="text-sm opacity-80 mt-0.5">{bank.name}</p>
               </div>
             </div>
             
@@ -287,7 +287,7 @@ export function CreditCardDetailView({
               const isClosed = localInvoiceData.status === 'CLOSED';
               return (
                 <span className={cn(
-                  "text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
+                  "text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
                   isOverdue ? "bg-red-500/20 text-red-100 border-red-500/50 animate-pulse" : 
                   isClosed ? "bg-amber-500/20 text-amber-100 border-amber-500/50" :
                   "bg-blue-400/20 text-blue-100 border-blue-400/50"
@@ -302,12 +302,12 @@ export function CreditCardDetailView({
             <div>
               <p className="text-sm opacity-80 mb-1 font-medium uppercase tracking-wider">Valor da Fatura</p>
               <div className="flex items-baseline gap-3">
-                <p className="font-display font-black text-5xl tracking-tighter drop-shadow-sm">
+                <p className="font-display font-black text-3xl tracking-tighter drop-shadow-sm">
                   {formatCurrency(localInvoiceData.invoiceTotal)}
                 </p>
               </div>
               {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
-                <div className="inline-block mt-2 bg-white/10 border border-white/20 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider backdrop-blur-md">
+                <div className="inline-block mt-2 bg-white/10 border border-white/20 px-2 py-1 rounded text-sm font-bold uppercase tracking-wider backdrop-blur-md">
                   + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)} a mais
                 </div>
               )}
@@ -324,7 +324,7 @@ export function CreditCardDetailView({
                 </span>
               </div>
               {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
-                <p className="text-[11px] opacity-70 font-medium tracking-wide">
+                <p className="text-sm opacity-70 font-medium tracking-wide">
                   Total gasto acumulado: {formatCurrency(Math.abs(selectedCard.balance))}
                 </p>
               )}
@@ -335,7 +335,7 @@ export function CreditCardDetailView({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mt-8 pt-6 border-t border-white/10">
             <Button 
               variant="secondary" 
-              className="min-h-12 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-xs sm:text-sm"
+              className="min-h-12 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-sm sm:text-sm"
               onClick={() => setShowPayDialog(true)}
             >
               <Wallet className="h-4 w-4 shrink-0" />
@@ -343,7 +343,7 @@ export function CreditCardDetailView({
             </Button>
             <Button 
               variant="secondary" 
-              className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm whitespace-normal text-center leading-tight text-xs sm:text-sm"
+              className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm whitespace-normal text-center leading-tight text-sm sm:text-sm"
               onClick={() => setShowImportDialog(true)}
             >
               <Download className="h-4 w-4 shrink-0" />
@@ -354,7 +354,7 @@ export function CreditCardDetailView({
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="secondary" 
-                  className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full whitespace-normal text-center leading-tight text-xs sm:text-sm"
+                  className="min-h-12 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full whitespace-normal text-center leading-tight text-sm sm:text-sm"
                 >
                   <Download className="h-4 w-4 shrink-0" />
                   <span>Exportar</span>
@@ -400,7 +400,7 @@ export function CreditCardDetailView({
               <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
               {sharedCards.map((sc: any) => (
                 <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-[10px]" />
+                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-sm" />
                   <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
                 </TabsTrigger>
               ))}
@@ -418,7 +418,7 @@ export function CreditCardDetailView({
       {/* Transactions List */}
       {localInvoiceData.transactions.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
             Lançamentos ({localInvoiceData.transactions.length})
           </h2>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -448,12 +448,12 @@ export function CreditCardDetailView({
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold truncate text-foreground/90 group-hover:text-foreground transition-colors">{tx.description}</p>
                     {tx.is_installment && tx.current_installment && tx.total_installments && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-bold tracking-wider">
+                      <span className="text-sm px-1.5 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-bold tracking-wider">
                         {tx.current_installment}/{tx.total_installments}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap mt-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap mt-1">
                     <span className="truncate">{tx.category?.name || "Sem categoria"}</span>
                     <span className="opacity-50">•</span>
                     <span>{dateFns.format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}</span>
@@ -523,7 +523,7 @@ export function CreditCardDetailView({
       {/* Installments */}
       {installments.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
             Parcelas ativas ({installments.length})
           </h2>
           <div className="space-y-3">
@@ -537,7 +537,7 @@ export function CreditCardDetailView({
                   <span className="font-mono text-sm">{formatCurrency(inst.value)}/mês</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500"
                       style={{ 
@@ -546,7 +546,7 @@ export function CreditCardDetailView({
                       }}
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground font-mono">
+                  <span className="text-sm text-muted-foreground font-mono">
                     {inst.current}/{inst.total}
                   </span>
                 </div>
@@ -558,7 +558,7 @@ export function CreditCardDetailView({
 
       {/* Card Info */}
       <div className="p-4 rounded-xl border border-border">
-        <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-3">
+        <h3 className="text-sm uppercase tracking-widest text-muted-foreground font-medium mb-3">
           Informações
         </h3>
         <div className="grid grid-cols-2 gap-4 text-sm">

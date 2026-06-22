@@ -31,13 +31,13 @@ export function TransactionHeader({ count, filteredTransactions, filteredAnnualT
           <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">{count} registros</p>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="default" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-11 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 px-2" onClick={onImportOFX}>
+          <Button variant="default" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-12 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 px-2" onClick={onImportOFX}>
           <FileSpreadsheet className="h-4 w-4" />
           <span className="text-xs md:text-sm truncate">Importar OFX</span>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-11 px-2">
+            <Button variant="outline" size="sm" className="w-full sm:w-auto gap-1 md:gap-2 h-10 md:h-12 px-2">
               <Download className="h-4 w-4" />
               <span className="text-xs md:text-sm">Exportar</span>
             </Button>

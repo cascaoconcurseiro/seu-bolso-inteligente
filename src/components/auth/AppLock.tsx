@@ -34,7 +34,6 @@ export function AppLock({ children }: AppLockProps) {
       if (available) {
         // Implement Passkeys / WebAuthn here for true biometrics
         // For now, we simulate success if available, though real implementation requires a server challenge
-        console.log("Biometrics available but requires server setup for Passkeys. Falling back to PIN.");
       }
     }
   };

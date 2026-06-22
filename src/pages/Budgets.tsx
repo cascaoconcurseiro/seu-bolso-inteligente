@@ -109,12 +109,12 @@ export function Budgets() {
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       {/* Header com Glassmorphism */}
-      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter">Orçamentos</h1>
+              <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter">Orçamentos</h1>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -124,7 +124,7 @@ export function Budgets() {
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                     <p className="font-bold text-sm">Controle Inteligente</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Aqui você define limites de gastos por categoria. O sistema possui <strong>Rollover Automático</strong>: se você gastar menos que o limite em um mês, o que sobrou será somado ao limite do mês seguinte!
                     </p>
                   </TooltipContent>
@@ -148,7 +148,7 @@ export function Budgets() {
 
       {/* Mini Dashboard de Orçamentos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
+        <div className="p-4 sm:p-6 rounded-4xl border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
             <Target className="w-16 h-16 text-primary" />
           </div>
@@ -156,11 +156,11 @@ export function Budgets() {
             <Target className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <div className="relative z-10 min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Planejado</p>
-            <p className="text-xl sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalBudgeted, 'BRL')}</p>
+            <p className="text-sm sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Planejado</p>
+            <p className="text-base sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalBudgeted, 'BRL')}</p>
           </div>
         </div>
-        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
+        <div className="p-4 sm:p-6 rounded-4xl border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
             <TrendingUp className="w-16 h-16 text-amber-500" />
           </div>
@@ -168,11 +168,11 @@ export function Budgets() {
             <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <div className="relative z-10 min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Consumido</p>
-            <p className="text-xl sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalSpent, 'BRL')}</p>
+            <p className="text-sm sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Total Consumido</p>
+            <p className="text-base sm:text-3xl font-display font-black truncate">{moneyUtils.format(totalSpent, 'BRL')}</p>
           </div>
         </div>
-        <div className="p-4 sm:p-6 rounded-[2rem] border border-border/40 bg-gradient-to-br from-positive/10 to-card shadow-sm flex items-center gap-4 relative overflow-hidden group">
+        <div className="p-4 sm:p-6 rounded-4xl border border-border/40 bg-gradient-to-br from-positive/10 to-card shadow-sm flex items-center gap-4 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
             <Wallet className="w-16 h-16 text-positive" />
           </div>
@@ -180,8 +180,8 @@ export function Budgets() {
             <Wallet className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <div className="relative z-10 min-w-0">
-            <p className="text-xs sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Disponível Total</p>
-            <p className="text-xl sm:text-3xl font-display font-black truncate text-positive">
+            <p className="text-sm sm:text-sm text-muted-foreground uppercase font-semibold tracking-widest truncate">Disponível Total</p>
+            <p className="text-base sm:text-3xl font-display font-black truncate text-positive">
               {moneyUtils.format(Math.max(0, totalBudgeted - totalSpent), 'BRL')}
             </p>
           </div>
@@ -232,7 +232,7 @@ export function Budgets() {
       <Dialog open={showNewBudgetDialog || !!editingBudget} onOpenChange={(o) => { if (!o) { setShowNewBudgetDialog(false); setEditingBudget(null); resetForm(); } }}>
         <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-            <div className="w-12 h-1.5 bg-muted rounded-full" />
+            <div className="w-12 h-2 bg-muted rounded-full" />
           </div>
           <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle className="font-display text-2xl font-bold">
@@ -242,7 +242,7 @@ export function Budgets() {
           <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-6">
 
             <div className="space-y-2 mt-4">
-              <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
+              <Label className="text-sm uppercase font-bold tracking-widest text-muted-foreground">Categoria (Opcional)</Label>
               <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover} modal={true}>
                 <PopoverTrigger asChild>
                   <Button
@@ -307,11 +307,11 @@ export function Budgets() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Valor Limite</Label>
+                <Label className="text-sm uppercase font-bold tracking-widest text-muted-foreground">Valor Limite</Label>
                 <CurrencyInput value={amount} onChange={setAmount} currency={currency} />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs uppercase font-bold tracking-widest text-muted-foreground">Moeda</Label>
+                <Label className="text-sm uppercase font-bold tracking-widest text-muted-foreground">Moeda</Label>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
                   <SelectContent className="rounded-xl">

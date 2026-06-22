@@ -294,9 +294,9 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && resetAndClose()}>
-      <DialogContent className="sm:max-w-[440px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-[440px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl font-display font-bold flex items-center gap-3">
+          <DialogTitle className="text-base font-display font-bold flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-bold text-sm">
               {(asset.ticker || asset.name).substring(0, 3)}
             </div>
@@ -341,7 +341,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
           {type !== 'update' && (
             <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
               <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-xs text-amber-700 dark:text-amber-300">
+              <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
                 {type === 'buy' && 'O valor da compra será debitado da conta selecionada.'}
                 {type === 'sell' && 'O valor da venda será creditado na conta selecionada.'}
                 {type === 'dividend' && 'O valor do rendimento será creditado como receita na conta selecionada.'}
@@ -395,7 +395,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 <Label>Preço por Cota</Label>
                 {asset.type === 'CRYPTO' ? (
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-mono">
                       {currencySymbol}
                     </span>
                     <Input type="number" inputMode="decimal"
@@ -424,7 +424,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               <Label>Nova Cotação Atual</Label>
               {asset.type === 'CRYPTO' ? (
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-mono">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-mono">
                     {currencySymbol}
                   </span>
                   <Input type="number" inputMode="decimal"
@@ -452,7 +452,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
           {/* Simulação em tempo real */}
           {type !== 'update' && type !== 'dividend' && qty > 0 && prc > 0 && (
             <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-2 text-sm">
-              <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Resumo da operação</p>
+              <p className="text-sm uppercase tracking-wider font-bold text-muted-foreground">Resumo da operação</p>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total da operação</span>
                 <span className="font-mono font-bold">{formatMoney(totalOp)}</span>
@@ -508,7 +508,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                       <div className="flex items-center gap-2">
                         <span>{acc.name}</span>
                         {acc.is_international && (
-                          <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">
+                          <span className="text-sm bg-blue-100 text-blue-600 px-1 rounded">
                             {acc.currency}
                           </span>
                         )}
@@ -518,7 +518,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 </SelectContent>
               </Select>
               {isAbroad && selectedAccount && !selectedAccount.is_international && (
-                <p className="text-[10px] text-amber-600 flex items-center gap-1">
+                <p className="text-sm text-amber-600 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   Conta em BRL selecionada. Considere usar uma conta internacional para ativos em {currency}.
                 </p>

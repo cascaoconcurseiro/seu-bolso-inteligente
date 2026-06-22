@@ -24,7 +24,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         onEdit(budget);
       }}
       className={cn(
-        "group relative p-6 rounded-[2rem] border transition-all duration-500 overflow-hidden cursor-pointer",
+        "group relative p-6 rounded-4xl border transition-all duration-500 overflow-hidden cursor-pointer",
         isOverBudget 
           ? "border-red-500/30 bg-red-500/5 shadow-lg shadow-red-500/5"
           : isWarning
@@ -51,15 +51,15 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             {budget.category_icon || "💰"}
           </div>
           <div>
-            <h3 className="font-display font-bold text-lg tracking-tight leading-none mb-1 text-foreground/90">
+            <h3 className="font-display font-bold text-base tracking-tight leading-none mb-1 text-foreground/90">
               {budget.budget_name}
             </h3>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+              <span className="text-sm text-muted-foreground uppercase font-black tracking-widest">
                 {budget.category_name || "GLOBAL"}
               </span>
               {budget.currency !== "BRL" && (
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-[10px] font-bold">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-sm font-bold">
                   <Globe className="h-2.5 w-2.5" />
                   {budget.currency}
                 </div>
@@ -86,10 +86,10 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
       </div>
 
       <div className="relative space-y-4">
-        <div className="space-y-1.5">
+        <div className="space-y-2.5">
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Consumido</p>
+              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">Consumido</p>
               <p className={cn(
                 "text-2xl font-display font-black tracking-tighter transition-colors",
                 isOverBudget ? "text-red-600" : isWarning ? "text-amber-600" : "text-foreground"
@@ -98,7 +98,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Limite</p>
+              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">Limite</p>
               <p className="font-mono font-bold text-sm text-muted-foreground">
                 {moneyUtils.format(budgetAmount, budget.currency)}
               </p>
@@ -128,13 +128,13 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         </div>
 
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {isOverBudget ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 text-red-600 text-[10px] font-bold uppercase animate-pulse">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 text-red-600 text-sm font-bold uppercase animate-pulse">
                 <AlertTriangle className="h-3 w-3" /> Excedido
               </div>
             ) : (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/10 text-green-600 text-[10px] font-bold uppercase">
+              <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-green-500/10 text-green-600 text-sm font-bold uppercase">
                 <TrendingDown className="h-3 w-3" /> Dentro do Limite
               </div>
             )}

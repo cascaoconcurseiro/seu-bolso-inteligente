@@ -73,43 +73,43 @@ export function TripDetailView({
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="mb-6 relative">
-          <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-card/60 backdrop-blur-md rounded-[1.5rem] shadow-inner border border-border/40 p-2 gap-2 justify-start relative z-10">
+          <TabsList className="w-full h-auto flex overflow-x-auto snap-x hide-scrollbar bg-card/60 backdrop-blur-md rounded-3xl shadow-inner border border-border/40 p-2 gap-2 justify-start relative z-10">
             <TabsTrigger value="summary" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-widest text-[11px]">Resumo</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Resumo</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="expenses" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-widest text-[11px]">Gastos</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Gastos</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="shopping" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-widest text-[11px]">Compras</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Compras</span>
               </div>
             </TabsTrigger>
             {trip.currency !== "BRL" && (
               <TabsTrigger value="exchange" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
                 <div className="flex items-center gap-2">
                   <Plane className="h-4 w-4" /> 
-                  <span className="font-bold uppercase tracking-widest text-[11px]">Câmbio</span>
+                  <span className="font-bold uppercase tracking-widest text-sm">Câmbio</span>
                 </div>
               </TabsTrigger>
             )}
             <TabsTrigger value="itinerary" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <Route className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-widest text-[11px]">Roteiro</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Roteiro</span>
               </div>
             </TabsTrigger>
             <TabsTrigger value="checklist" className="shrink-0 snap-start rounded-xl py-3 px-5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300 hover:bg-muted/50">
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4" /> 
-                <span className="font-bold uppercase tracking-widest text-[11px]">Checklist</span>
+                <span className="font-bold uppercase tracking-widest text-sm">Checklist</span>
               </div>
             </TabsTrigger>
           </TabsList>

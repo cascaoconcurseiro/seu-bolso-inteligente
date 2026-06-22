@@ -110,7 +110,7 @@ export function TripSummaryTab({
       
       {/* Mensagem de Boas Vindas caso não haja transações */}
       {tripTransactions.length === 0 && (
-        <div className="p-6 rounded-[2rem] border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-card relative overflow-hidden text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+        <div className="p-6 rounded-4xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-card relative overflow-hidden text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
           <div className="relative z-10 max-w-xl">
             <h2 className="font-display font-black text-2xl mb-1 text-foreground">
               Sua viagem está pronta! ✈️
@@ -132,7 +132,7 @@ export function TripSummaryTab({
           <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <Users className="h-6 w-6 text-blue-500" />
           </div>
-          <span className="font-bold text-xs text-center leading-tight">Convidar<br/>Amigos</span>
+          <span className="font-bold text-sm text-center leading-tight">Convidar<br/>Amigos</span>
         </button>
 
         <button 
@@ -142,7 +142,7 @@ export function TripSummaryTab({
           <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <Calendar className="h-6 w-6 text-orange-500" />
           </div>
-          <span className="font-bold text-xs text-center leading-tight">Montar<br/>Roteiro</span>
+          <span className="font-bold text-sm text-center leading-tight">Montar<br/>Roteiro</span>
         </button>
 
         <button 
@@ -152,7 +152,7 @@ export function TripSummaryTab({
           <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <DollarSign className="h-6 w-6 text-green-500" />
           </div>
-          <span className="font-bold text-xs text-center leading-tight">Lançar<br/>Despesa</span>
+          <span className="font-bold text-sm text-center leading-tight">Lançar<br/>Despesa</span>
         </button>
 
         <button 
@@ -162,7 +162,7 @@ export function TripSummaryTab({
           <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <CheckCircle className="h-6 w-6 text-purple-500" />
           </div>
-          <span className="font-bold text-xs text-center leading-tight">Fazer as<br/>Malas</span>
+          <span className="font-bold text-sm text-center leading-tight">Fazer as<br/>Malas</span>
         </button>
       </div>
 
@@ -171,11 +171,11 @@ export function TripSummaryTab({
         <div className="p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3 text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Duração</span>
+            <span className="text-sm font-bold uppercase tracking-widest">Duração</span>
           </div>
           <p className="font-mono text-3xl font-black tracking-tighter">
             {tripDays}
-            <span className="text-xs font-normal text-muted-foreground ml-1">dias</span>
+            <span className="text-sm font-normal text-muted-foreground ml-1">dias</span>
           </p>
         </div>
 
@@ -183,7 +183,7 @@ export function TripSummaryTab({
         <div className="p-5 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3 text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            <span className="text-[10px] font-bold uppercase tracking-widest">Minha Média/Dia</span>
+            <span className="text-sm font-bold uppercase tracking-widest">Minha Média/Dia</span>
           </div>
           <p className="font-mono text-3xl font-black tracking-tighter text-primary">
             {moneyUtils.format(myTotalPersonal / tripDays, currency)}
@@ -202,17 +202,17 @@ export function TripSummaryTab({
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
               <User className="h-4 w-4 text-blue-500" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Meu Gasto (Orçamento)</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest">Meu Gasto (Orçamento)</h3>
             </div>
             <p className="font-mono text-3xl font-black tracking-tighter text-foreground mb-1">
               {moneyUtils.format(myTotalSpent, currency)}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Impacto real (caixa): privadas + adiantamentos pendentes em compartilhados
             </p>
             {myPersonalBudget && (
               <div className="mt-3 pt-3 border-t border-border/50">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Orçamento Pessoal</p>
+                <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">Orçamento Pessoal</p>
                 <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
                   {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
                 </p>
@@ -225,8 +225,8 @@ export function TripSummaryTab({
                 <div className="flex items-start gap-2 relative z-10">
                   <Info className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-0.5">Cotação Oficial de Hoje</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-bold text-orange-600 dark:text-orange-400 mb-0.5">Cotação Oficial de Hoje</p>
+                    <p className="text-sm text-muted-foreground">
                       Seu gasto pelo <strong>PM atual</strong> é {moneyUtils.format(myTotalSpent, currency)}. 
                       Pela cotação de hoje (R$ {realTimeRate.toFixed(2)}), custaria <strong className="text-orange-600 dark:text-orange-400">R$ {(myTotalSpent * realTimeRate).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.
                     </p>
@@ -245,16 +245,16 @@ export function TripSummaryTab({
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
               <Receipt className="h-4 w-4 text-purple-500" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Compartilhados que Paguei</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest">Compartilhados que Paguei</h3>
             </div>
             <p className="font-mono text-3xl font-black tracking-tighter text-foreground mb-1">
               {moneyUtils.format(mySharedExpensesPaid, currency)}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {tripTransactions.filter(t => t.type === "EXPENSE" && t.is_shared && (t.creator_user_id === user?.id || t.user_id === user?.id)).length} despesas do grupo
             </p>
             <div className="mt-3 pt-3 border-t border-border/50">
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-1">Total do Grupo</p>
+              <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">Total do Grupo</p>
               <p className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">
                 {moneyUtils.format(totalSharedExpenses, currency)}
               </p>
@@ -270,7 +270,7 @@ export function TripSummaryTab({
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
               <DollarSign className="h-4 w-4 text-green-500" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Saldo Compartilhado</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest">Saldo Compartilhado</h3>
             </div>
             {myBalance ? (
               <>
@@ -283,19 +283,19 @@ export function TripSummaryTab({
                     <>{myBalance.balance > 0 ? "+" : ""}{moneyUtils.format(myBalance.balance, currency)}</>
                   )}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {Math.abs(myBalance.balance) < 0.01 ? "Tudo acertado" :
                    myBalance.balance > 0 ? "Outros te devem" : "Você deve ao grupo"}
                 </p>
                 <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Paguei</p>
+                    <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Paguei</p>
                     <p className="text-sm font-mono font-bold text-green-600 dark:text-green-400">
                       {moneyUtils.format(mySharedExpensesPaid, currency)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Minha parte</p>
+                    <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Minha parte</p>
                     <p className="text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
                       {moneyUtils.format(myShareOfSharedExpenses, currency)}
                     </p>
@@ -333,7 +333,7 @@ export function TripSummaryTab({
 
         return (
           <div className={cn(
-            "p-8 rounded-[2rem] border transition-all duration-500 relative overflow-hidden",
+            "p-8 rounded-4xl border transition-all duration-500 relative overflow-hidden",
             isSettled 
               ? "border-green-500/20 bg-green-500/5"
               : myBalance.balance >= 0
@@ -357,20 +357,20 @@ export function TripSummaryTab({
               </div>
 
               <div className="flex flex-wrap gap-8 md:gap-12">
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Eu Paguei</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Eu Paguei</p>
                   <p className="font-mono text-2xl font-black tracking-tighter text-green-600 dark:text-green-400">
                     {moneyUtils.format(mySharedExpensesPaid, currency)}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Minha Parte</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Minha Parte</p>
                   <p className="font-mono text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
                     {moneyUtils.format(myShareOfSharedExpenses, currency)}
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Saldo Atual</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Saldo Atual</p>
                   <p className={cn(
                     "font-mono text-2xl font-black tracking-tighter",
                     isSettled ? "text-green-600 dark:text-green-400" :
@@ -415,13 +415,13 @@ export function TripSummaryTab({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Users className="h-4 w-4 text-primary" />
-              <h3 className="text-xs font-bold uppercase tracking-widest">Viajantes da Viagem</h3>
+              <h3 className="text-sm font-bold uppercase tracking-widest">Viajantes da Viagem</h3>
             </div>
             {permissions?.isOwner && (
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="rounded-xl gap-1.5 h-9" 
+                className="rounded-xl gap-2 h-10" 
                 onClick={onAddParticipant}
               >
                 <Plus className="h-4 w-4" /> Convidar Viajante
@@ -444,7 +444,7 @@ export function TripSummaryTab({
                       {participant.name.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2)}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <p className="font-bold text-sm text-foreground truncate">{participant.name}</p>
                         {isCurrentUser && (
                           <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Você</span>
@@ -453,7 +453,7 @@ export function TripSummaryTab({
                           <span className="text-[8px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Líder</span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+                      <p className="text-sm text-muted-foreground mt-0.5 font-mono">
                         Saldo: <span className={cn(
                           "font-bold",
                           Math.abs(currentBalance) < 0.01 ? "text-muted-foreground" :
@@ -463,7 +463,7 @@ export function TripSummaryTab({
                         </span>
                       </p>
                       {/* Gasto Compartilhado do participante */}
-                      <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+                      <p className="text-sm text-muted-foreground mt-0.5 font-mono">
                         Gastou no compartilhado: <span className="font-bold text-foreground">
                           {moneyUtils.format(
                             tripTransactions
@@ -497,11 +497,11 @@ export function TripSummaryTab({
                     {inv.invitee?.full_name?.split(" ").map((x: string) => x[0]).join("").toUpperCase().slice(0, 2) || "?"}
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <p className="font-bold text-sm text-foreground truncate">{inv.invitee?.full_name || "Convidado"}</p>
                       <span className="text-[8px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Pendente</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                    <p className="text-sm text-muted-foreground mt-0.5 font-mono truncate">
                       Aguardando aceite...
                     </p>
                   </div>

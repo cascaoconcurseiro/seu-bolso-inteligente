@@ -146,7 +146,7 @@ export function Accounts() {
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" disabled={isExporting} className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-11 px-2">
+                <Button size="default" variant="outline" disabled={isExporting} className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-12 px-2">
                   {isExporting ? (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   ) : (
@@ -173,7 +173,7 @@ export function Accounts() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="default" onClick={() => setShowAddDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-11 font-bold px-2">
+            <Button size="default" onClick={() => setShowAddDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-12 font-bold px-2">
               <Plus className="h-4 w-4 mr-1 md:mr-2 group-hover:scale-110 transition-transform" />
               <span className="text-xs md:text-sm">Nova conta</span>
             </Button>

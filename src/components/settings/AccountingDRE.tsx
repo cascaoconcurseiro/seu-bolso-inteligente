@@ -82,7 +82,7 @@ export function AccountingDRE() {
               value={selectedCurrency} 
               onValueChange={setSelectedCurrency}
             >
-              <SelectTrigger className="w-[100px] bg-card/50 rounded-xl h-9 border-border/50">
+              <SelectTrigger className="w-[100px] bg-card/50 rounded-xl h-10 border-border/50">
                 <SelectValue placeholder="Moeda" />
               </SelectTrigger>
               <SelectContent>
@@ -101,7 +101,7 @@ export function AccountingDRE() {
                 value={dateCriterion} 
                 onValueChange={(value: 'COMPETENCE' | 'DUE_DATE') => setDateCriterion(value)}
               >
-                <SelectTrigger className="w-[180px] bg-card/50 rounded-xl h-9 border-border/50">
+                <SelectTrigger className="w-[180px] bg-card/50 rounded-xl h-10 border-border/50">
                   <SelectValue placeholder="Regime" />
                 </SelectTrigger>
                 <SelectContent>
@@ -110,11 +110,11 @@ export function AccountingDRE() {
                 </SelectContent>
               </Select>
 
-              <div className="flex bg-muted/50 rounded-xl p-1 border border-border/50 h-9 items-center">
+              <div className="flex bg-muted/50 rounded-xl p-1 border border-border/50 h-10 items-center">
                 <Button 
                   variant={viewType === 'MONTH' ? 'default' : 'ghost'} 
                   size="sm" 
-                  className="h-7 text-xs rounded-lg px-3"
+                  className="h-7 text-sm rounded-lg px-3"
                   onClick={() => setViewType('MONTH')}
                 >
                   Mensal
@@ -122,7 +122,7 @@ export function AccountingDRE() {
                 <Button 
                   variant={viewType === 'YEAR' ? 'default' : 'ghost'} 
                   size="sm" 
-                  className="h-7 text-xs rounded-lg px-3"
+                  className="h-7 text-sm rounded-lg px-3"
                   onClick={() => setViewType('YEAR')}
                 >
                   Anual
@@ -133,7 +133,7 @@ export function AccountingDRE() {
                 value={selectedYear.toString()} 
                 onValueChange={(val) => setSelectedYear(parseInt(val, 10))}
               >
-                <SelectTrigger className="w-[95px] bg-card/50 rounded-xl h-9 border-border/50">
+                <SelectTrigger className="w-[95px] bg-card/50 rounded-xl h-10 border-border/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,7 +148,7 @@ export function AccountingDRE() {
                   value={selectedMonth.toString()} 
                   onValueChange={(val) => setSelectedMonth(parseInt(val, 10))}
                 >
-                  <SelectTrigger className="w-[130px] bg-card/50 rounded-xl h-9 border-border/50">
+                  <SelectTrigger className="w-[130px] bg-card/50 rounded-xl h-10 border-border/50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -161,10 +161,10 @@ export function AccountingDRE() {
             </>
           )}
 
-          <Button variant="outline" size="icon" onClick={handleExportPDF} className="h-9 w-9 rounded-xl" title="Exportar PDF Contábil">
+          <Button variant="outline" size="icon" onClick={handleExportPDF} className="h-10 w-9 rounded-xl" title="Exportar PDF Contábil">
             <Printer className="h-4 w-4 text-primary" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleExportCSV} className="h-9 w-9 rounded-xl" title="Exportar Excel">
+          <Button variant="outline" size="icon" onClick={handleExportCSV} className="h-10 w-9 rounded-xl" title="Exportar Excel">
             <Download className="h-4 w-4 text-blue-500" />
           </Button>
         </div>
@@ -176,7 +176,7 @@ export function AccountingDRE() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-primary/5 text-xs text-muted-foreground border-b border-border font-medium">
+                <tr className="bg-primary/5 text-sm text-muted-foreground border-b border-border font-medium">
                   <th className="pl-6 py-3.5 text-left uppercase tracking-wider">Descrição das Contas Contábeis</th>
                   <th className="pr-6 py-3.5 text-right uppercase tracking-wider w-[200px]">Valor</th>
                   <th className="pr-6 py-3.5 text-right uppercase tracking-wider w-[120px]">Ações / Vert.</th>
@@ -187,7 +187,7 @@ export function AccountingDRE() {
                 <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                   <td className="pl-6 py-3 text-left">1. RECEITAS OPERACIONAIS BRUTAS</td>
                   <td className="pr-6 py-3 text-right font-mono text-emerald-600 dark:text-emerald-500">{formatCurrency(dreData.grossRevenue)}</td>
-                  <td className="pr-6 py-3 text-right text-xs text-muted-foreground font-mono">100.0%</td>
+                  <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                 </tr>
                 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
@@ -226,13 +226,13 @@ export function AccountingDRE() {
                 <tr className="font-bold text-primary bg-primary/5 border-y border-primary/20">
                   <td className="pl-6 py-3.5 text-left">(=) RECEITA OPERACIONAL LÍQUIDA</td>
                   <td className="pr-6 py-3.5 text-right font-mono">{formatCurrency(dreData.netRevenue)}</td>
-                  <td className="pr-6 py-3.5 text-right font-mono text-xs">100.0%</td>
+                  <td className="pr-6 py-3.5 text-right font-mono text-sm">100.0%</td>
                 </tr>
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">3. (-) CUSTOS OPERACIONAIS E CONSUMO VARIÁVEL</td>
                   <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.VARIABLE_EXP.total)}</td>
-                  <td className="pr-6 py-3 text-right font-mono text-xs text-muted-foreground flex items-center justify-end gap-2">
+                  <td className="pr-6 py-3 text-right font-mono text-sm text-muted-foreground flex items-center justify-end gap-2">
                     <span>{dreData.netRevenue > 0 ? ((dreData.lines.VARIABLE_EXP.total / dreData.netRevenue) * 100).toFixed(1) + "%" : "0.0%"}</span>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('VARIABLE_EXP')}>
                       {expandedLines.VARIABLE_EXP ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -244,13 +244,13 @@ export function AccountingDRE() {
                 <tr className="font-bold text-foreground bg-muted/5 border-y border-border/20">
                   <td className="pl-6 py-3 text-left">(=) MARGEM DE CONTRIBUIÇÃO OPERACIONAL</td>
                   <td className="pr-6 py-3 text-right font-mono">{formatCurrency(dreData.contributionMargin)}</td>
-                  <td className="pr-6 py-3 text-right font-mono text-xs">-</td>
+                  <td className="pr-6 py-3 text-right font-mono text-sm">-</td>
                 </tr>
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">4. (-) DESPESAS ADMINISTRATIVAS E ESTRUTURA FIXA</td>
                   <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.FIXED_EXP.total)}</td>
-                  <td className="pr-6 py-3 text-right font-mono text-xs text-muted-foreground flex items-center justify-end gap-2">
+                  <td className="pr-6 py-3 text-right font-mono text-sm text-muted-foreground flex items-center justify-end gap-2">
                     <span>{dreData.netRevenue > 0 ? ((dreData.lines.FIXED_EXP.total / dreData.netRevenue) * 100).toFixed(1) + "%" : "0.0%"}</span>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('FIXED_EXP')}>
                       {expandedLines.FIXED_EXP ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -262,7 +262,7 @@ export function AccountingDRE() {
                 <tr className="font-bold text-foreground bg-muted/5 border-y border-border/20">
                   <td className="pl-6 py-3 text-left">(=) RESULTADO OPERACIONAL BRUTO (EBITDA)</td>
                   <td className="pr-6 py-3 text-right font-mono">{formatCurrency(dreData.ebitda)}</td>
-                  <td className="pr-6 py-3 text-right font-mono text-xs">-</td>
+                  <td className="pr-6 py-3 text-right font-mono text-sm">-</td>
                 </tr>
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
@@ -276,10 +276,10 @@ export function AccountingDRE() {
                 </tr>
                 {expandedLines.FINANCIAL_EXP && renderSubcategories('FINANCIAL_EXP', true)}
 
-                <tr className="font-black text-lg text-primary bg-primary/10 border-y-2 border-primary border-double">
+                <tr className="font-black text-base text-primary bg-primary/10 border-y-2 border-primary border-double">
                   <td className="pl-6 py-4 text-left uppercase tracking-tight">(=) RESULTADO LÍQUIDO DO EXERCÍCIO (Economia Real)</td>
                   <td className="pr-6 py-4 text-right font-mono text-primary">{formatCurrency(dreData.netSavings)}</td>
-                  <td className="pr-6 py-4 text-right font-mono text-xs font-semibold">
+                  <td className="pr-6 py-4 text-right font-mono text-sm font-semibold">
                     {dreData.netRevenue > 0 ? ((dreData.netSavings / dreData.netRevenue) * 100).toFixed(1) + "%" : "0.0%"}
                   </td>
                 </tr>
@@ -297,12 +297,12 @@ export function AccountingDRE() {
               <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
                 <Scale className="h-5 w-5" />
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Liquidez Corrente</p>
-                <p className="text-xl font-bold font-mono">
+              <div className="space-y-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Liquidez Corrente</p>
+                <p className="text-base font-bold font-mono">
                   {b.liquidityRatio === 999 ? "∞" : b.liquidityRatio.toFixed(2)}
                 </p>
-                <p className="text-[10px] text-muted-foreground">Disponível para cobrir dívidas imediato</p>
+                <p className="text-sm text-muted-foreground">Disponível para cobrir dívidas imediato</p>
               </div>
             </Card>
 
@@ -310,10 +310,10 @@ export function AccountingDRE() {
               <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
                 <BadgePercent className="h-5 w-5" />
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Grau de Endividamento</p>
-                <p className="text-xl font-bold font-mono">{b.debtRatio.toFixed(1)}%</p>
-                <p className="text-[10px] text-muted-foreground">Proporção de ativos sob forma de dívida</p>
+              <div className="space-y-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Grau de Endividamento</p>
+                <p className="text-base font-bold font-mono">{b.debtRatio.toFixed(1)}%</p>
+                <p className="text-sm text-muted-foreground">Proporção de ativos sob forma de dívida</p>
               </div>
             </Card>
 
@@ -321,12 +321,12 @@ export function AccountingDRE() {
               <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                 <Activity className="h-5 w-5" />
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Saúde do Patrimônio</p>
-                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-500 font-mono">
+              <div className="space-y-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Saúde do Patrimônio</p>
+                <p className="text-base font-bold text-emerald-600 dark:text-emerald-500 font-mono">
                   {b.netWorth >= 0 ? "Excelente" : "Atenção Crítica"}
                 </p>
-                <p className="text-[10px] text-muted-foreground">Saldo do patrimônio líquido consolidado</p>
+                <p className="text-sm text-muted-foreground">Saldo do patrimônio líquido consolidado</p>
               </div>
             </Card>
           </div>
@@ -335,7 +335,7 @@ export function AccountingDRE() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-primary/5 text-xs text-muted-foreground border-b border-border font-medium">
+                  <tr className="bg-primary/5 text-sm text-muted-foreground border-b border-border font-medium">
                     <th className="pl-6 py-3.5 text-left uppercase tracking-wider">Grupo Patrimonial (Contas do Balanço)</th>
                     <th className="pr-6 py-3.5 text-right uppercase tracking-wider w-[200px]">Saldo Consolidado</th>
                     <th className="pr-6 py-3.5 text-right uppercase tracking-wider w-[120px]">AV %</th>
@@ -347,32 +347,32 @@ export function AccountingDRE() {
                   <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                     <td className="pl-6 py-3 text-left">1. ATIVOS (Bens e Direitos)</td>
                     <td className="pr-6 py-3 text-right font-mono text-emerald-600 dark:text-emerald-500">{formatCurrency(b.totalAssets)}</td>
-                    <td className="pr-6 py-3 text-right text-xs text-muted-foreground font-mono">100.0%</td>
+                    <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 
                   {/* 1.1 Ativo Circulante */}
                   <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors font-medium">
                     <td className="pl-10 py-2.5 text-left">1.1 Ativo Circulante (Disponibilidades)</td>
                     <td className="pr-6 py-2.5 text-right font-mono">{formatCurrency(b.assetCirculante)}</td>
-                    <td className="pr-6 py-2.5 text-right text-xs text-muted-foreground font-mono">
+                    <td className="pr-6 py-2.5 text-right text-sm text-muted-foreground font-mono">
                       {b.totalAssets > 0 ? `${((b.assetCirculante / b.totalAssets) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
                   
                   {/* 1.1.1 Contas Correntes / Caixa */}
-                  <tr className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+                  <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">1.1.1 Saldos em Conta Corrente / Carteira</td>
                     <td className="pr-6 py-2 text-right">{formatCurrency(b.checkingChecking)}</td>
-                    <td className="pr-6 py-2 text-right text-[10px]">
+                    <td className="pr-6 py-2 text-right text-sm">
                       {b.assetCirculante > 0 ? `${((b.checkingChecking / b.assetCirculante) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
 
                   {/* 1.1.2 Poupança */}
-                  <tr className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+                  <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">1.1.2 Investimentos de Liquidez Diária / Poupança</td>
                     <td className="pr-6 py-2 text-right">{formatCurrency(b.checkingSavings)}</td>
-                    <td className="pr-6 py-2 text-right text-[10px]">
+                    <td className="pr-6 py-2 text-right text-sm">
                       {b.assetCirculante > 0 ? `${((b.checkingSavings / b.assetCirculante) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
@@ -381,25 +381,25 @@ export function AccountingDRE() {
                   <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors font-medium">
                     <td className="pl-10 py-2.5 text-left">1.2 Ativo Não Circulante (Bens e Médio/Longo Prazo)</td>
                     <td className="pr-6 py-2.5 text-right font-mono">{formatCurrency(b.assetNaoCirculante)}</td>
-                    <td className="pr-6 py-2.5 text-right text-xs text-muted-foreground font-mono">
+                    <td className="pr-6 py-2.5 text-right text-sm text-muted-foreground font-mono">
                       {b.totalAssets > 0 ? `${((b.assetNaoCirculante / b.totalAssets) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
 
                   {/* 1.2.1 Investimentos */}
-                  <tr className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+                  <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">1.2.1 Contas de Investimento / Aplicações</td>
                     <td className="pr-6 py-2 text-right">{formatCurrency(b.currentInvestments)}</td>
-                    <td className="pr-6 py-2 text-right text-[10px]">
+                    <td className="pr-6 py-2 text-right text-sm">
                       {b.assetNaoCirculante > 0 ? `${((b.currentInvestments / b.assetNaoCirculante) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
 
                   {/* 1.2.2 Bens Cadastrados */}
-                  <tr className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+                  <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">1.2.2 Bens e Ativos de Investimentos Cadastrados</td>
                     <td className="pr-6 py-2 text-right">{formatCurrency(b.physicalAssets)}</td>
-                    <td className="pr-6 py-2 text-right text-[10px]">
+                    <td className="pr-6 py-2 text-right text-sm">
                       {b.assetNaoCirculante > 0 ? `${((b.physicalAssets / b.assetNaoCirculante) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>
@@ -408,28 +408,28 @@ export function AccountingDRE() {
                   <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                     <td className="pl-6 py-3 text-left">2. PASSIVOS (Dívidas e Obrigações)</td>
                     <td className="pr-6 py-3 text-right font-mono text-red-600 dark:text-red-500">{formatNegativeCurrency(b.totalLiabilities)}</td>
-                    <td className="pr-6 py-3 text-right text-xs text-muted-foreground font-mono">100.0%</td>
+                    <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 
                   {/* 2.1 Passivo Circulante */}
                   <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors font-medium">
                     <td className="pl-10 py-2.5 text-left">2.1 Passivo Circulante (Curto Prazo)</td>
                     <td className="pr-6 py-2.5 text-right font-mono text-red-600/90 dark:text-red-500/90">{formatNegativeCurrency(b.totalLiabilities)}</td>
-                    <td className="pr-6 py-2.5 text-right text-xs text-muted-foreground font-mono">100.0%</td>
+                    <td className="pr-6 py-2.5 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 
                   {/* 2.1.1 Faturas de Cartão */}
-                  <tr className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+                  <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">2.1.1 Fatura Acumulada em Cartão de Crédito e Contas Negativas</td>
                     <td className="pr-6 py-2 text-right text-red-500">{formatNegativeCurrency(b.totalLiabilities)}</td>
-                    <td className="pr-6 py-2 text-right text-[10px]">100.0%</td>
+                    <td className="pr-6 py-2 text-right text-sm">100.0%</td>
                   </tr>
 
                   {/* (=) PATRIMÔNIO LÍQUIDO */}
-                  <tr className="font-black text-lg text-primary bg-primary/10 border-y-2 border-primary border-double">
+                  <tr className="font-black text-base text-primary bg-primary/10 border-y-2 border-primary border-double">
                     <td className="pl-6 py-4 text-left uppercase tracking-tight">(=) PATRIMÔNIO LÍQUIDO (Capital Líquido Consolidado)</td>
                     <td className="pr-6 py-4 text-right font-mono text-primary">{formatCurrency(b.netWorth)}</td>
-                    <td className="pr-6 py-4 text-right font-mono text-xs font-semibold">
+                    <td className="pr-6 py-4 text-right font-mono text-sm font-semibold">
                       {b.totalAssets > 0 ? `${((b.netWorth / b.totalAssets) * 100).toFixed(1)}%` : "0.0%"}
                     </td>
                   </tr>

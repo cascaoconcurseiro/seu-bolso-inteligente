@@ -158,7 +158,7 @@ export function CreditCards() {
             <div className="skeleton h-10 w-36 rounded-xl" />
             <div className="skeleton h-4 w-52 rounded-lg" />
           </div>
-          <div className="skeleton h-11 w-36 rounded-xl" />
+          <div className="skeleton h-12 w-36 rounded-xl" />
         </div>
       </div>
       {/* Summary skeleton */}
@@ -235,7 +235,7 @@ export function CreditCards() {
         />
 
         <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
-          <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+          <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
             <DialogHeader><DialogTitle>Editar Cartão</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2"><Label>Nome</Label><Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} /></div>
@@ -243,7 +243,7 @@ export function CreditCards() {
               <div className="space-y-2">
                 <Label>Banco Emissor</Label>
                 {editBankId === "other" && (
-                  <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium border border-amber-500/20 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium border border-amber-500/20 animate-fade-in">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>O banco será salvo com o ícone padrão.</span>
                   </div>
@@ -307,11 +307,11 @@ export function CreditCards() {
                 <div className="space-y-2">
                   <Label className="flex justify-between items-center">
                     Fechamento
-                    <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                    <span className="text-sm text-muted-foreground">(dia 1-31)</span>
                   </Label>
                   <Input type="number" inputMode="numeric" 
                     min={1} max={31} 
-                    className="font-mono text-lg"
+                    className="font-mono text-base"
                     value={editClosingDay} 
                     onChange={(e) => {
                       const val = e.target.value;
@@ -330,11 +330,11 @@ export function CreditCards() {
                 <div className="space-y-2">
                   <Label className="flex justify-between items-center">
                     Vencimento
-                    <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                    <span className="text-sm text-muted-foreground">(dia 1-31)</span>
                   </Label>
                   <Input type="number" inputMode="numeric" 
                     min={1} max={31} 
-                    className="font-mono text-lg"
+                    className="font-mono text-base"
                     value={editDueDay} 
                     onChange={(e) => {
                       const val = e.target.value;
@@ -360,12 +360,12 @@ export function CreditCards() {
                 />
               </div>
               {selectedCard?.user_id !== user?.id && (
-                <p className="text-xs text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
+                <p className="text-sm text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}
             </div>
             <DialogFooter className="border-t border-border/50 pt-4 mt-2">
-              <Button variant="outline" className="rounded-xl h-11 px-6" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
-              <Button className="rounded-xl h-11 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit || !editBankId || (editBankId === 'other' && !editCustomBankName.trim())}>
+              <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
+              <Button className="rounded-xl h-12 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit || !editBankId || (editBankId === 'other' && !editCustomBankName.trim())}>
                 Salvar Alterações
               </Button>
             </DialogFooter>
@@ -373,7 +373,7 @@ export function CreditCards() {
         </Dialog>
 
         <AlertDialog open={deleteCardConfirm.isOpen} onOpenChange={(open) => !open && setDeleteCardConfirm({ isOpen: false, card: null })}>
-          <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+          <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
             <AlertDialogHeader><AlertDialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</AlertDialogTitle></AlertDialogHeader>
             <div className="flex flex-col gap-3 py-4">
                <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
@@ -394,15 +394,15 @@ export function CreditCards() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Cartões</h1>
+            <h1 className="font-display font-black text-2xl md:text-3xl tracking-tighter">Cartões</h1>
             <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Gerencie faturas e limites</p>
           </div>
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-11 px-2">
+                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-12 px-2">
                   <Download className="h-4 w-4" />
-                  <span className="text-xs md:text-sm">Exportar</span>
+                  <span className="text-sm md:text-sm">Exportar</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
@@ -421,9 +421,9 @@ export function CreditCards() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-11 font-bold px-2">
+            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-12 font-bold px-2">
               <Plus className="h-4 w-4 mr-1 md:mr-2 group-hover:scale-110 transition-transform" /> 
-              <span className="text-xs md:text-sm">Novo cartão</span>
+              <span className="text-sm md:text-sm">Novo cartão</span>
             </Button>
           </div>
         </div>

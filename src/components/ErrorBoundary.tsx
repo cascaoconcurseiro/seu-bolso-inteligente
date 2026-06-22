@@ -89,14 +89,14 @@ export class ErrorBoundary extends Component<Props, State> {
                                     {this.state.error?.message || 'Erro desconhecido'}
                                 </p>
 
-                                <details className="text-xs">
+                                <details className="text-sm">
                                     <summary className="cursor-pointer font-semibold mb-2">
                                         Detalhes técnicos (clique para expandir)
                                     </summary>
-                                    <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96">
+                                    <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-106">
                                         {this.state.errorInfo?.componentStack}
                                     </pre>
-                                    <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96 mt-2">
+                                    <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-106 mt-2">
                                         {this.state.error?.stack}
                                     </pre>
                                 </details>

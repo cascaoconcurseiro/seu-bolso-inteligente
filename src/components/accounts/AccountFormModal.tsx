@@ -195,12 +195,12 @@ export function AccountFormModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-full sm:w-[500px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+      <DialogContent className="w-full sm:w-[500px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
-          <DialogTitle className="text-xl font-display font-bold">{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
+          <DialogTitle className="text-base font-display font-bold">{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
           {mode === "edit" && (
             <DialogDescription>
               Edite as preferências e o nome da sua conta. Para ajustar o saldo, registre uma nova transação.
@@ -276,7 +276,7 @@ export function AccountFormModal({
                 <SelectContent>
                   {currencies.map((c) => (
                     <SelectItem key={c.value} value={c.value}>
-                      <span className="font-mono text-xs mr-2">{c.symbol}</span>
+                      <span className="font-mono text-sm mr-2">{c.symbol}</span>
                       {c.label}
                     </SelectItem>
                   ))}
@@ -357,7 +357,7 @@ export function AccountFormModal({
                     onChange={(e) => setYieldRate(e.target.value)}
                     placeholder="Ex: 100"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.
                   </p>
                 </div>
@@ -368,7 +368,7 @@ export function AccountFormModal({
           <div className="flex items-center justify-between p-4 border rounded-xl">
             <div className="space-y-0.5">
               <Label>Ocultar Saldo</Label>
-              <p className="text-xs text-muted-foreground">O valor ficará desfocado no painel.</p>
+              <p className="text-sm text-muted-foreground">O valor ficará desfocado no painel.</p>
             </div>
             <Switch checked={hideBalance} onCheckedChange={setHideBalance} />
           </div>

@@ -254,7 +254,7 @@ export function Transactions() {
         <div className="flex justify-end">
           <div className="w-32">
             <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-              <SelectTrigger className="h-9 bg-muted/50 border-border/50">
+              <SelectTrigger className="h-10 bg-muted/50 border-border/50">
                 <SelectValue placeholder="Moeda" />
               </SelectTrigger>
               <SelectContent>

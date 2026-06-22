@@ -25,7 +25,7 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
   const SparklineTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="rounded-xl border border-border/50 bg-card/95 px-3 py-1.5 text-[11px] font-bold text-foreground shadow-xl backdrop-blur-md">
+        <div className="rounded-xl border border-border/50 bg-card/95 px-3 py-1.5 text-sm font-bold text-foreground shadow-xl backdrop-blur-md">
           <p className="text-muted-foreground text-[9px] uppercase tracking-wider mb-0.5">
             {payload[0].payload.month_label}
           </p>
@@ -40,9 +40,9 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
 
   return (
     <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart transition-all duration-300 hover:border-border/60">
-      <div className="absolute top-2.5 left-3.5 z-10 flex items-center gap-1.5 pointer-events-none">
+      <div className="absolute top-2.5 left-3.5 z-10 flex items-center gap-2 pointer-events-none">
         <span className={cn(
-          "w-1.5 h-1.5 rounded-full animate-pulse",
+          "w-1.5 h-2 rounded-full animate-pulse",
           isPositiveTrend ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
         )} />
         <p className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">

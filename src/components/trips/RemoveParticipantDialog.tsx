@@ -54,9 +54,9 @@ export function RemoveParticipantDialog({
   if (participant.role === 'owner') {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader className="space-y-3">
-            <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight text-destructive">
+            <DialogTitle className="flex items-center gap-2 text-base font-display font-black tracking-tight text-destructive">
               <AlertTriangle className="h-5 w-5 animate-pulse" />
               Ação Não Permitida
             </DialogTitle>
@@ -65,7 +65,7 @@ export function RemoveParticipantDialog({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl h-11 px-5">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl h-12 px-5">
               Fechar
             </Button>
           </DialogFooter>
@@ -95,10 +95,10 @@ export function RemoveParticipantDialog({
     }}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-card overflow-hidden">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight text-foreground">
+          <DialogTitle className="flex items-center gap-2 text-base font-display font-black tracking-tight text-foreground">
             <UserMinus className="h-5 w-5 text-destructive animate-pulse" />
             Remover Viajante
           </DialogTitle>
@@ -128,7 +128,7 @@ export function RemoveParticipantDialog({
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-foreground">Status Financeiro</h4>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {isSettled 
                       ? "Totalmente em dia com a viagem." 
                       : owesGroup 
@@ -140,19 +140,19 @@ export function RemoveParticipantDialog({
 
               <div className="grid grid-cols-3 gap-2 text-center border-t border-border/40 pt-3">
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Pagou</p>
-                  <p className="font-mono text-xs font-black text-foreground">
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Pagou</p>
+                  <p className="font-mono text-sm font-black text-foreground">
                     {moneyUtils.format(balance?.paid || 0, currency)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Sua Parte</p>
-                  <p className="font-mono text-xs font-black text-foreground">
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Sua Parte</p>
+                  <p className="font-mono text-sm font-black text-foreground">
                     {moneyUtils.format(balance?.owes || 0, currency)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Saldo</p>
+                  <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Saldo</p>
                   <p className={cn(
                     "font-mono text-xs font-black",
                     isSettled ? "text-green-600 dark:text-green-400" :
@@ -168,13 +168,13 @@ export function RemoveParticipantDialog({
             {isSettled ? (
               <div className="p-4 rounded-xl border border-green-500/10 bg-green-500/[0.01] flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Como este participante não possui pendências, você pode removê-lo diretamente. O histórico de transações passadas dele continuará preservado na viagem.
                 </p>
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Como deseja lidar com as pendências?</p>
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Como deseja lidar com as pendências?</p>
                 
                 {/* Opção 1: Zerar e Remover */}
                 <button
@@ -192,7 +192,7 @@ export function RemoveParticipantDialog({
                     </div>
                     <div>
                       <p className="font-bold text-sm text-foreground">Zerar e Remover (Recomendado)</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         Registrar um acerto completo de {moneyUtils.format(Math.abs(currentBalance), currency)} antes de concluir a remoção.
                       </p>
                     </div>
@@ -211,7 +211,7 @@ export function RemoveParticipantDialog({
                     </div>
                     <div>
                       <p className="font-bold text-sm text-foreground">Perdoar Dívida / Ajustar Custo</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         {owesGroup 
                           ? "Perdoar o valor devido. O saldo será consolidado como despesa geral do grupo."
                           : "Zerar o saldo sem pagamentos. O valor será integrado como custo geral do grupo."}
@@ -232,7 +232,7 @@ export function RemoveParticipantDialog({
                     </div>
                     <div>
                       <p className="font-bold text-sm text-foreground">Apenas Remover (Manter Histórico)</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         Cortar o acesso do participante na hora, mantendo o saldo pendente visível no relatório da viagem.
                       </p>
                     </div>
@@ -246,18 +246,18 @@ export function RemoveParticipantDialog({
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-3">
                 <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Você está registrando um acerto no valor de <span className="font-black text-foreground">{moneyUtils.format(Math.abs(currentBalance), currency)}</span> para zerar as contas de <span className="font-bold text-foreground">{participant.name}</span>. Por favor, escolha a conta financeira associada.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Conta Financeira</label>
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Conta Financeira</label>
                 {accounts.length === 0 ? (
-                  <p className="text-xs text-destructive">Nenhuma conta cadastrada para registrar a transação.</p>
+                  <p className="text-sm text-destructive">Nenhuma conta cadastrada para registrar a transação.</p>
                 ) : (
                   <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                    <SelectTrigger className="w-full h-11 rounded-xl border-border bg-card">
+                    <SelectTrigger className="w-full h-12 rounded-xl border-border bg-card">
                       <SelectValue placeholder="Selecione a conta..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-card/95 backdrop-blur-md">
@@ -277,14 +277,14 @@ export function RemoveParticipantDialog({
                 variant="outline" 
                 onClick={() => setActiveMode("choose")}
                 disabled={isRemoving}
-                className="rounded-xl h-11 px-5"
+                className="rounded-xl h-12 px-5"
               >
                 Voltar
               </Button>
               <Button 
                 onClick={handleSettleSubmit}
                 disabled={isRemoving || !selectedAccountId}
-                className="rounded-xl h-11 px-5 shadow-lg shadow-primary/20"
+                className="rounded-xl h-12 px-5 shadow-lg shadow-primary/20"
               >
                 {isRemoving ? "Processando..." : "Confirmar e Remover"}
               </Button>
@@ -297,7 +297,7 @@ export function RemoveParticipantDialog({
             variant="outline" 
             onClick={() => onOpenChange(false)}
             disabled={isRemoving}
-            className="rounded-xl h-11 px-5"
+            className="rounded-xl h-12 px-5"
           >
             Cancelar Remoção
           </Button>
@@ -306,7 +306,7 @@ export function RemoveParticipantDialog({
               variant="destructive" 
               onClick={onConfirmDirectRemove}
               disabled={isRemoving}
-              className="rounded-xl h-11 px-5 shadow-lg shadow-destructive/10"
+              className="rounded-xl h-12 px-5 shadow-lg shadow-destructive/10"
             >
               {isRemoving ? "Removendo..." : "Confirmar Remoção"}
             </Button>

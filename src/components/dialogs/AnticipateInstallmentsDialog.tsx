@@ -86,11 +86,6 @@ export function AnticipateInstallmentsDialog({
   const fetchFutureInstallments = async () => {
     setIsLoading(true);
     try {
-      console.log('🔍 [AnticipateDialog] Buscando parcelas futuras:', {
-        seriesId,
-        currentInstallment
-      });
-
       // Buscar parcelas futuras (installment_number > currentInstallment)
       const { data: transactions, error: txError } = await supabase
         .from('transactions')
@@ -102,13 +97,10 @@ export function AnticipateInstallmentsDialog({
       if (txError) throw txError;
 
       if (!transactions || transactions.length === 0) {
-        console.log('ℹ️ [AnticipateDialog] Nenhuma parcela futura encontrada');
         setFutureInstallments([]);
         setIsLoading(false);
         return;
       }
-
-      console.log('📊 [AnticipateDialog] Transações encontradas:', transactions);
 
       // Buscar splits para verificar settlement status
       const txIds = transactions.map(t => t.id);
@@ -118,8 +110,6 @@ export function AnticipateInstallmentsDialog({
         .in('transaction_id', txIds);
 
       if (splitsError) throw splitsError;
-
-      console.log('📊 [AnticipateDialog] Splits encontrados:', splits);
 
       // Combinar dados e filtrar apenas não-acertadas
       const installmentsWithStatus = transactions.map(tx => {
@@ -138,8 +128,6 @@ export function AnticipateInstallmentsDialog({
 
       // Filtrar apenas não-acertadas
       const nonSettled = installmentsWithStatus.filter(i => !i.is_settled);
-
-      console.log('✅ [AnticipateDialog] Parcelas não-acertadas:', nonSettled);
 
       setFutureInstallments(nonSettled);
 
@@ -207,7 +195,7 @@ export function AnticipateInstallmentsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-2xl overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -256,7 +244,7 @@ export function AnticipateInstallmentsDialog({
                     variant="ghost"
                     size="sm"
                     onClick={handleSelectAll}
-                    className="text-xs h-7"
+                    className="text-sm h-7"
                   >
                     {selectedIds.length === futureInstallments.length
                       ? "Desmarcar todas"
@@ -280,14 +268,14 @@ export function AnticipateInstallmentsDialog({
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-muted-foreground">
+                          <span className="text-sm font-medium text-muted-foreground">
                             {installment.installment_number}/{totalInstallments}
                           </span>
                           <p className="text-sm font-medium truncate">
                             {installment.description}
                           </p>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                           <span>Atual: {formatDate(installment.competence_date)}</span>
                           <ArrowRight className="h-3 w-3" />
                           <span className="text-blue-600 dark:text-blue-400 font-medium">

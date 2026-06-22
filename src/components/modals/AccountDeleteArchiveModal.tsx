@@ -28,7 +28,7 @@ export function AccountDeleteArchiveModal({
 }: AccountDeleteArchiveModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Remover conta "{accountName}"?</DialogTitle>
           <DialogDescription className="space-y-4 pt-4">
@@ -37,11 +37,11 @@ export function AccountDeleteArchiveModal({
               <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
                 <div className="flex items-start gap-3">
                   <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
                       Arquivar (Recomendado)
                     </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       • A conta não aparecerá mais nos formulários
                       <br />
                       • Todas as transações serão preservadas
@@ -54,11 +54,11 @@ export function AccountDeleteArchiveModal({
                 <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
                   <div className="flex items-start gap-3">
                     <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <p className="font-medium text-sm text-red-900 dark:text-red-100">
                         Excluir Permanentemente
                       </p>
-                      <p className="text-xs text-red-700 dark:text-red-300">
+                      <p className="text-sm text-red-700 dark:text-red-300">
                         • A conta será removida do sistema
                         <br />
                         • Todas as transações serão deletadas

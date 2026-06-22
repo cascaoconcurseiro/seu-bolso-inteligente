@@ -135,8 +135,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="max-w-7xl mx-auto px-2 md:px-4 lg:px-6">
           <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-4">
             {/* Logo Wordmark */}
-            <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
-              <span className="font-display font-bold text-sm md:text-lg tracking-tight whitespace-nowrap block">
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
+              <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
                 pé de meia
               </span>
             </Link>
@@ -151,7 +151,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-1 px-1.5 py-1.5 lg:px-2 lg:py-2 rounded-lg text-[10px] lg:text-xs xl:text-sm font-bold tracking-tight transition-all duration-200 whitespace-nowrap",
+                      "flex items-center gap-1 px-1.5 py-1.5 lg:px-2 lg:py-2 rounded-lg text-xs lg:text-xs xl:text-sm font-bold tracking-tight transition-all duration-200 whitespace-nowrap",
                       isActive 
                         ? "bg-primary text-primary-foreground shadow-sm" 
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
@@ -174,7 +174,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={togglePrivacy}
-                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 md:h-10 md:w-9 text-muted-foreground hover:text-foreground"
               >
                 {isPrivate ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
               </Button>
@@ -184,7 +184,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="h-10 w-10 md:h-9 md:w-9 text-muted-foreground hover:text-foreground"
+                className="h-10 w-10 md:h-10 md:w-9 text-muted-foreground hover:text-foreground"
               >
                 {isDark ? <Sun className="h-5 w-5 md:h-4 md:w-4" /> : <Moon className="h-5 w-5 md:h-4 md:w-4" />}
               </Button>
@@ -194,7 +194,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                  className="h-10 w-9 text-muted-foreground hover:text-foreground"
                 >
                   <Settings className="h-5 w-5" />
                 </Button>
@@ -205,7 +205,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuTrigger asChild className="hidden md:flex">
                   <Button
                     variant="ghost"
-                    className="relative h-9 w-9 rounded-full p-0"
+                    className="relative h-10 w-9 rounded-full p-0"
                   >
                     <UserAvatar
                       name={profile?.full_name || user?.email || "User"}
@@ -218,9 +218,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
+                    <div className="flex flex-col space-y-2 leading-none">
                       <p className="font-medium text-sm truncate">{profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
@@ -252,7 +252,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Button 
                   size="sm"
                   onClick={handleNewTransaction}
-                  className="gap-2 h-10 md:h-9 px-4 md:px-6 shadow-md shadow-primary/20 transition-all active:scale-95"
+                  className="gap-2 h-10 md:h-10 px-4 md:px-6 shadow-md shadow-primary/20 transition-all active:scale-95"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Nova transação</span>

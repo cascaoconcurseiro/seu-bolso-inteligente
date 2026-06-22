@@ -112,12 +112,12 @@ export function SharedExpenseCard({
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-display font-semibold text-base sm:text-lg truncate">{member.name}</p>
+                <p className="font-display font-semibold text-base sm:text-base truncate">{member.name}</p>
                 {!isHistory && netAmount !== 0 && (
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[10px] font-bold px-1.5 py-0",
+                      "text-xs font-bold px-1.5 py-0",
                       iOwe ? "border-red-300 text-red-700 bg-red-100" :
                         "border-green-300 text-green-700 bg-green-100"
                     )}
@@ -126,7 +126,7 @@ export function SharedExpenseCard({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <p className="text-sm text-muted-foreground flex items-center gap-2 mt-0.5">
                 {isHistory
                   ? <><CheckCircle2 className="h-3 w-3" /> {paidCount} {paidCount === 1 ? "item acertado" : "itens acertados"}</>
                   : <><Clock className="h-3 w-3" /> {pendingCount} {pendingCount === 1 ? "item pendente" : "itens pendentes"}</>
@@ -138,7 +138,7 @@ export function SharedExpenseCard({
           <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-border/50">
             {!isHistory && (
               <div className="text-left sm:text-right flex-1 sm:flex-none">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Saldo com {member.name.split(' ')[0]}</p>
+                <p className="text-sm text-muted-foreground uppercase tracking-wider mb-0.5">Saldo com {member.name.split(' ')[0]}</p>
                 <div className="flex flex-col">
                   <p className={cn(
                     "font-mono font-bold text-xl sm:text-2xl leading-tight",
@@ -149,7 +149,7 @@ export function SharedExpenseCard({
                     {netAmount === 0 ? "Em dia" : formatCurrency(Math.abs(netAmount), currency)}
                   </p>
                   {netAmount !== 0 && (
-                    <span className="text-[10px] text-muted-foreground leading-none">
+                    <span className="text-sm text-muted-foreground leading-none">
                       {iOwe ? "Você deve" : "Devem a você"}
                     </span>
                   )}
@@ -187,7 +187,7 @@ export function SharedExpenseCard({
               <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
                 Aguardando sua confirmação
               </p>
-              <p className="text-xs text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   itemsWaitingMe[0].type === "CREDIT" ? (
                     <>
@@ -211,7 +211,7 @@ export function SharedExpenseCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-9 px-4"
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-10 px-4"
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-4 w-4 mr-1.5" />
@@ -222,7 +222,7 @@ export function SharedExpenseCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 text-xs rounded-xl font-semibold transition-all"
+                className="text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 text-sm rounded-xl font-semibold transition-all"
                 onClick={() => onRejectSettlement(itemsWaitingMe[0])}
               >
                 Recusar Acerto
@@ -236,7 +236,7 @@ export function SharedExpenseCard({
       {items.length > 0 && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-muted/20 hover:bg-muted/40 border-t border-border transition-colors text-xs font-semibold text-muted-foreground uppercase tracking-widest"
+          className="w-full flex items-center justify-center gap-2 py-3 bg-muted/20 hover:bg-muted/40 border-t border-border transition-colors text-sm font-semibold text-muted-foreground uppercase tracking-widest"
         >
           {isExpanded ? (
             <>
@@ -300,18 +300,18 @@ export function SharedExpenseCard({
                           {item.description}
                         </p>
                         {item.creatorName && (
-                          <div className="flex items-center gap-1.5 ml-2 shrink-0 bg-secondary/50 rounded-full pr-2">
+                          <div className="flex items-center gap-2 ml-2 shrink-0 bg-secondary/50 rounded-full pr-2">
                             <UserAvatar name={item.creatorName} className="h-5 w-5" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-secondary-foreground truncate max-w-[80px]">
+                            <span className="text-sm font-bold uppercase tracking-wider text-secondary-foreground truncate max-w-[80px]">
                               {item.creatorName.split(' ')[0]}
                             </span>
                           </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        {item.category && <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">📁 {item.category}</span>}
+                        {item.category && <span className="text-sm text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">📁 {item.category}</span>}
                         {item.totalInstallments && item.totalInstallments > 1 && (
-                          <span className="text-[10px] text-muted-foreground bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/50">
+                          <span className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/50">
                             {item.installmentNumber}/{item.totalInstallments}
                           </span>
                         )}
@@ -319,7 +319,7 @@ export function SharedExpenseCard({
                     </div>
 
                     <div className="col-start-2 md:col-start-auto md:col-span-2 flex flex-col justify-center w-full md:w-auto">
-                      <div className="text-xs text-muted-foreground flex items-center justify-between md:justify-start">
+                      <div className="text-sm text-muted-foreground flex items-center justify-between md:justify-start">
                         <span>{dateFns.format(new Date((item.originalDate || item.date) + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
                         <span className={cn(
                           "font-mono text-sm font-bold md:hidden",
@@ -349,7 +349,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-9 md:h-8 flex-1 md:flex-none text-xs md:text-[10px] bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 font-bold"
                           onClick={() => onConfirmReceipt(item)}
                         >
                           <CheckCircle className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />
@@ -367,7 +367,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-9 md:h-8 flex-1 md:flex-none text-xs md:text-[10px] bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
                           onClick={() => onSettle(member.id, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
                         >
                           <Wallet className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />

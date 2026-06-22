@@ -58,7 +58,6 @@ export function SharedBalanceChart({
       }));
     }
 
-    console.log('🟢 [SharedBalanceChart] Calculando chartData compartilhado...');
     const data: ChartDataPoint[] = [];
     const now = new Date();
 
@@ -134,7 +133,7 @@ export function SharedBalanceChart({
       return (
         <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
           <p className="font-medium capitalize mb-2">{label}</p>
-          <div className="space-y-1 text-sm">
+          <div className="space-y-2 text-sm">
             {isGeneralReport ? (
               <>
                 <p className="text-positive">

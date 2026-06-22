@@ -70,33 +70,33 @@ export function TripCard({ trip, onClick }: TripCardProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-lg leading-tight text-white group-hover:text-primary-foreground transition-colors">
+                  <h3 className="font-bold text-base leading-tight text-white group-hover:text-primary-foreground transition-colors">
                     {trip.name}
                   </h3>
                   {trip.status === "ACTIVE" ? (
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300 uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                    <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-sm font-bold text-green-300 uppercase tracking-wider">
+                      <span className="w-1.5 h-2 rounded-full bg-green-400 animate-pulse" />
                       Ativa
                     </span>
                   ) : trip.status === "COMPLETED" ? (
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold text-gray-300 uppercase tracking-wider">
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-sm font-bold text-gray-300 uppercase tracking-wider">
                       Finalizada
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-sm font-bold text-blue-300 uppercase tracking-wider">
                       Planejando
                     </span>
                   )}
                 </div>
                 
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-2">
                   {trip.destination && (
-                    <p className="text-sm text-gray-300 flex items-center gap-1.5">
+                    <p className="text-sm text-gray-300 flex items-center gap-2">
                       <MapPin className="h-3.5 w-3.5 text-gray-400" />
                       {trip.destination}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
+                  <p className="text-sm text-gray-400 flex items-center gap-2 font-medium">
                     <Calendar className="h-3.5 w-3.5 text-gray-500" />
                     {dateFns.format(parseLocalDate(trip.start_date), "dd MMM yyyy", { locale: ptBR })}
                     <span className="text-gray-600 px-1">•</span>
@@ -109,35 +109,35 @@ export function TripCard({ trip, onClick }: TripCardProps) {
 
           <div className="flex flex-col gap-3 pt-2">
             <div className="flex items-center justify-between">
-               <div className="flex items-center gap-1.5 text-gray-400 mb-0.5">
+               <div className="flex items-center gap-2 text-gray-400 mb-0.5">
                   <Wallet className="h-3.5 w-3.5" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Orçamento</span>
+                  <span className="text-sm font-bold uppercase tracking-widest">Orçamento</span>
                </div>
                {budget > 0 && (
-                 <div className="text-[10px] font-medium text-gray-400">
+                 <div className="text-sm font-medium text-gray-400">
                    {usagePercent.toFixed(0)}% Utilizado
                  </div>
                )}
             </div>
             
             {budget > 0 ? (
-              <div className="space-y-1.5">
+              <div className="space-y-2.5">
                 <Progress 
                   value={usagePercent} 
-                  className="h-1.5 bg-white/10" 
+                  className="h-2 bg-white/10" 
                   indicatorClassName={progressIndicatorClass} 
                 />
                 <div className="flex justify-between items-baseline">
-                  <p className="font-mono font-bold text-xl tracking-tight text-white">
+                  <p className="font-mono font-bold text-base tracking-tight text-white">
                     {moneyUtils.format(totalSpent, trip.currency ?? undefined)}
                   </p>
-                  <p className="font-mono text-xs text-gray-400">
+                  <p className="font-mono text-sm text-gray-400">
                     de {moneyUtils.format(budget, trip.currency ?? undefined)}
                   </p>
                 </div>
               </div>
             ) : (
-              <p className="font-mono font-bold text-xl tracking-tight text-white">
+              <p className="font-mono font-bold text-base tracking-tight text-white">
                 {moneyUtils.format(budget, trip.currency ?? undefined)}
               </p>
             )}

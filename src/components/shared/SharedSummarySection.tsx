@@ -32,7 +32,7 @@ export function SharedSummarySection({
                 {Object.entries(totalsByCurrency).map(([currency, data]) => (
                   <div key={currency}>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
                         "font-mono text-xl md:text-2xl font-bold",
                         data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
@@ -42,8 +42,8 @@ export function SharedSummarySection({
                     </div>
                     {data.settled > 0 && (
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[10px] text-muted-foreground">Acertado</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <span className="text-sm text-muted-foreground">Acertado</span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {formatCurrency(data.settled, currency)}
                         </span>
                       </div>
@@ -63,8 +63,8 @@ export function SharedSummarySection({
                   .filter(([_, data]) => data.owedToMe > 0)
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
+                      <p className="font-mono text-base md:text-2xl font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
@@ -85,8 +85,8 @@ export function SharedSummarySection({
                   .filter(([_, data]) => data.iOwe > 0)
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
+                      <p className="font-mono text-base md:text-2xl font-bold text-red-600 dark:text-red-400">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>
@@ -116,7 +116,7 @@ export function SharedSummarySection({
                 {Object.entries(travelTotalsByCurrency).map(([currency, data]) => (
                   <div key={currency}>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
                         "font-mono text-xl md:text-2xl font-bold",
                         data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
@@ -126,8 +126,8 @@ export function SharedSummarySection({
                     </div>
                     {data.settled > 0 && (
                       <div className="flex items-center justify-between mt-1">
-                        <span className="text-[10px] text-muted-foreground">Acertado</span>
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <span className="text-sm text-muted-foreground">Acertado</span>
+                        <span className="text-sm text-muted-foreground font-mono">
                           {formatCurrency(data.settled, currency)}
                         </span>
                       </div>
@@ -147,8 +147,8 @@ export function SharedSummarySection({
                   .filter(([_, data]) => data.owedToMe > 0)
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
+                      <p className="font-mono text-base md:text-2xl font-bold text-green-600 dark:text-green-400">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
@@ -169,8 +169,8 @@ export function SharedSummarySection({
                   .filter(([_, data]) => data.iOwe > 0)
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
-                      <span className="text-xs text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-xl md:text-2xl font-bold text-red-600 dark:text-red-400">
+                      <span className="text-sm text-muted-foreground uppercase">{currency}</span>
+                      <p className="font-mono text-base md:text-2xl font-bold text-red-600 dark:text-red-400">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>

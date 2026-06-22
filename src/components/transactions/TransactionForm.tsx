@@ -55,7 +55,7 @@ export function TransactionForm(props: TransactionFormProps) {
         <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
           <ArrowDownLeft className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h2 className="text-xl font-semibold">Nenhuma conta encontrada</h2>
+        <h2 className="text-base font-semibold">Nenhuma conta encontrada</h2>
         <p className="text-muted-foreground">Crie uma conta para começar</p>
         <Button type="button" onClick={(e) => { e.preventDefault(); form.setShowTransactionModal(false); form.navigate('/contas'); }}>Criar Conta</Button>
       </div>
@@ -76,7 +76,7 @@ export function TransactionForm(props: TransactionFormProps) {
             type="button"
             onClick={() => form.setActiveTab(tab)}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[10px] font-medium transition-all',
+              'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-medium transition-all',
               form.activeTab === tab
                 ? tab === 'EXPENSE'
                   ? 'bg-background text-destructive shadow-sm'
@@ -138,7 +138,7 @@ export function TransactionForm(props: TransactionFormProps) {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">🌍</div>
               <div>
                 <p className="font-semibold text-sm tracking-tight text-foreground">Operação de Câmbio Detectada</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {form.isCrossCurrencyTripExpense 
                     ? `Despesa na Viagem: ${form.selectedAccount?.currency} pagando ${form.selectedTrip?.currency}`
                     : `Transferência de ${form.selectedAccount?.currency} para ${form.selectedDestAccount?.currency}`}
@@ -148,11 +148,11 @@ export function TransactionForm(props: TransactionFormProps) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-semibold text-foreground">
+                <Label className="text-sm font-semibold text-foreground">
                   {form.isCrossCurrencyTripExpense ? `Valor na Viagem (${form.selectedTrip?.currency})` : `Valor Recebido (${form.selectedDestAccount?.currency})`}
                 </Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold z-10">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold z-10">
                     {form.getCurrencySymbol(form.isCrossCurrencyTripExpense ? (form.selectedTrip?.currency || 'USD') : (form.selectedDestAccount?.currency || 'USD'))}
                   </span>
                   <CurrencyInput
@@ -160,15 +160,15 @@ export function TransactionForm(props: TransactionFormProps) {
                     value={form.destinationAmount}
                     onChange={(val) => form.handleDestAmountChange(val)}
                     currency={form.isCrossCurrencyTripExpense ? (form.selectedTrip?.currency || 'USD') : (form.selectedDestAccount?.currency || 'USD')}
-                    className="w-full h-11 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
+                    className="w-full h-12 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
                   />
                 </div>
               </div>
 
               <div className="space-y-2 opacity-70">
-                <Label className="text-xs font-semibold text-foreground">Taxa de Câmbio Efetiva</Label>
+                <Label className="text-sm font-semibold text-foreground">Taxa de Câmbio Efetiva</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground font-semibold z-10">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold z-10">
                     {form.selectedAccount?.currency}/{form.isCrossCurrencyTripExpense ? form.selectedTrip?.currency : form.selectedDestAccount?.currency}
                   </span>
                   <input
@@ -176,13 +176,13 @@ export function TransactionForm(props: TransactionFormProps) {
                     placeholder="0,0000"
                     value={form.exchangeRate ? Number(form.exchangeRate).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : ''}
                     readOnly
-                    className="w-full h-11 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
+                    className="w-full h-12 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
                   />
                 </div>
               </div>
             </div>
             
-            <p className="text-[10px] text-muted-foreground leading-normal">
+            <p className="text-sm text-muted-foreground leading-normal">
               💡 Digite apenas o valor exato que chegou no destino. O sistema irá calcular automaticamente a taxa de câmbio efetiva (incluindo spread, IOF e outras taxas) baseada no valor de origem de {form.getCurrencySymbol(form.selectedAccount?.currency || 'BRL')} {moneyUtils.parse(form.amount || '0').toFixed(2)}.
             </p>
           </div>
@@ -199,7 +199,7 @@ export function TransactionForm(props: TransactionFormProps) {
                 form.setIsInstallment(val > 1);
               }}
             >
-              <SelectTrigger className="rounded-xl h-11">
+              <SelectTrigger className="rounded-xl h-12">
                 <SelectValue placeholder="Selecione o parcelamento" />
               </SelectTrigger>
               <SelectContent>
@@ -212,7 +212,7 @@ export function TransactionForm(props: TransactionFormProps) {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               A despesa será lançada no cartão e dividida nos meses do ciclo de faturas correspondente.
             </p>
           </div>
@@ -232,7 +232,7 @@ export function TransactionForm(props: TransactionFormProps) {
         {form.validationErrors.length > 0 && (
           <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm animate-fade-in">
             <p className="font-semibold mb-1">Corrija os seguintes erros:</p>
-            <ul className="list-disc list-inside space-y-1">
+            <ul className="list-disc list-inside space-y-2">
               {form.validationErrors.map((err: string, i: number) => (
                 <li key={i}>{err}</li>
               ))}
@@ -240,7 +240,7 @@ export function TransactionForm(props: TransactionFormProps) {
           </div>
         )}
 
-        <Button type="submit" size="default" className="w-full h-11 md:h-12 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
+        <Button type="submit" size="default" className="w-full h-12 md:h-12 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
           {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
         </Button>
       </form>
@@ -270,9 +270,9 @@ export function TransactionForm(props: TransactionFormProps) {
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center"><BellRing className="h-5 w-5 text-amber-600" /></div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Atenção</h3>
+                <h3 className="font-semibold text-base mb-2">Atenção</h3>
                 <p className="text-sm text-muted-foreground mb-3">Detectamos avisos. Continuar?</p>
-                <ul className="list-disc list-inside space-y-1 text-sm text-amber-600">
+                <ul className="list-disc list-inside space-y-2 text-sm text-amber-600">
                   {form.validationWarnings.map((w, i) => <li key={i}>{w}</li>)}
                 </ul>
               </div>

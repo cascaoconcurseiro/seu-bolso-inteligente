@@ -53,12 +53,12 @@ export function SharedTransactionBadge({
   }
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       {/* Shared Badge */}
       <Badge
         variant="outline"
         className={cn(
-          "text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 uppercase tracking-wider font-medium whitespace-nowrap",
+          "text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 uppercase tracking-wider font-medium whitespace-nowrap",
           type === 'CREDIT'
             ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-800"
             : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800"
@@ -73,7 +73,7 @@ export function SharedTransactionBadge({
       {isSettled && (
         <Badge
           variant="outline"
-          className="text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50 whitespace-nowrap"
+          className="text-[9px] md:text-sm px-1 md:px-1.5 py-0.5 font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50 whitespace-nowrap"
         >
           <CheckCircle2 className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5" />
           PAGO
@@ -84,7 +84,7 @@ export function SharedTransactionBadge({
       <Badge
         variant="outline"
         className={cn(
-          "text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 font-bold whitespace-nowrap",
+          "text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 font-bold whitespace-nowrap",
           isSettled
             ? "border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400"
             : type === 'CREDIT'

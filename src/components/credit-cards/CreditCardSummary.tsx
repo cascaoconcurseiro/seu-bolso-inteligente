@@ -20,12 +20,12 @@ export function CreditCardSummary({
         {/* Faturas Atuais */}
         <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] sm:text-xs text-primary/70 uppercase font-bold tracking-widest">Faturas do Mês</p>
+            <p className="text-sm sm:text-sm text-primary/70 uppercase font-bold tracking-widest">Faturas do Mês</p>
             <div className="p-1.5 rounded-lg bg-primary/15">
               <CreditCard className="h-3.5 w-3.5 text-primary" />
             </div>
           </div>
-          <p className="font-mono font-bold text-lg sm:text-xl text-foreground tracking-tight leading-none mt-1">
+          <p className="font-mono font-bold text-base sm:text-base text-foreground tracking-tight leading-none mt-1">
             {formatCurrency(totalInvoices)}
           </p>
         </div>
@@ -33,12 +33,12 @@ export function CreditCardSummary({
         {/* Dívida Total */}
         <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] sm:text-xs text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
+            <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
             <div className="p-1.5 rounded-lg bg-red-500/15">
               <ShieldAlert className="h-3.5 w-3.5 text-red-500" />
             </div>
           </div>
-          <p className="font-mono font-bold text-lg sm:text-xl text-red-600 dark:text-red-400 tracking-tight leading-none mt-1">
+          <p className="font-mono font-bold text-base sm:text-base text-red-600 dark:text-red-400 tracking-tight leading-none mt-1">
             {formatCurrency(totalDebt)}
           </p>
         </div>
@@ -52,7 +52,7 @@ export function CreditCardSummary({
         )}>
           <div className="flex items-center justify-between">
             <p className={cn(
-              "text-[10px] sm:text-xs uppercase font-bold tracking-widest",
+              "text-xs sm:text-xs uppercase font-bold tracking-widest",
               nextDueDate <= 3 ? "text-amber-600/70 dark:text-amber-400/70" : "text-muted-foreground"
             )}>
               Próximo Vencimento

@@ -183,7 +183,7 @@ export function InviteMemberDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
           <DialogTitle>Convidar membro</DialogTitle>
@@ -249,19 +249,19 @@ export function InviteMemberDialog({
                   <SelectItem value="admin">
                     <div className="flex flex-col items-start py-1">
                       <span>Administrador</span>
-                      <span className="text-xs text-muted-foreground">Acesso total</span>
+                      <span className="text-sm text-muted-foreground">Acesso total</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="editor">
                     <div className="flex flex-col items-start py-1">
                       <span>Editor</span>
-                      <span className="text-xs text-muted-foreground">Pode criar e editar</span>
+                      <span className="text-sm text-muted-foreground">Pode criar e editar</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="viewer">
                     <div className="flex flex-col items-start py-1">
                       <span>Visualizador</span>
-                      <span className="text-xs text-muted-foreground">Apenas visualização</span>
+                      <span className="text-sm text-muted-foreground">Apenas visualização</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -290,25 +290,25 @@ export function InviteMemberDialog({
                       <SelectItem value="all">
                         <div className="flex flex-col items-start py-1">
                           <span>Tudo</span>
-                          <span className="text-xs text-muted-foreground">Compartilhar todas as transações</span>
+                          <span className="text-sm text-muted-foreground">Compartilhar todas as transações</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="trips_only">
                         <div className="flex flex-col items-start py-1">
                           <span>🧳 Apenas Viagens</span>
-                          <span className="text-xs text-muted-foreground">Apenas transações de viagens</span>
+                          <span className="text-sm text-muted-foreground">Apenas transações de viagens</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="date_range">
                         <div className="flex flex-col items-start py-1">
                           <span>📅 Período Específico</span>
-                          <span className="text-xs text-muted-foreground">Transações em um período</span>
+                          <span className="text-sm text-muted-foreground">Transações em um período</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="specific_trip">
                         <div className="flex flex-col items-start py-1">
                           <span>🎯 Viagem Específica</span>
-                          <span className="text-xs text-muted-foreground">Apenas uma viagem</span>
+                          <span className="text-sm text-muted-foreground">Apenas uma viagem</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -335,7 +335,7 @@ export function InviteMemberDialog({
                         className="h-12 rounded-xl"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                    <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
                       📆 Transações antigas do período permanecerão visíveis
                     </p>
                   </>
@@ -354,7 +354,7 @@ export function InviteMemberDialog({
                             <div className="flex flex-col items-start">
                               <span>{trip.name}</span>
                               {trip.destination && (
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-sm text-muted-foreground">
                                   📍 {trip.destination}
                                 </span>
                               )}
@@ -364,12 +364,12 @@ export function InviteMemberDialog({
                       </SelectContent>
                     </Select>
                     {trips.length === 0 && (
-                      <p className="text-xs text-warning bg-warning/10 p-2 rounded-lg">
+                      <p className="text-sm text-warning bg-warning/10 p-2 rounded-lg">
                         ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
                       </p>
                     )}
                     {trips.length > 0 && (
-                      <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                      <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
                         🧳 Apenas transações desta viagem serão compartilhadas
                       </p>
                     )}
@@ -377,7 +377,7 @@ export function InviteMemberDialog({
                 )}
 
                 {sharingScope === "trips_only" && (
-                  <p className="text-xs text-muted-foreground bg-background p-2 rounded-lg border">
+                  <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
                     ✈️ Apenas transações vinculadas a viagens serão compartilhadas
                   </p>
                 )}

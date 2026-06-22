@@ -137,8 +137,8 @@ export function Settings() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Configurações</h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Personalize sua experiência financeira</p>
+            <h1 className="font-display font-black text-3xl tracking-tighter">Configurações</h1>
+            <p className="text-muted-foreground text-sm font-medium">Personalize sua experiência financeira</p>
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@ export function Settings() {
           {activeSection === "admin" && (
             <div className="space-y-8 animate-fade-in">
               <div>
-                <h2 className="font-display font-semibold text-lg">Área Adm</h2>
+                <h2 className="font-display font-semibold text-base">Área Adm</h2>
                 <p className="text-sm text-muted-foreground">Ferramentas administrativas e de integridade do sistema</p>
               </div>
               <div className="max-w-4xl">
@@ -210,7 +210,7 @@ export function Settings() {
       <Dialog open={showAddCategoryDialog} onOpenChange={setShowAddCategoryDialog}>
         <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-            <div className="w-12 h-1.5 bg-muted rounded-full" />
+            <div className="w-12 h-2 bg-muted rounded-full" />
           </div>
           <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle>Nova Categoria</DialogTitle>
@@ -281,7 +281,7 @@ export function Settings() {
       <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
         <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:rounded-lg rounded-b-none sm:rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
           <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-            <div className="w-12 h-1.5 bg-muted rounded-full" />
+            <div className="w-12 h-2 bg-muted rounded-full" />
           </div>
           <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle>Alterar Senha</DialogTitle>
@@ -308,7 +308,7 @@ export function Settings() {
       </Dialog>
 
       <AlertDialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
-        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">Excluir Conta Permanentemente?</AlertDialogTitle>
             <AlertDialogDescription>Esta ação não pode ser desfeita. Todos os seus dados, transações, contas e categorias serão excluídos para sempre.</AlertDialogDescription>

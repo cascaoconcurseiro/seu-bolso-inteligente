@@ -113,7 +113,7 @@ export function NotificationButton() {
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold animate-pulse">
+            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-red-500 text-white text-sm flex items-center justify-center font-bold animate-pulse">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -138,7 +138,7 @@ export function NotificationButton() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs gap-1"
+                className="h-8 text-sm gap-1"
                 onClick={() => markAllAsRead.mutate()}
               >
                 <CheckCheck className="h-3.5 w-3.5" />
@@ -149,7 +149,7 @@ export function NotificationButton() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-xs gap-1 text-muted-foreground"
+                className="h-8 text-sm gap-1 text-muted-foreground"
                 onClick={() => dismissAll.mutate()}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -181,7 +181,7 @@ export function NotificationButton() {
               {unreadNotifications.length > 0 && (
                 <div>
                   <div className="px-4 py-2 bg-muted/50 sticky top-0">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       Novas ({unreadNotifications.length})
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export function NotificationButton() {
               {readNotifications.length > 0 && (
                 <div>
                   <div className="px-4 py-2 bg-muted/30 sticky top-0">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       Anteriores
                     </span>
                   </div>
@@ -222,7 +222,7 @@ export function NotificationButton() {
         <div className="p-3 border-t bg-muted/30">
           <Link 
             to="/configuracoes?section=notifications"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setIsOpen(false)}
           >
             Configurar notificações →
@@ -297,18 +297,18 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
           </Button>
         </div>
         
-        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
           {notification.message}
         </p>
         
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {timeAgo}
           </span>
           
           {notification.priority !== 'NORMAL' && notification.priority !== 'LOW' && (
             <span className={cn(
-              "text-[10px] px-1.5 py-0.5 rounded-full",
+              "text-xs px-1.5 py-0.5 rounded-full",
               getPriorityColor(notification.priority)
             )}>
               {notification.priority === 'HIGH' ? 'Importante' : 'Urgente'}
@@ -324,7 +324,7 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
         {notification.action_url && notification.action_label && (
           <Link 
             to={notification.action_url}
-            className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline"
             onClick={(e) => e.stopPropagation()}
           >
             {notification.action_label}

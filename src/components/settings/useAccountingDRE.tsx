@@ -826,7 +826,7 @@ export function useAccountingDRE() {
     const sub = dreData.lines[lineType].subcategories;
     if (Object.keys(sub).length === 0) {
       return (
-        <tr className="bg-muted/10 text-xs text-muted-foreground font-mono">
+        <tr className="bg-muted/10 text-sm text-muted-foreground font-mono">
           <td className="pl-12 py-1.5 text-left italic">Nenhuma movimentação registrada</td>
           <td className="pr-6 py-1.5 text-right font-semibold">-</td>
           <td className="pr-6 py-1.5 text-right">-</td>
@@ -837,10 +837,10 @@ export function useAccountingDRE() {
       const parentTotal = dreData.lines[lineType].total;
       const subPercent = parentTotal > 0 ? `${((val / parentTotal) * 100).toFixed(1)}%` : "0.0%";
       return (
-        <tr key={name} className="hover:bg-muted/30 text-xs text-muted-foreground border-b border-border/10 font-mono transition-colors">
+        <tr key={name} className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
           <td className="pl-12 py-2 text-left">{name}</td>
           <td className="pr-6 py-2 text-right font-medium">{isExpense ? formatNegativeCurrency(val) : formatCurrency(val)}</td>
-          <td className="pr-6 py-2 text-right text-[10px]">{subPercent}</td>
+          <td className="pr-6 py-2 text-right text-sm">{subPercent}</td>
         </tr>
       );
     });

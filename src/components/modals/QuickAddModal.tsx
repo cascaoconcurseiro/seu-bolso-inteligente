@@ -244,7 +244,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Adição Rápida (Despesa)</DialogTitle>
         </DialogHeader>
@@ -254,14 +254,14 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {activeTrips.length > 0 && (
-              <div className="space-y-3 mb-4">
+              <div className="space-y-4 mb-4">
                 <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
                   <div className="space-y-0.5">
                     <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
                       <Plane className="h-4 w-4 text-blue-500" />
                       Despesa de Viagem
                     </Label>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Vincular a uma viagem ativa ou futura
                     </p>
                   </div>
@@ -273,9 +273,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 
                 {isTripMode && activeTrips.length > 1 && (
                   <div className="space-y-2 animate-fade-in pl-1">
-                    <Label className="text-xs">Qual Viagem?</Label>
+                    <Label className="text-sm">Qual Viagem?</Label>
                     <Select value={selectedTripId} onValueChange={setSelectedTripId}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
+                      <SelectTrigger className="h-10"><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
                       <SelectContent>
                         {activeTrips.map(trip => (
                           <SelectItem key={trip.id} value={trip.id}>{trip.name}</SelectItem>
@@ -344,7 +344,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
           </div>
           
           {isCreditCard && (
-            <div className="p-4 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
+            <div className="p-4 rounded-xl border border-border bg-card space-y-4 animate-slide-in">
               <Label className="font-medium text-sm">Parcelas (Cartão de Crédito)</Label>
               <Select
                 value={totalInstallments.toString()}
@@ -354,7 +354,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   setIsInstallment(val > 1);
                 }}
               >
-                <SelectTrigger className="rounded-xl h-11">
+                <SelectTrigger className="rounded-xl h-12">
                   <SelectValue placeholder="Selecione o parcelamento" />
                 </SelectTrigger>
                 <SelectContent>

@@ -139,7 +139,7 @@ export function Reports() {
     if (!acc) return null;
     const isCard = acc.type === 'CREDIT_CARD';
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-semibold bg-muted text-muted-foreground border border-border/50">
         {isCard ? <CreditCard className="h-3 w-3" /> : <Wallet className="h-3 w-3" />}
         {acc.name}
       </span>
@@ -236,7 +236,6 @@ export function Reports() {
   }, [allTransactions, sharedTransactions, myMemberId, user?.id]);
 
   const periodTransactions = useMemo(() => {
-    console.log('🟡 [DEBUG periodTransactions] allCombinedTransactions length:', allCombinedTransactions?.length, 'selectedCurrency:', selectedCurrency);
     return allCombinedTransactions.filter((tx: any) => {
       const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
       const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
@@ -257,10 +256,6 @@ export function Reports() {
         
       if (!isInPeriod) return false;
       const txCurr = getTransactionCurrency(tx);
-      if (txCurr === 'EUR') {
-        console.log('🟢 [DEBUG periodTransactions] Found EUR transaction in period:', tx.description, tx.amount, 'txCurr:', txCurr, 'selected:', selectedCurrency, 'tx.currency:', tx.currency, 'tx.account:', tx.account);
-      }
-      
       const matchesCurrency = selectedCurrency === 'ALL' || txCurr === selectedCurrency;
       
       return matchesCurrency;
@@ -462,7 +457,6 @@ export function Reports() {
   }, [sharedPeriodTransactions, familyMembers]);
 
   const installmentsByPerson = useMemo(() => {
-    console.log('🔴 [DEBUG Reports] Starting installmentsByPerson calculation. sharedTransactions:', sharedTransactions.length);
     const map: Record<string, any> = {};
     const targetYear = safeCurrentDate.getFullYear();
     const targetMonth = safeCurrentDate.getMonth();
@@ -676,8 +670,8 @@ export function Reports() {
             <div className="skeleton h-4 w-64 rounded-lg" />
           </div>
           <div className="flex gap-2">
-            <div className="skeleton h-9 w-32 rounded-xl" />
-            <div className="skeleton h-9 w-28 rounded-xl" />
+            <div className="skeleton h-10 w-32 rounded-xl" />
+            <div className="skeleton h-10 w-28 rounded-xl" />
           </div>
         </div>
       </div>
@@ -694,12 +688,12 @@ export function Reports() {
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       {/* Header com Glassmorphism */}
-      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter">Relatórios</h1>
-            <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
+            <h1 className="font-display font-black text-3xl tracking-tighter">Relatórios</h1>
+            <p className="text-muted-foreground text-sm font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               {'Análise das suas finanças -'} {viewType === 'MONTH' 
                 ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
@@ -708,10 +702,10 @@ export function Reports() {
           </div>
           <div className="flex flex-wrap gap-3 items-center">
             {/* Segmented Control: Mês / Ano */}
-            <div className="flex p-1 bg-card/60 backdrop-blur-md rounded-[1.5rem] border border-border/40 shadow-inner w-fit mx-auto sm:mx-0">
+            <div className="flex p-2 bg-card/60 backdrop-blur-md rounded-3xl border border-border/40 shadow-inner w-fit mx-auto sm:mx-0">
               <button
                 className={cn(
-                  "px-5 py-2 rounded-[1.25rem] text-[11px] md:text-sm font-bold transition-all duration-300",
+                  "px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   viewType === 'MONTH' 
                     ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
                     : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
@@ -722,7 +716,7 @@ export function Reports() {
               </button>
               <button
                 className={cn(
-                  "px-5 py-2 rounded-[1.25rem] text-[11px] md:text-sm font-bold transition-all duration-300",
+                  "px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   viewType === 'YEAR' 
                     ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
                     : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
@@ -775,8 +769,8 @@ export function Reports() {
           <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-border/50">
             <Calendar className="w-10 h-10 text-muted-foreground/60" />
           </div>
-          <h2 className="text-2xl font-display font-bold mb-3 tracking-tight">Nenhum dado neste período</h2>
-          <p className="text-muted-foreground max-w-md mx-auto mb-8 text-base">
+          <h2 className="font-display font-bold text-base mb-3 tracking-tight">Nenhum dado neste período</h2>
+          <p className="text-muted-foreground max-w-md mx-auto mb-8 text-sm">
             Seus relatórios ganham vida quando você adiciona transações. Volte ao painel principal ou mude o mês/ano selecionado para explorar seus dados.
           </p>
           <Button onClick={() => setViewType('YEAR')} variant="outline" className="h-12 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
@@ -786,10 +780,10 @@ export function Reports() {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="space-y-6 w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card/60 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-border/40 shadow-inner overflow-x-auto">
-            <TabsTrigger value="overview" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Visão Geral</TabsTrigger>
-            <TabsTrigger value="evolution" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Evolução</TabsTrigger>
-            <TabsTrigger value="categories" className="rounded-[1.25rem] text-[10px] md:text-xs font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Categorias</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-card/60 backdrop-blur-md p-1.5 rounded-3xl border border-border/40 shadow-inner overflow-x-auto">
+            <TabsTrigger value="overview" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Visão Geral</TabsTrigger>
+            <TabsTrigger value="evolution" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Evolução</TabsTrigger>
+            <TabsTrigger value="categories" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Categorias</TabsTrigger>
           </TabsList>
 
         <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
@@ -807,13 +801,13 @@ export function Reports() {
               <Calendar className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Média Diária</p>
-              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground">
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Média Diária</p>
+              <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground">
                 {formatCurrency(dailyAverageExpense, displayCurrency)}
               </h3>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-3 flex items-center gap-1.5 font-medium">
+          <p className="text-sm text-muted-foreground mt-3 flex items-center gap-2 font-medium">
             <Info className="h-3 w-3 text-muted-foreground/60" />
             Com base no período selecionado
           </p>
@@ -827,13 +821,13 @@ export function Reports() {
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Maior Despesa</p>
-              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Maior Despesa</p>
+              <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
                 {largestExpense ? formatCurrency(Number(largestExpense.amount), displayCurrency) : formatCurrency(0, displayCurrency)}
               </h3>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={largestExpense ? largestExpense.description : "Nenhum gasto"}>
+          <p className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={largestExpense ? largestExpense.description : "Nenhum gasto"}>
             🎯 {largestExpense ? largestExpense.description : "Nenhum gasto no período"}
           </p>
         </div>
@@ -846,13 +840,13 @@ export function Reports() {
               <Tag className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Categoria Líder</p>
-              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Categoria Líder</p>
+              <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
                 {topCategory ? formatCurrency(topCategory.value, displayCurrency) : formatCurrency(0, displayCurrency)}
               </h3>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={topCategory ? topCategory.category : "Nenhum gasto"}>
+          <p className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={topCategory ? topCategory.category : "Nenhum gasto"}>
             🏷️ {topCategory ? topCategory.category : "Nenhum gasto"}
           </p>
         </div>
@@ -865,14 +859,14 @@ export function Reports() {
               <Target className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Taxa de Poupança</p>
-              <h3 className="text-xl font-black font-display tracking-tight mt-0.5 text-foreground">
+              <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Taxa de Poupança</p>
+              <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground">
                 {totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : '0.0'}%
               </h3>
             </div>
           </div>
           <div className="mt-3">
-            <span className={`inline-block px-2.5 py-1 rounded-xl text-[10px] font-semibold border leading-tight ${savingsGoalStatus.color}`}>
+            <span className={`inline-block px-3 py-1 rounded-xl text-xs font-semibold border leading-tight ${savingsGoalStatus.color}`}>
               {savingsGoalStatus.text}
             </span>
           </div>
@@ -883,7 +877,7 @@ export function Reports() {
       <TabsContent value="evolution" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
         <section className="p-6 rounded-xl border border-border">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Evolução do Saldo</h2>
+            <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">Evolução do Saldo</h2>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -891,7 +885,7 @@ export function Reports() {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                   <p className="font-bold text-sm">O que é a Evolução do Saldo?</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Este gráfico cruza o seu saldo em caixa (contas bancárias) com todas as despesas e receitas futuras projetadas, incluindo faturas de cartão de crédito e parcelamentos ao longo do tempo. Ele mostra exatamente quanto dinheiro você terá nos próximos dias e meses!
                   </p>
                 </TooltipContent>

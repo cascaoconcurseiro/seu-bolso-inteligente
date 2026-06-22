@@ -46,12 +46,12 @@ export function AccountStatement({
       <div className="rounded-xl border border-border overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 bg-muted/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-muted">
+            <div className="w-9 h-10 rounded-full flex items-center justify-center bg-muted">
               <Landmark className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
               <p className="text-sm font-medium">Saldo Anterior</p>
-              <p className="text-xs text-muted-foreground">Acumulado de meses anteriores</p>
+              <p className="text-sm text-muted-foreground">Acumulado de meses anteriores</p>
             </div>
           </div>
           <p className={cn(
@@ -138,7 +138,7 @@ export function AccountStatement({
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap mt-0.5">
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap mt-0.5">
                               <span>{dateFns.format(txDate, "dd/MM/yyyy", { locale: ptBR })}</span>
                               {tx.category?.name && (
                                 <>
@@ -147,7 +147,7 @@ export function AccountStatement({
                                 </>
                               )}
                               {tx.is_installment && tx.current_installment && tx.total_installments && (
-                                <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium text-[10px]">
+                                <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium text-sm">
                                   {tx.current_installment}/{tx.total_installments}
                                 </span>
                               )}
@@ -173,7 +173,7 @@ export function AccountStatement({
                                 : `${isIncome ? "+" : "-"}${formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}`}
                             </p>
                             <p className={cn(
-                              "text-[10px] text-muted-foreground font-mono",
+                              "text-xs text-muted-foreground font-mono",
                               isPrivate && "blur-md opacity-50 select-none"
                             )}>
                               Saldo: {fmt(tx.runningBalance)}
@@ -210,12 +210,12 @@ export function AccountStatement({
       <div className="rounded-xl border border-border overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 bg-muted/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center bg-muted">
+            <div className="w-9 h-10 rounded-full flex items-center justify-center bg-muted">
               <Landmark className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
               <p className="text-sm font-semibold">Saldo Final do Período</p>
-              <p className="text-xs text-muted-foreground">Abertura do próximo mês</p>
+              <p className="text-sm text-muted-foreground">Abertura do próximo mês</p>
             </div>
           </div>
           <p className={cn(

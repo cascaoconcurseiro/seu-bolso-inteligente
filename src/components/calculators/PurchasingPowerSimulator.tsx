@@ -85,7 +85,7 @@ export function PurchasingPowerSimulator() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <Card className="lg:col-span-1 bg-card/50 border-border/50 shadow-sm h-fit">
         <CardHeader>
-          <CardTitle className="text-xl">Parâmetros</CardTitle>
+          <CardTitle className="text-base">Parâmetros</CardTitle>
           <CardDescription>Ajuste os valores para simular a inflação</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,7 +94,7 @@ export function PurchasingPowerSimulator() {
             <Input type="number" inputMode="decimal" 
               value={initialAmount || ''} 
               onChange={e => setInitialAmount(Number(e.target.value))}
-              className="text-lg font-mono bg-background"
+              className="text-base font-mono bg-background"
             />
           </div>
           
@@ -120,7 +120,7 @@ export function PurchasingPowerSimulator() {
 
           <div className="space-y-3 pt-2 border-t border-border/50">
             <div className="flex justify-between items-center">
-              <Label className="flex items-center gap-1.5">
+              <Label className="flex items-center gap-2">
                 Inflação (IPCA) a.a.
                 <TooltipProvider>
                   <Tooltip>
@@ -136,7 +136,7 @@ export function PurchasingPowerSimulator() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-6 px-2 text-[10px] uppercase gap-1"
+                className="h-6 px-2 text-sm uppercase gap-1"
                 onClick={() => setInflationRate(indicators?.ipca?.value || 4.5)}
                 disabled={isLoading}
               >
@@ -165,7 +165,7 @@ export function PurchasingPowerSimulator() {
               <p className="text-3xl font-mono font-bold text-foreground">
                 {moneyUtils.format(results.requiredFutureAmount, 'BRL')}
               </p>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                 Para comprar as mesmas coisas que <strong className="text-foreground">{moneyUtils.format(initialAmount, 'BRL')}</strong> compra hoje.
               </p>
             </CardContent>
@@ -178,7 +178,7 @@ export function PurchasingPowerSimulator() {
               <p className="text-3xl font-mono font-bold text-amber-600 dark:text-amber-500">
                 {moneyUtils.format(results.futurePurchasingPower, 'BRL')}
               </p>
-              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                 Seus {moneyUtils.format(initialAmount, 'BRL')} debaixo do colchão terão o poder de compra equivalente a este valor.
               </p>
             </CardContent>
@@ -188,12 +188,12 @@ export function PurchasingPowerSimulator() {
         <Card className="bg-card/50 border-border/50 shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
             <div>
-              <CardTitle className="text-lg">Evolução da Desvalorização</CardTitle>
+              <CardTitle className="text-base">Evolução da Desvalorização</CardTitle>
               <CardDescription>Mesa a mês, como a inflação corrói o dinheiro</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
-                <SelectTrigger className="w-[130px] h-8 text-xs bg-background">
+                <SelectTrigger className="w-[130px] h-8 text-sm bg-background">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -210,7 +210,7 @@ export function PurchasingPowerSimulator() {
             <div className="rounded-xl border border-border/50 overflow-hidden mt-4">
               <div className="max-h-[300px] overflow-y-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-muted/50 sticky top-0 z-10">
+                  <thead className="text-sm text-muted-foreground uppercase bg-muted/50 sticky top-0 z-10">
                     <tr>
                       <th className="px-4 py-3 font-medium">Período</th>
                       <th className="px-4 py-3 font-medium text-right">Manter Padrão</th>
@@ -220,11 +220,11 @@ export function PurchasingPowerSimulator() {
                   <tbody className="divide-y divide-border/50">
                     {visibleData.map((d) => (
                       <tr key={d.month} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-medium text-xs">
+                        <td className="px-4 py-3 font-medium text-sm">
                           Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
                         </td>
-                        <td className="px-4 py-3 font-mono text-right text-xs">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
-                        <td className="px-4 py-3 font-mono text-right text-amber-600 dark:text-amber-500 text-xs font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
+                        <td className="px-4 py-3 font-mono text-right text-sm">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
+                        <td className="px-4 py-3 font-mono text-right text-amber-600 dark:text-amber-500 text-sm font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
                       </tr>
                     ))}
                   </tbody>

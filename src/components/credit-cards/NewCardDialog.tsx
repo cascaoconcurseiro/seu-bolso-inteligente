@@ -81,10 +81,10 @@ export function NewCardDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-base">
             <CreditCard className="w-5 h-5 text-primary" />
             Adicionar Novo Cartão
           </DialogTitle>
@@ -98,7 +98,7 @@ export function NewCardDialog({
                 <Globe className="h-5 w-5 text-blue-500" />
                 <div>
                   <p className="font-medium text-sm">Cartão Internacional</p>
-                  <p className="text-xs text-muted-foreground">Fatura em moeda estrangeira</p>
+                  <p className="text-sm text-muted-foreground">Fatura em moeda estrangeira</p>
                 </div>
               </div>
               <Switch checked={isInternational} onCheckedChange={handleInternationalChange} />
@@ -108,7 +108,7 @@ export function NewCardDialog({
           <div className="space-y-2">
             <Label>Banco Emissor</Label>
             {bankId === "other" && (
-              <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-xs font-medium border border-amber-500/20">
+              <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium border border-amber-500/20">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>O banco será salvo com o ícone padrão.</span>
               </div>
@@ -159,7 +159,7 @@ export function NewCardDialog({
                   {currencies.map((curr) => (
                     <SelectItem key={curr.value} value={curr.value}>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs w-6">{curr.symbol}</span>
+                        <span className="font-mono text-sm w-6">{curr.symbol}</span>
                         <span>{curr.label}</span>
                       </div>
                     </SelectItem>
@@ -202,13 +202,13 @@ export function NewCardDialog({
             <div className="space-y-2">
               <Label className="flex justify-between items-center">
                 Fechamento
-                <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                <span className="text-sm text-muted-foreground">(dia 1-31)</span>
               </Label>
               <Input type="number" inputMode="numeric" 
                 min={1} 
                 max={31} 
                 placeholder="Ex: 20"
-                className="font-mono text-lg"
+                className="font-mono text-base"
                 value={closingDay}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -228,13 +228,13 @@ export function NewCardDialog({
             <div className="space-y-2">
               <Label className="flex justify-between items-center">
                 Vencimento
-                <span className="text-[10px] text-muted-foreground">(dia 1-31)</span>
+                <span className="text-sm text-muted-foreground">(dia 1-31)</span>
               </Label>
               <Input type="number" inputMode="numeric" 
                 min={1} 
                 max={31} 
                 placeholder="Ex: 28"
-                className="font-mono text-lg"
+                className="font-mono text-base"
                 value={dueDay}
                 onChange={(e) => {
                   const val = e.target.value;

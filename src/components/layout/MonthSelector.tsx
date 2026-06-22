@@ -79,7 +79,7 @@ export function MonthSelector() {
 
   return (
     <div
-      className={`flex items-center space-x-1 bg-muted rounded-full p-1 border flex-1 justify-center max-w-[180px] sm:max-w-[200px] md:max-w-[220px] transition-all duration-150 ${
+      className={`flex items-center space-x-2 bg-muted rounded-full p-1 border flex-1 justify-center max-w-[180px] sm:max-w-[200px] md:max-w-[220px] transition-all duration-150 ${
         isTransitioning ? "opacity-90" : "opacity-100"
       }`}
     >

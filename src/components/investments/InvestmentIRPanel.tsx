@@ -62,10 +62,10 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
     <div className="space-y-6">
       {/* 1. Header do Painel com visual premium */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/20 via-emerald-900/10 to-transparent shadow-premium-sm">
-        <div className="space-y-1">
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
             <ShieldCheck className="w-5 h-5 animate-pulse" />
-            <span className="text-xs font-bold tracking-wider uppercase">Auxiliar IRPF Interativo</span>
+            <span className="text-sm font-bold tracking-wider uppercase">Auxiliar IRPF Interativo</span>
           </div>
           <h2 className="text-2xl font-display font-black text-foreground tracking-tight">
             Imposto de Renda de Investimentos
@@ -126,9 +126,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
       </div>
 
       {/* 2. Banner de Aviso/Explicação */}
-      <div className="flex gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 text-xs">
+      <div className="flex gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 text-sm">
         <AlertCircle className="w-5 h-5 shrink-0 text-blue-500" />
-        <div className="space-y-1">
+        <div className="space-y-2">
           <span className="font-bold">Demonstrativo Informativo Auxiliar</span>
           <p>
             Este relatório consolida de forma inteligente o custo histórico médio ponderado de aquisição e rendimentos registrados. As informações aqui contidas facilitam o preenchimento da Declaração Anual de Ajuste do IRPF, mas não substituem os Informes de Rendimentos oficiais disponibilizados pelas suas respectivas corretoras de valores e bancos.
@@ -139,19 +139,19 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
       {/* 3. Navegação em Abas do IRPF */}
       <Tabs defaultValue="bens-direitos" className="w-full space-y-6">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 p-1 bg-muted/80 rounded-2xl border border-border">
-          <TabsTrigger value="bens-direitos" className="rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 py-2">
+          <TabsTrigger value="bens-direitos" className="rounded-xl text-sm md:text-sm font-semibold flex items-center gap-2 py-2">
             <Briefcase className="w-4 h-4" />
             Bens e Direitos
           </TabsTrigger>
-          <TabsTrigger value="isentos" className="rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 py-2">
+          <TabsTrigger value="isentos" className="rounded-xl text-sm md:text-sm font-semibold flex items-center gap-2 py-2">
             <Coins className="w-4 h-4" />
             Rendimentos Isentos
           </TabsTrigger>
-          <TabsTrigger value="tributado-exclusiva" className="rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 py-2">
+          <TabsTrigger value="tributado-exclusiva" className="rounded-xl text-sm md:text-sm font-semibold flex items-center gap-2 py-2">
             <Percent className="w-4 h-4" />
             Tributação Exclusiva
           </TabsTrigger>
-          <TabsTrigger value="renda-variavel" className="rounded-xl text-xs md:text-sm font-semibold flex items-center gap-1.5 py-2">
+          <TabsTrigger value="renda-variavel" className="rounded-xl text-sm md:text-sm font-semibold flex items-center gap-2 py-2">
             <TrendingUp className="w-4 h-4" />
             Renda Variável
           </TabsTrigger>
@@ -161,8 +161,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
         <TabsContent value="bens-direitos" className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h3 className="text-lg font-bold text-foreground">Ficha de Bens e Direitos</h3>
-              <p className="text-xs text-muted-foreground">Posição consolidada de ativos em 31/12/{(selectedYear - 1)} e 31/12/{selectedYear}</p>
+              <h3 className="text-base font-bold text-foreground">Ficha de Bens e Direitos</h3>
+              <p className="text-sm text-muted-foreground">Posição consolidada de ativos em 31/12/{(selectedYear - 1)} e 31/12/{selectedYear}</p>
             </div>
             <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-600/5 font-bold">
               {bensEDireitosList.length} Ativos Declarados
@@ -174,7 +174,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               <CardContent className="flex flex-col items-center justify-center space-y-3">
                 <Briefcase className="w-12 h-12 text-muted-foreground/30" />
                 <span className="font-bold text-muted-foreground text-sm">Nenhum ativo com saldo no ano de {selectedYear}</span>
-                <p className="text-xs text-muted-foreground text-center max-w-sm">
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
                   Ativos só aparecem aqui se houver compras registradas até 31/12/{selectedYear} ou saldo remanescente ativo.
                 </p>
               </CardContent>
@@ -189,25 +189,25 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                   <Card key={asset.id} className="overflow-hidden border-border/80 hover:border-emerald-500/30 hover:shadow-premium-xs transition-all duration-300">
                     <div className="bg-emerald-600/5 border-b border-border/50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
+                        <span className="text-sm font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
                           #{index + 1}
                         </span>
                         <span className="font-display font-black text-foreground">
                           {asset.ticker || asset.name}
                         </span>
-                        <Badge variant="secondary" className="text-[10px] py-0 px-1.5 uppercase font-medium">
+                        <Badge variant="secondary" className="text-sm py-0 px-1.5 uppercase font-medium">
                           {asset.type}
                         </Badge>
                       </div>
 
                       {/* Botões rápidos de cópia */}
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {irDetails.cnpj && (
                           <Button
                             onClick={() => handleCopy(irDetails.cnpj, fieldIdCnpj)}
                             variant="ghost"
                             size="sm"
-                            className="h-8 text-xs font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
+                            className="h-8 text-sm font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
                           >
                             {copiedField === fieldIdCnpj ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
                             Copiar CNPJ
@@ -217,7 +217,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                           onClick={() => handleCopy(irDetails.discriminacao, fieldIdDisc)}
                           variant="ghost"
                           size="sm"
-                          className="h-8 text-xs font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
+                          className="h-8 text-sm font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
                         >
                           {copiedField === fieldIdDisc ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
                           Copiar Discriminação
@@ -227,7 +227,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
 
                     <CardContent className="p-4 space-y-4">
                       {/* Grid de códigos do IR */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-muted/40 p-3 rounded-xl border">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm bg-muted/40 p-3 rounded-xl border">
                         <div>
                           <span className="text-muted-foreground block mb-0.5">Grupo</span>
                           <span className="font-bold text-foreground">{irDetails.grupo}</span>
@@ -251,9 +251,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                       </div>
 
                       {/* Discriminação Textual */}
-                      <div className="space-y-1">
-                        <span className="text-xs font-semibold text-muted-foreground">Discriminação detalhada para o IRPF:</span>
-                        <div className="p-3 bg-muted/20 border rounded-xl text-xs text-foreground italic leading-relaxed">
+                      <div className="space-y-2">
+                        <span className="text-sm font-semibold text-muted-foreground">Discriminação detalhada para o IRPF:</span>
+                        <div className="p-3 bg-muted/20 border rounded-xl text-sm text-foreground italic leading-relaxed">
                           {irDetails.discriminacao}
                         </div>
                       </div>
@@ -261,19 +261,19 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                       {/* Valores Consolidados em 31/12 */}
                       <div className="grid grid-cols-2 gap-4 border-t pt-3">
                         <div className="space-y-0.5">
-                          <span className="text-[10px] text-muted-foreground block">Situação em 31/12/{selectedYear - 1}</span>
+                          <span className="text-sm text-muted-foreground block">Situação em 31/12/{selectedYear - 1}</span>
                           <span className="text-sm font-display font-extrabold text-muted-foreground">
                             R$ {posAnt.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
-                          <span className="text-[10px] text-muted-foreground block">Qtd: {posAnt.quantity.toLocaleString('pt-BR')}</span>
+                          <span className="text-sm text-muted-foreground block">Qtd: {posAnt.quantity.toLocaleString('pt-BR')}</span>
                         </div>
 
                         <div className="space-y-0.5 border-l pl-4">
-                          <span className="text-[10px] text-muted-foreground block">Situação em 31/12/{selectedYear}</span>
+                          <span className="text-sm text-muted-foreground block">Situação em 31/12/{selectedYear}</span>
                           <span className="text-sm font-display font-extrabold text-emerald-600 dark:text-emerald-400">
                             R$ {posAtu.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
-                          <span className="text-[10px] text-muted-foreground block">Qtd: {posAtu.quantity.toLocaleString('pt-BR')} (Média: {asset.currency === 'USD' ? 'US$' : 'R$'} {posAtu.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })})</span>
+                          <span className="text-sm text-muted-foreground block">Qtd: {posAtu.quantity.toLocaleString('pt-BR')} (Média: {asset.currency === 'USD' ? 'US$' : 'R$'} {posAtu.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })})</span>
                         </div>
                       </div>
                     </CardContent>
@@ -287,8 +287,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
         {/* --- ABA 2: RENDIMENTOS ISENTOS --- */}
         <TabsContent value="isentos" className="space-y-4">
           <div className="space-y-0.5">
-            <h3 className="text-lg font-bold text-foreground">Rendimentos Isentos e Não Tributáveis</h3>
-            <p className="text-xs text-muted-foreground">Dividendos de ações, proventos de FIIs e rendimentos de renda fixa isenta (Poupança/LCI/LCA)</p>
+            <h3 className="text-base font-bold text-foreground">Rendimentos Isentos e Não Tributáveis</h3>
+            <p className="text-sm text-muted-foreground">Dividendos de ações, proventos de FIIs e rendimentos de renda fixa isenta (Poupança/LCI/LCA)</p>
           </div>
 
           {Object.keys(isentosMap).length === 0 ? (
@@ -296,7 +296,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               <CardContent className="flex flex-col items-center justify-center space-y-3">
                 <Coins className="w-12 h-12 text-muted-foreground/30" />
                 <span className="font-bold text-muted-foreground text-sm">Nenhum rendimento isento identificado em {selectedYear}</span>
-                <p className="text-xs text-muted-foreground text-center max-w-sm">
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
                   Lançamentos de receitas (INCOME) sob a categoria "Investimentos" com subcategorias "Dividendos" ou "Fundos Imobiliários" alimentam esta ficha automaticamente.
                 </p>
               </CardContent>
@@ -310,18 +310,18 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                     <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
+                          <span className="text-sm font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
                             {item.codigo.split(' - ')[0]}
                           </span>
-                          <span className="text-xs font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
+                          <span className="text-sm font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
                             {item.tipo}
                           </span>
                         </div>
                         <div>
                           <h4 className="font-bold text-foreground text-sm">{item.fontePagadora}</h4>
-                          <span className="text-xs text-muted-foreground block">{item.codigo.split(' - ').slice(1).join(' - ')}</span>
+                          <span className="text-sm text-muted-foreground block">{item.codigo.split(' - ').slice(1).join(' - ')}</span>
                           {item.cnpj && (
-                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[11px] text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-1 font-mono text-sm text-muted-foreground">
                               <span>CNPJ Fonte Pagadora: {item.cnpj}</span>
                               <Button
                                 onClick={() => handleCopy(item.cnpj, fieldId)}
@@ -337,19 +337,19 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                       </div>
 
                       <div className="sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end">
-                        <span className="text-xs text-muted-foreground block sm:mb-1">Valor Recebido</span>
-                        <span className="text-lg font-display font-extrabold text-foreground">
+                        <span className="text-sm text-muted-foreground block sm:mb-1">Valor Recebido</span>
+                        <span className="text-base font-display font-extrabold text-foreground">
                           R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                         
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="link" size="sm" className="h-6 p-0 text-[10px] text-muted-foreground hover:text-primary">
+                              <Button variant="link" size="sm" className="h-6 p-0 text-sm text-muted-foreground hover:text-primary">
                                 Ver Detalhes ({item.detalhes.length} lançamentos)
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-xs text-xs space-y-1">
+                            <TooltipContent className="max-w-xs text-sm space-y-2">
                               {item.detalhes.map((d, i) => (
                                 <div key={i} className="font-mono">{d}</div>
                               ))}
@@ -368,8 +368,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
         {/* --- ABA 3: TRIBUTAÇÃO EXCLUSIVA --- */}
         <TabsContent value="tributado-exclusiva" className="space-y-4">
           <div className="space-y-0.5">
-            <h3 className="text-lg font-bold text-foreground">Rendimentos de Tributação Exclusiva</h3>
-            <p className="text-xs text-muted-foreground">Juros sobre Capital Próprio (JCP) e rendimentos tributados retidos na fonte (CDB/Tesouro Direto)</p>
+            <h3 className="text-base font-bold text-foreground">Rendimentos de Tributação Exclusiva</h3>
+            <p className="text-sm text-muted-foreground">Juros sobre Capital Próprio (JCP) e rendimentos tributados retidos na fonte (CDB/Tesouro Direto)</p>
           </div>
 
           {Object.keys(tributacaoExclusivaMap).length === 0 ? (
@@ -377,7 +377,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               <CardContent className="flex flex-col items-center justify-center space-y-3">
                 <Percent className="w-12 h-12 text-muted-foreground/30" />
                 <span className="font-bold text-muted-foreground text-sm">Nenhum rendimento tributado identificado em {selectedYear}</span>
-                <p className="text-xs text-muted-foreground text-center max-w-sm">
+                <p className="text-sm text-muted-foreground text-center max-w-sm">
                   Receitas de investimentos nas subcategorias "Juros" ou "Rendimento CDB" geram este demonstrativo de imposto retido na fonte automaticamente.
                 </p>
               </CardContent>
@@ -391,18 +391,18 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                     <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="space-y-2 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
+                          <span className="text-sm font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
                             {item.codigo.split(' - ')[0]}
                           </span>
-                          <span className="text-xs font-bold text-amber-600 bg-amber-600/10 px-2 py-0.5 rounded-md">
+                          <span className="text-sm font-bold text-amber-600 bg-amber-600/10 px-2 py-0.5 rounded-md">
                             {item.tipo}
                           </span>
                         </div>
                         <div>
                           <h4 className="font-bold text-foreground text-sm">{item.fontePagadora}</h4>
-                          <span className="text-xs text-muted-foreground block">{item.codigo.split(' - ').slice(1).join(' - ')}</span>
+                          <span className="text-sm text-muted-foreground block">{item.codigo.split(' - ').slice(1).join(' - ')}</span>
                           {item.cnpj && (
-                            <div className="flex items-center gap-1.5 mt-1 font-mono text-[11px] text-muted-foreground">
+                            <div className="flex items-center gap-2 mt-1 font-mono text-sm text-muted-foreground">
                               <span>CNPJ Fonte Pagadora: {item.cnpj}</span>
                               <Button
                                 onClick={() => handleCopy(item.cnpj, fieldId)}
@@ -418,19 +418,19 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                       </div>
 
                       <div className="sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 flex flex-row sm:flex-col justify-between sm:justify-center items-center sm:items-end">
-                        <span className="text-xs text-muted-foreground block sm:mb-1">Valor Retido na Fonte</span>
-                        <span className="text-lg font-display font-extrabold text-foreground">
+                        <span className="text-sm text-muted-foreground block sm:mb-1">Valor Retido na Fonte</span>
+                        <span className="text-base font-display font-extrabold text-foreground">
                           R$ {item.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                         
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="link" size="sm" className="h-6 p-0 text-[10px] text-muted-foreground hover:text-primary">
+                              <Button variant="link" size="sm" className="h-6 p-0 text-sm text-muted-foreground hover:text-primary">
                                 Ver Detalhes ({item.detalhes.length} lançamentos)
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-xs text-xs space-y-1">
+                            <TooltipContent className="max-w-xs text-sm space-y-2">
                               {item.detalhes.map((d, i) => (
                                 <div key={i} className="font-mono">{d}</div>
                               ))}
@@ -449,22 +449,22 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
         {/* --- ABA 4: RENDA VARIÁVEL / CONTROLE DE GANHOS --- */}
         <TabsContent value="renda-variavel" className="space-y-6">
           <div className="space-y-0.5">
-            <h3 className="text-lg font-bold text-foreground">Demonstrativo de Renda Variável</h3>
-            <p className="text-xs text-muted-foreground">Controle mensal de volumes negociados e lucros ou prejuízos de mercado para emissão de DARF ou isenção</p>
+            <h3 className="text-base font-bold text-foreground">Demonstrativo de Renda Variável</h3>
+            <p className="text-sm text-muted-foreground">Controle mensal de volumes negociados e lucros ou prejuízos de mercado para emissão de DARF ou isenção</p>
           </div>
 
           {/* Grid de Informações de Renda Variável */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="p-4 border-emerald-500/20 bg-emerald-600/5">
-              <span className="text-xs text-muted-foreground block font-semibold">Volume de Compras no Ano</span>
-              <span className="text-xl font-display font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
+              <span className="text-sm text-muted-foreground block font-semibold">Volume de Compras no Ano</span>
+              <span className="text-base font-display font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
                 R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.compras, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>
 
             <Card className="p-4 border-blue-500/20 bg-blue-600/5">
-              <span className="text-xs text-muted-foreground block font-semibold">Volume de Vendas no Ano</span>
-              <span className="text-xl font-display font-black text-blue-600 dark:text-blue-400 mt-1 block">
+              <span className="text-sm text-muted-foreground block font-semibold">Volume de Vendas no Ano</span>
+              <span className="text-base font-display font-black text-blue-600 dark:text-blue-400 mt-1 block">
                 R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.vendas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>
@@ -475,7 +475,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               const isProfit = totalPnL >= 0;
               return (
                 <Card className={`p-4 border-${isProfit ? 'emerald' : 'rose'}-500/20 bg-${isProfit ? 'emerald' : 'rose'}-600/5`}>
-                  <span className="text-xs text-muted-foreground block font-semibold">Resultado Líquido Estimado</span>
+                  <span className="text-sm text-muted-foreground block font-semibold">Resultado Líquido Estimado</span>
                   <span className={`text-xl font-display font-black text-${isProfit ? 'emerald' : 'rose'}-600 dark:text-${isProfit ? 'emerald' : 'rose'}-400 mt-1 block`}>
                     {isProfit ? '+' : ''}R$ {totalPnL.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
@@ -493,7 +493,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </CardTitle>
             </CardHeader>
             <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
+              <table className="w-full text-sm text-left border-collapse">
                 <thead>
                   <tr className="bg-muted/30 border-b">
                     <th className="p-3 font-semibold text-muted-foreground">Mês</th>
@@ -532,11 +532,11 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                         <td className="p-3 text-center">
                           {res.vendasAcoes > 0 ? (
                             isExempt ? (
-                              <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-500/5 text-[10px] py-0 px-2 font-bold">
+                              <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-500/5 text-sm py-0 px-2 font-bold">
                                 Isento (&lt; 20k)
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-500/5 text-[10px] py-0 px-2 font-bold animate-pulse">
+                              <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-500/5 text-sm py-0 px-2 font-bold animate-pulse">
                                 Tributável (DARF)
                               </Badge>
                             )
@@ -557,12 +557,12 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
 
           {/* Histórico das Transações Realizadas */}
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
               <ChevronRight className="w-4 h-4 text-emerald-600" />
               Histórico Detalhado de Negociação ({selectedYear})
             </h4>
             {operationsOfYear.length === 0 ? (
-              <Card className="p-6 border-dashed text-center text-xs text-muted-foreground">
+              <Card className="p-6 border-dashed text-center text-sm text-muted-foreground">
                 Nenhuma negociação direta (Compra/Venda) registrada em {selectedYear}.
               </Card>
             ) : (
@@ -573,7 +573,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                   const dateStr = tx.date.split('-').reverse().join('/');
                   
                   return (
-                    <div key={tx.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-card text-xs">
+                    <div key={tx.id} className="flex items-center justify-between p-2.5 rounded-lg border bg-card text-sm">
                       <div className="flex items-center gap-2">
                         <div className={`p-1 rounded-md bg-${isBuy ? 'emerald' : 'rose'}-500/10 text-${isBuy ? 'emerald' : 'rose'}-600`}>
                           {isBuy ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
@@ -582,7 +582,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                           <span className="font-bold text-foreground">
                             {isBuy ? 'COMPRA' : 'VENDA'} - {(asset?.ticker || '').toUpperCase()}
                           </span>
-                          <span className="text-[10px] text-muted-foreground block">
+                          <span className="text-sm text-muted-foreground block">
                             {dateStr} | Quantidade: {Number(tx.quantity).toLocaleString('pt-BR', { maximumFractionDigits: 6 })}
                           </span>
                         </div>
@@ -591,7 +591,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                         <span className="font-bold text-foreground block">
                           R$ {(Number(tx.quantity) * Number(tx.price)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
-                        <span className="text-[10px] text-muted-foreground block">
+                        <span className="text-sm text-muted-foreground block">
                           Preço unitário: {asset?.currency === 'USD' ? 'US$' : 'R$'} {Number(tx.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                       </div>

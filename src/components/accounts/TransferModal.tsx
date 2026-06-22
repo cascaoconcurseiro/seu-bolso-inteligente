@@ -128,7 +128,7 @@ export function TransferModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Transferir entre contas</DialogTitle>
           <DialogDescription>
@@ -140,10 +140,10 @@ export function TransferModal({
           <div className="grid gap-4">
             {/* Conta de origem (readonly) */}
             <div className="space-y-2">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">De</Label>
+              <Label className="text-sm uppercase tracking-wider text-muted-foreground">De</Label>
               <div className="p-3 rounded-xl border border-border/50 bg-muted/20">
                 <p className="font-semibold text-sm">{fromAccountName}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   Saldo disponível: {getCurrencySymbol(fromAccountCurrency)} {fromAccountBalance.toFixed(2)}
                 </p>
               </div>
@@ -157,7 +157,7 @@ export function TransferModal({
 
             {/* Conta de destino */}
             <div className="space-y-2">
-              <Label htmlFor="to-account" className="text-xs uppercase tracking-wider text-muted-foreground">Para</Label>
+              <Label htmlFor="to-account" className="text-sm uppercase tracking-wider text-muted-foreground">Para</Label>
               <Select value={toAccountId} onValueChange={setToAccountId}>
                 <SelectTrigger id="to-account" className="h-12 rounded-xl">
                   <SelectValue placeholder="Selecione a conta de destino" />
@@ -168,7 +168,7 @@ export function TransferModal({
                       <div className="flex items-center gap-2 font-medium">
                         {account.name}
                         {account.is_international && (
-                          <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             {account.currency}
                           </span>
                         )}
@@ -184,7 +184,7 @@ export function TransferModal({
           {isCrossCurrency && (
             <Alert className="border-blue-200/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 rounded-xl">
               <ArrowRightLeft className="h-4 w-4" />
-              <AlertDescription className="text-xs font-medium">
+              <AlertDescription className="text-sm font-medium">
                 Transferência internacional ({fromAccountCurrency} → {destCurrency}).
                 A cotação é obrigatória.
               </AlertDescription>
@@ -204,7 +204,7 @@ export function TransferModal({
               autoFocus
             />
             {isInvalid && (
-              <p className="text-xs font-medium text-destructive mt-1">Saldo insuficiente</p>
+              <p className="text-sm font-medium text-destructive mt-1">Saldo insuficiente</p>
             )}
           </div>
 
@@ -222,14 +222,14 @@ export function TransferModal({
                   placeholder="Ex: 5,50"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(e.target.value)}
-                  className="h-11 rounded-xl"
+                  className="h-12 rounded-xl"
                 />
               </div>
 
               {/* Valor de destino calculado */}
               {destinationAmount && (
                 <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex flex-col gap-1">
-                  <p className="text-[10px] text-blue-600/80 dark:text-blue-400/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
+                  <p className="text-sm text-blue-600/80 dark:text-blue-400/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
                   <p className="font-mono font-black text-2xl text-blue-700 dark:text-blue-400">
                     {getCurrencySymbol(destCurrency)} {destinationAmount}
                   </p>
@@ -240,14 +240,14 @@ export function TransferModal({
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-xs uppercase tracking-wider text-muted-foreground">Descrição (Opcional)</Label>
+            <Label htmlFor="description" className="text-sm uppercase tracking-wider text-muted-foreground">Descrição (Opcional)</Label>
             <Input
               id="description"
               type="text"
               placeholder="Ex: Pagamento, Reserva..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="h-11 rounded-xl"
+              className="h-12 rounded-xl"
             />
           </div>
 

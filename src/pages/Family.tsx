@@ -40,7 +40,7 @@ export function Family() {
             <div className="skeleton h-10 w-48 rounded-xl" />
             <div className="skeleton h-4 w-64 rounded-lg" />
           </div>
-          <div className="skeleton h-11 w-36 rounded-xl" />
+          <div className="skeleton h-12 w-36 rounded-xl" />
         </div>
       </div>
       <div className="skeleton h-20 rounded-2xl" />
@@ -79,7 +79,7 @@ export function Family() {
             <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Gerencie o núcleo familiar e as contas vinculadas</p>
           </div>
           {canInvite && (
-            <Button size="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold" onClick={() => setShowInviteDialog(true)}>
+            <Button size="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold" onClick={() => setShowInviteDialog(true)}>
               <UserPlus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" /> 
               Convidar
             </Button>
@@ -115,7 +115,7 @@ export function Family() {
             <p className="text-muted-foreground text-center max-w-md text-sm mb-6">
               Convide familiares para participarem da sua conta, compartilharem viagens ou cartões de crédito em conjunto.
             </p>
-            <Button onClick={() => setShowInviteDialog(true)} className="h-11 px-6 rounded-full shadow-lg shadow-primary/20">
+            <Button onClick={() => setShowInviteDialog(true)} className="h-12 px-6 rounded-full shadow-lg shadow-primary/20">
               <Plus className="w-4 h-4 mr-2" />
               Convidar Membro
             </Button>

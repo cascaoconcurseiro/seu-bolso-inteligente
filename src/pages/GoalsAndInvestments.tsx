@@ -104,11 +104,11 @@ export function GoalsAndInvestments() {
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       {/* Header com Glassmorphism */}
-      <div className="sticky top-2 z-40 relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter text-foreground">
+          <div className="space-y-2">
+            <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter text-foreground">
               Metas e Investimentos
             </h1>
             <p className="text-muted-foreground mt-2 text-sm md:text-base font-medium flex items-center gap-2">
@@ -124,7 +124,7 @@ export function GoalsAndInvestments() {
                   onClick={() => syncPrices.mutate()}
                   disabled={syncPrices.isPending}
                   variant="outline"
-                  className="shadow-sm transition-all h-11 font-medium bg-background/50 backdrop-blur-sm"
+                  className="shadow-sm transition-all h-12 font-medium bg-background/50 backdrop-blur-sm"
                 >
                   <RefreshCw className={cn("w-4 h-4 mr-2", syncPrices.isPending && "animate-spin")} />
                   {syncPrices.isPending ? 'Sincronizando...' : 'Atualizar Cotações'}
@@ -141,7 +141,7 @@ export function GoalsAndInvestments() {
                   }
                 }}
                 size="default"
-                className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold"
+                className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold"
               >
                 <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                 {activeTab === 'GOALS' ? 'Nova Meta' : 'Novo Ativo'}
@@ -364,7 +364,7 @@ export function GoalsAndInvestments() {
       )}
 
       <AlertDialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
-        <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir {itemToDelete?.type === 'goal' ? 'Meta' : 'Investimento'}?</AlertDialogTitle>
             <AlertDialogDescription>

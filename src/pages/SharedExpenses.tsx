@@ -318,16 +318,16 @@ export function SharedExpenses() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Compartilhados</h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Despesas divididas com a família e amigos</p>
+            <h1 className="font-display font-black text-3xl tracking-tighter">Compartilhados</h1>
+            <p className="text-muted-foreground text-sm font-medium">Despesas divididas com a família e amigos</p>
           </div>
           <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-            <Button size="icon" variant="outline" className="shadow-sm border-border/80 h-11 w-11 shrink-0 bg-background/50 backdrop-blur-sm" onClick={() => setShowSettingsModal(true)} title="Configurações de Fechamento">
+            <Button size="icon" variant="outline" className="shadow-sm border-border/80 h-12 w-12 shrink-0 bg-background/50 backdrop-blur-sm" onClick={() => setShowSettingsModal(true)} title="Configurações de Fechamento">
               <Settings className="h-5 w-5 text-muted-foreground" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-11">
+                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-12">
                   <Download className="h-5 w-5" />
                   <span>Exportar</span>
                 </Button>
@@ -348,7 +348,7 @@ export function SharedExpenses() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="default" variant="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2 w-full sm:w-auto h-11" onClick={() => setShowImportDialog(true)}>
+            <Button size="default" variant="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2 w-full sm:w-auto h-12" onClick={() => setShowImportDialog(true)}>
               <Layers className="h-5 w-5" /> 
               <span>Importar Parcelas</span>
             </Button>
@@ -364,21 +364,21 @@ export function SharedExpenses() {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)} className="w-full">
         <TabsList className="grid grid-cols-3 w-full h-auto p-1.5 bg-secondary/30 rounded-2xl mb-8 shadow-inner border border-border/40">
           <TabsTrigger value="REGULAR" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-2">
               <Users className="h-4 w-4" />
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Regular</span>
+              <span className="text-sm font-bold uppercase tracking-wider">Regular</span>
             </div>
           </TabsTrigger>
           <TabsTrigger value="TRAVEL" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-2">
               <Plane className="h-4 w-4" />
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Viagens</span>
+              <span className="text-sm font-bold uppercase tracking-wider">Viagens</span>
             </div>
           </TabsTrigger>
           <TabsTrigger value="HISTORY" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-2">
               <History className="h-4 w-4" />
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider">Histórico</span>
+              <span className="text-sm font-bold uppercase tracking-wider">Histórico</span>
             </div>
           </TabsTrigger>
         </TabsList>
@@ -387,9 +387,9 @@ export function SharedExpenses() {
           {members.length === 0 ? (
             <div className="py-16 text-center border border-dashed border-border/80 bg-card/20 rounded-xl space-y-4 max-w-md mx-auto">
               <Users className="h-12 w-12 mx-auto text-muted-foreground/60" />
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <p className="text-muted-foreground font-semibold text-base">Nenhum membro ativo</p>
-                <p className="text-xs text-muted-foreground/60 max-w-xs mx-auto">
+                <p className="text-sm text-muted-foreground/60 max-w-xs mx-auto">
                   Convide membros da sua família para começar a dividir despesas e gerenciar orçamentos compartilhados.
                 </p>
               </div>
@@ -493,11 +493,11 @@ export function SharedExpenses() {
         settlingMode={settlingMode}
       />
       
-      <AlertDialog open={undoConfirm.isOpen} onOpenChange={(o) => !o && setUndoConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Desfazer Acerto</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleUndoSettlement}>Desfazer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(o) => !o && setDeleteConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Excluir Transação</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive">Excluir</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={deleteSeriesConfirm.isOpen} onOpenChange={(o) => !o && setDeleteSeriesConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Excluir Série</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeries} className="bg-destructive">Excluir</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={undoAllConfirm} onOpenChange={setUndoAllConfirm}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Desfazer Tudo?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleUndoAll} className="bg-destructive" disabled={isUndoingAll}>{isUndoingAll ? "..." : "Sim"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
-      <AlertDialog open={rejectDialog.isOpen} onOpenChange={(o) => setRejectDialog({ ...rejectDialog, isOpen: o })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Recusar Acerto</AlertDialogTitle></AlertDialogHeader><div className="py-4 space-y-2"><Label>Motivo</Label><Input value={rejectDialog.reason} onChange={(e) => setRejectDialog({ ...rejectDialog, reason: e.target.value })} /></div><AlertDialogFooter><AlertDialogCancel>Voltar</AlertDialogCancel><AlertDialogAction className="bg-destructive" onClick={() => {
+      <AlertDialog open={undoConfirm.isOpen} onOpenChange={(o) => !o && setUndoConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Desfazer Acerto</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleUndoSettlement}>Desfazer</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={deleteConfirm.isOpen} onOpenChange={(o) => !o && setDeleteConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Excluir Transação</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive">Excluir</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={deleteSeriesConfirm.isOpen} onOpenChange={(o) => !o && setDeleteSeriesConfirm({ isOpen: false, item: null })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Excluir Série</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleDeleteSeries} className="bg-destructive">Excluir</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={undoAllConfirm} onOpenChange={setUndoAllConfirm}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Desfazer Tudo?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={handleUndoAll} className="bg-destructive" disabled={isUndoingAll}>{isUndoingAll ? "..." : "Sim"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+      <AlertDialog open={rejectDialog.isOpen} onOpenChange={(o) => setRejectDialog({ ...rejectDialog, isOpen: o })}><AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden"><AlertDialogHeader><AlertDialogTitle>Recusar Acerto</AlertDialogTitle></AlertDialogHeader><div className="py-4 space-y-2"><Label>Motivo</Label><Input value={rejectDialog.reason} onChange={(e) => setRejectDialog({ ...rejectDialog, reason: e.target.value })} /></div><AlertDialogFooter><AlertDialogCancel>Voltar</AlertDialogCancel><AlertDialogAction className="bg-destructive" onClick={() => {
         if (rejectDialog.item) {
           if (rejectDialog.item.settledByCreditor && !rejectDialog.item.settledByDebtor) {
             handleRejectDebtorSettlement([rejectDialog.item], rejectDialog.reason);

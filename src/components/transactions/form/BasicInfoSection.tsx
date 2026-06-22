@@ -52,7 +52,7 @@ export function BasicInfoSection({
             placeholder="Ex: Almoço, Uber, Salário"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="h-12 pr-10 text-lg relative z-10 bg-transparent"
+            className="h-12 pr-10 text-base relative z-10 bg-transparent"
           />
           
           {isPredicting && (
@@ -96,7 +96,7 @@ export function BasicInfoSection({
             format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
             format(date, 'yyyy-MM-dd') > selectedTrip.end_date
           ) && (
-              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-tight">
+              <p className="text-sm font-bold text-amber-600 dark:text-amber-400 leading-tight">
                 ⚠️ Data fora do período da viagem ({format(parseLocalDate(selectedTrip.start_date), 'dd/MM/yy')} - {format(parseLocalDate(selectedTrip.end_date), 'dd/MM/yy')})
               </p>
             )}
@@ -134,7 +134,7 @@ export function BasicInfoSection({
           <div className="space-y-2">
             <Label>Categoria</Label>
             <div className="h-12 flex items-center justify-center bg-muted rounded-md">
-              <span className="text-xs font-bold text-muted-foreground">Automático</span>
+              <span className="text-sm font-bold text-muted-foreground">Automático</span>
             </div>
           </div>
         )}

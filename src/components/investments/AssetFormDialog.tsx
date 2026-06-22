@@ -229,12 +229,12 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { resetForm(); onClose(); } }}>
-      <DialogContent className="w-full sm:w-[520px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
+      <DialogContent className="w-full sm:w-[520px] max-w-lg !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
-          <DialogTitle className="text-xl font-display font-bold">
+          <DialogTitle className="text-base font-display font-bold">
             {asset ? 'Editar Ativo' : 'Novo Investimento'}
           </DialogTitle>
           <DialogDescription>
@@ -247,7 +247,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
           {/* 1. LOCALIZAÇÃO (sempre primeiro - condiciona tudo) */}
           <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground">
+            <Label className="text-sm uppercase tracking-wider font-bold text-muted-foreground">
               Onde está custodiado?
             </Label>
             <div className="grid grid-cols-2 gap-3">
@@ -264,7 +264,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 <span className="text-2xl">🇧🇷</span>
                 <div>
                   <p className="text-sm font-semibold">Brasil</p>
-                  <p className="text-[10px] text-muted-foreground">B3 · BRL</p>
+                  <p className="text-sm text-muted-foreground">B3 · BRL</p>
                 </div>
               </button>
               <button
@@ -280,7 +280,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 <Globe className="w-7 h-7 text-blue-500 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">Exterior</p>
-                  <p className="text-[10px] text-muted-foreground">NYSE · NASDAQ · etc.</p>
+                  <p className="text-sm text-muted-foreground">NYSE · NASDAQ · etc.</p>
                 </div>
               </button>
             </div>
@@ -344,8 +344,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                       >
                         <span className="font-mono font-bold text-sm w-16 shrink-0">{s.ticker}</span>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium truncate">{s.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{s.sector}</p>
+                          <p className="text-sm font-medium truncate">{s.name}</p>
+                          <p className="text-sm text-muted-foreground">{s.sector}</p>
                         </div>
                       </button>
                     ))}
@@ -365,7 +365,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 placeholder="Ex: 110"
                 className="bg-background"
               />
-              <p className="text-[10px] text-blue-600/80 dark:text-blue-400/80">Opcional. Preencha para calcular o rendimento automático.</p>
+              <p className="text-sm text-blue-600/80 dark:text-blue-400/80">Opcional. Preencha para calcular o rendimento automático.</p>
             </div>
           )}
 
@@ -405,7 +405,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="0"
-                className="font-mono h-12 text-lg text-center"
+                className="font-mono h-12 text-base text-center"
               />
             </div>
             
@@ -418,13 +418,13 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 currencySymbol={currencySymbol}
                 size="sm"
               />
-              <p className="text-[10px] text-muted-foreground text-center">Total pago pela posição</p>
+              <p className="text-sm text-muted-foreground text-center">Total pago pela posição</p>
             </div>
 
             {/* PM calculado em tempo real */}
             {avgPrice && (
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border">
-                <span className="text-xs text-muted-foreground font-medium">Preço Médio calculado:</span>
+                <span className="text-sm text-muted-foreground font-medium">Preço Médio calculado:</span>
                 <span className="font-mono font-bold text-sm text-foreground">
                   {currencySymbol} {moneyUtils.parse(avgPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
                 </span>
@@ -443,7 +443,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
           {/* 6. CORRETORA */}
           <div className="space-y-3">
-            <Label className="text-xs uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
+            <Label className="text-sm uppercase tracking-wider font-bold text-muted-foreground flex items-center gap-2">
               <Building2 className="w-3.5 h-3.5" />
               Corretora / Instituição
             </Label>
@@ -456,7 +456,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                   <SelectItem key={b.id} value={b.id}>
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-6 h-6 rounded text-[10px] font-bold flex items-center justify-center shrink-0"
+                        className="w-6 h-6 rounded text-sm font-bold flex items-center justify-center shrink-0"
                         style={{ backgroundColor: b.color, color: b.textColor }}
                       >
                         {b.icon}
@@ -469,7 +469,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             </Select>
 
             {isCustomBroker(brokerId) && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label>Nome da corretora (personalizado)</Label>
                 <Input
                   value={customBrokerName}
@@ -482,8 +482,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
             {/* Conta bancária vinculada (opcional) */}
             {accounts && accounts.filter(a => a.type !== 'CREDIT_CARD').length > 0 && (
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Conta bancária vinculada (opcional)</Label>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-sm">Conta bancária vinculada (opcional)</Label>
                 <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Nenhuma" />
@@ -499,7 +499,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                       ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Vinculando a uma conta, as operações de compra/venda debitarão/creditarão nela.
                 </p>
               </div>

@@ -99,7 +99,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
         </div>
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-lg mb-2">
+          <h3 className="font-display font-semibold text-base mb-2">
             Controle de Câmbio
           </h3>
           <p className="text-muted-foreground mb-6">
@@ -131,7 +131,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
       {/* Lista de compras */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
             Compras de Câmbio ({purchases.length})
           </h2>
           <Button variant="outline" size="sm" onClick={handleOpenDialog}>
@@ -160,12 +160,12 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                     })}
                   </div>
                   {purchase.is_automated && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                       🌍 Automático - Conta Global
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                   <span>
                     Taxa: R$ {purchase.exchange_rate.toFixed(4)}
                   </span>
@@ -205,7 +205,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                         </Button>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-[240px] text-xs p-3">
+                    <TooltipContent side="left" className="max-w-[240px] text-sm p-3">
                       Compra automática integrada das suas contas globais. Edite a transferência original na página de transações para efetuar alterações.
                     </TooltipContent>
                   </Tooltip>
@@ -246,7 +246,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={!!deletingPurchase} onOpenChange={() => setDeletingPurchase(null)}>
-        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir compra de câmbio?</AlertDialogTitle>
             <AlertDialogDescription>

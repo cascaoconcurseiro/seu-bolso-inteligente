@@ -122,7 +122,7 @@ export function FixedIncomeSimulator() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <Card className="lg:col-span-1 bg-card/50 border-border/50 shadow-sm h-fit">
         <CardHeader>
-          <CardTitle className="text-xl">Parâmetros</CardTitle>
+          <CardTitle className="text-base">Parâmetros</CardTitle>
           <CardDescription>Configure os aportes e a taxa de juros</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -222,7 +222,7 @@ export function FixedIncomeSimulator() {
               <span className="text-muted-foreground font-medium">Rentabilidade Bruta:</span>
               <div className="flex flex-col items-end">
                 <span className="font-bold text-primary font-mono">{annualRate.toFixed(2)}% a.a</span>
-                <span className="text-[10px] text-muted-foreground font-mono">
+                <span className="text-sm text-muted-foreground font-mono">
                   ({((Math.pow(1 + annualRate / 100, 1 / 12) - 1) * 100).toFixed(2)}% a.m)
                 </span>
               </div>
@@ -259,7 +259,7 @@ export function FixedIncomeSimulator() {
                 {moneyUtils.format(results.netBalance, 'BRL')}
               </p>
               {results.totalTax > 0 && (
-                <p className="text-[10px] text-muted-foreground mt-2 font-medium">
+                <p className="text-sm text-muted-foreground mt-2 font-medium">
                   Já descontado {moneyUtils.format(results.totalTax, 'BRL')} de IR ({results.taxRate}%).
                 </p>
               )}
@@ -270,12 +270,12 @@ export function FixedIncomeSimulator() {
         <Card className="bg-card/50 border-border/50 shadow-sm">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
             <div>
-              <CardTitle className="text-lg">Evolução do Patrimônio</CardTitle>
+              <CardTitle className="text-base">Evolução do Patrimônio</CardTitle>
               <CardDescription>O poder dos juros compostos com o tempo</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Select value={viewMode} onValueChange={(v: any) => setViewMode(v)}>
-                <SelectTrigger className="w-[130px] h-8 text-xs bg-background">
+                <SelectTrigger className="w-[130px] h-8 text-sm bg-background">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -292,7 +292,7 @@ export function FixedIncomeSimulator() {
             <div className="rounded-xl border border-border/50 overflow-hidden mt-4">
               <div className="max-h-[350px] overflow-y-auto scrollbar-hide">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold bg-muted/50 sticky top-0 z-10 shadow-sm">
+                  <thead className="text-sm text-muted-foreground uppercase tracking-widest font-bold bg-muted/50 sticky top-0 z-10 shadow-sm">
                     <tr>
                       <th className="px-4 py-3">Período</th>
                       <th className="px-4 py-3 text-right">Total Investido</th>
@@ -303,16 +303,16 @@ export function FixedIncomeSimulator() {
                   <tbody className="divide-y divide-border/50">
                     {visibleData.map((d) => (
                       <tr key={d.month} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3 font-medium text-xs">
+                        <td className="px-4 py-3 font-medium text-sm">
                           Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
                         </td>
-                        <td className="px-4 py-3 font-mono text-right text-xs text-muted-foreground">
+                        <td className="px-4 py-3 font-mono text-right text-sm text-muted-foreground">
                           {moneyUtils.format(d.invested, 'BRL')}
                         </td>
-                        <td className="px-4 py-3 font-mono text-right text-xs font-bold text-emerald-600/80 dark:text-emerald-500/80">
+                        <td className="px-4 py-3 font-mono text-right text-sm font-bold text-emerald-600/80 dark:text-emerald-500/80">
                           +{moneyUtils.format(d.grossYield, 'BRL')}
                         </td>
-                        <td className="px-4 py-3 font-mono text-right text-xs font-bold text-foreground">
+                        <td className="px-4 py-3 font-mono text-right text-sm font-bold text-foreground">
                           {moneyUtils.format(d.grossBalance, 'BRL')}
                         </td>
                       </tr>

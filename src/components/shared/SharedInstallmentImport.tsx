@@ -225,7 +225,7 @@ export function SharedInstallmentImport({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md overflow-hidden flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
+      <DialogContent className="sm:max-w-md overflow-hidden flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 pr-12">
             <Layers className="h-5 w-5 text-primary shrink-0" />
@@ -246,13 +246,13 @@ export function SharedInstallmentImport({
                     <Info className="h-4 w-4 shrink-0" />
                     <span>O que é o Parcelado Compartilhado?</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     Esta funcionalidade serve para <strong>importar parcelas que já estão em andamento</strong> no compartilhado, dividindo e cobrando outro membro automaticamente pelos meses restantes.
                   </p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     <strong>Exemplo Prático:</strong> Se você comprou uma geladeira em 10x, já pagou 2 e faltam 8 parcelas, informe "8" em Parcelas Restantes e o mês da próxima cobrança. A ferramenta projetará essas parcelas futuras e cobrará o membro selecionado mês a mês.
                   </p>
-                  <div className="pt-1.5 text-[11px] font-semibold text-primary border-t border-border mt-1">
+                  <div className="pt-1.5 text-sm font-semibold text-primary border-t border-border mt-1">
                     💡 Dica: Informe o valor unitário de <strong>cada parcela</strong>. O total da compra será calculado de forma precisa e automatizada.
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export function SharedInstallmentImport({
           <DialogDescription>
             Importe as parcelas restantes para outro membro pagar.
             <br />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               💰 Informe o valor de cada parcela - o total será calculado automaticamente
             </span>
           </DialogDescription>
@@ -271,9 +271,9 @@ export function SharedInstallmentImport({
         <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1 no-scrollbar">
           {/* Erros de validação (se existirem) */}
           {errors.length > 0 && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-lg space-y-1">
+            <div className="p-3 bg-destructive/10 text-destructive rounded-lg space-y-2">
               {errors.map((error, idx) => (
-                <p key={idx} className="text-xs flex items-center gap-1.5 font-medium">
+                <p key={idx} className="text-sm flex items-center gap-2 font-medium">
                   <AlertCircle className="h-3.5 w-3.5" />
                   {error}
                 </p>
@@ -323,7 +323,7 @@ export function SharedInstallmentImport({
           {totalAmount > 0 && (
             <div className="bg-muted/50 rounded-lg p-3 text-center">
               <p className="text-sm text-muted-foreground">Valor total</p>
-              <p className="font-mono text-lg font-bold">{formatCurrency(totalAmount)}</p>
+              <p className="font-mono text-base font-bold">{formatCurrency(totalAmount)}</p>
             </div>
           )}
 
@@ -345,12 +345,12 @@ export function SharedInstallmentImport({
             {lastInstallmentText && (
               <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-2.5 flex items-center gap-2 mt-1 animate-fade-in">
                 <AlertCircle className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-xs text-foreground font-medium">
+                <span className="text-sm text-foreground font-medium">
                   A última parcela (de {installments}) será cobrada em <strong className="text-primary">{lastInstallmentText}</strong>.
                 </span>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               📅 Parcelas criadas automaticamente no primeiro dia de cada mês
             </p>
           </div>
@@ -365,7 +365,7 @@ export function SharedInstallmentImport({
               type="expense"
               placeholder="Selecione uma categoria"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               🏷️ Ajuda a organizar e controlar seus gastos mensais
             </p>
           </div>
@@ -405,7 +405,7 @@ export function SharedInstallmentImport({
                 {assigneeId && (
                   <div className="p-3 bg-muted/30 border border-border rounded-xl space-y-3 animate-fade-in mt-2">
                     <div className="flex justify-between items-center">
-                      <Label className="text-xs font-semibold text-muted-foreground">Porcentagem do membro selecionado</Label>
+                      <Label className="text-sm font-semibold text-muted-foreground">Porcentagem do membro selecionado</Label>
                       <span className="font-mono text-sm font-bold text-primary">{assigneePercentage}%</span>
                     </div>
 
@@ -419,7 +419,7 @@ export function SharedInstallmentImport({
                           value={assigneePercentage}
                           onChange={(e) => setAssigneePercentage(parseInt(e.target.value))}
                           disabled={isSubmitting}
-                          className="flex-1 accent-primary h-1.5 bg-muted rounded-lg cursor-pointer"
+                          className="flex-1 accent-primary h-2 bg-muted rounded-lg cursor-pointer"
                         />
                         <input
                           type="number"
@@ -431,7 +431,7 @@ export function SharedInstallmentImport({
                             setAssigneePercentage(val);
                           }}
                           disabled={isSubmitting}
-                          className="w-14 h-8 text-center rounded border border-border bg-background text-xs font-mono"
+                          className="w-14 h-8 text-center rounded border border-border bg-background text-sm font-mono"
                         />
                       </div>
 
@@ -444,7 +444,7 @@ export function SharedInstallmentImport({
                             disabled={isSubmitting}
                             onClick={() => setAssigneePercentage(pct)}
                             className={cn(
-                              "flex-1 py-1 px-2 text-[10px] rounded font-semibold border transition-all",
+                              "flex-1 py-1 px-2 text-xs rounded font-semibold border transition-all",
                               assigneePercentage === pct
                                 ? "bg-primary/10 text-primary border-primary/30"
                                 : "bg-background border-border hover:bg-muted text-muted-foreground"
@@ -458,15 +458,15 @@ export function SharedInstallmentImport({
 
                     {/* Simulador de Gastos em Tempo Real */}
                     {installmentAmount > 0 && (
-                      <div className="pt-2.5 border-t border-border space-y-1.5 text-xs">
-                        <p className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">📊 Resumo da divisão das parcelas</p>
+                      <div className="pt-2.5 border-t border-border space-y-2.5 text-sm">
+                        <p className="font-bold text-sm uppercase tracking-wider text-muted-foreground flex items-center gap-1">📊 Resumo da divisão das parcelas</p>
                         
                         <div className="flex justify-between items-center text-muted-foreground">
                           <span>Sua parte ({100 - assigneePercentage}%):</span>
                           <span className="font-mono text-foreground font-medium">
-                            {formatCurrency(creatorParcelAmount)} <span className="text-[10px] text-muted-foreground">/ mês</span>
+                            {formatCurrency(creatorParcelAmount)} <span className="text-sm text-muted-foreground">/ mês</span>
                             {parseInt(installments) > 1 && (
-                              <span className="text-[10px] ml-1 block text-right text-muted-foreground">(Total: {formatCurrency(creatorTotalAmount)})</span>
+                              <span className="text-sm ml-1 block text-right text-muted-foreground">(Total: {formatCurrency(creatorTotalAmount)})</span>
                             )}
                           </span>
                         </div>
@@ -474,9 +474,9 @@ export function SharedInstallmentImport({
                         <div className="flex justify-between items-center text-foreground font-medium">
                           <span>Parte de {members.find(m => m.id === assigneeId)?.name.split(' ')[0]} ({assigneePercentage}%):</span>
                           <span className="font-mono text-primary font-bold">
-                            {formatCurrency(assigneeParcelAmount)} <span className="text-[10px] text-primary/70">/ mês</span>
+                            {formatCurrency(assigneeParcelAmount)} <span className="text-sm text-primary/70">/ mês</span>
                             {parseInt(installments) > 1 && (
-                              <span className="text-[10px] ml-1 block text-right text-primary/70 font-normal">(Total: {formatCurrency(assigneeTotalAmount)})</span>
+                              <span className="text-sm ml-1 block text-right text-primary/70 font-normal">(Total: {formatCurrency(assigneeTotalAmount)})</span>
                             )}
                           </span>
                         </div>

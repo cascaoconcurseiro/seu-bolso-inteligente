@@ -83,7 +83,7 @@ export function SharedSettleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-lg overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
@@ -115,7 +115,7 @@ export function SharedSettleDialog({
               return (
                 <Alert className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/15">
                   <Info className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <AlertDescription className="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                  <AlertDescription className="text-sm text-emerald-700 dark:text-emerald-400 leading-relaxed">
                     <strong>💡 Compensação Automática de Saldos:</strong> Como você possui valores a pagar e a receber com <strong>{member?.name}</strong>, o sistema realiza automaticamente o <em>encontro de contas</em>. Os débitos e créditos mútuos são abatidos, resultando em apenas um único pagamento ou recebimento líquido (a diferença final).
                   </AlertDescription>
                 </Alert>
@@ -193,7 +193,7 @@ export function SharedSettleDialog({
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-sm font-medium">Itens para acertar</Label>
                 {settlingMode !== "SINGLE" && (
-                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs h-7 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-sm h-7 shrink-0">
                     {selectedItems.length === pendingMemberItems.length ? "Desmarcar" : "Selecionar todos"}
                   </Button>
                 )}
@@ -211,7 +211,7 @@ export function SharedSettleDialog({
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm truncate">{item.description}</p>
-                        <p className="text-xs text-muted-foreground">{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}</p>
+                        <p className="text-sm text-muted-foreground">{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}</p>
                       </div>
                       <div className="text-right">
                         <span className={cn("font-mono text-sm font-medium", isCredit ? "text-green-600" : "text-red-600")}>

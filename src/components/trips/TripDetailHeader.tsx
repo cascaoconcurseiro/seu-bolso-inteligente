@@ -40,7 +40,7 @@ export function TripDetailHeader({
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm mb-8">
+    <div className="relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm mb-8">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
       
       <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -49,24 +49,24 @@ export function TripDetailHeader({
             variant="ghost" 
             size="icon" 
             onClick={onBack} 
-            className="mt-1 rounded-full h-11 w-11 hover:bg-muted transition-all active:scale-95 shrink-0 shadow-sm border border-border/40"
+            className="mt-1 rounded-full h-12 w-11 hover:bg-muted transition-all active:scale-95 shrink-0 shadow-sm border border-border/40"
           >
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </Button>
           
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="font-display font-black text-3xl md:text-5xl tracking-tighter text-foreground truncate">
+              <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter text-foreground truncate">
                 {trip.name}
               </h1>
               <div className="flex gap-2">
                 {trip.is_archived && (
-                  <span className="px-3 py-1 rounded-full bg-muted/80 text-[10px] font-black text-muted-foreground uppercase tracking-widest border border-border/50 flex items-center shadow-sm">
+                  <span className="px-3 py-1 rounded-full bg-muted/80 text-sm font-black text-muted-foreground uppercase tracking-widest border border-border/50 flex items-center shadow-sm">
                     Arquivada
                   </span>
                 )}
                 <span className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center shadow-sm",
+                  "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border flex items-center shadow-sm",
                   trip.status === "ACTIVE" 
                     ? "bg-green-500/10 text-green-600 border-green-500/20" 
                     : trip.status === "PLANNING"
@@ -95,7 +95,7 @@ export function TripDetailHeader({
                       </div>
                     ))}
                     {participants.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px] font-bold text-muted-foreground z-0 relative shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-sm font-bold text-muted-foreground z-0 relative shadow-sm">
                         +{participants.length - 4}
                       </div>
                     )}
@@ -111,29 +111,29 @@ export function TripDetailHeader({
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {trip.destination && (
-                <span className="flex items-center gap-1.5 font-medium">
+                <span className="flex items-center gap-2 font-medium">
                   <MapPin className="h-4 w-4 text-primary/70" />
                   {trip.destination}
                 </span>
               )}
-              <span className="flex items-center gap-1.5 font-medium">
+              <span className="flex items-center gap-2 font-medium">
                 <Globe className="h-4 w-4 text-primary/70" />
                 Moeda: <strong className="text-foreground">{trip.currency}</strong>
               </span>
               {currency !== 'BRL' && (
-                <span className="flex items-center gap-1.5 font-medium px-2.5 py-1 bg-card/60 backdrop-blur shadow-sm border border-border/50 rounded-lg">
+                <span className="flex items-center gap-2 font-medium px-2.5 py-1 bg-card/60 backdrop-blur shadow-sm border border-border/50 rounded-lg">
                   {isRateLoading ? (
                     <RefreshCcw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
                   ) : realTimeRate ? (
-                    <span className="font-mono text-xs font-bold text-foreground">
+                    <span className="font-mono text-sm font-bold text-foreground">
                       1 {currency} = R$ {realTimeRate.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">Cotação indisponível</span>
+                    <span className="text-sm text-muted-foreground">Cotação indisponível</span>
                   )}
                 </span>
               )}
-              <span className="flex items-center gap-1.5 font-medium">
+              <span className="flex items-center gap-2 font-medium">
                 <User className="h-4 w-4 text-primary/70" />
                 {permissions?.isOwner ? "Proprietário" : "Colaborador"}
               </span>

@@ -18,7 +18,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
   if (!bank) return null;
 
   const sizeClasses = {
-    sm: "w-8 h-8 text-[10px]",
+    sm: "w-8 h-8 text-xs",
     md: "w-12 h-12 text-sm",
     lg: "w-16 h-16 text-base",
   };
@@ -88,7 +88,7 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
 
   const sizeClasses = {
     sm: "w-8 h-5 text-[8px]",
-    md: "w-12 h-8 text-[10px]",
+    md: "w-12 h-8 text-xs",
     lg: "w-16 h-10 text-xs",
   };
 

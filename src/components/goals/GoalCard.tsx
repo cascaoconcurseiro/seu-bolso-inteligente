@@ -61,16 +61,16 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
               <Target className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-foreground leading-tight">{goal.name}</h3>
+              <h3 className="text-base font-bold text-foreground leading-tight">{goal.name}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
+                  "text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
                   goal.status === 'COMPLETED' ? "bg-green-500/10 text-green-600" : "bg-primary/10 text-primary"
                 )}>
                   {goal.status === 'COMPLETED' ? 'Concluída' : 'Em Progresso'}
                 </span>
                 {goal.priority === 'HIGH' && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 uppercase tracking-wider">
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 uppercase tracking-wider">
                     Prioridade Alta
                   </span>
                 )}
@@ -97,13 +97,13 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
         <div className="space-y-4">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-widest mb-1">Acumulado</p>
+              <p className="text-sm text-muted-foreground uppercase font-semibold tracking-widest mb-1">Acumulado</p>
               <p className="font-display text-2xl xs:text-3xl font-black text-foreground tracking-tighter">
                 {moneyUtils.format(goal.current_amount ?? 0, 'BRL')}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-widest mb-1">Objetivo</p>
+              <p className="text-sm text-muted-foreground uppercase font-semibold tracking-widest mb-1">Objetivo</p>
               <p className="text-sm font-mono font-bold text-foreground/70">
                 {moneyUtils.format(goal.target_amount, 'BRL')}
               </p>
@@ -111,12 +111,12 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                 <TooltipProvider>
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
-                      <p className="text-[10px] font-mono font-bold text-amber-500/80 mt-0.5 flex items-center justify-end gap-1 cursor-help hover:text-amber-500 transition-colors">
+                      <p className="text-sm font-mono font-bold text-amber-500/80 mt-0.5 flex items-center justify-end gap-1 cursor-help hover:text-amber-500 transition-colors">
                         Real: {moneyUtils.format(adjustedTarget, 'BRL')} <Info className="h-3 w-3" />
                       </p>
                     </TooltipTrigger>
                     <TooltipContent className="w-64 p-3 bg-card border-border/50 shadow-xl rounded-xl z-50">
-                      <p className="text-xs leading-relaxed text-foreground/90">
+                      <p className="text-sm leading-relaxed text-foreground/90">
                         Devido à inflação atual de <strong className="text-amber-500">{indicators?.ipca?.value}% ao ano</strong> (IPCA BCB), 
                         você precisará de <strong className="font-mono">{moneyUtils.format(adjustedTarget, 'BRL')}</strong> em {monthsToTarget} meses 
                         para ter o mesmo poder de compra de {moneyUtils.format(goal.target_amount, 'BRL')} hoje.
@@ -140,13 +140,13 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                     percentage >= 100 ? "text-positive" : "text-primary"
                   )} />
                 </div>
-                <span className="text-xs font-bold text-foreground/80">
+                <span className="text-sm font-bold text-foreground/80">
                   {percentage.toFixed(0)}% <span className="text-muted-foreground font-medium">concluído</span>
                 </span>
               </div>
               
               {remaining > 0 && (
-                <p className="text-[11px] font-medium text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground">
                   Faltam <span className="text-foreground font-bold">{moneyUtils.format(remaining, 'BRL')}</span>
                 </p>
               )}
@@ -172,7 +172,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             className="w-full mt-4 gap-2 h-10 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
           >
             <ArrowRightLeft className="w-4 h-4" />
-            <span className="font-bold text-xs uppercase tracking-wider">Movimentar Saldo</span>
+            <span className="font-bold text-sm uppercase tracking-wider">Movimentar Saldo</span>
           </Button>
         </div>
       </div>

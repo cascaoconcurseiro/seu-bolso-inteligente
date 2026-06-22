@@ -189,7 +189,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[425px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-[425px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Importar Extrato (OFX)</DialogTitle>
           <DialogDescription>
@@ -204,10 +204,10 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
                 <CheckCircle2 className="h-8 w-8" />
               </div>
               <div className="text-center">
-                <h3 className="font-medium text-lg text-foreground">Importação Concluída</h3>
+                <h3 className="font-medium text-base text-foreground">Importação Concluída</h3>
                 <p className="text-sm text-muted-foreground">{successCount} novas transações adicionadas</p>
                 {duplicatesCount > 0 && (
-                  <p className="text-xs text-amber-600 mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
+                  <p className="text-sm text-amber-600 mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
                 )}
               </div>
               <Button onClick={handleClose} className="mt-4">
@@ -257,7 +257,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
                   <>
                     <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
                     <p className="font-medium">Processando arquivo...</p>
-                    <p className="text-xs text-muted-foreground mt-1">Sincronizando com o banco...</p>
+                    <p className="text-sm text-muted-foreground mt-1">Sincronizando com o banco...</p>
                   </>
                 ) : (
                   <>
@@ -265,7 +265,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
                       <FileUp className="h-6 w-6" />
                     </div>
                     <p className="font-medium text-foreground mb-1">Clique para enviar OFX</p>
-                    <p className="text-xs text-muted-foreground">O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)</p>
+                    <p className="text-sm text-muted-foreground">O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)</p>
                   </>
                 )}
               </div>

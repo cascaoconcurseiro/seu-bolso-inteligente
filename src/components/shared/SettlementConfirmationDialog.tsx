@@ -126,7 +126,7 @@ export function SettlementConfirmationDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-[480px] !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         
         <div className="p-6 pb-2 relative shrink-0">
@@ -152,9 +152,9 @@ export function SettlementConfirmationDialog({
             "p-4 rounded-2xl border flex items-center justify-between group transition-all",
             isPayment ? "bg-red-500/5 border-red-500/20 hover:bg-red-500/10" : "bg-green-500/5 border-green-500/20 hover:bg-green-500/10"
           )}>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <span className={cn(
-                "text-[10px] font-bold uppercase tracking-wider",
+                "text-xs font-bold uppercase tracking-wider",
                 isPayment ? "text-red-600/70" : "text-green-600/70"
               )}>Total Selecionado</span>
               <div className={cn(
@@ -179,14 +179,14 @@ export function SettlementConfirmationDialog({
                 <Info className="h-4 w-4 text-primary" />
                 Detalhamento do Acerto
               </Label>
-              <span className="text-[10px] text-muted-foreground uppercase font-medium">Remover se necessário</span>
+              <span className="text-sm text-muted-foreground uppercase font-medium">Remover se necessário</span>
             </div>
             
             <ScrollArea className="h-[140px] rounded-xl border border-border/50 bg-muted/30 p-2">
               {currentItems.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2 py-8">
                   <Trash2 className="h-8 w-8 opacity-20" />
-                  <p className="text-xs">Nenhum item selecionado</p>
+                  <p className="text-sm">Nenhum item selecionado</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -197,7 +197,7 @@ export function SettlementConfirmationDialog({
                     >
                       <div className="flex-1 min-w-0 pr-3">
                         <p className="text-sm font-medium truncate">{item.description}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">
+                        <p className="text-sm text-muted-foreground font-mono">
                           {dateFns.format(new Date(item.date + 'T12:00:00'), "dd MMM yyyy")} • {item.category}
                         </p>
                       </div>
@@ -229,7 +229,7 @@ export function SettlementConfirmationDialog({
                 Conta de {isPayment ? "Origem" : "Destino"}
               </Label>
               <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                <SelectTrigger className="h-11 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20">
+                <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -254,7 +254,7 @@ export function SettlementConfirmationDialog({
                 type="date" 
                 value={date} 
                 onChange={(e) => setDate(e.target.value)}
-                className="h-11 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20"
+                className="h-12 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20"
               />
             </div>
           </div>
@@ -266,7 +266,7 @@ export function SettlementConfirmationDialog({
                 <Info className="h-4 w-4" />
                 <span>Conta incompatível</span>
               </div>
-              <p className="text-xs text-red-700/80 dark:text-red-400/80 leading-relaxed">
+              <p className="text-sm text-red-700/80 dark:text-red-400/80 leading-relaxed">
                 Você não possui nenhuma conta de pagamento disponível na moeda desta despesa ({currency}). 
                 <strong> É necessário usar uma conta da mesma moeda para realizar este acerto.</strong>
               </p>
@@ -278,14 +278,14 @@ export function SettlementConfirmationDialog({
           <Button 
             variant="ghost" 
             onClick={() => onOpenChange(false)}
-            className="flex-1 rounded-xl h-11 hover:bg-muted"
+            className="flex-1 rounded-xl h-12 hover:bg-muted"
           >
             Cancelar
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={isSettling || !selectedAccountId || currentItems.length === 0}
-            className="flex-[2] rounded-xl h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
+            className="flex-[2] rounded-xl h-12 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"
           >
             {isSettling ? (
               <div className="flex items-center gap-2">

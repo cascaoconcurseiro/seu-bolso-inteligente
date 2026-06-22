@@ -299,14 +299,14 @@ export function BackupManager() {
 
             {/* Input de Arquivo */}
             <div className="space-y-2 mt-4">
-              <Label htmlFor="backup-file" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Selecionar arquivo de Backup (.json)</Label>
+              <Label htmlFor="backup-file" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Selecionar arquivo de Backup (.json)</Label>
               <Input 
                 id="backup-file" 
                 type="file" 
                 accept=".json" 
                 onChange={handleFileChange}
                 disabled={isImporting}
-                className="cursor-pointer bg-muted/20 border-border/50 rounded-xl file:bg-primary file:text-white file:border-0 file:rounded-lg file:mr-2 file:text-xs file:font-semibold"
+                className="cursor-pointer bg-muted/20 border-border/50 rounded-xl file:bg-primary file:text-white file:border-0 file:rounded-lg file:mr-2 file:text-sm file:font-semibold"
               />
             </div>
           </div>
@@ -315,21 +315,21 @@ export function BackupManager() {
             <div className="mt-6 p-4 rounded-xl border border-destructive/20 bg-destructive/5 space-y-4">
               <div className="flex gap-3 text-destructive">
                 <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
-                <div className="text-xs space-y-1">
+                <div className="text-sm space-y-2">
                   <p className="font-bold uppercase tracking-wide">Atenção Crítica</p>
                   <p>A restauração irá deletar <strong>todos os seus lançamentos, contas e configurações atuais</strong> para inserir os dados do backup.</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-restore" className="text-[10px] font-bold uppercase text-muted-foreground">Digite RESTAURAR para autorizar:</Label>
+                <Label htmlFor="confirm-restore" className="text-sm font-bold uppercase text-muted-foreground">Digite RESTAURAR para autorizar:</Label>
                 <Input 
                   id="confirm-restore"
                   placeholder="RESTAURAR"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
                   disabled={isImporting}
-                  className="rounded-xl border-destructive/30 focus-visible:ring-destructive font-bold text-center placeholder:font-normal placeholder:text-muted-foreground/50 h-9"
+                  className="rounded-xl border-destructive/30 focus-visible:ring-destructive font-bold text-center placeholder:font-normal placeholder:text-muted-foreground/50 h-10"
                 />
               </div>
 

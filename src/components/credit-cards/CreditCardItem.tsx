@@ -25,7 +25,7 @@ export function CreditCardItem({
   return (
     <div 
       onClick={() => openCardDetail(card)}
-      className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-[1.5rem] p-[1.5px] w-full max-w-md mx-auto"
+      className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-3xl p-[1.5px] w-full max-w-md mx-auto"
       style={{
         background: `linear-gradient(135deg, ${bank.color}80 0%, ${bank.color}20 100%)`
       }}
@@ -62,13 +62,13 @@ export function CreditCardItem({
           
           <div className="text-right">
             {isOverdue ? (
-              <span className="text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-red-500/20">
+              <span className="text-sm font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-red-500/20">
                 <AlertCircle className="h-3 w-3" />
                 ATRASADA
               </span>
             ) : (
               <span className={cn(
-                "text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm",
+                "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
                 invoice.status === 'CLOSED' 
                   ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" 
                   : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"

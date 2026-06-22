@@ -228,7 +228,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle className="flex items-center gap-2">
@@ -250,7 +250,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               <Button variant="ghost" size="icon" onClick={() => setYear(y => y - 1)}>
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <span className="text-lg font-bold font-mono">{year}</span>
+              <span className="text-base font-bold font-mono">{year}</span>
               <Button variant="ghost" size="icon" onClick={() => setYear(y => y + 1)}>
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -265,7 +265,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                   </div>
                   <div className="w-32">
                     {month.isPast ? (
-                      <span className="text-xs text-muted-foreground">Encerrado</span>
+                      <span className="text-sm text-muted-foreground">Encerrado</span>
                     ) : (
                       <CurrencyInput
                         placeholder="0,00"
@@ -406,7 +406,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                       onChange={(e) => setAssigneePercentage(Number(e.target.value))}
                       className="w-full accent-primary"
                     />
-                    <div className="flex justify-between text-xs text-muted-foreground">
+                    <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Sua parte: {formatCurrency(creatorParcelAmount)} ({(100 - assigneePercentage).toFixed(0)}%)</span>
                     </div>
                   </div>

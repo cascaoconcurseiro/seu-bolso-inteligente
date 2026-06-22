@@ -58,7 +58,7 @@ export function DeleteTransactionModal({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="border-border/50 max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <AlertDialogContent className="border-border/50 max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
           <AlertDialogDescription>
@@ -70,7 +70,7 @@ export function DeleteTransactionModal({
         {transaction.is_installment && (
           <div className="py-2 space-y-4">
             <div className="space-y-3">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Opções de Exclusão (Compra Parcelada):
               </h4>
               <div className="space-y-3">
@@ -121,7 +121,7 @@ export function DeleteTransactionModal({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl border border-orange-500/20 bg-orange-500/5 text-orange-600 dark:text-orange-400 text-xs font-semibold leading-relaxed animate-in fade-in duration-350">
+            <div className="p-3.5 rounded-xl border border-orange-500/20 bg-orange-500/5 text-orange-600 dark:text-orange-400 text-sm font-semibold leading-relaxed animate-in fade-in duration-350">
               {cascadeType === 'NONE' && (
                 <p>⚠️ Esta ação removerá apenas a parcela atual de {moneyUtils.format(itemAmount, txCurrency)} no extrato.</p>
               )}

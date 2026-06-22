@@ -191,7 +191,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       <div className="space-y-6">
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-lg mb-2">Checklist</h3>
+          <h3 className="font-display font-semibold text-base mb-2">Checklist</h3>
           <p className="text-muted-foreground mb-6">Organize o que levar na viagem</p>
           <div className="flex items-center justify-center gap-3">
             <Button onClick={() => setShowDialog(true)}>
@@ -225,7 +225,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       {/* Header com progresso */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+          <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
             Checklist ({completedCount}/{items.length})
           </h2>
           <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
           return (
             <div key={category} className="space-y-2">
               <h3 className="font-medium text-sm text-muted-foreground">{categoryLabel}</h3>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {categoryItems.map((item) => (
                   <div
                     key={item.id}
@@ -350,7 +350,7 @@ function ChecklistDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Novo Item</DialogTitle>
           <DialogDescription>Adicione um item ao checklist</DialogDescription>

@@ -89,7 +89,8 @@ export function TransactionDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-lg w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-lg w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogDescription className="sr-only">Detalhes da transação</DialogDescription>
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -121,7 +122,7 @@ export function TransactionDetailsModal({
                   </span>
                   {transaction.destination_amount && (
                     <>
-                      <span className="text-xl text-muted-foreground font-light">➔</span>
+                      <span className="text-base text-muted-foreground font-light">➔</span>
                       <span className="font-mono text-3xl font-bold text-positive">
                         +{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || "BRL")}
                       </span>
@@ -129,7 +130,7 @@ export function TransactionDetailsModal({
                   )}
                 </div>
                 {transaction.exchange_rate && (
-                  <p className="text-xs text-muted-foreground font-medium mt-1">
+                  <p className="text-sm text-muted-foreground font-medium mt-1">
                     Câmbio: 1 {transaction.currency || "BRL"} = {Number(transaction.exchange_rate).toFixed(4)} {transaction.destination_currency || "BRL"}
                   </p>
                 )}
@@ -157,7 +158,7 @@ export function TransactionDetailsModal({
             <div className="flex items-start gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Data</p>
+                <p className="text-sm text-muted-foreground uppercase tracking-wider">Data</p>
                 <p className="text-sm font-medium">{formatDate(transaction.date)}</p>
               </div>
             </div>
@@ -167,7 +168,7 @@ export function TransactionDetailsModal({
               <div className="flex items-start gap-2">
                 <Wallet className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Conta</p>
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Conta</p>
                   <p className="text-sm font-medium">{transaction.account.name}</p>
                 </div>
               </div>
@@ -178,7 +179,7 @@ export function TransactionDetailsModal({
               <div className="flex items-start gap-2">
                 <Tag className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">
                     {isTransfer ? "Tipo" : "Categoria"}
                   </p>
                   <p className="text-sm font-medium flex items-center gap-1">
@@ -194,7 +195,7 @@ export function TransactionDetailsModal({
               <div className="flex items-start gap-2">
                 <Plane className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Viagem</p>
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider">Viagem</p>
                   <p className="text-sm font-medium">{transaction.trip.name}</p>
                 </div>
               </div>
@@ -238,7 +239,7 @@ export function TransactionDetailsModal({
           {/* Splits Section */}
           {isShared && splits.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Divisão</p>
+              <p className="text-sm text-muted-foreground uppercase tracking-wider">Divisão</p>
               <div className="space-y-2">
                 {splits.map((split: DBTransactionSplit) => (
                   <div
@@ -268,7 +269,7 @@ export function TransactionDetailsModal({
           {/* Notes */}
           {transaction.notes && (
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <p className="text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                 <FileText className="h-3 w-3" />
                 Observações
               </p>

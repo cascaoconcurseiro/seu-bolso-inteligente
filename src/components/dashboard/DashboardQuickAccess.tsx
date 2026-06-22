@@ -52,7 +52,7 @@ export function DashboardQuickAccess() {
               <div className="w-14 h-14 rounded-full flex items-center justify-center bg-card/60 backdrop-blur-md border border-border/50 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md group-hover:border-primary/30 group-hover:bg-card">
                 <Icon className="h-6 w-6 text-foreground/70 group-hover:text-primary transition-colors duration-300" />
               </div>
-              <p className="font-medium text-[11px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">
+              <p className="font-medium text-sm text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">
                 {shortcut.title}
               </p>
             </Link>

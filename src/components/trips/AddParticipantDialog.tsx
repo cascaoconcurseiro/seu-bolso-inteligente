@@ -23,7 +23,7 @@ export function AddParticipantDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle>Adicionar Participante</DialogTitle>
@@ -34,7 +34,7 @@ export function AddParticipantDialog({
             <div className="py-8 text-center bg-muted/20 rounded-xl border border-border/50">
               <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm font-medium mb-1">Nenhum membro disponível</p>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Todos os membros da família já estão nesta viagem.
               </p>
               <Button 

@@ -37,7 +37,7 @@ export function TripSelector({ tripId, setTripId, trips }: TripSelectorProps) {
                 <div className="flex items-center gap-2">
                   <Plane className="h-4 w-4" />
                   {trip.name}
-                  <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                  <span className="text-sm text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                     {trip.currency}
                   </span>
                 </div>
@@ -53,7 +53,7 @@ export function TripSelector({ tripId, setTripId, trips }: TripSelectorProps) {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/viagens')}
-            className="text-xs"
+            className="text-sm"
           >
             Criar viagem
           </Button>

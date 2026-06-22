@@ -193,7 +193,7 @@ export function TransactionItem({
            transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
         </div>
         <div className="flex-1 min-w-0 pt-0.5 md:pt-0">
-          <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+          <div className="flex items-center gap-2 md:gap-2 flex-wrap">
             <p className={cn(
               "font-medium text-sm md:text-base truncate",
               settled && "line-through opacity-60"
@@ -210,7 +210,7 @@ export function TransactionItem({
               />
             )}
             {isMirror && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-muted text-muted-foreground">
                 <Lock className="h-3 w-3" />
                 Espelhada
               </span>
@@ -227,7 +227,7 @@ export function TransactionItem({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap mt-1">
+          <div className="flex items-center gap-2 text-sm md:text-sm text-muted-foreground flex-wrap mt-1">
             <span className="truncate">
               {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
             </span>
@@ -240,7 +240,7 @@ export function TransactionItem({
             {transaction.is_installment && transaction.current_installment && transaction.total_installments && (
               <>
                 <span>·</span>
-                <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-medium">
+                <span className="text-sm px-1.5 py-0.5 rounded bg-muted font-medium">
                   {transaction.current_installment}/{transaction.total_installments}
                 </span>
               </>
@@ -292,13 +292,13 @@ export function TransactionItem({
             {isPrivate ? "•••••" : `${displayType === "INCOME" ? "+" : "-"}${formatCurrency(displayAmount, displayCurrency)}`}
           </span>
           {isInternationalTransfer && !isIncomingTransfer && (
-            <span className={cn("text-[11px] font-mono font-bold text-positive text-right whitespace-nowrap flex items-center justify-end gap-1", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
+            <span className={cn("text-xs font-mono font-bold text-positive text-right whitespace-nowrap flex items-center justify-end gap-1", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
               <span>➔</span>
               <span>{isPrivate ? "•••••" : formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || 'USD')}</span>
             </span>
           )}
           <span className={cn(
-            "text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
+            "text-xs font-bold uppercase tracking-wider whitespace-nowrap",
             displayType === "INCOME" ? "text-positive" : "text-negative"
           )}>
             {isTransfer 

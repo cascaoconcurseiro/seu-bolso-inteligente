@@ -25,7 +25,7 @@ export function SettingsSidebar({ activeSection, setActiveSection, categoriesCou
   ];
 
   return (
-    <nav className="lg:col-span-1 space-y-1">
+    <nav className="lg:col-span-1 space-y-2">
       {sections.map((section) => (
         <button
           key={section.id}

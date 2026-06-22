@@ -19,12 +19,12 @@ export function DashboardRecentActivity({
   return (
     <div className="space-y-4 animate-fade-in-up">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold">
+        <h2 className="text-sm uppercase tracking-[0.2em] text-muted-foreground font-bold">
           Atividade recente
         </h2>
         <Link 
           to="/transacoes" 
-          className="text-[10px] uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
+          className="text-sm uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
         >
           Ver todas
         </Link>
@@ -72,7 +72,7 @@ export function DashboardRecentActivity({
                 <div className="flex items-center gap-4 min-w-0">
                   {/* Category Icon Circle */}
                   <div className={cn(
-                    "w-11 h-11 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
+                    "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
                     isIncome ? "bg-green-500/10 text-green-600" : 
                     isTransfer ? "bg-blue-500/10 text-blue-600" : 
                     "bg-muted text-muted-foreground"
@@ -86,10 +86,10 @@ export function DashboardRecentActivity({
                         {tx.description}
                       </p>
                       {tx.is_shared && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" title="Compartilhado" />
+                        <div className="w-1.5 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" title="Compartilhado" />
                       )}
                     </div>
-                    <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <span className="truncate">{tx.category?.name || (isTransfer ? "Transferência" : "Geral")}</span>
                       <span className="w-1 h-1 rounded-full bg-border" />
                       <span className="whitespace-nowrap">{dateLabel}</span>
@@ -106,7 +106,7 @@ export function DashboardRecentActivity({
                     {isPrivate ? "•••••" : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}`}
                   </p>
                   {isTransfer && tx.destination_amount && tx.destination_currency && (tx.currency || 'BRL') !== tx.destination_currency && (
-                    <p className={cn("text-[10px] font-display font-bold text-green-600 tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
+                    <p className={cn("text-xs font-display font-bold text-green-600 tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
                       {isPrivate ? "➔ •••••" : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
                     </p>
                   )}

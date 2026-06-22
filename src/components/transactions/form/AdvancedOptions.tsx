@@ -73,13 +73,13 @@ export function AdvancedOptions({
           onClick={() => setIsExpanded(true)}
           className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
         >
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
+          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-2">
             <span>⚙️ Recursos e Opções</span>
             {hasActiveOption && (
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="w-1.5 h-2 rounded-full bg-primary animate-pulse" />
             )}
           </span>
-          <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
+          <span className="text-sm text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
             Mostrar
             <svg
               className="h-3.5 w-3.5 transition-transform duration-300"
@@ -103,13 +103,13 @@ export function AdvancedOptions({
         onClick={() => setIsExpanded(false)}
         className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
       >
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-1.5">
+        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-2">
           <span>⚙️ Recursos e Opções</span>
           {hasActiveOption && (
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="w-1.5 h-2 rounded-full bg-primary animate-pulse" />
           )}
         </span>
-        <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
+        <span className="text-sm text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
           Ocultar
           <svg
             className="h-3.5 w-3.5 transition-transform duration-300 rotate-180"
@@ -131,21 +131,21 @@ export function AdvancedOptions({
               <button
                 type="button"
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+                  "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
                   tripId 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                     : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
                 )}
               >
                 <Plane className="h-5 w-5 animate-pulse-slow" />
-                <span className="text-[10px] tracking-tight font-medium truncate max-w-[70px] text-center">
+                <span className="text-sm tracking-tight font-medium truncate max-w-[70px] text-center">
                   {tripId ? (trips.find(t => t.id === tripId)?.name || 'Viagem') : 'Viagem'}
                 </span>
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2 rounded-xl border border-border bg-card shadow-md" align="start">
-              <p className="text-xs font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider text-[10px]">Vincular Viagem</p>
-              <div className="space-y-1 mt-1.5">
+              <p className="text-sm font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider text-sm">Vincular Viagem</p>
+              <div className="space-y-2 mt-1.5">
                 <button
                   type="button"
                   onClick={() => setTripId('')}
@@ -181,14 +181,14 @@ export function AdvancedOptions({
             type="button"
             onClick={() => setShowSplitModal(true)}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+              "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               hasSharing 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <Users className="h-5 w-5" />
-            <span className="text-[10px] tracking-tight font-medium text-center">
+            <span className="text-sm tracking-tight font-medium text-center">
               {hasSharing ? 'Dividido' : 'Dividir'}
             </span>
           </button>
@@ -204,14 +204,14 @@ export function AdvancedOptions({
               if (nextState && totalInstallments < 2) setTotalInstallments(2);
             }}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+              "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isInstallment 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <RefreshCw className={cn("h-5 w-5", isInstallment && "animate-spin-slow")} />
-            <span className="text-[10px] tracking-tight font-medium text-center">Parcelar</span>
+            <span className="text-sm tracking-tight font-medium text-center">Parcelar</span>
           </button>
         )}
 
@@ -221,14 +221,14 @@ export function AdvancedOptions({
             type="button"
             onClick={() => setIsRefund(!isRefund)}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+              "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
               isRefund 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <RotateCcw className="h-5 w-5" />
-            <span className="text-[10px] tracking-tight font-medium text-center">Reembolso</span>
+            <span className="text-sm tracking-tight font-medium text-center">Reembolso</span>
           </button>
         )}
 
@@ -237,14 +237,14 @@ export function AdvancedOptions({
           type="button"
           onClick={() => setIsRecurring(!isRecurring)}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+            "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             isRecurring 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
           <Repeat className="h-5 w-5" />
-          <span className="text-[10px] tracking-tight font-medium text-center">Recorrente</span>
+          <span className="text-sm tracking-tight font-medium text-center">Recorrente</span>
         </button>
 
         {/* 6. Notificação (Bell) */}
@@ -256,14 +256,14 @@ export function AdvancedOptions({
             if (nextState && !notificationDate) setNotificationDate(new Date());
           }}
           className={cn(
-            "flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
+            "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
             enableNotification 
                 ? "bg-emerald-500 text-white border-emerald-600 font-bold shadow-md dark:bg-emerald-600 dark:border-emerald-700" 
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
           <Bell className="h-5 w-5" />
-          <span className="text-[10px] tracking-tight font-medium text-center">Notificação</span>
+          <span className="text-sm tracking-tight font-medium text-center">Notificação</span>
         </button>
       </div>
 
@@ -284,18 +284,18 @@ export function AdvancedOptions({
                 onCheckedChange={(v) => setIsInstallment(v)} 
               />
             </div>
-            <p className="text-xs text-muted-foreground leading-normal">
+            <p className="text-sm text-muted-foreground leading-normal">
               Parcelamento manual (ex: empréstimo pessoal ou acordos fora do cartão).
             </p>
 
             <div className="space-y-3 pt-1">
               <div className="space-y-2">
-                <Label className="text-xs">Número de parcelas</Label>
+                <Label className="text-sm">Número de parcelas</Label>
                 <Select
                   value={totalInstallments.toString()}
                   onValueChange={(v) => setTotalInstallments(parseInt(v))}
                 >
-                  <SelectTrigger className="rounded-xl h-11">
+                  <SelectTrigger className="rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -311,14 +311,14 @@ export function AdvancedOptions({
 
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
                 <span className="text-blue-500 dark:text-blue-400 text-sm mt-0.5 shrink-0">ℹ️</span>
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-blue-900 dark:text-blue-300">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
                     Aviso Importante
                   </p>
-                  <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
+                  <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-400">
                     Isso criará <strong>{totalInstallments} transações separadas</strong> no extrato (uma por mês).
                   </p>
-                  <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-400">
+                  <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-400">
                     ⚠️ Para compras no <strong>cartão de crédito</strong>, não use este painel. Use o parcelamento que aparece automaticamente no seletor de contas ao escolher seu cartão.
                   </p>
                 </div>
@@ -338,7 +338,7 @@ export function AdvancedOptions({
               </div>
               <Switch checked={isRefund} onCheckedChange={setIsRefund} />
             </div>
-            <p className="text-xs text-muted-foreground leading-normal">
+            <p className="text-sm text-muted-foreground leading-normal">
               Esta despesa é elegível para devolução ou reembolso posterior de terceiros/empresa.
             </p>
           </div>
@@ -355,15 +355,15 @@ export function AdvancedOptions({
               </div>
               <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
             </div>
-            <p className="text-xs text-muted-foreground leading-normal">
+            <p className="text-sm text-muted-foreground leading-normal">
               Repetir automaticamente este lançamento na frequência abaixo.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div className="space-y-2">
-                <Label className="text-xs">Frequência</Label>
+                <Label className="text-sm">Frequência</Label>
                 <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
-                  <SelectTrigger className="rounded-xl h-11">
+                  <SelectTrigger className="rounded-xl h-12">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -377,14 +377,14 @@ export function AdvancedOptions({
 
               {frequency === 'MONTHLY' && (
                 <div className="space-y-2">
-                  <Label className="text-xs">Dia do mês para repetição</Label>
+                  <Label className="text-sm">Dia do mês para repetição</Label>
                   <Input type="number" inputMode="decimal"
                     min="1"
                     max="31"
                     value={recurrenceDay}
                     onChange={(e) => setRecurrenceDay(parseInt(e.target.value) || 1)}
                     placeholder="1-31"
-                    className="rounded-xl h-11"
+                    className="rounded-xl h-12"
                   />
                 </div>
               )}
@@ -402,17 +402,17 @@ export function AdvancedOptions({
               </div>
               <Switch checked={enableNotification} onCheckedChange={setEnableNotification} />
             </div>
-            <p className="text-xs text-muted-foreground leading-normal">
+            <p className="text-sm text-muted-foreground leading-normal">
               Você receberá um lembrete antes do vencimento na data selecionada.
             </p>
 
             <div className="space-y-2 pt-1">
-              <Label className="text-xs">Data da notificação</Label>
+              <Label className="text-sm">Data da notificação</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal rounded-xl h-11 border-border/80"
+                    className="w-full justify-start text-left font-normal rounded-xl h-12 border-border/80"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                     {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}

@@ -20,7 +20,7 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
                 <Wallet className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-widest mb-1">
+                <p className="text-sm sm:text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">
                   Saldo Geral Consolidado ({currency})
                 </p>
                 <p className={cn(
@@ -38,10 +38,10 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
                  <Wallet className="h-6 w-6 text-primary" />
                </div>
                <div>
-                 <p className="text-[10px] sm:text-xs text-muted-foreground uppercase font-bold tracking-widest mb-1">
+                 <p className="text-sm sm:text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">
                    Saldo Geral Consolidado (BRL)
                  </p>
-                 <p className="font-mono text-3xl sm:text-4xl font-black tracking-tight leading-none text-positive">
+                 <p className="font-mono text-3xl sm:text-3xl font-black tracking-tight leading-none text-positive">
                    R$ 0,00
                  </p>
                </div>
@@ -55,7 +55,7 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
           </div>
           <div>
             <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest leading-none mb-1">Contas Ativas</p>
-            <p className="font-mono text-xl font-bold leading-none">{activeAccountsCount}</p>
+            <p className="font-mono text-base font-bold leading-none">{activeAccountsCount}</p>
           </div>
         </div>
       </div>

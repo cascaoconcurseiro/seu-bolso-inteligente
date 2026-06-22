@@ -98,12 +98,12 @@ export function MobileNav() {
         style={{ maxHeight: '85vh' }}
       >
         <div className="w-full flex justify-center py-3" onClick={closeSheet}>
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         
         <div className="px-6 pb-6 overflow-y-auto no-scrollbar flex-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold text-lg">Menu Principal</h2>
+            <h2 className="font-display font-semibold text-base">Menu Principal</h2>
             <button onClick={closeSheet} className="p-2 bg-muted/50 rounded-full text-muted-foreground hover:text-foreground">
               <X className="w-5 h-5" />
             </button>
@@ -206,7 +206,7 @@ export function MobileNav() {
                   )}>
                     <Icon className={cn("transition-all duration-300", isSheetOpen ? "w-5 h-5 scale-110" : "w-5 h-5")} />
                   </div>
-                  <span className={cn("text-[10px] font-medium transition-all duration-200", isSheetOpen ? "font-bold" : "")}>{item.label}</span>
+                  <span className={cn("text-xs font-medium transition-all duration-200", isSheetOpen ? "font-bold" : "")}>{item.label}</span>
                 </button>
               );
             }
@@ -235,7 +235,7 @@ export function MobileNav() {
                   )} />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-medium transition-all duration-200",
+                  "text-xs font-medium transition-all duration-200",
                   active ? "font-bold" : ""
                 )}>{item.label}</span>
               </button>

@@ -134,7 +134,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b overflow-hidden bg-background">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
           <DialogTitle className="flex items-center gap-3">
@@ -142,16 +142,16 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
               <Wallet className="w-5 h-5 text-primary" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold">Pagar Fatura</span>
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+              <span className="text-base font-bold">Pagar Fatura</span>
+              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <BankIcon bankId={card.bank_id} size="sm" />
                 {card.name}
               </span>
             </div>
           </DialogTitle>
           <div className="flex gap-2 mt-4">
-            <div className={`h-1.5 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
-            <div className={`h-1.5 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
           </div>
         </DialogHeader>
         
@@ -187,7 +187,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                       autoFocus
                     />
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (
-                      <p className="text-xs text-amber-500 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                      <p className="text-sm text-amber-500 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
                         ⚠️ Pagamento parcial: restará {formatCurrencyValue(invoiceTotal - currentAmountToPay, cardCurrency)} para o próximo mês.
                       </p>
                     )}
@@ -234,11 +234,11 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                               <div className="flex items-center gap-3 w-full">
                                 <BankIcon bankId={acc.bank_id} size="sm" />
                                 <div className="flex flex-col text-left">
-                                  <span className="font-medium flex items-center gap-1.5">
+                                  <span className="font-medium flex items-center gap-2">
                                     {acc.name}
-                                    <span className="text-xs bg-background border border-border/50 px-1 rounded shadow-sm">{getCurrencyFlag(accCurrency)}</span>
+                                    <span className="text-sm bg-background border border-border/50 px-1 rounded shadow-sm">{getCurrencyFlag(accCurrency)}</span>
                                   </span>
-                                  <span className="text-xs text-muted-foreground flex gap-1">
+                                  <span className="text-sm text-muted-foreground flex gap-1">
                                     Saldo: {formatCurrencyValue(acc.balance, accCurrency)}
                                     {willNeedExchange && <span className="text-orange-500 font-medium">(câmbio)</span>}
                                   </span>
@@ -264,7 +264,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                         <span>Conversão de Moeda Necessária</span>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Taxa de câmbio ({cardCurrency} → BRL)</Label>
+                        <Label className="text-sm text-muted-foreground uppercase tracking-wider">Taxa de câmbio ({cardCurrency} → BRL)</Label>
                         <Input type="number" inputMode="decimal"
                           step="0.0001"
                           placeholder="Ex: 5.50"

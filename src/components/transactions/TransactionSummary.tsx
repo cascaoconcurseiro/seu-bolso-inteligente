@@ -15,7 +15,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
       {/* Entradas */}
       <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] sm:text-xs text-green-600/70 dark:text-green-400/70 uppercase font-bold tracking-widest">Entradas</p>
+          <p className="text-sm sm:text-sm text-green-600/70 dark:text-green-400/70 uppercase font-bold tracking-widest">Entradas</p>
           <div className="p-1 sm:p-1.5 rounded-lg bg-green-500/15">
             <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-500" />
           </div>
@@ -28,7 +28,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
       {/* Saídas */}
       <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] sm:text-xs text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Saídas</p>
+          <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Saídas</p>
           <div className="p-1 sm:p-1.5 rounded-lg bg-red-500/15">
             <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-500" />
           </div>
@@ -47,7 +47,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
       )}>
         <div className="flex items-center justify-between">
           <p className={cn(
-            "text-[10px] sm:text-xs uppercase font-bold tracking-widest",
+            "text-xs sm:text-xs uppercase font-bold tracking-widest",
             result >= 0 ? "text-primary/70" : "text-amber-600/70 dark:text-amber-400/70"
           )}>
             Resultado

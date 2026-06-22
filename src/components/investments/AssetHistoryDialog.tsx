@@ -41,7 +41,7 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-muted-foreground" />
@@ -76,7 +76,7 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                       {tx.type === 'SELL' && 'Venda'}
                       {tx.type.startsWith('DIVIDEND') && 'Rendimento'}
                     </p>
-                    <p className="text-[10px] text-muted-foreground uppercase font-medium">
+                    <p className="text-sm text-muted-foreground uppercase font-medium">
                       {dateFns.format(new Date(tx.date), "dd 'de' MMMM, yyyy", { locale: ptBR })}
                     </p>
                   </div>
@@ -90,10 +90,10 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                   ) : (
                     <>
                       <p className="text-sm font-mono font-bold text-foreground">
-                        {tx.quantity} <span className="text-[10px] text-muted-foreground font-sans">unid.</span>
+                        {tx.quantity} <span className="text-sm text-muted-foreground font-sans">unid.</span>
                       </p>
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {formatMoney(tx.price)} <span className="text-[10px] font-sans">/un</span>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {formatMoney(tx.price)} <span className="text-sm font-sans">/un</span>
                       </p>
                     </>
                   )}

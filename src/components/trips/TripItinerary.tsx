@@ -239,7 +239,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       <div className="space-y-6">
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <Route className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-lg mb-2">Roteiro da viagem</h3>
+          <h3 className="font-display font-semibold text-base mb-2">Roteiro da viagem</h3>
           <p className="text-muted-foreground mb-6">Adicione atividades e passeios</p>
           <div className="flex items-center justify-center gap-3">
             <Button onClick={() => handleOpenDialog()}>
@@ -281,7 +281,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+        <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
           Roteiro ({items.length} atividades)
         </h2>
         <div className="flex items-center gap-2">
@@ -311,7 +311,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       {item.start_time && (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {item.start_time.slice(0, 5)}
                           {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
@@ -372,7 +372,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deletingItem} onOpenChange={() => setDeletingItem(null)}>
-        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir atividade?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -434,7 +434,7 @@ function ItineraryDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
           <DialogDescription>Adicione uma atividade ao roteiro</DialogDescription>

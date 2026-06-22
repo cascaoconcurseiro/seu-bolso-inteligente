@@ -50,7 +50,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
   return (
     <Dialog open={true} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[500px] overflow-hidden shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background" hideClose>
+      <DialogContent className="sm:max-w-[500px] overflow-hidden shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background" hideClose>
         {/* Banner header with Glassmorphism */}
         <div className="relative p-8 flex flex-col items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent z-0"></div>
@@ -81,11 +81,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 className="space-y-6"
               >
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-2">
                     <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                     Passo 1 de 2
                   </div>
-                  <h3 className="font-semibold text-xl flex items-center gap-2">
+                  <h3 className="font-semibold text-base flex items-center gap-2">
                     <Wallet className="w-6 h-6 text-primary" />
                     Sua Carteira Principal
                   </h3>
@@ -95,24 +95,24 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   
                   <div className="space-y-4 mt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="accName" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome da Conta</Label>
+                      <Label htmlFor="accName" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Nome da Conta</Label>
                       <Input 
                         id="accName" 
                         value={accountName} 
                         onChange={e => setAccountName(e.target.value)} 
                         placeholder="Ex: Nubank, Carteira, Itaú"
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-lg transition-all"
+                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="accBalance" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Saldo Inicial (R$)</Label>
+                      <Label htmlFor="accBalance" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Saldo Inicial (R$)</Label>
                       <Input 
                         id="accBalance" 
                         type="number"
                         placeholder="0.00"
                         value={initialBalance} 
                         onChange={e => setInitialBalance(e.target.value)} 
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-lg transition-all font-mono"
+                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all font-mono"
                       />
                     </div>
                   </div>
@@ -121,7 +121,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   <Button onClick={handleNext} className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
                     Continuar <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
-                  <Button variant="ghost" onClick={onComplete} className="w-full text-xs text-muted-foreground hover:bg-transparent hover:text-foreground">
+                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
                     Pular configuração (não recomendado)
                   </Button>
                 </div>
@@ -137,11 +137,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 className="space-y-6"
               >
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-2">
                     <span className="w-2 h-2 rounded-full bg-primary"></span>
                     Passo 2 de 2
                   </div>
-                  <h3 className="font-semibold text-xl flex items-center gap-2">
+                  <h3 className="font-semibold text-base flex items-center gap-2">
                     <Target className="w-6 h-6 text-primary" />
                     Seu Grande Alvo
                   </h3>
@@ -151,24 +151,24 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   
                   <div className="space-y-4 mt-6">
                     <div className="space-y-2">
-                      <Label htmlFor="goalName" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">O que você quer alcançar?</Label>
+                      <Label htmlFor="goalName" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">O que você quer alcançar?</Label>
                       <Input 
                         id="goalName" 
                         value={goalName} 
                         onChange={e => setGoalName(e.target.value)}
                         placeholder="Ex: Reserva de Emergência, Carro Novo"
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-lg transition-all"
+                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="goalAmount" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quanto você precisa? (R$)</Label>
+                      <Label htmlFor="goalAmount" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Quanto você precisa? (R$)</Label>
                       <Input 
                         id="goalAmount" 
                         type="number"
                         placeholder="10000.00"
                         value={goalAmount} 
                         onChange={e => setGoalAmount(e.target.value)} 
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-lg transition-all font-mono"
+                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all font-mono"
                       />
                     </div>
                   </div>
@@ -195,7 +195,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                       {createAccount.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Concluir e Decolar"}
                     </Button>
                   </div>
-                  <Button variant="ghost" onClick={onComplete} className="w-full text-xs text-muted-foreground hover:bg-transparent hover:text-foreground">
+                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
                     Pular configuração (não recomendado)
                   </Button>
                 </div>

@@ -52,7 +52,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
@@ -67,7 +67,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
         <div className="space-y-6 mt-4">
           <div className="bg-amber-50 dark:bg-amber-950/20 p-3 flex gap-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
             <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0" />
-            <p className="text-xs text-amber-800 dark:text-amber-400">
+            <p className="text-sm text-amber-800 dark:text-amber-400">
               O convidado não poderá editar o Vencimento nem o Fechamento da fatura. Ao fechar a fatura, ele fará o acerto do valor devido para você.
             </p>
           </div>
@@ -75,9 +75,9 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
           <div>
             <h4 className="text-sm font-semibold mb-3">Membros Compartilhados / Convites</h4>
             {sharedLoading ? (
-              <div className="text-center text-xs text-muted-foreground py-2">Carregando...</div>
+              <div className="text-center text-sm text-muted-foreground py-2">Carregando...</div>
             ) : sharedCards.length === 0 ? (
-              <div className="text-center text-xs text-muted-foreground py-4 border border-dashed rounded-lg">
+              <div className="text-center text-sm text-muted-foreground py-4 border border-dashed rounded-lg">
                 Nenhum membro compartilhando este cartão.
               </div>
             ) : (
@@ -88,7 +88,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                       <UserAvatar name={sc.user?.full_name || 'Usuário'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" />
                       <div>
                         <p className="text-sm font-medium">{sc.user?.full_name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           {sc.status === 'PENDING' ? 'Pendente' : sc.status === 'ACCEPTED' ? 'Aceito' : 'Recusado'}
                         </p>
                       </div>
@@ -105,9 +105,9 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
           <div>
             <h4 className="text-sm font-semibold mb-3">Convidar Membro da Família</h4>
             {membersLoading ? (
-              <div className="text-center text-xs text-muted-foreground py-2">Carregando membros...</div>
+              <div className="text-center text-sm text-muted-foreground py-2">Carregando membros...</div>
             ) : availableMembers.length === 0 ? (
-              <div className="text-center text-xs text-muted-foreground py-4 border border-dashed rounded-lg">
+              <div className="text-center text-sm text-muted-foreground py-4 border border-dashed rounded-lg">
                 Nenhum membro ativo encontrado na sua família.
               </div>
             ) : (
@@ -122,7 +122,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                         <UserAvatar name={member.name} avatarUrl={member.avatar_url || undefined} iconId={member.avatar_icon || undefined} colorId={member.avatar_color || undefined} size="sm" />
                         <div>
                           <p className="text-sm font-medium">{member.name}</p>
-                          <p className="text-xs text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>
+                          <p className="text-sm text-muted-foreground">{member.role === 'admin' ? 'Administrador' : 'Membro'}</p>
                         </div>
                       </div>
                       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
@@ -146,13 +146,13 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
       </DialogContent>
 
       <Dialog open={!!selectedMemberForInvite} onOpenChange={(o) => !o && setSelectedMemberForInvite(null)}>
-        <DialogContent className="max-w-[320px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="max-w-[320px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="bg-primary/10 p-4 rounded-full">
               <UserPlus className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Definir Limite</h3>
+              <h3 className="font-semibold text-base">Definir Limite</h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Qual será o limite para <b>{selectedMemberForInvite?.name}</b> usar neste cartão?
               </p>
@@ -160,7 +160,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
             
             <CurrencyInput 
               placeholder="R$ 0,00" 
-              className="w-full h-12 text-center text-lg font-medium" 
+              className="w-full h-12 text-center text-base font-medium" 
               value={inviteLimit} 
               onChange={(val) => setInviteLimit(val)} 
               currency={card?.currency || "BRL"}

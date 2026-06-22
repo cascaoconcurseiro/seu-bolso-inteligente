@@ -74,7 +74,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] overflow-hidden w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background">
+      <DialogContent className="sm:max-w-[550px] overflow-hidden w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background">
         <div className="bg-gradient-to-b from-primary/10 to-transparent p-6 pb-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-2xl font-black">
@@ -109,7 +109,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2">
                 <Banknote className="w-5 h-5 text-green-600 dark:text-green-500" />
-                <h3 className="font-bold text-lg text-foreground">Pagamentos à Vista (Dinheiro/Pix/Débito)</h3>
+                <h3 className="font-bold text-base text-foreground">Pagamentos à Vista (Dinheiro/Pix/Débito)</h3>
               </div>
               
               <div className="grid grid-cols-1 gap-3">
@@ -154,11 +154,11 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-primary-foreground/70 dark:text-primary-foreground font-semibold">Dia de Fechamento</Label>
-                      <Input type="number" inputMode="decimal" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background shadow-inner h-11 border-primary/20 focus-visible:ring-primary/40 text-lg font-mono" />
+                      <Input type="number" inputMode="decimal" placeholder="Ex: 30" min={1} max={31} value={familyClosingDay} onChange={(e) => setFamilyClosingDay(e.target.value)} className="bg-background shadow-inner h-12 border-primary/20 focus-visible:ring-primary/40 text-base font-mono" />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-primary-foreground/70 dark:text-primary-foreground font-semibold">Dia de Vencimento</Label>
-                      <Input type="number" inputMode="decimal" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background shadow-inner h-11 border-primary/20 focus-visible:ring-primary/40 text-lg font-mono" />
+                      <Input type="number" inputMode="decimal" placeholder="Ex: 5" min={1} max={31} value={familyDueDay} onChange={(e) => setFamilyDueDay(e.target.value)} className="bg-background shadow-inner h-12 border-primary/20 focus-visible:ring-primary/40 text-base font-mono" />
                     </div>
                   </div>
                 </div>
@@ -169,13 +169,13 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
         )}
 
         <div className="p-6 pt-4 border-t bg-muted/30 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-11 px-6 font-semibold">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="h-12 px-6 font-semibold">
             Cancelar
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={!hasChanges() || updateFamily.isPending}
-            className="h-11 px-8 font-semibold shadow-md"
+            className="h-12 px-8 font-semibold shadow-md"
           >
             {updateFamily.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
             Salvar Regras

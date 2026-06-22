@@ -63,7 +63,7 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
 
       {/* Switch Premium para ativar/desativar subcategorias */}
       <div className="flex items-center justify-between p-4 rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 backdrop-blur-sm shadow-sm transition-all duration-300 hover:border-primary/30">
-        <div className="space-y-1 pr-4">
+        <div className="space-y-2 pr-4">
           <Label htmlFor="toggle-subcategories" className="font-bold text-sm sm:text-base cursor-pointer">
             Ativar Subcategorias e Hierarquia
           </Label>

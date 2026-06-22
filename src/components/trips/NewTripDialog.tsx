@@ -112,7 +112,7 @@ export function NewTripDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-12 h-1.5 bg-muted rounded-full" />
+          <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle>Nova Viagem</DialogTitle>
@@ -179,7 +179,7 @@ export function NewTripDialog({
             <div className="space-y-2">
               <Label>
                 Orçamento Total
-                <span className="ml-1 text-xs text-muted-foreground font-normal">(opcional)</span>
+                <span className="ml-1 text-sm text-muted-foreground font-normal">(opcional)</span>
               </Label>
               <CurrencyInput 
                 placeholder="5000" 
@@ -197,7 +197,7 @@ export function NewTripDialog({
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <Label>Convidar Participantes (opcional)</Label>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Selecione membros da família para convidar. Eles poderão aceitar ou recusar.
               </p>
               <div className="space-y-2 max-h-40 overflow-y-auto hide-scrollbar border rounded-xl p-3 bg-muted/20">
@@ -217,14 +217,14 @@ export function NewTripDialog({
                       <div className="flex-1">
                         <p className="text-sm font-medium">{member.name}</p>
                         {member.email && (
-                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                          <p className="text-sm text-muted-foreground">{member.email}</p>
                         )}
                       </div>
                     </div>
                   ))}
               </div>
               {selectedMembers.length > 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {selectedMembers.length} {selectedMembers.length === 1 ? 'convite será enviado' : 'convites serão enviados'}
                 </p>
               )}

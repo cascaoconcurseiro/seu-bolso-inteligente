@@ -55,7 +55,7 @@ export function GreetingCard({ className }: GreetingCardProps) {
       
       {/* Content */}
       <div className="relative">
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-foreground">
             {(() => {
               const hour = new Date().getHours();

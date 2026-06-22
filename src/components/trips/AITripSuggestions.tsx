@@ -107,7 +107,7 @@ export function AITripSuggestions({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="sm:max-w-[500px] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
               <Sparkles className="h-5 w-5" />
@@ -149,7 +149,7 @@ export function AITripSuggestions({
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-xs h-8"
+                    className="text-sm h-8"
                     onClick={() => {
                       if (selectedIndices.size === suggestions.length) {
                         setSelectedIndices(new Set());
@@ -185,13 +185,13 @@ export function AITripSuggestions({
                           {type === 'itinerary' && item.title}
                           {type === 'checklist' && item.item}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {type === 'shopping' && `Custo estimado: ${currency} ${item.estimatedCost.toFixed(2)}`}
                           {type === 'itinerary' && `${item.location} • Aprox. ${item.durationHours}h`}
                           {type === 'checklist' && `Categoria: ${item.category}`}
                         </p>
                         {type === 'itinerary' && item.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                             {item.description}
                           </p>
                         )}

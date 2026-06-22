@@ -191,7 +191,7 @@ export function CategorySelector({
           {selectedCategory ? (
             <div className="flex items-center gap-2">
               {selectedParent && (
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-foreground text-sm">
                   {selectedParent.icon} {selectedParent.name} /
                 </span>
               )}
@@ -260,7 +260,7 @@ export function CategorySelector({
                         : "hover:bg-muted"
                     )}
                   >
-                    <span className="text-lg">{parent.icon}</span>
+                    <span className="text-base">{parent.icon}</span>
                     <span className="flex-1 text-left font-semibold">{parent.name}</span>
                     {value === parent.id && (
                       <Check className="h-4 w-4 shrink-0" />
@@ -270,7 +270,7 @@ export function CategorySelector({
 
                 {/* Subcategorias */}
                 {isExpanded && hasChildren && (
-                  <div className="ml-8 mt-1 space-y-1 border-l-2 border-muted pl-2">
+                  <div className="ml-8 mt-1 space-y-2 border-l-2 border-muted pl-2">
                     {children.map((child) => (
                       <button
                         key={child.id}
@@ -300,7 +300,7 @@ export function CategorySelector({
           <Button
             type="button"
             variant="ghost"
-            className="w-full text-xs font-bold justify-center text-primary gap-1"
+            className="w-full text-sm font-bold justify-center text-primary gap-1"
             onClick={() => setShowCreateDialog(true)}
           >
             <Plus className="h-3 w-3" />
@@ -311,7 +311,7 @@ export function CategorySelector({
     </Popover>
 
     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-      <DialogContent className="sm:max-w-[400px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+      <DialogContent className="sm:max-w-[400px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Nova Categoria</DialogTitle>
           <DialogDescription>Crie uma nova categoria para organizar seus lançamentos de {type === 'expense' ? 'despesas' : 'receitas'}</DialogDescription>
@@ -358,7 +358,7 @@ export function CategorySelector({
                 "🐕", "🐈", "🐠", "🐦", "🐾", "🦴", "🐶", "🐱",
                 "❤️", "⭐", "🔥", "✨", "🎯", "🏆", "🎉", "📌",
               ].map((icon) => (
-                <button type="button" key={icon} onClick={() => setNewCatIcon(icon)} className={cn("h-9 w-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted transition-colors text-lg", newCatIcon === icon && "bg-primary text-primary-foreground border-primary")}>
+                <button type="button" key={icon} onClick={() => setNewCatIcon(icon)} className={cn("h-10 w-9 flex items-center justify-center rounded-lg border border-border hover:bg-muted transition-colors text-lg", newCatIcon === icon && "bg-primary text-primary-foreground border-primary")}>
                   {icon}
                 </button>
               ))}

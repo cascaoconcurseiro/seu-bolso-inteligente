@@ -222,9 +222,9 @@ export function Trips() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="skeleton h-10 w-36 rounded-xl" />
-            <div className="skeleton h-4 w-64 rounded-lg" />
+            <div className="skeleton h-4 w-64 rounded-xl" />
           </div>
-          <div className="skeleton h-11 w-36 rounded-xl" />
+          <div className="skeleton h-12 w-36 rounded-xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -337,14 +337,14 @@ export function Trips() {
       <div className="relative overflow-hidden rounded-2xl p-4 md:p-6 transition-all duration-700 ease-out bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="space-y-1">
-            <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">Viagens</h1>
-            <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">Organize despesas e roteiros em grupo</p>
+          <div className="space-y-2">
+            <h1 className="font-display font-black text-3xl tracking-tighter">Viagens</h1>
+            <p className="text-muted-foreground text-sm font-medium">Organize despesas e roteiros em grupo</p>
           </div>
           <Button 
             size="default" 
             onClick={() => setShowNewTripDialog(true)}
-            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-11 w-full sm:w-auto font-bold"
+            className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group h-12 w-full sm:w-auto font-bold"
           >
             <Plus className="h-4 w-4 mr-2 transition-transform group-hover:scale-110" />
             Nova Viagem
@@ -418,7 +418,7 @@ export function Trips() {
         setCurrency={setTripCurrency} 
       />
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="border-border w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir viagem?</AlertDialogTitle>
             <AlertDialogDescription>

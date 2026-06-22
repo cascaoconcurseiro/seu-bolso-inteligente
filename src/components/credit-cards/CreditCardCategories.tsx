@@ -91,12 +91,12 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground leading-none">{item.category}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1 font-medium">{item.count} {item.count === 1 ? 'transação' : 'transações'}</p>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">{item.count} {item.count === 1 ? 'transação' : 'transações'}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-foreground leading-none">{moneyUtils.format(item.value)}</p>
-                <p className="text-[11px] text-muted-foreground mt-1 font-semibold">{item.percent}%</p>
+                <p className="text-sm text-muted-foreground mt-1 font-semibold">{item.percent}%</p>
               </div>
             </div>
             

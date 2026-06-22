@@ -37,14 +37,14 @@ export function FamilyMemberCard({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-display font-bold text-foreground flex items-center gap-1.5">
+              <p className="font-display font-bold text-foreground flex items-center gap-2">
                 {member.name} 
-                {isSelf && <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
+                {isSelf && <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
               </p>
               {memberIsOwner && <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500 animate-pulse" />}
             </div>
             {member.email && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                 <Mail className="h-3.5 w-3.5 text-muted-foreground/60" />
                 {member.email}
               </p>
@@ -54,7 +54,7 @@ export function FamilyMemberCard({
         
         <div className="flex items-center gap-3">
           <span className={cn(
-            "text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all", 
+            "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all", 
             member.role === "admin" 
               ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" 
               : member.role === "editor" 

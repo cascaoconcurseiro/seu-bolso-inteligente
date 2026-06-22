@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
-import { useMonthlyProjection } from "@/hooks/useMonthlyProjection";
 import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
@@ -18,7 +17,6 @@ import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
-import { EmptyState } from "@/components/ui/empty-state";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
@@ -38,7 +36,6 @@ export function Dashboard() {
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: trips } = useTrips();
-  const { data: projection } = useMonthlyProjection(selectedCurrency);
   const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
   const { data: profile } = useUserProfile();
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(selectedCurrency, "BRL");
@@ -46,11 +43,11 @@ export function Dashboard() {
 
 
   useEffect(() => {
-    // Sincroniza fechamento de faturas (RPC process_credit_card_invoices)
+    // Sincroniza fechamento de faturas automaticamente
     import("@/integrations/supabase/client").then(({ supabase }) => {
-      supabase.rpc("process_credit_card_invoices").then(({ error }) => {
+      // Chamada direta sem verificação de tipo para RPC não tipada
+      (supabase.rpc as any)("process_credit_card_invoices").then(({ error }: any) => {
         if (error) console.error("Falha ao sincronizar faturas:", error);
-        else console.log("Faturas sincronizadas com sucesso.");
       });
     });
   }, []);
@@ -122,7 +119,6 @@ export function Dashboard() {
   }, [accounts, currentDate]);
 
   const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
-  const foreignData = currenciesData.filter(c => c.currency !== 'BRL');
   const activeCurrencyData = currenciesData.find(c => c.currency === selectedCurrency) || currenciesData[0] || brlData;
 
   const hasAccounts = accounts && accounts.length > 0;
@@ -137,7 +133,7 @@ export function Dashboard() {
     return (
       <div className="space-y-8 animate-fade-in">
         {/* Hero skeleton */}
-        <div className="relative overflow-hidden p-6 md:p-8 rounded-[2rem] border border-border/50 bg-card/50">
+        <div className="relative overflow-hidden p-6 md:p-8 rounded-4xl border border-border/50 bg-card/50">
           <div className="space-y-4">
             <div className="skeleton h-4 w-48 rounded-lg" />
             <div className="skeleton h-16 w-72 rounded-xl" />
@@ -207,12 +203,12 @@ export function Dashboard() {
             </div>
             
             <h1 className="text-3xl font-display font-bold mb-4 tracking-tight">O palco está montado</h1>
-            <p className="text-muted-foreground text-lg mb-10 max-w-md mx-auto">
+            <p className="text-muted-foreground text-base mb-10 max-w-md mx-auto">
               Seu império financeiro começa aqui. Adicione sua primeira conta para ver a mágica do Pé de Meia acontecer.
             </p>
             
             <Link to="/contas">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
+              <Button size="lg" className="h-14 px-8 text-base rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
                 <CreditCard className="h-5 w-5 mr-3" />
                 Adicionar Primeira Conta
               </Button>
@@ -283,7 +279,7 @@ export function Dashboard() {
 
       {isTripMode && activeTrip ? (
         <div className="animate-in fade-in slide-in-from-top-4 duration-500 mb-2">
-          <TripDashboardView trip={activeTrip} />
+          <TripDashboardView />
         </div>
       ) : (
         <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">

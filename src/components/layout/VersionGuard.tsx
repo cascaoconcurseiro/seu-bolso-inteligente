@@ -34,10 +34,8 @@ export function VersionGuard() {
         if (initialTimestampRef.current === null) {
           // Salva o timestamp de build correspondente à versão carregada inicialmente
           initialTimestampRef.current = data.buildTimestamp;
-          console.log("[VersionGuard] Monitoramento ativo. Versão inicial do app:", data.version, "Build:", data.buildTimestamp);
         } else if (data.buildTimestamp > initialTimestampRef.current) {
           if (!updateAvailableRef.current) {
-            console.log("[VersionGuard] Nova versão detectada no servidor! Nova compilada em:", data.buildTimestamp);
             updateAvailableRef.current = true;
 
             toast('Nova versão disponível!', {

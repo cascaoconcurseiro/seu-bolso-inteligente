@@ -47,7 +47,7 @@ export function DashboardHero({
   const predictedBalance = balance;
 
   return (
-    <div className="relative group overflow-hidden p-6 md:p-8 rounded-[2rem] border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
+    <div className="relative group overflow-hidden p-6 md:p-8 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
       {/* Elementos Decorativos de Fundo */}
       <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000" />
       <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] group-hover:bg-blue-500/10 transition-colors duration-1000" />
@@ -59,14 +59,14 @@ export function DashboardHero({
                <div className="p-1.5 rounded-lg bg-primary/10">
                   <TrendingUp className="h-4 w-4 text-primary" />
                </div>
-               <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
+               <p className="text-sm text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
                  Saldo das Contas ({currency})
                  <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
                </p>
             </div>
 
             {currency !== "BRL" && (
-              <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-xs font-bold border border-primary/20 shadow-sm animate-in fade-in zoom-in duration-300">
+              <div className="flex items-center gap-2 bg-primary/10 text-primary px-2.5 py-1 rounded-full text-sm font-bold border border-primary/20 shadow-sm animate-in fade-in zoom-in duration-300">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -144,7 +144,7 @@ export function DashboardHero({
                 </div>
                 <div className="min-w-0">
                   <p className="text-[8px] sm:text-[9px] opacity-75 font-bold uppercase tracking-wider truncate">Taxa Poupança</p>
-                  <p className="text-xs sm:text-sm font-bold truncate">
+                  <p className="text-sm sm:text-sm font-bold truncate">
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export function DashboardHero({
                 <Target className="h-4 w-4 text-orange-500" />
               </div>
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1">
+                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1">
                   Orçamento do Mês
                   <InfoTooltip content="Configurado nas suas preferências. Ajuda a limitar os gastos (saídas) totais do mês corrente." />
                 </p>

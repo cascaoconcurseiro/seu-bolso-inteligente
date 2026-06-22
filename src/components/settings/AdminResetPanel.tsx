@@ -119,10 +119,10 @@ export function AdminResetPanel() {
               <Shield className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-amber-900 dark:text-amber-200">
+              <h3 className="font-semibold text-base text-amber-900 dark:text-amber-200">
                 Área Administrativa Restrita
               </h3>
-              <p className="text-xs text-muted-foreground">Console central de administração corporativa</p>
+              <p className="text-sm text-muted-foreground">Console central de administração corporativa</p>
             </div>
           </div>
           
@@ -159,7 +159,7 @@ export function AdminResetPanel() {
                 </Button>
               </div>
               {passwordError && (
-                <p className="text-xs text-red-500 font-medium">Credencial administrativa inválida.</p>
+                <p className="text-sm text-red-500 font-medium">Credencial administrativa inválida.</p>
               )}
             </div>
             
@@ -185,14 +185,14 @@ export function AdminResetPanel() {
             <Shield className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+            <h3 className="font-display font-semibold text-base flex items-center gap-2">
               Painel Administrativo do Sistema
-              <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-1.5 py-0 px-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <Badge variant="outline" className="text-sm bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-2 py-0 px-2">
+                <span className="h-2 w-1.5 rounded-full bg-emerald-500 animate-ping" />
                 Operacional
               </Badge>
             </h3>
-            <p className="text-xs text-muted-foreground">Monitoramento global, manutenção estrutural e integridade de transações.</p>
+            <p className="text-sm text-muted-foreground">Monitoramento global, manutenção estrutural e integridade de transações.</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -209,23 +209,23 @@ export function AdminResetPanel() {
       {/* Main Tabs Dashboard */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid grid-cols-5 w-full lg:w-[750px] bg-muted/50 p-1 rounded-xl overflow-x-auto">
-          <TabsTrigger value="overview" className="rounded-lg gap-2 text-xs">
+          <TabsTrigger value="overview" className="rounded-lg gap-2 text-sm">
             <Sparkle className="h-3.5 w-3.5" />
             Visão Geral
           </TabsTrigger>
-          <TabsTrigger value="users" className="rounded-lg gap-2 text-xs">
+          <TabsTrigger value="users" className="rounded-lg gap-2 text-sm">
             <Users className="h-3.5 w-3.5" />
             Usuários
           </TabsTrigger>
-          <TabsTrigger value="audit" className="rounded-lg gap-2 text-xs">
+          <TabsTrigger value="audit" className="rounded-lg gap-2 text-sm">
             <History className="h-3.5 w-3.5" />
             Auditoria
           </TabsTrigger>
-          <TabsTrigger value="errors" className="rounded-lg gap-2 text-xs">
+          <TabsTrigger value="errors" className="rounded-lg gap-2 text-sm">
             <Bug className="h-3.5 w-3.5" />
             Erros
           </TabsTrigger>
-          <TabsTrigger value="maintenance" className="rounded-lg gap-2 text-xs">
+          <TabsTrigger value="maintenance" className="rounded-lg gap-2 text-sm">
             <Wrench className="h-3.5 w-3.5" />
             Manutenção
           </TabsTrigger>
@@ -247,7 +247,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Perfis cadastrados na base</p>
+                  <p className="text-sm text-muted-foreground mt-1">Perfis cadastrados na base</p>
                 </CardContent>
               </Card>
 
@@ -258,7 +258,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(stats.totalVolume)}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Movimentações financeiras sob gestão</p>
+                  <p className="text-sm text-muted-foreground mt-1">Movimentações financeiras sob gestão</p>
                 </CardContent>
               </Card>
 
@@ -269,7 +269,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalTransactions}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Registros de fluxo de caixa</p>
+                  <p className="text-sm text-muted-foreground mt-1">Registros de fluxo de caixa</p>
                 </CardContent>
               </Card>
 
@@ -280,7 +280,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalAccounts}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Contas bancárias e cartões ativos</p>
+                  <p className="text-sm text-muted-foreground mt-1">Contas bancárias e cartões ativos</p>
                 </CardContent>
               </Card>
 
@@ -291,7 +291,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalAssets}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Ativos imobiliários, ações e tesouro</p>
+                  <p className="text-sm text-muted-foreground mt-1">Ativos imobiliários, ações e tesouro</p>
                 </CardContent>
               </Card>
 
@@ -302,7 +302,7 @@ export function AdminResetPanel() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalFamilies}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Famílias com compartilhamento integrado</p>
+                  <p className="text-sm text-muted-foreground mt-1">Famílias com compartilhamento integrado</p>
                 </CardContent>
               </Card>
             </div>
@@ -313,7 +313,7 @@ export function AdminResetPanel() {
               <Info className="h-4 w-4 text-primary" />
               Saúde do Banco de Dados
             </h4>
-            <div className="text-xs text-muted-foreground space-y-1">
+            <div className="text-sm text-muted-foreground space-y-2">
               <p>• As estatísticas são compiladas e integradas diretamente dos esquemas da tabela Supabase Postgres.</p>
               <p>• Volumes transacionados consideram apenas moedas registradas como BRL. Valores em outras moedas estrangeiras não são consolidados na conversão global padrão.</p>
             </div>
@@ -332,7 +332,7 @@ export function AdminResetPanel() {
                 className="pl-9"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Mostrando {filteredUsers.length} de {enrichedUsers.length} usuários cadastrados.
             </p>
           </div>
@@ -346,7 +346,7 @@ export function AdminResetPanel() {
             <div className="p-12 text-center border border-border rounded-xl">
               <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
               <p className="font-semibold text-sm">Nenhum usuário localizado</p>
-              <p className="text-xs text-muted-foreground">Tente alterar os termos da busca.</p>
+              <p className="text-sm text-muted-foreground">Tente alterar os termos da busca.</p>
             </div>
           ) : (
             <div className="border border-border rounded-xl overflow-hidden bg-card">
@@ -365,32 +365,32 @@ export function AdminResetPanel() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div 
-                            className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-semibold text-white shadow-sm transition-transform hover:scale-105"
+                            className="h-10 w-9 rounded-full flex items-center justify-center text-sm font-semibold text-white shadow-sm transition-transform hover:scale-105"
                             style={{ backgroundColor: user.avatar_color || '#10b981' }}
                           >
                             {getInitials(user.full_name || user.email)}
                           </div>
                           <div>
                             <p className="font-medium text-sm leading-none">{user.full_name || 'Sem Nome'}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{user.email}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs">
-                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <TableCell className="text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-3.5 w-3.5" />
                           {new Date(user.created_at).toLocaleDateString('pt-BR')}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex justify-center gap-1.5">
-                          <Badge variant="secondary" className="text-[10px] py-0 px-2 font-medium" title="Contas Bancárias">
+                        <div className="flex justify-center gap-2">
+                          <Badge variant="secondary" className="text-sm py-0 px-2 font-medium" title="Contas Bancárias">
                             🏦 {user.accountsCount}
                           </Badge>
-                          <Badge variant="secondary" className="text-[10px] py-0 px-2 font-medium" title="Transações">
+                          <Badge variant="secondary" className="text-sm py-0 px-2 font-medium" title="Transações">
                             💼 {user.transactionsCount}
                           </Badge>
-                          <Badge variant="secondary" className="text-[10px] py-0 px-2 font-medium" title="Investimentos">
+                          <Badge variant="secondary" className="text-sm py-0 px-2 font-medium" title="Investimentos">
                             📈 {user.assetsCount}
                           </Badge>
                         </div>
@@ -400,7 +400,7 @@ export function AdminResetPanel() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="h-8 text-xs font-medium"
+                            className="h-8 text-sm font-medium"
                             onClick={() => openUserDetailModal(user)}
                           >
                             Detalhes
@@ -460,7 +460,7 @@ export function AdminResetPanel() {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-sm">Fila de Eventos de Conciliação</h4>
-              <p className="text-xs text-muted-foreground">Lista recente de ações financeiras auditadas (Tabela `audit_logs` no Postgres)</p>
+              <p className="text-sm text-muted-foreground">Lista recente de ações financeiras auditadas (Tabela `audit_logs` no Postgres)</p>
             </div>
             <Button
               variant="outline"
@@ -492,7 +492,7 @@ export function AdminResetPanel() {
             <div className="p-12 text-center border border-border rounded-xl bg-card">
               <History className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
               <p className="font-semibold text-sm">Nenhum evento registrado</p>
-              <p className="text-xs text-muted-foreground">O sistema ainda não registrou eventos de conciliação ou auditoria.</p>
+              <p className="text-sm text-muted-foreground">O sistema ainda não registrou eventos de conciliação ou auditoria.</p>
             </div>
           ) : (
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
@@ -501,11 +501,11 @@ export function AdminResetPanel() {
                 
                 return (
                   <div key={log.id} className="p-4 rounded-xl border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:border-muted-foreground/30">
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge 
                           className={cn(
-                            "text-[10px] font-semibold py-0.5 px-2.5",
+                            "text-xs font-semibold py-0.5 px-2.5",
                             isSettlement ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
                             isBlocked ? "bg-red-500/10 text-red-500 border-red-500/20" : 
                             "bg-amber-500/10 text-amber-500 border-amber-500/20"
@@ -514,13 +514,13 @@ export function AdminResetPanel() {
                         >
                           {opType}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {new Date(log.created_at).toLocaleString('pt-BR')}
                         </span>
                       </div>
                       <p className="text-sm font-medium">{reason}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         Executado por: <span className="font-medium text-foreground">{getUserEmail(log.user_id || '')}</span>
                       </p>
                     </div>
@@ -529,7 +529,7 @@ export function AdminResetPanel() {
                         <p className="text-sm font-bold text-foreground">
                           {formatCurrency(amount)}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">{currency || 'BRL'}</p>
+                        <p className="text-sm text-muted-foreground">{currency || 'BRL'}</p>
                       </div>
                     )}
                   </div>
@@ -544,7 +544,7 @@ export function AdminResetPanel() {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-sm">Central de Relatórios de Erros</h4>
-              <p className="text-xs text-muted-foreground">Erros capturados e enviados pelos usuários</p>
+              <p className="text-sm text-muted-foreground">Erros capturados e enviados pelos usuários</p>
             </div>
             <Button variant="outline" size="sm" onClick={loadErrorLogs}>
               <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
@@ -560,7 +560,7 @@ export function AdminResetPanel() {
             <div className="p-12 text-center border border-border rounded-xl bg-card">
               <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500 mb-2" />
               <p className="font-semibold text-sm">Nenhum erro reportado</p>
-              <p className="text-xs text-muted-foreground">Tudo funcionando perfeitamente no momento.</p>
+              <p className="text-sm text-muted-foreground">Tudo funcionando perfeitamente no momento.</p>
             </div>
           ) : (
             <div className="border border-border rounded-xl overflow-hidden bg-card">
@@ -577,19 +577,19 @@ export function AdminResetPanel() {
                 <TableBody>
                   {errorLogs.map((log) => (
                     <TableRow key={log.id} className={log.status === 'resolved' ? 'opacity-50' : ''}>
-                      <TableCell className="text-xs">
+                      <TableCell className="text-sm">
                         {new Date(log.created_at).toLocaleString('pt-BR')}
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium text-xs">{log.user_email || 'Anônimo / Deslogado'}</p>
+                        <p className="font-medium text-sm">{log.user_email || 'Anônimo / Deslogado'}</p>
                       </TableCell>
                       <TableCell>
-                        <p className="text-xs truncate max-w-[200px]" title={log.error_message}>
+                        <p className="text-sm truncate max-w-[200px]" title={log.error_message}>
                           {log.error_message}
                         </p>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={log.status === 'resolved' ? 'secondary' : 'destructive'} className="text-[10px]">
+                        <Badge variant={log.status === 'resolved' ? 'secondary' : 'destructive'} className="text-sm">
                           {log.status === 'resolved' ? 'Resolvido' : 'Aberto'}
                         </Badge>
                       </TableCell>
@@ -597,7 +597,7 @@ export function AdminResetPanel() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-8 text-xs font-medium"
+                          className="h-8 text-sm font-medium"
                           onClick={() => {
                             setSelectedErrorLog(log);
                             setErrorDetailOpen(true);
@@ -632,7 +632,7 @@ export function AdminResetPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400">
+                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 text-sm text-amber-600 dark:text-amber-400">
                   ⚠️ Atenção: A purga definitiva excluirá fisicamente do banco de dados registros que já foram marcados como deletados no app.
                 </div>
                 <Button
@@ -664,7 +664,7 @@ export function AdminResetPanel() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium">Selecionar Usuário Alvo</label>
+                  <label className="text-sm font-medium">Selecionar Usuário Alvo</label>
                   <Select onValueChange={(val) => handleInjectDefaultCategories(val)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um usuário" />
@@ -678,7 +678,7 @@ export function AdminResetPanel() {
                     </SelectContent>
                   </Select>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Isso irá verificar se o usuário não possui categorias e injetar as categorias estruturais corretas (🍔 Alimentação, 🏠 Habitação, etc.) e subcategorias correspondentes.
                 </p>
               </CardContent>
@@ -719,7 +719,7 @@ export function AdminResetPanel() {
               <AlertTriangle className="h-5 w-5" />
               ZONA CRÍTICA: Limpeza e Redefinição Global
             </h4>
-            <p className="text-xs text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Use as ferramentas a seguir apenas sob extrema necessidade corporativa de redefinição de demonstração.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -752,7 +752,7 @@ export function AdminResetPanel() {
 
       {/* View User Details Dialog */}
       <Dialog open={userDetailOpen} onOpenChange={setUserDetailOpen}>
-        <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -771,28 +771,28 @@ export function AdminResetPanel() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-base">{selectedDetailUser.full_name || 'Sem Nome'}</h4>
-                  <p className="text-xs text-muted-foreground">{selectedDetailUser.email}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">ID: {selectedDetailUser.id}</p>
+                  <p className="text-sm text-muted-foreground">{selectedDetailUser.email}</p>
+                  <p className="text-sm text-muted-foreground mt-1">ID: {selectedDetailUser.id}</p>
                 </div>
               </div>
               
               <div className="border-t border-border pt-4 space-y-3">
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contas Bancárias Ativas</h5>
+                <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Contas Bancárias Ativas</h5>
                 {isLoadingDetails ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
                 ) : detailAccounts.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Nenhuma conta cadastrada</p>
+                  <p className="text-sm text-muted-foreground italic">Nenhuma conta cadastrada</p>
                 ) : (
                   <div className="space-y-2 max-h-[150px] overflow-y-auto">
                     {detailAccounts.map((acc, i) => (
-                      <div key={i} className="flex justify-between items-center text-xs p-2 rounded bg-muted/30">
+                      <div key={i} className="flex justify-between items-center text-sm p-2 rounded bg-muted/30">
                         <span className="font-medium">
                           {acc.name}{" "}
                           <Badge variant="outline" className="text-[8px] py-0 px-1 ml-1">
                             {acc.type}
                           </Badge>
                         </span>
-                        <Badge variant="outline" className="text-[10px] bg-sky-500/10 text-sky-500 border-sky-500/20 font-medium flex items-center gap-1 py-0.5 px-2">
+                        <Badge variant="outline" className="text-sm bg-sky-500/10 text-sky-500 border-sky-500/20 font-medium flex items-center gap-1 py-0.5 px-2">
                           <Lock className="h-3 w-3" />
                           Saldo Oculto (LGPD)
                         </Badge>
@@ -803,17 +803,17 @@ export function AdminResetPanel() {
               </div>
 
               <div className="border-t border-border pt-4 space-y-3">
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Grupos Familiares Associados</h5>
+                <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Grupos Familiares Associados</h5>
                 {isLoadingDetails ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
                 ) : detailFamilies.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">Não pertence a nenhum grupo familiar</p>
+                  <p className="text-sm text-muted-foreground italic">Não pertence a nenhum grupo familiar</p>
                 ) : (
                   <div className="space-y-2">
                     {detailFamilies.map((fam, i) => (
-                      <div key={i} className="flex justify-between items-center text-xs p-2 rounded bg-muted/30">
+                      <div key={i} className="flex justify-between items-center text-sm p-2 rounded bg-muted/30">
                         <span className="font-medium">👨‍👩‍👧‍👦 {fam.name}</span>
-                        <span className="text-[10px] font-mono capitalize px-2 py-0.5 rounded bg-foreground/10 text-foreground">
+                        <span className="text-sm font-mono capitalize px-2 py-0.5 rounded bg-foreground/10 text-foreground">
                           {fam.role} ({fam.status})
                         </span>
                       </div>
@@ -823,12 +823,12 @@ export function AdminResetPanel() {
               </div>
 
               <div className="border-t border-border pt-4 space-y-3">
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 text-amber-500">
+                <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2 text-amber-500">
                   <Shield className="h-3.5 w-3.5" />
                   Controles de Segurança e LGPD
                 </h5>
                 <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-3">
-                  <div className="flex gap-2 text-xs text-amber-800 dark:text-amber-300">
+                  <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
                     <Info className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>
                       Para redefinir a senha de forma segura e em total conformidade com a LGPD, envie um e-mail de redefinição de senha oficial. O administrador não tem acesso a senhas em texto puro.
@@ -862,7 +862,7 @@ export function AdminResetPanel() {
 
       {/* Safety Reset Alert Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-red-500 w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="border-red-500 w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 animate-bounce" />
@@ -875,11 +875,11 @@ export function AdminResetPanel() {
                   : "Você está prestes a excluir permanentemente todo o histórico financeiro e perfil do usuário selecionado. Os membros de famílias associadas serão notificados imediatamente."
                 }
               </p>
-              <div className="p-3 rounded-lg bg-red-500/5 text-xs text-red-600 dark:text-red-400 font-medium">
+              <div className="p-3 rounded-lg bg-red-500/5 text-sm text-red-600 dark:text-red-400 font-medium">
                 Esta operação é IRREVERSÍVEL! Os dados serão removidos do servidor Supabase Postgres sem possibilidade de restauração.
               </div>
               <div className="pt-2">
-                <Label className="text-xs font-semibold">
+                <Label className="text-sm font-semibold">
                   Digite <span className="font-bold text-red-600">{CONFIRM_WORD}</span> abaixo para validar a operação administrativa:
                 </Label>
                 <Input
@@ -918,7 +918,7 @@ export function AdminResetPanel() {
 
       {/* Error Details Modal */}
       <Dialog open={errorDetailOpen} onOpenChange={setErrorDetailOpen}>
-        <DialogContent className="max-w-2xl overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="max-w-2xl overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bug className="h-5 w-5 text-destructive" />
@@ -931,28 +931,28 @@ export function AdminResetPanel() {
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4 text-sm bg-muted/20 p-4 rounded-xl border border-border">
                 <div>
-                  <span className="text-muted-foreground text-xs block">Reportado por</span>
+                  <span className="text-muted-foreground text-sm block">Reportado por</span>
                   <span className="font-semibold">{selectedErrorLog.user_email || 'Usuário Não Identificado'}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground text-xs block">Data da Ocorrência</span>
+                  <span className="text-muted-foreground text-sm block">Data da Ocorrência</span>
                   <span>{new Date(selectedErrorLog.created_at).toLocaleString('pt-BR')}</span>
                 </div>
                 <div className="col-span-2">
-                  <span className="text-muted-foreground text-xs block">Contexto (URL)</span>
-                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded break-all">{selectedErrorLog.context || 'N/A'}</span>
+                  <span className="text-muted-foreground text-sm block">Contexto (URL)</span>
+                  <span className="font-mono text-sm bg-muted px-2 py-1 rounded break-all">{selectedErrorLog.context || 'N/A'}</span>
                 </div>
                 <div className="col-span-2 pt-2 border-t border-border">
-                  <span className="text-muted-foreground text-xs block">Mensagem de Erro</span>
+                  <span className="text-muted-foreground text-sm block">Mensagem de Erro</span>
                   <p className="font-medium text-destructive mt-1 break-words">{selectedErrorLog.error_message}</p>
                 </div>
               </div>
 
               <div className="space-y-2 mt-4">
-                <span className="text-muted-foreground text-xs font-semibold flex items-center gap-2 uppercase tracking-wider">
+                <span className="text-muted-foreground text-sm font-semibold flex items-center gap-2 uppercase tracking-wider">
                   <Code className="h-4 w-4" /> Stack Trace
                 </span>
-                <pre className="bg-muted text-foreground p-4 rounded-lg text-[10px] font-mono max-h-60 overflow-y-auto whitespace-pre-wrap">
+                <pre className="bg-muted text-foreground p-4 rounded-lg text-sm font-mono max-h-60 overflow-y-auto whitespace-pre-wrap">
                   {selectedErrorLog.stack_trace || 'Nenhum stack trace disponível'}
                 </pre>
               </div>

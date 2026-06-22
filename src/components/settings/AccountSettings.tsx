@@ -129,7 +129,7 @@ export function AccountSettings({
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="font-display font-semibold text-lg">Perfil</h2>
+        <h2 className="font-display font-semibold text-base">Perfil</h2>
         <p className="text-sm text-muted-foreground">Gerencie seus dados e segurança</p>
       </div>
 
@@ -159,7 +159,7 @@ export function AccountSettings({
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-lg">{profile?.name || "Sem nome"}</p>
+                  <p className="font-semibold text-base">{profile?.name || "Sem nome"}</p>
                   <Button size="sm" variant="ghost" onClick={() => setEditingName(true)}>Editar</Button>
                 </div>
               )}
@@ -241,7 +241,7 @@ export function AccountSettings({
                 size="sm" 
                 onClick={() => handleExport("csv")}
                 disabled={isExporting}
-                className="flex-1 sm:flex-none flex items-center gap-1.5 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                className="flex-1 sm:flex-none flex items-center gap-2 hover:bg-primary/5 hover:text-primary transition-all duration-200"
               >
                 {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
                 CSV (Excel)
@@ -251,7 +251,7 @@ export function AccountSettings({
                 size="sm" 
                 onClick={() => handleExport("json")}
                 disabled={isExporting}
-                className="flex-1 sm:flex-none flex items-center gap-1.5 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+                className="flex-1 sm:flex-none flex items-center gap-2 hover:bg-primary/5 hover:text-primary transition-all duration-200"
               >
                 {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileJson className="h-3.5 w-3.5" />}
                 JSON
@@ -275,7 +275,7 @@ export function AccountSettings({
               <AlertDialogTrigger asChild>
                 <Button variant="outline">Sair</Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+              <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Você deseja realmente sair?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -311,7 +311,7 @@ export function AccountSettings({
       </div>
 
       <Dialog open={showPinSetup} onOpenChange={setShowPinSetup}>
-        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-[2rem] !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
             <DialogTitle>Configurar PIN</DialogTitle>
             <DialogDescription>Digite um PIN de 4 números para bloquear o app.</DialogDescription>
@@ -326,7 +326,7 @@ export function AccountSettings({
                 value={setupPin} 
                 onChange={(e) => setSetupPin(e.target.value.replace(/\D/g, ''))} 
                 placeholder="Ex: 1234" 
-                className="text-center text-lg tracking-widest"
+                className="text-center text-base tracking-widest"
               />
             </div>
             <div className="space-y-2">
@@ -338,7 +338,7 @@ export function AccountSettings({
                 value={confirmSetupPin} 
                 onChange={(e) => setConfirmSetupPin(e.target.value.replace(/\D/g, ''))} 
                 placeholder="Repita o PIN" 
-                className="text-center text-lg tracking-widest"
+                className="text-center text-base tracking-widest"
               />
             </div>
           </div>

@@ -99,46 +99,46 @@ export function TripExpensesTab({
       {/* ===== RESUMO RÁPIDO ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-2xl border border-purple-500/20 bg-purple-500/5 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-1">
+          <p className="text-sm font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-1">
             Total Compartilhado
           </p>
-          <p className="font-mono font-black text-xl text-foreground">
+          <p className="font-mono font-black text-base text-foreground">
             {formatCurrency(totalShared, currency)}
           </p>
           {isInternational && rate && (
-            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+            <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
               ≈ {formatCurrency(totalShared * rate, baseCurrency)}
             </p>
           )}
-          <p className="text-xs text-muted-foreground mt-0.5">{sharedExpenses.length} despesas</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{sharedExpenses.length} despesas</p>
         </div>
         <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1">
+          <p className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1">
             Eu Paguei (Compartilhado)
           </p>
-          <p className="font-mono font-black text-xl text-foreground">
+          <p className="font-mono font-black text-base text-foreground">
             {formatCurrency(mySharedPaid, currency)}
           </p>
           {isInternational && rate && (
-            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+            <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
               ≈ {formatCurrency(mySharedPaid * rate, baseCurrency)}
             </p>
           )}
-          <p className="text-xs text-muted-foreground mt-0.5">impacto no orçamento</p>
+          <p className="text-sm text-muted-foreground mt-0.5">impacto no orçamento</p>
         </div>
         <div className="p-4 rounded-2xl border border-border/50 bg-card/50 text-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+          <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
             Meu Gasto (Orçamento)
           </p>
-          <p className="font-mono font-black text-xl text-foreground">
+          <p className="font-mono font-black text-base text-foreground">
             {formatCurrency(spentToDisplay, currency)}
           </p>
           {isInternational && rate && (
-            <p className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5">
+            <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
               ≈ {formatCurrency(spentToDisplay * rate, baseCurrency)}
             </p>
           )}
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-sm text-muted-foreground mt-0.5">
             {myTotalSpent !== undefined 
               ? "Impacto real no seu orçamento" 
               : `${personalExpenses.length} privadas + sua parte (${formatCurrency(myShareOfShared, currency)})`}
@@ -151,7 +151,7 @@ export function TripExpensesTab({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-purple-500" />
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+            <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
               Despesas Compartilhadas ({sharedExpenses.length})
             </h2>
           </div>
@@ -159,7 +159,7 @@ export function TripExpensesTab({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 hover:bg-purple-500/10"
+              className="h-7 gap-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 hover:bg-purple-500/10"
               onClick={() => navigate("/compartilhados?tab=TRAVEL")}
             >
               Ir para Acertos <ExternalLink className="h-3 w-3" />
@@ -169,7 +169,7 @@ export function TripExpensesTab({
 
         {/* Aviso sobre a lógica de orçamento */}
         {mySharedPaid > 0 && (
-          <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 text-xs text-amber-700 dark:text-amber-400">
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 text-sm text-amber-700 dark:text-amber-400">
             <span className="text-base shrink-0">💡</span>
             <span>
               <strong>Como funciona o orçamento:</strong> Quando você paga uma despesa compartilhada, o valor integral baixa do seu orçamento.
@@ -228,7 +228,7 @@ export function TripExpensesTab({
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div
                         className={cn(
-                          "w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 mt-0.5",
+                          "w-11 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 mt-0.5",
                           iPaid ? "bg-purple-500/15" : "bg-blue-500/10"
                         )}
                       >
@@ -276,8 +276,8 @@ export function TripExpensesTab({
                         </div>
 
                         {/* Detalhes: categoria, data */}
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                          <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest border border-primary/20">
                             <Tag className="h-2.5 w-2.5" />
                             {categoryName}
                           </span>
@@ -292,7 +292,7 @@ export function TripExpensesTab({
                         {expense.transaction_splits && expense.transaction_splits.length > 0 && (
                           <div className="mt-2.5 flex items-center gap-2">
                             <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Dividido com:</span>
-                            <div className="flex -space-x-1.5">
+                            <div className="flex -space-x-2.5">
                               {expense.transaction_splits.map((split: any) => {
                                 const member = participants.find((p: any) => p.id === split.member_id);
                                 return (
@@ -313,17 +313,17 @@ export function TripExpensesTab({
                         {/* Impacto no orçamento — mostrar apenas se EU paguei */}
                         {iPaid && (
                           <div className="mt-2 flex items-center gap-3 flex-wrap">
-                            <span className="text-xs font-mono text-purple-600 dark:text-purple-400 font-bold">
+                            <span className="text-sm font-mono text-purple-600 dark:text-purple-400 font-bold">
                               Impactou orçamento: −{formatCurrency(amount, currency)}
                             </span>
                             {status !== "no_splits" && status !== "settled" && (
-                              <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-0.5 text-sm text-muted-foreground">
                                 <ArrowRight className="h-3 w-3" />
                                 Acerte nos Compartilhados para recuperar sua parte
                               </span>
                             )}
                             {status === "settled" && (
-                              <span className="flex items-center gap-0.5 text-xs text-green-600 dark:text-green-400">
+                              <span className="flex items-center gap-0.5 text-sm text-green-600 dark:text-green-400">
                                 <CheckCircle className="h-3 w-3" />
                                 Acerto recebido — orçamento recuperado
                               </span>
@@ -337,35 +337,35 @@ export function TripExpensesTab({
                     <div className="text-right shrink-0">
                       {iPaid ? (
                         <>
-                          <p className="font-mono font-black text-base sm:text-lg text-foreground tracking-tight tabular-nums">
+                          <p className="font-mono font-black text-base sm:text-base text-foreground tracking-tight tabular-nums">
                             {formatCurrency(amount, currency)}
                           </p>
                           {isInternational && rate && (
-                            <p className="font-mono text-[11px] text-muted-foreground font-medium mt-0.5">
+                            <p className="font-mono text-sm text-muted-foreground font-medium mt-0.5">
                               ≈ {formatCurrency(amount * rate, baseCurrency)}
                             </p>
                           )}
-                          <p className="text-[10px] text-muted-foreground mt-0.5">valor total pago</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">valor total pago</p>
                           {expense.transaction_splits && (
-                            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-1">
+                            <p className="text-sm text-purple-600 dark:text-purple-400 font-bold mt-1">
                               Sua parte: {formatCurrency(mySplitAmount, currency)}
                             </p>
                           )}
                         </>
                       ) : (
                         <>
-                          <p className="font-mono font-black text-base sm:text-lg text-orange-600 dark:text-orange-400 tracking-tight tabular-nums">
+                          <p className="font-mono font-black text-base sm:text-base text-orange-600 dark:text-orange-400 tracking-tight tabular-nums">
                             {formatCurrency(mySplitAmount, currency)}
                           </p>
                           {isInternational && rate && (
-                            <p className="font-mono text-[11px] text-orange-600/70 dark:text-orange-400/70 font-medium mt-0.5">
+                            <p className="font-mono text-sm text-orange-600/70 dark:text-orange-400/70 font-medium mt-0.5">
                               ≈ {formatCurrency(mySplitAmount * rate, baseCurrency)}
                             </p>
                           )}
-                          <p className="text-[10px] text-orange-600/70 dark:text-orange-400/70 mt-0.5 font-bold uppercase tracking-widest">
+                          <p className="text-sm text-orange-600/70 dark:text-orange-400/70 mt-0.5 font-bold uppercase tracking-widest">
                             Sua parte
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-1.5">
+                          <p className="text-sm text-muted-foreground mt-1.5">
                             Total: {formatCurrency(amount, currency)}
                           </p>
                         </>
@@ -382,9 +382,9 @@ export function TripExpensesTab({
           </div>
         ) : (
           <div className="py-10 text-center border border-dashed border-purple-200 dark:border-purple-900 rounded-2xl bg-purple-500/3 flex flex-col items-center">
-            <Users className="h-9 w-9 mb-2.5 text-purple-400/60" />
+            <Users className="h-10 w-9 mb-2.5 text-purple-400/60" />
             <p className="text-sm font-semibold text-foreground">Nenhuma despesa compartilhada</p>
-            <p className="text-xs text-muted-foreground mt-1 mb-4">
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
               Despesas marcadas como compartilhadas aparecerão aqui
             </p>
             <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-purple-600 hover:bg-purple-700">
@@ -401,7 +401,7 @@ export function TripExpensesTab({
             <span className="w-full border-t border-border/40" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-background px-3 text-xs text-muted-foreground uppercase tracking-widest font-bold">
+            <span className="bg-background px-3 text-sm text-muted-foreground uppercase tracking-widest font-bold">
               Gastos Pessoais
             </span>
           </div>
@@ -412,9 +412,9 @@ export function TripExpensesTab({
       <section className="space-y-4">
         {personalExpenses.length === 0 && sharedExpenses.length === 0 ? (
           <div className="py-10 text-center border border-dashed border-border rounded-2xl bg-card/10 flex flex-col items-center">
-            <User className="h-9 w-9 mb-2.5 text-muted-foreground/40" />
+            <User className="h-10 w-9 mb-2.5 text-muted-foreground/40" />
             <p className="text-sm font-semibold text-foreground">Nenhuma despesa pessoal</p>
-            <p className="text-xs text-muted-foreground mt-1 mb-4">
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
               Seus gastos privados na viagem aparecerão aqui
             </p>
             <Button size="sm" variant="outline" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })}>
@@ -426,7 +426,7 @@ export function TripExpensesTab({
             {sharedExpenses.length === 0 && (
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-blue-500" />
-                <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-bold">
+                <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
                   Gastos Pessoais ({personalExpenses.length})
                 </h2>
               </div>
@@ -462,7 +462,7 @@ export function TripExpensesTab({
                     className="group p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex items-center justify-between gap-4 cursor-pointer"
                   >
                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                      <div className="w-11 h-11 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center text-xl shrink-0 transition-colors duration-300">
+                      <div className="w-11 h-12 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center text-base shrink-0 transition-colors duration-300">
                         {categoryIcon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -477,8 +477,8 @@ export function TripExpensesTab({
                             {expense.type === "INCOME" ? "Recebimento" : "Pessoal"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/20">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                          <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-sm font-bold uppercase tracking-widest border border-primary/20">
                             <Tag className="h-2.5 w-2.5" />
                             {categoryName}
                           </span>
@@ -499,7 +499,7 @@ export function TripExpensesTab({
                       </p>
                       {isInternational && rate && (
                         <p className={cn(
-                          "font-mono text-[11px] font-medium mt-0.5",
+                          "font-mono text-xs font-medium mt-0.5",
                           expense.type === "INCOME" ? "text-green-600/70 dark:text-green-400/70" : "text-muted-foreground"
                         )}>
                           ≈ {formatCurrency(amount * rate, baseCurrency)}

@@ -61,7 +61,7 @@ export function AccountSelector({
           <AlertDescription className="text-sm">
             💡 Despesa paga por <span className="font-semibold">{payerName}</span> — não afeta suas contas.
             <br />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               Esta despesa será registrada como débito seu com {payerName}.
             </span>
           </AlertDescription>
@@ -76,7 +76,7 @@ export function AccountSelector({
           <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
             ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
             <br />
-            <span className="text-xs">
+            <span className="text-sm">
               Crie uma conta internacional com moeda {selectedTrip.currency} em Contas.
             </span>
             <Button
@@ -122,12 +122,12 @@ export function AccountSelector({
                   />
                   {acc.name}
                   {acc.type === 'CREDIT_CARD' && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       (Cartão)
                     </span>
                   )}
                   {acc.is_international && (
-                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       {acc.currency}
                     </span>
                   )}
@@ -137,12 +137,12 @@ export function AccountSelector({
           </SelectContent>
         </Select>
         {selectedTrip && selectedTrip.currency !== 'BRL' && (
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
             🌍 Mostrando apenas contas em {selectedTrip.currency}
           </p>
         )}
         {selectedAccount?.is_international && !selectedTrip && (
-          <p className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+          <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1">
             🌍 Transação em {selectedAccount.currency} (conta internacional)
           </p>
         )}
@@ -164,12 +164,12 @@ export function AccountSelector({
                 <div className="flex items-center gap-2">
                   {acc.name}
                   {acc.type === 'EMERGENCY_FUND' && (
-                    <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
                       Reserva
                     </span>
                   )}
                   {acc.is_international && (
-                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                       {acc.currency}
                     </span>
                   )}
@@ -188,14 +188,14 @@ export function AccountSelector({
               <button
                 type="button"
                 onClick={() => setTransferType('account')}
-                className={`text-[10px] px-2 py-1 rounded-md transition-colors ${transferType === 'account' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === 'account' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
               >
                 Conta
               </button>
               <button
                 type="button"
                 onClick={() => setTransferType('goal')}
-                className={`text-[10px] px-2 py-1 rounded-md transition-colors ${transferType === 'goal' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === 'goal' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
               >
                 Meta
               </button>
@@ -218,12 +218,12 @@ export function AccountSelector({
                   <div className="flex items-center gap-2">
                     {acc.name}
                     {acc.type === 'EMERGENCY_FUND' && (
-                      <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                      <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
                         Reserva
                       </span>
                     )}
                     {acc.is_international && (
-                      <span className="text-[10px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                      <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
                         {acc.currency}
                       </span>
                     )}
