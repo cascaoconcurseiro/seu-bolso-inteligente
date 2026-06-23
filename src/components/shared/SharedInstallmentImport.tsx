@@ -227,8 +227,8 @@ export function SharedInstallmentImport({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md overflow-hidden flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 pr-12">
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
+          <DialogTitle className="flex items-center gap-2 pr-8">
             <Layers className="h-5 w-5 text-primary shrink-0" />
             <span>Importar Parcelado Compartilhado</span>
             <Popover>
@@ -270,7 +270,7 @@ export function SharedInstallmentImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto flex flex-col gap-3 py-4 pr-1 no-scrollbar">
+        <div className="flex-1 overflow-y-auto flex flex-col gap-3 px-5 py-4 sm:px-6 no-scrollbar">
           {/* Erros de validação */}
           {errors.length > 0 && (
             <div className="px-1 py-2 bg-destructive/10 text-destructive rounded-lg space-y-1.5">
@@ -489,7 +489,7 @@ export function SharedInstallmentImport({
           </FormSection>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>

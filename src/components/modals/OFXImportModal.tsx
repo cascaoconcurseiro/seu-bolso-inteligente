@@ -190,14 +190,14 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="sm:max-w-[425px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle>Importar Extrato (OFX)</DialogTitle>
           <DialogDescription>
             Importe seu extrato bancário. O sistema filtrará duplicatas automaticamente.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-6">
+        <div className="px-5 py-4 sm:px-6 overflow-y-auto flex-1">
           {successCount !== null ? (
             <div className="flex flex-col items-center justify-center space-y-4 py-4 animate-fade-in">
               <div className="h-16 w-16 bg-positive/10 text-positive rounded-full flex items-center justify-center">

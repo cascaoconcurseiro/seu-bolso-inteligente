@@ -42,14 +42,14 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px] flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-muted-foreground" />
             Histórico: {asset.ticker || asset.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto pr-2 mt-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6 mt-2 space-y-3">
           {isLoading ? (
             <div className="py-8 text-center text-muted-foreground animate-pulse">Carregando histórico...</div>
           ) : history?.length === 0 ? (

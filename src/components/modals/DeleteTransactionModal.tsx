@@ -59,7 +59,7 @@ export function DeleteTransactionModal({
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
       <AlertDialogContent className="border-border/50 max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <AlertDialogHeader>
+        <AlertDialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
           <AlertDialogDescription>
             Tem certeza que deseja excluir "{transaction.description}"?
@@ -68,7 +68,7 @@ export function DeleteTransactionModal({
         </AlertDialogHeader>
 
         {transaction.is_installment && (
-          <div className="py-2 space-y-3">
+          <div className="py-2 px-5 sm:px-6 space-y-3">
             <div className="space-y-2">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Opções de Exclusão (Compra Parcelada):
@@ -135,7 +135,7 @@ export function DeleteTransactionModal({
           </div>
         )}
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
           <AlertDialogCancel onClick={() => setCascadeType('NONE')} disabled={isDeleting}>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={handleConfirm} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
             {isDeleting ? "Excluindo..." : "Excluir"}

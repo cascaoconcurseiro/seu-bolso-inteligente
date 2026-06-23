@@ -69,7 +69,7 @@ export function WithdrawalModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[450px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Banknote className="h-5 w-5" />
             Sacar dinheiro
@@ -79,7 +79,7 @@ export function WithdrawalModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
           {/* Conta */}
           <div className="space-y-2">
             <Label>Conta</Label>

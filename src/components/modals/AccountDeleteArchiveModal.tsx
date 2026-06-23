@@ -29,7 +29,7 @@ export function AccountDeleteArchiveModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-3 sm:px-6 sm:pt-6">
           <DialogTitle>Remover conta "{accountName}"?</DialogTitle>
           <DialogDescription className="space-y-3 pt-2">
             <p className="text-sm">Escolha como deseja remover esta conta:</p>
@@ -71,7 +71,7 @@ export function AccountDeleteArchiveModal({
             </div>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row gap-2 px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
           <Button
             variant="outline"
             onClick={onClose}

@@ -142,7 +142,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-0.5 xl:gap-1 flex-1 justify-center">
+            <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center overflow-hidden">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 const Icon = item.icon;
@@ -150,15 +150,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Link
                     key={item.path}
                     to={item.path}
+                    title={item.label}
                     className={cn(
-                      "flex items-center gap-2 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-colors duration-150 whitespace-nowrap",
+                      "flex items-center gap-1.5 px-2 py-2 xl:px-2.5 rounded-lg text-xs xl:text-sm font-medium transition-colors duration-150 whitespace-nowrap",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
                     )}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0 hidden lg:block" />
-                    {item.label}
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden xl:inline">{item.label}</span>
                   </Link>
                 );
               })}

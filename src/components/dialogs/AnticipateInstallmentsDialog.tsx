@@ -196,7 +196,7 @@ export function AnticipateInstallmentsDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Antecipar Parcelas
@@ -207,7 +207,7 @@ export function AnticipateInstallmentsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 px-5 py-4 sm:px-6 overflow-y-auto flex-1">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -317,7 +317,7 @@ export function AnticipateInstallmentsDialog({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
           <Button variant="outline" onClick={onClose} disabled={isAnticipating}>
             Cancelar
           </Button>

@@ -53,7 +53,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
             Compartilhar Cartão
@@ -64,7 +64,7 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-6 px-5 pb-5 sm:px-6 sm:pb-6 overflow-y-auto flex-1">
           <div className="bg-warning/8 p-3 flex gap-3 rounded-lg border border-warning/20">
             <ShieldAlert className="w-5 h-5 text-warning shrink-0" />
             <p className="text-sm text-warning">
