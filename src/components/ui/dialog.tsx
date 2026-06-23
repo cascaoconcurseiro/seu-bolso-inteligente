@@ -56,6 +56,11 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 );
 DialogHeader.displayName = "DialogHeader";
 
+// Force preserve DialogHeader in build to prevent tree-shaking issues
+if (typeof window !== 'undefined') {
+  (window as any).__dialogHeaderPreserve = DialogHeader;
+}
+
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div className={cn("flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2", className)} {...props} />
 );
