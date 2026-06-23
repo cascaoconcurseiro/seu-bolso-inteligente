@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Globe, Wallet, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,13 +149,16 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
               </span>
             </div>
           </DialogTitle>
+          <DialogDescription>
+            {step === 1 ? 'Defina o valor a pagar' : 'Escolha a conta de origem'}
+          </DialogDescription>
           <div className="flex gap-2 mt-3">
             <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
           </div>
         </DialogHeader>
         
-        <div className="flex-1 min-h-0 relative overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
             {step === 1 && (
               <motion.div 
@@ -166,7 +169,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-4 flex flex-col flex-1 min-h-0 overflow-y-auto"
+                className="p-4 flex flex-col min-h-full"
               >
                 <div className="flex-1 space-y-4">
                   <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 flex flex-col items-center justify-center text-center">
@@ -215,7 +218,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-4 flex flex-col flex-1 min-h-0 overflow-y-auto"
+                className="p-4 flex flex-col min-h-full"
               >
                 <div className="flex-1 space-y-4">
                   <FormField label="De onde sairá o dinheiro?" htmlFor="pay-account">

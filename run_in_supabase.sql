@@ -53,3 +53,43 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 -- Create index on ticker for faster text search using ILIKE
 CREATE INDEX IF NOT EXISTS idx_b3_tickers_cache_ticker_search 
 ON public.b3_tickers_cache USING GIN (ticker gin_trgm_ops);
+
+-- 3. Fix check_account_dependencies (remove reference to non-existent "deleted" column)
+CREATE OR REPLACE FUNCTION public.check_account_dependencies(p_account_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_transaction_count INTEGER;
+  v_future_installments INTEGER;
+  v_linked_goals INTEGER;
+  v_can_delete BOOLEAN;
+BEGIN
+  SELECT COUNT(*) INTO v_transaction_count 
+  FROM public.transactions 
+  WHERE account_id = p_account_id
+    AND is_active = true;
+  
+  SELECT COUNT(*) INTO v_future_installments 
+  FROM public.transactions 
+  WHERE account_id = p_account_id 
+    AND is_active = true
+    AND date > CURRENT_DATE 
+    AND (series_id IS NOT NULL OR is_recurring = TRUE);
+  
+  SELECT COUNT(*) INTO v_linked_goals 
+  FROM public.goals 
+  WHERE account_id = p_account_id;
+  
+  v_can_delete := (v_transaction_count = 0 AND v_linked_goals = 0);
+  
+  RETURN json_build_object(
+    'can_delete', v_can_delete,
+    'total_transactions', v_transaction_count,
+    'future_installments', v_future_installments,
+    'open_shared_expenses', 0,
+    'linked_goals', v_linked_goals
+  );
+END;
+$$;
