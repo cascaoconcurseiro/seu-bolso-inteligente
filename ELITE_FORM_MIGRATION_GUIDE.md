@@ -1,37 +1,40 @@
-# 🎨 Elite Form System - Guia de Migração
+# 🎨 Elite Design System - Guia de Tamanhos Compactos
 
 ## Visão Geral
 
-Sistema de componentes padronizados para formulários seguindo o **Elite Design System** baseado no padrão fornecido.
+Sistema de componentes padronizados seguindo o **Elite Design System** com tamanhos **compactos e modernos** para uma experiência otimizada em mobile e desktop.
 
-## 🎯 Princípios do Elite Form Design
+## 🎯 Princípios do Elite Compact Design
 
 ### 1. **Hierarquia Visual Clara**
-- **3 tamanhos de texto máximo**: Display (3xl), Body (base), Caption (sm)
-- Uso de peso e cor para criar hierarquia, não tamanho
+- **3 tamanhos de texto máximo**: base (16px), sm (14px), xs (12px)
+- Uso de peso e cor para criar hierarquia, não tamanho excessivo
 
-### 2. **Espaçamento Generoso**
+### 2. **Espaçamento Compacto**
 - Escala de 8px rigorosa
-- Muito espaço em branco
-- Padding: 24px (p-6) ou 32px (p-8)
+- Padding: 16px (p-4) - componentes gerais
+- Gap: 16px (gap-4) - espaçamento vertical
+- Dialog: p-4, gap-4
 
-### 3. **Componentes de Destaque**
-- Cards com fundo `bg-muted/50`
-- Informação principal centralizada
-- Tipografia grande e bold
+### 3. **Componentes Compactos**
+- Cards com padding reduzido (p-4)
+- Tipografia moderada (text-base, text-lg max)
+- Border radius: rounded-md (6px) ou rounded-lg (8px)
 
-### 4. **Inputs Grandes e Clean**
-- Altura: 64px (h-16)
-- Rounded: 24px (rounded-3xl)
-- Símbolo de moeda separado do valor
-- Tipografia: text-3xl
+### 4. **Inputs Compactos**
+- Altura: 36px (h-9)
+- Rounded: 6px (rounded-md)
+- Padding: px-3 py-2
+- Tipografia: text-sm
+- Border: border (1px)
 
-### 5. **CTAs Únicos e Diretos**
-- Um botão principal por tela
-- Fundo preto (`bg-foreground`)
-- Texto branco (`text-background`)
-- Altura: 64px (h-16)
-- Ícone de seta indicando continuidade
+### 5. **Botões Compactos**
+- Altura padrão: 36px (h-9)
+- Padding: px-3 py-2
+- Rounded: rounded-md
+- Tipografia: text-sm font-medium
+- Size sm: h-8 (32px)
+- Size lg: h-10 (40px)
 
 ## 📦 Componentes Disponíveis
 
@@ -225,27 +228,40 @@ const ELITE_COLORS = {
 }
 ```
 
-## 📐 Tamanhos Padronizados
+## 📐 Tamanhos Padronizados (Compactos)
 
 ```typescript
 // Hierarquia tipográfica (máximo 3 tamanhos)
 const TYPOGRAPHY = {
-  display: "text-3xl font-black",  // Títulos, valores de destaque
-  body: "text-base font-medium",   // Texto corrido, labels
-  caption: "text-sm font-bold uppercase tracking-widest", // Metadados, labels pequenos
+  display: "text-lg font-semibold",  // Títulos de dialogs, cards
+  body: "text-sm font-medium",       // Texto corrido, labels
+  caption: "text-xs",                // Metadados, labels pequenos
 }
 
 // Alturas de componentes
 const HEIGHTS = {
-  button: "h-16",      // 64px
-  input: "h-16",       // 64px
-  card: "p-8",         // 32px padding
+  button: "h-9",      // 36px (padrão)
+  buttonSm: "h-8",    // 32px (pequeno)
+  buttonLg: "h-10",   // 40px (grande)
+  input: "h-9",       // 36px
+  select: "h-9",      // 36px
+  textarea: "min-h-[80px]", // 80px mínimo
 }
 
 // Arredondamentos
 const ROUNDED = {
-  primary: "rounded-3xl",  // 24px - botões, inputs, cards
-  secondary: "rounded-2xl", // 16px - badges, chips
+  primary: "rounded-md",    // 6px - botões, inputs
+  secondary: "rounded-lg",  // 8px - cards
+  dialog: "rounded-lg sm:rounded-xl", // 8px mobile, 12px desktop
+}
+
+// Padding e Spacing
+const SPACING = {
+  dialog: "p-4 gap-4",           // 16px
+  card: "p-4",                   // 16px
+  cardHeader: "p-4 space-y-1.5", // 16px, gap 6px
+  input: "px-3 py-2",            // 12px horizontal, 8px vertical
+  button: "px-3 py-2",           // 12px horizontal, 8px vertical
 }
 ```
 
@@ -319,4 +335,59 @@ const [step, setStep] = useState(1);
 ---
 
 **Última atualização**: 22/06/2026  
-**Status**: 🟡 Em migração (1/25 componentes)
+**Status**: ✅ Componentes base atualizados para tamanhos compactos
+**Versão**: Compact v2.0 (h-9 buttons/inputs, p-4 dialogs)
+
+## � Resumo das Alterações (Rodada 5 - Compacto Final)
+
+### Componentes Base Atualizados:
+
+✅ **Button** (`src/components/ui/button.tsx`)
+- default: h-10 → **h-9** (36px)
+- sm: h-9 → **h-8** (32px)  
+- lg: h-11 → **h-10** (40px)
+- icon: h-10 → **h-9** (36px)
+- padding: px-4 py-2 → **px-3 py-2**
+
+✅ **Input** (`src/components/ui/input.tsx`)
+- h-10 → **h-9** (36px)
+- padding: px-3 py-2 (mantido)
+- text-sm (mantido)
+
+✅ **Dialog** (`src/components/ui/dialog.tsx`)
+- padding: p-6 → **p-4** (16px)
+- gap: gap-6 → **gap-4** (16px)
+- rounded: rounded-2xl → **rounded-lg sm:rounded-xl**
+- DialogHeader space-y: space-y-2 → **space-y-1.5**
+- DialogTitle: text-lg → **text-base** (16px)
+- Close button: right-4 top-4 → **right-3 top-3**
+
+✅ **Select** (`src/components/ui/select.tsx`)
+- h-12 → **h-9** (36px)
+- rounded: rounded-xl → **rounded-md**
+- padding: px-4 → **px-3**
+- text: text-base → **text-sm**
+- border: border-input/50 → **border-input**
+- removed: backdrop-blur, shadow-sm, focus effects fancy
+
+✅ **Textarea** (`src/components/ui/textarea.tsx`)
+- min-h: 120px → **80px**
+- rounded: rounded-xl → **rounded-md**
+- padding: px-4 py-3 → **px-3 py-2**
+- text: text-base → **text-sm**
+- border: border-input/50 → **border-input**
+- removed: backdrop-blur, shadow-sm
+
+✅ **Card** (`src/components/ui/card.tsx`)
+- CardHeader padding: p-6 → **p-4**
+- CardHeader space-y: space-y-2.5 → **space-y-1.5**
+- CardTitle: text-2xl → **text-lg**
+- CardContent padding: p-6 → **p-4**
+- CardFooter padding: p-6 → **p-4**
+
+✅ **Label** (`src/components/ui/label.tsx`)
+- Já estava correto: text-sm font-medium
+
+### Próximos Passos (Opcional):
+
+Os componentes base agora estão compactos. Componentes customizados específicos (como elite-form.tsx com h-16) podem ser ajustados conforme necessário por demanda.
