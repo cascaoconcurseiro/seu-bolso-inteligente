@@ -28,6 +28,7 @@ import {
   Eye,
   EyeOff,
   Calculator,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -132,8 +133,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       <VersionGuard />
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex h-11 md:h-12 items-center justify-between gap-3">
+        <div className="w-full px-4 md:px-6 lg:px-8">
+          <div className="flex h-11 md:h-12 items-center justify-between gap-2">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
@@ -141,8 +142,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center overflow-hidden">
+            {/* Desktop Navigation — header ocupa largura total para caber todos os itens */}
+            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center">
               {navigationItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 const Icon = item.icon;
@@ -152,14 +153,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                     to={item.path}
                     title={item.label}
                     className={cn(
-                      "flex items-center gap-1.5 px-2 py-2 xl:px-2.5 rounded-lg text-xs xl:text-sm font-medium transition-colors duration-150 whitespace-nowrap",
+                      "flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
                     )}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden xl:inline">{item.label}</span>
+                    <Icon className="h-3.5 w-3.5 flex-shrink-0 hidden lg:block" />
+                    {item.label}
                   </Link>
                 );
               })}
@@ -243,7 +244,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}
         {location.pathname !== '/cartoes' && (
           <div className="border-t border-border bg-background shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
+            <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
               <div className="flex-1 hidden md:block" />
               
               <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
