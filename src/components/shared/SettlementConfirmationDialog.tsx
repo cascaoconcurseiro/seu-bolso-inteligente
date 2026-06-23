@@ -155,7 +155,7 @@ export function SettlementConfirmationDialog({
             <div className="space-y-2">
               <span className={cn(
                 "text-xs font-bold uppercase tracking-wider",
-                isPayment ? "text-red-600/70" : "text-green-600/70"
+                isPayment ? "text-destructive/70" : "text-success/70"
               )}>Total Selecionado</span>
               <div className={cn(
                 "text-3xl font-mono font-bold tracking-tight",
@@ -266,7 +266,7 @@ export function SettlementConfirmationDialog({
                 <Info className="h-4 w-4" />
                 <span>Conta incompatível</span>
               </div>
-              <p className="text-sm text-red-700/80 dark:text-red-400/80 leading-relaxed">
+              <p className="text-sm text-destructive/80 dark:text-destructive/80 leading-relaxed">
                 Você não possui nenhuma conta de pagamento disponível na moeda desta despesa ({currency}). 
                 <strong> É necessário usar uma conta da mesma moeda para realizar este acerto.</strong>
               </p>

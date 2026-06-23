@@ -15,8 +15,8 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
       {/* Entradas */}
       <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors">
         <div className="flex items-center justify-between">
-          <p className="text-sm sm:text-sm text-green-600/70 dark:text-green-400/70 uppercase font-bold tracking-widest">Entradas</p>
-          <div className="p-1 sm:p-2 rounded-lg bg-green-500/15">
+          <p className="text-sm sm:text-sm text-success/70 dark:text-success/70 uppercase font-bold tracking-widest">Entradas</p>
+          <div className="p-1 sm:p-2 rounded-lg bg-success/15">
             <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-success" />
           </div>
         </div>
@@ -28,7 +28,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
       {/* Saídas */}
       <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
         <div className="flex items-center justify-between">
-          <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Saídas</p>
+          <p className="text-sm sm:text-sm text-destructive/70 dark:text-destructive/70 uppercase font-bold tracking-widest">Saídas</p>
           <div className="p-1 sm:p-2 rounded-lg bg-destructive/15">
             <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive" />
           </div>
@@ -43,22 +43,22 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
         "group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border transition-colors",
         result >= 0
           ? "border-primary/20 bg-primary/5 hover:bg-primary/10"
-          : "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10"
+          : "border-amber-500/20 bg-warning/5 hover:bg-warning/10"
       )}>
         <div className="flex items-center justify-between">
           <p className={cn(
             "text-xs sm:text-xs uppercase font-bold tracking-widest",
-            result >= 0 ? "text-primary/70" : "text-amber-600/70 dark:text-amber-400/70"
+            result >= 0 ? "text-primary/70" : "text-warning/70 dark:text-warning/70"
           )}>
             Resultado
           </p>
           <div className={cn(
             "p-1 sm:p-2 rounded-lg",
-            result >= 0 ? "bg-primary/15" : "bg-amber-500/15"
+            result >= 0 ? "bg-primary/15" : "bg-warning/15"
           )}>
             <Scale className={cn(
               "h-3 w-3 sm:h-3.5 sm:w-3.5",
-              result >= 0 ? "text-primary" : "text-amber-500"
+              result >= 0 ? "text-primary" : "text-warning"
             )} />
           </div>
         </div>

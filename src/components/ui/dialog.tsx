@@ -71,7 +71,7 @@ const DialogFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2", className)} {...props} />
+  <div ref={ref} className={cn("flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 [&>button]:w-full sm:[&>button]:w-auto", className)} {...props} />
 ));
 DialogFooter.displayName = "DialogFooter";
 

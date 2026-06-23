@@ -7,7 +7,7 @@
   --safe-area-inset-right: env(safe-area-inset-right);
 }
 
-/* Prevent zoom on input focus (iOS Safari) */
+/* Prevent zoom on input focus (iOS Safari) - keep at 16px for mobile */
 input,
 select,
 textarea {
@@ -33,19 +33,26 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth scroll */
+/* Smooth scroll + antialiasing */
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Safe area padding for iOS notch/home indicator */
+/* Page container: 16px lateral padding mobile, 32px desktop */
 .app-container {
   padding-top: max(1rem, var(--safe-area-inset-top));
   padding-bottom: max(1rem, var(--safe-area-inset-bottom));
   padding-left: max(1rem, var(--safe-area-inset-left));
   padding-right: max(1rem, var(--safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .app-container {
+    padding-left: max(2rem, var(--safe-area-inset-left));
+    padding-right: max(2rem, var(--safe-area-inset-right));
+  }
 }
 
 /* Touch targets: use .tap-target on icon-only controls (see index.css) */
@@ -55,4 +62,12 @@ button,
 a[role="button"] {
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Mobile: ensure modals don't overflow and buttons are full-width */
+@media (max-width: 639px) {
+  /* Prevent any element from exceeding viewport width */
+  .modal-footer-buttons > button {
+    width: 100%;
+  }
 }

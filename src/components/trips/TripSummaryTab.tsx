@@ -147,7 +147,7 @@ export function TripSummaryTab({
 
         <button 
           onClick={() => setActiveTab && setActiveTab("expenses")}
-          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-green-500/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all group backdrop-blur-sm"
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-success/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all group backdrop-blur-sm"
         >
           <div className="w-12 h-12 rounded-full bg-success/12 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
             <DollarSign className="h-6 w-6 text-success" />
@@ -344,7 +344,7 @@ export function TripSummaryTab({
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110",
-                  isSettled ? "bg-success shadow-green-500/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
+                  isSettled ? "bg-success shadow-success/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
                 )}>
                   {isSettled ? <CheckCircle className="h-8 w-8 text-white" /> : <Wallet className="h-8 w-8 text-white" />}
                 </div>
@@ -450,7 +450,7 @@ export function TripSummaryTab({
                           <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Você</span>
                         )}
                         {isOwner && (
-                          <span className="text-[8px] bg-amber-500/10 text-warning dark:text-warning px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Líder</span>
+                          <span className="text-[8px] bg-warning/10 text-warning dark:text-warning px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Líder</span>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-0.5 font-mono">

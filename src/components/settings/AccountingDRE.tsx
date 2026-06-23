@@ -414,7 +414,7 @@ export function AccountingDRE() {
                   {/* 2.1 Passivo Circulante */}
                   <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors font-medium">
                     <td className="pl-10 py-2.5 text-left">2.1 Passivo Circulante (Curto Prazo)</td>
-                    <td className="pr-6 py-2.5 text-right font-mono text-red-600/90 dark:text-red-500/90">{formatNegativeCurrency(b.totalLiabilities)}</td>
+                    <td className="pr-6 py-2.5 text-right font-mono text-destructive/90 dark:text-destructive/90">{formatNegativeCurrency(b.totalLiabilities)}</td>
                     <td className="pr-6 py-2.5 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 

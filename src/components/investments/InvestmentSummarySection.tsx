@@ -67,7 +67,7 @@ export function InvestmentSummarySection({
 
       <div className="p-4 rounded-2xl bg-card border border-border hover:border-green/20 hover:shadow-lg transition-all group">
         <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          <div className="p-1 rounded-lg bg-success/12 group-hover:bg-green-500/20 transition-colors">
+          <div className="p-1 rounded-lg bg-success/12 group-hover:bg-success/20 transition-colors">
             <PieChart className="w-3 h-3 text-success" />
           </div>
           <span className="text-sm uppercase font-bold tracking-[0.1em]">Diversificação</span>

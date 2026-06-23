@@ -166,7 +166,7 @@ export function RemoveParticipantDialog({
 
             {/* Ações Inteligentes de Remoção baseadas no Saldo */}
             {isSettled ? (
-              <div className="p-4 rounded-xl border border-green-500/10 bg-green-500/[0.01] flex items-start gap-3">
+              <div className="p-4 rounded-xl border border-success/10 bg-green-500/[0.01] flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
                 <p className="text-sm text-muted-foreground">
                   Como este participante não possui pendências, você pode removê-lo diretamente. O histórico de transações passadas dele continuará preservado na viagem.

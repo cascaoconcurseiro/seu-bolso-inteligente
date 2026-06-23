@@ -41,7 +41,7 @@ export function FamilyMemberCard({
                 {member.name} 
                 {isSelf && <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
               </p>
-              {memberIsOwner && <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500 animate-pulse" />}
+              {memberIsOwner && <Crown className="h-3.5 w-3.5 text-warning fill-amber-500 animate-pulse" />}
             </div>
             {member.email && (
               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -56,7 +56,7 @@ export function FamilyMemberCard({
           <span className={cn(
             "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all", 
             member.role === "admin" 
-              ? "bg-amber-500/10 text-warning dark:text-warning" 
+              ? "bg-warning/10 text-warning dark:text-warning" 
               : member.role === "editor" 
                 ? "bg-primary/10 text-primary" 
                 : "bg-muted text-muted-foreground"

@@ -189,7 +189,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                       autoFocus
                     />
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (
-                      <p className="text-sm text-amber-500 font-medium bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
+                      <p className="text-sm text-warning font-medium bg-warning/10 p-2 rounded-lg border border-amber-500/20">
                         ⚠️ Pagamento parcial: restará {formatCurrencyValue(invoiceTotal - currentAmountToPay, cardCurrency)} para o próximo mês.
                       </p>
                     )}

@@ -108,7 +108,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
               autoFocus
             />
             {goalCurrency !== 'BRL' && (
-              <p className="text-sm text-amber-500 font-medium text-center">
+              <p className="text-sm text-warning font-medium text-center">
                 Operação em moeda estrangeira ({goalCurrency})
               </p>
             )}

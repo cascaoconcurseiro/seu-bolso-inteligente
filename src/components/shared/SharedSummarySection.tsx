@@ -56,7 +56,7 @@ export function SharedSummarySection({
             <div className="p-4 md:p-6 rounded-xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowLeft className="h-5 w-5 text-success" />
-                <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
+                <p className="text-sm font-bold text-success/80 dark:text-success/80 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(totalsByCurrency)
@@ -78,7 +78,7 @@ export function SharedSummarySection({
             <div className="p-4 md:p-6 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowRight className="h-5 w-5 text-destructive" />
-                <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
+                <p className="text-sm font-bold text-destructive/80 dark:text-destructive/80 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(totalsByCurrency)
@@ -140,7 +140,7 @@ export function SharedSummarySection({
             <div className="p-4 md:p-6 rounded-xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowLeft className="h-5 w-5 text-success" />
-                <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
+                <p className="text-sm font-bold text-success/80 dark:text-success/80 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(travelTotalsByCurrency)
@@ -162,7 +162,7 @@ export function SharedSummarySection({
             <div className="p-4 md:p-6 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
                 <ArrowRight className="h-5 w-5 text-destructive" />
-                <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
+                <p className="text-sm font-bold text-destructive/80 dark:text-destructive/80 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
                 {Object.entries(travelTotalsByCurrency)

@@ -287,8 +287,8 @@ export function BackupManager() {
         {/* Bloco de Restaurar */}
         <Card className="p-6 border border-border bg-card/50 shadow-sm rounded-2xl flex flex-col justify-between">
           <div className="space-y-4">
-            <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Upload className="h-5 w-5 text-amber-500" />
+            <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Upload className="h-5 w-5 text-warning" />
             </div>
             <div>
               <h3 className="font-semibold text-base">Restaurar do Backup</h3>

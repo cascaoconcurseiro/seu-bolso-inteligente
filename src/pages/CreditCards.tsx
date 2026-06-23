@@ -243,7 +243,7 @@ export function CreditCards() {
               <div className="space-y-2">
                 <Label>Banco Emissor</Label>
                 {editBankId === "other" && (
-                  <div className="flex items-center gap-2 mb-2 p-2 bg-amber-500/10 text-amber-500 rounded-lg text-sm font-medium border border-amber-500/20 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2 p-2 bg-warning/10 text-warning rounded-lg text-sm font-medium border border-amber-500/20 animate-fade-in">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>O banco será salvo com o ícone padrão.</span>
                   </div>
@@ -261,9 +261,9 @@ export function CreditCards() {
                         </div>
                       </SelectItem>
                     ))}
-                    <SelectItem value="other" className="text-amber-500 focus:text-amber-500 font-medium border-t mt-1 pt-1">
+                    <SelectItem value="other" className="text-warning focus:text-warning font-medium border-t mt-1 pt-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-amber-500/10 rounded flex items-center justify-center">
+                        <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
                           <CreditCard className="w-3 h-3" />
                         </div>
                         Outro Banco (Personalizado)

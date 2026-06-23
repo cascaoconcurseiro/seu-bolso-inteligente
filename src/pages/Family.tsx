@@ -93,8 +93,8 @@ export function Family() {
           <p className="font-mono text-2xl font-bold text-foreground">{activeMembers.length}</p>
         </div>
         {pendingInvitations.length > 0 && (
-          <div className="flex flex-col gap-1 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
-            <p className="text-xs text-amber-600/70 dark:text-amber-400/70 uppercase font-bold tracking-widest">Pendentes</p>
+          <div className="flex flex-col gap-1 p-4 rounded-2xl border border-amber-500/20 bg-warning/5">
+            <p className="text-xs text-warning/70 dark:text-warning/70 uppercase font-bold tracking-widest">Pendentes</p>
             <p className="font-mono text-2xl font-bold text-warning dark:text-warning">{pendingInvitations.length}</p>
           </div>
         )}

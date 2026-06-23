@@ -162,9 +162,9 @@ export function Budgets() {
         </div>
         <div className="p-4 sm:p-6 rounded-4xl border border-border/40 bg-card/60 backdrop-blur-md shadow-sm flex items-center gap-4 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-            <TrendingUp className="w-16 h-16 text-amber-500" />
+            <TrendingUp className="w-16 h-16 text-warning" />
           </div>
-          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+          <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-warning/10 flex items-center justify-center text-warning shrink-0">
             <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <div className="relative z-10 min-w-0">

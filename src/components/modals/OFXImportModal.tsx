@@ -233,7 +233,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               </div>
 
               {!selectedAccountId && (
-                <Alert variant="warning" className="bg-amber-500/10 text-warning border-amber-500/20">
+                <Alert variant="warning" className="bg-warning/10 text-warning border-amber-500/20">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>Selecione uma conta acima para liberar o botão de upload.</AlertDescription>
                 </Alert>

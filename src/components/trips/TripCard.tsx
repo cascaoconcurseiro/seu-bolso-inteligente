@@ -74,7 +74,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
                     {trip.name}
                   </h3>
                   {trip.status === "ACTIVE" ? (
-                    <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-success/20 border border-green-500/30 text-sm font-bold text-green-300 uppercase tracking-wider">
+                    <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-success/20 border border-success/30 text-sm font-bold text-green-300 uppercase tracking-wider">
                       <span className="w-1.5 h-2 rounded-full bg-green-400 animate-pulse" />
                       Ativa
                     </span>

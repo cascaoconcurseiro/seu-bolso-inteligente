@@ -147,7 +147,7 @@ export function OrphanTransactionsManager() {
       <Card className="border-amber-200 dark:border-amber-800">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <AlertTriangle className="h-5 w-5 text-warning" />
             Transações sem Conta
           </CardTitle>
           <CardDescription>

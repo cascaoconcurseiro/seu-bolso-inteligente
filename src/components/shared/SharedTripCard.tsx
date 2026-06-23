@@ -109,16 +109,16 @@ export function SharedTripCard({
       </div>
 
       {itemsWaitingMe.length > 0 && (
-        <div className="bg-amber-500/10 dark:bg-amber-500/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
+        <div className="bg-warning/10 dark:bg-warning/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl text-warning dark:text-warning shrink-0">
+            <div className="p-2 bg-warning/20 rounded-xl text-warning dark:text-warning shrink-0">
               <Clock className="h-5 w-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm text-amber-800 dark:text-warning">
                 Aguardando sua confirmação nesta viagem
               </p>
-              <p className="text-sm text-warning dark:text-amber-400/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-warning dark:text-warning/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   <>
                     Um participante marcou a transação de acerto <strong>"{itemsWaitingMe[0].description}"</strong> de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong> como paga. Confirme o recebimento e escolha em qual conta deseja creditar.
@@ -136,7 +136,7 @@ export function SharedTripCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-warning hover:bg-warning/92 text-white font-semibold text-sm rounded-xl shadow-md shadow-amber-600/10 active:scale-95 transition-all"
+                className="bg-warning hover:bg-warning/92 text-white font-semibold text-sm rounded-xl shadow-md shadow-warning/10 active:scale-95 transition-all"
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
@@ -193,7 +193,7 @@ export function SharedTripCard({
                           {item.isPaid ? (
                             <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : isWaitingMe || isWaitingOther ? (
-                            <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
+                            <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
                             <div className={cn(
                               "h-5 w-5 rounded-full border-2",
@@ -333,7 +333,7 @@ export function SharedTripCard({
                           {item.isPaid ? (
                             <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : isWaitingMe || isWaitingOther ? (
-                            <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
+                            <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
                             <div className={cn(
                               "h-5 w-5 rounded-full border-2",

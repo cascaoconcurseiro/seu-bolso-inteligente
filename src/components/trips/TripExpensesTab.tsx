@@ -254,7 +254,7 @@ export function TripExpensesTab({
 
                           {/* Status do acerto */}
                           {status === "settled" && (
-                            <span className="text-[9px] bg-green-500/15 text-success dark:text-success px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-success/15 text-success dark:text-success px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <CheckCircle className="h-2.5 w-2.5" /> Acertado
                             </span>
                           )}
@@ -269,7 +269,7 @@ export function TripExpensesTab({
                             </span>
                           )}
                           {status === "partial" && (
-                            <span className="text-[9px] bg-amber-500/15 text-warning dark:text-warning px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-warning/15 text-warning dark:text-warning px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" /> Parcial
                             </span>
                           )}
@@ -500,7 +500,7 @@ export function TripExpensesTab({
                       {isInternational && rate && (
                         <p className={cn(
                           "font-mono text-xs font-medium mt-0.5",
-                          expense.type === "INCOME" ? "text-green-600/70 dark:text-green-400/70" : "text-muted-foreground"
+                          expense.type === "INCOME" ? "text-success/70 dark:text-success/70" : "text-muted-foreground"
                         )}>
                           ≈ {formatCurrency(amount * rate, baseCurrency)}
                         </p>

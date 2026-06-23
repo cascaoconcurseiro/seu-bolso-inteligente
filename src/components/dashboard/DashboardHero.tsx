@@ -103,12 +103,12 @@ export function DashboardHero({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-success/12 border border-success/20 group/income transition-all hover:bg-green-500/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-green-500/20 group-hover/income:scale-110 transition-transform">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-success/12 border border-success/20 group/income transition-all hover:bg-success/15 overflow-hidden">
+              <div className="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform">
                 <TrendingUp className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-green-600/70 font-bold uppercase tracking-wider truncate">Entradas</p>
+                <p className="text-[8px] sm:text-[9px] text-success/70 font-bold uppercase tracking-wider truncate">Entradas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-success truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
@@ -120,7 +120,7 @@ export function DashboardHero({
                 <TrendingDown className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-red-600/70 font-bold uppercase tracking-wider truncate">Saídas</p>
+                <p className="text-[8px] sm:text-[9px] text-destructive/70 font-bold uppercase tracking-wider truncate">Saídas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-destructive truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
@@ -132,13 +132,13 @@ export function DashboardHero({
                 "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15 overflow-hidden",
                 savingsRate >= 0 
                   ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/15" 
-                  : "bg-amber-500/10 border-amber-500/20 text-warning hover:bg-amber-500/15"
+                  : "bg-warning/10 border-amber-500/20 text-warning hover:bg-warning/15"
               )}>
                 <div className={cn(
                   "shrink-0 p-1.5 rounded-full text-white shadow-lg",
                   savingsRate >= 0 
                     ? "bg-emerald-500 shadow-emerald-500/20" 
-                    : "bg-warning shadow-amber-500/20"
+                    : "bg-warning shadow-warning/20"
                 )}>
                   <Target className="h-3 w-3" />
                 </div>

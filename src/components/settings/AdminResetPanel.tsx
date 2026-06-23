@@ -115,7 +115,7 @@ export function AdminResetPanel() {
       <div className="space-y-4">
         <div className="p-6 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent dark:from-amber-950/20">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-warning dark:text-warning">
+            <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center text-warning dark:text-warning">
               <Shield className="h-5 w-5 animate-pulse" />
             </div>
             <div>
@@ -165,7 +165,7 @@ export function AdminResetPanel() {
             
             <Button 
               onClick={handleAuthenticate}
-              className="w-full bg-warning hover:bg-warning/92 text-white font-medium shadow-lg shadow-amber-600/20"
+              className="w-full bg-warning hover:bg-warning/92 text-white font-medium shadow-lg shadow-warning/20"
             >
               <Lock className="h-4 w-4 mr-2" />
               Autenticar Console Admin
@@ -298,7 +298,7 @@ export function AdminResetPanel() {
               <Card className="bg-gradient-to-br from-amber-500/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Grupos Familiares</CardTitle>
-                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <Sparkles className="h-4 w-4 text-warning" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalFamilies}</div>
@@ -422,7 +422,7 @@ export function AdminResetPanel() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                            className="h-8 w-8 text-warning hover:text-warning hover:bg-warning/10"
                             disabled={isResettingPassword === user.id}
                             onClick={() => handleResetUserPassword(user.email, user.id)}
                             title="Enviar e-mail para redefinir senha (LGPD Seguro)"
@@ -436,7 +436,7 @@ export function AdminResetPanel() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-destructive hover:text-red-600 hover:bg-destructive/12"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/12"
                             onClick={() => {
                               setSelectedUser(user.id);
                               setShowConfirmDialog(true);
@@ -508,7 +508,7 @@ export function AdminResetPanel() {
                             "text-xs font-semibold py-0.5 px-2.5",
                             isSettlement ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
                             isBlocked ? "bg-destructive/12 text-destructive border-destructive/20" : 
-                            "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                            "bg-warning/10 text-warning border-amber-500/20"
                           )}
                           variant="outline"
                         >
@@ -632,14 +632,14 @@ export function AdminResetPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 text-sm text-warning dark:text-warning">
+                <div className="p-3 rounded-lg bg-warning/5 border border-amber-500/20 text-sm text-warning dark:text-warning">
                   ⚠️ Atenção: A purga definitiva excluirá fisicamente do banco de dados registros que já foram marcados como deletados no app.
                 </div>
                 <Button
                   onClick={handlePurgeSoftDeleted}
                   disabled={isPurging}
                   variant="outline"
-                  className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-700 hover:bg-amber-500/5"
+                  className="w-full gap-2 border-amber-500/30 text-warning hover:text-warning hover:bg-warning/5"
                 >
                   {isPurging ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -741,7 +741,7 @@ export function AdminResetPanel() {
               <Button 
                 variant="destructive" 
                 onClick={() => setShowConfirmDialog(true)}
-                className="shadow-lg shadow-red-500/10"
+                className="shadow-lg shadow-destructive/10"
               >
                 {selectedUser === 'all' ? 'Resetar Todo o Banco de Dados' : 'Resetar Usuário Selecionado'}
               </Button>
@@ -823,11 +823,11 @@ export function AdminResetPanel() {
               </div>
 
               <div className="border-t border-border pt-4 space-y-3">
-                <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2 text-amber-500">
+                <h5 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2 text-warning">
                   <Shield className="h-3.5 w-3.5" />
                   Controles de Segurança e LGPD
                 </h5>
-                <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-3">
+                <div className="p-3 rounded-lg border border-amber-500/20 bg-warning/5 space-y-3">
                   <div className="flex gap-2 text-sm text-amber-800 dark:text-warning">
                     <Info className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>
@@ -837,7 +837,7 @@ export function AdminResetPanel() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-800 hover:bg-amber-500/10 dark:text-warning dark:hover:text-amber-300"
+                    className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-800 hover:bg-warning/10 dark:text-warning dark:hover:text-amber-300"
                     disabled={isResettingPassword === selectedDetailUser.id}
                     onClick={() => handleResetUserPassword(selectedDetailUser.email, selectedDetailUser.id)}
                   >

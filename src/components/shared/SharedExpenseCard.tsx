@@ -178,16 +178,16 @@ export function SharedExpenseCard({
       </div>
 
       {itemsWaitingMe.length > 0 && (
-        <div className="bg-amber-500/10 dark:bg-amber-500/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
+        <div className="bg-warning/10 dark:bg-warning/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl text-warning dark:text-warning shrink-0">
+            <div className="p-2 bg-warning/20 rounded-xl text-warning dark:text-warning shrink-0">
               <Clock className="h-5 w-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm text-amber-800 dark:text-warning">
                 Aguardando sua confirmação
               </p>
-              <p className="text-sm text-warning dark:text-amber-400/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-warning dark:text-warning/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   itemsWaitingMe[0].type === "CREDIT" ? (
                     <>
@@ -211,7 +211,7 @@ export function SharedExpenseCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-warning hover:bg-warning/92 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-10 px-4"
+                className="bg-warning hover:bg-warning/92 text-white font-bold text-sm rounded-xl shadow-md shadow-warning/20 active:scale-95 transition-all h-10 px-4"
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-4 w-4 mr-1.5" />
@@ -222,7 +222,7 @@ export function SharedExpenseCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-800 dark:text-warning hover:bg-amber-500/10 text-sm rounded-xl font-semibold transition-all"
+                className="text-amber-800 dark:text-warning hover:bg-warning/10 text-sm rounded-xl font-semibold transition-all"
                 onClick={() => onRejectSettlement(itemsWaitingMe[0])}
               >
                 Recusar Acerto
@@ -279,7 +279,7 @@ export function SharedExpenseCard({
                         <CheckCircle2 className="h-5 w-5 text-success" />
                       ) : isWaitingMe ? (
                         <div className="relative">
-                          <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
+                          <Clock className="h-5 w-5 text-warning animate-pulse" />
                           <span className="absolute -top-1 -right-1 flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>

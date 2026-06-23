@@ -33,7 +33,7 @@ export function CreditCardSummary({
         {/* Dívida Total */}
         <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
+            <p className="text-sm sm:text-sm text-destructive/70 dark:text-destructive/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
             <div className="p-1.5 rounded-lg bg-destructive/15">
               <ShieldAlert className="h-3.5 w-3.5 text-destructive" />
             </div>
@@ -47,23 +47,23 @@ export function CreditCardSummary({
         <div className={cn(
           "group flex flex-col gap-2 p-4 rounded-2xl border transition-colors",
           nextDueDate <= 3 
-            ? "border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10" 
+            ? "border-amber-500/20 bg-warning/5 hover:bg-warning/10" 
             : "border-border bg-card hover:bg-muted/50"
         )}>
           <div className="flex items-center justify-between">
             <p className={cn(
               "text-xs sm:text-xs uppercase font-bold tracking-widest",
-              nextDueDate <= 3 ? "text-amber-600/70 dark:text-amber-400/70" : "text-muted-foreground"
+              nextDueDate <= 3 ? "text-warning/70 dark:text-warning/70" : "text-muted-foreground"
             )}>
               Próximo Vencimento
             </p>
             <div className={cn(
               "p-1.5 rounded-lg",
-              nextDueDate <= 3 ? "bg-amber-500/15" : "bg-muted"
+              nextDueDate <= 3 ? "bg-warning/15" : "bg-muted"
             )}>
               <CalendarClock className={cn(
                 "h-3.5 w-3.5",
-                nextDueDate <= 3 ? "text-amber-500" : "text-muted-foreground"
+                nextDueDate <= 3 ? "text-warning" : "text-muted-foreground"
               )} />
             </div>
           </div>

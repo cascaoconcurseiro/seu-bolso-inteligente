@@ -394,7 +394,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                           <span className="text-sm font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
                             {item.codigo.split(' - ')[0]}
                           </span>
-                          <span className="text-sm font-bold text-warning bg-amber-600/10 px-2 py-0.5 rounded-md">
+                          <span className="text-sm font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-md">
                             {item.tipo}
                           </span>
                         </div>
@@ -536,7 +536,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                                 Isento (&lt; 20k)
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-amber-500/30 text-warning bg-amber-500/5 text-sm py-0 px-2 font-bold animate-pulse">
+                              <Badge variant="outline" className="border-amber-500/30 text-warning bg-warning/5 text-sm py-0 px-2 font-bold animate-pulse">
                                 Tributável (DARF)
                               </Badge>
                             )

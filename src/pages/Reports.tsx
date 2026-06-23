@@ -815,9 +815,9 @@ export function Reports() {
 
         {/* Card 2: Maior Despesa Única */}
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-16 h-16 bg-warning/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-inner flex items-center justify-center">
+            <div className="p-2.5 rounded-xl bg-warning/10 text-warning border border-amber-500/20 shadow-inner flex items-center justify-center">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>

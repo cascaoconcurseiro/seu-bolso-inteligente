@@ -122,7 +122,7 @@ export function TripDashboardView() {
             )}
             
             {!budget && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-amber-500 bg-amber-500/10 p-2 rounded-lg">
+              <div className="mt-4 flex items-center gap-2 text-sm text-warning bg-warning/10 p-2 rounded-lg">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <p>Nenhum orçamento definido para esta viagem.</p>
               </div>
