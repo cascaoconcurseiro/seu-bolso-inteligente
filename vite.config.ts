@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => {
   build: {
     minify: 'esbuild',
     sourcemap: false,
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 950,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -138,9 +138,12 @@ export default defineConfig(({ mode }) => {
           if (id.includes('node_modules/sonner')) {
             return 'vendor-sonner';
           }
-          // Export utilities (PDF e Excel)
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) {
-            return 'vendor-export';
+          // Export utilities (PDF e Excel) — chunks separados para evitar aviso de tamanho
+          if (id.includes('node_modules/jspdf')) {
+            return 'vendor-jspdf';
+          }
+          if (id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) {
+            return 'vendor-excel';
           }
           // Lucide icons
           if (id.includes('node_modules/lucide-react')) {
