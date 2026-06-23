@@ -68,7 +68,7 @@ export function TripDetailHeader({
                 <span className={cn(
                   "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border flex items-center shadow-sm",
                   trip.status === "ACTIVE" 
-                    ? "bg-green-500/10 text-green-600 border-green-500/20" 
+                    ? "bg-success/12 text-success border-success/20" 
                     : trip.status === "PLANNING"
                     ? "bg-accent/10 text-accent border-accent/20"
                     : "bg-muted text-muted-foreground border-border/50"

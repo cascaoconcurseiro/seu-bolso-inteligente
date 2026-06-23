@@ -114,8 +114,8 @@ export function HelpSettings() {
           <p>
             Sim, você pode excluir qualquer conta bancária cadastrada. No entanto, por razões de integridade do Banco de Dados (DBA) e segurança matemática, é importante entender as regras:
           </p>
-          <div className="p-3 bg-red-500/5 rounded-xl border border-red-500/10 text-sm space-y-2.5">
-            <strong className="text-foreground flex items-center gap-1 text-red-500 font-semibold">
+          <div className="p-3 bg-destructive/5 rounded-xl border border-destructive/10 text-sm space-y-2.5">
+            <strong className="text-foreground flex items-center gap-1 text-destructive font-semibold">
               <AlertCircle className="h-3.5 w-3.5" /> Atenção Contábil Crítica
             </strong>
             <p>
@@ -192,7 +192,7 @@ export function HelpSettings() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
               <div className="p-2.5 bg-background dark:bg-card rounded-lg border border-border">
-                <span className="text-sm uppercase font-bold text-red-500">Você deve a ele:</span>
+                <span className="text-sm uppercase font-bold text-destructive">Você deve a ele:</span>
                 <p className="font-mono font-bold text-sm">R$ 150,00</p>
                 <span className="text-sm text-muted-foreground block">(ex: Supermercado que ele pagou inteiro)</span>
               </div>
@@ -626,9 +626,9 @@ export function HelpSettings() {
           <p>
             Em total conformidade com a **LGPD (Lei Geral de Proteção de Dados)**, respeitamos a sua soberania sobre os seus dados.
           </p>
-          <div className="p-3.5 bg-red-500/5 rounded-xl border border-red-500/10 text-sm space-y-2.5">
-            <strong className="text-red-500 flex items-center gap-2 font-semibold">
-              <Trash2 className="h-4 w-4 text-red-500" /> Processo de Exclusão Irreversível:
+          <div className="p-3.5 bg-destructive/5 rounded-xl border border-destructive/10 text-sm space-y-2.5">
+            <strong className="text-destructive flex items-center gap-2 font-semibold">
+              <Trash2 className="h-4 w-4 text-destructive" /> Processo de Exclusão Irreversível:
             </strong>
             <p>
               Caso queira encerrar o uso do Pé de Meia, vá em **Configurações** &gt; aba **Backup e Dados** e selecione a opção **Excluir Conta Permanentemente**. 

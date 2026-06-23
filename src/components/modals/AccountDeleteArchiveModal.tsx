@@ -34,14 +34,14 @@ export function AccountDeleteArchiveModal({
           <DialogDescription className="space-y-3 pt-2">
             <p className="text-sm">Escolha como deseja remover esta conta:</p>
             <div className="space-y-3">
-              <div className="p-3 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+              <div className="p-3 rounded-lg border border-accent/20 bg-accent/5 dark:bg-accent/10">
                 <div className="flex items-start gap-3">
-                  <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                  <Archive className="h-5 w-5 text-accent mt-0.5 shrink-0" />
                   <div className="space-y-2">
-                    <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
+                    <p className="font-medium text-sm text-accent">
                       Arquivar (Recomendado)
                     </p>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <p className="text-sm text-accent/80">
                       • A conta não aparecerá mais nos formulários
                       <br />
                       • Todas as transações serão preservadas
@@ -53,12 +53,12 @@ export function AccountDeleteArchiveModal({
               {canDelete && (
                 <div className="p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
                   <div className="flex items-start gap-3">
-                    <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+                    <Trash2 className="h-5 w-5 text-destructive dark:text-destructive mt-0.5 shrink-0" />
                     <div className="space-y-2">
-                      <p className="font-medium text-sm text-red-900 dark:text-red-100">
+                      <p className="font-medium text-sm text-red-900 dark:text-destructive-foreground">
                         Excluir Permanentemente
                       </p>
-                      <p className="text-sm text-red-700 dark:text-red-300">
+                      <p className="text-sm text-destructive dark:text-destructive">
                         • A conta será removida do sistema
                         <br />
                         • Todas as transações serão deletadas
@@ -85,7 +85,7 @@ export function AccountDeleteArchiveModal({
               onClose();
               onArchive();
             }}
-            className="w-full sm:w-auto gap-2 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/20"
+            className="w-full sm:w-auto gap-2 border-accent/20 text-accent hover:bg-accent/5 dark:hover:bg-accent/10"
           >
             <Archive className="h-4 w-4" /> Arquivar
           </Button>

@@ -169,7 +169,7 @@ export function TripExpensesTab({
 
         {/* Aviso sobre a lógica de orçamento */}
         {mySharedPaid > 0 && (
-          <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 text-sm text-amber-700 dark:text-amber-400">
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-warning/12 text-sm text-warning dark:text-warning">
             <span className="text-base shrink-0">💡</span>
             <span>
               <strong>Como funciona o orçamento:</strong> Quando você paga uma despesa compartilhada, o valor integral baixa do seu orçamento.
@@ -254,7 +254,7 @@ export function TripExpensesTab({
 
                           {/* Status do acerto */}
                           {status === "settled" && (
-                            <span className="text-[9px] bg-green-500/15 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-green-500/15 text-success dark:text-success px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <CheckCircle className="h-2.5 w-2.5" /> Acertado
                             </span>
                           )}
@@ -269,7 +269,7 @@ export function TripExpensesTab({
                             </span>
                           )}
                           {status === "partial" && (
-                            <span className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-amber-500/15 text-warning dark:text-warning px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" /> Parcial
                             </span>
                           )}
@@ -323,7 +323,7 @@ export function TripExpensesTab({
                               </span>
                             )}
                             {status === "settled" && (
-                              <span className="flex items-center gap-0.5 text-sm text-green-600 dark:text-green-400">
+                              <span className="flex items-center gap-0.5 text-sm text-success dark:text-success">
                                 <CheckCircle className="h-3 w-3" />
                                 Acerto recebido — orçamento recuperado
                               </span>
@@ -472,7 +472,7 @@ export function TripExpensesTab({
                           </p>
                           <span className={cn(
                             "text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold",
-                            expense.type === "INCOME" ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-accent/10 text-accent"
+                            expense.type === "INCOME" ? "bg-success/12 text-success dark:text-success" : "bg-accent/10 text-accent"
                           )}>
                             {expense.type === "INCOME" ? "Recebimento" : "Pessoal"}
                           </span>
@@ -493,7 +493,7 @@ export function TripExpensesTab({
                     <div className="text-right shrink-0">
                       <p className={cn(
                         "font-mono font-black text-base sm:text-lg tracking-tight tabular-nums",
-                        expense.type === "INCOME" ? "text-green-600 dark:text-green-400" : "text-foreground"
+                        expense.type === "INCOME" ? "text-success dark:text-success" : "text-foreground"
                       )}>
                         {expense.type === "INCOME" ? "+" : ""}{formatCurrency(amount, currency)}
                       </p>

@@ -92,12 +92,12 @@ export function TripDetailSummary({
           : "border-dashed border-border/40 bg-muted/5 opacity-80"
       )}>
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-          <Wallet className="w-20 h-20 text-green-500" />
+          <Wallet className="w-20 h-20 text-success" />
         </div>
         <div className="relative z-10 flex items-center justify-between mb-4">
           <div className={cn(
             "w-12 h-12 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform",
-            myPersonalBudget ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+            myPersonalBudget ? "bg-success/12 text-success" : "bg-muted text-muted-foreground"
           )}>
             <Wallet className="h-6 w-6" />
           </div>
@@ -138,7 +138,7 @@ export function TripDetailSummary({
                   )}
                 </div>
                 <div className="flex justify-between text-sm font-black uppercase tracking-widest">
-                  <span className={cn(budgetUsagePercent > 90 ? "text-red-500" : "text-muted-foreground")}>
+                  <span className={cn(budgetUsagePercent > 90 ? "text-destructive" : "text-muted-foreground")}>
                     {budgetUsagePercent.toFixed(0)}% USADO
                   </span>
                   <span className="text-muted-foreground">

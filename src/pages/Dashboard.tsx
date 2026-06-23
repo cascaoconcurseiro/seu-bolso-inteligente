@@ -195,7 +195,7 @@ export function Dashboard() {
         
         <div className="relative overflow-hidden w-full max-w-2xl mx-auto rounded-[2.5rem] bg-gradient-to-br from-card to-card/50 border border-border/50 shadow-2xl p-8 text-center backdrop-blur-xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col items-center">
             <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center shadow-lg border border-white/5 mb-6 rotate-3 transition-transform hover:rotate-6">

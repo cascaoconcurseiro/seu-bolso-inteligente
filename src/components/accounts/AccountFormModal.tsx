@@ -211,7 +211,7 @@ export function AccountFormModal({
         <div className="overflow-y-auto hide-scrollbar space-y-4">
           <div className="flex items-center justify-between p-4 border rounded-2xl">
             <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-blue-500" />
+              <Globe className="h-5 w-5 text-accent" />
               <div>
                 <p className="font-medium">Conta Internacional</p>
               </div>

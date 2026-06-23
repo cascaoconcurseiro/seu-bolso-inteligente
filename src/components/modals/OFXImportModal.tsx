@@ -207,7 +207,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
                 <h3 className="font-medium text-base text-foreground">Importação Concluída</h3>
                 <p className="text-sm text-muted-foreground">{successCount} novas transações adicionadas</p>
                 {duplicatesCount > 0 && (
-                  <p className="text-sm text-amber-600 mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
+                  <p className="text-sm text-warning mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
                 )}
               </div>
               <Button onClick={handleClose} className="mt-4">
@@ -233,7 +233,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               </div>
 
               {!selectedAccountId && (
-                <Alert variant="warning" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                <Alert variant="warning" className="bg-amber-500/10 text-warning border-amber-500/20">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>Selecione uma conta acima para liberar o botão de upload.</AlertDescription>
                 </Alert>

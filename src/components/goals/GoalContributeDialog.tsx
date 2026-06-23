@@ -81,7 +81,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
                 type === 'add' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <TrendingUp className="w-4 h-4 text-green-500" />
+              <TrendingUp className="w-4 h-4 text-success" />
               Adicionar
             </button>
             <button
@@ -92,7 +92,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
                 type === 'withdraw' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <TrendingDown className="w-4 h-4 text-red-500" />
+              <TrendingDown className="w-4 h-4 text-destructive" />
               Retirar
             </button>
           </div>

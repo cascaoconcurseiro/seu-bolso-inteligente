@@ -162,7 +162,7 @@ export function DashboardInvoices({
                 </div>
               </div>
               <div className="flex items-center gap-1 md:gap-2 shrink-0">
-                <span className="text-red-500 font-mono font-semibold text-sm md:text-base whitespace-nowrap">
+                <span className="text-destructive font-mono font-semibold text-sm md:text-base whitespace-nowrap">
                   -{formatCurrency(card.targetInvoiceTotal)}
                 </span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />

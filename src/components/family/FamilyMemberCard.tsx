@@ -56,7 +56,7 @@ export function FamilyMemberCard({
           <span className={cn(
             "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all", 
             member.role === "admin" 
-              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" 
+              ? "bg-amber-500/10 text-warning dark:text-warning" 
               : member.role === "editor" 
                 ? "bg-primary/10 text-primary" 
                 : "bg-muted text-muted-foreground"

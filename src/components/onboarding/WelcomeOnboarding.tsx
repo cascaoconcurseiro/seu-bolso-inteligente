@@ -55,7 +55,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
         <div className="relative p-8 flex flex-col items-center justify-center text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent z-0"></div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/30 blur-[50px] rounded-full z-0"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/20 blur-[50px] rounded-full z-0"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/20 blur-[50px] rounded-full z-0"></div>
           
           <div className="relative z-10 w-16 h-16 bg-background/50 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-lg border border-white/10">
             <Sparkles className="w-8 h-8 text-primary animate-pulse" />

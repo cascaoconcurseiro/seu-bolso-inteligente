@@ -35,7 +35,7 @@ export function SharedSummarySection({
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
                         "font-mono text-xl md:text-2xl font-bold",
-                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        data.balance >= 0 ? "text-success dark:text-success" : "text-destructive dark:text-destructive"
                       )}>
                         {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
                       </p>
@@ -53,9 +53,9 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors flex flex-col justify-center">
+            <div className="p-4 md:p-6 rounded-xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <ArrowLeft className="h-5 w-5 text-green-500" />
+                <ArrowLeft className="h-5 w-5 text-success" />
                 <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
@@ -64,7 +64,7 @@ export function SharedSummarySection({
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-base md:text-2xl font-bold text-green-600 dark:text-green-400">
+                      <p className="font-mono text-base md:text-2xl font-bold text-success dark:text-success">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
@@ -75,9 +75,9 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors flex flex-col justify-center">
+            <div className="p-4 md:p-6 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <ArrowRight className="h-5 w-5 text-red-500" />
+                <ArrowRight className="h-5 w-5 text-destructive" />
                 <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
@@ -86,7 +86,7 @@ export function SharedSummarySection({
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-base md:text-2xl font-bold text-red-600 dark:text-red-400">
+                      <p className="font-mono text-base md:text-2xl font-bold text-destructive dark:text-destructive">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>
@@ -107,9 +107,9 @@ export function SharedSummarySection({
             Viagens
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-blue-50/30 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/50 transition-all hover:bg-blue-50/50 flex flex-col justify-center">
+            <div className="col-span-2 md:col-span-1 p-4 md:p-6 rounded-xl border-2 bg-accent/5 dark:bg-accent/10 border-accent/20 transition-all hover:bg-accent/10 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <CreditCard className="h-5 w-5 text-blue-600" />
+                <CreditCard className="h-5 w-5 text-accent" />
                 <p className="text-sm font-medium text-muted-foreground">Meu Saldo</p>
               </div>
               <div className="space-y-3 flex-1 flex flex-col justify-center">
@@ -119,7 +119,7 @@ export function SharedSummarySection({
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
                       <p className={cn(
                         "font-mono text-xl md:text-2xl font-bold",
-                        data.balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                        data.balance >= 0 ? "text-success dark:text-success" : "text-destructive dark:text-destructive"
                       )}>
                         {data.balance >= 0 ? "+" : ""}{formatCurrency(data.balance, currency)}
                       </p>
@@ -137,9 +137,9 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors flex flex-col justify-center">
+            <div className="p-4 md:p-6 rounded-xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <ArrowLeft className="h-5 w-5 text-green-500" />
+                <ArrowLeft className="h-5 w-5 text-success" />
                 <p className="text-sm font-bold text-green-600/80 dark:text-green-400/80 uppercase tracking-widest">A Receber</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
@@ -148,7 +148,7 @@ export function SharedSummarySection({
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-base md:text-2xl font-bold text-green-600 dark:text-green-400">
+                      <p className="font-mono text-base md:text-2xl font-bold text-success dark:text-success">
                         {formatCurrency(data.owedToMe, currency)}
                       </p>
                     </div>
@@ -159,9 +159,9 @@ export function SharedSummarySection({
               </div>
             </div>
 
-            <div className="p-4 md:p-6 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors flex flex-col justify-center">
+            <div className="p-4 md:p-6 rounded-xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-2 md:mb-3">
-                <ArrowRight className="h-5 w-5 text-red-500" />
+                <ArrowRight className="h-5 w-5 text-destructive" />
                 <p className="text-sm font-bold text-red-600/80 dark:text-red-400/80 uppercase tracking-widest">A Pagar</p>
               </div>
               <div className="space-y-2 flex-1 flex flex-col justify-center">
@@ -170,7 +170,7 @@ export function SharedSummarySection({
                   .map(([currency, data]) => (
                     <div key={currency} className="flex flex-col md:flex-row md:items-center justify-between gap-1">
                       <span className="text-sm text-muted-foreground uppercase">{currency}</span>
-                      <p className="font-mono text-base md:text-2xl font-bold text-red-600 dark:text-red-400">
+                      <p className="font-mono text-base md:text-2xl font-bold text-destructive dark:text-destructive">
                         {formatCurrency(data.iOwe, currency)}
                       </p>
                     </div>

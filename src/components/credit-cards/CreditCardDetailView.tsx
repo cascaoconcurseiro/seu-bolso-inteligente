@@ -288,9 +288,9 @@ export function CreditCardDetailView({
               return (
                 <span className={cn(
                   "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
-                  isOverdue ? "bg-red-500/20 text-red-100 border-red-500/50 animate-pulse" : 
+                  isOverdue ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse" : 
                   isClosed ? "bg-amber-500/20 text-amber-100 border-amber-500/50" :
-                  "bg-blue-400/20 text-blue-100 border-blue-400/50"
+                  "bg-accent/20 text-accent-foreground border-accent/50"
                 )}>
                   {isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Fatura Fechada' : '🔵 Fatura Aberta'}
                 </span>

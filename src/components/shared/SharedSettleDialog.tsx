@@ -100,9 +100,9 @@ export function SharedSettleDialog({
 
         <div className="space-y-4">
           {isInternationalSettlement && (
-            <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-              <Globe className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-sm text-blue-700 dark:text-blue-300">
+            <Alert className="border-accent/20 bg-accent/5 dark:bg-accent/10">
+              <Globe className="h-4 w-4 text-accent" />
+              <AlertDescription className="text-sm text-accent">
                 Acerto de viagem internacional em <span className="font-semibold">{settlementCurrency}</span>.
               </AlertDescription>
             </Alert>
@@ -155,8 +155,8 @@ export function SharedSettleDialog({
             </div>
 
             <div className="text-center">
-              <ArrowRight className={cn("h-5 w-5", settleType === "PAY" ? "text-red-500" : "text-green-500")} />
-              <p className={cn("font-mono font-bold mt-1", settleType === "PAY" ? "text-red-600" : "text-green-600")}>
+              <ArrowRight className={cn("h-5 w-5", settleType === "PAY" ? "text-destructive" : "text-success")} />
+              <p className={cn("font-mono font-bold mt-1", settleType === "PAY" ? "text-destructive" : "text-success")}>
                 {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
               </p>
             </div>
@@ -214,7 +214,7 @@ export function SharedSettleDialog({
                         <p className="text-sm text-muted-foreground">{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}</p>
                       </div>
                       <div className="text-right">
-                        <span className={cn("font-mono text-sm font-medium", isCredit ? "text-green-600" : "text-red-600")}>
+                        <span className={cn("font-mono text-sm font-medium", isCredit ? "text-success" : "text-destructive")}>
                           {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </span>
                       </div>
@@ -256,7 +256,7 @@ export function SharedSettleDialog({
           <Button
             onClick={onSettle}
             disabled={isSettling || !settleAccountId}
-            className={cn(settleType === "PAY" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700")}
+            className={cn(settleType === "PAY" ? "bg-destructive hover:bg-destructive/92" : "bg-success hover:bg-success/92")}
           >
             {isSettling ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processando...</> : "Confirmar"}
           </Button>

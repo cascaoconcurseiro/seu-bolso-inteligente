@@ -73,7 +73,7 @@ export function DashboardRecentActivity({
                   {/* Category Icon Circle */}
                   <div className={cn(
                     "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
-                    isIncome ? "bg-green-500/10 text-green-600" : 
+                    isIncome ? "bg-success/12 text-success" : 
                     isTransfer ? "bg-accent/10 text-accent" : 
                     "bg-muted text-muted-foreground"
                   )}>
@@ -100,13 +100,13 @@ export function DashboardRecentActivity({
                 <div className="text-right shrink-0 ml-4">
                   <p className={cn(
                     "font-display font-black text-sm md:text-base tracking-tight",
-                    isIncome ? "text-green-600" : isTransfer ? "text-accent" : "text-foreground",
+                    isIncome ? "text-success" : isTransfer ? "text-accent" : "text-foreground",
                     isPrivate && "blur-md opacity-50 select-none"
                   )}>
                     {isPrivate ? "•••••" : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}`}
                   </p>
                   {isTransfer && tx.destination_amount && tx.destination_currency && (tx.currency || 'BRL') !== tx.destination_currency && (
-                    <p className={cn("text-xs font-display font-bold text-green-600 tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
+                    <p className={cn("text-xs font-display font-bold text-success tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
                       {isPrivate ? "➔ •••••" : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
                     </p>
                   )}

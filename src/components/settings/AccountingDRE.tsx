@@ -165,7 +165,7 @@ export function AccountingDRE() {
             <Printer className="h-4 w-4 text-primary" />
           </Button>
           <Button variant="outline" size="icon" onClick={handleExportCSV} className="h-10 w-9 rounded-xl" title="Exportar Excel">
-            <Download className="h-4 w-4 text-blue-500" />
+            <Download className="h-4 w-4 text-accent" />
           </Button>
         </div>
       </div>
@@ -214,7 +214,7 @@ export function AccountingDRE() {
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">2. (-) ESTORNOS E DEDUÇÕES DO EXERCÍCIO</td>
-                  <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.DEDUCTION.total)}</td>
+                  <td className="pr-6 py-3 text-right font-mono font-semibold text-destructive dark:text-destructive">{formatNegativeCurrency(dreData.lines.DEDUCTION.total)}</td>
                   <td className="pr-6 py-3 text-right">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('DEDUCTION')}>
                       {expandedLines.DEDUCTION ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -231,7 +231,7 @@ export function AccountingDRE() {
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">3. (-) CUSTOS OPERACIONAIS E CONSUMO VARIÁVEL</td>
-                  <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.VARIABLE_EXP.total)}</td>
+                  <td className="pr-6 py-3 text-right font-mono font-semibold text-destructive dark:text-destructive">{formatNegativeCurrency(dreData.lines.VARIABLE_EXP.total)}</td>
                   <td className="pr-6 py-3 text-right font-mono text-sm text-muted-foreground flex items-center justify-end gap-2">
                     <span>{dreData.netRevenue > 0 ? ((dreData.lines.VARIABLE_EXP.total / dreData.netRevenue) * 100).toFixed(1) + "%" : "0.0%"}</span>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('VARIABLE_EXP')}>
@@ -249,7 +249,7 @@ export function AccountingDRE() {
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">4. (-) DESPESAS ADMINISTRATIVAS E ESTRUTURA FIXA</td>
-                  <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.FIXED_EXP.total)}</td>
+                  <td className="pr-6 py-3 text-right font-mono font-semibold text-destructive dark:text-destructive">{formatNegativeCurrency(dreData.lines.FIXED_EXP.total)}</td>
                   <td className="pr-6 py-3 text-right font-mono text-sm text-muted-foreground flex items-center justify-end gap-2">
                     <span>{dreData.netRevenue > 0 ? ((dreData.lines.FIXED_EXP.total / dreData.netRevenue) * 100).toFixed(1) + "%" : "0.0%"}</span>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('FIXED_EXP')}>
@@ -267,7 +267,7 @@ export function AccountingDRE() {
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-6 py-3 text-left font-semibold text-foreground">5. (-) TARIFAS E DESPESAS FINANCEIRAS / TRIBUTOS</td>
-                  <td className="pr-6 py-3 text-right font-mono font-semibold text-red-600 dark:text-red-500">{formatNegativeCurrency(dreData.lines.FINANCIAL_EXP.total)}</td>
+                  <td className="pr-6 py-3 text-right font-mono font-semibold text-destructive dark:text-destructive">{formatNegativeCurrency(dreData.lines.FINANCIAL_EXP.total)}</td>
                   <td className="pr-6 py-3 text-right">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('FINANCIAL_EXP')}>
                       {expandedLines.FINANCIAL_EXP ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -307,7 +307,7 @@ export function AccountingDRE() {
             </Card>
 
             <Card className="p-5 border border-border bg-card/40 flex items-center gap-4 rounded-2xl shadow-sm">
-              <div className="h-10 w-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
+              <div className="h-10 w-10 bg-accent/10 rounded-xl flex items-center justify-center text-accent">
                 <BadgePercent className="h-5 w-5" />
               </div>
               <div className="space-y-2">
@@ -407,7 +407,7 @@ export function AccountingDRE() {
                   {/* 2. PASSIVOS */}
                   <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                     <td className="pl-6 py-3 text-left">2. PASSIVOS (Dívidas e Obrigações)</td>
-                    <td className="pr-6 py-3 text-right font-mono text-red-600 dark:text-red-500">{formatNegativeCurrency(b.totalLiabilities)}</td>
+                    <td className="pr-6 py-3 text-right font-mono text-destructive dark:text-destructive">{formatNegativeCurrency(b.totalLiabilities)}</td>
                     <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 
@@ -421,7 +421,7 @@ export function AccountingDRE() {
                   {/* 2.1.1 Faturas de Cartão */}
                   <tr className="hover:bg-muted/30 text-sm text-muted-foreground border-b border-border/10 font-mono transition-colors">
                     <td className="pl-14 py-2 text-left">2.1.1 Fatura Acumulada em Cartão de Crédito e Contas Negativas</td>
-                    <td className="pr-6 py-2 text-right text-red-500">{formatNegativeCurrency(b.totalLiabilities)}</td>
+                    <td className="pr-6 py-2 text-right text-destructive">{formatNegativeCurrency(b.totalLiabilities)}</td>
                     <td className="pr-6 py-2 text-right text-sm">100.0%</td>
                   </tr>
 

@@ -108,7 +108,7 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
             {/* SESSÃO 1: DINHEIRO / PIX / DÉBITO */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2">
-                <Banknote className="w-5 h-5 text-green-600 dark:text-green-500" />
+                <Banknote className="w-5 h-5 text-success dark:text-success" />
                 <h3 className="font-bold text-base text-foreground">Pagamentos à Vista (Dinheiro/Pix/Débito)</h3>
               </div>
               

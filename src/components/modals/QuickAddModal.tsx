@@ -258,7 +258,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 <div className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-900/50">
                   <div className="space-y-2">
                   <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
-                      <Plane className="h-4 w-4 text-blue-500" />
+                      <Plane className="h-4 w-4 text-accent" />
                       Despesa de Viagem
                     </Label>
                     <p className="text-xs text-muted-foreground">
@@ -376,7 +376,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               <Label className="flex items-center gap-2">
                 Categoria 
                 {predictedCategoryId === categoryId && categoryId && (
-                  <Sparkles className="h-4 w-4 text-blue-500" title="Categoria sugerida pela IA" />
+                  <Sparkles className="h-4 w-4 text-accent" title="Categoria sugerida pela IA" />
                 )}
               </Label>
               <Select value={categoryId} onValueChange={handleCategoryChange} required>

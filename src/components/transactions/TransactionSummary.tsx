@@ -13,27 +13,27 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-in-up">
       {/* Entradas */}
-      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 transition-colors">
+      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-success/20 bg-success/5 hover:bg-success/12 transition-colors">
         <div className="flex items-center justify-between">
           <p className="text-sm sm:text-sm text-green-600/70 dark:text-green-400/70 uppercase font-bold tracking-widest">Entradas</p>
           <div className="p-1 sm:p-2 rounded-lg bg-green-500/15">
-            <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-500" />
+            <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-success" />
           </div>
         </div>
-        <p className="font-mono font-bold text-sm sm:text-base text-green-600 dark:text-green-400 tabular-nums leading-tight">
+        <p className="font-mono font-bold text-sm sm:text-base text-success dark:text-success tabular-nums leading-tight">
           +{formatCurrency(totalIncome)}
         </p>
       </div>
 
       {/* Saídas */}
-      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
+      <div className="group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
         <div className="flex items-center justify-between">
           <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Saídas</p>
-          <div className="p-1 sm:p-2 rounded-lg bg-red-500/15">
-            <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-500" />
+          <div className="p-1 sm:p-2 rounded-lg bg-destructive/15">
+            <TrendingDown className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive" />
           </div>
         </div>
-        <p className="font-mono font-bold text-sm sm:text-base text-red-600 dark:text-red-400 tabular-nums leading-tight">
+        <p className="font-mono font-bold text-sm sm:text-base text-destructive dark:text-destructive tabular-nums leading-tight">
           -{formatCurrency(totalExpense)}
         </p>
       </div>
@@ -64,7 +64,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
         </div>
         <p className={cn(
           "font-mono font-bold text-sm sm:text-base tabular-nums leading-tight",
-          result >= 0 ? "text-primary" : "text-amber-600 dark:text-amber-400"
+          result >= 0 ? "text-primary" : "text-warning dark:text-warning"
         )}>
           {result >= 0 ? "+" : "-"}{formatCurrency(Math.abs(result))}
         </p>

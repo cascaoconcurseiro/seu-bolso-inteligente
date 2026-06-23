@@ -190,7 +190,7 @@ export function Accounts() {
 
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2"><Globe className="h-4 w-4" /> Contas Internacionais ({internationalAccounts.length})</h2>
-        {internationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl bg-blue-50/20"><Globe className="h-10 w-10 mx-auto mb-3 text-blue-500" /><p className="text-muted-foreground mb-4">Nenhuma conta global</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{internationalAccounts.map(acc => <AccountCard key={acc.id} account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} />)}</div>}
+        {internationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl bg-accent/5"><Globe className="h-10 w-10 mx-auto mb-3 text-accent" /><p className="text-muted-foreground mb-4">Nenhuma conta global</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{internationalAccounts.map(acc => <AccountCard key={acc.id} account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} />)}</div>}
       </div>
 
       <AccountFormModal

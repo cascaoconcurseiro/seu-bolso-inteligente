@@ -227,7 +227,7 @@ export function GoalsAndInvestments() {
                     error: 'Erro ao gerar relatório.'
                   });
                 }}>
-                  <ShieldCheck className="w-4 h-4 mr-2 text-blue-600" /> PDF - Auxiliar de IR (Receita Federal)
+                  <ShieldCheck className="w-4 h-4 mr-2 text-accent" /> PDF - Auxiliar de IR (Receita Federal)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => {
                   toast.promise(exportToIRExcel(assets), {
@@ -236,7 +236,7 @@ export function GoalsAndInvestments() {
                     error: 'Erro ao gerar planilha.'
                   });
                 }}>
-                  <Download className="w-4 h-4 mr-2 text-blue-600" /> Excel - Auxiliar de IR (Receita Federal)
+                  <Download className="w-4 h-4 mr-2 text-accent" /> Excel - Auxiliar de IR (Receita Federal)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

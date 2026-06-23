@@ -114,7 +114,7 @@ export function RemoveParticipantDialog({
             <div className={cn(
               "p-5 rounded-xl border transition-all duration-300",
               isSettled 
-                ? "border-green-500/20 bg-green-500/5 dark:bg-green-500/[0.02]" 
+                ? "border-success/20 bg-success/5 dark:bg-green-500/[0.02]" 
                 : owesGroup
                   ? "border-orange-500/20 bg-orange-500/5 dark:bg-orange-500/[0.02]"
                   : "border-accent/20 bg-accent/5 dark:bg-accent/[0.02]"
@@ -122,7 +122,7 @@ export function RemoveParticipantDialog({
               <div className="flex items-center gap-3.5 mb-4">
                 <div className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center shadow-md",
-                  isSettled ? "bg-green-500 text-white" : owesGroup ? "bg-orange-500 text-white" : "bg-accent text-white"
+                  isSettled ? "bg-success text-white" : owesGroup ? "bg-orange-500 text-white" : "bg-accent text-white"
                 )}>
                   {isSettled ? <CheckCircle2 className="h-5 w-5" /> : <Wallet className="h-5 w-5" />}
                 </div>
@@ -155,7 +155,7 @@ export function RemoveParticipantDialog({
                   <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Saldo</p>
                   <p className={cn(
                     "font-mono text-xs font-black",
-                    isSettled ? "text-green-600 dark:text-green-400" :
+                    isSettled ? "text-success dark:text-success" :
                     owesGroup ? "text-orange-600 dark:text-orange-400" : "text-accent"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (owesGroup ? "-" : "+") + moneyUtils.format(Math.abs(currentBalance), currency)}
@@ -167,7 +167,7 @@ export function RemoveParticipantDialog({
             {/* Ações Inteligentes de Remoção baseadas no Saldo */}
             {isSettled ? (
               <div className="p-4 rounded-xl border border-green-500/10 bg-green-500/[0.01] flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
                 <p className="text-sm text-muted-foreground">
                   Como este participante não possui pendências, você pode removê-lo diretamente. O histórico de transações passadas dele continuará preservado na viagem.
                 </p>

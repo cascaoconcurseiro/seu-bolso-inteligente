@@ -50,8 +50,8 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
         </div>
         
         <div className="flex items-center gap-4 bg-background/40 backdrop-blur-sm border border-border/40 rounded-xl px-4 py-3 shrink-0 self-start sm:self-auto">
-          <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+          <div className="w-8 h-8 rounded-lg bg-success/12 flex items-center justify-center shrink-0">
+            <CheckCircle className="h-5 w-5 text-success" />
           </div>
           <div>
             <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest leading-none mb-1">Contas Ativas</p>

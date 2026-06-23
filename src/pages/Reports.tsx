@@ -563,10 +563,10 @@ export function Reports() {
 
   const savingsGoalStatus = useMemo(() => {
     const rate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0;
-    if (rate >= 20) return { text: "Excelente! (Economizou > 20%)", color: "text-green-500 bg-green-500/10 border-green-500/20" };
-    if (rate >= 10) return { text: "No caminho! (Economizou > 10%)", color: "text-blue-500 bg-blue-500/10 border-blue-500/20" };
+    if (rate >= 20) return { text: "Excelente! (Economizou > 20%)", color: "text-success bg-success/12 border-success/20" };
+    if (rate >= 10) return { text: "No caminho! (Economizou > 10%)", color: "text-accent bg-accent/10 border-accent/20" };
     if (rate > 0) return { text: "Bom, mas tente poupar 10%", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" };
-    return { text: "Alerta: Gastos superaram receitas", color: "text-red-500 bg-red-500/10 border-red-500/20" };
+    return { text: "Alerta: Gastos superaram receitas", color: "text-destructive bg-destructive/12 border-destructive/20" };
   }, [totalIncome, balance]);
 
   const filteredTxList = useMemo(() => {
@@ -762,7 +762,7 @@ export function Reports() {
       </div>
       </div>
 
-      {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20"><Globe className="h-4 w-4 text-blue-500" /><span className="text-sm text-blue-600 dark:text-blue-400">Exibindo relatórios para {selectedCurrency}</span></div>}
+      {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-accent/20 bg-accent/5 dark:bg-accent/10"><Globe className="h-4 w-4 text-accent" /><span className="text-sm text-accent">Exibindo relatórios para {selectedCurrency}</span></div>}
 
       {periodTransactions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
@@ -795,9 +795,9 @@ export function Reports() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Gasto Médio Diário */}
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-16 h-16 bg-accent/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-inner flex items-center justify-center">
+            <div className="p-2.5 rounded-xl bg-accent/10 text-accent border border-accent/20 shadow-inner flex items-center justify-center">
               <Calendar className="h-5 w-5" />
             </div>
             <div>

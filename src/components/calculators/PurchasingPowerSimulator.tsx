@@ -175,7 +175,7 @@ export function PurchasingPowerSimulator() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-6 relative z-10">
               <p className="text-sm font-medium text-muted-foreground mb-1">Poder de compra real</p>
-              <p className="text-3xl font-mono font-bold text-amber-600 dark:text-amber-500">
+              <p className="text-3xl font-mono font-bold text-warning dark:text-amber-500">
                 {moneyUtils.format(results.futurePurchasingPower, 'BRL')}
               </p>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
@@ -214,7 +214,7 @@ export function PurchasingPowerSimulator() {
                     <tr>
                       <th className="px-4 py-3 font-medium">Período</th>
                       <th className="px-4 py-3 font-medium text-right">Manter Padrão</th>
-                      <th className="px-4 py-3 font-medium text-right text-amber-600 dark:text-amber-500">Poder de Compra Real</th>
+                      <th className="px-4 py-3 font-medium text-right text-warning dark:text-amber-500">Poder de Compra Real</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
@@ -224,7 +224,7 @@ export function PurchasingPowerSimulator() {
                           Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
                         </td>
                         <td className="px-4 py-3 font-mono text-right text-sm">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
-                        <td className="px-4 py-3 font-mono text-right text-amber-600 dark:text-amber-500 text-sm font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
+                        <td className="px-4 py-3 font-mono text-right text-warning dark:text-amber-500 text-sm font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
                       </tr>
                     ))}
                   </tbody>

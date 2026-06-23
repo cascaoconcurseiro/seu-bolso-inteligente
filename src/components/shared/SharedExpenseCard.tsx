@@ -118,8 +118,8 @@ export function SharedExpenseCard({
                     variant="outline"
                     className={cn(
                       "text-xs font-bold px-1.5 py-0",
-                      iOwe ? "border-red-300 text-red-700 bg-red-100" :
-                        "border-green-300 text-green-700 bg-green-100"
+                      iOwe ? "border-red-300 text-destructive bg-red-100" :
+                        "border-green-300 text-success bg-green-100"
                     )}
                   >
                     {iOwe ? "PAGAR" : "RECEBER"}
@@ -143,8 +143,8 @@ export function SharedExpenseCard({
                   <p className={cn(
                     "font-mono font-bold text-xl sm:text-2xl leading-tight",
                     netAmount === 0 ? "text-muted-foreground" :
-                      iOwe ? "text-red-600 dark:text-red-400" :
-                        "text-green-600 dark:text-green-400"
+                      iOwe ? "text-destructive dark:text-destructive" :
+                        "text-success dark:text-success"
                   )}>
                     {netAmount === 0 ? "Em dia" : formatCurrency(Math.abs(netAmount), currency)}
                   </p>
@@ -163,8 +163,8 @@ export function SharedExpenseCard({
                 size="default"
                 className={cn(
                   "flex-1 sm:flex-none h-12 px-5 sm:px-6 text-sm sm:text-base shadow-lg transition-all shrink-0 font-bold rounded-xl active:scale-95", 
-                  !iOwe && "bg-green-600 hover:bg-green-700 text-white shadow-green-600/20",
-                  iOwe && "shadow-red-600/20"
+                  !iOwe && "bg-success hover:bg-success/92 text-white shadow-success/20",
+                  iOwe && "shadow-destructive/20"
                 )}
                 onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
               >
@@ -180,14 +180,14 @@ export function SharedExpenseCard({
       {itemsWaitingMe.length > 0 && (
         <div className="bg-amber-500/10 dark:bg-amber-500/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+            <div className="p-2 bg-amber-500/20 rounded-xl text-warning dark:text-warning shrink-0">
               <Clock className="h-5 w-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
+              <p className="font-semibold text-sm text-amber-800 dark:text-warning">
                 Aguardando sua confirmação
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-warning dark:text-amber-400/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   itemsWaitingMe[0].type === "CREDIT" ? (
                     <>
@@ -211,7 +211,7 @@ export function SharedExpenseCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-10 px-4"
+                className="bg-warning hover:bg-warning/92 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-600/20 active:scale-95 transition-all h-10 px-4"
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-4 w-4 mr-1.5" />
@@ -222,7 +222,7 @@ export function SharedExpenseCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 text-sm rounded-xl font-semibold transition-all"
+                className="text-amber-800 dark:text-warning hover:bg-amber-500/10 text-sm rounded-xl font-semibold transition-all"
                 onClick={() => onRejectSettlement(itemsWaitingMe[0])}
               >
                 Recusar Acerto
@@ -276,21 +276,21 @@ export function SharedExpenseCard({
                   >
                     <div className="md:col-span-1 shrink-0 flex items-center justify-center self-start md:self-auto pt-1 md:pt-0">
                       {item.isSettled ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <CheckCircle2 className="h-5 w-5 text-success" />
                       ) : isWaitingMe ? (
                         <div className="relative">
                           <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
                           <span className="absolute -top-1 -right-1 flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
                           </span>
                         </div>
                       ) : isWaitingOther ? (
                         <span title="Aguardando confirmação do outro">
-                          <Clock className="h-5 w-5 text-blue-400 opacity-70" />
+                          <Clock className="h-5 w-5 text-accent/70" />
                         </span>
                       ) : (
-                        <div className={cn("w-3 h-3 rounded-full", isCredit ? "bg-green-500/80" : "bg-red-500/80")} />
+                        <div className={cn("w-3 h-3 rounded-full", isCredit ? "bg-success/80" : "bg-destructive/80")} />
                       )}
                     </div>
 
@@ -311,7 +311,7 @@ export function SharedExpenseCard({
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {item.category && <span className="text-sm text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">📁 {item.category}</span>}
                         {item.totalInstallments && item.totalInstallments > 1 && (
-                          <span className="text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/30 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/50">
+                          <span className="text-sm text-muted-foreground bg-accent/5 dark:bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
                             {item.installmentNumber}/{item.totalInstallments}
                           </span>
                         )}
@@ -323,7 +323,7 @@ export function SharedExpenseCard({
                         <span>{dateFns.format(new Date((item.originalDate || item.date) + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
                         <span className={cn(
                           "font-mono text-sm font-bold md:hidden",
-                          item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
+                          item.isPaid ? "text-muted-foreground" : isCredit ? "text-success" : "text-destructive"
                         )}>
                           {formatCurrency(item.amount, item.currency)}
                         </span>
@@ -338,7 +338,7 @@ export function SharedExpenseCard({
                     <div className="hidden md:block md:col-span-2 text-right">
                       <span className={cn(
                         "font-mono text-sm font-bold",
-                        item.isPaid ? "text-muted-foreground" : isCredit ? "text-green-600" : "text-red-600"
+                        item.isPaid ? "text-muted-foreground" : isCredit ? "text-success" : "text-destructive"
                       )}>
                         {formatCurrency(item.amount, item.currency)}
                       </span>
@@ -349,7 +349,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-amber-50 border-amber-200 text-warning hover:bg-amber-100 font-bold"
                           onClick={() => onConfirmReceipt(item)}
                         >
                           <CheckCircle className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />
@@ -358,7 +358,7 @@ export function SharedExpenseCard({
                       )}
                       
                       {isWaitingOther && (
-                        <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-600 border-amber-200">
+                        <Badge variant="outline" className="text-[9px] bg-amber-50 text-warning border-amber-200">
                           Aguardando
                         </Badge>
                       )}
@@ -367,7 +367,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-success dark:text-success hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
                           onClick={() => onSettle(member.id, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
                         >
                           <Wallet className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />

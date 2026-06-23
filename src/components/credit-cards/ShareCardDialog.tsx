@@ -65,9 +65,9 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
-          <div className="bg-amber-50 dark:bg-amber-950/20 p-3 flex gap-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
-            <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0" />
-            <p className="text-sm text-amber-800 dark:text-amber-400">
+          <div className="bg-amber-50 dark:bg-warning/12 p-3 flex gap-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
+            <ShieldAlert className="w-5 h-5 text-warning dark:text-amber-500 shrink-0" />
+            <p className="text-sm text-amber-800 dark:text-warning">
               O convidado não poderá editar o Vencimento nem o Fechamento da fatura. Ao fechar a fatura, ele fará o acerto do valor devido para você.
             </p>
           </div>

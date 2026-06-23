@@ -62,7 +62,7 @@ export function CreditCardItem({
           
           <div className="text-right">
             {isOverdue ? (
-              <span className="text-sm font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-red-500/20">
+              <span className="text-sm font-bold text-destructive dark:text-destructive bg-destructive/12 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-destructive/20">
                 <AlertCircle className="h-3 w-3" />
                 ATRASADA
               </span>
@@ -70,7 +70,7 @@ export function CreditCardItem({
               <span className={cn(
                 "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
                 invoice.status === 'CLOSED' 
-                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" 
+                  ? "bg-amber-500/10 text-warning dark:text-warning border-amber-500/20" 
                   : "bg-accent/10 text-accent border-accent/20"
               )}>
                 {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
@@ -88,7 +88,7 @@ export function CreditCardItem({
             <div className="flex items-center gap-2">
               <p className={cn(
                 "font-mono font-black text-2xl tracking-tighter leading-none",
-                isOverdue ? "text-red-600 dark:text-red-400 drop-shadow-sm" : "text-foreground"
+                isOverdue ? "text-destructive dark:text-destructive drop-shadow-sm" : "text-foreground"
               )}>
                 {formatCurrency(invoice.value)}
               </p>

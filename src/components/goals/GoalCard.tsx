@@ -65,12 +65,12 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
               <div className="flex items-center gap-2 mt-1">
                 <span className={cn(
                   "text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                  goal.status === 'COMPLETED' ? "bg-green-500/10 text-green-600" : "bg-primary/10 text-primary"
+                  goal.status === 'COMPLETED' ? "bg-success/12 text-success" : "bg-primary/10 text-primary"
                 )}>
                   {goal.status === 'COMPLETED' ? 'Concluída' : 'Em Progresso'}
                 </span>
                 {goal.priority === 'HIGH' && (
-                  <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 uppercase tracking-wider">
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-destructive/12 text-destructive uppercase tracking-wider">
                     Prioridade Alta
                   </span>
                 )}

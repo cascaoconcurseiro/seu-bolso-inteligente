@@ -800,7 +800,7 @@ export function getNotificationIcon(type: NotificationType): string {
 export function getPriorityColor(priority: NotificationPriority): string {
   const colors: Record<NotificationPriority, string> = {
     LOW: 'bg-muted text-muted-foreground',
-    NORMAL: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    NORMAL: 'bg-accent/15 text-accent',
     HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     URGENT: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   };

@@ -95,7 +95,7 @@ export function NewCardDialog({
           <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 transition-all mt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-blue-500" />
+                <Globe className="h-5 w-5 text-accent" />
                 <div>
                   <p className="font-medium text-sm">Cartão Internacional</p>
                   <p className="text-sm text-muted-foreground">Fatura em moeda estrangeira</p>

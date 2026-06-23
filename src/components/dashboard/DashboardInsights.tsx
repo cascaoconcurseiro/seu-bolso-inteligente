@@ -73,7 +73,7 @@ export function DashboardInsights() {
             
             switch (insight.type) {
               case "DANGER":
-                colorClass = "border-red-500/20 bg-red-500/10 text-red-500";
+                colorClass = "border-destructive/20 bg-destructive/12 text-destructive";
                 Icon = insight.icon === 'trending-down' ? TrendingDown : XCircle;
                 break;
               case "WARNING":

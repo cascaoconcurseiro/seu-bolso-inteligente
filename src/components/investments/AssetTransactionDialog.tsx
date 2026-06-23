@@ -315,8 +315,8 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
           {/* Tabs de operação */}
           <div className="flex bg-secondary p-1 rounded-xl border border-border overflow-x-auto gap-1 scrollbar-none">
             {[
-              { key: 'buy', label: 'Comprar', icon: <TrendingUp className="w-4 h-4 text-green-500" /> },
-              { key: 'sell', label: 'Vender', icon: <TrendingDown className="w-4 h-4 text-red-500" /> },
+              { key: 'buy', label: 'Comprar', icon: <TrendingUp className="w-4 h-4 text-success" /> },
+              { key: 'sell', label: 'Vender', icon: <TrendingDown className="w-4 h-4 text-destructive" /> },
               { key: 'dividend', label: 'Rendimento', icon: <Coins className="w-4 h-4 text-accent" /> },
               { key: 'update', label: 'Cotação', icon: <RefreshCw className="w-4 h-4 text-accent" /> },
             ].map(t => (
@@ -339,9 +339,9 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
           {/* Aviso conta obrigatória para compra/venda/rendimento */}
           {type !== 'update' && (
-            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20">
-              <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
+            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-warning/12">
+              <Info className="h-4 w-4 text-warning dark:text-warning" />
+              <AlertDescription className="text-sm text-warning dark:text-warning">
                 {type === 'buy' && 'O valor da compra será debitado da conta selecionada.'}
                 {type === 'sell' && 'O valor da venda será creditado na conta selecionada.'}
                 {type === 'dividend' && 'O valor do rendimento será creditado como receita na conta selecionada.'}
@@ -470,7 +470,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               {type === 'sell' && sellPnl !== null && (
                 <div className="flex justify-between border-t border-border pt-2 mt-2">
                   <span className="text-muted-foreground">Lucro/Prejuízo</span>
-                  <span className={cn("font-mono font-bold", sellPnl >= 0 ? "text-green-500" : "text-red-500")}>
+                  <span className={cn("font-mono font-bold", sellPnl >= 0 ? "text-success" : "text-destructive")}>
                     {sellPnl >= 0 ? '+' : ''}{formatMoney(sellPnl)}
                   </span>
                 </div>
@@ -518,7 +518,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 </SelectContent>
               </Select>
               {isAbroad && selectedAccount && !selectedAccount.is_international && (
-                <p className="text-sm text-amber-600 flex items-center gap-1">
+                <p className="text-sm text-warning flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   Conta em BRL selecionada. Considere usar uma conta internacional para ativos em {currency}.
                 </p>
@@ -535,8 +535,8 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               disabled={isSubmitting}
               className={cn(
                 "flex-1",
-                type === 'buy' && "bg-green-600 hover:bg-green-700",
-                type === 'sell' && "bg-red-600 hover:bg-red-700",
+                type === 'buy' && "bg-success hover:bg-success/92",
+                type === 'sell' && "bg-destructive hover:bg-destructive/92",
                 type === 'dividend' && "bg-accent hover:bg-accent/92",
               )}
             >

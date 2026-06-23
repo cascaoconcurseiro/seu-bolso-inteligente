@@ -96,7 +96,7 @@ export function BasicInfoSection({
             format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
             format(date, 'yyyy-MM-dd') > selectedTrip.end_date
           ) && (
-              <p className="text-sm font-bold text-amber-600 dark:text-amber-400 leading-tight">
+              <p className="text-sm font-bold text-warning dark:text-warning leading-tight">
                 ⚠️ Data fora do período da viagem ({format(parseLocalDate(selectedTrip.start_date), 'dd/MM/yy')} - {format(parseLocalDate(selectedTrip.end_date), 'dd/MM/yy')})
               </p>
             )}
@@ -108,7 +108,7 @@ export function BasicInfoSection({
             <Label className="flex items-center gap-2">
               Categoria
               {predictedCategoryId === categoryId && categoryId && (
-                <Sparkles className="h-3 w-3 text-blue-500" title="Categoria sugerida pela IA" />
+                <Sparkles className="h-3 w-3 text-accent" title="Categoria sugerida pela IA" />
               )}
             </Label>
 

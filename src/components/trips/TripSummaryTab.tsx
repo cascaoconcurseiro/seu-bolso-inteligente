@@ -149,8 +149,8 @@ export function TripSummaryTab({
           onClick={() => setActiveTab && setActiveTab("expenses")}
           className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-green-500/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all group backdrop-blur-sm"
         >
-          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-            <DollarSign className="h-6 w-6 text-green-500" />
+          <div className="w-12 h-12 rounded-full bg-success/12 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <DollarSign className="h-6 w-6 text-success" />
           </div>
           <span className="font-bold text-sm text-center leading-tight">Lançar<br/>Despesa</span>
         </button>
@@ -269,7 +269,7 @@ export function TripSummaryTab({
           </div>
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-              <DollarSign className="h-4 w-4 text-green-500" />
+              <DollarSign className="h-4 w-4 text-success" />
               <h3 className="text-sm font-bold uppercase tracking-widest">Saldo Compartilhado</h3>
             </div>
             {myBalance ? (
@@ -277,7 +277,7 @@ export function TripSummaryTab({
                 <p className={cn(
                   "font-mono text-3xl font-black tracking-tighter mb-1",
                   Math.abs(myBalance.balance) < 0.01 ? "text-muted-foreground" :
-                  myBalance.balance > 0 ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
+                  myBalance.balance > 0 ? "text-success dark:text-success" : "text-orange-600 dark:text-orange-400"
                 )}>
                   {Math.abs(myBalance.balance) < 0.01 ? "Em dia!" : (
                     <>{myBalance.balance > 0 ? "+" : ""}{moneyUtils.format(myBalance.balance, currency)}</>
@@ -290,7 +290,7 @@ export function TripSummaryTab({
                 <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Paguei</p>
-                    <p className="text-sm font-mono font-bold text-green-600 dark:text-green-400">
+                    <p className="text-sm font-mono font-bold text-success dark:text-success">
                       {moneyUtils.format(mySharedExpensesPaid, currency)}
                     </p>
                   </div>
@@ -335,7 +335,7 @@ export function TripSummaryTab({
           <div className={cn(
             "p-8 rounded-4xl border transition-all duration-500 relative overflow-hidden",
             isSettled 
-              ? "border-green-500/20 bg-green-500/5"
+              ? "border-success/20 bg-success/5"
               : myBalance.balance >= 0
                 ? "border-accent/20 bg-accent/5"
                 : "border-orange-500/20 bg-orange-500/5"
@@ -344,7 +344,7 @@ export function TripSummaryTab({
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110",
-                  isSettled ? "bg-green-500 shadow-green-500/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
+                  isSettled ? "bg-success shadow-green-500/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
                 )}>
                   {isSettled ? <CheckCircle className="h-8 w-8 text-white" /> : <Wallet className="h-8 w-8 text-white" />}
                 </div>
@@ -359,7 +359,7 @@ export function TripSummaryTab({
               <div className="flex flex-wrap gap-8 md:gap-12">
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Eu Paguei</p>
-                  <p className="font-mono text-2xl font-black tracking-tighter text-green-600 dark:text-green-400">
+                  <p className="font-mono text-2xl font-black tracking-tighter text-success dark:text-success">
                     {moneyUtils.format(mySharedExpensesPaid, currency)}
                   </p>
                 </div>
@@ -373,7 +373,7 @@ export function TripSummaryTab({
                   <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Saldo Atual</p>
                   <p className={cn(
                     "font-mono text-2xl font-black tracking-tighter",
-                    isSettled ? "text-green-600 dark:text-green-400" :
+                    isSettled ? "text-success dark:text-success" :
                     myBalance.balance >= 0 ? "text-accent" : "text-orange-600 dark:text-orange-400"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (
@@ -450,7 +450,7 @@ export function TripSummaryTab({
                           <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Você</span>
                         )}
                         {isOwner && (
-                          <span className="text-[8px] bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Líder</span>
+                          <span className="text-[8px] bg-amber-500/10 text-warning dark:text-warning px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Líder</span>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mt-0.5 font-mono">

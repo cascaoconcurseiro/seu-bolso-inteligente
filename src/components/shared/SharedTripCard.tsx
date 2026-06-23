@@ -98,8 +98,8 @@ export function SharedTripCard({
               <p className={cn(
                 "font-mono font-bold text-2xl leading-none tracking-tight",
                 net === 0 ? "text-muted-foreground" :
-                  net < 0 ? "text-red-600 dark:text-red-400" :
-                    "text-green-600 dark:text-green-400"
+                  net < 0 ? "text-destructive dark:text-destructive" :
+                    "text-success dark:text-success"
               )}>
                 {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
               </p>
@@ -111,14 +111,14 @@ export function SharedTripCard({
       {itemsWaitingMe.length > 0 && (
         <div className="bg-amber-500/10 dark:bg-amber-500/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+            <div className="p-2 bg-amber-500/20 rounded-xl text-warning dark:text-warning shrink-0">
               <Clock className="h-5 w-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
+              <p className="font-semibold text-sm text-amber-800 dark:text-warning">
                 Aguardando sua confirmação nesta viagem
               </p>
-              <p className="text-sm text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-warning dark:text-amber-400/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   <>
                     Um participante marcou a transação de acerto <strong>"{itemsWaitingMe[0].description}"</strong> de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong> como paga. Confirme o recebimento e escolha em qual conta deseja creditar.
@@ -136,7 +136,7 @@ export function SharedTripCard({
               <Button
                 key={item.id}
                 size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-amber-600/10 active:scale-95 transition-all"
+                className="bg-warning hover:bg-warning/92 text-white font-semibold text-sm rounded-xl shadow-md shadow-amber-600/10 active:scale-95 transition-all"
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
@@ -169,7 +169,7 @@ export function SharedTripCard({
                 <span className={cn(
                   "font-mono font-semibold",
                   memberNet === 0 ? "text-muted-foreground" :
-                    memberNet < 0 ? "text-red-600" : "text-green-600"
+                    memberNet < 0 ? "text-destructive" : "text-success"
                 )}>
                   {formatCurrency(Math.abs(memberNet), tripCurrency)}
                 </span>
@@ -191,13 +191,13 @@ export function SharedTripCard({
                       <div className="flex md:hidden items-start gap-3">
                         <div className="shrink-0 pt-0.5">
                           {item.isPaid ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : isWaitingMe || isWaitingOther ? (
                             <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
                           ) : (
                             <div className={cn(
                               "h-5 w-5 rounded-full border-2",
-                              isCredit ? "border-green-500" : "border-red-500"
+                              isCredit ? "border-success" : "border-destructive"
                             )} />
                           )}
                         </div>
@@ -220,8 +220,8 @@ export function SharedTripCard({
                             <span className={cn(
                               "font-mono text-sm font-bold shrink-0 whitespace-nowrap",
                               item.isPaid ? "text-muted-foreground" :
-                                isCredit ? "text-green-600 dark:text-green-400" :
-                                  "text-red-600 dark:text-red-400"
+                                isCredit ? "text-success dark:text-success" :
+                                  "text-destructive dark:text-destructive"
                             )}>
                               {formatCurrency(item.amount, item.currency)}
                             </span>
@@ -240,7 +240,7 @@ export function SharedTripCard({
                             {item.isPaid && (
                               <Badge
                                 variant="outline"
-                                className="text-sm font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                                className="text-sm font-bold border-success text-success bg-green-100 dark:border-green-700 dark:text-success dark:bg-green-950/50"
                               >
                                 PAGO
                               </Badge>
@@ -250,8 +250,8 @@ export function SharedTripCard({
                               className={cn(
                                 "text-xs font-bold",
                                 item.isPaid ? "border-gray-300 text-gray-500" :
-                                  isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
-                                    "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                                  isCredit ? "border-green-300 text-success bg-green-50 dark:border-green-800 dark:text-success dark:bg-green-950/30" :
+                                    "border-red-300 text-destructive bg-red-50 dark:border-red-800 dark:text-destructive dark:bg-red-950/30"
                               )}
                             >
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
@@ -261,7 +261,7 @@ export function SharedTripCard({
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="h-8 text-sm bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 font-bold"
+                                className="h-8 text-sm bg-amber-50 border-amber-200 text-warning hover:bg-amber-100 font-bold"
                                 onClick={() => onConfirmReceipt(item)}
                               >
                                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -270,7 +270,7 @@ export function SharedTripCard({
                             )}
 
                             {isWaitingOther && (
-                              <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-600 border-amber-200">
+                              <Badge variant="outline" className="text-[9px] bg-amber-50 text-warning border-amber-200">
                                 Aguardando
                               </Badge>
                             )}
@@ -331,13 +331,13 @@ export function SharedTripCard({
                       <div className="hidden md:contents">
                         <div className="col-span-1">
                           {item.isPaid ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : isWaitingMe || isWaitingOther ? (
                             <Clock className="h-5 w-5 text-amber-500 animate-pulse" />
                           ) : (
                             <div className={cn(
                               "h-5 w-5 rounded-full border-2",
-                              isCredit ? "border-green-500" : "border-red-500"
+                              isCredit ? "border-success" : "border-destructive"
                             )} />
                           )}
                         </div>
@@ -369,8 +369,8 @@ export function SharedTripCard({
                           <span className={cn(
                             "font-mono text-sm font-medium",
                             item.isPaid ? "text-muted-foreground" :
-                            isCredit ? "text-green-600 dark:text-green-400" :
-                              "text-red-600 dark:text-red-400"
+                            isCredit ? "text-success dark:text-success" :
+                              "text-destructive dark:text-destructive"
                           )}>
                             {formatCurrency(item.amount, item.currency)}
                           </span>
@@ -380,7 +380,7 @@ export function SharedTripCard({
                           {item.isPaid && (
                             <Badge
                               variant="outline"
-                              className="text-sm font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50"
+                              className="text-sm font-bold border-success text-success bg-green-100 dark:border-green-700 dark:text-success dark:bg-green-950/50"
                             >
                               PAGO
                             </Badge>
@@ -391,8 +391,8 @@ export function SharedTripCard({
                             className={cn(
                               "text-xs font-bold",
                               item.isPaid ? "border-gray-300 text-gray-500" :
-                                isCredit ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30" :
-                                  "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
+                                isCredit ? "border-green-300 text-success bg-green-50 dark:border-green-800 dark:text-success dark:bg-green-950/30" :
+                                  "border-red-300 text-destructive bg-red-50 dark:border-red-800 dark:text-destructive dark:bg-red-950/30"
                             )}
                           >
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
@@ -402,7 +402,7 @@ export function SharedTripCard({
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="h-8 text-sm bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 font-bold"
+                              className="h-8 text-sm bg-amber-50 border-amber-200 text-warning hover:bg-amber-100 font-bold"
                               onClick={() => onConfirmReceipt(item)}
                             >
                               <CheckCircle className="h-3 w-3 mr-1" />
@@ -411,7 +411,7 @@ export function SharedTripCard({
                           )}
 
                           {isWaitingOther && (
-                            <Badge variant="outline" className="text-[9px] bg-amber-50 text-amber-600 border-amber-200">
+                            <Badge variant="outline" className="text-[9px] bg-amber-50 text-warning border-amber-200">
                               Aguardando
                             </Badge>
                           )}
@@ -420,7 +420,7 @@ export function SharedTripCard({
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="h-8 text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                              className="h-8 text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-success dark:text-success hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
                               onClick={() => onSettle(memberId, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
                             >
                               <Wallet className="h-3 w-3 mr-1" />
@@ -491,7 +491,7 @@ export function SharedTripCard({
                     size="sm"
                     className={cn(
                       "h-12 sm:h-10 w-full",
-                      memberNet > 0 && "bg-green-600 hover:bg-green-700"
+                      memberNet > 0 && "bg-success hover:bg-success/92"
                     )}
                     onClick={() => onSettle(
                       memberId,

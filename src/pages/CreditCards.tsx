@@ -360,7 +360,7 @@ export function CreditCards() {
                 />
               </div>
               {selectedCard?.user_id !== user?.id && (
-                <p className="text-sm text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
+                <p className="text-sm text-warning">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}
             </div>
             <DialogFooter className="border-t border-border/50 pt-3 mt-2">

@@ -437,7 +437,7 @@ export function SharedExpenses() {
                   onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
                 />
               )}
-              {(activeTab === 'TRAVEL' ? trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).length === 0 : members.filter(m => m.linked_user_id !== user?.id).every(m => getFilteredInvoice(m.id).length === 0)) && <div className="py-12 text-center border border-dashed rounded-xl"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-500" /><p className="text-muted-foreground">Tudo em dia!</p></div>}
+              {(activeTab === 'TRAVEL' ? trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).length === 0 : members.filter(m => m.linked_user_id !== user?.id).every(m => getFilteredInvoice(m.id).length === 0)) && <div className="py-12 text-center border border-dashed rounded-xl"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-success" /><p className="text-muted-foreground">Tudo em dia!</p></div>}
             </div>
           )}
         </TabsContent>

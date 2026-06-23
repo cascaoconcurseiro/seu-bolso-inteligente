@@ -71,9 +71,9 @@ export function AccountSelector({
 
     if (filteredAccounts.length === 0 && selectedTrip && selectedTrip.currency !== 'BRL') {
       return (
-        <Alert className="border-amber-400 bg-amber-50 dark:bg-amber-950/20">
-          <Wallet className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+        <Alert className="border-amber-400 bg-amber-50 dark:bg-warning/12">
+          <Wallet className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-sm text-warning dark:text-warning">
             ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
             <br />
             <span className="text-sm">
@@ -83,7 +83,7 @@ export function AccountSelector({
               type="button"
               variant="link"
               size="sm"
-              className="p-0 h-auto text-amber-700 dark:text-amber-400 underline"
+              className="p-0 h-auto text-warning dark:text-warning underline"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -127,7 +127,7 @@ export function AccountSelector({
                     </span>
                   )}
                   {acc.is_international && (
-                    <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-accent/15 text-accent px-1.5 py-0.5 rounded">
                       {acc.currency}
                     </span>
                   )}
@@ -142,7 +142,7 @@ export function AccountSelector({
           </p>
         )}
         {selectedAccount?.is_international && !selectedTrip && (
-          <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1">
+          <p className="text-sm text-accent flex items-center gap-1">
             🌍 Transação em {selectedAccount.currency} (conta internacional)
           </p>
         )}
@@ -164,12 +164,12 @@ export function AccountSelector({
                 <div className="flex items-center gap-2">
                   {acc.name}
                   {acc.type === 'EMERGENCY_FUND' && (
-                    <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                       Reserva
                     </span>
                   )}
                   {acc.is_international && (
-                    <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-accent/15 text-accent px-1.5 py-0.5 rounded">
                       {acc.currency}
                     </span>
                   )}
@@ -218,12 +218,12 @@ export function AccountSelector({
                   <div className="flex items-center gap-2">
                     {acc.name}
                     {acc.type === 'EMERGENCY_FUND' && (
-                      <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded">
+                      <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                         Reserva
                       </span>
                     )}
                     {acc.is_international && (
-                      <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">
+                      <span className="text-sm bg-accent/15 text-accent px-1.5 py-0.5 rounded">
                         {acc.currency}
                       </span>
                     )}

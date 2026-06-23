@@ -115,7 +115,7 @@ export function AdminResetPanel() {
       <div className="space-y-4">
         <div className="p-6 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent dark:from-amber-950/20">
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-warning dark:text-warning">
               <Shield className="h-5 w-5 animate-pulse" />
             </div>
             <div>
@@ -126,7 +126,7 @@ export function AdminResetPanel() {
             </div>
           </div>
           
-          <p className="text-sm text-amber-700 dark:text-amber-300 mb-6">
+          <p className="text-sm text-warning dark:text-warning mb-6">
             ⚠️ Acesso restrito apenas para engenheiros e administradores do sistema. Insira a chave criptográfica para descriptografar os painéis de manutenção.
           </p>
           
@@ -145,27 +145,27 @@ export function AdminResetPanel() {
                   onKeyDown={(e) => e.key === "Enter" && handleAuthenticate()}
                   className={cn(
                     "pr-10 border-amber-500/30 focus-visible:ring-amber-500 bg-background/50",
-                    passwordError && "border-red-500 focus-visible:ring-red-500"
+                    passwordError && "border-destructive focus-visible:ring-destructive"
                   )}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-0 top-0 h-full px-3 text-amber-600 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-full px-3 text-warning hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
               {passwordError && (
-                <p className="text-sm text-red-500 font-medium">Credencial administrativa inválida.</p>
+                <p className="text-sm text-destructive font-medium">Credencial administrativa inválida.</p>
               )}
             </div>
             
             <Button 
               onClick={handleAuthenticate}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium shadow-lg shadow-amber-600/20"
+              className="w-full bg-warning hover:bg-warning/92 text-white font-medium shadow-lg shadow-amber-600/20"
             >
               <Lock className="h-4 w-4 mr-2" />
               Autenticar Console Admin
@@ -251,10 +251,10 @@ export function AdminResetPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent">
+              <Card className="bg-gradient-to-br from-accent/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Volume Transacionado</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-indigo-500" />
+                  <TrendingUp className="h-4 w-4 text-accent" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(stats.totalVolume)}</div>
@@ -408,7 +408,7 @@ export function AdminResetPanel() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/10"
+                            className="h-8 w-8 text-accent hover:text-accent/80 hover:bg-accent/10"
                             disabled={isRecalculatingTarget === user.id}
                             onClick={() => handleRecalculateTargetBalances(user.id)}
                             title="Recalcular saldos deste usuário"
@@ -436,7 +436,7 @@ export function AdminResetPanel() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            className="h-8 w-8 text-destructive hover:text-red-600 hover:bg-destructive/12"
                             onClick={() => {
                               setSelectedUser(user.id);
                               setShowConfirmDialog(true);
@@ -507,7 +507,7 @@ export function AdminResetPanel() {
                           className={cn(
                             "text-xs font-semibold py-0.5 px-2.5",
                             isSettlement ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
-                            isBlocked ? "bg-red-500/10 text-red-500 border-red-500/20" : 
+                            isBlocked ? "bg-destructive/12 text-destructive border-destructive/20" : 
                             "bg-amber-500/10 text-amber-500 border-amber-500/20"
                           )}
                           variant="outline"
@@ -632,14 +632,14 @@ export function AdminResetPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 text-sm text-amber-600 dark:text-amber-400">
+                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 text-sm text-warning dark:text-warning">
                   ⚠️ Atenção: A purga definitiva excluirá fisicamente do banco de dados registros que já foram marcados como deletados no app.
                 </div>
                 <Button
                   onClick={handlePurgeSoftDeleted}
                   disabled={isPurging}
                   variant="outline"
-                  className="w-full gap-2 border-amber-500/30 text-amber-600 hover:text-amber-700 hover:bg-amber-500/5"
+                  className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-700 hover:bg-amber-500/5"
                 >
                   {isPurging ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -714,8 +714,8 @@ export function AdminResetPanel() {
           </Card>
 
           {/* Warning section */}
-          <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/5">
-            <h4 className="font-semibold text-sm text-red-600 dark:text-red-400 mb-2 flex items-center gap-2">
+          <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+            <h4 className="font-semibold text-sm text-destructive dark:text-destructive mb-2 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               ZONA CRÍTICA: Limpeza e Redefinição Global
             </h4>
@@ -724,11 +724,11 @@ export function AdminResetPanel() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Select value={selectedUser} onValueChange={setSelectedUser} className="w-full sm:w-[300px]">
-                <SelectTrigger className="border-red-500/30">
+                <SelectTrigger className="border-destructive/30">
                   <SelectValue placeholder="Selecione um escopo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="text-red-500 font-semibold">
+                  <SelectItem value="all" className="text-destructive font-semibold">
                     🔴 TODO O SISTEMA (Todos os dados de todos os usuários)
                   </SelectItem>
                   {enrichedUsers.map((u) => (
@@ -828,7 +828,7 @@ export function AdminResetPanel() {
                   Controles de Segurança e LGPD
                 </h5>
                 <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5 space-y-3">
-                  <div className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
+                  <div className="flex gap-2 text-sm text-amber-800 dark:text-warning">
                     <Info className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>
                       Para redefinir a senha de forma segura e em total conformidade com a LGPD, envie um e-mail de redefinição de senha oficial. O administrador não tem acesso a senhas em texto puro.
@@ -837,7 +837,7 @@ export function AdminResetPanel() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full gap-2 border-amber-500/30 text-amber-700 hover:text-amber-800 hover:bg-amber-500/10 dark:text-amber-400 dark:hover:text-amber-300"
+                    className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-800 hover:bg-amber-500/10 dark:text-warning dark:hover:text-amber-300"
                     disabled={isResettingPassword === selectedDetailUser.id}
                     onClick={() => handleResetUserPassword(selectedDetailUser.email, selectedDetailUser.id)}
                   >
@@ -862,9 +862,9 @@ export function AdminResetPanel() {
 
       {/* Safety Reset Alert Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-red-500 w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <AlertDialogContent className="border-destructive w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 animate-bounce" />
               CONFIRMAR COMPROMETIMENTO E EXCLUSÃO DE DADOS
             </AlertDialogTitle>
@@ -875,18 +875,18 @@ export function AdminResetPanel() {
                   : "Você está prestes a excluir permanentemente todo o histórico financeiro e perfil do usuário selecionado. Os membros de famílias associadas serão notificados imediatamente."
                 }
               </p>
-              <div className="p-3 rounded-lg bg-red-500/5 text-sm text-red-600 dark:text-red-400 font-medium">
+              <div className="p-3 rounded-lg bg-destructive/5 text-sm text-destructive dark:text-destructive font-medium">
                 Esta operação é IRREVERSÍVEL! Os dados serão removidos do servidor Supabase Postgres sem possibilidade de restauração.
               </div>
               <div className="pt-2">
                 <Label className="text-sm font-semibold">
-                  Digite <span className="font-bold text-red-600">{CONFIRM_WORD}</span> abaixo para validar a operação administrativa:
+                  Digite <span className="font-bold text-destructive">{CONFIRM_WORD}</span> abaixo para validar a operação administrativa:
                 </Label>
                 <Input
                   value={confirmWord}
                   onChange={(e) => setConfirmWord(e.target.value.toUpperCase())}
                   placeholder={CONFIRM_WORD}
-                  className="mt-2 border-red-300 focus-visible:ring-red-500"
+                  className="mt-2 border-red-300 focus-visible:ring-destructive"
                 />
               </div>
             </AlertDialogDescription>
@@ -898,7 +898,7 @@ export function AdminResetPanel() {
             <AlertDialogAction
               onClick={handleReset}
               disabled={confirmWord !== CONFIRM_WORD || isResetting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/92 text-white"
             >
               {isResetting ? (
                 <>

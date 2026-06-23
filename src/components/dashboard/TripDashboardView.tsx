@@ -150,7 +150,7 @@ export function TripDashboardView() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono text-green-600 dark:text-green-400">
+            <div className="text-2xl font-bold font-mono text-success dark:text-success">
               {formatValue(summary?.total_settled || 0)}
             </div>
             <p className="text-sm text-muted-foreground mt-1">

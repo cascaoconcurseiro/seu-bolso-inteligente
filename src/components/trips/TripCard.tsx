@@ -31,9 +31,9 @@ export function TripCard({ trip, onClick }: TripCardProps) {
   
   // Progress color based on usage
   let progressIndicatorClass = "bg-primary";
-  if (usagePercent >= 90) progressIndicatorClass = "bg-red-500";
-  else if (usagePercent >= 75) progressIndicatorClass = "bg-amber-500";
-  else if (usagePercent > 0) progressIndicatorClass = "bg-green-500";
+  if (usagePercent >= 90) progressIndicatorClass = "bg-destructive";
+  else if (usagePercent >= 75) progressIndicatorClass = "bg-warning";
+  else if (usagePercent > 0) progressIndicatorClass = "bg-success";
 
   const gradients = [
     "from-slate-800 to-slate-900",
@@ -74,7 +74,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
                     {trip.name}
                   </h3>
                   {trip.status === "ACTIVE" ? (
-                    <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-sm font-bold text-green-300 uppercase tracking-wider">
+                    <span className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-success/20 border border-green-500/30 text-sm font-bold text-green-300 uppercase tracking-wider">
                       <span className="w-1.5 h-2 rounded-full bg-green-400 animate-pulse" />
                       Ativa
                     </span>
@@ -83,7 +83,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
                       Finalizada
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/30 text-sm font-bold text-blue-300 uppercase tracking-wider">
+                    <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/30 text-sm font-bold text-accent-foreground uppercase tracking-wider">
                       Planejando
                     </span>
                   )}

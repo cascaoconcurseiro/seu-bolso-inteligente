@@ -224,12 +224,12 @@ export function AnticipateInstallmentsDialog({
               {/* Data de competência */}
               <div className="space-y-2">
                 <Label>Nova Data de Competência</Label>
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/5 dark:bg-accent/10 border border-accent/20">
+                  <Calendar className="h-4 w-4 text-accent" />
+                  <span className="font-medium text-accent">
                     {formatDate(newCompetenceDate)}
                   </span>
-                  <ArrowRight className="h-4 w-4 text-blue-600 ml-auto" />
+                  <ArrowRight className="h-4 w-4 text-accent ml-auto" />
                   <span className="text-sm text-muted-foreground">
                     As parcelas aparecerão neste mês
                   </span>
@@ -258,7 +258,7 @@ export function AnticipateInstallmentsDialog({
                       key={installment.id}
                       className={cn(
                         "flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors",
-                        selectedIds.includes(installment.id) && "bg-blue-50/50 dark:bg-blue-950/20"
+                        selectedIds.includes(installment.id) && "bg-accent/5 dark:bg-accent/10"
                       )}
                     >
                       <Checkbox
@@ -278,7 +278,7 @@ export function AnticipateInstallmentsDialog({
                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                           <span>Atual: {formatDate(installment.competence_date)}</span>
                           <ArrowRight className="h-3 w-3" />
-                          <span className="text-blue-600 dark:text-blue-400 font-medium">
+                          <span className="text-accent font-medium">
                             Novo: {formatDate(newCompetenceDate)}
                           </span>
                         </div>
@@ -324,7 +324,7 @@ export function AnticipateInstallmentsDialog({
           <Button
             onClick={handleAnticipate}
             disabled={isAnticipating || selectedIds.length === 0}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-accent hover:bg-accent/92"
           >
             {isAnticipating ? (
               <>

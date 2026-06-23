@@ -55,7 +55,7 @@ export function AssetCard({
             <h3 className="text-base font-display font-bold text-foreground leading-tight truncate">{asset.ticker || asset.name}</h3>
             <span className={cn(
               "text-[8px] px-1.5 py-0.5 rounded-full font-bold tracking-tighter uppercase",
-              asset.location === 'BR' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+              asset.location === 'BR' ? "bg-green-100 text-success dark:bg-green-900/30 dark:text-success" : "bg-accent/15 text-accent"
             )}>
               {asset.location}
             </span>
@@ -73,7 +73,7 @@ export function AssetCard({
             {asset.ticker && (
               <span className="relative flex h-2 w-2" title="Cotação em tempo real">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
               </span>
             )}
           </p>
@@ -89,13 +89,13 @@ export function AssetCard({
             <div className="flex flex-col items-end">
               <p className={cn(
                 "text-sm font-mono font-bold",
-                isPositive ? "text-green-500" : "text-red-500"
+                isPositive ? "text-success" : "text-destructive"
               )}>
                 {isPositive ? '+' : ''}{formatAssetValue(pnl, asset.currency || 'BRL')}
               </p>
               <p className={cn(
                 "text-xs font-bold px-1.5 py-0.5 rounded-sm mt-0.5",
-                isPositive ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-red-500/10 text-red-600 dark:text-red-400"
+                isPositive ? "bg-success/12 text-success dark:text-success" : "bg-destructive/12 text-destructive dark:text-destructive"
               )}>
                 {isPositive ? '▲' : '▼'} {Math.abs(pnlPercent).toFixed(2)}%
               </p>

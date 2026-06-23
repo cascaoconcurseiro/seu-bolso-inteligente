@@ -289,16 +289,16 @@ export function AdvancedOptions({
                 </Select>
               </div>
 
-              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30">
-                <span className="text-blue-500 dark:text-blue-400 text-sm mt-0.5 shrink-0">ℹ️</span>
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-accent/5 dark:bg-accent/10 border border-accent/20">
+                <span className="text-accent text-sm mt-0.5 shrink-0">ℹ️</span>
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">
+                  <p className="text-sm font-semibold text-accent">
                     Aviso Importante
                   </p>
-                  <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-400">
+                  <p className="text-sm leading-relaxed text-accent/80">
                     Isso criará <strong>{totalInstallments} transações separadas</strong> no extrato (uma por mês).
                   </p>
-                  <p className="text-sm leading-relaxed text-blue-700 dark:text-blue-400">
+                  <p className="text-sm leading-relaxed text-accent/80">
                     ⚠️ Para compras no <strong>cartão de crédito</strong>, não use este painel. Use o parcelamento que aparece automaticamente no seletor de contas ao escolher seu cartão.
                   </p>
                 </div>

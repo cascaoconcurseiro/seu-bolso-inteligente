@@ -31,14 +31,14 @@ export function CreditCardSummary({
         </div>
 
         {/* Dívida Total */}
-        <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors">
+        <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
           <div className="flex items-center justify-between">
             <p className="text-sm sm:text-sm text-red-600/70 dark:text-red-400/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
-            <div className="p-1.5 rounded-lg bg-red-500/15">
-              <ShieldAlert className="h-3.5 w-3.5 text-red-500" />
+            <div className="p-1.5 rounded-lg bg-destructive/15">
+              <ShieldAlert className="h-3.5 w-3.5 text-destructive" />
             </div>
           </div>
-          <p className="font-mono font-bold text-base sm:text-base text-red-600 dark:text-red-400 tracking-tight leading-none mt-1">
+          <p className="font-mono font-bold text-base sm:text-base text-destructive dark:text-destructive tracking-tight leading-none mt-1">
             {formatCurrency(totalDebt)}
           </p>
         </div>
@@ -69,7 +69,7 @@ export function CreditCardSummary({
           </div>
           <p className={cn(
             "font-display font-bold text-lg sm:text-xl tracking-tight leading-none mt-1",
-            nextDueDate <= 3 ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+            nextDueDate <= 3 ? "text-warning dark:text-warning" : "text-foreground"
           )}>
             {nextDueDate > 0 ? `${nextDueDate} ${nextDueDate === 1 ? 'dia' : 'dias'}` : "Hoje"}
           </p>

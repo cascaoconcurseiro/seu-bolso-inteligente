@@ -49,7 +49,7 @@ export function PendingSharedCardInvitationsAlert() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full sm:w-auto border-red-500/30 text-red-600 hover:bg-red-50"
+                className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/8"
                 onClick={() => respondInvite.mutate({ inviteId: invite.id, status: 'REJECTED' })}
                 disabled={respondInvite.isPending}
               >
