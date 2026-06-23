@@ -70,7 +70,7 @@ export function CreditCardItem({
               <span className={cn(
                 "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
                 invoice.status === 'CLOSED' 
-                  ? "bg-warning/10 text-warning dark:text-warning border-amber-500/20" 
+                  ? "bg-warning/10 text-warning dark:text-warning border-warning/20" 
                   : "bg-accent/10 text-accent border-accent/20"
               )}>
                 {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}

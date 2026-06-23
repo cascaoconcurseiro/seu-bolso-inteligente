@@ -85,18 +85,18 @@ export function SharedExpenseCard({
     <div
       className={cn(
         "rounded-xl border-2 overflow-hidden transition-all",
-        isHistory ? "border-gray-200 dark:border-gray-800" :
-          iOwe ? "border-red-200 dark:border-red-900/50" :
-            theyOweMe ? "border-green-200 dark:border-green-900/50" :
+        isHistory ? "border-border" :
+          iOwe ? "border-destructive/20" :
+            theyOweMe ? "border-success/20" :
               "border-border"
       )}
     >
       <div
         className={cn(
           "p-4",
-          isHistory ? "bg-gray-50 dark:bg-gray-950/20" :
-            iOwe ? "bg-red-50 dark:bg-red-950/20" :
-              theyOweMe ? "bg-green-50 dark:bg-green-950/20" :
+          isHistory ? "bg-muted/30" :
+            iOwe ? "bg-destructive/5" :
+              theyOweMe ? "bg-success/5" :
                 "bg-muted/30"
         )}
       >
@@ -117,9 +117,9 @@ export function SharedExpenseCard({
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs font-bold px-1.5 py-0",
-                      iOwe ? "border-red-300 text-destructive bg-red-100" :
-                        "border-green-300 text-success bg-green-100"
+                      "text-[11px] font-bold px-2 py-0 border-0",
+                      iOwe ? "bg-destructive/12 text-destructive" :
+                        "bg-success/12 text-success"
                     )}
                   >
                     {iOwe ? "PAGAR" : "RECEBER"}
@@ -162,9 +162,7 @@ export function SharedExpenseCard({
                 variant={iOwe ? "destructive" : "default"}
                 size="default"
                 className={cn(
-                  "flex-1 sm:flex-none h-12 px-5 sm:px-6 text-sm sm:text-base shadow-lg transition-all shrink-0 font-bold rounded-xl active:scale-95", 
-                  !iOwe && "bg-success hover:bg-success/92 text-white shadow-success/20",
-                  iOwe && "shadow-destructive/20"
+                  "flex-1 sm:flex-none h-12 px-5 sm:px-6 text-sm sm:text-base shadow-lg transition-all shrink-0 font-bold rounded-xl active:scale-95"
                 )}
                 onClick={() => onSettle(member.id, iOwe ? "PAY" : "RECEIVE", Math.abs(netAmount))}
               >
@@ -178,16 +176,16 @@ export function SharedExpenseCard({
       </div>
 
       {itemsWaitingMe.length > 0 && (
-        <div className="bg-warning/10 dark:bg-warning/5 border-t border-b border-amber-500/20 p-4 space-y-3 animate-in fade-in duration-300">
+        <div className="bg-warning/8 border-t border-b border-warning/20 p-4 space-y-3 animate-in fade-in duration-300">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-warning/20 rounded-xl text-warning dark:text-warning shrink-0">
+            <div className="p-2 bg-warning/12 rounded-xl text-warning shrink-0">
               <Clock className="h-5 w-5 animate-pulse" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-amber-800 dark:text-warning">
+              <p className="font-semibold text-sm text-warning">
                 Aguardando sua confirmação
               </p>
-              <p className="text-sm text-warning dark:text-warning/90 mt-0.5 leading-relaxed">
+              <p className="text-sm text-warning/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   itemsWaitingMe[0].type === "CREDIT" ? (
                     <>
@@ -222,7 +220,7 @@ export function SharedExpenseCard({
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-amber-800 dark:text-warning hover:bg-warning/10 text-sm rounded-xl font-semibold transition-all"
+                className="text-warning hover:bg-warning/8 text-sm rounded-xl font-semibold transition-all"
                 onClick={() => onRejectSettlement(itemsWaitingMe[0])}
               >
                 Recusar Acerto
@@ -271,7 +269,7 @@ export function SharedExpenseCard({
                     key={item.id}
                     className={cn(
                       "px-4 py-3 grid grid-cols-[auto_1fr] md:grid-cols-12 gap-y-2 gap-x-3 items-center hover:bg-muted/20 transition-colors",
-                      item.isSettled && "opacity-60 bg-green-50/30 dark:bg-green-950/10"
+                      item.isSettled && "opacity-60 bg-success/5"
                     )}
                   >
                     <div className="md:col-span-1 shrink-0 flex items-center justify-center self-start md:self-auto pt-1 md:pt-0">
@@ -281,7 +279,7 @@ export function SharedExpenseCard({
                         <div className="relative">
                           <Clock className="h-5 w-5 text-warning animate-pulse" />
                           <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning/40"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
                           </span>
                         </div>
@@ -349,7 +347,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-amber-50 border-amber-200 text-warning hover:bg-amber-100 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
                           onClick={() => onConfirmReceipt(item)}
                         >
                           <CheckCircle className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />
@@ -358,7 +356,7 @@ export function SharedExpenseCard({
                       )}
                       
                       {isWaitingOther && (
-                        <Badge variant="outline" className="text-[9px] bg-amber-50 text-warning border-amber-200">
+                        <Badge variant="outline" className="text-[11px] bg-warning/8 text-warning border-warning/20">
                           Aguardando
                         </Badge>
                       )}
@@ -367,7 +365,7 @@ export function SharedExpenseCard({
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-success dark:text-success hover:bg-green-100 dark:hover:bg-green-800/50 font-bold"
+                          className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-success/8 border-success/20 text-success hover:bg-success/12 font-bold"
                           onClick={() => onSettle(member.id, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
                         >
                           <Wallet className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />

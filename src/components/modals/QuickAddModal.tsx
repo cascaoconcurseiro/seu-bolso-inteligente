@@ -301,7 +301,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               <Label>Descrição</Label>
               <div className="relative">
                 <Input 
-                  placeholder="Ex: Padaria, Uber..." 
+                  id="transaction-description"
+                  name="transaction-description"
+                  placeholder="Ex: Padaria, Uber…" 
                   value={description} 
                   onChange={e => setDescription(e.target.value)}
                   className="pr-12 bg-transparent relative z-10"
@@ -320,6 +322,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               <div className="space-y-2">
                 <Label>Data</Label>
                 <Input 
+                  id="transaction-date"
+                  name="transaction-date"
                   type="date" 
                   value={date} 
                   onChange={e => setDate(e.target.value)}
@@ -380,7 +384,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 )}
               </Label>
               <Select value={categoryId} onValueChange={handleCategoryChange} required>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
                 <SelectContent>
                   {dropdownCategories.map(category => (
                     <SelectItem key={category.id} value={category.id}>

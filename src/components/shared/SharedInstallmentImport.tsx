@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   Dialog,
@@ -236,6 +236,7 @@ export function SharedInstallmentImport({
                   variant="ghost" 
                   size="icon" 
                   className="h-6 w-6 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground shrink-0"
+                  aria-label="O que é o Parcelado Compartilhado?"
                 >
                   <HelpCircle className="h-3.5 w-3.5" />
                 </Button>
@@ -282,23 +283,25 @@ export function SharedInstallmentImport({
           )}
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label>Descrição *</Label>
+          <FormField label="Descrição" htmlFor="si-description" required>
             <Input
+              id="si-description"
+              name="si-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Compra Geladeira"
+              placeholder="Ex: Compra Geladeira…"
               disabled={isSubmitting}
+              autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Amount & Installments */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Valor da Parcela *</Label>
+            <FormField label="Valor da Parcela" htmlFor="si-amount" required>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
                 <CurrencyInput
+                  id="si-amount"
                   value={amount}
                   onChange={handleAmountChange}
                   placeholder="0,00"
@@ -306,17 +309,19 @@ export function SharedInstallmentImport({
                   disabled={isSubmitting}
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Parcelas Restantes *</Label>
+            </FormField>
+            <FormField label="Parcelas Restantes" htmlFor="si-installments" required>
               <Input type="number" inputMode="decimal"
+                id="si-installments"
+                name="si-installments"
                 value={installments}
                 onChange={(e) => setInstallments(e.target.value)}
                 min="1"
                 max="48"
                 disabled={isSubmitting}
+                autoComplete="off"
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Total Display */}
@@ -328,11 +333,10 @@ export function SharedInstallmentImport({
           )}
 
           {/* Month Selector */}
-          <div className="space-y-2">
-            <Label>Mês da Próxima Parcela *</Label>
+          <FormField label="Mês da Próxima Parcela" htmlFor="si-month" required>
             <Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o mês" />
+              <SelectTrigger id="si-month">
+                <SelectValue placeholder="Selecione o mês…" />
               </SelectTrigger>
               <SelectContent>
                 {availableMonths.map((month) => (
@@ -353,26 +357,24 @@ export function SharedInstallmentImport({
             <p className="text-sm text-muted-foreground">
               📅 Parcelas criadas automaticamente no primeiro dia de cada mês
             </p>
-          </div>
+          </FormField>
 
           {/* Category */}
-          <div className="space-y-2">
-            <Label>Categoria</Label>
+          <FormField label="Categoria" htmlFor="si-category">
             <CategorySelector
               categories={categories}
               value={categoryId}
               onValueChange={setCategoryId}
               type="expense"
-              placeholder="Selecione uma categoria"
+              placeholder="Selecione uma categoria…"
             />
             <p className="text-sm text-muted-foreground">
               🏷️ Ajuda a organizar e controlar seus gastos mensais
             </p>
-          </div>
+          </FormField>
 
           {/* Assignee & Percentage Split */}
-          <div className="space-y-3">
-            <Label>Quem vai pagar as parcelas? *</Label>
+          <FormField label="Quem vai pagar as parcelas?" htmlFor="si-assignee-section" required>
             {availableMembers.length === 0 ? (
               <div className="text-center py-4 border border-dashed rounded-lg">
                 <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
@@ -486,7 +488,7 @@ export function SharedInstallmentImport({
                 )}
               </>
             )}
-          </div>
+          </FormField>
         </div>
 
         <DialogFooter>

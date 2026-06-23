@@ -121,7 +121,7 @@ export function DeleteTransactionModal({
               </div>
             </div>
 
-            <div className="p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-orange-600 dark:text-orange-400 text-sm font-semibold leading-relaxed animate-in fade-in duration-350">
+            <div className="p-3 rounded-xl border border-warning/20 bg-warning/5 text-warning text-sm font-semibold leading-relaxed animate-in fade-in duration-350">
               {cascadeType === 'NONE' && (
                 <p>⚠️ Esta ação removerá apenas a parcela atual de {moneyUtils.format(itemAmount, txCurrency)} no extrato.</p>
               )}

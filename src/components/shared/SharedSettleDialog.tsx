@@ -113,9 +113,9 @@ export function SharedSettleDialog({
             const hasDebits = itemsToConsider.some(i => i.type === "DEBIT");
             if (hasCredits && hasDebits) {
               return (
-                <Alert className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/15">
-                  <Info className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <AlertDescription className="text-sm text-emerald-700 dark:text-emerald-400 leading-relaxed">
+                <Alert className="border-accent/20 bg-accent/5">
+                  <Info className="h-4 w-4 text-accent shrink-0" />
+                  <AlertDescription className="text-sm text-accent leading-relaxed">
                     <strong>💡 Compensação Automática de Saldos:</strong> Como você possui valores a pagar e a receber com <strong>{member?.name}</strong>, o sistema realiza automaticamente o <em>encontro de contas</em>. Os débitos e créditos mútuos são abatidos, resultando em apenas um único pagamento ou recebimento líquido (a diferença final).
                   </AlertDescription>
                 </Alert>
@@ -126,7 +126,7 @@ export function SharedSettleDialog({
 
           <div className={cn(
             "flex items-center justify-center gap-4 p-4 rounded-2xl",
-            settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
+            settleType === "PAY" ? "bg-destructive/5" : "bg-success/5"
           )}>
             {/* Lado esquerdo: quem ENVIA o dinheiro */}
             <div className="text-center">
@@ -256,7 +256,7 @@ export function SharedSettleDialog({
           <Button
             onClick={onSettle}
             disabled={isSettling || !settleAccountId}
-            className={cn(settleType === "PAY" ? "bg-destructive hover:bg-destructive/92" : "bg-success hover:bg-success/92")}
+            variant="default"
           >
             {isSettling ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processando...</> : "Confirmar"}
           </Button>

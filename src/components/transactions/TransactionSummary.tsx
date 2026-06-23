@@ -43,7 +43,7 @@ export function TransactionSummary({ totalIncome, totalExpense, formatCurrency }
         "group flex flex-col gap-2 p-3 sm:p-4 rounded-2xl border transition-colors",
         result >= 0
           ? "border-primary/20 bg-primary/5 hover:bg-primary/10"
-          : "border-amber-500/20 bg-warning/5 hover:bg-warning/10"
+          : "border-warning/20 bg-warning/5 hover:bg-warning/10"
       )}>
         <div className="flex items-center justify-between">
           <p className={cn(

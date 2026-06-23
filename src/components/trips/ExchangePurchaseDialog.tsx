@@ -105,6 +105,8 @@ export function ExchangePurchaseDialog({
                   {currencySymbol}
                 </span>
                 <CurrencyInput
+                  id="foreign-amount"
+                  name="foreign-amount"
                   placeholder="1000.00"
                   value={foreignAmount}
                   onChange={setForeignAmount}
@@ -122,6 +124,8 @@ export function ExchangePurchaseDialog({
                   R$
                 </span>
                 <CurrencyInput
+                  id="local-amount"
+                  name="local-amount"
                   placeholder="0.00"
                   value={localAmount}
                   onChange={setLocalAmount}
@@ -148,6 +152,8 @@ export function ExchangePurchaseDialog({
               <div className="space-y-2">
                 <Label>Data da Compra *</Label>
                 <Input
+                  id="purchase-date"
+                  name="purchase-date"
                   type="date"
                   value={purchaseDate}
                   onChange={(e) => setPurchaseDate(e.target.value)}
@@ -159,7 +165,9 @@ export function ExchangePurchaseDialog({
               <div className="space-y-2">
                 <Label>Descrição</Label>
                 <Input
-                  placeholder="Ex: Wise, Nomad..."
+                  id="purchase-description"
+                  name="purchase-description"
+                  placeholder="Ex: Wise, Nomad…"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="rounded-xl"
@@ -173,7 +181,7 @@ export function ExchangePurchaseDialog({
               Cancelar
             </Button>
             <Button className="flex-1 rounded-xl font-bold" onClick={handleSubmit} disabled={isLoading || !isValid}>
-              {isLoading ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
+              {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
             </Button>
           </div>
         </div>

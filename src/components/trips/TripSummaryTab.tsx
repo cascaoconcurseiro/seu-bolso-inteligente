@@ -137,10 +137,10 @@ export function TripSummaryTab({
 
         <button 
           onClick={() => setActiveTab && setActiveTab("itinerary")}
-          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.1)] transition-all group backdrop-blur-sm"
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-warning/30 hover:shadow-warning/10 transition-all group backdrop-blur-sm"
         >
-          <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-            <Calendar className="h-6 w-6 text-orange-500" />
+          <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <Calendar className="h-6 w-6 text-warning" />
           </div>
           <span className="font-bold text-sm text-center leading-tight">Montar<br/>Roteiro</span>
         </button>
@@ -221,14 +221,14 @@ export function TripSummaryTab({
             
             {/* Aviso de Cotação em Tempo Real para Moedas Estrangeiras */}
             {currency !== 'BRL' && realTimeRate && (
-              <div className="mt-4 p-3 rounded-lg border border-orange-500/30 bg-orange-500/10 backdrop-blur-sm relative overflow-hidden group">
+              <div className="mt-4 p-3 rounded-lg border border-warning/30 bg-warning/10 backdrop-blur-sm relative overflow-hidden group">
                 <div className="flex items-start gap-2 relative z-10">
-                  <Info className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
+                  <Info className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-bold text-orange-600 dark:text-orange-400 mb-0.5">Cotação Oficial de Hoje</p>
+                    <p className="text-sm font-bold text-warning mb-0.5">Cotação Oficial de Hoje</p>
                     <p className="text-sm text-muted-foreground">
                       Seu gasto pelo <strong>PM atual</strong> é {moneyUtils.format(myTotalSpent, currency)}. 
-                      Pela cotação de hoje (R$ {realTimeRate.toFixed(2)}), custaria <strong className="text-orange-600 dark:text-orange-400">R$ {(myTotalSpent * realTimeRate).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.
+                      Pela cotação de hoje (R$ {realTimeRate.toFixed(2)}), custaria <strong className="text-warning">R$ {(myTotalSpent * realTimeRate).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>.
                     </p>
                   </div>
                 </div>
@@ -277,7 +277,7 @@ export function TripSummaryTab({
                 <p className={cn(
                   "font-mono text-3xl font-black tracking-tighter mb-1",
                   Math.abs(myBalance.balance) < 0.01 ? "text-muted-foreground" :
-                  myBalance.balance > 0 ? "text-success dark:text-success" : "text-orange-600 dark:text-orange-400"
+                  myBalance.balance > 0 ? "text-success dark:text-success" : "text-warning"
                 )}>
                   {Math.abs(myBalance.balance) < 0.01 ? "Em dia!" : (
                     <>{myBalance.balance > 0 ? "+" : ""}{moneyUtils.format(myBalance.balance, currency)}</>
@@ -296,7 +296,7 @@ export function TripSummaryTab({
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-0.5">Minha parte</p>
-                    <p className="text-sm font-mono font-bold text-orange-600 dark:text-orange-400">
+                    <p className="text-sm font-mono font-bold text-warning">
                       {moneyUtils.format(myShareOfSharedExpenses, currency)}
                     </p>
                   </div>
@@ -338,13 +338,13 @@ export function TripSummaryTab({
               ? "border-success/20 bg-success/5"
               : myBalance.balance >= 0
                 ? "border-accent/20 bg-accent/5"
-                : "border-orange-500/20 bg-orange-500/5"
+                : "border-warning/20 bg-warning/5"
           )}>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110",
-                  isSettled ? "bg-success shadow-success/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
+                  isSettled ? "bg-success shadow-success/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-warning shadow-warning/20"
                 )}>
                   {isSettled ? <CheckCircle className="h-8 w-8 text-white" /> : <Wallet className="h-8 w-8 text-white" />}
                 </div>
@@ -365,7 +365,7 @@ export function TripSummaryTab({
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Minha Parte</p>
-                  <p className="font-mono text-2xl font-black tracking-tighter text-orange-600 dark:text-orange-400">
+                  <p className="font-mono text-2xl font-black tracking-tighter text-warning">
                     {moneyUtils.format(myShareOfSharedExpenses, currency)}
                   </p>
                 </div>
@@ -374,7 +374,7 @@ export function TripSummaryTab({
                   <p className={cn(
                     "font-mono text-2xl font-black tracking-tighter",
                     isSettled ? "text-success dark:text-success" :
-                    myBalance.balance >= 0 ? "text-accent" : "text-orange-600 dark:text-orange-400"
+                    myBalance.balance >= 0 ? "text-accent" : "text-warning"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (
                       <>{myBalance.balance >= 0 ? "+" : ""}{moneyUtils.format(myBalance.balance, currency)}</>
@@ -391,7 +391,7 @@ export function TripSummaryTab({
                   {waitingMyConfirmation ? (
                     <span className="text-accent font-semibold">Existem pagamentos aguardando sua confirmação de recebimento.</span>
                   ) : waitingTheirConfirmation ? (
-                    <span className="text-orange-600 dark:text-orange-400 font-semibold">Aguardando o credor confirmar o seu pagamento.</span>
+                    <span className="text-warning font-semibold">Aguardando o credor confirmar o seu pagamento.</span>
                   ) : myBalance.balance >= 0 
                     ? "Aguarde os outros participantes realizarem o acerto com você." 
                     : "Realize o acerto na aba Compartilhados para equilibrar seu saldo."}
@@ -457,7 +457,7 @@ export function TripSummaryTab({
                         Saldo: <span className={cn(
                           "font-bold",
                           Math.abs(currentBalance) < 0.01 ? "text-muted-foreground" :
-                          currentBalance < 0 ? "text-orange-600 dark:text-orange-400" : "text-accent"
+                          currentBalance < 0 ? "text-warning" : "text-accent"
                         )}>
                           {moneyUtils.format(currentBalance, currency)}
                         </span>

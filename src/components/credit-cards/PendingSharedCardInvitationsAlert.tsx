@@ -31,9 +31,9 @@ export function PendingSharedCardInvitationsAlert() {
         };
 
         return (
-          <Alert key={invite.id} className="border-emerald-500/50 bg-emerald-500/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <Alert key={invite.id} className="border-success/50 bg-success/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex gap-3 items-center">
-              <div className="p-2 bg-emerald-500/20 rounded-full text-emerald-600">
+              <div className="p-2 bg-success/20 rounded-full text-success">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
@@ -58,7 +58,7 @@ export function PendingSharedCardInvitationsAlert() {
               </Button>
               <Button
                 size="sm"
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="w-full sm:w-auto bg-success hover:bg-success text-white"
                 onClick={handleAccept}
                 disabled={respondInvite.isPending}
               >

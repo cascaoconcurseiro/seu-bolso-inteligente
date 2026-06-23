@@ -28,7 +28,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         isOverBudget 
           ? "border-destructive/30 bg-destructive/5 shadow-lg shadow-destructive/5"
           : isWarning
-            ? "border-amber-500/30 bg-warning/5 shadow-lg shadow-warning/5"
+            ? "border-warning/30 bg-warning/5 shadow-lg shadow-warning/5"
             : "border-border/50 bg-card hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1"
       )}
     >

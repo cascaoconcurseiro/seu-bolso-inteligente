@@ -217,6 +217,7 @@ export function TransferModal({
                 </Label>
                 <Input
                   id="exchange-rate"
+                  name="exchange-rate"
                   type="text"
                   inputMode="decimal"
                   placeholder="Ex: 5,50"
@@ -243,8 +244,9 @@ export function TransferModal({
             <Label htmlFor="description" className="text-sm uppercase tracking-wider text-muted-foreground">Descrição (Opcional)</Label>
             <Input
               id="description"
+              name="description"
               type="text"
-              placeholder="Ex: Pagamento, Reserva..."
+              placeholder="Ex: Pagamento, Reserva…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="h-12 rounded-xl"
@@ -275,7 +277,7 @@ export function TransferModal({
               {transfer.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processando...
+                  Processando…
                 </>
               ) : (
                 "Transferir Agora"

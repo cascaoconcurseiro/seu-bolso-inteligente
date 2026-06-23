@@ -339,9 +339,9 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
 
           {/* Aviso conta obrigatória para compra/venda/rendimento */}
           {type !== 'update' && (
-            <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-warning/12">
-              <Info className="h-4 w-4 text-warning dark:text-warning" />
-              <AlertDescription className="text-sm text-warning dark:text-warning">
+            <Alert className="border-warning/20 bg-warning/8">
+              <Info className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-sm text-warning">
                 {type === 'buy' && 'O valor da compra será debitado da conta selecionada.'}
                 {type === 'sell' && 'O valor da venda será creditado na conta selecionada.'}
                 {type === 'dividend' && 'O valor do rendimento será creditado como receita na conta selecionada.'}
@@ -355,8 +355,8 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               <div className="space-y-2">
                 <Label>Tipo de Rendimento</Label>
                 <Select value={dividendType} onValueChange={setDividendType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo..." />
+                  <SelectTrigger id="dividendType" name="dividendType">
+                    <SelectValue placeholder="Selecione o tipo…" />
                   </SelectTrigger>
                   <SelectContent>
                     {(DIVIDEND_TYPES_BY_ASSET[asset.type] || DIVIDEND_TYPES_BY_ASSET['DEFAULT']).map(opt => (
@@ -383,6 +383,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
               <div className="space-y-2">
                 <Label>Quantidade</Label>
                 <Input type="number" inputMode="decimal"
+                  id="quantity" name="quantity"
                   step="0.00000001"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
@@ -399,6 +400,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                       {currencySymbol}
                     </span>
                     <Input type="number" inputMode="decimal"
+                      id="price" name="price"
                       step="0.00000001"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
@@ -409,6 +411,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                   </div>
                 ) : (
                   <CurrencyInput
+                    id="price" name="price"
                     value={price}
                     onChange={setPrice}
                     currency={currency}
@@ -428,6 +431,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                     {currencySymbol}
                   </span>
                   <Input type="number" inputMode="decimal"
+                    id="currentPrice" name="currentPrice"
                     step="0.00000001"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
@@ -438,6 +442,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 </div>
               ) : (
                 <CurrencyInput
+                  id="currentPrice" name="currentPrice"
                   value={price}
                   onChange={setPrice}
                   currency={currency}
@@ -483,6 +488,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             <div className="space-y-2">
               <Label>Data da Operação</Label>
               <Input
+                id="opDate" name="opDate"
                 type="date"
                 value={opDate}
                 onChange={(e) => setOpDate(e.target.value)}
@@ -540,7 +546,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 type === 'dividend' && "bg-accent hover:bg-accent/92",
               )}
             >
-              {isSubmitting ? 'Processando...' : (
+              {isSubmitting ? 'Processando…' : (
                 type === 'buy' ? '✓ Confirmar Compra' :
                 type === 'sell' ? '✓ Confirmar Venda' :
                 type === 'dividend' ? '✓ Confirmar Rendimento' :

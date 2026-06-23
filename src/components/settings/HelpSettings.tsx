@@ -183,8 +183,8 @@ export function HelpSettings() {
             A **Compensação Automática de Saldos (Netting)** é uma das lógicas mais avançadas e elogiadas do Pé de Meia. Ela consolida todas as dívidas e créditos cruzados entre duas pessoas e resume tudo a uma única transação de menor valor possível.
           </p>
           
-          <div className="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/20 space-y-2.5 text-sm">
-            <strong className="text-foreground flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+          <div className="p-4 bg-success/5 rounded-xl border border-success/20 space-y-2.5 text-sm">
+            <strong className="text-foreground flex items-center gap-2 text-success font-semibold">
               📝 Exemplo Matemático Didático:
             </strong>
             <p>
@@ -197,7 +197,7 @@ export function HelpSettings() {
                 <span className="text-sm text-muted-foreground block">(ex: Supermercado que ele pagou inteiro)</span>
               </div>
               <div className="p-2.5 bg-background dark:bg-card rounded-lg border border-border">
-                <span className="text-sm uppercase font-bold text-emerald-500">Ele deve a você:</span>
+                <span className="text-sm uppercase font-bold text-success">Ele deve a você:</span>
                 <p className="font-mono font-bold text-sm">R$ 100,00</p>
                 <span className="text-sm text-muted-foreground block">(ex: Conta de luz que você pagou inteiro)</span>
               </div>
@@ -450,7 +450,7 @@ export function HelpSettings() {
             </h5>
             <ul className="space-y-2">
               <li className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-orange-500/10 text-orange-500 rounded font-bold text-sm">🥉 BRONZE</span>
+                <span className="px-2 py-0.5 bg-warning/10 text-warning rounded font-bold text-sm">🥉 BRONZE</span>
                 <span>Desbloqueada ao atingir <strong>25%</strong> do valor total poupado.</span>
               </li>
               <li className="flex items-center gap-2">
@@ -462,7 +462,7 @@ export function HelpSettings() {
                 <span>Desbloqueada ao atingir <strong>75%</strong> do objetivo.</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 rounded font-bold text-sm">🏆 DIAMANTE</span>
+                <span className="px-2 py-0.5 bg-success/10 text-success rounded font-bold text-sm">🏆 DIAMANTE</span>
                 <span>Troféu master concedido ao atingir <strong>100% (Meta Batida)!</strong></span>
               </li>
             </ul>
@@ -607,7 +607,7 @@ export function HelpSettings() {
               </div>
             </div>
             <div className="p-3 bg-muted rounded-xl border border-border flex gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <ShieldCheck className="h-5 w-5 text-success shrink-0 mt-0.5" />
               <div>
                 <strong className="text-foreground block mb-0.5">Segurança em Nível de Linha (RLS):</strong>
                 Implementamos regras severas de **Row Level Security (RLS)** a nível de banco de dados. Isso significa que, por diretriz de segurança lógica do Postgres, **nenhuma query, hacker ou outro usuário tem a capacidade física** de ler ou gravar qualquer linha da tabela que não pertença estritamente ao seu ID criptográfico de autenticação de usuário logado.
@@ -683,7 +683,8 @@ export function HelpSettings() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Busque por qualquer termo (ex: 'compensação', 'fatura', 'Competência', 'RLS', 'geladeira')..."
+          id="helpSearch" name="helpSearch"
+          placeholder="Busque por qualquer termo (ex: 'compensação', 'fatura', 'Competência', 'RLS', 'geladeira')…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9 bg-background focus-visible:ring-primary h-10 text-sm"

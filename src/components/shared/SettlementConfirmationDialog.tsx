@@ -229,8 +229,8 @@ export function SettlementConfirmationDialog({
                 Conta de {isPayment ? "Origem" : "Destino"}
               </Label>
               <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20">
-                  <SelectValue placeholder="Selecione..." />
+                <SelectTrigger id="selectedAccountId" name="selectedAccountId" className="h-12 rounded-xl bg-muted/50 border-border/50 focus:ring-primary/20">
+                  <SelectValue placeholder="Selecione…" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   {filteredAccounts.map(acc => (
@@ -261,7 +261,7 @@ export function SettlementConfirmationDialog({
 
           {/* Aviso se não houver contas na moeda da transação */}
           {filteredAccounts.length === 0 && (
-            <div className="p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/10 space-y-2 animate-in slide-in-from-top-2 duration-300">
+            <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/5 space-y-2 animate-in slide-in-from-top-2 duration-300">
               <div className="flex items-center gap-2 text-destructive dark:text-destructive font-semibold text-sm">
                 <Info className="h-4 w-4" />
                 <span>Conta incompatível</span>
@@ -290,7 +290,7 @@ export function SettlementConfirmationDialog({
             {isSettling ? (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                Confirmando...
+                Confirmando…
               </div>
             ) : (
               <div className="flex items-center gap-2">

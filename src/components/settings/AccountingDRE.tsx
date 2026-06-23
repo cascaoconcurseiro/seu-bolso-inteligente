@@ -186,13 +186,13 @@ export function AccountingDRE() {
                 
                 <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                   <td className="pl-6 py-3 text-left">1. RECEITAS OPERACIONAIS BRUTAS</td>
-                  <td className="pr-6 py-3 text-right font-mono text-emerald-600 dark:text-emerald-500">{formatCurrency(dreData.grossRevenue)}</td>
+                  <td className="pr-6 py-3 text-right font-mono text-success">{formatCurrency(dreData.grossRevenue)}</td>
                   <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                 </tr>
                 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-10 py-2.5 text-left">1.1 Receitas de Trabalho / Pró-labore</td>
-                  <td className="pr-6 py-2.5 text-right font-mono text-emerald-600/80 dark:text-emerald-500/80">{formatCurrency(dreData.lines.OPERATIONAL_INC.total)}</td>
+                  <td className="pr-6 py-2.5 text-right font-mono text-success/80">{formatCurrency(dreData.lines.OPERATIONAL_INC.total)}</td>
                   <td className="pr-6 py-2.5 text-right">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('OPERATIONAL_INC')}>
                       {expandedLines.OPERATIONAL_INC ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -203,7 +203,7 @@ export function AccountingDRE() {
 
                 <tr className="hover:bg-muted/10 border-b border-border/20 transition-colors">
                   <td className="pl-10 py-2.5 text-left">1.2 Receitas Financeiras / Investimentos</td>
-                  <td className="pr-6 py-2.5 text-right font-mono text-emerald-600/80 dark:text-emerald-500/80">{formatCurrency(dreData.lines.FINANCIAL_INC.total)}</td>
+                  <td className="pr-6 py-2.5 text-right font-mono text-success/80">{formatCurrency(dreData.lines.FINANCIAL_INC.total)}</td>
                   <td className="pr-6 py-2.5 text-right">
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand('FINANCIAL_INC')}>
                       {expandedLines.FINANCIAL_INC ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -294,7 +294,7 @@ export function AccountingDRE() {
           {/* Card de Indicadores Contábeis de Saúde Financeira */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-5 border border-border bg-card/40 flex items-center gap-4 rounded-2xl shadow-sm">
-              <div className="h-10 w-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
+              <div className="h-10 w-10 bg-success/10 rounded-xl flex items-center justify-center text-success">
                 <Scale className="h-5 w-5" />
               </div>
               <div className="space-y-2">
@@ -323,7 +323,7 @@ export function AccountingDRE() {
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Saúde do Patrimônio</p>
-                <p className="text-base font-bold text-emerald-600 dark:text-emerald-500 font-mono">
+                <p className="text-base font-bold text-success font-mono">
                   {b.netWorth >= 0 ? "Excelente" : "Atenção Crítica"}
                 </p>
                 <p className="text-sm text-muted-foreground">Saldo do patrimônio líquido consolidado</p>
@@ -346,7 +346,7 @@ export function AccountingDRE() {
                   {/* 1. ATIVOS */}
                   <tr className="font-semibold text-foreground bg-muted/10 hover:bg-muted/20 transition-colors">
                     <td className="pl-6 py-3 text-left">1. ATIVOS (Bens e Direitos)</td>
-                    <td className="pr-6 py-3 text-right font-mono text-emerald-600 dark:text-emerald-500">{formatCurrency(b.totalAssets)}</td>
+                    <td className="pr-6 py-3 text-right font-mono text-success">{formatCurrency(b.totalAssets)}</td>
                     <td className="pr-6 py-3 text-right text-sm text-muted-foreground font-mono">100.0%</td>
                   </tr>
 

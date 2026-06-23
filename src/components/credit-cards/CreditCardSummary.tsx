@@ -47,7 +47,7 @@ export function CreditCardSummary({
         <div className={cn(
           "group flex flex-col gap-2 p-4 rounded-2xl border transition-colors",
           nextDueDate <= 3 
-            ? "border-amber-500/20 bg-warning/5 hover:bg-warning/10" 
+            ? "border-warning/20 bg-warning/5 hover:bg-warning/10" 
             : "border-border bg-card hover:bg-muted/50"
         )}>
           <div className="flex items-center justify-between">

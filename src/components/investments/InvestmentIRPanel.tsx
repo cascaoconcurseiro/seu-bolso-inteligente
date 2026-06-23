@@ -61,11 +61,11 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
   return (
     <div className="space-y-6">
       {/* 1. Header do Painel com visual premium */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-950/20 via-emerald-900/10 to-transparent shadow-premium-sm">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 rounded-2xl border border-success/20 bg-gradient-to-r from-success/10 via-transparent to-transparent shadow-premium-sm">
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-2 text-success">
             <ShieldCheck className="w-5 h-5 animate-pulse" />
-            <span className="text-sm font-bold tracking-wider uppercase">Auxiliar IRPF Interativo</span>
+            <span className="text-sm font-bold tracking-wider uppercase text-success">Auxiliar IRPF Interativo</span>
           </div>
           <h2 className="text-2xl font-display font-black text-foreground tracking-tight">
             Imposto de Renda de Investimentos
@@ -101,7 +101,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
             }}
             variant="outline" 
             size="sm" 
-            className="rounded-xl border-emerald-600/30 text-emerald-600 hover:bg-emerald-600/10"
+            className="rounded-xl border-success/30 text-success hover:bg-success/10"
           >
             <Download className="w-4 h-4 mr-2" />
             PDF
@@ -117,7 +117,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
             }}
             variant="outline" 
             size="sm" 
-            className="rounded-xl border-emerald-600/30 text-emerald-600 hover:bg-emerald-600/10"
+            className="rounded-xl border-success/30 text-success hover:bg-success/10"
           >
             <Download className="w-4 h-4 mr-2" />
             Excel
@@ -164,7 +164,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               <h3 className="text-base font-bold text-foreground">Ficha de Bens e Direitos</h3>
               <p className="text-sm text-muted-foreground">Posição consolidada de ativos em 31/12/{(selectedYear - 1)} e 31/12/{selectedYear}</p>
             </div>
-            <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-600/5 font-bold">
+            <Badge variant="outline" className="border-success/30 text-success bg-success/5 font-bold">
               {bensEDireitosList.length} Ativos Declarados
             </Badge>
           </div>
@@ -186,10 +186,10 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                 const fieldIdDisc = `disc-${asset.id}`;
 
                 return (
-                  <Card key={asset.id} className="overflow-hidden border-border/80 hover:border-emerald-500/30 hover:shadow-premium-xs transition-all duration-300">
-                    <div className="bg-emerald-600/5 border-b border-border/50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <Card key={asset.id} className="overflow-hidden border-border/80 hover:border-success/30 hover:shadow-premium-xs transition-all duration-300">
+                    <div className="bg-success/5 border-b border-border/50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
+                        <span className="text-sm font-bold text-success bg-success/10 px-2 py-0.5 rounded-md">
                           #{index + 1}
                         </span>
                         <span className="font-display font-black text-foreground">
@@ -207,9 +207,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                             onClick={() => handleCopy(irDetails.cnpj, fieldIdCnpj)}
                             variant="ghost"
                             size="sm"
-                            className="h-8 text-sm font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
+                            className="h-8 text-sm font-semibold hover:bg-success/10 hover:text-success"
                           >
-                            {copiedField === fieldIdCnpj ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                            {copiedField === fieldIdCnpj ? <Check className="w-3.5 h-3.5 mr-1 text-success" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
                             Copiar CNPJ
                           </Button>
                         )}
@@ -217,9 +217,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                           onClick={() => handleCopy(irDetails.discriminacao, fieldIdDisc)}
                           variant="ghost"
                           size="sm"
-                          className="h-8 text-sm font-semibold hover:bg-emerald-600/10 hover:text-emerald-600"
+                          className="h-8 text-sm font-semibold hover:bg-success/10 hover:text-success"
                         >
-                          {copiedField === fieldIdDisc ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                          {copiedField === fieldIdDisc ? <Check className="w-3.5 h-3.5 mr-1 text-success" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
                           Copiar Discriminação
                         </Button>
                       </div>
@@ -270,7 +270,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
 
                         <div className="space-y-0.5 border-l pl-4">
                           <span className="text-sm text-muted-foreground block">Situação em 31/12/{selectedYear}</span>
-                          <span className="text-sm font-display font-extrabold text-emerald-600 dark:text-emerald-400">
+                          <span className="text-sm font-display font-extrabold text-success">
                             R$ {posAtu.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
                           <span className="text-sm text-muted-foreground block">Qtd: {posAtu.quantity.toLocaleString('pt-BR')} (Média: {asset.currency === 'USD' ? 'US$' : 'R$'} {posAtu.avgPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })})</span>
@@ -313,7 +313,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                           <span className="text-sm font-semibold text-muted-foreground bg-muted border px-2.5 py-0.5 rounded-full">
                             {item.codigo.split(' - ')[0]}
                           </span>
-                          <span className="text-sm font-bold text-emerald-600 bg-emerald-600/10 px-2 py-0.5 rounded-md">
+                          <span className="text-sm font-bold text-success bg-success/10 px-2 py-0.5 rounded-md">
                             {item.tipo}
                           </span>
                         </div>
@@ -329,7 +329,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                                 size="sm"
                                 className="h-5 w-5 p-0"
                               >
-                                {copiedField === fieldId ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                {copiedField === fieldId ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                               </Button>
                             </div>
                           )}
@@ -410,7 +410,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                                 size="sm"
                                 className="h-5 w-5 p-0"
                               >
-                                {copiedField === fieldId ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                {copiedField === fieldId ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                               </Button>
                             </div>
                           )}
@@ -455,9 +455,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
 
           {/* Grid de Informações de Renda Variável */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4 border-emerald-500/20 bg-emerald-600/5">
+            <Card className="p-4 border-success/20 bg-success/5">
               <span className="text-sm text-muted-foreground block font-semibold">Volume de Compras no Ano</span>
-              <span className="text-base font-display font-black text-emerald-600 dark:text-emerald-400 mt-1 block">
+              <span className="text-base font-display font-black text-success mt-1 block">
                 R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.compras, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>
@@ -474,9 +474,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               const totalPnL = Object.values(monthlyResumo).reduce((s, m) => s + m.lucroEstimado, 0);
               const isProfit = totalPnL >= 0;
               return (
-                <Card className={`p-4 border-${isProfit ? 'emerald' : 'rose'}-500/20 bg-${isProfit ? 'emerald' : 'rose'}-600/5`}>
+                <Card className={`p-4 border-${isProfit ? 'success' : 'destructive'}/20 bg-${isProfit ? 'success' : 'destructive'}/5`}>
                   <span className="text-sm text-muted-foreground block font-semibold">Resultado Líquido Estimado</span>
-                  <span className={`text-xl font-display font-black text-${isProfit ? 'emerald' : 'rose'}-600 dark:text-${isProfit ? 'emerald' : 'rose'}-400 mt-1 block`}>
+                  <span className={`text-xl font-display font-black text-${isProfit ? 'success' : 'destructive'} mt-1 block`}>
                     {isProfit ? '+' : ''}R$ {totalPnL.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
                 </Card>
@@ -488,7 +488,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           <Card className="overflow-hidden border-border/80">
             <CardHeader className="bg-muted/40 p-4 border-b">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
+                <TrendingUp className="w-4 h-4 text-success" />
                 Resumo de Apuração Mensal — Renda Variável ({selectedYear})
               </CardTitle>
             </CardHeader>
@@ -532,11 +532,11 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                         <td className="p-3 text-center">
                           {res.vendasAcoes > 0 ? (
                             isExempt ? (
-                              <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-500/5 text-sm py-0 px-2 font-bold">
+                              <Badge variant="outline" className="border-success/30 text-success bg-success/5 text-sm py-0 px-2 font-bold">
                                 Isento (&lt; 20k)
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-amber-500/30 text-warning bg-warning/5 text-sm py-0 px-2 font-bold animate-pulse">
+                              <Badge variant="outline" className="border-warning/30 text-warning bg-warning/5 text-sm py-0 px-2 font-bold animate-pulse">
                                 Tributável (DARF)
                               </Badge>
                             )
@@ -544,7 +544,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
                             <span className="text-muted-foreground">-</span>
                           )}
                         </td>
-                        <td className={`p-3 text-right font-bold text-${isProfit ? 'emerald-600 dark:text-emerald-400' : 'rose-600 dark:text-rose-400'}`}>
+                        <td className={`p-3 text-right font-bold text-${isProfit ? 'success' : 'destructive'}`}>
                           {isProfit ? '+' : ''}R$ {pnl.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -558,7 +558,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
           {/* Histórico das Transações Realizadas */}
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-emerald-600" />
+              <ChevronRight className="w-4 h-4 text-success" />
               Histórico Detalhado de Negociação ({selectedYear})
             </h4>
             {operationsOfYear.length === 0 ? (

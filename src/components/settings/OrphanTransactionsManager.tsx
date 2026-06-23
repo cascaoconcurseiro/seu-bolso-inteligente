@@ -144,7 +144,7 @@ export function OrphanTransactionsManager() {
 
   return (
     <div className="space-y-4">
-      <Card className="border-amber-200 dark:border-amber-800">
+      <Card className="border-warning/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <AlertTriangle className="h-5 w-5 text-warning" />

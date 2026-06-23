@@ -163,10 +163,10 @@ export function TripDetailSummary({
       {/* Período da Viagem */}
       <div className="group p-5 rounded-4xl border border-border/40 bg-card/60 backdrop-blur-md shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-          <Calendar className="w-20 h-20 text-orange-500" />
+          <Calendar className="w-20 h-20 text-warning" />
         </div>
         <div className="relative z-10 flex items-center justify-between mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-warning/10 flex items-center justify-center text-warning group-hover:scale-110 transition-transform">
             <Calendar className="h-6 w-6" />
           </div>
           <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">Duração</span>

@@ -291,7 +291,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Moeda do Ativo</Label>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
+                <SelectTrigger id="assetCurrency" name="assetCurrency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -310,7 +310,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Tipo de Ativo</Label>
               <Select value={type} onValueChange={(val: any) => setType(val)}>
-                <SelectTrigger>
+                <SelectTrigger id="assetType" name="assetType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -326,10 +326,11 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                 <Input
+                  id="ticker" name="ticker"
                   value={tickerSearch}
                   onChange={(e) => handleTickerInput(e.target.value)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                  placeholder={location === 'BR' ? 'PETR4, VALE3...' : 'AAPL, MSFT...'}
+                  placeholder={location === 'BR' ? 'PETR4, VALE3…' : 'AAPL, MSFT…'}
                   className="uppercase font-mono pl-8"
                   autoComplete="off"
                 />
@@ -360,6 +361,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2 p-3 bg-accent/10 border border-accent/20 rounded-xl">
               <Label className="text-accent font-bold">Rendimento (% do CDI)</Label>
               <Input type="number" inputMode="decimal"
+                id="cdiRate" name="cdiRate"
                 value={cdiRate}
                 onChange={(e) => setCdiRate(e.target.value)}
                 placeholder="Ex: 110"
@@ -374,6 +376,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Nome do Ativo</Label>
               <Input
+                id="name" name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Petrobras PN"
@@ -383,8 +386,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Setor</Label>
               <Select value={sector || '_'} onValueChange={v => setSector(v === '_' ? '' : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
+                <SelectTrigger id="sector" name="sector">
+                  <SelectValue placeholder="Selecione…" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_">Não definido</SelectItem>
@@ -401,6 +404,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Quantidade de Cotas</Label>
               <Input type="number" inputMode="decimal"
+                id="quantity" name="quantity"
                 step="0.00000001"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
@@ -434,6 +438,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
             <div className="space-y-2">
               <Label>Data da Compra</Label>
               <Input
+                id="purchaseDate" name="purchaseDate"
                 type="date"
                 value={purchaseDate}
                 onChange={(e) => setPurchaseDate(e.target.value)}
@@ -448,8 +453,8 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               Corretora / Instituição
             </Label>
             <Select value={brokerId} onValueChange={setBrokerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a corretora..." />
+              <SelectTrigger id="brokerId" name="brokerId">
+                <SelectValue placeholder="Selecione a corretora…" />
               </SelectTrigger>
               <SelectContent>
                 {brokerList.map(b => (
@@ -472,6 +477,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               <div className="space-y-2">
                 <Label>Nome da corretora (personalizado)</Label>
                 <Input
+                  id="customBrokerName" name="customBrokerName"
                   value={customBrokerName}
                   onChange={(e) => setCustomBrokerName(e.target.value)}
                   placeholder="Ex: Minha Corretora"
@@ -485,7 +491,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               <div className="space-y-2">
                 <Label className="text-muted-foreground text-sm">Conta bancária vinculada (opcional)</Label>
                 <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
-                  <SelectTrigger>
+                  <SelectTrigger id="linkedAccountId" name="linkedAccountId">
                     <SelectValue placeholder="Nenhuma" />
                   </SelectTrigger>
                   <SelectContent>
@@ -511,7 +517,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
               Cancelar
             </Button>
             <Button type="submit" disabled={isCreating || isUpdating} className="flex-1">
-              {isCreating || isUpdating ? 'Salvando...' : 'Salvar Ativo'}
+              {isCreating || isUpdating ? 'Salvando…' : 'Salvar Ativo'}
             </Button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Switch } from "@/components/ui/switch";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -86,7 +86,6 @@ export function AccountFormModal({
   initialData,
   isLoading = false,
 }: AccountFormModalProps) {
-  // Create state
   const [isInternational, setIsInternational] = useState(false);
   const [bankId, setBankId] = useState("");
   const [customBankName, setCustomBankName] = useState("");
@@ -94,7 +93,6 @@ export function AccountFormModal({
   const [type, setType] = useState<string>("CHECKING");
   const [balance, setBalance] = useState("");
   
-  // Shared state
   const [name, setName] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
   const [yieldType, setYieldType] = useState<string>("NONE");
@@ -120,7 +118,6 @@ export function AccountFormModal({
           setCustomBankName("");
         }
       } else {
-        // Reset create form
         setIsInternational(false);
         setBankId("");
         setCustomBankName("");
@@ -226,11 +223,10 @@ export function AccountFormModal({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>{isInternational ? "Instituição" : "Banco"}</Label>
+          <FormField label={isInternational ? "Instituição" : "Banco"} htmlFor="account-bank">
             <Select value={bankId} onValueChange={setBankId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+              <SelectTrigger id="account-bank">
+                <SelectValue placeholder="Selecione…" />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
                 {isInternational
@@ -253,25 +249,26 @@ export function AccountFormModal({
                       ))}
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
 
           {(bankId === "default" || bankId === "default_international") && (
-            <div className="space-y-2">
-              <Label>Nome da Instituição</Label>
+            <FormField label="Nome da Instituição" htmlFor="account-custom-bank">
               <Input 
+                id="account-custom-bank"
+                name="account-custom-bank"
                 value={customBankName}
                 onChange={(e) => setCustomBankName(e.target.value)}
-                placeholder="Digite o nome do banco"
+                placeholder="Digite o nome do banco…"
+                autoComplete="organization"
               />
-            </div>
+            </FormField>
           )}
 
           {isInternational && (
-            <div className="space-y-2">
-              <Label>Moeda</Label>
+            <FormField label="Moeda" htmlFor="account-currency">
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger id="account-currency">
+                  <SelectValue placeholder="Selecione a moeda…" />
                 </SelectTrigger>
                 <SelectContent>
                   {currencies.map((c) => (
@@ -282,14 +279,13 @@ export function AccountFormModal({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
           )}
 
-          <div className="space-y-2">
-            <Label>Tipo</Label>
+          <FormField label="Tipo" htmlFor="account-type">
             <Select value={type} onValueChange={setType}>
-              <SelectTrigger>
-                <SelectValue />
+              <SelectTrigger id="account-type">
+                <SelectValue placeholder="Selecione o tipo…" />
               </SelectTrigger>
               <SelectContent>
                 {(isInternational
@@ -308,66 +304,68 @@ export function AccountFormModal({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
 
           {mode === "edit" && (
-            <div className="space-y-2">
-              <Label>Nome da Conta</Label>
+            <FormField label="Nome da Conta" htmlFor="account-name">
               <Input
+                id="account-name"
+                name="account-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Nubank Principal"
+                placeholder="Ex: Nubank Principal…"
+                autoComplete="off"
               />
-            </div>
+            </FormField>
           )}
 
           {mode === "create" && (
-            <div className="space-y-2">
-              <Label>Saldo inicial</Label>
+            <FormField label="Saldo inicial" htmlFor="account-balance">
               <CurrencyInput
+                id="account-balance"
                 value={balance}
                 onChange={setBalance}
                 currency={isInternational ? currency : "BRL"}
               />
-            </div>
+            </FormField>
           )}
 
-          {/* Opções de Rendimento para Investimentos/Reserva (Aplica tanto no Create quanto Edit) */}
           {(type === "INVESTMENT" || type === "EMERGENCY_FUND") && !isInternational && (
             <div className="space-y-4 p-4 border rounded-2xl bg-muted/20">
-              <div className="space-y-2">
-                <Label>Rendimento Automático Diário</Label>
+              <FormField label="Rendimento Automático Diário" htmlFor="account-yield-type">
                 <Select value={yieldType} onValueChange={setYieldType}>
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger id="account-yield-type">
+                    <SelectValue placeholder="Selecione…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="NONE">Nenhum</SelectItem>
                     <SelectItem value="CDI">CDI (% do CDI)</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </FormField>
               {yieldType === "CDI" && (
-                <div className="space-y-2">
-                  <Label>Taxa (%)</Label>
+                <FormField label="Taxa (%)" htmlFor="account-yield-rate">
                   <Input
+                    id="account-yield-rate"
+                    name="account-yield-rate"
                     type="number"
                     inputMode="decimal"
                     value={yieldRate}
                     onChange={(e) => setYieldRate(e.target.value)}
-                    placeholder="Ex: 100"
+                    placeholder="Ex: 100…"
+                    autoComplete="off"
                   />
                   <p className="text-sm text-muted-foreground">
                     O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.
                   </p>
-                </div>
+                </FormField>
               )}
             </div>
           )}
 
           <div className="flex items-center justify-between p-4 border rounded-2xl">
             <div className="space-y-0.5">
-              <Label>Ocultar Saldo</Label>
+              <p className="text-sm font-medium">Ocultar Saldo</p>
               <p className="text-sm text-muted-foreground">O valor ficará desfocado no painel.</p>
             </div>
             <Switch checked={hideBalance} onCheckedChange={setHideBalance} />

@@ -1,6 +1,12 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Globe, Wallet, ChevronRight, CreditCard } from "lucide-react";
+import { Globe, Wallet, ChevronRight, CreditCard, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AmountInput } from "@/components/ui/amount-input";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { moneyUtils } from "@/utils/money";
 import {
@@ -189,7 +195,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                       autoFocus
                     />
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (
-                      <p className="text-sm text-warning font-medium bg-warning/10 p-2 rounded-lg border border-amber-500/20">
+                      <p className="text-sm text-warning font-medium bg-warning/10 p-2 rounded-lg border border-warning/20">
                         ⚠️ Pagamento parcial: restará {formatCurrencyValue(invoiceTotal - currentAmountToPay, cardCurrency)} para o próximo mês.
                       </p>
                     )}
@@ -242,7 +248,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                                   </span>
                                   <span className="text-sm text-muted-foreground flex gap-1">
                                     Saldo: {formatCurrencyValue(acc.balance, accCurrency)}
-                                    {willNeedExchange && <span className="text-orange-500 font-medium">(câmbio)</span>}
+                                    {willNeedExchange && <span className="text-warning font-medium">(câmbio)</span>}
                                   </span>
                                 </div>
                               </div>
@@ -260,8 +266,8 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   </div>
 
                   {showExchangeField && (
-                    <div className="space-y-3 p-4 rounded-xl border border-orange-500/30 bg-orange-500/5 shadow-inner">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-orange-600 dark:text-orange-400">
+                    <div className="space-y-3 p-4 rounded-xl border border-warning/30 bg-warning/5 shadow-inner">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-warning">
                         <Globe className="h-4 w-4" />
                         <span>Conversão de Moeda Necessária</span>
                       </div>

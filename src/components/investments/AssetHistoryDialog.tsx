@@ -62,8 +62,8 @@ export function AssetHistoryDialog({ isOpen, onClose, asset }: AssetHistoryDialo
                 <div className="flex items-center gap-3">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center",
-                    tx.type === 'BUY' && "bg-green-100 text-success dark:bg-green-900/30",
-                    tx.type === 'SELL' && "bg-red-100 text-destructive dark:bg-red-900/30",
+                    tx.type === 'BUY' && "bg-success/12 text-success",
+                    tx.type === 'SELL' && "bg-destructive/12 text-destructive",
                     tx.type.startsWith('DIVIDEND') && "bg-accent/15 text-accent"
                   )}>
                     {tx.type === 'BUY' && <TrendingUp className="w-5 h-5" />}

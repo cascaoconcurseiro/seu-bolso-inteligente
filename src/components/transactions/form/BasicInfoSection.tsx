@@ -76,7 +76,7 @@ export function BasicInfoSection({
                   selectedTrip && (
                   format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
                   format(date, 'yyyy-MM-dd') > selectedTrip.end_date
-                  ) && "border-amber-400 dark:border-amber-600"
+                  ) && "border-warning/40"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AmountInput } from '@/components/ui/amount-input';
-import { Label } from '@/components/ui/label';
+import { FormField } from '@/components/ui/form-field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
 import { useAccounts } from '@/hooks/useAccounts';
@@ -80,82 +80,84 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nome da Meta</Label>
+            <FormField label="Nome da Meta" htmlFor="goal-name" required>
               <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Viagem para o Japão"
-              required
-            />
-          </div>
-
-          <AmountInput
-            label="Valor Alvo"
-            value={targetAmount}
-            onChange={setTargetAmount}
-            size="md"
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Data Alvo</Label>
-              <Input
-                type="date"
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
+                id="goal-name"
+                name="goal-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Viagem para o Japão…"
+                required
+                autoComplete="off"
               />
+            </FormField>
+
+            <AmountInput
+              label="Valor Alvo"
+              value={targetAmount}
+              onChange={setTargetAmount}
+              size="md"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Data Alvo" htmlFor="goal-target-date">
+                <Input
+                  id="goal-target-date"
+                  name="goal-target-date"
+                  type="date"
+                  value={targetDate}
+                  onChange={(e) => setTargetDate(e.target.value)}
+                  autoComplete="off"
+                />
+              </FormField>
+              <FormField label="Prioridade" htmlFor="goal-priority">
+                <Select value={priority || 'MEDIUM'} onValueChange={(val: any) => setPriority(val)}>
+                  <SelectTrigger id="goal-priority">
+                    <SelectValue placeholder="Selecione…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HIGH">Alta</SelectItem>
+                    <SelectItem value="MEDIUM">Média</SelectItem>
+                    <SelectItem value="LOW">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
-            <div className="space-y-2">
-              <Label>Prioridade</Label>
-              <Select value={priority || 'MEDIUM'} onValueChange={(val: any) => setPriority(val)}>
-                <SelectTrigger>
-                  <SelectValue />
+
+            <FormField label="Conta Vinculada (Opcional)" htmlFor="goal-account">
+              <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
+                <SelectTrigger id="goal-account">
+                  <SelectValue placeholder="Nenhuma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="HIGH">Alta</SelectItem>
-                  <SelectItem value="MEDIUM">Média</SelectItem>
-                  <SelectItem value="LOW">Baixa</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {accounts?.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </FormField>
+
+            <div className="pt-4 flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreating || isUpdating}
+                className="flex-1"
+              >
+                {isCreating || isUpdating ? 'Salvando…' : 'Salvar Meta'}
+              </Button>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Conta Vinculada (Opcional)</Label>
-            <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Nenhuma" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhuma</SelectItem>
-                {accounts?.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id}>
-                    {acc.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="pt-4 flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isCreating || isUpdating}
-              className="flex-1"
-            >
-              {isCreating || isUpdating ? 'Salvando...' : 'Salvar Meta'}
-            </Button>
-          </div>
-        </form>
+          </form>
         </div>
       </DialogContent>
     </Dialog>

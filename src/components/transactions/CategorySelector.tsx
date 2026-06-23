@@ -112,7 +112,7 @@ export function CategorySelector({
         disabled
         className="h-12 w-full justify-between font-normal"
       >
-        <span className="text-muted-foreground">Carregando categorias...</span>
+        <span className="text-muted-foreground">Carregando categorias…</span>
       </Button>
     );
   }
@@ -319,7 +319,7 @@ export function CategorySelector({
         <form onSubmit={handleCreateCategory} className="space-y-4 mt-2">
           <div className="space-y-2">
             <Label>Nome</Label>
-            <Input placeholder="Ex: Mercado, Aluguel..." value={newCatName} onChange={(e) => setNewCatName(e.target.value)} required />
+            <Input id="new-category-name" name="new-category-name" placeholder="Ex: Mercado, Aluguel…" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} required />
           </div>
           
           {useSubcategories && (

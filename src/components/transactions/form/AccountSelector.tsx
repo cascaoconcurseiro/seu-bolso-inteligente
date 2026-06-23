@@ -71,7 +71,7 @@ export function AccountSelector({
 
     if (filteredAccounts.length === 0 && selectedTrip && selectedTrip.currency !== 'BRL') {
       return (
-        <Alert className="border-amber-400 bg-amber-50 dark:bg-warning/12">
+        <Alert className="border-warning/40 bg-warning/8 dark:bg-warning/12">
           <Wallet className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm text-warning dark:text-warning">
             ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
@@ -164,7 +164,7 @@ export function AccountSelector({
                 <div className="flex items-center gap-2">
                   {acc.name}
                   {acc.type === 'EMERGENCY_FUND' && (
-                    <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-warning dark:text-warning px-1.5 py-0.5 rounded">
+                    <span className="text-sm bg-warning/8 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                       Reserva
                     </span>
                   )}
@@ -218,7 +218,7 @@ export function AccountSelector({
                   <div className="flex items-center gap-2">
                     {acc.name}
                     {acc.type === 'EMERGENCY_FUND' && (
-                      <span className="text-sm bg-amber-100 dark:bg-amber-900/30 text-warning dark:text-warning px-1.5 py-0.5 rounded">
+                      <span className="text-sm bg-warning/8 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                         Reserva
                       </span>
                     )}

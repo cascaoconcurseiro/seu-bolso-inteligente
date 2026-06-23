@@ -169,7 +169,7 @@ export function TripExpensesTab({
 
         {/* Aviso sobre a lógica de orçamento */}
         {mySharedPaid > 0 && (
-          <div className="flex items-start gap-3 p-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-warning/12 text-sm text-warning dark:text-warning">
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-warning/20 bg-warning/8 dark:bg-warning/12 text-sm text-warning dark:text-warning">
             <span className="text-base shrink-0">💡</span>
             <span>
               <strong>Como funciona o orçamento:</strong> Quando você paga uma despesa compartilhada, o valor integral baixa do seu orçamento.
@@ -264,7 +264,7 @@ export function TripExpensesTab({
                             </span>
                           )}
                           {status === "pending" && (
-                            <span className="text-[9px] bg-orange-500/15 text-orange-700 dark:text-orange-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-warning/15 text-warning px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" /> Pendente
                             </span>
                           )}
@@ -354,15 +354,15 @@ export function TripExpensesTab({
                         </>
                       ) : (
                         <>
-                          <p className="font-mono font-black text-base sm:text-base text-orange-600 dark:text-orange-400 tracking-tight tabular-nums">
+                          <p className="font-mono font-black text-base sm:text-base text-warning tracking-tight tabular-nums">
                             {formatCurrency(mySplitAmount, currency)}
                           </p>
                           {isInternational && rate && (
-                            <p className="font-mono text-sm text-orange-600/70 dark:text-orange-400/70 font-medium mt-0.5">
+                            <p className="font-mono text-sm text-warning/70 dark:text-warning/70 font-medium mt-0.5">
                               ≈ {formatCurrency(mySplitAmount * rate, baseCurrency)}
                             </p>
                           )}
-                          <p className="text-sm text-orange-600/70 dark:text-orange-400/70 mt-0.5 font-bold uppercase tracking-widest">
+                          <p className="text-sm text-warning/70 dark:text-warning/70 mt-0.5 font-bold uppercase tracking-widest">
                             Sua parte
                           </p>
                           <p className="text-sm text-muted-foreground mt-1.5">

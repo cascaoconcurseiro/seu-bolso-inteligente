@@ -243,7 +243,7 @@ export function CreditCards() {
               <div className="space-y-2">
                 <Label>Banco Emissor</Label>
                 {editBankId === "other" && (
-                  <div className="flex items-center gap-2 mb-2 p-2 bg-warning/10 text-warning rounded-lg text-sm font-medium border border-amber-500/20 animate-fade-in">
+                  <div className="flex items-center gap-2 mb-2 p-2 bg-warning/10 text-warning rounded-lg text-sm font-medium border border-warning/20 animate-fade-in">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>O banco será salvo com o ícone padrão.</span>
                   </div>
@@ -277,7 +277,7 @@ export function CreditCards() {
                       placeholder="Ex: Carrefour, C&A, Renner..." 
                       value={editCustomBankName}
                       onChange={(e) => setEditCustomBankName(e.target.value)}
-                      className="border-amber-500/30 focus-visible:ring-amber-500"
+                      className="border-warning/30 focus-visible:ring-warning"
                     />
                   </div>
                 )}

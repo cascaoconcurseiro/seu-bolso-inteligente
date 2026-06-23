@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { getAvatarColor, getAvatarIcon } from "@/lib/avatars";
 
@@ -20,8 +21,8 @@ const sizeClasses = {
 export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", avatarUrl, size = "md", className }: UserAvatarProps) {
   const color = getAvatarColor(colorId);
   const icon = getAvatarIcon(iconId);
+  const [imgError, setImgError] = useState(false);
 
-  // Fallback para iniciais se não tiver imagem
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -31,11 +32,9 @@ export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", avata
       .slice(0, 2);
   };
 
-  // Prioridade: avatarUrl > icon.path > iniciais
   const imageSrc = avatarUrl || icon.path;
 
-  // Se tiver path de imagem, usar a imagem
-  if (imageSrc) {
+  if (imageSrc && !imgError) {
     return (
       <div
         className={cn(
@@ -49,22 +48,15 @@ export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", avata
         <img
           src={imageSrc}
           alt={name}
+          width={64}
+          height={64}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback para iniciais se a imagem não carregar
-            const target = e.currentTarget;
-            const parent = target.parentElement;
-            if (parent) {
-              parent.innerHTML = `<span class="font-medium" style="color: ${color.text}">${getInitials(name)}</span>`;
-              parent.style.backgroundColor = color.bg;
-            }
-          }}
+          onError={() => setImgError(true)}
         />
       </div>
     );
   }
 
-  // Fallback para iniciais
   return (
     <div
       className={cn(

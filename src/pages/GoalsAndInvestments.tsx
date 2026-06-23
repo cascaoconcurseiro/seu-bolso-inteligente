@@ -215,10 +215,10 @@ export function GoalsAndInvestments() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => exportPortfolioToPDF(assets)}>
-                  <FileDown className="w-4 h-4 mr-2 text-emerald-600" /> PDF - Carteira
+                  <FileDown className="w-4 h-4 mr-2 text-success" /> PDF - Carteira
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => exportToCSV(assets)}>
-                  <Download className="w-4 h-4 mr-2 text-emerald-600" /> Excel - Carteira
+                  <Download className="w-4 h-4 mr-2 text-success" /> Excel - Carteira
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => {
                   toast.promise(exportToIRPDF(assets), {
@@ -292,8 +292,8 @@ export function GoalsAndInvestments() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {assets?.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
-                  <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-emerald-500/20">
-                    <TrendingUp className="w-10 h-10 text-emerald-500" />
+                  <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-success/20">
+                    <TrendingUp className="w-10 h-10 text-success" />
                   </div>
                   <h3 className="text-2xl font-display font-bold text-foreground mb-3 tracking-tight">Sua carteira está vazia</h3>
                   <p className="text-muted-foreground text-center max-w-md text-base mb-8">

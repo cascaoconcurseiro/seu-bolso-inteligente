@@ -192,7 +192,7 @@ export function TripDetailHeader({
                     onClick={onExportPDF}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
                   >
-                    <FileDown className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <FileDown className="h-4 w-4 text-success" />
                     <span>Exportar Relatório PDF</span>
                   </DropdownMenuItem>
                   
@@ -200,7 +200,7 @@ export function TripDetailHeader({
                     onClick={onExportExcel}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
                   >
-                    <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <Download className="h-4 w-4 text-success" />
                     <span>Exportar Planilha Excel</span>
                   </DropdownMenuItem>
                   

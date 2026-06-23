@@ -150,7 +150,7 @@ export function EliteCurrencyInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-xl font-semibold outline-none placeholder:text-muted-foreground/40 value-display"
+        className="flex-1 bg-transparent text-xl font-semibold outline-none placeholder:text-muted-foreground/40 value-display focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
       />
     </div>
   );
@@ -252,7 +252,7 @@ export function EliteTextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent font-medium outline-none placeholder:text-muted-foreground/40 border-0 h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="flex-1 bg-transparent font-medium outline-none placeholder:text-muted-foreground/40 border-0 h-auto p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
       />
     </div>
   );

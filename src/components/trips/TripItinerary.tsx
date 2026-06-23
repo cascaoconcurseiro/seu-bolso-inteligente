@@ -443,36 +443,36 @@ function ItineraryDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data *</Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input id="itineraryDate" name="itineraryDate" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Título *</Label>
-              <Input placeholder="Ex: Visita ao museu" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input id="itineraryTitle" name="itineraryTitle" placeholder="Ex: Visita ao museu" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Horário início</Label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              <Input id="itineraryStartTime" name="itineraryStartTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Horário fim</Label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <Input id="itineraryEndTime" name="itineraryEndTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Local</Label>
-            <Input placeholder="Ex: Museu do Louvre" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <Input id="itineraryLocation" name="itineraryLocation" placeholder="Ex: Museu do Louvre" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Descrição</Label>
-            <Textarea placeholder="Detalhes da atividade..." value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Textarea id="itineraryDescription" name="itineraryDescription" placeholder="Detalhes da atividade…" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={onSubmit} disabled={isLoading || !date || !title}>
-            {isLoading ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
+            {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
           </Button>
         </DialogFooter>
       </DialogContent>

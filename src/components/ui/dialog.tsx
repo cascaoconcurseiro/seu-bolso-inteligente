@@ -60,12 +60,10 @@ const DialogHeader = React.forwardRef<
 DialogHeader.displayName = "DialogHeader";
 
 // Force preserve Dialog components in build to prevent tree-shaking
-// Uses an Immediately-Invoked Function Expression (IIFE) with a dynamic property
-// name so Rollup/Vite cannot statically analyze and remove it
-(() => {
-  const key = 'dialog' + 'Header' + 'Preserve';
-  try { (globalThis as any)[key] = DialogHeader; } catch (_) {}
-})();
+// Uses a self-executing void expression
+// so Rollup/Vite cannot statically analyze and remove it
+void (globalThis as any)?.['dialogHeaderPreserve']; 
+void (DialogHeader);
 
 const DialogFooter = React.forwardRef<
   HTMLDivElement,

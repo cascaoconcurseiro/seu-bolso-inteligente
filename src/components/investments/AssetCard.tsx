@@ -55,7 +55,7 @@ export function AssetCard({
             <h3 className="text-base font-display font-bold text-foreground leading-tight truncate">{asset.ticker || asset.name}</h3>
             <span className={cn(
               "text-[8px] px-1.5 py-0.5 rounded-full font-bold tracking-tighter uppercase",
-              asset.location === 'BR' ? "bg-green-100 text-success dark:bg-green-900/30 dark:text-success" : "bg-accent/15 text-accent"
+              asset.location === 'BR' ? "bg-success/12 text-success" : "bg-accent/15 text-accent"
             )}>
               {asset.location}
             </span>
@@ -95,7 +95,7 @@ export function AssetCard({
               </p>
               <p className={cn(
                 "text-xs font-bold px-1.5 py-0.5 rounded-sm mt-0.5",
-                isPositive ? "bg-success/12 text-success dark:text-success" : "bg-destructive/12 text-destructive dark:text-destructive"
+                isPositive ? "bg-success/12 text-success" : "bg-destructive/12 text-destructive"
               )}>
                 {isPositive ? '▲' : '▼'} {Math.abs(pnlPercent).toFixed(2)}%
               </p>

@@ -171,7 +171,7 @@ export function PurchasingPowerSimulator() {
             </CardContent>
           </Card>
           
-          <Card className="bg-warning/5 border-amber-500/20 shadow-sm relative overflow-hidden">
+          <Card className="bg-warning/5 border-warning/20 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-warning/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-6 relative z-10">
               <p className="text-sm font-medium text-muted-foreground mb-1">Poder de compra real</p>

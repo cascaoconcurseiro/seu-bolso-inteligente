@@ -187,7 +187,8 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
           <div className="space-y-2">
             <Label>Item</Label>
             <Input
-              placeholder="Ex: Protetor solar, Snorkel..."
+              id="shoppingItem" name="shoppingItem"
+              placeholder="Ex: Protetor solar, Snorkel…"
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
               onKeyDown={(e) => {

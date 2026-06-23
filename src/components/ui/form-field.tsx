@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useId } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
@@ -21,10 +21,13 @@ export function FormField({
   children,
   className,
 }: FormFieldProps) {
+  const generatedId = useId();
+  const fieldId = htmlFor || generatedId;
+
   return (
-    <div className={cn("form-field", className)}>
+    <div className={cn("space-y-2", className)}>
       {label && (
-        <Label htmlFor={htmlFor}>
+        <Label htmlFor={fieldId}>
           {label}
           {required && <span className="text-destructive ml-1" aria-hidden="true">*</span>}
         </Label>

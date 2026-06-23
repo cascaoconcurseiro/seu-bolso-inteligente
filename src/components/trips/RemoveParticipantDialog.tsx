@@ -114,15 +114,15 @@ export function RemoveParticipantDialog({
             <div className={cn(
               "p-5 rounded-xl border transition-all duration-300",
               isSettled 
-                ? "border-success/20 bg-success/5 dark:bg-green-500/[0.02]" 
+                ? "border-success/20 bg-success/5 dark:bg-success/5" 
                 : owesGroup
-                  ? "border-orange-500/20 bg-orange-500/5 dark:bg-orange-500/[0.02]"
+                  ? "border-warning/20 bg-warning/5 dark:bg-warning/5"
                   : "border-accent/20 bg-accent/5 dark:bg-accent/[0.02]"
             )}>
               <div className="flex items-center gap-3.5 mb-4">
                 <div className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center shadow-md",
-                  isSettled ? "bg-success text-white" : owesGroup ? "bg-orange-500 text-white" : "bg-accent text-white"
+                  isSettled ? "bg-success text-white" : owesGroup ? "bg-warning text-white" : "bg-accent text-white"
                 )}>
                   {isSettled ? <CheckCircle2 className="h-5 w-5" /> : <Wallet className="h-5 w-5" />}
                 </div>
@@ -156,7 +156,7 @@ export function RemoveParticipantDialog({
                   <p className={cn(
                     "font-mono text-xs font-black",
                     isSettled ? "text-success dark:text-success" :
-                    owesGroup ? "text-orange-600 dark:text-orange-400" : "text-accent"
+                    owesGroup ? "text-warning" : "text-accent"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (owesGroup ? "-" : "+") + moneyUtils.format(Math.abs(currentBalance), currency)}
                   </p>
@@ -166,7 +166,7 @@ export function RemoveParticipantDialog({
 
             {/* Ações Inteligentes de Remoção baseadas no Saldo */}
             {isSettled ? (
-              <div className="p-4 rounded-xl border border-success/10 bg-green-500/[0.01] flex items-start gap-3">
+              <div className="p-4 rounded-xl border border-success/10 bg-success/5 flex items-start gap-3">
                 <CheckCircle2 className="h-5 w-5 text-success shrink-0 mt-0.5" />
                 <p className="text-sm text-muted-foreground">
                   Como este participante não possui pendências, você pode removê-lo diretamente. O histórico de transações passadas dele continuará preservado na viagem.
@@ -257,8 +257,8 @@ export function RemoveParticipantDialog({
                   <p className="text-sm text-destructive">Nenhuma conta cadastrada para registrar a transação.</p>
                 ) : (
                   <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                    <SelectTrigger className="w-full rounded-xl border-border bg-card">
-                      <SelectValue placeholder="Selecione a conta..." />
+                    <SelectTrigger id="settleAccountId" name="settleAccountId" className="w-full rounded-xl border-border bg-card">
+                      <SelectValue placeholder="Selecione a conta…" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-card/95 backdrop-blur-md">
                       {accounts.map(acc => (
@@ -286,7 +286,7 @@ export function RemoveParticipantDialog({
                 disabled={isRemoving || !selectedAccountId}
                 className="rounded-xl px-5 shadow-lg shadow-primary/20"
               >
-                {isRemoving ? "Processando..." : "Confirmar e Remover"}
+                {isRemoving ? "Processando…" : "Confirmar e Remover"}
               </Button>
             </div>
           </div>
@@ -308,7 +308,7 @@ export function RemoveParticipantDialog({
               disabled={isRemoving}
               className="rounded-xl px-5 shadow-lg shadow-destructive/10"
             >
-              {isRemoving ? "Removendo..." : "Confirmar Remoção"}
+              {isRemoving ? "Removendo…" : "Confirmar Remoção"}
             </Button>
           )}
         </DialogFooter>

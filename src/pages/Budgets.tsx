@@ -261,7 +261,7 @@ export function Budgets() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl shadow-xl" align="start">
                   <Command>
-                    <CommandInput placeholder="Buscar categoria..." />
+                    <CommandInput placeholder="Buscar categoria…" />
                     <CommandList>
                       <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
                       <CommandGroup>
@@ -308,12 +308,12 @@ export function Budgets() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm uppercase font-bold tracking-widest text-muted-foreground">Valor Limite</Label>
-                <CurrencyInput value={amount} onChange={setAmount} currency={currency} />
+                <CurrencyInput id="budgetAmount" name="budgetAmount" value={amount} onChange={setAmount} currency={currency} />
               </div>
               <div className="space-y-2">
                 <Label className="text-sm uppercase font-bold tracking-widest text-muted-foreground">Moeda</Label>
                 <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="rounded-xl h-12"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="budgetCurrency" name="budgetCurrency" className="rounded-xl h-12"><SelectValue /></SelectTrigger>
                   <SelectContent className="rounded-xl">
                     {availableCurrencies.map(c => <SelectItem key={c} value={c}>{moneyUtils.getSymbol(c)} {c}</SelectItem>)}
                   </SelectContent>

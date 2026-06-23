@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -54,7 +53,6 @@ export function InviteMemberDialog({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<FamilyRole>("editor");
   
-  // Advanced options
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sharingScope, setSharingScope] = useState<SharingScope>("all");
   const [scopeStartDate, setScopeStartDate] = useState("");
@@ -62,15 +60,12 @@ export function InviteMemberDialog({
   const [scopeTripId, setScopeTripId] = useState("");
   const [trips, setTrips] = useState<any[]>([]);
   
-  // Email verification state
   const [isChecking, setIsChecking] = useState(false);
   const [userExists, setUserExists] = useState<boolean | null>(null);
   const [foundUser, setFoundUser] = useState<{ id: string; full_name: string | null } | null>(null);
 
-  // Load trips for specific_trip option
   useEffect(() => {
     if (user && sharingScope === "specific_trip") {
-      // Buscar viagens onde o usuário é membro (owner ou participante)
       supabase
         .from("trip_members")
         .select(`
@@ -87,7 +82,6 @@ export function InviteMemberDialog({
         .order("created_at", { ascending: false })
         .then(({ data }) => {
           if (data) {
-            // Extrair e formatar as viagens
             const userTrips = data
               .map(item => item.trips)
               .filter(trip => trip !== null)
@@ -106,7 +100,6 @@ export function InviteMemberDialog({
     }
   }, [user, sharingScope]);
 
-  // Debounced email check
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
@@ -196,14 +189,18 @@ export function InviteMemberDialog({
         
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>Email</Label>
+            <FormField label="Email" htmlFor="invite-email">
               <div className="relative">
                 <Input
+                  id="invite-email"
+                  name="invite-email"
                   type="email"
                   placeholder="email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   className={cn(
                     "pr-10 h-12 rounded-xl",
                     userExists === true && "border-positive focus-visible:ring-positive",
@@ -227,23 +224,25 @@ export function InviteMemberDialog({
                   Usuário não cadastrado. Os dados ficarão salvos localmente.
                 </p>
               )}
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label>Nome</Label>
+            <FormField label="Nome" htmlFor="invite-name">
               <Input
-                placeholder="Nome do membro"
+                id="invite-name"
+                name="invite-name"
+                placeholder="Nome do membro…"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+                autoCapitalize="words"
                 className="h-12 rounded-xl"
               />
-            </div>
+            </FormField>
 
-            <div className="space-y-2">
-              <Label>Permissão</Label>
+            <FormField label="Permissão" htmlFor="invite-role">
               <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
-                <SelectTrigger className="h-12 rounded-xl">
-                  <SelectValue />
+                <SelectTrigger id="invite-role" className="h-12 rounded-xl">
+                  <SelectValue placeholder="Selecione…" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="admin">
@@ -266,9 +265,8 @@ export function InviteMemberDialog({
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </FormField>
 
-            {/* Advanced Options */}
             <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border border-border/50 rounded-xl overflow-hidden bg-muted/10">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="gap-2 w-full justify-between h-12 px-4 hover:bg-muted/20">
@@ -280,11 +278,10 @@ export function InviteMemberDialog({
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 p-4 border-t border-border/50">
-                <div className="space-y-2">
-                  <Label>Escopo de Compartilhamento</Label>
+                <FormField label="Escopo de Compartilhamento" htmlFor="invite-scope">
                   <Select value={sharingScope} onValueChange={(v) => setSharingScope(v as SharingScope)}>
-                    <SelectTrigger className="h-12 rounded-xl">
-                      <SelectValue />
+                    <SelectTrigger id="invite-scope" className="h-12 rounded-xl">
+                      <SelectValue placeholder="Selecione…" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
                       <SelectItem value="all">
@@ -313,28 +310,32 @@ export function InviteMemberDialog({
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </FormField>
 
                 {sharingScope === "date_range" && (
                   <>
-                    <div className="space-y-2">
-                      <Label>Data Início</Label>
+                    <FormField label="Data Início" htmlFor="invite-start">
                       <Input
+                        id="invite-start"
+                        name="invite-start"
                         type="date"
                         value={scopeStartDate}
                         onChange={(e) => setScopeStartDate(e.target.value)}
+                        autoComplete="off"
                         className="h-12 rounded-xl"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Data Fim</Label>
+                    </FormField>
+                    <FormField label="Data Fim" htmlFor="invite-end">
                       <Input
+                        id="invite-end"
+                        name="invite-end"
                         type="date"
                         value={scopeEndDate}
                         onChange={(e) => setScopeEndDate(e.target.value)}
+                        autoComplete="off"
                         className="h-12 rounded-xl"
                       />
-                    </div>
+                    </FormField>
                     <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
                       📆 Transações antigas do período permanecerão visíveis
                     </p>
@@ -342,11 +343,10 @@ export function InviteMemberDialog({
                 )}
 
                 {sharingScope === "specific_trip" && (
-                  <div className="space-y-2">
-                    <Label>Viagem</Label>
+                  <FormField label="Viagem" htmlFor="invite-trip">
                     <Select value={scopeTripId} onValueChange={setScopeTripId}>
-                      <SelectTrigger className="h-12 rounded-xl">
-                        <SelectValue placeholder="Selecione uma viagem" />
+                      <SelectTrigger id="invite-trip" className="h-12 rounded-xl">
+                        <SelectValue placeholder="Selecione uma viagem…" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         {trips.map((trip) => (
@@ -373,7 +373,7 @@ export function InviteMemberDialog({
                         🧳 Apenas transações desta viagem serão compartilhadas
                       </p>
                     )}
-                  </div>
+                  </FormField>
                 )}
 
                 {sharingScope === "trips_only" && (
@@ -403,7 +403,7 @@ export function InviteMemberDialog({
               disabled={!name || !email || isPending}
             >
               <Mail className="h-4 w-4 mr-2" />
-              {isPending ? "Adicionando..." : "Convidar"}
+              {isPending ? "Adicionando…" : "Convidar"}
             </Button>
           </div>
         </div>

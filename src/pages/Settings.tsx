@@ -219,7 +219,7 @@ export function Settings() {
           <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
             <div className="space-y-2">
               <Label>Nome</Label>
-              <Input placeholder="Ex: Mercado, Aluguel..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
+              <Input id="new-category-name" name="new-category-name" placeholder="Ex: Mercado, Aluguel…" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Tipo</Label>
@@ -291,13 +291,13 @@ export function Settings() {
             <div className="space-y-2">
               <Label>Nova Senha</Label>
               <div className="relative">
-                <Input type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                <Input id="new-password" name="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
                 <button className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
               </div>
             </div>
             <div className="space-y-2">
               <Label>Confirmar Nova Senha</Label>
-              <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <Input id="confirm-password" name="confirm-password" type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
           </div>
           <div className="pt-2 flex gap-3">
@@ -315,7 +315,7 @@ export function Settings() {
           </AlertDialogHeader>
           <div className="py-4 space-y-3">
             <p className="text-sm font-medium">Para confirmar, digite <span className="font-bold text-destructive">EXCLUIR</span> abaixo:</p>
-            <Input value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="EXCLUIR" className="border-destructive/50 focus-visible:ring-destructive" />
+            <Input id="delete-confirm" name="delete-confirm" value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} placeholder="EXCLUIR" className="border-destructive/50 focus-visible:ring-destructive" />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteConfirmText("")}>Cancelar</AlertDialogCancel>

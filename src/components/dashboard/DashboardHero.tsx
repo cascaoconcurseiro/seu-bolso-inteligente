@@ -131,13 +131,13 @@ export function DashboardHero({
               <div className={cn(
                 "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15 overflow-hidden",
                 savingsRate >= 0 
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 hover:bg-emerald-500/15" 
-                  : "bg-warning/10 border-amber-500/20 text-warning hover:bg-warning/15"
+                  ? "bg-success/10 border-success/20 text-success hover:bg-success/15" 
+                  : "bg-warning/10 border-warning/20 text-warning hover:bg-warning/15"
               )}>
                 <div className={cn(
                   "shrink-0 p-1.5 rounded-full text-white shadow-lg",
                   savingsRate >= 0 
-                    ? "bg-emerald-500 shadow-emerald-500/20" 
+                    ? "bg-success shadow-success/20" 
                     : "bg-warning shadow-warning/20"
                 )}>
                   <Target className="h-3 w-3" />
@@ -174,8 +174,8 @@ export function DashboardHero({
         <div className="mt-8 pt-6 border-t border-border/30">
           <div className="flex justify-between items-end mb-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-orange-500/10">
-                <Target className="h-4 w-4 text-orange-500" />
+              <div className="p-1.5 rounded-lg bg-warning/10">
+                <Target className="h-4 w-4 text-warning" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1">
@@ -190,7 +190,7 @@ export function DashboardHero({
             <div className="text-right">
               <p className={cn(
                 "text-xs font-bold",
-                expenses > monthlyBudget ? "text-destructive" : "text-emerald-500"
+                expenses > monthlyBudget ? "text-destructive" : "text-success"
               )}>
                 {((expenses / monthlyBudget) * 100).toFixed(1)}% utilizado
               </p>
@@ -201,8 +201,8 @@ export function DashboardHero({
               className={cn(
                 "h-full rounded-full transition-all duration-1000 ease-out",
                 expenses > monthlyBudget ? "bg-destructive" : 
-                expenses > monthlyBudget * 0.8 ? "bg-orange-500" : 
-                "bg-emerald-500"
+                expenses > monthlyBudget * 0.8 ? "bg-warning" : 
+                "bg-success"
               )}
               style={{ width: `${Math.min((expenses / monthlyBudget) * 100, 100)}%` }}
             />

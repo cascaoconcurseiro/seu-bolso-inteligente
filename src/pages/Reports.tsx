@@ -565,7 +565,7 @@ export function Reports() {
     const rate = totalIncome > 0 ? ((balance / totalIncome) * 100) : 0;
     if (rate >= 20) return { text: "Excelente! (Economizou > 20%)", color: "text-success bg-success/12 border-success/20" };
     if (rate >= 10) return { text: "No caminho! (Economizou > 10%)", color: "text-accent bg-accent/10 border-accent/20" };
-    if (rate > 0) return { text: "Bom, mas tente poupar 10%", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" };
+    if (rate > 0) return { text: "Bom, mas tente poupar 10%", color: "text-warning bg-warning/12 border-warning/20" };
     return { text: "Alerta: Gastos superaram receitas", color: "text-destructive bg-destructive/12 border-destructive/20" };
   }, [totalIncome, balance]);
 
@@ -817,7 +817,7 @@ export function Reports() {
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
           <div className="absolute top-0 right-0 w-16 h-16 bg-warning/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-warning/10 text-warning border border-amber-500/20 shadow-inner flex items-center justify-center">
+            <div className="p-2.5 rounded-xl bg-warning/10 text-warning border border-warning/20 shadow-inner flex items-center justify-center">
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
@@ -834,9 +834,9 @@ export function Reports() {
 
         {/* Card 3: Categoria Líder */}
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-rose-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-16 h-16 bg-destructive/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 shadow-inner flex items-center justify-center">
+            <div className="p-2.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 shadow-inner flex items-center justify-center">
               <Tag className="h-5 w-5" />
             </div>
             <div>
@@ -853,9 +853,9 @@ export function Reports() {
 
         {/* Card 4: Meta de Economia */}
         <div className="relative overflow-hidden rounded-2xl p-5 border border-border/50 bg-card/40 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300 group">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-16 h-16 bg-success/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-inner flex items-center justify-center">
+            <div className="p-2.5 rounded-xl bg-success/10 text-success border border-success/20 shadow-inner flex items-center justify-center">
               <Target className="h-5 w-5" />
             </div>
             <div>

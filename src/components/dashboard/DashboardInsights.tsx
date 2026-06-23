@@ -77,11 +77,11 @@ export function DashboardInsights() {
                 Icon = insight.icon === 'trending-down' ? TrendingDown : XCircle;
                 break;
               case "WARNING":
-                colorClass = "border-amber-500/20 bg-warning/10 text-warning";
+                colorClass = "border-warning/20 bg-warning/10 text-warning";
                 Icon = insight.icon === 'credit-card' ? CreditCard : AlertTriangle;
                 break;
               case "SUCCESS":
-                colorClass = "border-emerald-500/20 bg-emerald-500/10 text-emerald-500";
+                colorClass = "border-success/20 bg-success/10 text-success";
                 Icon = TrendingUp;
                 break;
               case "INFO":

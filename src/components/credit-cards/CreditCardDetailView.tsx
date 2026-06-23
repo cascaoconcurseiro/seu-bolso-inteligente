@@ -147,7 +147,7 @@ export function CreditCardDetailView({
               <TooltipTrigger asChild>
                 <Button 
                   onClick={() => setShowSharingDialog(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md flex items-center justify-center transition-all hover:scale-105 shrink-0 px-3 md:px-4"
+                  className="bg-success hover:bg-success text-white font-semibold rounded-xl shadow-md flex items-center justify-center transition-all hover:scale-105 shrink-0 px-3 md:px-4"
                 >
                   <Share2 className="h-4 w-4" />
                   <span className="hidden md:inline md:ml-2">Compartilhar</span>
@@ -289,7 +289,7 @@ export function CreditCardDetailView({
                 <span className={cn(
                   "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
                   isOverdue ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse" : 
-                  isClosed ? "bg-warning/20 text-amber-100 border-amber-500/50" :
+                  isClosed ? "bg-warning/20 text-warning border-warning/50" :
                   "bg-accent/20 text-accent-foreground border-accent/50"
                 )}>
                   {isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Fatura Fechada' : '🔵 Fatura Aberta'}

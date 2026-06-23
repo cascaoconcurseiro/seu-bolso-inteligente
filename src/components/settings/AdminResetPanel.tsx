@@ -113,13 +113,13 @@ export function AdminResetPanel() {
   if (!isAuthenticated) {
     return (
       <div className="space-y-4">
-        <div className="p-6 rounded-2xl border-2 border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-transparent dark:from-amber-950/20">
+        <div className="p-6 rounded-2xl border-2 border-warning/30 bg-gradient-to-b from-warning/10 to-transparent">
           <div className="flex items-center gap-3 mb-3">
             <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center text-warning dark:text-warning">
               <Shield className="h-5 w-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-semibold text-base text-amber-900 dark:text-amber-200">
+              <h3 className="font-semibold text-base text-warning">
                 Área Administrativa Restrita
               </h3>
               <p className="text-sm text-muted-foreground">Console central de administração corporativa</p>
@@ -132,9 +132,10 @@ export function AdminResetPanel() {
           
           <div className="space-y-4 max-w-sm">
             <div className="space-y-2">
-              <Label className="text-sm text-amber-800 dark:text-amber-200 font-medium">Chave de Administrador</Label>
+              <Label className="text-sm text-warning font-medium">Chave de Administrador</Label>
               <div className="relative">
                 <Input
+                  id="adminPassword" name="adminPassword"
                   type={showPassword ? "text" : "password"}
                   placeholder="Senha Administrativa"
                   value={password}
@@ -144,7 +145,7 @@ export function AdminResetPanel() {
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleAuthenticate()}
                   className={cn(
-                    "pr-10 border-amber-500/30 focus-visible:ring-amber-500 bg-background/50",
+                    "pr-10 border-warning/30 focus-visible:ring-warning bg-background/50",
                     passwordError && "border-destructive focus-visible:ring-destructive"
                   )}
                 />
@@ -187,8 +188,8 @@ export function AdminResetPanel() {
           <div>
             <h3 className="font-display font-semibold text-base flex items-center gap-2">
               Painel Administrativo do Sistema
-              <Badge variant="outline" className="text-sm bg-emerald-500/10 text-emerald-500 border-emerald-500/20 gap-2 py-0 px-2">
-                <span className="h-2 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <Badge variant="outline" className="text-sm bg-success/10 text-success border-success/20 gap-2 py-0 px-2">
+                <span className="h-2 w-1.5 rounded-full bg-success animate-ping" />
                 Operacional
               </Badge>
             </h3>
@@ -236,7 +237,7 @@ export function AdminResetPanel() {
           {isLoadingStats ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 border border-border rounded-xl">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Compilando estatísticas do sistema...</p>
+              <p className="text-sm text-muted-foreground">Compilando estatísticas do sistema…</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -262,10 +263,10 @@ export function AdminResetPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent">
+              <Card className="bg-gradient-to-br from-success/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Transações Totais</CardTitle>
-                  <Activity className="h-4 w-4 text-emerald-500" />
+                  <Activity className="h-4 w-4 text-success" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalTransactions}</div>
@@ -273,10 +274,10 @@ export function AdminResetPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-sky-500/5 via-transparent to-transparent">
+              <Card className="bg-gradient-to-br from-accent/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Contas e Cartões</CardTitle>
-                  <Database className="h-4 w-4 text-sky-500" />
+                  <Database className="h-4 w-4 text-accent" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalAccounts}</div>
@@ -284,10 +285,10 @@ export function AdminResetPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-pink-500/5 via-transparent to-transparent">
+              <Card className="bg-gradient-to-br from-accent/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Investimentos e Ativos</CardTitle>
-                  <Briefcase className="h-4 w-4 text-pink-500" />
+                  <Briefcase className="h-4 w-4 text-accent" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalAssets}</div>
@@ -295,7 +296,7 @@ export function AdminResetPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-amber-500/5 via-transparent to-transparent">
+              <Card className="bg-gradient-to-br from-warning/5 via-transparent to-transparent">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                   <CardTitle className="text-sm font-medium">Grupos Familiares</CardTitle>
                   <Sparkles className="h-4 w-4 text-warning" />
@@ -326,7 +327,8 @@ export function AdminResetPanel() {
             <div className="relative w-full sm:w-[350px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar usuário por nome ou email..."
+                id="adminUserSearch" name="adminUserSearch"
+                placeholder="Buscar usuário por nome ou email…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -340,7 +342,7 @@ export function AdminResetPanel() {
           {isLoadingUsers ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 border border-border rounded-xl">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Mapeando usuários e carregando estatísticas individuais...</p>
+              <p className="text-sm text-muted-foreground">Mapeando usuários e carregando estatísticas individuais…</p>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-12 text-center border border-border rounded-xl">
@@ -486,7 +488,7 @@ export function AdminResetPanel() {
           {isLoadingLogs ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3 border border-border rounded-xl">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Lendo registros de auditoria financeira...</p>
+              <p className="text-sm text-muted-foreground">Lendo registros de auditoria financeira…</p>
             </div>
           ) : auditLogs.length === 0 ? (
             <div className="p-12 text-center border border-border rounded-xl bg-card">
@@ -506,9 +508,9 @@ export function AdminResetPanel() {
                         <Badge 
                           className={cn(
                             "text-xs font-semibold py-0.5 px-2.5",
-                            isSettlement ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
+                            isSettlement ? "bg-success/10 text-success border-success/20" : 
                             isBlocked ? "bg-destructive/12 text-destructive border-destructive/20" : 
-                            "bg-warning/10 text-warning border-amber-500/20"
+                            "bg-warning/10 text-warning border-warning/20"
                           )}
                           variant="outline"
                         >
@@ -558,7 +560,7 @@ export function AdminResetPanel() {
             </div>
           ) : errorLogs.length === 0 ? (
             <div className="p-12 text-center border border-border rounded-xl bg-card">
-              <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500 mb-2" />
+              <CheckCircle2 className="h-8 w-8 mx-auto text-success mb-2" />
               <p className="font-semibold text-sm">Nenhum erro reportado</p>
               <p className="text-sm text-muted-foreground">Tudo funcionando perfeitamente no momento.</p>
             </div>
@@ -632,14 +634,14 @@ export function AdminResetPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 rounded-lg bg-warning/5 border border-amber-500/20 text-sm text-warning dark:text-warning">
+                <div className="p-3 rounded-lg bg-warning/5 border border-warning/20 text-sm text-warning dark:text-warning">
                   ⚠️ Atenção: A purga definitiva excluirá fisicamente do banco de dados registros que já foram marcados como deletados no app.
                 </div>
                 <Button
                   onClick={handlePurgeSoftDeleted}
                   disabled={isPurging}
                   variant="outline"
-                  className="w-full gap-2 border-amber-500/30 text-warning hover:text-warning hover:bg-warning/5"
+                  className="w-full gap-2 border-warning/30 text-warning hover:text-warning hover:bg-warning/5"
                 >
                   {isPurging ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -792,7 +794,7 @@ export function AdminResetPanel() {
                             {acc.type}
                           </Badge>
                         </span>
-                        <Badge variant="outline" className="text-sm bg-sky-500/10 text-sky-500 border-sky-500/20 font-medium flex items-center gap-1 py-0.5 px-2">
+                        <Badge variant="outline" className="text-sm bg-accent/10 text-accent border-accent/20 font-medium flex items-center gap-1 py-0.5 px-2">
                           <Lock className="h-3 w-3" />
                           Saldo Oculto (LGPD)
                         </Badge>
@@ -827,8 +829,8 @@ export function AdminResetPanel() {
                   <Shield className="h-3.5 w-3.5" />
                   Controles de Segurança e LGPD
                 </h5>
-                <div className="p-3 rounded-lg border border-amber-500/20 bg-warning/5 space-y-3">
-                  <div className="flex gap-2 text-sm text-amber-800 dark:text-warning">
+                <div className="p-3 rounded-lg border border-warning/20 bg-warning/5 space-y-3">
+                  <div className="flex gap-2 text-sm text-warning dark:text-warning">
                     <Info className="h-4 w-4 shrink-0 mt-0.5" />
                     <span>
                       Para redefinir a senha de forma segura e em total conformidade com a LGPD, envie um e-mail de redefinição de senha oficial. O administrador não tem acesso a senhas em texto puro.
@@ -837,7 +839,7 @@ export function AdminResetPanel() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full gap-2 border-amber-500/30 text-warning hover:text-amber-800 hover:bg-warning/10 dark:text-warning dark:hover:text-amber-300"
+                    className="w-full gap-2 border-warning/30 text-warning hover:text-warning hover:bg-warning/10 dark:text-warning"
                     disabled={isResettingPassword === selectedDetailUser.id}
                     onClick={() => handleResetUserPassword(selectedDetailUser.email, selectedDetailUser.id)}
                   >
@@ -883,10 +885,11 @@ export function AdminResetPanel() {
                   Digite <span className="font-bold text-destructive">{CONFIRM_WORD}</span> abaixo para validar a operação administrativa:
                 </Label>
                 <Input
+                  id="confirmResetWord" name="confirmResetWord"
                   value={confirmWord}
                   onChange={(e) => setConfirmWord(e.target.value.toUpperCase())}
                   placeholder={CONFIRM_WORD}
-                  className="mt-2 border-red-300 focus-visible:ring-destructive"
+                  className="mt-2 border-destructive/30 focus-visible:ring-destructive"
                 />
               </div>
             </AlertDialogDescription>
@@ -903,7 +906,7 @@ export function AdminResetPanel() {
               {isResetting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Redefinindo...
+                  Redefinindo…
                 </>
               ) : (
                 <>
@@ -967,7 +970,7 @@ export function AdminResetPanel() {
               <Button 
                 variant="default"
                 onClick={() => resolveErrorLog(selectedErrorLog.id)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="bg-success hover:bg-success/92 text-white"
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" /> Marcar como Resolvido
               </Button>
