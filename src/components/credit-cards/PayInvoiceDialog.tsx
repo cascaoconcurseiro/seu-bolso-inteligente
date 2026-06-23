@@ -1,22 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Globe, Wallet, ChevronRight, CreditCard, Loader2 } from "lucide-react";
+import { Globe, Wallet, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AmountInput } from "@/components/ui/amount-input";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { moneyUtils } from "@/utils/money";
-import {
-  EliteFormHeader,
-  EliteHighlightCard,
-  EliteFormSection,
-  EliteCurrencyInput,
-  ElitePrimaryButton,
-  EliteBottomActions,
-} from "@/components/ui/elite-form";
 
 const currencies = [
   { value: "USD", label: "USD - Dólar Americano", symbol: "$" },
@@ -163,7 +155,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
           </div>
         </DialogHeader>
         
-        <div className="relative overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 relative overflow-hidden flex flex-col">
           <AnimatePresence mode="wait" custom={direction} initial={false}>
             {step === 1 && (
               <motion.div 
@@ -174,7 +166,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-4 flex flex-col flex-1"
+                className="p-4 flex flex-col flex-1 min-h-0 overflow-y-auto"
               >
                 <div className="flex-1 space-y-4">
                   <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 flex flex-col items-center justify-center text-center">
@@ -223,14 +215,13 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-4 flex flex-col flex-1"
+                className="p-4 flex flex-col flex-1 min-h-0 overflow-y-auto"
               >
                 <div className="flex-1 space-y-4">
-                  <div className="space-y-2.5">
-                    <Label className="text-sm font-semibold">De onde sairá o dinheiro?</Label>
+                  <FormField label="De onde sairá o dinheiro?" htmlFor="pay-account">
                     <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                      <SelectTrigger className="rounded-xl bg-background/50 border-white/10">
-                        <SelectValue placeholder="Selecione a conta de origem" />
+                      <SelectTrigger id="pay-account" className="rounded-xl bg-background/50 border-white/10">
+                        <SelectValue placeholder="Selecione a conta de origem…" />
                       </SelectTrigger>
                       <SelectContent>
                         {compatibleAccounts.map(acc => {
@@ -263,7 +254,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                         Nenhuma conta compatível. Crie uma conta em {cardCurrency} ou use uma conta BRL com câmbio.
                       </p>
                     )}
-                  </div>
+                  </FormField>
 
                   {showExchangeField && (
                     <div className="space-y-3 p-4 rounded-xl border border-warning/30 bg-warning/5 shadow-inner">
@@ -271,16 +262,18 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                         <Globe className="h-4 w-4" />
                         <span>Conversão de Moeda Necessária</span>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm text-muted-foreground uppercase tracking-wider">Taxa de câmbio ({cardCurrency} → BRL)</Label>
+                      <FormField label={`Taxa de câmbio (${cardCurrency} → BRL)`} htmlFor="pay-exchange-rate">
                         <Input type="number" inputMode="decimal"
+                          id="pay-exchange-rate"
+                          name="pay-exchange-rate"
                           step="0.0001"
-                          placeholder="Ex: 5.50"
+                          placeholder="Ex: 5,50…"
                           className="bg-background font-mono"
                           value={exchangeRate}
                           onChange={(e) => setExchangeRate(e.target.value)}
+                          autoComplete="off"
                         />
-                      </div>
+                      </FormField>
                       {exchangeRate && (
                         <div className="flex justify-between items-center pt-2 border-t border-border/50">
                           <span className="text-sm text-muted-foreground">Débito em BRL:</span>
@@ -302,7 +295,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                     {isProcessing ? (
                       <>
                         <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Processando...
+                        Processando…
                       </>
                     ) : (
                       <>

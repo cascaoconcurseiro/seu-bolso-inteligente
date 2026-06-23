@@ -407,7 +407,7 @@ export function SharedInstallmentImport({
                 {assigneeId && (
                   <div className="p-3 bg-muted/30 border border-border rounded-xl space-y-3 animate-fade-in mt-2">
                     <div className="flex justify-between items-center">
-                      <Label className="text-sm font-semibold text-muted-foreground">Porcentagem do membro selecionado</Label>
+                      <p className="text-sm font-semibold text-muted-foreground">Porcentagem do membro selecionado</p>
                       <span className="font-mono text-sm font-bold text-primary">{assigneePercentage}%</span>
                     </div>
 
