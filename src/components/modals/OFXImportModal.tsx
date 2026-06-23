@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { FileUp, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { XMLParser } from "fast-xml-parser";
@@ -189,35 +190,35 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-[425px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
+      <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
+        <DialogHeader>
           <DialogTitle>Importar Extrato (OFX)</DialogTitle>
           <DialogDescription>
             Importe seu extrato bancário. O sistema filtrará duplicatas automaticamente.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-5 py-4 sm:px-6 overflow-y-auto flex-1">
+        <div className="space-y-4 overflow-y-auto flex-1">
           {successCount !== null ? (
-            <div className="flex flex-col items-center justify-center space-y-4 py-4 animate-fade-in">
-              <div className="h-16 w-16 bg-positive/10 text-positive rounded-full flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8" />
+            <div className="flex flex-col items-center justify-center space-y-3 py-6 animate-fade-in">
+              <div className="h-12 w-12 bg-positive/10 text-positive rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
               <div className="text-center">
-                <h3 className="font-medium text-base text-foreground">Importação Concluída</h3>
-                <p className="text-sm text-muted-foreground">{successCount} novas transações adicionadas</p>
+                <h3 className="font-medium text-sm text-foreground">Importação Concluída</h3>
+                <p className="text-xs text-muted-foreground">{successCount} novas transações adicionadas</p>
                 {duplicatesCount > 0 && (
-                  <p className="text-sm text-warning mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
+                  <p className="text-xs text-warning mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
                 )}
               </div>
-              <Button onClick={handleClose} className="mt-4">
+              <Button onClick={handleClose} size="sm" className="mt-2">
                 Ver Transações
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Conta de Destino</label>
+                <Label className="text-sm font-medium">Conta de Destino</Label>
                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a conta para importar" />
@@ -235,12 +236,12 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               {!selectedAccountId && (
                 <Alert variant="warning" className="bg-warning/10 text-warning border-warning/20">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>Selecione uma conta acima para liberar o botão de upload.</AlertDescription>
+                  <AlertDescription className="text-xs">Selecione uma conta acima para liberar o botão de upload.</AlertDescription>
                 </Alert>
               )}
 
               <div 
-                className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center transition-colors
+                className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors
                   ${!selectedAccountId ? 'border-border/50 bg-muted/10 opacity-50 cursor-not-allowed' : 'border-border hover:bg-muted/30 cursor-pointer'}
                 `}
                 onClick={() => selectedAccountId && fileInputRef.current?.click()}
@@ -255,17 +256,17 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
                 
                 {isUploading ? (
                   <>
-                    <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
-                    <p className="font-medium">Processando arquivo...</p>
-                    <p className="text-sm text-muted-foreground mt-1">Sincronizando com o banco...</p>
+                    <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
+                    <p className="font-medium text-sm">Processando arquivo...</p>
+                    <p className="text-xs text-muted-foreground mt-1">Sincronizando com o banco...</p>
                   </>
                 ) : (
                   <>
-                    <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-                      <FileUp className="h-6 w-6" />
+                    <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3">
+                      <FileUp className="h-5 w-5" />
                     </div>
-                    <p className="font-medium text-foreground mb-1">Clique para enviar OFX</p>
-                    <p className="text-sm text-muted-foreground">O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)</p>
+                    <p className="font-medium text-sm text-foreground mb-1">Clique para enviar OFX</p>
+                    <p className="text-xs text-muted-foreground">O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)</p>
                   </>
                 )}
               </div>
