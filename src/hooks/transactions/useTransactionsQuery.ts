@@ -37,7 +37,7 @@ export function useTransactions(filters?: TransactionFilters) {
 
       const memberId = memberData?.id;
       
-      console.log('🔍 [DEBUG] useTransactions query:', {
+      logger.debug('useTransactions query', {
         userId: user.id,
         memberId,
         filters: effectiveFilters

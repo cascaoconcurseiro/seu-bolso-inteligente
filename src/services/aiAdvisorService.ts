@@ -1,7 +1,6 @@
-
-
 import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from "./ai/localMappings";
 import { normalizeBrazilianText } from "@/utils/formatting";
+import { logger } from "@/utils/logger";
 import {
   getFinancialAnalysisPrompt,
   getAutocompletePrompt,
@@ -29,7 +28,7 @@ export class AIAdvisorService {
     const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
 
     if (!isDev && !clientApiKey) {
-      console.warn("[AIAdvisorService] Chave VITE_GROQ_API_KEY ausente em produção. IA desativada silenciosamente.");
+      logger.warn("[AIAdvisorService] Chave VITE_GROQ_API_KEY ausente em produção. IA desativada.");
       return null; // Falha silenciosa permitida para evitar quebrar a UI
     }
 
@@ -54,12 +53,11 @@ export class AIAdvisorService {
         throw new Error(`Status ${response.status}`);
       }
     } catch (error) {
-      console.warn(`[AIAdvisorService] Erro no fluxo principal para ${GROQ_API_URL}`, error);
-      
-      // Fallback para DEV
+      logger.warn(`[AIAdvisorService] Erro no fluxo principal para ${GROQ_API_URL}`, error);
+
       if (isDev && clientApiKey) {
         try {
-          console.warn("[AIAdvisorService] Tentando fallback direto na API da Groq...");
+          logger.debug("[AIAdvisorService] Tentando fallback direto na API da Groq...");
           const fallbackResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: 'POST',
             headers: {
@@ -72,7 +70,7 @@ export class AIAdvisorService {
             return await fallbackResponse.json();
           }
         } catch (fallbackError) {
-          console.error("[AIAdvisorService] Erro no fallback:", fallbackError);
+          logger.error("[AIAdvisorService] Erro no fallback", fallbackError instanceof Error ? fallbackError : undefined);
         }
       }
       return null;
@@ -199,10 +197,9 @@ export class AIAdvisorService {
       });
 
       if (matchedUserCategory) {
-        console.log(`[AIAdvisorService] ⚡ Match determinístico local brasileiro encontrado para "${sanitizedPartial}":`, {
+        logger.debug(`[AIAdvisorService] Match local encontrado para "${sanitizedPartial}"`, {
           suggestion: bestMatch.suggestion,
-          categoryId: matchedUserCategory.id,
-          categoryName: matchedUserCategory.name
+          categoryName: matchedUserCategory.name,
         });
         return {
           suggestion: bestMatch.suggestion,

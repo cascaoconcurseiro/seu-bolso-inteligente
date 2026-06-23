@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AmountInput } from '@/components/ui/amount-input';
 import { FormField } from '@/components/ui/form-field';
+import { FormSection } from '@/components/ui/form-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
 import { useAccounts } from '@/hooks/useAccounts';
 import { Goal } from '../../types/database';
+import { Target, CalendarDays, Building2 } from 'lucide-react';
 
 interface GoalFormDialogProps {
   isOpen: boolean;
@@ -78,74 +80,79 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField label="Nome da Meta" htmlFor="goal-name" required>
-              <Input
-                id="goal-name"
-                name="goal-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Viagem para o Japão…"
-                required
-                autoComplete="off"
-              />
-            </FormField>
-
-            <AmountInput
-              label="Valor Alvo"
-              value={targetAmount}
-              onChange={setTargetAmount}
-              size="md"
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Data Alvo" htmlFor="goal-target-date">
+        <div className="px-5 pb-5 overflow-y-auto hide-scrollbar">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-2">
+            <FormSection icon={<Target />} title="Objetivo">
+              <FormField label="Nome da meta" htmlFor="goal-name" required>
                 <Input
-                  id="goal-target-date"
-                  name="goal-target-date"
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
+                  id="goal-name"
+                  name="goal-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Viagem para o Japão…"
+                  required
                   autoComplete="off"
                 />
               </FormField>
-              <FormField label="Prioridade" htmlFor="goal-priority">
-                <Select value={priority || 'MEDIUM'} onValueChange={(val: any) => setPriority(val)}>
-                  <SelectTrigger id="goal-priority">
-                    <SelectValue placeholder="Selecione…" />
+
+              <AmountInput
+                label="Valor alvo"
+                value={targetAmount}
+                onChange={setTargetAmount}
+                size="md"
+              />
+            </FormSection>
+
+            <FormSection icon={<CalendarDays />} title="Prazo e prioridade">
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="Data alvo" htmlFor="goal-target-date">
+                  <Input
+                    id="goal-target-date"
+                    name="goal-target-date"
+                    type="date"
+                    value={targetDate}
+                    onChange={(e) => setTargetDate(e.target.value)}
+                    autoComplete="off"
+                  />
+                </FormField>
+                <FormField label="Prioridade" htmlFor="goal-priority">
+                  <Select value={priority || 'MEDIUM'} onValueChange={(val: Goal['priority']) => setPriority(val)}>
+                    <SelectTrigger id="goal-priority">
+                      <SelectValue placeholder="Selecione…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HIGH">Alta</SelectItem>
+                      <SelectItem value="MEDIUM">Média</SelectItem>
+                      <SelectItem value="LOW">Baixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
+            </FormSection>
+
+            <FormSection icon={<Building2 />} title="Conta vinculada">
+              <FormField label="Conta (opcional)" htmlFor="goal-account">
+                <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
+                  <SelectTrigger id="goal-account">
+                    <SelectValue placeholder="Nenhuma" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="HIGH">Alta</SelectItem>
-                    <SelectItem value="MEDIUM">Média</SelectItem>
-                    <SelectItem value="LOW">Baixa</SelectItem>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {accounts?.map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormField>
-            </div>
+            </FormSection>
 
-            <FormField label="Conta Vinculada (Opcional)" htmlFor="goal-account">
-              <Select value={linkedAccountId} onValueChange={setLinkedAccountId}>
-                <SelectTrigger id="goal-account">
-                  <SelectValue placeholder="Nenhuma" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma</SelectItem>
-                  {accounts?.map((acc) => (
-                    <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <div className="pt-4 flex gap-3">
+            <div className="flex gap-3 pt-1">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="flex-1"
               >
                 Cancelar
               </Button>

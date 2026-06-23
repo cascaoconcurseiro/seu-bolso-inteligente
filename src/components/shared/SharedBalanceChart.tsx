@@ -14,6 +14,7 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { InvoiceItem } from "@/hooks/useSharedFinances";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { logger } from "@/utils/logger";
 
 interface ChartDataPoint {
   month: string;
@@ -39,17 +40,9 @@ export function SharedBalanceChart({
   monthlyData = [],
   currency = "BRL"
 }: SharedBalanceChartProps) {
-  console.log('🟢 [SharedBalanceChart] Renderizando com:', {
-    transactions: transactions?.length,
-    invoicesCount: Object.keys(invoices || {}).length,
-    isGeneralReport,
-    monthlyDataCount: monthlyData?.length,
-    currentDate
-  });
-
   const chartData = useMemo(() => {
     if (isGeneralReport && monthlyData && monthlyData.length > 0) {
-      console.log('🟢 [SharedBalanceChart] Usando monthlyData para relatório geral');
+      logger.debug('[SharedBalanceChart] Usando monthlyData para relatório geral');
       return monthlyData.map(item => ({
         month: item.month,
         credits: item.income,

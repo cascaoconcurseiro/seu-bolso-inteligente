@@ -28,7 +28,9 @@ import {
   Users,
   HelpCircle,
   Info,
+  Calendar,
 } from 'lucide-react';
+import { FormSection } from '@/components/ui/form-section';
 import { cn } from '@/lib/utils';
 import { FamilyMember } from '@/hooks/useFamily';
 import { useCreateTransaction } from '@/hooks/useTransactions';
@@ -216,7 +218,6 @@ export function SharedInstallmentImport({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
-      console.error('Erro ao importar:', error);
       toast.error('Erro ao importar parcelas');
     } finally {
       setIsSubmitting(false);
@@ -269,112 +270,108 @@ export function SharedInstallmentImport({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-1 no-scrollbar">
-          {/* Erros de validação (se existirem) */}
+        <div className="flex-1 overflow-y-auto flex flex-col gap-3 py-4 pr-1 no-scrollbar">
+          {/* Erros de validação */}
           {errors.length > 0 && (
-            <div className="p-3 bg-destructive/10 text-destructive rounded-lg space-y-2">
+            <div className="px-1 py-2 bg-destructive/10 text-destructive rounded-lg space-y-1.5">
               {errors.map((error, idx) => (
-                <p key={idx} className="text-sm flex items-center gap-2 font-medium">
-                  <AlertCircle className="h-3.5 w-3.5" />
+                <p key={idx} className="text-xs flex items-center gap-2 font-medium px-2">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   {error}
                 </p>
               ))}
             </div>
           )}
 
-          {/* Description */}
-          <FormField label="Descrição" htmlFor="si-description" required>
-            <Input
-              id="si-description"
-              name="si-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Compra Geladeira…"
-              disabled={isSubmitting}
-              autoComplete="off"
-            />
-          </FormField>
-
-          {/* Amount & Installments */}
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Valor da Parcela" htmlFor="si-amount" required>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground z-10" />
-                <CurrencyInput
-                  id="si-amount"
-                  value={amount}
-                  onChange={handleAmountChange}
-                  placeholder="0,00"
-                  className="pl-9 font-mono"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </FormField>
-            <FormField label="Parcelas Restantes" htmlFor="si-installments" required>
-              <Input type="number" inputMode="decimal"
-                id="si-installments"
-                name="si-installments"
-                value={installments}
-                onChange={(e) => setInstallments(e.target.value)}
-                min="1"
-                max="48"
+          {/* Seção: Detalhes do parcelado */}
+          <FormSection icon={<DollarSign />} title="Valor e parcelas">
+            <FormField label="Descrição" htmlFor="si-description" required>
+              <Input
+                id="si-description"
+                name="si-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Ex: Compra Geladeira…"
                 disabled={isSubmitting}
                 autoComplete="off"
               />
             </FormField>
-          </div>
 
-          {/* Total Display */}
-          {totalAmount > 0 && (
-            <div className="bg-muted/50 rounded-lg p-3 text-center">
-              <p className="text-sm text-muted-foreground">Valor total</p>
-              <p className="font-mono text-base font-bold">{formatCurrency(totalAmount)}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Valor da Parcela" htmlFor="si-amount" required>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                  <CurrencyInput
+                    id="si-amount"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    placeholder="0,00"
+                    className="pl-9 font-mono"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </FormField>
+              <FormField label="Parcelas Restantes" htmlFor="si-installments" required>
+                <Input type="number" inputMode="decimal"
+                  id="si-installments"
+                  name="si-installments"
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  min="1"
+                  max="48"
+                  disabled={isSubmitting}
+                  autoComplete="off"
+                />
+              </FormField>
             </div>
-          )}
 
-          {/* Month Selector */}
-          <FormField label="Mês da Próxima Parcela" htmlFor="si-month" required>
-            <Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={isSubmitting}>
-              <SelectTrigger id="si-month">
-                <SelectValue placeholder="Selecione o mês…" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableMonths.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {lastInstallmentText && (
-              <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-lg p-2.5 flex items-center gap-2 mt-1 animate-fade-in">
-                <AlertCircle className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-sm text-foreground font-medium">
-                  A última parcela (de {installments}) será cobrada em <strong className="text-primary">{lastInstallmentText}</strong>.
-                </span>
+            {totalAmount > 0 && (
+              <div className="bg-background border border-border/60 rounded-lg px-3 py-2 flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">Total da compra</span>
+                <span className="font-mono text-sm font-bold">{formatCurrency(totalAmount)}</span>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">
-              📅 Parcelas criadas automaticamente no primeiro dia de cada mês
-            </p>
-          </FormField>
+          </FormSection>
 
-          {/* Category */}
-          <FormField label="Categoria" htmlFor="si-category">
-            <CategorySelector
-              categories={categories}
-              value={categoryId}
-              onValueChange={setCategoryId}
-              type="expense"
-              placeholder="Selecione uma categoria…"
-            />
-            <p className="text-sm text-muted-foreground">
-              🏷️ Ajuda a organizar e controlar seus gastos mensais
-            </p>
-          </FormField>
+          {/* Seção: Datas e categoria */}
+          <FormSection icon={<Calendar />} title="Agendamento e categoria">
+            <FormField label="Mês da Primeira Parcela" htmlFor="si-month" required>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth} disabled={isSubmitting}>
+                <SelectTrigger id="si-month">
+                  <SelectValue placeholder="Selecione o mês…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {lastInstallmentText && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                  <AlertCircle className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="text-xs text-foreground">
+                    Última parcela em <strong className="text-primary">{lastInstallmentText}</strong>
+                  </span>
+                </div>
+              )}
+            </FormField>
 
-          {/* Assignee & Percentage Split */}
-          <FormField label="Quem vai pagar as parcelas?" htmlFor="si-assignee-section" required>
+            <FormField label="Categoria (opcional)" htmlFor="si-category">
+              <CategorySelector
+                categories={categories}
+                value={categoryId}
+                onValueChange={setCategoryId}
+                type="expense"
+                placeholder="Selecione uma categoria…"
+              />
+            </FormField>
+          </FormSection>
+
+          {/* Seção: Responsável */}
+          <FormSection icon={<Users />} title="Quem paga">
+            <FormField label="Membro responsável" htmlFor="si-assignee-section" required>
             {availableMembers.length === 0 ? (
               <div className="text-center py-4 border border-dashed rounded-lg">
                 <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
@@ -489,6 +486,7 @@ export function SharedInstallmentImport({
               </>
             )}
           </FormField>
+          </FormSection>
         </div>
 
         <DialogFooter>

@@ -41,7 +41,7 @@ export function GreetingCard({ className }: GreetingCardProps) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl p-6 transition-all duration-700 ease-out",
+        "relative overflow-hidden rounded-2xl p-4 md:p-5 transition-all duration-700 ease-out",
         "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent",
         "border border-primary/20",
         isVisible 
@@ -56,7 +56,7 @@ export function GreetingCard({ className }: GreetingCardProps) {
       {/* Content */}
       <div className="relative">
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-foreground">
+          <h2 className="text-xl md:text-2xl font-black tracking-tighter text-foreground">
             {(() => {
               const hour = new Date().getHours();
               if (hour < 12) return "Bom dia";

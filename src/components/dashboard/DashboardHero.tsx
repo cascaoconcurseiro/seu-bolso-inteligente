@@ -47,7 +47,7 @@ export function DashboardHero({
   const predictedBalance = balance;
 
   return (
-    <div className="relative group overflow-hidden p-6 md:p-8 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
+    <div className="relative group overflow-hidden p-5 md:p-6 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
       {/* Elementos Decorativos de Fundo */}
       <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000" />
       <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000" />
@@ -83,7 +83,7 @@ export function DashboardHero({
           </div>
           
           <h1 className={cn(
-            "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500",
+            "font-display font-black text-4xl sm:text-5xl md:text-6xl tracking-tighter transition-all duration-500",
             predictedBalance >= 0 ? "text-primary" : "text-destructive",
             isPrivate && "blur-md opacity-50 select-none"
           )}>
@@ -171,7 +171,7 @@ export function DashboardHero({
 
       {/* Barra de Progresso do Orçamento Mensal Global */}
       {(monthlyBudget ?? 0) > 0 && (
-        <div className="mt-8 pt-6 border-t border-border/30">
+        <div className="mt-5 pt-4 border-t border-border/30">
           <div className="flex justify-between items-end mb-2">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-warning/10">

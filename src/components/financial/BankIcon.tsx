@@ -7,7 +7,7 @@ interface BankIconProps {
   bankId?: string | null;
   bankName?: string;
   accountName?: string; // Nome personalizado da conta (ex: "Carrefour")
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }
 
@@ -18,6 +18,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
   if (!bank) return null;
 
   const sizeClasses = {
+    xs: "w-5 h-5 text-[9px]",
     sm: "w-8 h-8 text-xs",
     md: "w-12 h-12 text-sm",
     lg: "w-16 h-16 text-base",
@@ -77,7 +78,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
 
 interface CardBrandIconProps {
   brand: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }
 
@@ -87,6 +88,7 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
   if (!brandConfig) return null;
 
   const sizeClasses = {
+    xs: "w-6 h-4 text-[7px]",
     sm: "w-8 h-5 text-[8px]",
     md: "w-12 h-8 text-xs",
     lg: "w-16 h-10 text-xs",

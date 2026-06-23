@@ -282,10 +282,10 @@ export function Dashboard() {
           <TripDashboardView />
         </div>
       ) : (
-        <div className="space-y-5 md:space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-5 animate-in fade-in duration-500">
           <DashboardQuickAccess />
 
-          <div className="space-y-5 md:space-y-6">
+          <div className="space-y-4 md:space-y-5">
             <DashboardInvoices
               creditCardsWithBalance={creditCardsWithBalance}
               formatCurrency={(val) => moneyUtils.format(val, 'BRL')}

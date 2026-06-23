@@ -133,7 +133,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex h-12 md:h-14 items-center justify-between gap-3">
+          <div className="flex h-11 md:h-12 items-center justify-between gap-3">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
@@ -242,7 +242,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}
         {location.pathname !== '/cartoes' && (
           <div className="border-t border-border bg-background shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-4">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
               <div className="flex-1 hidden md:block" />
               
               <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
@@ -265,8 +265,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 pb-32 md:pb-12">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8">
+      <main className="flex-1 pb-32 md:pb-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
           <OnboardingGuard>
             {children}
           </OnboardingGuard>

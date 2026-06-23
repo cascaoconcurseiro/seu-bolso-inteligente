@@ -1,10 +1,12 @@
 /**
  * Sistema de Logging Centralizado
- * 
- * Substitui console.log/warn/error por sistema controlado
- * que só exibe logs em desenvolvimento e pode integrar
- * com serviços de monitoramento (Sentry) em produção.
+ *
+ * Exibe logs em desenvolvimento e envia warn/error ao Sentry em produção.
+ * Use sempre este logger — nunca console.log direto em código de produção.
+ *
+ * Hierarquia: debug/info/success → só em DEV | warn/error → sempre + Sentry em PROD
  */
+import * as Sentry from '@sentry/react';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -19,105 +21,68 @@ class Logger {
   private isDev = import.meta.env.DEV;
   private isProd = import.meta.env.PROD;
 
-  /**
-   * Log de debug - apenas em desenvolvimento
-   */
+  /** Log de debug — apenas em desenvolvimento */
   debug(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.log(`🔍 [DEBUG] ${message}`, data !== undefined ? data : '');
+      console.log(`[DEBUG] ${message}`, data !== undefined ? data : '');
     }
   }
 
-  /**
-   * Log informativo - apenas em desenvolvimento
-   */
+  /** Log informativo — apenas em desenvolvimento */
   info(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.info(`ℹ️ [INFO] ${message}`, data !== undefined ? data : '');
+      console.info(`[INFO] ${message}`, data !== undefined ? data : '');
     }
   }
 
-  /**
-   * Log de aviso - sempre exibido
-   */
-  warn(message: string, data?: unknown): void {
-    console.warn(`⚠️ [WARN] ${message}`, data !== undefined ? data : '');
-    
-    // TODO: Enviar para Sentry em produção
-    if (this.isProd) {
-      this.sendToMonitoring('warn', message, data);
-    }
-  }
-
-  /**
-   * Log de erro - sempre exibido
-   */
-  error(message: string, error?: unknown): void {
-    console.error(`❌ [ERROR] ${message}`, error !== undefined ? error : '');
-    
-    // TODO: Enviar para Sentry em produção
-    if (this.isProd) {
-      this.sendToMonitoring('error', message, error);
-    }
-  }
-
-  /**
-   * Log de sucesso - apenas em desenvolvimento
-   */
+  /** Log de sucesso — apenas em desenvolvimento */
   success(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.log(`✅ [SUCCESS] ${message}`, data !== undefined ? data : '');
+      console.log(`[OK] ${message}`, data !== undefined ? data : '');
+    }
+  }
+
+  /** Log de aviso — sempre exibido + Sentry em produção */
+  warn(message: string, data?: unknown): void {
+    console.warn(`[WARN] ${message}`, data !== undefined ? data : '');
+    if (this.isProd) {
+      Sentry.captureMessage(message, { level: 'warning', extra: { data } });
     }
   }
 
   /**
-   * Enviar para serviço de monitoramento (Sentry, etc)
-   * TODO: Implementar integração com Sentry
+   * Log de erro — sempre exibido + Sentry em produção.
+   * @param message - descrição do erro
+   * @param error - instância de Error ou dado extra
    */
-  private sendToMonitoring(_level: LogLevel, _message: string, _data?: unknown): void {
-    // Placeholder para integração futura com Sentry
-    // Sentry.captureMessage(message, { level, extra: data });
-  }
-
-  /**
-   * Criar grupo de logs (útil para debug)
-   */
-  group(label: string): void {
-    if (this.isDev) {
-      console.group(label);
+  error(message: string, error?: unknown): void {
+    console.error(`[ERROR] ${message}`, error !== undefined ? error : '');
+    if (this.isProd) {
+      if (error instanceof Error) {
+        Sentry.captureException(error, { extra: { message } });
+      } else {
+        Sentry.captureMessage(message, { level: 'error', extra: { error } });
+      }
     }
   }
 
-  /**
-   * Fechar grupo de logs
-   */
-  groupEnd(): void {
-    if (this.isDev) {
-      console.groupEnd();
-    }
-  }
-
-  /**
-   * Medir tempo de execução
-   */
+  /** Medir tempo de execução — apenas em desenvolvimento */
   time(label: string): void {
-    if (this.isDev) {
-      console.time(label);
-    }
+    if (this.isDev) console.time(label);
   }
 
-  /**
-   * Finalizar medição de tempo
-   */
   timeEnd(label: string): void {
-    if (this.isDev) {
-      console.timeEnd(label);
-    }
+    if (this.isDev) console.timeEnd(label);
+  }
+
+  group(label: string): void {
+    if (this.isDev) console.group(label);
+  }
+
+  groupEnd(): void {
+    if (this.isDev) console.groupEnd();
   }
 }
 
-// Exportar instância única (singleton)
 export const logger = new Logger();
-
-// Exportar tipo para uso em outros arquivos
 export type { LogLevel, LogEntry };

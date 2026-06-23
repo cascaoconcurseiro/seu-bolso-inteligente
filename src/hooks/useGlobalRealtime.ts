@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
 import { invalidateAllFinancialData } from '@/utils/queryInvalidation';
+import { logger } from '@/utils/logger';
 
 /**
  * Escuta eventos de tempo real (Realtime) do Supabase globalmente.
@@ -17,9 +17,8 @@ export function useGlobalRealtime() {
     // Só conectar se houver usuário logado
     if (!user?.id) return;
 
-    console.log('🔌 Conectando ao Supabase Realtime...');
+    logger.debug('Conectando ao Supabase Realtime...');
 
-    // Cria um canal genérico escutando o schema 'public'
     const channel = supabase
       .channel('global-db-changes')
       .on(
@@ -27,32 +26,28 @@ export function useGlobalRealtime() {
         { event: '*', schema: 'public' },
         (payload) => {
           const { table } = payload;
-          console.log(`⚡ Evento Realtime recebido na tabela: ${table}`);
+          logger.debug(`Evento Realtime recebido na tabela: ${table}`);
 
-          // O React Query é inteligente o suficiente para recarregar apenas o que está visível.
-          // Iniciar invalidação global de TUDO que estiver na tela do usuário.
-          // Porem para não sobrecarregar o celular, não usamos invalidateQueries global sem parâmetros.
-          
-          if ((window as any)._realtimeTimeout) {
-            clearTimeout((window as any)._realtimeTimeout);
+          if ((window as { _realtimeTimeout?: ReturnType<typeof setTimeout> })._realtimeTimeout) {
+            clearTimeout((window as { _realtimeTimeout?: ReturnType<typeof setTimeout> })._realtimeTimeout);
           }
-          
-          (window as any)._realtimeTimeout = setTimeout(() => {
-            console.log('🔄 Executando invalidação financeira após evento Realtime');
+
+          (window as { _realtimeTimeout?: ReturnType<typeof setTimeout> })._realtimeTimeout = setTimeout(() => {
+            logger.debug('Executando invalidação financeira após evento Realtime');
             invalidateAllFinancialData(queryClient);
           }, 1500);
         }
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Conectado ao Supabase Realtime com sucesso!');
+          logger.info('Conectado ao Supabase Realtime com sucesso');
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Erro no canal Supabase Realtime');
+          logger.error('Erro no canal Supabase Realtime');
         }
       });
 
     return () => {
-      console.log('🔌 Desconectando do Supabase Realtime...');
+      logger.debug('Desconectando do Supabase Realtime...');
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);

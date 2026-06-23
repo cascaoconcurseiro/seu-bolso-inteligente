@@ -3,6 +3,7 @@ import { AIAdvisorService } from '@/services/aiAdvisorService';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { logger } from '@/utils/logger';
 
 export function useAIPrediction(description: string, type: 'expense' | 'income' = 'expense', enabled: boolean = true) {
   const [suggestion, setSuggestion] = useState<string>('');
@@ -137,14 +138,11 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
 
         const formattedCategories = finalCatsToSend.map(c => ({ id: c.id, name: c.name }));
         
-        console.log(`[useAIPrediction] [Req #${currentRequestId}] RASTREAMENTO:`, {
+        logger.debug(`[useAIPrediction] [Req #${currentRequestId}] Disparando requisição`, {
           textoDigitado: description.trim(),
           tamanhoHistoricoEnviado: historyDescriptions.length,
           tamanhoCategoriasEnviadas: formattedCategories.length,
-          categoriasEnviadas: formattedCategories.map(c => c.name)
         });
-        
-        console.log(`[useAIPrediction] [Req #${currentRequestId}] Disparando requisição para: "${description.trim()}"`);
         
         const result = await AIAdvisorService.predictAutocompleteAndCategory(
           description.trim(),
@@ -155,14 +153,14 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
         
         // 2. BLINDAGEM DE CONCORRÊNCIA: Se uma requisição mais nova foi disparada após esta, descarta o resultado!
         if (currentRequestId !== requestCounterRef.current) {
-          console.warn(`[useAIPrediction] [Req #${currentRequestId}] Descartando resultado obsoleto. Uma requisição mais nova (#${requestCounterRef.current}) já está em trânsito.`);
+          logger.debug(`[useAIPrediction] [Req #${currentRequestId}] Descartando resultado obsoleto — req #${requestCounterRef.current} mais recente`);
           return;
         }
 
         lastPredictedDescRef.current = description.trim();
         lastHashRef.current = categoriesHash;
 
-        console.log(`[useAIPrediction] [Req #${currentRequestId}] Resposta da IA aceita com sucesso:`, result);
+        logger.debug(`[useAIPrediction] [Req #${currentRequestId}] Resposta aceita`, result);
 
         if (result.suggestion) {
           setSuggestion(result.suggestion);
@@ -175,17 +173,16 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
         if (catId && !useSubcategories && categoriesRef.current) {
           const found = categoriesRef.current.find(c => c.id === catId);
           if (found && found.parent_category_id) {
-            console.log(`[useAIPrediction] Mapeando subcategoria predita "${found.name}" para o pai correspondente.`);
+            logger.debug(`[useAIPrediction] Mapeando subcategoria "${found.name}" para categoria pai`);
             catId = found.parent_category_id;
           }
         }
         
         setPredictedCategoryId(catId);
         
-      } catch (error: any) {
-        // Verifica se ainda é a requisição ativa antes de limpar o estado
+      } catch (error: unknown) {
         if (currentRequestId === requestCounterRef.current) {
-          console.error(`[useAIPrediction] [Req #${currentRequestId}] Erro na chamada de IA:`, error);
+          logger.error(`[useAIPrediction] [Req #${currentRequestId}] Erro na chamada de IA`, error instanceof Error ? error : undefined);
           setPredictedCategoryId(null);
           setSuggestion('');
         }
