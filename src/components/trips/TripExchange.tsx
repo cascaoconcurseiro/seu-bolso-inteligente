@@ -91,7 +91,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
   if (!isLoading && purchases.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 p-4 rounded-xl text-sm flex gap-3">
+        <div className="bg-accent/10 border border-accent/20 text-accent p-4 rounded-xl text-sm flex gap-3">
           <Info className="w-5 h-5 shrink-0 mt-0.5" />
           <p>
             <strong>Cotações em Tempo Real:</strong> A cotação oficial da moeda ({trip.currency}) é sincronizada automaticamente com a AwesomeAPI para ajudar no seu planejamento e conversão de gastos.
@@ -160,7 +160,7 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                     })}
                   </div>
                   {purchase.is_automated && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-semibold bg-accent/10 text-accent border border-accent/20">
                       🌍 Automático - Conta Global
                     </span>
                   )}

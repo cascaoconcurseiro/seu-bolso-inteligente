@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  ArrowLeft,
   Loader2,
   ArrowDownLeft,
   ArrowUpRight,
@@ -64,44 +63,43 @@ export function TransactionForm(props: TransactionFormProps) {
 
   return (
     <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-4 animate-fade-in overflow-x-hidden">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => props.onCancel ? props.onCancel() : form.navigate(-1)} className="rounded-full"><ArrowLeft className="h-4 w-4" /></Button>
-        <h1 className="font-display font-bold text-xl tracking-tight">Nova Transação</h1>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-muted">
+      <div className="grid grid-cols-3 gap-1 p-1 rounded-[10px] bg-[hsl(var(--bg-subtle))]">
         {(['EXPENSE', 'INCOME', 'TRANSFER'] as TabType[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => form.setActiveTab(tab)}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-medium transition-all',
+              'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[13px] font-medium transition-all',
               form.activeTab === tab
-                ? tab === 'EXPENSE'
-                  ? 'bg-background text-destructive shadow-sm'
-                  : tab === 'INCOME'
-                  ? 'bg-background text-positive shadow-sm'
-                  : 'bg-background text-primary shadow-sm'
+                ? 'bg-[hsl(var(--bg-surface))] shadow-[0_1px_3px_rgba(0,0,0,0.1)]'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {tab === 'EXPENSE' && <ArrowUpRight className="h-4 w-4" />}
-            {tab === 'INCOME' && <ArrowDownLeft className="h-4 w-4" />}
-            {tab === 'TRANSFER' && <ArrowRightLeft className="h-4 w-4" />}
+            {tab === 'EXPENSE' && <ArrowUpRight className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--danger))]")} />}
+            {tab === 'INCOME' && <ArrowDownLeft className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--success))]")} />}
+            {tab === 'TRANSFER' && <ArrowRightLeft className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--accent))]")} />}
             
-            {tab === 'EXPENSE' && 'Despesa'}
-            {tab === 'INCOME' && 'Receita'}
-            {tab === 'TRANSFER' && 'Transf.'}
+            <span className={cn(
+              form.activeTab === tab && (
+                tab === 'EXPENSE' ? 'text-[hsl(var(--danger))]' :
+                tab === 'INCOME' ? 'text-[hsl(var(--success))]' :
+                'text-[hsl(var(--accent))]'
+              )
+            )}>
+              {tab === 'EXPENSE' && 'Despesa'}
+              {tab === 'INCOME' && 'Receita'}
+              {tab === 'TRANSFER' && 'Transf.'}
+            </span>
           </button>
         ))}
       </div>
 
       {form.duplicateWarning && <Alert className="border-destructive/50 bg-destructive/10 animate-pulse"><BellRing className="h-4 w-4 text-destructive" /><AlertDescription className="text-destructive font-medium">⚠️ Possível transação duplicada detectada!</AlertDescription></Alert>}
       {form.budgetWarning && (
-        <Alert className={cn(form.budgetWarning.exceeded ? "border-destructive/50 bg-destructive/10" : "border-yellow-500/50 bg-yellow-500/10", "animate-in slide-in-from-top-2")}>
-          <BellRing className={cn("h-4 w-4", form.budgetWarning.exceeded ? "text-destructive" : "text-yellow-600")} />
-          <AlertDescription className={cn("font-medium", form.budgetWarning.exceeded ? "text-destructive" : "text-yellow-700")}>
+        <Alert className={cn(form.budgetWarning.exceeded ? "border-destructive/50 bg-destructive/10" : "border-warning/50 bg-warning/12", "animate-in slide-in-from-top-2")}>
+          <BellRing className={cn("h-4 w-4", form.budgetWarning.exceeded ? "text-destructive" : "text-warning")} />
+          <AlertDescription className={cn("font-medium", form.budgetWarning.exceeded ? "text-destructive" : "text-warning")}>
             {form.budgetWarning.message}
           </AlertDescription>
         </Alert>
@@ -133,9 +131,9 @@ export function TransactionForm(props: TransactionFormProps) {
         />
 
         {form.showExchangePanel && (
-          <div className="p-4 rounded-xl border border-primary/25 bg-primary/5 space-y-4 animate-slide-in shadow-sm">
+          <div className="p-4 rounded-xl border border-accent/20 bg-accent/5 space-y-4 animate-slide-in shadow-sm">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">🌍</div>
+              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-sm font-semibold text-accent">🌍</div>
               <div>
                 <p className="font-semibold text-sm tracking-tight text-foreground">Operação de Câmbio Detectada</p>
                 <p className="text-sm text-muted-foreground">
@@ -148,7 +146,7 @@ export function TransactionForm(props: TransactionFormProps) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground">
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {form.isCrossCurrencyTripExpense ? `Valor na Viagem (${form.selectedTrip?.currency})` : `Valor Recebido (${form.selectedDestAccount?.currency})`}
                 </Label>
                 <div className="relative">
@@ -166,7 +164,7 @@ export function TransactionForm(props: TransactionFormProps) {
               </div>
 
               <div className="space-y-2 opacity-70">
-                <Label className="text-sm font-semibold text-foreground">Taxa de Câmbio Efetiva</Label>
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Taxa de Câmbio Efetiva</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold z-10">
                     {form.selectedAccount?.currency}/{form.isCrossCurrencyTripExpense ? form.selectedTrip?.currency : form.selectedDestAccount?.currency}
@@ -190,7 +188,7 @@ export function TransactionForm(props: TransactionFormProps) {
 
         {form.isExpense && form.isCreditCard && (
           <div className="p-4 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
-            <Label className="font-medium text-sm">Parcelas (Cartão de Crédito)</Label>
+            <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Parcelas (Cartão de Crédito)</Label>
             <Select
               value={form.totalInstallments.toString()}
               onValueChange={(v) => {
@@ -240,9 +238,14 @@ export function TransactionForm(props: TransactionFormProps) {
           </div>
         )}
 
-        <Button type="submit" size="default" className="w-full text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
-          {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
-        </Button>
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" className="w-1/2 h-11 text-base font-medium" onClick={() => props.onCancel ? props.onCancel() : form.navigate(-1)}>
+            Cancelar
+          </Button>
+          <Button type="submit" variant="default" className="w-1/2 h-11 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
+            {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
+          </Button>
+        </div>
       </form>
 
       <SplitModal
@@ -268,18 +271,18 @@ export function TransactionForm(props: TransactionFormProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-xl max-w-md w-full p-6 space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center"><BellRing className="h-5 w-5 text-amber-600" /></div>
+              <div className="w-10 h-10 rounded-full bg-warning/12 flex items-center justify-center"><BellRing className="h-5 w-5 text-warning" /></div>
               <div>
                 <h3 className="font-semibold text-base mb-2">Atenção</h3>
                 <p className="text-sm text-muted-foreground mb-3">Detectamos avisos. Continuar?</p>
-                <ul className="list-disc list-inside space-y-2 text-sm text-amber-600">
+                <ul className="list-disc list-inside space-y-2 text-sm text-warning">
                   {form.validationWarnings.map((w, i) => <li key={i}>{w}</li>)}
                 </ul>
               </div>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => { form.setShowWarningModal(false); form.setPendingSubmit(null); }}>Cancelar</Button>
-              <Button className="flex-1" onClick={async () => { form.setShowWarningModal(false); if (form.pendingSubmit) await form.performSubmit(form.pendingSubmit as Partial<Transaction>); }}>Continuar</Button>
+              <Button variant="default" className="flex-1" onClick={async () => { form.setShowWarningModal(false); if (form.pendingSubmit) await form.performSubmit(form.pendingSubmit as Partial<Transaction>); }}>Continuar</Button>
             </div>
           </div>
         </div>

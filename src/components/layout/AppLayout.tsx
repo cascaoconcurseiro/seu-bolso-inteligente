@@ -133,7 +133,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-4">
+          <div className="flex h-12 md:h-14 items-center justify-between gap-3">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">

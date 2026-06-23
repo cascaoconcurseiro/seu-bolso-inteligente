@@ -2,7 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users } from 'lucide-react';
+import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users, ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { Calendar } from '@/components/ui/calendar';
@@ -67,29 +67,19 @@ export function AdvancedOptions({
   if (!isExpanded) {
     return (
       <div className="space-y-3">
-        {/* Cabeçalho Colapsável Premium */}
+        {/* Cabeçalho Colapsável */}
         <button
           type="button"
           onClick={() => setIsExpanded(true)}
           className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
         >
-          <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-2">
-            <span>⚙️ Recursos e Opções</span>
+          <span className="text-[13px] text-[hsl(var(--text-secondary))] pl-1 flex items-center gap-2">
+            Mais opções
             {hasActiveOption && (
-              <span className="w-1.5 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))] animate-pulse" />
             )}
           </span>
-          <span className="text-sm text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
-            Mostrar
-            <svg
-              className="h-3.5 w-3.5 transition-transform duration-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-            </svg>
-          </span>
+          <ChevronDown className="h-4 w-4 text-[hsl(var(--text-secondary))] transition-transform duration-300 group-hover:text-foreground" />
         </button>
       </div>
     );
@@ -97,29 +87,19 @@ export function AdvancedOptions({
 
   return (
     <div className="space-y-3">
-      {/* Cabeçalho Colapsável Premium */}
+      {/* Cabeçalho Colapsável */}
       <button
         type="button"
         onClick={() => setIsExpanded(false)}
         className="w-full flex items-center justify-between py-2 px-1 hover:bg-muted/30 rounded-xl transition-all group text-left cursor-pointer select-none"
       >
-        <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider pl-1 flex items-center gap-2">
-          <span>⚙️ Recursos e Opções</span>
+        <span className="text-[13px] text-[hsl(var(--text-secondary))] pl-1 flex items-center gap-2">
+          Mais opções
           {hasActiveOption && (
-            <span className="w-1.5 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--accent))] animate-pulse" />
           )}
         </span>
-        <span className="text-sm text-muted-foreground font-semibold flex items-center gap-1 bg-muted/60 dark:bg-muted/30 px-2 py-0.5 rounded-lg group-hover:text-foreground transition-colors">
-          Ocultar
-          <svg
-            className="h-3.5 w-3.5 transition-transform duration-300 rotate-180"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-          </svg>
-        </span>
+        <ChevronDown className="h-4 w-4 text-[hsl(var(--text-secondary))] rotate-180 transition-transform duration-300 group-hover:text-foreground" />
       </button>
 
       {/* Fileira Horizontal de Pílulas Interativas - Grid de 3 colunas em celular, linha única em desktop */}
@@ -150,7 +130,7 @@ export function AdvancedOptions({
                   type="button"
                   onClick={() => setTripId('')}
                   className={cn(
-                    "w-full text-left px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all",
+                    "w-full text-left px-2.5 py-2 text-xs rounded-lg font-medium transition-all",
                     !tripId ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
                   )}
                 >
@@ -162,7 +142,7 @@ export function AdvancedOptions({
                     type="button"
                     onClick={() => setTripId(trip.id)}
                     className={cn(
-                      "w-full text-left px-2.5 py-1.5 text-xs rounded-lg font-medium flex items-center justify-between transition-all gap-2",
+                      "w-full text-left px-2.5 py-2 text-xs rounded-lg font-medium flex items-center justify-between transition-all gap-2",
                       tripId === trip.id ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
                     )}
                   >
@@ -295,7 +275,7 @@ export function AdvancedOptions({
                   value={totalInstallments.toString()}
                   onValueChange={(v) => setTotalInstallments(parseInt(v))}
                 >
-                  <SelectTrigger className="rounded-xl h-12">
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -363,7 +343,7 @@ export function AdvancedOptions({
               <div className="space-y-2">
                 <Label className="text-sm">Frequência</Label>
                 <Select value={frequency} onValueChange={(v: any) => setFrequency(v)}>
-                  <SelectTrigger className="rounded-xl h-12">
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -384,7 +364,7 @@ export function AdvancedOptions({
                     value={recurrenceDay}
                     onChange={(e) => setRecurrenceDay(parseInt(e.target.value) || 1)}
                     placeholder="1-31"
-                    className="rounded-xl h-12"
+                    className="rounded-xl"
                   />
                 </div>
               )}
@@ -412,7 +392,7 @@ export function AdvancedOptions({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal rounded-xl h-12 border-border/80"
+                    className="w-full justify-start text-left font-normal rounded-xl border-border/80"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                     {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}

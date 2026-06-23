@@ -246,7 +246,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
           </TabsList>
 
           <TabsContent value="global" className="flex-1 overflow-hidden flex flex-col mt-6">
-            <div className="flex items-center justify-center gap-6 py-2">
+            <div className="flex items-center justify-center gap-4 py-1.5">
               <Button variant="ghost" size="icon" onClick={() => setYear(y => y - 1)}>
                 <ChevronLeft className="h-6 w-6" />
               </Button>
@@ -258,7 +258,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             
             <div className="flex-1 overflow-y-auto space-y-4 py-4 no-scrollbar pr-4">
               {months.map((month, index) => (
-                <div key={month.date} className="flex items-center gap-6 p-4 rounded-2xl border border-border">
+                <div key={month.date} className="flex items-center gap-4 p-3 rounded-xl border border-border">
                   <div className="flex items-center gap-4 flex-1">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-sm">{month.label}</span>

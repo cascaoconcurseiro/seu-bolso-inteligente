@@ -131,9 +131,9 @@ export function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-8 animate-fade-in">
+      <div className="space-y-5 animate-fade-in">
         {/* Hero skeleton */}
-        <div className="relative overflow-hidden p-6 md:p-8 rounded-4xl border border-border/50 bg-card/50">
+        <div className="relative overflow-hidden p-4 md:p-6 rounded-3xl border border-border/50 bg-card/50">
           <div className="space-y-4">
             <div className="skeleton h-4 w-48 rounded-lg" />
             <div className="skeleton h-16 w-72 rounded-xl" />
@@ -144,8 +144,8 @@ export function Dashboard() {
           </div>
         </div>
         {/* Cards grid skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-8 space-y-4">
             <div className="skeleton h-40 w-full rounded-2xl" />
             <div className="space-y-3">
               {[1, 2, 3, 4].map(i => (
@@ -164,18 +164,18 @@ export function Dashboard() {
 
   if (hasError) {
     return (
-      <div className="space-y-8 animate-fade-in">
+      <div className="space-y-5 animate-fade-in">
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
-        <div className="text-center py-16 bg-background border border-border rounded-2xl">
-          <div className="w-16 h-16 bg-negative/10 text-negative rounded-full flex items-center justify-center mb-4 mx-auto">
-            <TrendingUp className="h-8 w-8 rotate-180" />
+        <div className="text-center py-12 bg-background border border-border rounded-2xl">
+          <div className="w-14 h-14 bg-negative/10 text-negative rounded-full flex items-center justify-center mb-3 mx-auto">
+            <TrendingUp className="h-7 w-7 rotate-180" />
           </div>
-          <h1 className="font-display font-bold text-2xl tracking-tight mb-2">
+          <h1 className="font-display font-bold text-xl tracking-tight mb-2">
             Erro ao carregar dashboard
           </h1>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
             Não conseguimos buscar seus dados financeiros no momento. Isso pode ser um problema temporário de conexão.
           </p>
           <Button onClick={() => window.location.reload()} variant="outline">
@@ -188,27 +188,27 @@ export function Dashboard() {
 
   if (!hasAccounts && !hasTransactions) {
     return (
-      <div className="space-y-8 animate-fade-in flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="space-y-5 animate-fade-in flex flex-col items-center justify-center min-h-[60vh]">
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
         
-        <div className="relative overflow-hidden w-full max-w-2xl mx-auto rounded-[2.5rem] bg-gradient-to-br from-card to-card/50 border border-border/50 shadow-2xl p-10 text-center backdrop-blur-xl">
+        <div className="relative overflow-hidden w-full max-w-2xl mx-auto rounded-[2.5rem] bg-gradient-to-br from-card to-card/50 border border-border/50 shadow-2xl p-8 text-center backdrop-blur-xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-[60px] rounded-full z-0 pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-24 h-24 bg-background rounded-3xl flex items-center justify-center shadow-lg border border-white/5 mb-8 rotate-3 transition-transform hover:rotate-6">
-              <Wallet className="w-12 h-12 text-primary" />
+            <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center shadow-lg border border-white/5 mb-6 rotate-3 transition-transform hover:rotate-6">
+              <Wallet className="w-10 h-10 text-primary" />
             </div>
             
-            <h1 className="text-3xl font-display font-bold mb-4 tracking-tight">O palco está montado</h1>
-            <p className="text-muted-foreground text-base mb-10 max-w-md mx-auto">
+            <h1 className="text-2xl font-display font-bold mb-3 tracking-tight">O palco está montado</h1>
+            <p className="text-muted-foreground text-base mb-8 max-w-md mx-auto">
               Seu império financeiro começa aqui. Adicione sua primeira conta para ver a mágica do Pé de Meia acontecer.
             </p>
             
             <Link to="/contas">
-              <Button size="lg" className="h-14 px-8 text-base rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
+              <Button size="lg" className="px-8 text-base rounded-2xl shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all">
                 <CreditCard className="h-5 w-5 mr-3" />
                 Adicionar Primeira Conta
               </Button>
@@ -220,7 +220,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <GreetingCard className="animate-fade-in-down" />
       <PendingInvitationsAlert />
       <PendingTripInvitationsAlert />
@@ -282,10 +282,10 @@ export function Dashboard() {
           <TripDashboardView />
         </div>
       ) : (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-5 md:space-y-6 animate-in fade-in duration-500">
           <DashboardQuickAccess />
 
-          <div className="space-y-6 md:space-y-8">
+          <div className="space-y-5 md:space-y-6">
             <DashboardInvoices
               creditCardsWithBalance={creditCardsWithBalance}
               formatCurrency={(val) => moneyUtils.format(val, 'BRL')}

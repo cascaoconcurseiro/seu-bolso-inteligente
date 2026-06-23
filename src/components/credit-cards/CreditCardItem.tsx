@@ -71,7 +71,7 @@ export function CreditCardItem({
                 "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
                 invoice.status === 'CLOSED' 
                   ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20" 
-                  : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                  : "bg-accent/10 text-accent border-accent/20"
               )}>
                 {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
               </span>

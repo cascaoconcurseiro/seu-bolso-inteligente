@@ -74,7 +74,7 @@ export function DashboardRecentActivity({
                   <div className={cn(
                     "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
                     isIncome ? "bg-green-500/10 text-green-600" : 
-                    isTransfer ? "bg-blue-500/10 text-blue-600" : 
+                    isTransfer ? "bg-accent/10 text-accent" : 
                     "bg-muted text-muted-foreground"
                   )}>
                     {tx.category?.icon || (isIncome ? "💰" : isTransfer ? "⇄" : "💸")}
@@ -86,7 +86,7 @@ export function DashboardRecentActivity({
                         {tx.description}
                       </p>
                       {tx.is_shared && (
-                        <div className="w-1.5 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" title="Compartilhado" />
+                        <div className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_rgba(37,99,235,0.5)]" title="Compartilhado" />
                       )}
                     </div>
                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -100,7 +100,7 @@ export function DashboardRecentActivity({
                 <div className="text-right shrink-0 ml-4">
                   <p className={cn(
                     "font-display font-black text-sm md:text-base tracking-tight",
-                    isIncome ? "text-green-600" : isTransfer ? "text-blue-600" : "text-foreground",
+                    isIncome ? "text-green-600" : isTransfer ? "text-accent" : "text-foreground",
                     isPrivate && "blur-md opacity-50 select-none"
                   )}>
                     {isPrivate ? "•••••" : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}`}

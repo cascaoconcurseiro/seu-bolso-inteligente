@@ -61,10 +61,10 @@ export function TripDetailSummary({
       {/* Meu Gasto Individual */}
       <div className="group p-5 rounded-4xl border border-border/40 bg-card/60 backdrop-blur-md shadow-sm relative overflow-hidden transition-all hover:shadow-md">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
-          <Users className="w-20 h-20 text-blue-500" />
+          <Users className="w-20 h-20 text-accent" />
         </div>
         <div className="relative z-10 flex items-center justify-between mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+          <div className="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
             <Users className="h-6 w-6" />
           </div>
           <span className="text-sm font-black text-muted-foreground uppercase tracking-widest">Meu Gasto</span>

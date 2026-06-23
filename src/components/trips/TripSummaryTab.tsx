@@ -127,10 +127,10 @@ export function TripSummaryTab({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <button 
           onClick={onAddParticipant}
-          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all group backdrop-blur-sm"
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-accent/30 hover:shadow-accent/10 transition-all group backdrop-blur-sm"
         >
-          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-            <Users className="h-6 w-6 text-blue-500" />
+          <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <Users className="h-6 w-6 text-accent" />
           </div>
           <span className="font-bold text-sm text-center leading-tight">Convidar<br/>Amigos</span>
         </button>
@@ -157,10 +157,10 @@ export function TripSummaryTab({
 
         <button 
           onClick={() => setActiveTab && setActiveTab("checklist")}
-          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.1)] transition-all group backdrop-blur-sm"
+          className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-accent/30 hover:shadow-accent/10 transition-all group backdrop-blur-sm"
         >
-          <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-            <CheckCircle className="h-6 w-6 text-purple-500" />
+          <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <CheckCircle className="h-6 w-6 text-accent" />
           </div>
           <span className="font-bold text-sm text-center leading-tight">Fazer as<br/>Malas</span>
         </button>
@@ -201,7 +201,7 @@ export function TripSummaryTab({
           </div>
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-              <User className="h-4 w-4 text-blue-500" />
+              <User className="h-4 w-4 text-accent" />
               <h3 className="text-sm font-bold uppercase tracking-widest">Meu Gasto (Orçamento)</h3>
             </div>
             <p className="font-mono text-3xl font-black tracking-tighter text-foreground mb-1">
@@ -213,7 +213,7 @@ export function TripSummaryTab({
             {myPersonalBudget && (
               <div className="mt-3 pt-3 border-t border-border/50">
                 <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">Orçamento Pessoal</p>
-                <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-sm font-mono font-bold text-accent">
                   {((myTotalSpent / myPersonalBudget) * 100).toFixed(1)}% utilizado
                 </p>
               </div>
@@ -244,7 +244,7 @@ export function TripSummaryTab({
           </div>
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-4 text-muted-foreground">
-              <Receipt className="h-4 w-4 text-purple-500" />
+              <Receipt className="h-4 w-4 text-accent" />
               <h3 className="text-sm font-bold uppercase tracking-widest">Compartilhados que Paguei</h3>
             </div>
             <p className="font-mono text-3xl font-black tracking-tighter text-foreground mb-1">
@@ -255,7 +255,7 @@ export function TripSummaryTab({
             </p>
             <div className="mt-3 pt-3 border-t border-border/50">
               <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">Total do Grupo</p>
-              <p className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">
+              <p className="text-sm font-mono font-bold text-accent">
                 {moneyUtils.format(totalSharedExpenses, currency)}
               </p>
             </div>
@@ -337,14 +337,14 @@ export function TripSummaryTab({
             isSettled 
               ? "border-green-500/20 bg-green-500/5"
               : myBalance.balance >= 0
-                ? "border-blue-500/20 bg-blue-500/5"
+                ? "border-accent/20 bg-accent/5"
                 : "border-orange-500/20 bg-orange-500/5"
           )}>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
               <div className="flex items-center gap-5">
                 <div className={cn(
                   "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110",
-                  isSettled ? "bg-green-500 shadow-green-500/20" : myBalance.balance >= 0 ? "bg-blue-500 shadow-blue-500/20" : "bg-orange-500 shadow-orange-500/20"
+                  isSettled ? "bg-green-500 shadow-green-500/20" : myBalance.balance >= 0 ? "bg-accent shadow-accent/20" : "bg-orange-500 shadow-orange-500/20"
                 )}>
                   {isSettled ? <CheckCircle className="h-8 w-8 text-white" /> : <Wallet className="h-8 w-8 text-white" />}
                 </div>
@@ -374,7 +374,7 @@ export function TripSummaryTab({
                   <p className={cn(
                     "font-mono text-2xl font-black tracking-tighter",
                     isSettled ? "text-green-600 dark:text-green-400" :
-                    myBalance.balance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-orange-600 dark:text-orange-400"
+                    myBalance.balance >= 0 ? "text-accent" : "text-orange-600 dark:text-orange-400"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (
                       <>{myBalance.balance >= 0 ? "+" : ""}{moneyUtils.format(myBalance.balance, currency)}</>
@@ -389,7 +389,7 @@ export function TripSummaryTab({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground italic">
                   <Info className="h-4 w-4" />
                   {waitingMyConfirmation ? (
-                    <span className="text-blue-600 dark:text-blue-400 font-semibold">Existem pagamentos aguardando sua confirmação de recebimento.</span>
+                    <span className="text-accent font-semibold">Existem pagamentos aguardando sua confirmação de recebimento.</span>
                   ) : waitingTheirConfirmation ? (
                     <span className="text-orange-600 dark:text-orange-400 font-semibold">Aguardando o credor confirmar o seu pagamento.</span>
                   ) : myBalance.balance >= 0 
@@ -457,7 +457,7 @@ export function TripSummaryTab({
                         Saldo: <span className={cn(
                           "font-bold",
                           Math.abs(currentBalance) < 0.01 ? "text-muted-foreground" :
-                          currentBalance < 0 ? "text-orange-600 dark:text-orange-400" : "text-blue-600 dark:text-blue-400"
+                          currentBalance < 0 ? "text-orange-600 dark:text-orange-400" : "text-accent"
                         )}>
                           {moneyUtils.format(currentBalance, currency)}
                         </span>

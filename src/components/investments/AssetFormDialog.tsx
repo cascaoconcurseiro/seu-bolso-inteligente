@@ -273,11 +273,11 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left",
                   location === 'ABROAD'
-                    ? "border-blue-500 bg-blue-500/5"
-                    : "border-border hover:border-blue-300"
+                    ? "border-accent bg-accent/5"
+                    : "border-border hover:border-accent/30"
                 )}
               >
-                <Globe className="w-7 h-7 text-blue-500 shrink-0" />
+                <Globe className="w-7 h-7 text-accent shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">Exterior</p>
                   <p className="text-sm text-muted-foreground">NYSE · NASDAQ · etc.</p>
@@ -357,15 +357,15 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
 
           {/* Renda Fixa: Taxa do CDI */}
           {type === 'BOND' && (
-            <div className="space-y-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-              <Label className="text-blue-600 dark:text-blue-400 font-bold">Rendimento (% do CDI)</Label>
+            <div className="space-y-2 p-3 bg-accent/10 border border-accent/20 rounded-xl">
+              <Label className="text-accent font-bold">Rendimento (% do CDI)</Label>
               <Input type="number" inputMode="decimal"
                 value={cdiRate}
                 onChange={(e) => setCdiRate(e.target.value)}
                 placeholder="Ex: 110"
                 className="bg-background"
               />
-              <p className="text-sm text-blue-600/80 dark:text-blue-400/80">Opcional. Preencha para calcular o rendimento automático.</p>
+              <p className="text-sm text-accent/80">Opcional. Preencha para calcular o rendimento automático.</p>
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { FastForward, Lock, User, CheckCircle, Clock, Users, HandCoins, Edit, Trash2 } from "lucide-react";
+import { FastForward, Lock, CheckCircle, Clock, Users, HandCoins, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
 import { Transaction } from "@/utils/transactionUtils";
@@ -167,7 +167,7 @@ export function TransactionItem({
       <div
         className={cn(
           "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background cursor-pointer relative z-10",
-          settled && "opacity-60 bg-green-50/30 dark:bg-green-950/10",
+          settled && "opacity-60 bg-success/5 dark:bg-success/10",
           touchStartX.current === null && "transition-transform duration-200"
         )}
         style={{ transform: `translateX(${isSwiped ? -80 : swipeOffset}px)` }}
@@ -183,11 +183,11 @@ export function TransactionItem({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-      <div className="flex items-start gap-3 md:gap-4 flex-1 min-w-0">
+      <div className="flex items-start gap-2 md:gap-2 flex-1 min-w-0">
         <div className={cn(
           "w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-base md:text-lg shrink-0",
-          isTransfer ? "bg-blue-500/10 text-blue-500" :
-          transaction.type === "INCOME" ? "bg-positive/10" : "bg-muted"
+          isTransfer ? "bg-accent/12 text-accent" :
+          transaction.type === "INCOME" ? "bg-success/12 text-success" : "bg-muted text-muted-foreground"
         )}>
           {isTransfer ? <FastForward className="h-4 w-4 md:h-5 md:w-5 rotate-90" /> : 
            transaction.category?.icon || (transaction.type === "INCOME" ? "💰" : "💸")}
@@ -210,20 +210,9 @@ export function TransactionItem({
               />
             )}
             {isMirror && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm font-medium bg-muted text-muted-foreground">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground">
                 <Lock className="h-3 w-3" />
                 Espelhada
-              </span>
-            )}
-            {transaction.is_shared && creatorName && (
-              <span className={cn(
-                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                creatorName === 'Você' 
-                  ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
-                  : "bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400"
-              )}>
-                <User className="h-3 w-3" />
-                Criado por {creatorName}
               </span>
             )}
           </div>
@@ -249,12 +238,12 @@ export function TransactionItem({
               <>
                 <span>·</span>
                 <span className={cn(
-                  "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium",
+                  "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium",
                   settled 
-                    ? "bg-positive/10 text-positive" 
+                    ? "bg-success/12 text-success" 
                     : pending 
-                      ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400"
-                      : "bg-muted"
+                      ? "bg-warning/12 text-warning"
+                      : "bg-muted text-muted-foreground"
                 )}>
                   {settled ? (
                     <><CheckCircle className="h-3 w-3" /> Acertado</>
@@ -263,19 +252,6 @@ export function TransactionItem({
                   ) : (
                     <><Users className="h-3 w-3" /> Dividido</>
                   )}
-                </span>
-              </>
-            )}
-            {payerInfo && (
-              <>
-                <span>·</span>
-                <span className={cn(
-                  "text-xs px-1.5 py-0.5 rounded font-medium",
-                  payerInfo.isMe 
-                    ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400"
-                    : "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
-                )}>
-                  {payerInfo.label}
                 </span>
               </>
             )}

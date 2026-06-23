@@ -102,7 +102,7 @@ export function TransactionDetailsModal({
               {isTransfer ? "🔄" : (transaction.category?.icon || (isIncome ? "💰" : "💸"))}
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="truncate">{transaction.description}</DialogTitle>
+              <DialogTitle className="truncate text-left">{transaction.description}</DialogTitle>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
                 {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
               </p>
@@ -112,7 +112,7 @@ export function TransactionDetailsModal({
 
         <div className="space-y-5">
           {/* Valor em destaque */}
-          <div className="rounded-2xl bg-muted/50 p-5 text-center">
+          <div className="rounded-2xl bg-muted p-5 text-center">
             {isTransfer ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -148,33 +148,33 @@ export function TransactionDetailsModal({
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Data */}
-              <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1.5">
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <Calendar className="h-3.5 w-3.5" />
                   Data
                 </p>
-                <p className="text-sm font-medium">{formatDate(transaction.date)}</p>
+                <p className="text-[13px] font-medium">{formatDate(transaction.date)}</p>
               </div>
 
               {/* Conta */}
               {transaction.account && (
-                <div className="space-y-1.5">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <Wallet className="h-3.5 w-3.5" />
                     Conta
                   </p>
-                  <p className="text-sm font-medium">{transaction.account.name}</p>
+                  <p className="text-[13px] font-medium">{transaction.account.name}</p>
                 </div>
               )}
 
               {/* Categoria */}
               {(transaction.category || isTransfer) && (
-                <div className="space-y-1.5">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <Tag className="h-3.5 w-3.5" />
                     {isTransfer ? "Tipo" : "Categoria"}
                   </p>
-                  <p className="text-sm font-medium flex items-center gap-1.5">
+                  <p className="text-[13px] font-medium flex items-center gap-1.5">
                     <span className="text-lg">{isTransfer ? "🔄" : (transaction.category?.icon || "🏷️")}</span>
                     {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
                   </p>
@@ -183,12 +183,12 @@ export function TransactionDetailsModal({
 
               {/* Viagem */}
               {transaction.trip && (
-                <div className="space-y-1.5">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <Plane className="h-3.5 w-3.5" />
                     Viagem
                   </p>
-                  <p className="text-sm font-medium">{transaction.trip.name}</p>
+                  <p className="text-[13px] font-medium">{transaction.trip.name}</p>
                 </div>
               )}
             </div>
@@ -197,7 +197,7 @@ export function TransactionDetailsModal({
             {(isInstallment || isShared || transaction.is_recurring) && (
               <div className="flex flex-wrap gap-2">
                 {isInstallment && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs rounded-xl">
+                  <Badge variant="secondary" className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground">
                     <Repeat className="h-3.5 w-3.5" />
                     Parcela {transaction.current_installment}/{transaction.total_installments}
                   </Badge>
@@ -206,9 +206,10 @@ export function TransactionDetailsModal({
                   <Badge 
                     variant="secondary" 
                     className={cn(
-                      "gap-1.5 px-3 py-1.5 text-xs rounded-xl",
-                      isFullySettled && "bg-positive/10 text-positive border-positive/20",
-                      hasPendingSplits && "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+                      "gap-2 text-[11px] px-2 py-[2px] rounded-xl",
+                      isFullySettled && "bg-success/12 text-success",
+                      hasPendingSplits && "bg-warning/12 text-warning",
+                      !isFullySettled && !hasPendingSplits && "bg-secondary/12 text-secondary-foreground"
                     )}
                   >
                     {isFullySettled ? (
@@ -221,7 +222,7 @@ export function TransactionDetailsModal({
                   </Badge>
                 )}
                 {transaction.is_recurring && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs rounded-xl">
+                  <Badge variant="secondary" className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground">
                     <Repeat className="h-3.5 w-3.5" />
                     Recorrente
                   </Badge>
@@ -232,24 +233,24 @@ export function TransactionDetailsModal({
             {/* Divisão */}
             {isShared && splits.length > 0 && (
               <div className="space-y-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Divisão</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Divisão</p>
                 <div className="space-y-2">
                   {splits.map((split: DBTransactionSplit) => (
                     <div
                       key={split.id}
-                      className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50"
+                      className="flex items-center justify-between p-3 rounded-xl bg-muted border border-border"
                     >
                       <div className="flex items-center gap-2.5">
                         {split.is_settled ? (
                           <CheckCircle className="h-4 w-4 text-positive" />
                         ) : (
-                          <Clock className="h-4 w-4 text-amber-500" />
+                          <Clock className="h-4 w-4 text-warning" />
                         )}
                         <span className="text-sm font-medium">{split.name}</span>
                       </div>
                       <span className={cn(
                         "font-mono text-sm font-bold",
-                        split.is_settled ? "text-positive" : "text-amber-600 dark:text-amber-400"
+                        split.is_settled ? "text-positive" : "text-warning"
                       )}>
                         {formatCurrency(split.amount)}
                       </span>
@@ -262,7 +263,7 @@ export function TransactionDetailsModal({
             {/* Observações */}
             {transaction.notes && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-1.5">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                   <FileText className="h-3.5 w-3.5" />
                   Observações
                 </p>
@@ -275,7 +276,7 @@ export function TransactionDetailsModal({
           <div className="space-y-2.5">
             {onEdit && (
               <Button
-                variant="default"
+                variant="outline"
                 className="w-full gap-2"
                 size="default"
                 onClick={() => {

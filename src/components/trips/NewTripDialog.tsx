@@ -125,7 +125,7 @@ export function NewTripDialog({
               placeholder="Ex: Rio de Janeiro, RJ" 
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="h-12 rounded-xl"
+              className="rounded-xl"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ export function NewTripDialog({
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="h-12 rounded-xl"
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -145,7 +145,7 @@ export function NewTripDialog({
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate} // Não permitir data anterior ao início
-                className="h-12 rounded-xl"
+                className="rounded-xl"
               />
             </div>
           </div>
@@ -164,7 +164,7 @@ export function NewTripDialog({
             <div className="space-y-2">
               <Label>Moeda</Label>
               <Select value={localCurrency} onValueChange={handleCurrencyChange}>
-                <SelectTrigger className="h-12 rounded-xl">
+                <SelectTrigger className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -232,9 +232,9 @@ export function NewTripDialog({
           )}
 
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button 
-              className="flex-1 rounded-xl h-12 font-bold"
+              className="flex-1 rounded-xl font-bold"
               onClick={handleSubmit} 
               disabled={isLoading || !destination || !startDate || !endDate}
             >

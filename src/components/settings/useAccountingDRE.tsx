@@ -827,9 +827,9 @@ export function useAccountingDRE() {
     if (Object.keys(sub).length === 0) {
       return (
         <tr className="bg-muted/10 text-sm text-muted-foreground font-mono">
-          <td className="pl-12 py-1.5 text-left italic">Nenhuma movimentação registrada</td>
-          <td className="pr-6 py-1.5 text-right font-semibold">-</td>
-          <td className="pr-6 py-1.5 text-right">-</td>
+          <td className="pl-12 py-2 text-left italic">Nenhuma movimentação registrada</td>
+          <td className="pr-6 py-2 text-right font-semibold">-</td>
+          <td className="pr-6 py-2 text-right">-</td>
         </tr>
       );
     }

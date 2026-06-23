@@ -126,8 +126,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
       </div>
 
       {/* 2. Banner de Aviso/Explicação */}
-      <div className="flex gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 text-sm">
-        <AlertCircle className="w-5 h-5 shrink-0 text-blue-500" />
+      <div className="flex gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20 text-accent text-sm">
+        <AlertCircle className="w-5 h-5 shrink-0 text-accent" />
         <div className="space-y-2">
           <span className="font-bold">Demonstrativo Informativo Auxiliar</span>
           <p>
@@ -462,9 +462,9 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </span>
             </Card>
 
-            <Card className="p-4 border-blue-500/20 bg-blue-600/5">
+            <Card className="p-4 border-accent/20 bg-accent/5">
               <span className="text-sm text-muted-foreground block font-semibold">Volume de Vendas no Ano</span>
-              <span className="text-base font-display font-black text-blue-600 dark:text-blue-400 mt-1 block">
+              <span className="text-base font-display font-black text-accent mt-1 block">
                 R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.vendas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>

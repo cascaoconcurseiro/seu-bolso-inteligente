@@ -83,7 +83,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
                       Finalizada
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-sm font-bold text-blue-300 uppercase tracking-wider">
+                    <span className="px-2 py-0.5 rounded-full bg-accent/20 border border-accent/30 text-sm font-bold text-blue-300 uppercase tracking-wider">
                       Planejando
                     </span>
                   )}

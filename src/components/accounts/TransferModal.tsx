@@ -168,7 +168,7 @@ export function TransferModal({
                       <div className="flex items-center gap-2 font-medium">
                         {account.name}
                         {account.is_international && (
-                          <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-sm bg-accent/15 text-accent px-2 py-0.5 rounded-full uppercase tracking-wider">
                             {account.currency}
                           </span>
                         )}
@@ -182,7 +182,7 @@ export function TransferModal({
 
           {/* Alerta de transferência cross-currency */}
           {isCrossCurrency && (
-            <Alert className="border-blue-200/50 bg-blue-50/50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 rounded-xl">
+            <Alert className="border-accent/20 bg-accent/10 text-accent rounded-xl">
               <ArrowRightLeft className="h-4 w-4" />
               <AlertDescription className="text-sm font-medium">
                 Transferência internacional ({fromAccountCurrency} → {destCurrency}).
@@ -228,9 +228,9 @@ export function TransferModal({
 
               {/* Valor de destino calculado */}
               {destinationAmount && (
-                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex flex-col gap-1">
-                  <p className="text-sm text-blue-600/80 dark:text-blue-400/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
-                  <p className="font-mono font-black text-2xl text-blue-700 dark:text-blue-400">
+                <div className="p-4 rounded-xl bg-accent/10 border border-accent/20 flex flex-col gap-1">
+                  <p className="text-sm text-accent/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
+                  <p className="font-mono font-black text-2xl text-accent">
                     {getCurrencySymbol(destCurrency)} {destinationAmount}
                   </p>
                 </div>

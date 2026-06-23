@@ -104,7 +104,7 @@ export function AccountSelector({
     };
 
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label>{customLabel || getAccountLabel()}</Label>
         <Select value={accountId} onValueChange={setAccountId}>
           <SelectTrigger>
@@ -152,7 +152,7 @@ export function AccountSelector({
 
   return (
     <>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         <Label>Sai de (Origem)</Label>
         <Select value={accountId} onValueChange={setAccountId}>
           <SelectTrigger>
@@ -179,7 +179,7 @@ export function AccountSelector({
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         
         <div className="flex items-center justify-between">
           <Label>Vai para (Destino)</Label>

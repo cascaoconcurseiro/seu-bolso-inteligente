@@ -65,7 +65,7 @@ export function RemoveParticipantDialog({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl h-12 px-5">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl px-5">
               Fechar
             </Button>
           </DialogFooter>
@@ -109,20 +109,20 @@ export function RemoveParticipantDialog({
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
         {activeMode === "choose" ? (
-          <div className="space-y-6 my-4 max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-4 my-4 max-h-[60vh] overflow-y-auto pr-2">
             {/* Visualização de Saldos do Participante */}
             <div className={cn(
-              "p-5 rounded-2xl border transition-all duration-300",
+              "p-5 rounded-xl border transition-all duration-300",
               isSettled 
                 ? "border-green-500/20 bg-green-500/5 dark:bg-green-500/[0.02]" 
                 : owesGroup
                   ? "border-orange-500/20 bg-orange-500/5 dark:bg-orange-500/[0.02]"
-                  : "border-blue-500/20 bg-blue-500/5 dark:bg-blue-500/[0.02]"
+                  : "border-accent/20 bg-accent/5 dark:bg-accent/[0.02]"
             )}>
               <div className="flex items-center gap-3.5 mb-4">
                 <div className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center shadow-md",
-                  isSettled ? "bg-green-500 text-white" : owesGroup ? "bg-orange-500 text-white" : "bg-blue-500 text-white"
+                  isSettled ? "bg-green-500 text-white" : owesGroup ? "bg-orange-500 text-white" : "bg-accent text-white"
                 )}>
                   {isSettled ? <CheckCircle2 className="h-5 w-5" /> : <Wallet className="h-5 w-5" />}
                 </div>
@@ -156,7 +156,7 @@ export function RemoveParticipantDialog({
                   <p className={cn(
                     "font-mono text-xs font-black",
                     isSettled ? "text-green-600 dark:text-green-400" :
-                    owesGroup ? "text-orange-600 dark:text-orange-400" : "text-blue-600 dark:text-blue-400"
+                    owesGroup ? "text-orange-600 dark:text-orange-400" : "text-accent"
                   )}>
                     {isSettled ? moneyUtils.format(0, currency) : (owesGroup ? "-" : "+") + moneyUtils.format(Math.abs(currentBalance), currency)}
                   </p>
@@ -184,7 +184,7 @@ export function RemoveParticipantDialog({
                     }
                     setActiveMode("settle");
                   }}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-muted/30 hover:border-primary/20 text-left transition-all group"
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/30 hover:border-primary/20 text-left transition-all group"
                 >
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 group-hover:bg-primary/20 text-primary flex items-center justify-center shrink-0 transition-colors">
@@ -203,10 +203,10 @@ export function RemoveParticipantDialog({
                 <button
                   onClick={onConfirmForgiveRemove}
                   disabled={isRemoving}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-muted/30 hover:border-primary/20 text-left transition-all group disabled:opacity-50"
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/30 hover:border-primary/20 text-left transition-all group disabled:opacity-50"
                 >
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-accent/10 group-hover:bg-accent/20 text-accent flex items-center justify-center shrink-0 transition-colors">
                       <HeartHandshake className="h-5 w-5" />
                     </div>
                     <div>
@@ -224,7 +224,7 @@ export function RemoveParticipantDialog({
                 <button
                   onClick={onConfirmDirectRemove}
                   disabled={isRemoving}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-border bg-card hover:bg-muted/30 hover:border-destructive/20 text-left transition-all group disabled:opacity-50"
+                  className="w-full flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/30 hover:border-destructive/20 text-left transition-all group disabled:opacity-50"
                 >
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-destructive/10 group-hover:bg-destructive/20 text-destructive flex items-center justify-center shrink-0 transition-colors">
@@ -242,7 +242,7 @@ export function RemoveParticipantDialog({
             )}
           </div>
         ) : (
-          <div className="space-y-6 my-4 animate-fade-in">
+          <div className="space-y-4 my-4 animate-fade-in">
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex gap-3">
                 <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
@@ -257,7 +257,7 @@ export function RemoveParticipantDialog({
                   <p className="text-sm text-destructive">Nenhuma conta cadastrada para registrar a transação.</p>
                 ) : (
                   <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                    <SelectTrigger className="w-full h-12 rounded-xl border-border bg-card">
+                    <SelectTrigger className="w-full rounded-xl border-border bg-card">
                       <SelectValue placeholder="Selecione a conta..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-border bg-card/95 backdrop-blur-md">
@@ -277,14 +277,14 @@ export function RemoveParticipantDialog({
                 variant="outline" 
                 onClick={() => setActiveMode("choose")}
                 disabled={isRemoving}
-                className="rounded-xl h-12 px-5"
+                className="rounded-xl px-5"
               >
                 Voltar
               </Button>
               <Button 
                 onClick={handleSettleSubmit}
                 disabled={isRemoving || !selectedAccountId}
-                className="rounded-xl h-12 px-5 shadow-lg shadow-primary/20"
+                className="rounded-xl px-5 shadow-lg shadow-primary/20"
               >
                 {isRemoving ? "Processando..." : "Confirmar e Remover"}
               </Button>
@@ -297,7 +297,7 @@ export function RemoveParticipantDialog({
             variant="outline" 
             onClick={() => onOpenChange(false)}
             disabled={isRemoving}
-            className="rounded-xl h-12 px-5"
+            className="rounded-xl px-5"
           >
             Cancelar Remoção
           </Button>
@@ -306,7 +306,7 @@ export function RemoveParticipantDialog({
               variant="destructive" 
               onClick={onConfirmDirectRemove}
               disabled={isRemoving}
-              className="rounded-xl h-12 px-5 shadow-lg shadow-destructive/10"
+              className="rounded-xl px-5 shadow-lg shadow-destructive/10"
             >
               {isRemoving ? "Removendo..." : "Confirmar Remoção"}
             </Button>

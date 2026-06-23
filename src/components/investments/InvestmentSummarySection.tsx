@@ -35,8 +35,8 @@ export function InvestmentSummarySection({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-down">
       <div className="p-4 rounded-2xl bg-card border border-border hover:border-primary/20 hover:shadow-lg transition-all group">
         <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          <div className="p-1 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
-            <Globe className="w-3 h-3 text-blue-500" />
+          <div className="p-1 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
+            <Globe className="w-3 h-3 text-accent" />
           </div>
           <span className="text-sm uppercase font-bold tracking-[0.1em]">Brasil (BRL)</span>
         </div>
@@ -44,10 +44,10 @@ export function InvestmentSummarySection({
         <p className="text-sm text-muted-foreground mt-1">{brAssetsCount} ativos custodiados</p>
       </div>
       
-      <div className="p-4 rounded-2xl bg-card border border-border hover:border-purple/20 hover:shadow-lg transition-all group">
+      <div className="p-4 rounded-2xl bg-card border border-border hover:border-accent/20 hover:shadow-lg transition-all group">
         <div className="flex items-center gap-2 text-muted-foreground mb-2">
-          <div className="p-1 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-            <Coins className="w-3 h-3 text-purple-500" />
+          <div className="p-1 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
+            <Coins className="w-3 h-3 text-accent" />
           </div>
           <span className="text-sm uppercase font-bold tracking-[0.1em]">Exterior (Moeda)</span>
         </div>

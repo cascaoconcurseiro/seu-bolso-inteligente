@@ -151,7 +151,7 @@ export function ExchangePurchaseDialog({
                   type="date"
                   value={purchaseDate}
                   onChange={(e) => setPurchaseDate(e.target.value)}
-                  className="h-12 rounded-xl"
+                  className="rounded-xl"
                 />
               </div>
 
@@ -162,17 +162,17 @@ export function ExchangePurchaseDialog({
                   placeholder="Ex: Wise, Nomad..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="h-12 rounded-xl"
+                  className="rounded-xl"
                 />
               </div>
             </div>
           </div>
           
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1 rounded-xl h-12 font-bold" onClick={handleSubmit} disabled={isLoading || !isValid}>
+            <Button className="flex-1 rounded-xl font-bold" onClick={handleSubmit} disabled={isLoading || !isValid}>
               {isLoading ? "Salvando..." : isEditing ? "Salvar" : "Adicionar"}
             </Button>
           </div>

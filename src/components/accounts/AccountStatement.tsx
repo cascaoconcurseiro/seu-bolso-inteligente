@@ -109,7 +109,7 @@ export function AccountStatement({
                             isInitialBalance
                               ? "bg-primary/10"
                               : tx.type === "TRANSFER"
-                              ? "bg-blue-500/10"
+                              ? "bg-accent/10"
                               : isIncome
                               ? "bg-positive/10"
                               : "bg-negative/10"
@@ -117,7 +117,7 @@ export function AccountStatement({
                             {isInitialBalance ? (
                               <Landmark className="h-5 w-5 text-primary" />
                             ) : tx.type === "TRANSFER" ? (
-                              <ArrowUpDown className="h-5 w-5 text-blue-500" />
+                              <ArrowUpDown className="h-5 w-5 text-accent" />
                             ) : isIncome ? (
                               <TrendingUp className="h-5 w-5 text-positive" />
                             ) : (
@@ -133,7 +133,7 @@ export function AccountStatement({
                                 </span>
                               )}
                               {tx.is_shared && !isInitialBalance && (
-                                <span className="text-[9px] bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
+                                <span className="text-[9px] bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Compartilhado
                                 </span>
                               )}
@@ -162,7 +162,7 @@ export function AccountStatement({
                               isInitialBalance
                                 ? "text-primary"
                                 : tx.type === "TRANSFER"
-                                ? "text-blue-500"
+                                ? "text-accent"
                                 : isIncome
                                 ? "text-positive"
                                 : "text-negative",

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Globe, Wallet, ChevronRight, CreditCard } from "lucide-react";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { moneyUtils } from "@/utils/money";
@@ -138,20 +138,20 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
-        <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Wallet className="w-5 h-5 text-primary" />
+        <DialogHeader className="px-5 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
+          <DialogTitle className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Wallet className="w-4 h-4 text-primary" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-bold">Pagar Fatura</span>
-              <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <BankIcon bankId={card.bank_id} size="sm" />
+              <span className="text-sm font-bold">Pagar Fatura</span>
+              <span className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <BankIcon bankId={card.bank_id} size="xs" />
                 {card.name}
               </span>
             </div>
           </DialogTitle>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-3">
             <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
           </div>
@@ -168,12 +168,12 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-6 flex flex-col flex-1"
+                className="p-4 flex flex-col flex-1"
               >
-                <div className="flex-1 space-y-6">
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 flex flex-col items-center justify-center text-center">
-                    <span className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider">Total da fatura</span>
-                    <span className="text-3xl font-display font-bold text-foreground">
+                <div className="flex-1 space-y-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 flex flex-col items-center justify-center text-center">
+                    <span className="text-xs font-medium text-muted-foreground mb-0.5 uppercase tracking-wider">Total da fatura</span>
+                    <span className="text-2xl font-display font-bold text-foreground">
                       {formatCurrencyValue(invoiceTotal, cardCurrency)}
                     </span>
                   </div>
@@ -185,7 +185,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                       onChange={setAmountToPay}
                       currency={cardCurrency}
                       currencySymbol={currencies.find(c => c.value === cardCurrency)?.symbol || (cardCurrency === 'BRL' ? 'R$' : cardCurrency)}
-                      size="lg"
+                      size="md"
                       autoFocus
                     />
                     {currentAmountToPay < invoiceTotal && currentAmountToPay > 0 && (
@@ -217,10 +217,10 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="p-6 flex flex-col flex-1"
+                className="p-4 flex flex-col flex-1"
               >
-                <div className="flex-1 space-y-6">
-                  <div className="space-y-3">
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-2.5">
                     <Label className="text-sm font-semibold">De onde sairá o dinheiro?</Label>
                     <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
                       <SelectTrigger className="rounded-xl bg-background/50 border-white/10">

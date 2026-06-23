@@ -70,7 +70,7 @@ export function TripDetailHeader({
                   trip.status === "ACTIVE" 
                     ? "bg-green-500/10 text-green-600 border-green-500/20" 
                     : trip.status === "PLANNING"
-                    ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                    ? "bg-accent/10 text-accent border-accent/20"
                     : "bg-muted text-muted-foreground border-border/50"
                 )}>
                   {trip.status === "PLANNING" ? "Planejando" :

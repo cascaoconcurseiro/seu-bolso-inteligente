@@ -99,17 +99,17 @@ export function AITripSuggestions({
         onClick={handleOpen} 
         variant="outline" 
         size="sm"
-        className={buttonClassName || "relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-none shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105 active:scale-95"}
+        className={buttonClassName || "relative overflow-hidden group bg-accent hover:bg-accent/92 text-white border-none shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 active:scale-95"}
       >
         <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-1000 -skew-x-12 -translate-x-full z-0" />
-        <Sparkles className="h-4 w-4 mr-2 text-blue-100 relative z-10" />
+        <Sparkles className="h-4 w-4 mr-2 text-accent-foreground relative z-10" />
         <span className="font-bold tracking-wide relative z-10">Consultoria IA</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[500px] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+            <DialogTitle className="flex items-center gap-2 text-accent">
               <Sparkles className="h-5 w-5" />
               {titles[type]}
             </DialogTitle>
@@ -122,7 +122,7 @@ export function AITripSuggestions({
             {isLoading ? (
               <div className="space-y-4">
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                  <Loader2 className="h-8 w-8 animate-spin mb-4 text-blue-500" />
+                  <Loader2 className="h-8 w-8 animate-spin mb-4 text-accent" />
                   <p>A IA está montando sugestões personalizadas para {destination}...</p>
                 </div>
                 {/* Skeletons */}
@@ -168,7 +168,7 @@ export function AITripSuggestions({
                       key={index}
                       className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
                         selectedIndices.has(index) 
-                          ? 'border-blue-500/50 bg-blue-50/50 dark:bg-blue-900/20' 
+                          ? 'border-accent/50 bg-accent/10 dark:bg-accent/20' 
                           : 'border-border/50 hover:bg-muted/50'
                       }`}
                       onClick={() => toggleSelection(index)}
@@ -176,7 +176,7 @@ export function AITripSuggestions({
                       <Checkbox 
                         checked={selectedIndices.has(index)}
                         onCheckedChange={() => toggleSelection(index)}
-                        className="mt-1 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                        className="mt-1 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -210,7 +210,7 @@ export function AITripSuggestions({
             <Button 
               onClick={handleApply} 
               disabled={isLoading || suggestions.length === 0 || selectedIndices.size === 0}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-accent hover:bg-accent/92 text-white"
             >
               Adicionar {selectedIndices.size} {selectedIndices.size === 1 ? 'item' : 'itens'}
             </Button>

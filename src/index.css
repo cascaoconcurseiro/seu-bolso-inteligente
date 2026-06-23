@@ -3,104 +3,113 @@
 @tailwind utilities;
 
 /* 
- * Finance App — Minimal Design System
- * Palette: Black + White + subtle grays
- * Typography: Space Grotesk (display), Inter (body), JetBrains Mono (numbers)
+ * Pé de Meia — Design System Unificado (v2)
+ * Tokens: bg-page, bg-surface, bg-subtle, border, text-*, accent, success, danger, warning
+ * Escala: base-4 (4, 8, 12, 16, 24, 32, 48, 64)
+ * Tipografia: Space Grotesk (display), Inter (body), JetBrains Mono (numbers)
  */
 
 @layer base {
   :root {
-    /* Pure Minimal - Light Mode */
-    --background: 0 0% 100%;              /* Pure white */
-    --foreground: 0 0% 8%;                /* Near black */
-
-    --card: 0 0% 99%;                     /* Subtle off-white */
-    --card-foreground: 0 0% 8%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-
-    --primary: 0 0% 8%;                   /* Black as primary */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 96%;                /* Light gray */
-    --secondary-foreground: 0 0% 8%;
-
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 8%;
-
-    --destructive: 0 72% 51%;             /* Red for errors */
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 71% 45%;               /* Green for positive */
+    /* ===== SURFACE TOKENS (Light) ===== */
+    --bg-page: 210 17% 98%;                     /* #F8F9FA */
+    --bg-surface: 0 0% 100%;                    /* #FFFFFF */
+    --bg-subtle: 210 17% 95%;                   /* #F1F3F5 */
+    --border-color: 210 14% 93%;                /* #E9ECEF */
+    
+    /* ===== TEXT TOKENS (Light) ===== */
+    --text-primary: 222 39% 11%;                /* #111827 */
+    --text-secondary: 220 9% 46%;               /* #6B7280 */
+    --text-muted: 218 11% 65%;                  /* #9CA3AF */
+    
+    /* ===== SEMANTIC TOKENS (Light) ===== */
+    --accent: 221 83% 53%;                      /* #2563EB — azul profissional */
+    --accent-foreground: 0 0% 100%;
+    --success: 142 76% 36%;                     /* #16A34A */
     --success-foreground: 0 0% 100%;
-
-    --warning: 38 92% 50%;                /* Amber for warnings */
+    --danger: 0 72% 51%;                        /* #DC2626 */
+    --danger-foreground: 0 0% 100%;
+    --warning: 33 92% 44%;                      /* #D97706 */
     --warning-foreground: 0 0% 8%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 8%;
-
+    
+    /* ===== SHADCN/UI COMPAT (mapeados dos tokens acima) ===== */
+    --background: var(--bg-page);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-surface);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--text-primary);
+    --primary-foreground: var(--bg-surface);
+    --secondary: var(--bg-subtle);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-subtle);
+    --muted-foreground: var(--text-secondary);
+    --destructive: var(--danger);
+    --destructive-foreground: var(--danger-foreground);
+    --border: var(--border-color);
+    --input: var(--border-color);
+    --ring: 221 83% 53%;
+    
+    /* ===== FINANCEIRO ===== */
+    --positive: 142 76% 36%;
+    --negative: 0 72% 51%;
+    --neutral: 220 9% 46%;
+    
+    /* ===== LAYOUT (base-4) ===== */
     --radius: 0.5rem;
-
-    /* Layout & controls (8px scale) */
     --control-height: 2.5rem;       /* 40px */
     --control-height-sm: 2rem;      /* 32px */
     --control-height-lg: 3rem;      /* 48px */
-    --form-gap: 1rem;               /* 16px between fields */
-    --section-gap: 1.5rem;          /* 24px between sections */
+    --form-gap: 1rem;               /* 16px */
+    --section-gap: 1.5rem;          /* 24px */
     --page-padding: 1rem;           /* 16px mobile */
-    --page-padding-md: 1.5rem;        /* 24px desktop */
-
-    /* Financial semantics */
-    --positive: 142 71% 45%;              /* Green */
-    --negative: 0 72% 51%;                /* Red */
-    --neutral: 0 0% 45%;                  /* Gray */
+    --page-padding-md: 1.5rem;      /* 24px desktop */
   }
 
   .dark {
-    /* Pure Minimal - Dark Mode */
-    --background: 0 0% 4%;                /* Near black */
-    --foreground: 0 0% 95%;               /* Off white */
-
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 0 0% 100%;                 /* White as primary */
-    --primary-foreground: 0 0% 4%;
-
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 95%;
-
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 61% 50%;
+    /* ===== SURFACE TOKENS (Dark) ===== */
+    --bg-page: 225 22% 7%;                      /* #0F1117 */
+    --bg-surface: 220 15% 12%;                  /* #1A1D23 */
+    --bg-subtle: 220 15% 16%;                   /* #22262E */
+    --border-color: 220 12% 20%;                /* #2D3139 */
+    
+    /* ===== TEXT TOKENS (Dark) ===== */
+    --text-primary: 210 20% 98%;                /* #F9FAFB */
+    --text-secondary: 218 11% 65%;              /* #9CA3AF */
+    --text-muted: 220 9% 46%;                   /* #6B7280 */
+    
+    /* ===== SHADCN/UI COMPAT (Dark) ===== */
+    --background: var(--bg-page);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-surface);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--text-primary);
+    --primary-foreground: var(--bg-page);
+    --secondary: var(--bg-subtle);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-subtle);
+    --muted-foreground: var(--text-secondary);
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: var(--danger);
+    --destructive-foreground: var(--danger-foreground);
+    --border: var(--border-color);
+    --input: var(--border-color);
+    --ring: 221 83% 53%;
+    
+    /* ===== FINANCEIRO + SEMANTICO (Dark) ===== */
+    --success: 142 70% 45%;
     --success-foreground: 0 0% 4%;
-
-    --warning: 38 82% 55%;
+    --danger: 0 62% 55%;
+    --danger-foreground: 0 0% 100%;
+    --warning: 33 82% 55%;
     --warning-foreground: 0 0% 4%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 100%;
-
-    --positive: 142 61% 50%;
+    --positive: 142 70% 45%;
     --negative: 0 62% 55%;
-    --neutral: 0 0% 60%;
+    --neutral: 218 11% 65%;
   }
 }
 
@@ -153,9 +162,9 @@
 }
 
 @layer components {
-  /* Shared control surface — inputs, selects, triggers */
+  /* Shared control surface — inputs, selects, triggers (padding 10px 12px) */
   .control {
-    @apply flex w-full rounded-lg border border-input bg-background px-4 text-sm ring-offset-background transition-colors;
+    @apply flex w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm ring-offset-background transition-colors;
     @apply placeholder:text-muted-foreground;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
     @apply disabled:cursor-not-allowed disabled:opacity-50;
@@ -168,7 +177,8 @@
   }
 
   .form-field {
-    @apply flex flex-col gap-2;
+    @apply flex flex-col;
+    gap: 6px;
   }
 
   /* Expand touch area without changing visual size */
@@ -211,7 +221,7 @@
   }
 
   .installment-progress {
-    @apply h-1.5 rounded-full bg-muted overflow-hidden;
+    @apply h-2 rounded-full bg-muted overflow-hidden;
   }
 
   .installment-progress-fill {

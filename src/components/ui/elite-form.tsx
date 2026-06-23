@@ -16,7 +16,7 @@ interface EliteFormContainerProps {
 
 export function EliteFormContainer({ children, className }: EliteFormContainerProps) {
   return (
-    <div className={cn("flex flex-col h-full min-h-screen bg-background p-4 md:p-6 gap-6", className)}>
+    <div className={cn("flex flex-col h-full min-h-screen bg-background p-4 md:p-6 gap-4", className)}>
       {children}
     </div>
   );
@@ -41,8 +41,8 @@ export function EliteFormHeader({ title, subtitle, icon, onClose, progress }: El
               {icon}
             </div>
           )}
-          <div className="space-y-1 min-w-0">
-            <h1 className="font-display font-semibold text-xl md:text-2xl tracking-tight leading-tight">
+          <div className="space-y-2 min-w-0">
+            <h1 className="font-display font-semibold text-xl md:text-xl tracking-tight leading-tight">
               {title}
             </h1>
             {subtitle && (
@@ -88,13 +88,13 @@ interface EliteHighlightCardProps {
 export function EliteHighlightCard({ label, value, className }: EliteHighlightCardProps) {
   return (
     <div className={cn(
-      "rounded-lg bg-muted/50 p-6 flex flex-col items-center justify-center text-center gap-2",
+      "rounded-lg bg-muted/50 p-4 flex flex-col items-center justify-center text-center gap-2",
       className
     )}>
       <p className="text-sm text-muted-foreground font-medium">
         {label}
       </p>
-      <div className="font-display font-semibold text-2xl md:text-3xl tracking-tight value-display">
+      <div className="font-display font-semibold text-xl md:text-2xl tracking-tight value-display">
         {value}
       </div>
     </div>

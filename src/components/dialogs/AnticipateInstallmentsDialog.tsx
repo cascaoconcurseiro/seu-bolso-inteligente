@@ -244,7 +244,7 @@ export function AnticipateInstallmentsDialog({
                     variant="ghost"
                     size="sm"
                     onClick={handleSelectAll}
-                    className="text-sm h-7"
+                    className="text-sm h-8"
                   >
                     {selectedIds.length === futureInstallments.length
                       ? "Desmarcar todas"

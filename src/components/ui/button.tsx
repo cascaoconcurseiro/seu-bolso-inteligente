@@ -10,17 +10,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        // Primário: bg accent (azul #2563EB), texto branco
+        default: "bg-accent text-accent-foreground hover:bg-accent/92",
+        // Secundário: bg transparente, borda, texto primary
+        outline: "border border-input bg-transparent text-foreground hover:bg-accent/8",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline active:scale-100",
-        success: "bg-success text-success-foreground hover:bg-success/90",
+        ghost: "hover:bg-accent/8 text-foreground",
+        link: "text-accent underline-offset-4 hover:underline active:scale-100",
+        // Destrutivo: texto danger, sem borda, sem bg
+        destructive: "text-destructive hover:bg-destructive/8 border-0 bg-transparent",
       },
       size: {
         default: "h-10 px-4",
-        sm: "h-8 px-2 text-xs",
+        sm: "h-8 px-3 text-xs",
         lg: "h-12 px-6",
         icon: "h-10 w-10 tap-target",
       },

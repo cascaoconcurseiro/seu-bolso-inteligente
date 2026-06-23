@@ -68,12 +68,12 @@ export function DeleteTransactionModal({
         </AlertDialogHeader>
 
         {transaction.is_installment && (
-          <div className="py-2 space-y-4">
-            <div className="space-y-3">
+          <div className="py-2 space-y-3">
+            <div className="space-y-2">
               <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Opções de Exclusão (Compra Parcelada):
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <input 
                     type="radio" 
@@ -121,7 +121,7 @@ export function DeleteTransactionModal({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl border border-orange-500/20 bg-orange-500/5 text-orange-600 dark:text-orange-400 text-sm font-semibold leading-relaxed animate-in fade-in duration-350">
+            <div className="p-3 rounded-xl border border-orange-500/20 bg-orange-500/5 text-orange-600 dark:text-orange-400 text-sm font-semibold leading-relaxed animate-in fade-in duration-350">
               {cascadeType === 'NONE' && (
                 <p>⚠️ Esta ação removerá apenas a parcela atual de {moneyUtils.format(itemAmount, txCurrency)} no extrato.</p>
               )}

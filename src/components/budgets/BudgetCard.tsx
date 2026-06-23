@@ -59,7 +59,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
                 {budget.category_name || "GLOBAL"}
               </span>
               {budget.currency !== "BRL" && (
-                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-500 text-sm font-bold">
+                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent/10 text-accent text-sm font-bold">
                   <Globe className="h-2.5 w-2.5" />
                   {budget.currency}
                 </div>
@@ -109,7 +109,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             <div 
               className={cn(
                 "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.15)]", 
-                isOverBudget ? "bg-gradient-to-r from-red-600 to-red-400" : isWarning ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-primary via-primary/80 to-blue-400"
+                isOverBudget ? "bg-gradient-to-r from-red-600 to-red-400" : isWarning ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
               )} 
               style={{ width: `${Math.min(percentage, 100)}%` }} 
             />

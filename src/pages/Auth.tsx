@@ -117,19 +117,19 @@ export function Auth() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="p-6">
-        <span className="font-display font-bold text-xl tracking-tight">pé de meia</span>
+      <header className="p-4">
+        <span className="font-display font-bold text-lg tracking-tight">pé de meia</span>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md space-y-8 animate-fade-in">
+        <div className="w-full max-w-md space-y-5 animate-fade-in">
           {/* Title */}
           <div className="text-center">
-            <div className="mx-auto w-24 h-24 flex items-center justify-center mb-4">
+            <div className="mx-auto w-20 h-20 flex items-center justify-center mb-3">
               <img src="/icon-512.png" alt="Pé de Meia" className="w-full h-full object-contain drop-shadow-sm" />
             </div>
-            <h1 className="font-display font-bold text-3xl tracking-tight">
+            <h1 className="font-display font-bold text-2xl tracking-tight">
               {isResetting ? "Recuperar senha" : isLogin ? "Bem-vindo de volta" : "Crie sua conta"}
             </h1>
             <p className="text-muted-foreground mt-2">

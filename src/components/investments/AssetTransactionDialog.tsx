@@ -317,8 +317,8 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             {[
               { key: 'buy', label: 'Comprar', icon: <TrendingUp className="w-4 h-4 text-green-500" /> },
               { key: 'sell', label: 'Vender', icon: <TrendingDown className="w-4 h-4 text-red-500" /> },
-              { key: 'dividend', label: 'Rendimento', icon: <Coins className="w-4 h-4 text-purple-500" /> },
-              { key: 'update', label: 'Cotação', icon: <RefreshCw className="w-4 h-4 text-blue-500" /> },
+              { key: 'dividend', label: 'Rendimento', icon: <Coins className="w-4 h-4 text-accent" /> },
+              { key: 'update', label: 'Cotação', icon: <RefreshCw className="w-4 h-4 text-accent" /> },
             ].map(t => (
               <button
                 key={t.key}
@@ -508,7 +508,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                       <div className="flex items-center gap-2">
                         <span>{acc.name}</span>
                         {acc.is_international && (
-                          <span className="text-sm bg-blue-100 text-blue-600 px-1 rounded">
+                          <span className="text-sm bg-accent/15 text-accent px-1 rounded">
                             {acc.currency}
                           </span>
                         )}
@@ -537,7 +537,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
                 "flex-1",
                 type === 'buy' && "bg-green-600 hover:bg-green-700",
                 type === 'sell' && "bg-red-600 hover:bg-red-700",
-                type === 'dividend' && "bg-purple-600 hover:bg-purple-700",
+                type === 'dividend' && "bg-accent hover:bg-accent/92",
               )}
             >
               {isSubmitting ? 'Processando...' : (

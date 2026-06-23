@@ -31,10 +31,10 @@ export function AccountDeleteArchiveModal({
       <DialogContent className="max-w-md w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
           <DialogTitle>Remover conta "{accountName}"?</DialogTitle>
-          <DialogDescription className="space-y-4 pt-4">
+          <DialogDescription className="space-y-3 pt-2">
             <p className="text-sm">Escolha como deseja remover esta conta:</p>
             <div className="space-y-3">
-              <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+              <div className="p-3 rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20">
                 <div className="flex items-start gap-3">
                   <Archive className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                   <div className="space-y-2">
@@ -51,7 +51,7 @@ export function AccountDeleteArchiveModal({
                 </div>
               </div>
               {canDelete && (
-                <div className="p-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
+                <div className="p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
                   <div className="flex items-start gap-3">
                     <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                     <div className="space-y-2">

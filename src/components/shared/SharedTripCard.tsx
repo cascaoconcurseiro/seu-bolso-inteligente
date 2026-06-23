@@ -67,12 +67,12 @@ export function SharedTripCard({
   return (
     <div
       key={trip.id}
-      className="rounded-xl border-2 border-blue-200 dark:border-blue-900/50 overflow-hidden transition-all bg-card"
+      className="rounded-xl border-2 border-accent/20 overflow-hidden transition-all bg-card"
     >
-      <div className="p-4 bg-blue-50 dark:bg-blue-950/20">
+      <div className="p-4 bg-accent/5 dark:bg-accent/10">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white bg-blue-500 shrink-0 shadow-lg shadow-blue-500/20">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white bg-accent shrink-0 shadow-lg shadow-accent/20">
               <Plane className="h-6 w-6" />
             </div>
             <div className="min-w-0">
@@ -80,7 +80,7 @@ export function SharedTripCard({
                 <p className="font-display font-semibold text-base truncate">{trip.name}</p>
                 <Badge
                   variant="outline"
-                  className="text-sm font-bold border-blue-300 text-blue-700 bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-900/50"
+                  className="text-sm font-bold border-accent/30 text-accent bg-accent/15"
                 >
                   {tripCurrency}
                 </Badge>
@@ -92,7 +92,7 @@ export function SharedTripCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-blue-200/50">
+          <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-accent/20">
             <div className="text-left sm:text-right">
               <p className="text-sm text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Saldo da Viagem</p>
               <p className={cn(
@@ -212,7 +212,7 @@ export function SharedTripCard({
                                 {item.description}
                               </p>
                               {item.creatorName && (
-                                <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
+                                <span className="text-[9px] bg-accent/15 text-accent px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
                                   💳 {item.creatorName}
                                 </span>
                               )}
@@ -294,7 +294,7 @@ export function SharedTripCard({
                                   {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
                                     <DropdownMenuItem
                                       onClick={() => onAnticipate(item)}
-                                      className="text-blue-600 focus:text-blue-600"
+                                      className="text-accent focus:text-accent"
                                     >
                                       <Calendar className="h-4 w-4 mr-2" />
                                       Antecipar Parcelas
@@ -351,7 +351,7 @@ export function SharedTripCard({
                               {item.description}
                             </p>
                             {item.creatorName && (
-                              <span className="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
+                              <span className="text-sm bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-medium">
                                 💳 {item.creatorName}
                               </span>
                             )}
@@ -447,7 +447,7 @@ export function SharedTripCard({
                                 {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
                                   <DropdownMenuItem
                                     onClick={() => onAnticipate(item)}
-                                    className="text-blue-600 focus:text-blue-600"
+                                    className="text-accent focus:text-accent"
                                   >
                                     <Calendar className="h-4 w-4 mr-2" />
                                     Antecipar Parcelas

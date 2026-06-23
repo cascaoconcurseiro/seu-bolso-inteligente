@@ -167,7 +167,7 @@ export function SplitModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-lg overflow-hidden h-full sm:h-auto flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
+      <DialogContent className="sm:max-w-lg overflow-hidden h-full sm:h-auto flex flex-col w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] border-b-0 sm:border-b bg-background">
         <DialogHeader>
           <DialogTitle>Divisão e Pagamento</DialogTitle>
           <DialogDescription>
@@ -247,10 +247,10 @@ export function SplitModal({
 
                 {/* PARCELAMENTO quando Outro Pagou */}
                 {setIsInstallment && setTotalInstallments && (
-                  <div className="p-6 rounded-2xl border border-border space-y-4">
+                  <div className="p-4 rounded-xl border border-border space-y-3">
                     <label className="flex items-center justify-between cursor-pointer select-none py-2">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Foi parcelado?</span>
                       </div>
                       <Switch
@@ -404,7 +404,7 @@ export function SplitModal({
                           key={member.id}
                           onClick={() => toggleSplitMember(member.id)}
                           className={cn(
-                            'p-6 flex items-center justify-between cursor-pointer rounded-2xl border transition-all',
+                            'p-4 flex items-center justify-between cursor-pointer rounded-xl border transition-all',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:border-primary/50'
@@ -433,11 +433,11 @@ export function SplitModal({
 
               {/* 3. PRESETS E AJUSTE DE DIVISÃO */}
               {splits.length > 0 && (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <Label className="text-sm uppercase tracking-widest text-muted-foreground">
                     Divisão Rápida
                   </Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { label: '50/50', myPct: 50 },
                       { label: '60/40', myPct: 60 },

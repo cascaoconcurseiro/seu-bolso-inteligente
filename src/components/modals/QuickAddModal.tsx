@@ -256,8 +256,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
             {activeTrips.length > 0 && (
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
+                  <div className="space-y-2">
+                  <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
                       <Plane className="h-4 w-4 text-blue-500" />
                       Despesa de Viagem
                     </Label>
@@ -272,7 +272,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 </div>
                 
                 {isTripMode && activeTrips.length > 1 && (
-                  <div className="space-y-1.5 animate-fade-in pl-2">
+                  <div className="space-y-2 animate-fade-in pl-2">
                     <Label className="text-xs">Qual Viagem?</Label>
                     <Select value={selectedTripId} onValueChange={setSelectedTripId}>
                       <SelectTrigger><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
@@ -297,7 +297,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               textColorClass={'text-destructive'}
               autoFocus
             />
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <Label>Descrição</Label>
               <div className="relative">
                 <Input 
@@ -317,7 +317,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Data</Label>
                 <Input 
                   type="date" 
@@ -327,7 +327,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 />
               </div>
               
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label>Conta</Label>
                 <Select value={accountId} onValueChange={setAccountId} required>
                   <SelectTrigger><SelectValue placeholder="Conta" /></SelectTrigger>
@@ -372,7 +372,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
             </div>
           )}
           
-          <div className="space-y-1.5">
+          <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 Categoria 
                 {predictedCategoryId === categoryId && categoryId && (

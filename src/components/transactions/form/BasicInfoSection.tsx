@@ -45,7 +45,7 @@ export function BasicInfoSection({
   return (
     <div className="space-y-4">
       {/* Description */}
-      <div className="space-y-1.5 relative">
+      <div className="space-y-2 relative">
         <Label>Descrição</Label>
         <div className="relative">
           <Input
@@ -65,7 +65,7 @@ export function BasicInfoSection({
 
       {/* Date & Category (responsive: stacked on mobile, side by side on sm screens) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <Label>Data</Label>
           <Popover>
             <PopoverTrigger asChild>
@@ -104,7 +104,7 @@ export function BasicInfoSection({
 
         {/* Category */}
         {!isTransfer ? (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label className="flex items-center gap-2">
               Categoria
               {predictedCategoryId === categoryId && categoryId && (
@@ -131,7 +131,7 @@ export function BasicInfoSection({
             )}
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Categoria</Label>
             <div className="h-10 flex items-center justify-center bg-muted rounded-md">
               <span className="text-sm font-bold text-muted-foreground">Automático</span>

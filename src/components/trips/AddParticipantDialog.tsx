@@ -63,7 +63,7 @@ export function AddParticipantDialog({
             ))
           )}
           <div className="pt-2">
-            <Button variant="outline" className="w-full rounded-xl h-12" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
           </div>

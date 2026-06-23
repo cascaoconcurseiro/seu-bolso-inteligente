@@ -98,7 +98,7 @@ export function SharedSettleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {isInternationalSettlement && (
             <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
               <Globe className="h-4 w-4 text-blue-600" />
@@ -125,7 +125,7 @@ export function SharedSettleDialog({
           })()}
 
           <div className={cn(
-            "flex items-center justify-center gap-6 p-4 rounded-2xl",
+            "flex items-center justify-center gap-4 p-4 rounded-2xl",
             settleType === "PAY" ? "bg-red-50 dark:bg-red-950/20" : "bg-green-50 dark:bg-green-950/20"
           )}>
             {/* Lado esquerdo: quem ENVIA o dinheiro */}

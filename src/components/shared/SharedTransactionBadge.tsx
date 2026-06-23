@@ -6,7 +6,7 @@
  */
 
 import { Badge } from "@/components/ui/badge";
-import { Users, CheckCircle2 } from "lucide-react";
+import { Users, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ============================================================================
@@ -53,46 +53,32 @@ export function SharedTransactionBadge({
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {/* Shared Badge */}
+    <div className="flex items-center gap-1 flex-wrap">
+      {/* Status Badge - Priority 1: Settled/Pending */}
       <Badge
         variant="outline"
         className={cn(
-          "text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 uppercase tracking-wider font-medium whitespace-nowrap",
-          type === 'CREDIT'
-            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-800"
-            : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-800"
+          "text-[11px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap border-0",
+          isSettled
+            ? "bg-success/12 text-success"
+            : "bg-warning/12 text-warning"
         )}
       >
-        <Users className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5" />
-        {compact ? "Comp." : "Compartilhado"}
-        {memberName && !compact && ` - ${memberName}`}
+        {isSettled ? (
+          <><CheckCircle2 className="h-3 w-3 mr-1" /> Pago</>
+        ) : (
+          <><Clock className="h-3 w-3 mr-1" /> Pendente</>
+        )}
       </Badge>
 
-      {/* Settled Badge */}
-      {isSettled && (
-        <Badge
-          variant="outline"
-          className="text-[9px] md:text-sm px-1 md:px-1.5 py-0.5 font-bold border-green-500 text-green-700 bg-green-100 dark:border-green-700 dark:text-green-300 dark:bg-green-950/50 whitespace-nowrap"
-        >
-          <CheckCircle2 className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5" />
-          PAGO
-        </Badge>
-      )}
-
-      {/* Type Badge */}
+      {/* Tipo Badge - Priority 2: Shared type indicator */}
       <Badge
         variant="outline"
-        className={cn(
-          "text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 font-bold whitespace-nowrap",
-          isSettled
-            ? "border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400"
-            : type === 'CREDIT'
-            ? "border-green-300 text-green-700 bg-green-50 dark:border-green-800 dark:text-green-300 dark:bg-green-950/30"
-            : "border-red-300 text-red-700 bg-red-50 dark:border-red-800 dark:text-red-300 dark:bg-red-950/30"
-        )}
+        className="text-[11px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap border-0 bg-accent/12 text-accent"
       >
-        {type === 'CREDIT' ? 'CRÉDITO' : 'DÉBITO'}
+        <Users className="h-3 w-3 mr-1" />
+        {compact ? "Comp." : "Compartilhado"}
+        {memberName && !compact && ` - ${memberName}`}
       </Badge>
     </div>
   );

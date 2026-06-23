@@ -49,18 +49,18 @@ export function DashboardInsights() {
         <Button
           variant="outline"
           size="icon"
-          className="relative rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 bg-blue-500/10 border-blue-500 text-blue-600 hover:bg-blue-500/20"
+          className="relative rounded-full h-10 w-10 border-2 transition-all duration-300 shadow-sm hover:scale-105 active:scale-95 bg-accent/10 border-accent text-accent hover:bg-accent/20"
           title="Insights Proativos"
         >
           <Sparkles className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-accent shadow-[0_0_8px_rgba(37,99,235,0.8)]"></span>
           </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[340px] p-4 rounded-2xl shadow-xl border-border/50">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/50">
-          <div className="p-2 bg-blue-500/10 text-blue-500 rounded-full">
+          <div className="p-2 bg-accent/10 text-accent rounded-full">
             <Sparkles className="w-4 h-4" />
           </div>
           <h3 className="font-semibold tracking-tight text-base">Insights Proativos</h3>
@@ -85,7 +85,7 @@ export function DashboardInsights() {
                 Icon = TrendingUp;
                 break;
               case "INFO":
-                colorClass = "border-blue-500/20 bg-blue-500/10 text-blue-500";
+                colorClass = "border-accent/20 bg-accent/10 text-accent";
                 break;
             }
 

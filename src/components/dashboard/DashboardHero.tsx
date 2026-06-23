@@ -50,7 +50,7 @@ export function DashboardHero({
     <div className="relative group overflow-hidden p-6 md:p-8 rounded-4xl border border-border/50 bg-gradient-to-br from-card/80 via-card/50 to-muted/30 backdrop-blur-xl animate-fade-in-up">
       {/* Elementos Decorativos de Fundo */}
       <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-colors duration-1000" />
-      <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] group-hover:bg-blue-500/10 transition-colors duration-1000" />
+      <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 bg-accent/5 rounded-full blur-[100px] group-hover:bg-accent/10 transition-colors duration-1000" />
 
       <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="space-y-4 flex-1">
@@ -91,13 +91,13 @@ export function DashboardHero({
           </h1>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-blue-500/10 border border-blue-500/20 group/patrimony transition-all hover:bg-blue-500/15 overflow-hidden">
-              <div className="shrink-0 p-1.5 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/20 group-hover/patrimony:scale-110 transition-transform">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden">
+              <div className="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform">
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-blue-600/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-blue-600 truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[8px] sm:text-[9px] text-accent/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-accent truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>

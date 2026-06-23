@@ -662,8 +662,8 @@ export function Reports() {
   }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, accounts]);
 
   if (isLoading) return (
-    <div className="space-y-8 animate-fade-in pb-20">
-      <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
+    <div className="space-y-5 animate-fade-in pb-20">
+      <div className="relative overflow-hidden rounded-2xl p-4 md:p-5 border border-border/50 bg-card/50">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="skeleton h-10 w-40 rounded-xl" />
@@ -686,9 +686,9 @@ export function Reports() {
   );
 
   return (
-    <div className="space-y-8 animate-fade-in pb-20">
+    <div className="space-y-5 animate-fade-in pb-20">
       {/* Header com Glassmorphism */}
-      <div className="sticky top-2 z-40 relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
+      <div className="sticky top-2 z-40 relative overflow-hidden rounded-3xl p-4 md:p-6 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>

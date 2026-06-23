@@ -102,7 +102,7 @@ export function EditTripDialog({
               placeholder="Ex: Rio de Janeiro, RJ"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="h-12 rounded-xl"
+              className="rounded-xl"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -112,7 +112,7 @@ export function EditTripDialog({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="h-12 rounded-xl"
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -122,7 +122,7 @@ export function EditTripDialog({
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
-                className="h-12 rounded-xl"
+                className="rounded-xl"
               />
             </div>
           </div>
@@ -130,7 +130,7 @@ export function EditTripDialog({
             <div className="space-y-2">
               <Label>Moeda</Label>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="h-12 rounded-xl">
+                <SelectTrigger className="rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -148,16 +148,16 @@ export function EditTripDialog({
                 placeholder="5000"
                 value={budget}
                 onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
-                className="h-12 rounded-xl"
+                className="rounded-xl"
               />
             </div>
           </div>
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button
-              className="flex-1 rounded-xl h-12 font-bold"
+              className="flex-1 rounded-xl font-bold"
               onClick={handleSubmit}
               disabled={isLoading || !destination || !startDate || !endDate || !budget}
             >

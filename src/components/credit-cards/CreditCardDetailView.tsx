@@ -313,8 +313,8 @@ export function CreditCardDetailView({
               )}
             </div>
 
-            <div className="flex flex-col md:items-end justify-end space-y-1.5">
-              <div className="flex items-center gap-1.5 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">
+            <div className="flex flex-col md:items-end justify-end space-y-2">
+              <div className="flex items-center gap-2 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">
                 <CalendarClock className="w-3.5 h-3.5 opacity-70" />
                 <span className="text-xs font-medium">
                   {localInvoiceData.status === 'OPEN' 
@@ -438,14 +438,14 @@ export function CreditCardDetailView({
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform origin-center" />
                 
                 <div className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm border border-border/50 group-hover:scale-110 transition-transform",
+                  "w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm border border-border/50 group-hover:scale-110 transition-transform",
                   tx.type === "INCOME" ? "bg-positive/10" : "bg-background"
                 )}>
                   {tx.category?.icon || (tx.type === "INCOME" ? "💰" : "💸")}
                 </div>
                 
                 <div className="flex-1 min-w-0 pt-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-sm truncate text-foreground/90 group-hover:text-foreground transition-colors">{tx.description}</p>
                     {tx.is_installment && tx.current_installment && tx.total_installments && (
                       <span className="text-xs px-1 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-bold tracking-wider">
@@ -453,7 +453,7 @@ export function CreditCardDetailView({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap mt-0.5">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap mt-0.5">
                     <span className="truncate">{tx.category?.name || "Sem categoria"}</span>
                     <span className="opacity-50">•</span>
                     <span>{dateFns.format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}</span>

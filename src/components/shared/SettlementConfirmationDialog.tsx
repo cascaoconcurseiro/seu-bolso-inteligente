@@ -208,7 +208,7 @@ export function SettlementConfirmationDialog({
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-7 w-7 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                           onClick={() => removeItem(item.id)}
                         >
                           <X className="h-4 w-4" />

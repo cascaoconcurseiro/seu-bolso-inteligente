@@ -43,7 +43,7 @@ export function ArchiveConfirmModal({
       <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <AlertDialogHeader>
           <AlertDialogTitle>Arquivar Item</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-4">
+          <AlertDialogDescription className="space-y-3">
             <p>
               Tem certeza que deseja arquivar <strong>{itemName}</strong>?
             </p>
@@ -52,7 +52,7 @@ export function ArchiveConfirmModal({
               ainda podem ser acessados na seção de "Arquivados" no final da página.
             </p>
             
-            <div className="space-y-2 mt-4 text-left">
+            <div className="space-y-2 mt-2 text-left">
               <Label htmlFor="confirm-archive" className="text-foreground font-semibold">
                 Digite "confirmar" para prosseguir:
               </Label>

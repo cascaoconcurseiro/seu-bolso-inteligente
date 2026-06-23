@@ -98,8 +98,8 @@ export function TripExpensesTab({
 
       {/* ===== RESUMO RÁPIDO ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl border border-purple-500/20 bg-purple-500/5 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-1">
+        <div className="p-4 rounded-2xl border border-accent/20 bg-accent/5 text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-accent mb-1">
             Total Compartilhado
           </p>
           <p className="font-mono font-black text-base text-foreground">
@@ -112,8 +112,8 @@ export function TripExpensesTab({
           )}
           <p className="text-sm text-muted-foreground mt-0.5">{sharedExpenses.length} despesas</p>
         </div>
-        <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-1">
+        <div className="p-4 rounded-2xl border border-accent/20 bg-accent/5 text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-accent mb-1">
             Eu Paguei (Compartilhado)
           </p>
           <p className="font-mono font-black text-base text-foreground">
@@ -150,7 +150,7 @@ export function TripExpensesTab({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-purple-500" />
+            <Users className="h-4 w-4 text-accent" />
             <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
               Despesas Compartilhadas ({sharedExpenses.length})
             </h2>
@@ -159,7 +159,7 @@ export function TripExpensesTab({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 gap-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 hover:bg-purple-500/10"
+              className="h-7 gap-2 text-sm text-accent hover:text-accent/92 hover:bg-accent/10"
               onClick={() => navigate("/compartilhados?tab=TRAVEL")}
             >
               Ir para Acertos <ExternalLink className="h-3 w-3" />
@@ -213,8 +213,8 @@ export function TripExpensesTab({
                   className={cn(
                     "group relative overflow-hidden p-4 rounded-2xl border transition-all duration-300 cursor-pointer",
                     iPaid
-                      ? "border-purple-500/30 bg-purple-500/5 hover:border-purple-500/50 hover:bg-purple-500/10"
-                      : "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40 hover:bg-blue-500/8"
+                      ? "border-accent/30 bg-accent/5 hover:border-accent/50 hover:bg-accent/10"
+                      : "border-accent/20 bg-accent/5 hover:border-accent/40 hover:bg-accent/8"
                   )}
                 >
                   {/* Determinar minha parte */}
@@ -228,8 +228,8 @@ export function TripExpensesTab({
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div
                         className={cn(
-                          "w-11 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 mt-0.5",
-                          iPaid ? "bg-purple-500/15" : "bg-blue-500/10"
+                          "w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 mt-0.5",
+                          iPaid ? "bg-accent/15" : "bg-accent/10"
                         )}
                       >
                         {categoryIcon}
@@ -245,8 +245,8 @@ export function TripExpensesTab({
                             className={cn(
                               "text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-black shrink-0",
                               iPaid
-                                ? "bg-purple-500/20 text-purple-700 dark:text-purple-300"
-                                : "bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                                ? "bg-accent/20 text-accent"
+                                : "bg-accent/15 text-accent"
                             )}
                           >
                             {iPaid ? "✓ Você pagou" : `${payerName} pagou`}
@@ -259,7 +259,7 @@ export function TripExpensesTab({
                             </span>
                           )}
                           {status === "waiting" && (
-                            <span className="text-[9px] bg-blue-500/15 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
+                            <span className="text-[9px] bg-accent/15 text-accent px-2 py-0.5 rounded-full uppercase tracking-widest font-bold shrink-0 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" /> Aguardando Confirmação
                             </span>
                           )}
@@ -313,7 +313,7 @@ export function TripExpensesTab({
                         {/* Impacto no orçamento — mostrar apenas se EU paguei */}
                         {iPaid && (
                           <div className="mt-2 flex items-center gap-3 flex-wrap">
-                            <span className="text-sm font-mono text-purple-600 dark:text-purple-400 font-bold">
+                            <span className="text-sm font-mono text-accent font-bold">
                               Impactou orçamento: −{formatCurrency(amount, currency)}
                             </span>
                             {status !== "no_splits" && status !== "settled" && (
@@ -347,7 +347,7 @@ export function TripExpensesTab({
                           )}
                           <p className="text-sm text-muted-foreground mt-0.5">valor total pago</p>
                           {expense.transaction_splits && (
-                            <p className="text-sm text-purple-600 dark:text-purple-400 font-bold mt-1">
+                            <p className="text-sm text-accent font-bold mt-1">
                               Sua parte: {formatCurrency(mySplitAmount, currency)}
                             </p>
                           )}
@@ -381,13 +381,13 @@ export function TripExpensesTab({
             )}
           </div>
         ) : (
-          <div className="py-10 text-center border border-dashed border-purple-200 dark:border-purple-900 rounded-2xl bg-purple-500/3 flex flex-col items-center">
-            <Users className="h-10 w-9 mb-2.5 text-purple-400/60" />
+          <div className="py-10 text-center border border-dashed border-accent/20 rounded-2xl bg-accent/3 flex flex-col items-center">
+            <Users className="h-10 w-9 mb-2.5 text-accent/60" />
             <p className="text-sm font-semibold text-foreground">Nenhuma despesa compartilhada</p>
             <p className="text-sm text-muted-foreground mt-1 mb-4">
               Despesas marcadas como compartilhadas aparecerão aqui
             </p>
-            <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-purple-600 hover:bg-purple-700">
+            <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-accent hover:bg-accent/92">
               <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
             </Button>
           </div>
@@ -425,7 +425,7 @@ export function TripExpensesTab({
           <>
             {sharedExpenses.length === 0 && (
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-blue-500" />
+                <User className="h-4 w-4 text-accent" />
                 <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
                   Gastos Pessoais ({personalExpenses.length})
                 </h2>
@@ -462,7 +462,7 @@ export function TripExpensesTab({
                     className="group p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex items-center justify-between gap-4 cursor-pointer"
                   >
                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                      <div className="w-11 h-12 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center text-base shrink-0 transition-colors duration-300">
+                      <div className="w-12 h-12 rounded-xl bg-muted group-hover:bg-primary/10 flex items-center justify-center text-base shrink-0 transition-colors duration-300">
                         {categoryIcon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -472,7 +472,7 @@ export function TripExpensesTab({
                           </p>
                           <span className={cn(
                             "text-[9px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold",
-                            expense.type === "INCOME" ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                            expense.type === "INCOME" ? "bg-green-500/10 text-green-600 dark:text-green-400" : "bg-accent/10 text-accent"
                           )}>
                             {expense.type === "INCOME" ? "Recebimento" : "Pessoal"}
                           </span>

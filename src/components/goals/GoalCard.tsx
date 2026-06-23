@@ -158,7 +158,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.1)]",
                   percentage >= 100 
                     ? "bg-gradient-to-r from-positive/80 to-positive" 
-                    : "bg-gradient-to-r from-primary via-primary/80 to-blue-400"
+                    : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
                 )}
                 style={{ width: `${percentage}%` }}
               />

@@ -97,11 +97,11 @@ export function SharedCycleSettingsModal({ isOpen, onOpenChange }: SharedCycleSe
           <div className="space-y-8 p-6 max-h-[65vh] overflow-y-auto pt-2">
             
             {/* INFORMAÇÃO CARTÃO DE CRÉDITO (Golden Rule) */}
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-4 rounded-xl flex gap-3 text-blue-800 dark:text-blue-300">
+            <div className="bg-accent/5 dark:bg-accent/10 border border-accent/20 p-4 rounded-xl flex gap-3 text-accent">
               <Info className="w-5 h-5 shrink-0 mt-0.5" />
               <div className="text-sm leading-relaxed">
                 <strong className="block mb-1">Cartões de Crédito:</strong> 
-                Gastos feitos no crédito <b className="underline decoration-blue-400">sempre</b> seguem a data de fechamento e vencimento original do próprio cartão para garantir que o fluxo de caixa do grupo fique perfeitamente alinhado com a fatura real.
+                Gastos feitos no crédito <b className="underline decoration-accent">sempre</b> seguem a data de fechamento e vencimento original do próprio cartão para garantir que o fluxo de caixa do grupo fique perfeitamente alinhado com a fatura real.
               </div>
             </div>
 
