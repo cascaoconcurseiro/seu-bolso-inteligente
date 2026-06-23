@@ -33,7 +33,7 @@ export function AmountInput({
       currency={currency}
       currencySymbol={currencySymbol}
       textColorClass={textColorClass}
-      size="lg"
+      size="md"
       autoFocus
     >
       {selectedTrip && (

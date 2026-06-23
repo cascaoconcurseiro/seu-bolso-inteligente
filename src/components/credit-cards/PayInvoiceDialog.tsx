@@ -196,10 +196,10 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   </div>
                 </div>
 
-                <div className="pt-6 mt-auto shrink-0">
+                <div className="pt-4 mt-auto shrink-0">
                   <Button 
                     onClick={nextStep} 
-                    className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20"
+                    className="w-full text-md font-semibold rounded-xl shadow-lg shadow-primary/20"
                     disabled={currentAmountToPay <= 0}
                   >
                     Continuar <ChevronRight className="w-5 h-5 ml-1" />
@@ -223,7 +223,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   <div className="space-y-3">
                     <Label className="text-sm font-semibold">De onde sairá o dinheiro?</Label>
                     <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                      <SelectTrigger className="h-14 rounded-xl bg-background/50 border-white/10">
+                      <SelectTrigger className="rounded-xl bg-background/50 border-white/10">
                         <SelectValue placeholder="Selecione a conta de origem" />
                       </SelectTrigger>
                       <SelectContent>
@@ -270,7 +270,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                         <Input type="number" inputMode="decimal"
                           step="0.0001"
                           placeholder="Ex: 5.50"
-                          className="h-12 bg-background font-mono"
+                          className="bg-background font-mono"
                           value={exchangeRate}
                           onChange={(e) => setExchangeRate(e.target.value)}
                         />
@@ -291,7 +291,7 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
                   <Button 
                     onClick={handlePay}
                     disabled={!selectedAccountId || currentAmountToPay <= 0 || (showExchangeField && !exchangeRate) || isProcessing}
-                    className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all"
+                    className="w-full text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all"
                   >
                     {isProcessing ? (
                       <>

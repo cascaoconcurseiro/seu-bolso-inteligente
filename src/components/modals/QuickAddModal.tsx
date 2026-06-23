@@ -252,16 +252,16 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         {accountsLoading || categoriesLoading ? (
           <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {activeTrips.length > 0 && (
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between p-4 border rounded-2xl bg-slate-50 dark:bg-slate-900/50">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
-                      <Plane className="h-5 w-5 text-blue-500" />
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-900/50">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
+                      <Plane className="h-4 w-4 text-blue-500" />
                       Despesa de Viagem
                     </Label>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Vincular a uma viagem ativa ou futura
                     </p>
                   </div>
@@ -272,8 +272,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 </div>
                 
                 {isTripMode && activeTrips.length > 1 && (
-                  <div className="space-y-2 animate-fade-in pl-2">
-                    <Label className="text-sm">Qual Viagem?</Label>
+                  <div className="space-y-1.5 animate-fade-in pl-2">
+                    <Label className="text-xs">Qual Viagem?</Label>
                     <Select value={selectedTripId} onValueChange={setSelectedTripId}>
                       <SelectTrigger><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
                       <SelectContent>
@@ -297,7 +297,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               textColorClass={'text-destructive'}
               autoFocus
             />
-            <div className="space-y-4">
+            <div className="space-y-1.5">
               <Label>Descrição</Label>
               <div className="relative">
                 <Input 
@@ -316,8 +316,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
                 <Label>Data</Label>
                 <Input 
                   type="date" 
@@ -327,7 +327,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 />
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-1.5">
                 <Label>Conta</Label>
                 <Select value={accountId} onValueChange={setAccountId} required>
                   <SelectTrigger><SelectValue placeholder="Conta" /></SelectTrigger>
@@ -344,8 +344,8 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
           </div>
           
           {isCreditCard && (
-            <div className="p-4 rounded-2xl border border-border bg-card space-y-4 animate-slide-in">
-              <Label className="font-medium text-sm">Parcelas (Cartão de Crédito)</Label>
+            <div className="p-3 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
+              <Label className="font-medium text-xs">Parcelas (Cartão de Crédito)</Label>
               <Select
                 value={totalInstallments.toString()}
                 onValueChange={(v) => {
@@ -354,7 +354,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                   setIsInstallment(val > 1);
                 }}
               >
-                <SelectTrigger className="rounded-2xl">
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Selecione o parcelamento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -372,7 +372,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
             </div>
           )}
           
-          <div className="space-y-4">
+          <div className="space-y-1.5">
               <Label className="flex items-center gap-2">
                 Categoria 
                 {predictedCategoryId === categoryId && categoryId && (
@@ -391,7 +391,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               </Select>
             </div>
             
-            <Button type="submit" className="w-full h-12 mt-4" disabled={createTransaction.isPending}>
+            <Button type="submit" className="w-full mt-3" disabled={createTransaction.isPending}>
               {createTransaction.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar Despesa'}
             </Button>
           </form>

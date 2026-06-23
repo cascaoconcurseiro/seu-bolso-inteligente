@@ -35,22 +35,22 @@ export function AmountInput({
 }: AmountInputProps) {
   
   const sizeClasses = {
-    sm: 'h-12 md:h-14 text-3xl md:text-4xl',
-    md: 'h-16 md:h-20 text-4xl md:text-5xl',
-    lg: 'h-20 md:h-24 text-5xl md:text-6xl',
+    sm: 'h-10 text-xl',
+    md: 'h-12 text-2xl',
+    lg: 'h-14 text-3xl',
   };
 
   const symbolSizeClasses = {
-    sm: 'text-xl',
-    md: 'text-2xl',
-    lg: 'text-3xl',
+    sm: 'text-base',
+    md: 'text-lg',
+    lg: 'text-xl',
   };
 
   return (
     <div className={cn("space-y-2", containerClassName)}>
-      <div className="relative flex flex-col items-center justify-center py-4">
+      <div className="relative flex flex-col items-center justify-center py-2">
         {label && (
-          <span className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-widest text-center">
+          <span className="text-sm font-medium text-muted-foreground mb-2 text-center">
             {label}
           </span>
         )}

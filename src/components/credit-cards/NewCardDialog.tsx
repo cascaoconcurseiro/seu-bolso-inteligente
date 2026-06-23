@@ -263,8 +263,8 @@ export function NewCardDialog({
           </div>
 
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
-            <Button className="flex-1 rounded-xl h-12 font-bold" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
+            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
+            <Button className="flex-1 rounded-xl font-bold" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />

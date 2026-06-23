@@ -48,7 +48,7 @@ export function TransactionModal({
             Formulário para criar ou editar uma transação.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-8">
+        <div className="space-y-5">
           <TransactionForm 
             context={transactionContext}
             onSuccess={handleSuccess}

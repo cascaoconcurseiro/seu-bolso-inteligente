@@ -175,9 +175,9 @@ export function SplitModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-4">
           {/* 1. QUEM PAGOU? */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Label className="text-sm uppercase tracking-widest text-muted-foreground">
               Quem pagou?
             </Label>

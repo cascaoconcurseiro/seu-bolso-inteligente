@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -148,14 +148,13 @@ export function Auth() {
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full h-12 transition-all hover:bg-secondary/50 border-border hover:border-primary/30"
+                className="w-full"
                 onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
+                loading={isSubmitting}
               >
-                {isSubmitting ? (
-                  <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                ) : (
-                  <svg className="h-5 w-5 mr-3" viewBox="0 0 24 24">
+                {!isSubmitting && (
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -187,38 +186,36 @@ export function Auth() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="form-stack">
             {!isLogin && !isResetting && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nome completo</Label>
+              <FormField label="Nome completo" htmlFor="fullName">
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="fullName"
                     type="text"
                     placeholder="Seu nome"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="pl-10 h-12"
+                    className="pl-10"
                     disabled={isSubmitting}
                     autoComplete="name"
                     autoCapitalize="words"
                   />
                 </div>
-              </div>
+              </FormField>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <FormField label="Email" htmlFor="email">
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-10"
                   disabled={isSubmitting}
                   required
                   autoComplete="email"
@@ -227,31 +224,33 @@ export function Auth() {
                   spellCheck="false"
                 />
               </div>
-            </div>
+            </FormField>
 
             {!isResetting && (
-              <div className="space-y-2">
+              <div className="form-field">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Senha</Label>
+                  <label htmlFor="password" className="text-sm font-medium leading-none">
+                    Senha
+                  </label>
                   {isLogin && (
                     <button
                       type="button"
                       onClick={() => setIsResetting(true)}
-                      className="text-xs text-primary hover:underline"
+                      className="text-sm text-primary hover:underline"
                     >
                       Esqueceu a senha?
                     </button>
                   )}
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12"
+                    className="pl-10 pr-10"
                     disabled={isSubmitting}
                     required
                     autoComplete={isLogin ? "current-password" : "new-password"}
@@ -260,14 +259,15 @@ export function Auth() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10"
+                    className="absolute right-0 top-1/2 -translate-y-1/2"
                     onClick={() => setShowPassword(!showPassword)}
                     tabIndex={-1}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-muted-foreground" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-5 w-5 text-muted-foreground" />
+                      <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
@@ -277,18 +277,11 @@ export function Auth() {
             <Button
               type="submit"
               size="lg"
-              className="w-full h-12 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full"
               disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isSubmitting ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : isResetting ? (
-                "Enviar link de recuperação"
-              ) : isLogin ? (
-                "Entrar"
-              ) : (
-                "Criar conta"
-              )}
+              {isResetting ? "Enviar link de recuperação" : isLogin ? "Entrar" : "Criar conta"}
             </Button>
             
             {isResetting && (

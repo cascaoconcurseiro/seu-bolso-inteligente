@@ -48,13 +48,7 @@ html {
   padding-right: max(1rem, var(--safe-area-inset-right));
 }
 
-/* Touch-friendly buttons (minimum 44x44px) */
-button,
-a[role="button"],
-[role="button"] {
-  min-height: 44px;
-  min-width: 44px;
-}
+/* Touch targets: use .tap-target on icon-only controls (see index.css) */
 
 /* Prevent text selection on buttons */
 button,

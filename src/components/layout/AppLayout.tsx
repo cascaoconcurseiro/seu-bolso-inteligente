@@ -132,8 +132,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       <VersionGuard />
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-2 md:px-4 lg:px-6">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-2 md:gap-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+          <div className="flex h-14 md:h-16 items-center justify-between gap-4">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
@@ -151,13 +151,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                     key={item.path}
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-1 px-1.5 py-1.5 lg:px-2 lg:py-2 rounded-lg text-xs lg:text-xs xl:text-sm font-bold tracking-tight transition-all duration-200 whitespace-nowrap",
-                      isActive 
-                        ? "bg-primary text-primary-foreground shadow-sm" 
+                      "flex items-center gap-2 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-colors duration-150 whitespace-nowrap",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
                     )}
                   >
-                    <Icon className="h-3 w-3 lg:h-3.5 lg:w-3.5 flex-shrink-0 hidden lg:block" />
+                    <Icon className="h-4 w-4 flex-shrink-0 hidden lg:block" />
                     {item.label}
                   </Link>
                 );
@@ -165,38 +165,37 @@ export function AppLayout({ children }: AppLayoutProps) {
             </nav>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 ml-auto">
-              {/* Notifications */}
+            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
               <NotificationButton />
 
-              {/* Privacy Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={togglePrivacy}
-                className="h-10 w-10 md:h-10 md:w-9 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={isPrivate ? "Mostrar valores" : "Ocultar valores"}
               >
-                {isPrivate ? <EyeOff className="h-5 w-5 md:h-4 md:w-4" /> : <Eye className="h-5 w-5 md:h-4 md:w-4" />}
+                {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
 
-              {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="h-10 w-10 md:h-10 md:w-9 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
               >
-                {isDark ? <Sun className="h-5 w-5 md:h-4 md:w-4" /> : <Moon className="h-5 w-5 md:h-4 md:w-4" />}
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
 
-              {/* Settings - Hidden on mobile */}
               <Link to="/configuracoes" className="hidden md:block">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-9 text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="Configurações"
                 >
-                  <Settings className="h-5 w-5" />
+                  <Settings className="h-4 w-4" />
                 </Button>
               </Link>
 
@@ -205,7 +204,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuTrigger asChild className="hidden md:flex">
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-9 rounded-full p-0"
+                    size="icon"
+                    className="rounded-full p-0"
+                    aria-label="Menu do usuário"
                   >
                     <UserAvatar
                       name={profile?.full_name || user?.email || "User"}
@@ -241,7 +242,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Hide month selector on credit cards page (uses invoice cycle selector instead) */}
         {location.pathname !== '/cartoes' && (
           <div className="border-t border-border bg-background shadow-sm">
-            <div className="max-w-7xl mx-auto px-3 md:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-3">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-2 md:py-3 flex items-center justify-between gap-4">
               <div className="flex-1 hidden md:block" />
               
               <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
@@ -249,10 +250,10 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
 
               <div className="hidden md:flex justify-end md:flex-1">
-                <Button 
-                  size="sm"
+                <Button
+                  size="default"
                   onClick={handleNewTransaction}
-                  className="gap-2 h-10 md:h-10 px-4 md:px-6 shadow-md shadow-primary/20 transition-all active:scale-95"
+                  className="gap-2"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Nova transação</span>
@@ -265,7 +266,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 pb-32 md:pb-12">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-8">
           <OnboardingGuard>
             {children}
           </OnboardingGuard>

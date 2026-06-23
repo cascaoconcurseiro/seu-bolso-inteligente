@@ -63,10 +63,10 @@ export function TransactionForm(props: TransactionFormProps) {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-6 animate-fade-in overflow-x-hidden">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => props.onCancel ? props.onCancel() : form.navigate(-1)} className="rounded-full"><ArrowLeft className="h-5 w-5" /></Button>
-        <h1 className="font-display font-bold text-2xl tracking-tight">Nova Transação</h1>
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-4 animate-fade-in overflow-x-hidden">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => props.onCancel ? props.onCancel() : form.navigate(-1)} className="rounded-full"><ArrowLeft className="h-4 w-4" /></Button>
+        <h1 className="font-display font-bold text-xl tracking-tight">Nova Transação</h1>
       </div>
 
       <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-muted">
@@ -107,7 +107,7 @@ export function TransactionForm(props: TransactionFormProps) {
         </Alert>
       )}
 
-      <form onSubmit={form.handleSubmit} className="space-y-6">
+      <form onSubmit={form.handleSubmit} className="space-y-4">
         <AmountInput 
           currency={form.transactionCurrency} 
           currencySymbol={form.getCurrencySymbol(form.transactionCurrency)} 
@@ -160,7 +160,7 @@ export function TransactionForm(props: TransactionFormProps) {
                     value={form.destinationAmount}
                     onChange={(val) => form.handleDestAmountChange(val)}
                     currency={form.isCrossCurrencyTripExpense ? (form.selectedTrip?.currency || 'USD') : (form.selectedDestAccount?.currency || 'USD')}
-                    className="w-full h-12 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
+                    className="w-full h-10 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
                   />
                 </div>
               </div>
@@ -176,7 +176,7 @@ export function TransactionForm(props: TransactionFormProps) {
                     placeholder="0,0000"
                     value={form.exchangeRate ? Number(form.exchangeRate).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) : ''}
                     readOnly
-                    className="w-full h-12 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
+                    className="w-full h-10 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -199,7 +199,7 @@ export function TransactionForm(props: TransactionFormProps) {
                 form.setIsInstallment(val > 1);
               }}
             >
-              <SelectTrigger className="rounded-xl h-12">
+              <SelectTrigger className="rounded-xl">
                 <SelectValue placeholder="Selecione o parcelamento" />
               </SelectTrigger>
               <SelectContent>
@@ -240,7 +240,7 @@ export function TransactionForm(props: TransactionFormProps) {
           </div>
         )}
 
-        <Button type="submit" size="default" className="w-full h-12 md:h-12 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
+        <Button type="submit" size="default" className="w-full text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
           {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
         </Button>
       </form>

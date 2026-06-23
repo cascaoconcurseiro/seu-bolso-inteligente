@@ -1,11 +1,12 @@
 /**
  * Elite Form Components
- * Componentes padronizados para formulários seguindo o Elite Design System
+ * Alinhados ao design system unificado (8px scale, tokens compartilhados)
  */
 
 import { ReactNode } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 // ─── FORM CONTAINER ─────────────────────────────────────────────────────────
 interface EliteFormContainerProps {
@@ -15,7 +16,7 @@ interface EliteFormContainerProps {
 
 export function EliteFormContainer({ children, className }: EliteFormContainerProps) {
   return (
-    <div className={cn("flex flex-col h-full min-h-screen bg-background p-6 space-y-8", className)}>
+    <div className={cn("flex flex-col h-full min-h-screen bg-background p-4 md:p-6 gap-6", className)}>
       {children}
     </div>
   );
@@ -33,38 +34,41 @@ interface EliteFormHeaderProps {
 export function EliteFormHeader({ title, subtitle, icon, onClose, progress }: EliteFormHeaderProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4 min-w-0">
           {icon && (
-            <div className="w-16 h-16 rounded-3xl bg-muted flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
               {icon}
             </div>
           )}
-          <div className="space-y-1">
-            <h1 className="font-display font-black text-3xl tracking-tight leading-tight">
+          <div className="space-y-1 min-w-0">
+            <h1 className="font-display font-semibold text-xl md:text-2xl tracking-tight leading-tight">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm text-muted-foreground font-medium">
+              <p className="text-sm text-muted-foreground">
                 {subtitle}
               </p>
             )}
           </div>
         </div>
         {onClose && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="w-10 h-10 rounded-full hover:bg-muted flex items-center justify-center transition-colors"
             aria-label="Fechar"
+            className="shrink-0"
           >
-            <X className="w-5 h-5" />
-          </button>
+            <X className="w-4 h-4" />
+          </Button>
         )}
       </div>
-      
-      {typeof progress === 'number' && (
+
+      {typeof progress === "number" && (
         <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-foreground transition-all duration-500 ease-out rounded-full"
             style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
           />
@@ -84,13 +88,13 @@ interface EliteHighlightCardProps {
 export function EliteHighlightCard({ label, value, className }: EliteHighlightCardProps) {
   return (
     <div className={cn(
-      "rounded-3xl bg-muted/50 p-8 flex flex-col items-center justify-center text-center space-y-3",
+      "rounded-lg bg-muted/50 p-6 flex flex-col items-center justify-center text-center gap-2",
       className
     )}>
-      <p className="text-sm uppercase tracking-widest text-muted-foreground font-bold">
+      <p className="text-sm text-muted-foreground font-medium">
         {label}
       </p>
-      <div className="font-display font-black text-5xl tracking-tight">
+      <div className="font-display font-semibold text-2xl md:text-3xl tracking-tight value-display">
         {value}
       </div>
     </div>
@@ -106,11 +110,11 @@ interface EliteFormSectionProps {
 
 export function EliteFormSection({ label, children, className }: EliteFormSectionProps) {
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn("form-field", className)}>
       {label && (
-        <label className="block text-sm uppercase tracking-widest text-muted-foreground font-bold">
+        <span className="text-sm font-medium text-muted-foreground">
           {label}
-        </label>
+        </span>
       )}
       {children}
     </div>
@@ -126,19 +130,19 @@ interface EliteCurrencyInputProps {
   className?: string;
 }
 
-export function EliteCurrencyInput({ 
-  value, 
-  onChange, 
-  currency = "R$", 
+export function EliteCurrencyInput({
+  value,
+  onChange,
+  currency = "R$",
   placeholder = "0,00",
-  className 
+  className
 }: EliteCurrencyInputProps) {
   return (
     <div className={cn(
-      "flex items-center gap-4 p-6 rounded-3xl border-2 border-border bg-background focus-within:border-foreground transition-colors",
+      "flex items-center gap-4 px-4 h-12 rounded-lg border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 transition-colors",
       className
     )}>
-      <span className="text-3xl font-bold text-muted-foreground shrink-0">
+      <span className="text-lg font-medium text-muted-foreground shrink-0">
         {currency}
       </span>
       <input
@@ -146,7 +150,7 @@ export function EliteCurrencyInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-3xl font-bold outline-none placeholder:text-muted-foreground/40"
+        className="flex-1 bg-transparent text-xl font-semibold outline-none placeholder:text-muted-foreground/40 value-display"
       />
     </div>
   );
@@ -163,38 +167,27 @@ interface ElitePrimaryButtonProps {
   type?: "button" | "submit";
 }
 
-export function ElitePrimaryButton({ 
-  children, 
-  onClick, 
-  disabled, 
+export function ElitePrimaryButton({
+  children,
+  onClick,
+  disabled,
   loading,
   icon,
   className,
   type = "button"
 }: ElitePrimaryButtonProps) {
   return (
-    <button
+    <Button
       type={type}
       onClick={onClick}
-      disabled={disabled || loading}
-      className={cn(
-        "w-full h-16 rounded-3xl bg-foreground text-background font-bold text-base",
-        "flex items-center justify-center gap-3",
-        "transition-all duration-200",
-        "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
-        className
-      )}
+      disabled={disabled}
+      loading={loading}
+      size="lg"
+      className={cn("w-full", className)}
     >
-      {loading ? (
-        <div className="w-5 h-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
-      ) : (
-        <>
-          {children}
-          {icon}
-        </>
-      )}
-    </button>
+      {children}
+      {!loading && icon}
+    </Button>
   );
 }
 
@@ -206,27 +199,23 @@ interface EliteSecondaryButtonProps {
   className?: string;
 }
 
-export function EliteSecondaryButton({ 
-  children, 
-  onClick, 
+export function EliteSecondaryButton({
+  children,
+  onClick,
   disabled,
-  className 
+  className
 }: EliteSecondaryButtonProps) {
   return (
-    <button
+    <Button
+      type="button"
+      variant="outline"
       onClick={onClick}
       disabled={disabled}
-      className={cn(
-        "w-full h-16 rounded-3xl border-2 border-border bg-background text-foreground font-bold text-base",
-        "flex items-center justify-center gap-3",
-        "transition-all duration-200",
-        "hover:bg-muted active:scale-[0.98]",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        className
-      )}
+      size="lg"
+      className={cn("w-full", className)}
     >
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -240,17 +229,17 @@ interface EliteTextInputProps {
   className?: string;
 }
 
-export function EliteTextInput({ 
-  value, 
-  onChange, 
+export function EliteTextInput({
+  value,
+  onChange,
   placeholder,
   type = "text",
   icon,
-  className 
+  className
 }: EliteTextInputProps) {
   return (
     <div className={cn(
-      "flex items-center gap-4 px-6 h-16 rounded-3xl border-2 border-border bg-background focus-within:border-foreground transition-colors",
+      "control items-center gap-3",
       className
     )}>
       {icon && (
@@ -263,7 +252,7 @@ export function EliteTextInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-base font-medium outline-none placeholder:text-muted-foreground/40"
+        className="flex-1 bg-transparent font-medium outline-none placeholder:text-muted-foreground/40 border-0 h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>
   );
@@ -284,23 +273,19 @@ interface EliteSelectProps {
   className?: string;
 }
 
-export function EliteSelect({ 
-  value, 
-  onChange, 
+export function EliteSelect({
+  value,
+  onChange,
   options,
   placeholder = "Selecione...",
-  className 
+  className
 }: EliteSelectProps) {
-  const selected = options.find(opt => opt.value === value);
-  
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "w-full px-6 h-16 rounded-3xl border-2 border-border bg-background",
-        "text-base font-medium appearance-none cursor-pointer",
-        "focus:border-foreground focus:outline-none transition-colors",
+        "control appearance-none cursor-pointer font-medium",
         className
       )}
     >
@@ -322,7 +307,7 @@ interface EliteBottomActionsProps {
 
 export function EliteBottomActions({ children, className }: EliteBottomActionsProps) {
   return (
-    <div className={cn("mt-auto pt-8 space-y-3", className)}>
+    <div className={cn("mt-auto pt-6 flex flex-col gap-2", className)}>
       {children}
     </div>
   );

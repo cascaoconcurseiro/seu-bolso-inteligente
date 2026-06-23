@@ -363,9 +363,9 @@ export function CreditCards() {
                 <p className="text-sm text-amber-600">As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.</p>
               )}
             </div>
-            <DialogFooter className="border-t border-border/50 pt-4 mt-2">
-              <Button variant="outline" className="rounded-xl h-12 px-6" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
-              <Button className="rounded-xl h-12 px-8 font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit || !editBankId || (editBankId === 'other' && !editCustomBankName.trim())}>
+            <DialogFooter className="border-t border-border/50 pt-3 mt-2">
+              <Button variant="outline" className="rounded-xl" onClick={() => setShowEditCardDialog(false)}>Cancelar</Button>
+              <Button className="rounded-xl font-semibold shadow-md" onClick={handleEditCard} disabled={!editCardName || !editClosingDay || !editDueDay || !editLimit || !editBankId || (editBankId === 'other' && !editCustomBankName.trim())}>
                 Salvar Alterações
               </Button>
             </DialogFooter>
@@ -400,7 +400,7 @@ export function CreditCards() {
           <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-10 md:h-12 px-2">
+                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto px-2">
                   <Download className="h-4 w-4" />
                   <span className="text-sm md:text-sm">Exportar</span>
                 </Button>
@@ -421,7 +421,7 @@ export function CreditCards() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto h-10 md:h-12 font-bold px-2">
+            <Button size="default" onClick={() => setShowNewCardDialog(true)} className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 group w-full sm:w-auto font-bold px-2">
               <Plus className="h-4 w-4 mr-1 md:mr-2 group-hover:scale-110 transition-transform" /> 
               <span className="text-sm md:text-sm">Novo cartão</span>
             </Button>

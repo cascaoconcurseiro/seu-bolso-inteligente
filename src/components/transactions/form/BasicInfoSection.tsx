@@ -43,16 +43,16 @@ export function BasicInfoSection({
   const isTransfer = activeTab === 'TRANSFER';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Description */}
-      <div className="space-y-2 relative">
+      <div className="space-y-1.5 relative">
         <Label>Descrição</Label>
         <div className="relative">
           <Input
             placeholder="Ex: Almoço, Uber, Salário"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="h-12 pr-10 text-base relative z-10 bg-transparent"
+            className="pr-10 text-base relative z-10 bg-transparent"
           />
           
           {isPredicting && (
@@ -64,15 +64,15 @@ export function BasicInfoSection({
       </div>
 
       {/* Date & Category (responsive: stacked on mobile, side by side on sm screens) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
           <Label>Data</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-12 justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal",
                   selectedTrip && (
                   format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
                   format(date, 'yyyy-MM-dd') > selectedTrip.end_date
@@ -104,7 +104,7 @@ export function BasicInfoSection({
 
         {/* Category */}
         {!isTransfer ? (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label className="flex items-center gap-2">
               Categoria
               {predictedCategoryId === categoryId && categoryId && (
@@ -116,7 +116,7 @@ export function BasicInfoSection({
               <Button
                 variant="outline"
                 disabled
-                className="h-12 w-full justify-between font-normal"
+                className="w-full justify-between font-normal"
               >
                 <span className="text-muted-foreground">Carregando categorias...</span>
               </Button>
@@ -131,9 +131,9 @@ export function BasicInfoSection({
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Categoria</Label>
-            <div className="h-12 flex items-center justify-center bg-muted rounded-md">
+            <div className="h-10 flex items-center justify-center bg-muted rounded-md">
               <span className="text-sm font-bold text-muted-foreground">Automático</span>
             </div>
           </div>

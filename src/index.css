@@ -45,7 +45,16 @@
     --input: 0 0% 90%;
     --ring: 0 0% 8%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+
+    /* Layout & controls (8px scale) */
+    --control-height: 2.5rem;       /* 40px */
+    --control-height-sm: 2rem;      /* 32px */
+    --control-height-lg: 3rem;      /* 48px */
+    --form-gap: 1rem;               /* 16px between fields */
+    --section-gap: 1.5rem;          /* 24px between sections */
+    --page-padding: 1rem;           /* 16px mobile */
+    --page-padding-md: 1.5rem;        /* 24px desktop */
 
     /* Financial semantics */
     --positive: 142 71% 45%;              /* Green */
@@ -141,23 +150,34 @@
     @apply text-muted-foreground;
   }
 
-  /* AUDITORIA 2026-05-10: Melhoria de acessibilidade mobile */
+}
+
+@layer components {
+  /* Shared control surface — inputs, selects, triggers */
+  .control {
+    @apply flex w-full rounded-lg border border-input bg-background px-4 text-sm ring-offset-background transition-colors;
+    @apply placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    height: var(--control-height);
+  }
+
+  .form-stack {
+    @apply flex flex-col;
+    gap: var(--form-gap);
+  }
+
+  .form-field {
+    @apply flex flex-col gap-2;
+  }
+
+  /* Expand touch area without changing visual size */
+  .tap-target {
+    position: relative;
+  }
+
   @media (pointer: coarse) {
-    button, 
-    [role="button"],
-    .tap-target {
-      min-width: 44px;
-      min-height: 44px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    /* Botões muito pequenos (icon-only) ganham padding invisível para toque */
-    .h-7.w-7, .h-8.w-8 {
-      position: relative;
-    }
-    .h-7.w-7::after, .h-8.w-8::after {
+    .tap-target::after {
       content: '';
       position: absolute;
       top: 50%;
