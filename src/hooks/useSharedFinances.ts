@@ -168,10 +168,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           case 'date_range': {
             // Apenas transações no período
             if (!member.scope_start_date && !member.scope_end_date) return true;
+            if (!item.date) return false;
             const itemDate = new Date(item.date);
             const startDate = member.scope_start_date ? new Date(member.scope_start_date) : null;
             const endDate = member.scope_end_date ? new Date(member.scope_end_date) : null;
-            
+
             if (startDate && itemDate < startDate) return false;
             if (endDate && itemDate > endDate) return false;
             return true;
@@ -207,6 +208,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           if (!i.isSettled && !i.isPaid) return false;
 
           // Filtrar pelo mês selecionado
+          if (!i.date) return false;
           const [year, month] = i.date.split('-').map(Number);
           const itemMonth = month - 1;
           const itemYear = year;
@@ -216,7 +218,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           
           return itemMonth === currentMonth && itemYear === currentYear;
         })
-        .sort((a, b) => b.date.localeCompare(a.date));
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     } else {
       // REGULAR: Mostrar apenas itens NÃO TOTALMENTE ACERTADOS não relacionados a viagens, filtrados pelo mês atual
       const filtered = scopeFilteredItems
@@ -233,7 +235,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // CORREÇÃO CRÍTICA: Usar competence_date ao invés de date para filtrar parcelas
           // Isso garante que cada parcela apareça apenas no seu mês de competência
           const dateToUse = i.date; // Usar date pois é o que vem no InvoiceItem
-          
+          if (!dateToUse) return false;
+
           // Parse date as YYYY-MM-DD to avoid timezone issues
           const [year, month] = dateToUse.split('-').map(Number);
           
@@ -250,7 +253,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Despesas fixas/recorrentes/comuns também devem ser exibidas ESTRITAMENTE no seu mês
           return (month - 1) === currentMonth && year === currentYear;
         })
-        .sort((a, b) => b.date.localeCompare(a.date));
+        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       
       
       return filtered;
