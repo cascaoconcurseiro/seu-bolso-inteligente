@@ -283,16 +283,18 @@ export function CreditCardDetailView({
             </div>
             
             {(() => {
+              const isPaid = localInvoiceData.status === 'PAID';
               const isOverdue = localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0;
               const isClosed = localInvoiceData.status === 'CLOSED';
               return (
                 <span className={cn(
                   "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
+                  isPaid ? "bg-success/20 text-success border-success/50" :
                   isOverdue ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse" : 
                   isClosed ? "bg-warning/20 text-warning border-warning/50" :
                   "bg-accent/20 text-accent-foreground border-accent/50"
                 )}>
-                  {isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Fatura Fechada' : '🔵 Fatura Aberta'}
+                  {isPaid ? '✅ Fatura Paga' : isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Aguardando Pagamento' : '🔵 Fatura Aberta'}
                 </span>
               );
             })()}
@@ -319,6 +321,8 @@ export function CreditCardDetailView({
                 <span className="text-xs font-medium">
                   {localInvoiceData.status === 'OPEN' 
                     ? `Fecha em ${invoiceData.daysToClose} dias`
+                    : localInvoiceData.status === 'PAID'
+                    ? `Paga em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
                     : `Vence em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
                   }
                 </span>

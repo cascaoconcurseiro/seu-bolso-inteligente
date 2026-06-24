@@ -154,8 +154,11 @@ export function AccountFormModal({
         ? `${bankName} - ${accountTypeLabels[type] || type}` 
         : accountTypeLabels[type] || type;
 
+      // Usa o nome digitado pelo usuário ou o nome gerado automaticamente como fallback
+      const finalName = name.trim() || defaultName;
+
       await onSubmit({
-        name: defaultName,
+        name: finalName,
         type,
         bank_id: finalBankId || null,
         balance: moneyUtils.parse(balance) || 0,
@@ -177,6 +180,22 @@ export function AccountFormModal({
         currency: isInternational ? currency : "BRL",
       });
     }
+  };
+
+  // Pré-preenche o nome quando o banco ou tipo mudam no modo create
+  // O usuário pode sobrescrever livremente
+  const getAutoName = () => {
+    const isCustom = bankId === "default" || bankId === "default_international";
+    let bankName = "";
+    if (isCustom) {
+      bankName = customBankName.trim();
+    } else if (bankId) {
+      const bank = isInternational ? internationalBanks[bankId] : banks[bankId];
+      bankName = bank ? bank.name : "";
+    }
+    return bankName
+      ? `${bankName} - ${accountTypeLabels[type] || type}`
+      : accountTypeLabels[type] || type;
   };
 
   const isFormValid = () => {

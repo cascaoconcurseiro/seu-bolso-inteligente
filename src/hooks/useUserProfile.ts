@@ -20,6 +20,7 @@ export interface UserProfile {
   shared_expenses_behavior?: string;
   shared_sync_credit_card_id?: string | null;
   global_cdi_rate?: number;
+  default_account_id?: string | null;
   created_at: string | null;
   updated_at: string | null;
 }

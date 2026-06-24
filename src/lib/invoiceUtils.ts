@@ -4,7 +4,7 @@ import { parseDate, formatDate, getCompetenceDate, addMonthsToDate } from '@/lib
 export interface InvoiceData {
   invoiceTotal: number;
   transactions: any[];
-  status: 'OPEN' | 'CLOSED';
+  status: 'OPEN' | 'CLOSED' | 'PAID';
   daysToClose: number;
   closingDate: Date;
   dueDate: Date;
@@ -29,8 +29,18 @@ export const getTargetDate = (date: Date, closingDay?: number): Date => {
 };
 
 /**
- * Calculates invoice data for a given card and reference date
- * Uses UTC-safe date operations via dateUtils
+ * Calculates invoice data for a given card and reference date.
+ *
+ * CICLO REAL DE FECHAMENTO:
+ * Um cartão com closing_day=10 tem ciclo: dia 11 do mês anterior → dia 10 do mês atual.
+ * Compras do dia 11/mai a 10/jun pertencem à fatura de JUNHO.
+ *
+ * O sistema usa competence_date (sempre YYYY-MM-01) para indicar a qual fatura
+ * a transação pertence. Quando o usuário lança uma compra de dia 15/mai num cartão
+ * que fecha dia 10, o sistema seta competence_date = 2025-06-01 (fatura de junho).
+ *
+ * Portanto, o filtro correto é comparar competence_date.month/year com referenceDate.month/year.
+ * O startDate e closingDate são usados apenas para EXIBIÇÃO do período do ciclo.
  */
 export const getInvoiceData = (
   account: { id: string; closing_day: number | null; due_day: number | null },
@@ -38,79 +48,105 @@ export const getInvoiceData = (
   referenceDate: Date
 ): InvoiceData => {
   const year = referenceDate.getFullYear();
-  const month = referenceDate.getMonth();
+  const month = referenceDate.getMonth(); // 0-indexed
   const closingDay = account.closing_day || 1;
-  
-  // Create dates using UTC-safe operations
-  // Closing date is the closing day of the reference month
+  const dueDay = account.due_day || 10;
+
+  // ── Datas do ciclo para EXIBIÇÃO ──────────────────────────────────────────
+  // Closing date: dia de fechamento NO MÊS DE REFERÊNCIA
   const closingDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(closingDay).padStart(2, '0')}`;
   const closingDate = parseDate(closingDateStr);
-  
-  // Start date is the day after closing of previous month
-  const startDate = addMonthsToDate(closingDate, -1);
-  const startDateStr = formatDate(addMonthsToDate(startDate, 0));
-  
-  // Due date
-  const dueDay = account.due_day || 10;
+
+  // Start date: dia seguinte ao fechamento do mês ANTERIOR
+  // Ex: fecha dia 10 → ciclo começa dia 11 do mês anterior
+  const prevMonthClosing = addMonthsToDate(closingDate, -1);
+  const startDate = new Date(prevMonthClosing);
+  startDate.setDate(startDate.getDate() + 1);
+
+  // Due date: vencimento para pagamento
   const dueDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`;
   let dueDate = parseDate(dueDateStr);
-  
-  // If due day <= closing day, due date is next month
+  // Se dia de vencimento <= dia de fechamento, vencimento cai no mês seguinte
   if (dueDay <= closingDay) {
     dueDate = addMonthsToDate(dueDate, 1);
   }
-  
-  // Filter transactions for this invoice period
-  const startStr = formatDate(startDate);
-  const endStr = formatDate(closingDate);
-  
+
+  // ── Filtro de transações ──────────────────────────────────────────────────
+  // Usar competence_date para determinar a qual fatura a transação pertence.
+  // competence_date é sempre YYYY-MM-01, representando o mês da fatura.
+  // Pagamentos (TRANSFER → cartão) usam date física, não competence_date.
   const filteredTransactions = transactions.filter((t: any) => {
     if (t.account_id !== account.id && t.destination_account_id !== account.id) return false;
-    
-    // Only include:
-    // 1. Expenses/Incomes in this account
-    // 2. Transfers to this account (payments)
-    if (t.type === 'TRANSFER' && t.destination_account_id !== account.id) return false;
 
-    // Use competence_date to match the invoice month bucket
-    // We compare year and month to ensure we get the right invoice period
-    const txDate = t.competence_date ? parseDate(t.competence_date) : parseDate(t.date);
-    return txDate.getMonth() === month && txDate.getFullYear() === year;
-  });
-  
-  // Calculate total
-  const total = filteredTransactions.reduce((acc: number, t: any) => {
-    const amount = Number(t.amount);
-    if (t.type === 'EXPENSE') return acc + amount;
-    if (t.type === 'INCOME') return acc - amount;
-    
-    // Tratamento especial para Saldo Rotativo (Self-Transfers)
-    if (t.type === 'TRANSFER' && t.account_id === account.id && t.destination_account_id === account.id) {
-      if (t.description?.includes('Estorno Saldo Rotativo')) return acc - amount; // Funciona como pagamento
-      if (t.description?.includes('Saldo Rotativo Fatura Anterior')) return acc + amount; // Funciona como cobrança
-      return acc; // Ignora outros self-transfers
+    // Pagamentos de fatura: TRANSFER chegando neste cartão
+    // Usar date da transferência (não competence_date)
+    if (t.type === 'TRANSFER' && t.destination_account_id === account.id) {
+      const payDate = parseDate(t.date);
+      return payDate.getMonth() === month && payDate.getFullYear() === year;
     }
 
+    // Transferências SAINDO deste cartão (self-transfer de saldo rotativo)
+    if (t.type === 'TRANSFER' && t.account_id === account.id) {
+      // Self-transfer (saldo rotativo): usar date física
+      if (t.destination_account_id === account.id) {
+        const txDate = parseDate(t.date);
+        return txDate.getMonth() === month && txDate.getFullYear() === year;
+      }
+      return false;
+    }
+
+    // Despesas e receitas: usar competence_date (fonte da verdade do mês da fatura)
+    const competenceStr = t.competence_date || t.date;
+    const txDate = parseDate(competenceStr);
+    return txDate.getMonth() === month && txDate.getFullYear() === year;
+  });
+
+  // ── Cálculo do total da fatura ────────────────────────────────────────────
+  const invoiceTotal = filteredTransactions.reduce((acc: number, t: any) => {
+    const amount = Number(t.amount);
+
+    if (t.type === 'EXPENSE') return acc + amount;
+    if (t.type === 'INCOME') return acc - amount;
+
+    // Saldo Rotativo (Self-Transfer no mesmo cartão)
+    if (t.type === 'TRANSFER' && t.account_id === account.id && t.destination_account_id === account.id) {
+      if (t.description?.includes('Estorno Saldo Rotativo')) return acc - amount;
+      if (t.description?.includes('Saldo Rotativo Fatura Anterior')) return acc + amount;
+      return acc;
+    }
+
+    // Pagamento recebido neste cartão (abate a fatura)
     if (t.type === 'TRANSFER' && t.destination_account_id === account.id) return acc - amount;
+    // Transferência saindo (não deve acontecer em cartão normal)
     if (t.type === 'TRANSFER' && t.account_id === account.id) return acc + amount;
+
     return acc;
   }, 0);
-  
-  // Determine status
+
+  // ── Status ────────────────────────────────────────────────────────────────
+  // OPEN: ciclo ainda não fechou (closingDate >= hoje)
+  // CLOSED: ciclo fechou mas não há pagamento registrado (ainda não pago)
+  // PAID: há um pagamento (TRANSFER) registrado nesta fatura que abate o total
   const now = new Date();
-  const status: 'OPEN' | 'CLOSED' = closingDate < now ? 'CLOSED' : 'OPEN';
-  const daysToClose = Math.ceil(
-    (closingDate.getTime() - now.getTime()) / (1000 * 3600 * 24)
+  const isClosed = closingDate < now;
+  const daysToClose = Math.ceil((closingDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
+
+  const payments = filteredTransactions.filter(
+    (t: any) => t.type === 'TRANSFER' && t.destination_account_id === account.id
   );
-  
+  const totalPaid = payments.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
+  const isFullyPaid = isClosed && totalPaid > 0 && totalPaid >= invoiceTotal - 0.01;
+
+  const status: 'OPEN' | 'CLOSED' | 'PAID' = isFullyPaid ? 'PAID' : isClosed ? 'CLOSED' : 'OPEN';
+
   return {
-    invoiceTotal: total,
+    invoiceTotal,
     transactions: filteredTransactions,
     status,
     daysToClose,
     closingDate,
     dueDate,
-    startDate
+    startDate,
   };
 };
 

@@ -72,7 +72,11 @@ export function Reports() {
   const [txTypeFilter, setTxTypeFilter] = useState<string>("ALL");
   
   const { user } = useAuth();
-  const { data: allTransactions = [], isLoading } = useTransactions({ startDate: '2020-01-01', endDate: '2030-12-31' });
+  // Buscar transações do ano atual por padrão (evita carregar todo o histórico)
+  const currentYear = new Date().getFullYear();
+  const reportStartDate = `${currentYear - 1}-01-01`; // último ano + atual para ter contexto
+  const reportEndDate = `${currentYear}-12-31`;
+  const { data: allTransactions = [], isLoading } = useTransactions({ startDate: reportStartDate, endDate: reportEndDate });
   const { data: categories = [] } = useCategories();
   const { data: accounts = [] } = useAccounts();
   const { data: familyMembers = [] } = useFamilyMembers();

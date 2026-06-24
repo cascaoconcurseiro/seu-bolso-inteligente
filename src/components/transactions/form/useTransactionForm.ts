@@ -184,13 +184,19 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         store.reset();
         // Apply context ONLY when creating a new transaction
         if (context?.tripId) store.setTripId(context.tripId);
-        if (context?.accountId) store.setAccountId(context.accountId);
+        if (context?.accountId) {
+          store.setAccountId(context.accountId);
+        } else {
+          // Pré-selecionar conta padrão do perfil se não houver contexto específico
+          const defaultAccId = (profile as any)?.default_account_id;
+          if (defaultAccId) store.setAccountId(defaultAccId);
+        }
         if (context?.categoryId) store.setCategoryId(context.categoryId);
       }
       hasInitialized.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, context]);
+  }, [initialData, context, profile?.id]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);

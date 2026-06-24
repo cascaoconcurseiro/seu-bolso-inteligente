@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard } from "lucide-react";
+import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, Wallet } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
 import { NumericFormat } from "react-number-format";
@@ -23,8 +23,10 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedSyncCreditCardId, setSharedSyncCreditCardId] = useState<string>("none");
   const [globalCdiRate, setGlobalCdiRate] = useState<number>(11.15);
+  const [defaultAccountId, setDefaultAccountId] = useState<string>("none");
 
   const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
+  const checkingAccounts = accounts?.filter(acc => acc.type !== 'CREDIT_CARD') || [];
 
   useEffect(() => {
     if (profile) {
@@ -39,6 +41,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       }
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
+      setDefaultAccountId(profile.default_account_id || "none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -51,19 +54,22 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       shared_expenses_behavior: sharedExpensesBehavior,
       shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
       global_cdi_rate: globalCdiRate,
+      default_account_id: defaultAccountId === "none" ? null : defaultAccountId,
     });
   };
 
   const hasChanges = () => {
     if (!profile) return false;
     const currentCardId = profile.shared_sync_credit_card_id || "none";
+    const currentDefaultAccount = profile.default_account_id || "none";
     return (
       baseCurrency !== (profile.base_currency || "BRL") ||
       monthStartDay !== (profile.month_start_day?.toString() || "1") ||
       monthlyBudget !== (profile.monthly_budget || 0) ||
       sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
       sharedSyncCreditCardId !== currentCardId ||
-      globalCdiRate !== (profile.global_cdi_rate ?? 11.15)
+      globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
+      defaultAccountId !== currentDefaultAccount
     );
   };
 
@@ -80,7 +86,36 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
 
       <div className="space-y-6 max-w-2xl">
         <div className="space-y-4">
-          
+
+          {/* CONTA PADRÃO — novo campo */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2 w-full">
+              <div className="flex items-center gap-2">
+                <Label>Conta Padrão para Despesas</Label>
+                <InfoTooltip content="A conta que será pré-selecionada automaticamente toda vez que você abrir o formulário de nova transação. Você pode trocar antes de salvar." />
+              </div>
+              <Select value={defaultAccountId} onValueChange={setDefaultAccountId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma conta..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem conta padrão</SelectItem>
+                  {checkingAccounts.map(acc => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Elimina a necessidade de selecionar a conta manualmente a cada lançamento.
+              </p>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <CalendarDays className="h-5 w-5" />
@@ -267,4 +302,10 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       </div>
     </div>
   );
+}
+
+interface PreferencesSettingsProps {
+  profile: UserProfile | null;
+  isLoading: boolean;
+  updateProfile: any;
 }

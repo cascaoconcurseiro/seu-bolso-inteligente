@@ -19,7 +19,7 @@ export function CreditCardItem({
   openCardDetail,
 }: CreditCardItemProps) {
   const invoice = getCardInvoice(card);
-  const isOverdue = invoice.status === 'CLOSED' && new Date() > invoice.dueDate && invoice.value > 0;
+  const isOverdue = invoice.status === 'CLOSED' && new Date() > invoice.dueDate && invoice.value > 0 && invoice.status !== 'PAID';
   const bank = getBankById(card.bank_id);
   
   return (
@@ -69,11 +69,13 @@ export function CreditCardItem({
             ) : (
               <span className={cn(
                 "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
-                invoice.status === 'CLOSED' 
+                invoice.status === 'PAID'
+                  ? "bg-success/10 text-success border-success/20"
+                  : invoice.status === 'CLOSED' 
                   ? "bg-warning/10 text-warning dark:text-warning border-warning/20" 
                   : "bg-accent/10 text-accent border-accent/20"
               )}>
-                {invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
+                {invoice.status === 'PAID' ? '✓ PAGA' : invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
               </span>
             )}
           </div>

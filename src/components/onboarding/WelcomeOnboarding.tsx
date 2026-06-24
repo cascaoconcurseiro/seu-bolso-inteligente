@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useCreateAccount } from "@/hooks/useAccounts";
-import { Loader2, Wallet, Target, Sparkles, ArrowRight, CheckCircle2, ChevronRight } from "lucide-react";
+import { useCreateDefaultCategories } from "@/hooks/useCategories";
+import {
+  Loader2, Wallet, CreditCard, Sparkles, ChevronRight,
+  CheckCircle2, ArrowRight, Tag, ChevronLeft
+} from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,190 +18,326 @@ interface WelcomeOnboardingProps {
   onComplete: () => void;
 }
 
+const TOTAL_STEPS = 4;
+
+const variants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 50 : -50, opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? -50 : 50, opacity: 0 }),
+};
+
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [step, setStep] = useState(1);
+  const [dir, setDir] = useState(1);
+
+  // Passo 1 — Conta
   const [accountName, setAccountName] = useState("Minha Carteira");
   const [initialBalance, setInitialBalance] = useState("");
-  const [goalName, setGoalName] = useState("Reserva de Emergência");
-  const [goalAmount, setGoalAmount] = useState("");
+
+  // Passo 2 — Cartão (opcional)
+  const [hasCard, setHasCard] = useState<boolean | null>(null);
+  const [cardName, setCardName] = useState("");
+  const [cardLimit, setCardLimit] = useState("");
+  const [closingDay, setClosingDay] = useState("10");
+  const [dueDay, setDueDay] = useState("17");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const { data: profile } = useUserProfile();
   const createAccount = useCreateAccount();
+  const createDefaultCategories = useCreateDefaultCategories();
 
-  const handleNext = () => setStep(2);
+  const go = (next: number) => {
+    setDir(next > step ? 1 : -1);
+    setStep(next);
+  };
 
   const handleFinish = async () => {
+    setIsLoading(true);
     try {
+      // 1. Criar conta bancária
       const balanceNum = parseFloat(initialBalance.replace(",", "."));
       await createAccount.mutateAsync({
-        name: accountName,
+        name: accountName || "Minha Carteira",
         type: "CHECKING",
         balance: isNaN(balanceNum) ? 0 : balanceNum,
-        currency: "BRL"
+        currency: "BRL",
       });
-      
-      toast.success("Tudo pronto! Seu Bolso Inteligente está configurado.");
+
+      // 2. Criar cartão se informado
+      if (hasCard && cardName) {
+        const limitNum = parseFloat(cardLimit.replace(",", "."));
+        await createAccount.mutateAsync({
+          name: cardName,
+          type: "CREDIT_CARD",
+          balance: 0,
+          currency: "BRL",
+          credit_limit: isNaN(limitNum) ? undefined : limitNum,
+          closing_day: parseInt(closingDay) || 10,
+          due_day: parseInt(dueDay) || 17,
+        } as any);
+      }
+
+      // 3. Criar categorias padrão
+      await createDefaultCategories.mutateAsync({ force: false });
+
+      toast.success("Tudo pronto! Bem-vindo ao Pé de Meia 🎉");
       onComplete();
-    } catch (error) {
-      toast.error("Erro ao configurar sua conta inicial.");
+    } catch (err) {
+      toast.error("Algo deu errado. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const variants = {
-    enter: { x: 50, opacity: 0 },
-    center: { x: 0, opacity: 1 },
-    exit: { x: -50, opacity: 0 }
-  };
+  const stepLabel = [
+    "Sua conta principal",
+    "Tem cartão de crédito?",
+    "Categorias prontas",
+    "Tudo certo!",
+  ];
 
   return (
-    <Dialog open={true} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[500px] overflow-hidden shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background" hideClose>
-        {/* Banner header with Glassmorphism */}
-        <div className="relative p-8 flex flex-col items-center justify-center text-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent z-0"></div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/30 blur-[50px] rounded-full z-0"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/20 blur-[50px] rounded-full z-0"></div>
-          
-          <div className="relative z-10 w-16 h-16 bg-background/50 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-lg border border-white/10">
-            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+    <Dialog open onOpenChange={() => {}}>
+      <DialogContent
+        className="sm:max-w-[500px] overflow-hidden w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.12)] sm:shadow-lg max-h-[92vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)]"
+        hideClose
+      >
+        {/* Header */}
+        <div className="relative p-6 flex flex-col items-center justify-center text-center overflow-hidden shrink-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent z-0" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/30 blur-[50px] rounded-full z-0" />
+          <div className="relative z-10 w-14 h-14 bg-background/60 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 shadow-lg border border-white/10">
+            <Sparkles className="w-7 h-7 text-primary animate-pulse" />
           </div>
-          <DialogTitle className="relative z-10 text-3xl font-display font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-            Olá, {profile?.name?.split(" ")[0] || "viajante"}!
+          <DialogTitle className="relative z-10 text-2xl font-display font-bold tracking-tight">
+            Olá, {profile?.name?.split(" ")[0] || "bem-vindo"}!
           </DialogTitle>
-          <DialogDescription className="relative z-10 text-base mt-2 text-foreground/80 max-w-[80%] mx-auto font-medium">
-            Bem-vindo ao Pé de Meia. Vamos preparar o terreno para a sua liberdade financeira.
+          <DialogDescription className="relative z-10 text-sm mt-1 text-muted-foreground max-w-[80%] mx-auto">
+            Configuração rápida em {TOTAL_STEPS} passos
           </DialogDescription>
+
+          {/* Progress dots */}
+          <div className="relative z-10 flex items-center gap-2 mt-4">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i + 1 === step ? "w-6 bg-primary" : i + 1 < step ? "w-3 bg-primary/60" : "w-3 bg-border"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="p-6 relative z-10 bg-card/50 backdrop-blur-sm rounded-t-3xl -mt-4 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] border-t border-white/5">
-          <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.div 
-                key="step1"
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="space-y-6"
-              >
-                <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-2">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                    Passo 1 de 2
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar px-6 pb-6">
+          <AnimatePresence mode="wait" custom={dir}>
+            {/* PASSO 1 — Conta */}
+            {step === 1 && (
+              <motion.div key="s1" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base flex items-center gap-2">
-                    <Wallet className="w-6 h-6 text-primary" />
-                    Sua Carteira Principal
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Onde seu dinheiro vive atualmente? Dê um nome e defina o saldo atual para começarmos com o pé direito.
-                  </p>
-                  
-                  <div className="space-y-4 mt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="accName" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Nome da Conta</Label>
-                      <Input 
-                        id="accName" 
-                        value={accountName} 
-                        onChange={e => setAccountName(e.target.value)} 
-                        placeholder="Ex: Nubank, Carteira, Itaú"
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="accBalance" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Saldo Inicial (R$)</Label>
-                      <Input 
-                        id="accBalance" 
-                        type="number"
-                        placeholder="0.00"
-                        value={initialBalance} 
-                        onChange={e => setInitialBalance(e.target.value)} 
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all font-mono"
-                      />
-                    </div>
+                  <div>
+                    <p className="font-semibold text-base">Passo 1 de {TOTAL_STEPS}</p>
+                    <p className="text-sm text-muted-foreground">{stepLabel[0]}</p>
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 mt-8">
-                  <Button onClick={handleNext} className="w-full h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
+
+                <p className="text-sm text-muted-foreground">
+                  Qual é sua conta principal? Pode ser uma conta bancária, carteira física ou qualquer lugar onde seu dinheiro fica.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="accName">Nome da conta</Label>
+                    <Input
+                      id="accName"
+                      value={accountName}
+                      onChange={e => setAccountName(e.target.value)}
+                      placeholder="Ex: Nubank, Itaú, Carteira"
+                      className="h-12 text-base"
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accBalance">Saldo atual (R$)</Label>
+                    <Input
+                      id="accBalance"
+                      inputMode="decimal"
+                      placeholder="0,00"
+                      value={initialBalance}
+                      onChange={e => setInitialBalance(e.target.value)}
+                      className="h-12 text-base font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">Quanto você tem hoje nessa conta? Pode digitar 0 e ajustar depois.</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2">
+                  <Button onClick={() => go(2)} disabled={!accountName.trim()} className="w-full h-12 text-base font-semibold rounded-xl">
                     Continuar <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
-                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
-                    Pular configuração (não recomendado)
+                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground">
+                    Pular (configurar depois)
                   </Button>
                 </div>
               </motion.div>
-            ) : (
-              <motion.div 
-                key="step2"
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="space-y-6"
-              >
-                <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-2">
-                    <span className="w-2 h-2 rounded-full bg-primary"></span>
-                    Passo 2 de 2
+            )}
+
+            {/* PASSO 2 — Cartão */}
+            {step === 2 && (
+              <motion.div key="s2" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <CreditCard className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base flex items-center gap-2">
-                    <Target className="w-6 h-6 text-primary" />
-                    Seu Grande Alvo
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    O dinheiro é um meio, não um fim. O que você quer conquistar primeiro?
-                  </p>
-                  
-                  <div className="space-y-4 mt-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="goalName" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">O que você quer alcançar?</Label>
-                      <Input 
-                        id="goalName" 
-                        value={goalName} 
-                        onChange={e => setGoalName(e.target.value)}
-                        placeholder="Ex: Reserva de Emergência, Carro Novo"
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="goalAmount" className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Quanto você precisa? (R$)</Label>
-                      <Input 
-                        id="goalAmount" 
-                        type="number"
-                        placeholder="10000.00"
-                        value={goalAmount} 
-                        onChange={e => setGoalAmount(e.target.value)} 
-                        className="h-12 bg-background/50 border-white/10 focus-visible:ring-primary/50 text-base transition-all font-mono"
-                      />
-                    </div>
+                  <div>
+                    <p className="font-semibold text-base">Passo 2 de {TOTAL_STEPS}</p>
+                    <p className="text-sm text-muted-foreground">{stepLabel[1]}</p>
                   </div>
                 </div>
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-primary/5 p-4 rounded-xl flex items-start gap-3 border border-primary/10 mt-6"
-                >
-                  <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <p className="text-sm text-foreground/80 font-medium">
-                    Incrível! Após concluir, suas metas estarão disponíveis no painel principal.
-                  </p>
-                </motion.div>
 
-                <div className="flex flex-col gap-3 mt-8">
-                  <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setStep(1)} className="h-12 rounded-xl px-4 border-white/10 bg-background/50">
-                      Voltar
+                <p className="text-sm text-muted-foreground">
+                  Se você usa cartão de crédito, configurar agora garante que as faturas sejam calculadas corretamente.
+                </p>
+
+                {/* Sim / Não */}
+                {hasCard === null && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" className="h-16 flex flex-col gap-1 text-base" onClick={() => setHasCard(true)}>
+                      <span className="text-2xl">💳</span>
+                      <span>Sim, tenho</span>
                     </Button>
-                    <Button onClick={handleFinish} disabled={createAccount.isPending || !accountName} className="flex-1 h-12 text-md font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
-                      {createAccount.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Concluir e Decolar"}
+                    <Button variant="outline" className="h-16 flex flex-col gap-1 text-base" onClick={() => { setHasCard(false); go(3); }}>
+                      <span className="text-2xl">❌</span>
+                      <span>Não tenho</span>
                     </Button>
                   </div>
-                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground hover:bg-transparent hover:text-foreground">
-                    Pular configuração (não recomendado)
+                )}
+
+                {hasCard === true && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nome do cartão</Label>
+                      <Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Ex: Nubank, Inter, Itaú Visa" className="h-12 text-base" autoFocus />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Limite (R$)</Label>
+                      <Input inputMode="decimal" value={cardLimit} onChange={e => setCardLimit(e.target.value)} placeholder="5000,00" className="h-12 text-base font-mono" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Dia de fechamento</Label>
+                        <Input inputMode="numeric" value={closingDay} onChange={e => setClosingDay(e.target.value)} placeholder="10" className="h-12 text-base font-mono text-center" />
+                        <p className="text-xs text-muted-foreground">Dia que a fatura fecha</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Dia de vencimento</Label>
+                        <Input inputMode="numeric" value={dueDay} onChange={e => setDueDay(e.target.value)} placeholder="17" className="h-12 text-base font-mono text-center" />
+                        <p className="text-xs text-muted-foreground">Dia que você paga</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => go(1)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  {hasCard !== null && (
+                    <Button onClick={() => go(3)} disabled={hasCard && !cardName.trim()} className="flex-1 h-12 text-base font-semibold rounded-xl">
+                      Continuar <ChevronRight className="w-5 h-5 ml-1" />
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* PASSO 3 — Categorias */}
+            {step === 3 && (
+              <motion.div key="s3" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Tag className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-base">Passo 3 de {TOTAL_STEPS}</p>
+                    <p className="text-sm text-muted-foreground">{stepLabel[2]}</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  Vamos criar automaticamente as categorias mais usadas para você já poder categorizar seus gastos de imediato.
+                </p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {["🍔 Alimentação","🚗 Transporte","🏠 Moradia","❤️ Saúde","🎉 Lazer","📚 Educação","💡 Contas","🛍️ Compras","💰 Salário","📈 Investimentos"].map(cat => (
+                    <div key={cat} className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 text-sm font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      {cat}
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  +30 subcategorias incluídas. Você pode personalizar tudo em Configurações.
+                </p>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => go(2)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button onClick={() => go(4)} className="flex-1 h-12 text-base font-semibold rounded-xl">
+                    Perfeito, vamos lá! <ArrowRight className="w-5 h-5 ml-1" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* PASSO 4 — Pronto */}
+            {step === 4 && (
+              <motion.div key="s4" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-base">Passo 4 de {TOTAL_STEPS}</p>
+                    <p className="text-sm text-muted-foreground">{stepLabel[3]}</p>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground">Você está pronto. Aqui está o que pode fazer primeiro:</p>
+
+                <div className="space-y-3">
+                  {[
+                    { emoji: "➕", title: "Lançar uma despesa", desc: "Toque no botão + para registrar qualquer gasto" },
+                    { emoji: "📊", title: "Ver seu dashboard", desc: "Resumo do mês, saldos e faturas na tela inicial" },
+                    { emoji: "💳", title: "Acompanhar sua fatura", desc: "Em Cartões, veja os gastos do ciclo atual" },
+                  ].map(tip => (
+                    <div key={tip.title} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-muted/30">
+                      <span className="text-xl shrink-0">{tip.emoji}</span>
+                      <div>
+                        <p className="text-sm font-semibold">{tip.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{tip.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => go(3)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button onClick={handleFinish} disabled={isLoading} className="flex-1 h-12 text-base font-semibold rounded-xl shadow-lg shadow-primary/20">
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Começar agora 🚀"}
                   </Button>
                 </div>
               </motion.div>
