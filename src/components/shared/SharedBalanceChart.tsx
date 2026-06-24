@@ -52,17 +52,17 @@ export function SharedBalanceChart({
     }
 
     const data: ChartDataPoint[] = [];
-    const now = new Date();
+    // Usar currentDate como âncora para os últimos 6 meses
+    const anchor = dateFns.startOfMonth(currentDate);
 
-    // Generate last 6 months
     for (let i = 5; i >= 0; i--) {
-      const monthDate = dateFns.subMonths(dateFns.startOfMonth(now), i);
+      const monthDate = dateFns.subMonths(anchor, i);
       const monthLabel = dateFns.format(monthDate, "MMM", { locale: ptBR });
 
       let credits = 0;
       let debits = 0;
 
-      // Process all invoices for this month
+      // Todos os itens de todos os membros, pagos ou não
       Object.values(invoices).forEach((items) => {
         items.forEach((item: InvoiceItem) => {
           if (!item.date) return;
@@ -80,9 +80,10 @@ export function SharedBalanceChart({
             itemMonth === monthDate.getMonth() &&
             itemYear === monthDate.getFullYear()
           ) {
-            if (item.type === "CREDIT" && !item.isPaid) {
+            // Incluir todos os itens, não apenas isPaid === false
+            if (item.type === "CREDIT") {
               credits = SafeFinancialCalculator.add(credits, item.amount);
-            } else if (item.type === "DEBIT" && !item.isPaid) {
+            } else if (item.type === "DEBIT") {
               debits = SafeFinancialCalculator.add(debits, item.amount);
             }
           }
@@ -98,7 +99,7 @@ export function SharedBalanceChart({
     }
 
     return data;
-  }, [invoices, isGeneralReport, monthlyData]);
+  }, [invoices, isGeneralReport, monthlyData, currentDate]);
 
   const safeChartData = chartData || [];
   const currentMonthData = safeChartData.length > 0 ? safeChartData[safeChartData.length - 1] : null;
