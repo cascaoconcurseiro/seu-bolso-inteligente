@@ -408,7 +408,7 @@ export function useAccountDependencies(accountId: string | undefined) {
         const deps = await callRPCWithRetry('check_account_dependencies', { p_account_id: accountId }) as AccountDependenciesResponse;
         return deps;
       } catch (e) {
-        console.warn("Failed to fetch account dependencies:", e);
+        logger.warn("Failed to fetch account dependencies:", e);
         return null;
       }
     },

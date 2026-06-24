@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { logger } from '@/utils/logger';
 
 export type B3Ticker = Database['public']['Tables']['b3_tickers_cache']['Row'];
 
@@ -33,7 +34,7 @@ export function useB3TickersSearch(searchTerm: string) {
         
         setResults(data || []);
       } catch (error) {
-        console.error('Error fetching B3 tickers:', error);
+        logger.error('Error fetching B3 tickers:', error);
         setResults([]);
       } finally {
         setIsLoading(false);

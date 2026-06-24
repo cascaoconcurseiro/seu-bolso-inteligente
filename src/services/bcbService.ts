@@ -1,4 +1,5 @@
 import { moneyUtils } from "@/utils/money";
+import { logger } from '@/utils/logger';
 /**
  * Banco Central do Brasil (BCB) - Sistema Gerenciador de Séries Temporais (SGS)
  * API REST Pública e Gratuita. Não requer autenticação.
@@ -34,7 +35,7 @@ async function fetchLatestIndicator(seriesCode: number): Promise<EconomicIndicat
     
     return null;
   } catch (error) {
-    console.error(`Falha ao buscar indicador do BCB (Série ${seriesCode}):`, error);
+    logger.error(`Falha ao buscar indicador do BCB (Série ${seriesCode}):`, error);
     return null;
   }
 }

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Asset, AssetPerformance } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 export const useAssets = () => {
   const { toast } = useToast();
@@ -80,7 +81,7 @@ export const useAssets = () => {
         });
 
         if (txError) {
-          console.error("Erro ao gerar transação de ativo:", txError);
+          logger.error("Erro ao gerar transação de ativo:", txError);
           // Não falhamos a criação do ativo se a transação falhar, mas avisamos
         }
 
@@ -96,7 +97,7 @@ export const useAssets = () => {
         });
 
         if (assetTxError) {
-          console.error("Erro ao gerar transação de histórico de ativo:", assetTxError);
+          logger.error("Erro ao gerar transação de histórico de ativo:", assetTxError);
         }
       }
 

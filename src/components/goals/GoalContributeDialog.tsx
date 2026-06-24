@@ -11,6 +11,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { Goal } from '@/types/database';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/utils/logger';
 
 interface GoalContributeDialogProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
         { onSuccess: onClose }
       );
     } catch (error) {
-      console.error("Erro ao contribuir para meta:", error);
+      logger.error("Erro ao contribuir para meta:", error);
     }
   };
 

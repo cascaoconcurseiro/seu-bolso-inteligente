@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CategorySelector } from "@/components/transactions/CategorySelector";
 import { toast } from "sonner";
 import { moneyUtils } from "@/utils/money";
+import { logger } from '@/utils/logger';
 
 type CreditCardAccount = any;
 
@@ -198,7 +199,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
       toast.success("Parcelas criadas com sucesso!");
       onClose();
     } catch (error: any) {
-      console.error(error);
+      logger.error(error);
       toast.error(error.message || "Erro ao criar parcelas.");
     } finally {
       setIsSubmitting(false);

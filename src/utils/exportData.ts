@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from './exportCurrency';
+import { logger } from '@/utils/logger';
 
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
@@ -17,10 +18,10 @@ const safeCallAutoTable = (doc: jsPDF, options: any) => {
     } else if (typeof (doc as any).autoTable === 'function') {
       (doc as any).autoTable(options);
     } else {
-      console.warn('Método autoTable não encontrado no escopo global ou local do jsPDF.');
+      logger.warn('Método autoTable não encontrado no escopo global ou local do jsPDF.');
     }
   } catch (error) {
-    console.error('Erro ao renderizar autoTable no PDF:', error);
+    logger.error('Erro ao renderizar autoTable no PDF:', error);
   }
 };
 

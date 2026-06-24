@@ -21,6 +21,7 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
+import { logger } from '@/utils/logger';
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -91,7 +92,7 @@ export function AccountDetail() {
       await deleteAccount.mutateAsync(id!);
       navigate("/contas");
     } catch (error) {
-      console.error("Erro ao excluir conta:", error);
+      logger.error("Erro ao excluir conta:", error);
     }
   };
 

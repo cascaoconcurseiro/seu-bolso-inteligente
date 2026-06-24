@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { logger } from '@/utils/logger';
 
 interface OFXImportModalProps {
   isOpen: boolean;
@@ -151,7 +152,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
       }
       
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Erro ao ler arquivo. Verifique o formato.");
     } finally {
       setIsUploading(false);

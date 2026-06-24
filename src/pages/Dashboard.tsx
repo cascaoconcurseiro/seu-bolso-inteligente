@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { logger } from '@/utils/logger';
 
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
@@ -47,7 +48,7 @@ export function Dashboard() {
     import("@/integrations/supabase/client").then(({ supabase }) => {
       // Chamada direta sem verificação de tipo para RPC não tipada
       (supabase.rpc as any)("process_credit_card_invoices").then(({ error }: any) => {
-        if (error) console.error("Falha ao sincronizar faturas:", error);
+        if (error) logger.error("Falha ao sincronizar faturas:", error);
       });
     });
   }, []);

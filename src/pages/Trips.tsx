@@ -34,6 +34,7 @@ import { RemoveParticipantDialog } from "@/components/trips/RemoveParticipantDia
 import { supabase } from "@/integrations/supabase/client";
 import { dismissRelatedNotifications } from "@/services/notificationGenerator";
 import { toast } from "sonner";
+import { logger } from '@/utils/logger';
 
 
 export function Trips() {
@@ -103,7 +104,7 @@ export function Trips() {
       setRemovingParticipantBalance(null);
       toast.success("Membro removido da viagem com sucesso");
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err.message || "Erro ao remover membro da viagem");
     } finally {
       setIsRemovingState(false);
@@ -150,7 +151,7 @@ export function Trips() {
       setRemovingParticipantBalance(null);
       toast.success("Membro removido e acerto de contas registrado");
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err.message || "Erro ao remover membro e acertar contas");
     } finally {
       setIsRemovingState(false);
@@ -196,7 +197,7 @@ export function Trips() {
       setRemovingParticipantBalance(null);
       toast.success("Membro removido e dívida perdoada");
     } catch (err: any) {
-      console.error(err);
+      logger.error(err);
       toast.error(err.message || "Erro ao remover membro e perdoar dívida");
     } finally {
       setIsRemovingState(false);
@@ -321,7 +322,7 @@ export function Trips() {
                 document.activeElement.blur();
               }
             } catch (err) {
-              console.error("Erro ao editar viagem", err);
+              logger.error("Erro ao editar viagem", err);
             }
           }} 
           isLoading={updateTrip.isPending} 
@@ -400,7 +401,7 @@ export function Trips() {
               document.activeElement.blur();
             }
           } catch (err) {
-            console.error("Erro ao criar viagem", err);
+            logger.error("Erro ao criar viagem", err);
           }
         }} 
         isLoading={createTrip.isPending}

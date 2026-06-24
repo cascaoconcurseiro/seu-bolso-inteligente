@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { exportTransactions } from "@/services/exportService";
 import { toast } from "sonner";
 import { hashPin } from "@/utils/crypto";
+import { logger } from '@/utils/logger';
 
 interface AccountSettingsProps {
   profile: any;
@@ -77,7 +78,7 @@ export function AccountSettings({
       exportTransactions(data, format);
       toast.success("Backup financeiro exportado com sucesso!");
     } catch (e) {
-      console.error("Erro ao exportar backup:", e);
+      logger.error("Erro ao exportar backup:", e);
       toast.error("Ocorreu um erro ao exportar seus dados. Tente novamente.");
     } finally {
       setIsExporting(false);

@@ -125,7 +125,7 @@ export function BackupManager() {
 
       toast.success("Todos os dados do sistema foram exportados com orgulho contábil!");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Falha ao exportar backup.");
     } finally {
       setIsExporting(false);
@@ -245,7 +245,7 @@ export function BackupManager() {
       setImportedFile(null);
       setConfirmText("");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Ocorreu um erro crítico durante a restauração do banco de dados.");
     } finally {
       setIsImporting(false);

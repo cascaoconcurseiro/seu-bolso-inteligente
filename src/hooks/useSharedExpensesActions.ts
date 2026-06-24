@@ -14,6 +14,7 @@ import {
 
 import { FamilyMember } from "@/hooks/useFamily";
 import { moneyUtils } from "@/utils/money";
+import { logger } from '@/utils/logger';
 
 
 interface SharedExpensesActionsProps {
@@ -173,7 +174,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
               otherUserId,
               user?.user_metadata?.name || user?.email || 'Alguém',
               itemsToSettle.length
-            ).catch(err => console.error("Error creating perfect compensation notification:", err));
+            ).catch(err => logger.error("Error creating perfect compensation notification:", err));
           });
         }
 
@@ -245,7 +246,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         toast.success(`Acerto de ${formatCurrency(amount, settlementCurrency)} processado com sucesso!`);
       }
     } catch (error) {
-      console.error('Settlement error', error);
+      logger.error('Settlement error', error);
       if (queryClient && props.queryClient?.getQueryData) {
         // Rollback optimistic update
         queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
@@ -267,7 +268,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       });
 
       if (error) {
-        console.error('Erro no RPC undo_settlement:', error);
+        logger.error('Erro no RPC undo_settlement:', error);
         throw error;
       }
 
@@ -295,7 +296,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       toast.success("Acerto desfeito com sucesso!");
     } catch (error) {
-      console.error('Erro ao desfazer acerto', error);
+      logger.error('Erro ao desfazer acerto', error);
       toast.error("Erro ao desfazer acerto");
     }
   };
@@ -344,7 +345,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       toast.success("Transação excluída com sucesso!");
     } catch (error) {
-      console.error('Erro ao excluir transação', error);
+      logger.error('Erro ao excluir transação', error);
       toast.error("Erro ao excluir transação");
     }
   };
@@ -392,7 +393,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       toast.success(`${deletedCount} parcelas excluídas com sucesso!`);
     } catch (error) {
-      console.error('Erro ao excluir série', error);
+      logger.error('Erro ao excluir série', error);
       toast.error("Erro ao excluir série");
     }
   };
@@ -424,14 +425,14 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             });
             
             if (error) {
-              console.error(`Erro ao desfazer split ${item.splitId}:`, error);
+              logger.error(`Erro ao desfazer split ${item.splitId}:`, error);
               continue;
             }
             
             successCount++;
           }
         } catch (err) {
-          console.error('Erro ao desfazer item no Undo All', err);
+          logger.error('Erro ao desfazer item no Undo All', err);
         }
       }
 
@@ -439,7 +440,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       await refetch();
       toast.success(`${successCount} acerto(s) desfeito(s) com sucesso!`);
     } catch (error) {
-      console.error('Erro ao desfazer todos os acertos', error);
+      logger.error('Erro ao desfazer todos os acertos', error);
       toast.error("Erro ao desfazer os acertos");
     } finally {
       setIsUndoingAll(false);
@@ -573,7 +574,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         );
       }
     } catch (error) {
-      console.error('Erro ao confirmar recebimento', error);
+      logger.error('Erro ao confirmar recebimento', error);
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
       }
@@ -604,7 +605,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         );
       }
     } catch (error) {
-      console.error('Erro ao recusar acerto', error);
+      logger.error('Erro ao recusar acerto', error);
       toast.error("Erro ao recusar acerto");
     }
   };
@@ -672,7 +673,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       toast.success("Pagamento e conta vinculada confirmados com sucesso! Acerto finalizado.");
       refetch(); // Sem await
     } catch (error) {
-      console.error('Erro ao confirmar pagamento', error);
+      logger.error('Erro ao confirmar pagamento', error);
       if (queryClient) {
         queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] });
       }
@@ -734,7 +735,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         );
       }
     } catch (error) {
-      console.error('Erro ao recusar acerto do credor', error);
+      logger.error('Erro ao recusar acerto do credor', error);
       toast.error("Erro ao recusar acerto");
     }
   };

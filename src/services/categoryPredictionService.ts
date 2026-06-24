@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { DEFAULT_KEYWORDS, CONCEPT_SYNONYMS, CONCEPT_EMOJIS } from '@/lib/categoryKeywords';
 import type { CategoryPrediction } from '@/types/categoryPrediction';
+import { logger } from '@/utils/logger';
 
 export class CategoryPredictionService {
   
@@ -231,7 +232,7 @@ export class CategoryPredictionService {
         reason: 'Baseado no seu histórico',
       };
     } catch (error) {
-      console.error('Erro ao verificar aprendizado:', error);
+      logger.error('Erro ao verificar aprendizado:', error);
       return null;
     }
   }
@@ -371,7 +372,7 @@ export class CategoryPredictionService {
         reason: `Detectado: "${matchedKeyword}"`,
       };
     } catch (error) {
-      console.error('Erro ao fazer match de keywords:', error);
+      logger.error('Erro ao fazer match de keywords:', error);
       return null;
     }
   }
@@ -448,7 +449,7 @@ export class CategoryPredictionService {
         reason: `Usado ${mostUsed.count}x em transações similares`,
       };
     } catch (error) {
-      console.error('Erro ao buscar transações similares:', error);
+      logger.error('Erro ao buscar transações similares:', error);
       return null;
     }
   }
@@ -538,7 +539,7 @@ export class CategoryPredictionService {
           });
       }
     } catch (error) {
-      console.error('Erro ao registrar aprendizado:', error);
+      logger.error('Erro ao registrar aprendizado:', error);
     }
   }
 }

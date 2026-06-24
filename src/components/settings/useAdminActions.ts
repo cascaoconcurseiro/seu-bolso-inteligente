@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useRecalculateBalances } from "@/hooks/useAccountManagement";
+import { logger } from '@/utils/logger';
 
 // A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";
@@ -99,7 +100,7 @@ export function useAdminActions() {
       
       toast.success(`E-mail de redefinição de senha enviado com sucesso para ${email}!`);
     } catch (error: any) {
-      console.error('Error sending reset email:', error);
+      logger.error('Error sending reset email:', error);
       toast.error(`Erro ao disparar redefinição de senha: ${error.message}`);
     } finally {
       setIsResettingPassword(null);
@@ -252,7 +253,7 @@ export function useAdminActions() {
         });
       }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      logger.error('Error loading stats:', error);
       toast.error('Erro ao carregar métricas globais');
     } finally {
       setIsLoadingStats(false);
@@ -284,7 +285,7 @@ export function useAdminActions() {
         setEnrichedUsers(enriched);
       }
     } catch (error) {
-      console.error('Error enriching users:', error);
+      logger.error('Error enriching users:', error);
       toast.error('Erro ao processar dados dos usuários');
     } finally {
       setIsLoadingUsers(false);
@@ -302,7 +303,7 @@ export function useAdminActions() {
       
       setAuditLogs(data || []);
     } catch (error) {
-      console.error('Error loading audit logs:', error);
+      logger.error('Error loading audit logs:', error);
       toast.error('Erro ao carregar logs de auditoria');
     } finally {
       setIsLoadingLogs(false);
@@ -318,7 +319,7 @@ export function useAdminActions() {
       if (error) throw error;
       setErrorLogs(data || []);
     } catch (error) {
-      console.error('Error loading error logs:', error);
+      logger.error('Error loading error logs:', error);
       toast.error('Erro ao carregar relatórios de erros');
     } finally {
       setIsLoadingErrorLogs(false);
@@ -336,7 +337,7 @@ export function useAdminActions() {
       loadErrorLogs();
       setErrorDetailOpen(false);
     } catch (error) {
-      console.error('Error resolving report:', error);
+      logger.error('Error resolving report:', error);
       toast.error('Erro ao marcar como resolvido');
     }
   };
@@ -354,7 +355,7 @@ export function useAdminActions() {
       loadErrorLogs();
     } catch (error) {
       toast.error("Erro ao apagar logs");
-      console.error(error);
+      logger.error(error);
     } finally {
       setIsPurging(false);
     }
@@ -384,7 +385,7 @@ export function useAdminActions() {
       setConfirmWord("");
       loadAllAdminData();
     } catch (error) {
-      console.error('Reset error:', error);
+      logger.error('Reset error:', error);
       toast.error("Erro ao resetar sistema");
     } finally {
       setIsResetting(false);
@@ -421,7 +422,7 @@ export function useAdminActions() {
       toast.success(`Limpeza concluída! ${accCount || 0} conta(s) inativa(s) deletada(s) definitivamente.`);
       loadSystemStats();
     } catch (error) {
-      console.error('Error purging soft-deletes:', error);
+      logger.error('Error purging soft-deletes:', error);
       toast.error('Erro ao purgar registros deletados');
     } finally {
       setIsPurging(false);
@@ -440,7 +441,7 @@ export function useAdminActions() {
       toast.success(`Saldos recalculados para o usuário! (${data || 0} contas atualizadas)`);
       loadUsersDetailed();
     } catch (error: any) {
-      console.error('Error recalculating target balances:', error);
+      logger.error('Error recalculating target balances:', error);
       toast.error('Erro ao recalcular saldos: ' + error.message);
     } finally {
       setIsRecalculatingTarget(null);
@@ -508,7 +509,7 @@ export function useAdminActions() {
       toast.success(`Categorias padrão criadas com sucesso! (${createdParents.length} principais e ${childCategories.length} subcategorias)`);
       loadUsersDetailed();
     } catch (error: any) {
-      console.error('Error injecting default categories:', error);
+      logger.error('Error injecting default categories:', error);
       toast.error('Erro ao injetar categorias padrão: ' + error.message);
     } finally {
       setIsInjectingCategories(false);
@@ -532,7 +533,7 @@ export function useAdminActions() {
         setDetailFamilies(data.families || []);
       }
     } catch (error) {
-      console.error('Error loading user details:', error);
+      logger.error('Error loading user details:', error);
       toast.error('Erro ao carregar detalhes do perfil');
     } finally {
       setIsLoadingDetails(false);

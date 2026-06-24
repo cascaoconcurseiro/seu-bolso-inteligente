@@ -107,8 +107,14 @@ export const reducer = (state: State, action: Action): State => {
         ),
       };
     }
-    case "REMOVE_TOAST":
+    case "REMOVE_TOAST": {
+      if (action.toastId !== undefined && toastTimeouts.has(action.toastId)) {
+        clearTimeout(toastTimeouts.get(action.toastId)!);
+        toastTimeouts.delete(action.toastId);
+      }
       if (action.toastId === undefined) {
+        toastTimeouts.forEach((t) => clearTimeout(t));
+        toastTimeouts.clear();
         return {
           ...state,
           toasts: [],
@@ -118,6 +124,7 @@ export const reducer = (state: State, action: Action): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
+    }
   }
 };
 

@@ -17,6 +17,7 @@ import * as dateFns from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { moneyUtils } from "@/utils/money";
+import { logger } from '@/utils/logger';
 
 interface AssetTransactionDialogProps {
   isOpen: boolean;
@@ -247,7 +248,7 @@ export function AssetTransactionDialog({ isOpen, onClose, asset }: AssetTransact
             categoryId = catData.id;
           }
         } catch (catErr) {
-          console.error("Erro ao buscar categoria de investimentos:", catErr);
+          logger.error("Erro ao buscar categoria de investimentos:", catErr);
         }
 
         // 2. Criar transação de RECEITA no extrato

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from '@/utils/logger';
 
 export interface WealthPoint {
   month_label: string;
@@ -26,7 +27,7 @@ export function useWealthEvolution(currency: string = "BRL", months: number = 6)
       });
 
       if (error) {
-        console.error("Erro ao buscar evolução patrimonial:", error);
+        logger.error("Erro ao buscar evolução patrimonial:", error);
         return [];
       }
 

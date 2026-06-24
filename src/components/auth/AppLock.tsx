@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Lock, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { haptics } from '@/utils/haptics';
@@ -16,6 +16,13 @@ export function AppLock({ children }: AppLockProps) {
   const [setupStep, setSetupStep] = useState<'initial' | 'confirm'>('initial');
   const [tempPin, setTempPin] = useState('');
   const [error, setError] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -53,7 +60,8 @@ export function AppLock({ children }: AppLockProps) {
         const newPin = inputPin + num;
         setInputPin(newPin);
         if (newPin.length === 4) {
-          setTimeout(() => {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(() => {
             if (setupStep === 'initial') {
               setTempPin(newPin);
               setInputPin('');
@@ -81,7 +89,8 @@ export function AppLock({ children }: AppLockProps) {
         const newPin = inputPin + num;
         setInputPin(newPin);
         if (newPin.length === 4) {
-          setTimeout(() => {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(() => {
             // Lógica de migração (se o PIN antigo ainda estava em plain text)
             if (pinCode && pinCode.length === 4) {
               if (newPin === pinCode) {

@@ -68,6 +68,13 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
   const [suggestions, setSuggestions] = useState<(B3Ticker | AbroadAsset)[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const tickerRef = useRef<HTMLDivElement>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+    };
+  }, []);
 
   // Posição e valor
   const [quantity, setQuantity] = useState('');
@@ -329,7 +336,7 @@ export function AssetFormDialog({ isOpen, onClose, asset }: AssetFormDialogProps
                   id="ticker" name="ticker"
                   value={tickerSearch}
                   onChange={(e) => handleTickerInput(e.target.value)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                  onBlur={() => { if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current); blurTimeoutRef.current = setTimeout(() => setShowSuggestions(false), 150); }}
                   placeholder={location === 'BR' ? 'PETR4, VALE3…' : 'AAPL, MSFT…'}
                   className="uppercase font-mono pl-8"
                   autoComplete="off"

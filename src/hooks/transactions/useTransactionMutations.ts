@@ -296,10 +296,10 @@ export function useDeleteTransaction() {
               message: `${user?.user_metadata?.name || user?.email || 'Alguém'} excluiu a transação compartilhada "${existingTx.description}".`,
               icon: '❌',
               priority: 'NORMAL'
-            }).catch(e => console.error("Erro ao criar notificação de exclusão compartilhada:", e))
+            }).catch(e => logger.error("Erro ao criar notificação de exclusão compartilhada:", e))
           ));
         } catch (notificationError) {
-          console.error("Erro ao tentar enviar notificação de exclusão compartilhada:", notificationError);
+          logger.error("Erro ao tentar enviar notificação de exclusão compartilhada:", notificationError);
         }
       }
     },

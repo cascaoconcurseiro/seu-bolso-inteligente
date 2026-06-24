@@ -96,6 +96,14 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
     ? currentAmountToPay * moneyUtils.parse(exchangeRate) 
     : currentAmountToPay;
 
+  const stepTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+    };
+  }, []);
+
   const handlePay = async () => {
     setIsProcessing(true);
     try {
@@ -104,7 +112,8 @@ export function PayInvoiceDialog({ isOpen, onClose, card, invoiceTotal, accounts
       } else {
         await onPay(selectedAccountId, currentAmountToPay);
       }
-      setTimeout(() => {
+      if (stepTimeoutRef.current) clearTimeout(stepTimeoutRef.current);
+      stepTimeoutRef.current = setTimeout(() => {
         setStep(1);
       }, 500);
     } finally {

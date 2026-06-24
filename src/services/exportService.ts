@@ -4,6 +4,7 @@ import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { logger } from '@/utils/logger';
 export interface ExportOptions {
   format: "csv" | "json";
   dateRange?: { start: Date; end: Date };
@@ -203,7 +204,7 @@ export const exportMonthlyReport = async (data: ExportData) => {
     const workbook = new ExcelJS.Workbook();
 
     if (downloadError || !templateData) {
-      console.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');
+      logger.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');
       workbook.addWorksheet('Fluxo de Caixa');
       workbook.addWorksheet('Transações Mês a Mês');
       workbook.addWorksheet('Compras Compartilhadas');
@@ -280,7 +281,7 @@ export const exportMonthlyReport = async (data: ExportData) => {
 
     return true;
   } catch (error) {
-    console.error('Erro ao exportar planilha:', error);
+    logger.error('Erro ao exportar planilha:', error);
     throw error;
   }
 };

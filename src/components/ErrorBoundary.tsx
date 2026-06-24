@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface Props {
     children: ReactNode;
@@ -40,11 +41,11 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('❌ [ErrorBoundary] Erro capturado:', error);
-        console.error('❌ [ErrorBoundary] Stack:', errorInfo.componentStack);
-        console.error('❌ [ErrorBoundary] Error name:', error.name);
-        console.error('❌ [ErrorBoundary] Error message:', error.message);
-        console.error('❌ [ErrorBoundary] Full error:', JSON.stringify(error, null, 2));
+        logger.error('❌ [ErrorBoundary] Erro capturado:', error);
+        logger.error('❌ [ErrorBoundary] Stack:', errorInfo.componentStack);
+        logger.error('❌ [ErrorBoundary] Error name:', error.name);
+        logger.error('❌ [ErrorBoundary] Error message:', error.message);
+        logger.error('❌ [ErrorBoundary] Full error:', JSON.stringify(error, null, 2));
 
         this.setState({
             error,
@@ -66,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
             if (dbError) throw dbError;
             this.setState({ isReported: true });
         } catch (err) {
-            console.error('Erro ao enviar relatório:', err);
+            logger.error('Erro ao enviar relatório:', err);
         } finally {
             this.setState({ isSubmitting: false });
         }

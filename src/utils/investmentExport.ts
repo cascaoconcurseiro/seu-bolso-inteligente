@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { Asset } from '@/types/database';
 import { formatCurrency } from './currencyFormatter';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 export interface AssetTransaction {
   id: string;
@@ -29,10 +30,10 @@ const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
     } else if (typeof (doc as any).autoTable === 'function') {
       (doc as any).autoTable(options);
     } else {
-      console.warn('Metodo autoTable não encontrado no escopo global ou local do jsPDF.');
+      logger.warn('Metodo autoTable não encontrado no escopo global ou local do jsPDF.');
     }
   } catch (error) {
-    console.error('Erro ao renderizar autoTable no PDF:', error);
+    logger.error('Erro ao renderizar autoTable no PDF:', error);
   }
 };
 
@@ -520,7 +521,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error("Erro ao buscar transações de ativos para IR PDF:", error);
+    logger.error("Erro ao buscar transações de ativos para IR PDF:", error);
   }
 
   const allTxs = transactions || [];
@@ -732,7 +733,7 @@ export const exportToIRExcel = async (assets: Asset[]) => {
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error("Erro ao buscar transações de ativos para IR Excel:", error);
+    logger.error("Erro ao buscar transações de ativos para IR Excel:", error);
   }
 
   const allTxs = transactions || [];

@@ -20,6 +20,7 @@ import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { AccountCard } from "@/components/accounts/AccountCard";
 import { AccountSummary } from "@/components/accounts/AccountSummary";
 import { AccountFormModal } from "@/components/accounts/AccountFormModal";
+import { logger } from '@/utils/logger';
 
 const accountTypeLabels: Record<string, string> = {
   CHECKING: "Conta Corrente", SAVINGS: "Poupança", INVESTMENT: "Investimento", CASH: "Dinheiro", EMERGENCY_FUND: "Reserva de Emergência", GLOBAL_ACCOUNT: "Conta Global",
@@ -97,7 +98,7 @@ export function Accounts() {
         exportAccountsToCSV(filteredTxs, regularAccounts, periodLabel);
       }
     } catch (err) {
-      console.error("Erro ao exportar contas", err);
+      logger.error("Erro ao exportar contas", err);
     } finally {
       setIsExporting(false);
     }

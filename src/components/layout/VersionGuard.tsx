@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
+import { logger } from '@/utils/logger';
 
 export function VersionGuard() {
   const location = useLocation();
@@ -70,7 +71,7 @@ export function VersionGuard() {
             navigator.serviceWorker.getRegistrations().then((registrations) => {
               for (const registration of registrations) {
                 registration.update().catch((err) => {
-                  console.warn("[VersionGuard] Falha silenciosa ao atualizar Service Worker:", err);
+                  logger.warn("[VersionGuard] Falha silenciosa ao atualizar Service Worker:", err);
                 });
               }
             });
@@ -78,7 +79,7 @@ export function VersionGuard() {
         }
       }
     } catch (error) {
-      console.warn("[VersionGuard] Falha silenciosa ao consultar version.json na rede:", error);
+      logger.warn("[VersionGuard] Falha silenciosa ao consultar version.json na rede:", error);
     } finally {
       isCheckingRef.current = false;
     }

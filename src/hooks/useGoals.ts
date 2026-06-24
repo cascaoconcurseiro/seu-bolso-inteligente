@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Goal, GoalProgress } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { generateAllNotifications } from '@/services/notificationGenerator';
+import { logger } from '@/utils/logger';
 
 // AUDITORIA 2026-05-10: Corrigido contributeToGoal — agora cria transação financeira
 // para rastrear o aporte no fluxo de caixa. Sem isso, o dinheiro "sumia" do saldo
@@ -39,7 +40,7 @@ export const useGoals = () => {
 
     if (error) {
       // Se a função não existir, retornar array vazio em vez de quebrar
-      console.warn('[useGoals] get_goal_progress não disponível:', error.message);
+      logger.warn('[useGoals] get_goal_progress não disponível:', error.message);
       return [] as GoalProgress[];
     }
     return (data as any[]).map(item => ({
@@ -227,7 +228,7 @@ export const useGoals = () => {
       // ✅ INTELIGÊNCIA FINANCEIRA: Verificar marcos de metas
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.id) {
-        generateAllNotifications(user.id).catch(console.error);
+        generateAllNotifications(user.id).catch(logger.error);
       }
     },
     onError: (error: Error) => {

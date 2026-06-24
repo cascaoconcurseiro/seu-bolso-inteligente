@@ -6,6 +6,7 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from '@/utils/logger';
 
 interface DashboardInvoicesProps {
   creditCardsWithBalance: any[];
@@ -35,7 +36,7 @@ export function DashboardInvoices({
         .gte('competence_date', startDateStr);
         
       if (error) {
-        console.error("Erro ao buscar transações dos cartões no dashboard", error);
+        logger.error("Erro ao buscar transações dos cartões no dashboard", error);
         return [];
       }
       return data;

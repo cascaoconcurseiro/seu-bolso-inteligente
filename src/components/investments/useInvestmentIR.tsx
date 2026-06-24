@@ -28,6 +28,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
 import { exportToIRPDF, exportToIRExcel } from '@/utils/investmentExport';
+import { logger } from '@/utils/logger';
 import {
   Tooltip,
   TooltipContent,
@@ -61,7 +62,7 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error("Erro ao buscar transações de ativos para IR:", error);
+        logger.error("Erro ao buscar transações de ativos para IR:", error);
         throw error;
       }
       return data || [];
@@ -83,7 +84,7 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
         .lte('date', `${selectedYear}-12-31`);
 
       if (error) {
-        console.error("Erro ao buscar proventos para IR:", error);
+        logger.error("Erro ao buscar proventos para IR:", error);
         throw error;
       }
       return data || [];

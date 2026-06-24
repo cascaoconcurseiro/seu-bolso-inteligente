@@ -23,6 +23,7 @@ import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
+import { logger } from '@/utils/logger';
 
 export function Budgets() {
   const { currentDate } = useMonth();
@@ -81,7 +82,7 @@ export function Budgets() {
         document.activeElement.blur();
       }
     } catch (err) {
-      console.error("Erro ao salvar orçamento", err);
+      logger.error("Erro ao salvar orçamento", err);
     }
   };
 

@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { formatCurrency } from './currencyFormatter';
+import { logger } from '@/utils/logger';
 
 const BRAND_COLOR: [number, number, number] = [5, 150, 105]; // Esmeralda / Verde Premium
 const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
@@ -30,7 +31,7 @@ export const exportTripToPDF = (data: TripExportData) => {
   const { trip, participants = [], tripTransactions = [], balances = [] } = data;
   
   if (!trip) {
-    console.error("Dados da viagem ausentes para exportação em PDF.");
+    logger.error("Dados da viagem ausentes para exportação em PDF.");
     return;
   }
 
@@ -195,7 +196,7 @@ export const exportTripToExcel = (data: TripExportData) => {
   const { trip, participants = [], tripTransactions = [], balances = [] } = data;
   
   if (!trip) {
-    console.error("Dados da viagem ausentes para exportação em Excel.");
+    logger.error("Dados da viagem ausentes para exportação em Excel.");
     return;
   }
 

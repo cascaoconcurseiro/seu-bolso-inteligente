@@ -1,5 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { Decimal } from "decimal.js";
+import { logger } from '@/utils/logger';
 
 /**
  * SafeFinancialCalculator
@@ -170,7 +171,7 @@ export class SafeFinancialCalculator {
     const totalPercentage = splits.reduce((sum, s) => sum + s.percentage, 0);
     
     if (Math.abs(totalPercentage - 100) > 0.01 && totalPercentage !== 0) {
-      console.warn('Split percentages do not sum to 100%');
+      logger.warn('Split percentages do not sum to 100%');
     }
 
     const result = splits.map(split => ({

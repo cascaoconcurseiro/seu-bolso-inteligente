@@ -20,6 +20,7 @@ import autoTable from "jspdf-autotable";
 import { formatExportMoney } from "@/utils/exportCurrency";
 import { toast } from "sonner";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { logger } from '@/utils/logger';
 
 type DRELineType = 'OPERATIONAL_INC' | 'FINANCIAL_INC' | 'DEDUCTION' | 'VARIABLE_EXP' | 'FIXED_EXP' | 'FINANCIAL_EXP';
 
@@ -380,7 +381,7 @@ export function useAccountingDRE() {
       doc.save(`DRE-${selectedYear}-${viewType === 'MONTH' ? selectedMonth + 1 : 'ANUAL'}.pdf`);
       toast.success("DRE exportada com sucesso em PDF!");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Erro ao gerar PDF da DRE.");
     }
   };
@@ -579,7 +580,7 @@ export function useAccountingDRE() {
       document.body.removeChild(link);
       toast.success("DRE exportada com sucesso em Excel formatado!");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Erro ao gerar Excel da DRE.");
     }
   };
@@ -654,7 +655,7 @@ export function useAccountingDRE() {
       doc.save(`Balanco-Patrimonial-${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success("Balanço Patrimonial exportado com sucesso em PDF!");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Erro ao gerar PDF do Balanço Patrimonial.");
     }
   };
@@ -817,7 +818,7 @@ export function useAccountingDRE() {
       document.body.removeChild(link);
       toast.success("Balanço Patrimonial exportado com sucesso em Excel formatado!");
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error("Erro ao gerar Excel do Balanço Patrimonial.");
     }
   };

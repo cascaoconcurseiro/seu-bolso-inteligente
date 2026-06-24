@@ -241,7 +241,7 @@ async function generateInvoiceDueNotifications(
       count++;
     }
   } catch (error) {
-    console.error('Erro ao gerar notificações de fatura:', error);
+    logger.error('Erro ao gerar notificações de fatura:', error);
   }
 
   return count;
@@ -356,7 +356,7 @@ async function generateBudgetWarningNotifications(
       }
     }
   } catch (error) {
-    console.error('Erro ao gerar notificações de orçamento:', error);
+    logger.error('Erro ao gerar notificações de orçamento:', error);
   }
 
   return count;
@@ -463,7 +463,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
       }
     }
   } catch (error) {
-    console.error('Erro ao gerar notificações de compartilhados:', error);
+    logger.error('Erro ao gerar notificações de compartilhados:', error);
   }
 
   return count;

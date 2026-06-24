@@ -8,13 +8,14 @@ import {
 } from "@/hooks/useTripInvitations";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { logger } from '@/utils/logger';
 
 export function PendingTripInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingTripInvitations();
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
-  // console.log('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
+  // logger.debug('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
   //   invitations, 
   //   isLoading, 
   //   error,
@@ -22,21 +23,21 @@ export function PendingTripInvitationsAlert() {
   // });
 
   if (isLoading) {
-    // console.log('🟣 [PendingTripInvitationsAlert] Carregando...');
+    // logger.debug('🟣 [PendingTripInvitationsAlert] Carregando...');
     return null;
   }
 
   if (error) {
-    // console.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
+    // logger.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
     return null;
   }
   
   if (!invitations || invitations.length === 0) {
-    // console.log('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
+    // logger.debug('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
     return null;
   }
 
-  // console.log('🟣 [PendingTripInvitationsAlert] Renderizando', invitations.length, 'convite(s)');
+  // logger.debug('🟣 [PendingTripInvitationsAlert] Renderizando', invitations.length, 'convite(s)');
 
   return (
     <div className="space-y-3">

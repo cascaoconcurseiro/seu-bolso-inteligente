@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMonth } from '@/contexts/MonthContext';
 import { getMonthDateRange } from '@/utils/dateUtils';
+import { logger } from '@/utils/logger';
 
 export interface DashboardTransaction {
   id: string;
@@ -52,7 +53,7 @@ export function useDashboardData() {
       });
 
       if (error) {
-        console.error('[useDashboardData] Erro RPC:', JSON.stringify(error, null, 2));
+        logger.error('[useDashboardData] Erro RPC:', JSON.stringify(error, null, 2));
         return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
       }
 
@@ -89,7 +90,7 @@ export function useMonthlyEvolutionReport(months: number = 6, currency: string =
       });
 
       if (error) {
-        console.error('[useMonthlyEvolutionReport] Erro RPC:', error);
+        logger.error('[useMonthlyEvolutionReport] Erro RPC:', error);
         return [];
       }
 

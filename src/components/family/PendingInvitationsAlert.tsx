@@ -2,6 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Check, X, Users } from "lucide-react";
 import { usePendingInvitations, useAcceptInvitation, useRejectInvitation } from "@/hooks/useFamilyInvitations";
+import { logger } from '@/utils/logger';
 
 export function PendingInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingInvitations();
@@ -16,7 +17,7 @@ export function PendingInvitationsAlert() {
   }
 
   if (error) {
-    console.error('Erro ao carregar convites:', error);
+    logger.error('Erro ao carregar convites:', error);
     return null;
   }
 

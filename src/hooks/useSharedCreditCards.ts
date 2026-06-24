@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logger } from '@/utils/logger';
 
 export interface SharedCreditCard {
   id: string;
@@ -36,7 +37,7 @@ export function useSharedCreditCards(accountId?: string) {
       const { data, error } = await query.order("created_at");
 
       if (error) {
-        console.error("Erro ao buscar cartões compartilhados:", error);
+        logger.error("Erro ao buscar cartões compartilhados:", error);
         throw error;
       }
       return data as SharedCreditCard[];

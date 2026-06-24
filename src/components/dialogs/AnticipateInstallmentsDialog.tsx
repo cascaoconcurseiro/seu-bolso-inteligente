@@ -16,6 +16,7 @@ import { Loader2, Calendar, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAnticipateInstallments } from "@/hooks/useAnticipateInstallments";
 import { cn } from "@/lib/utils";
+import { logger } from '@/utils/logger';
 
 interface AnticipateInstallmentsDialogProps {
   isOpen: boolean;
@@ -134,7 +135,7 @@ export function AnticipateInstallmentsDialog({
       // Auto-selecionar todas as parcelas não-acertadas
       setSelectedIds(nonSettled.map(i => i.id));
     } catch (error) {
-      console.error('❌ [AnticipateDialog] Erro ao buscar parcelas:', error);
+      logger.error('❌ [AnticipateDialog] Erro ao buscar parcelas:', error);
       setFutureInstallments([]);
     } finally {
       setIsLoading(false);

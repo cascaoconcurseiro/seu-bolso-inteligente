@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 // Brapi types no longer needed in frontend
 
@@ -26,7 +27,7 @@ export const useSyncAssetPrices = () => {
 
       if (functionError) {
         // Log the error to console for debugging
-        console.error("Function Error:", functionError);
+        logger.error("Function Error:", functionError);
         
         // If it's a FunctionsHttpError, it might have a context/body
         const errorMessage = functionError.message || 'Erro ao invocar função de sincronização';
@@ -66,7 +67,7 @@ export const useSyncAssetPrices = () => {
       }
     },
     onError: (error) => {
-      console.error(error);
+      logger.error(error);
       toast({
         title: "Erro na Sincronização",
         description: error instanceof Error ? error.message : "Não foi possível buscar as cotações atualizadas.",

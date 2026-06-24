@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,8 @@ export default function ResetPassword() {
       } else {
         setIsSuccess(true);
         toast.success("Senha alterada com sucesso!");
-        setTimeout(() => navigate("/auth"), 3000);
+        if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
+        navTimeoutRef.current = setTimeout(() => navigate("/auth"), 3000);
       }
     } catch (err) {
       toast.error("Erro ao atualizar senha.");

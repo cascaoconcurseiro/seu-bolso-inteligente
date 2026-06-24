@@ -22,7 +22,7 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
     queryFn: async () => {
       if (!user || cardIds.length === 0) return [];
 
-      logger.info('🔍 [DEBUG] useDependentTransactions query:', {
+      logger.debug('useDependentTransactions query:', {
         userId: user.id,
         cardIds,
         startDate,

@@ -332,10 +332,10 @@ export function useCreateTransaction() {
                 message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou uma transação parcelada compartilhada "${input.description}".`,
                 icon: '🤝',
                 priority: 'NORMAL'
-              }).catch(e => console.error("Erro ao criar notificação de parcelamento compartilhado:", e))
+              }).catch(e => logger.error("Erro ao criar notificação de parcelamento compartilhado:", e))
             ));
           } catch (notificationError) {
-            console.error("Erro ao notificar criação de parcelamento compartilhado:", notificationError);
+            logger.error("Erro ao notificar criação de parcelamento compartilhado:", notificationError);
           }
         }
 
@@ -460,11 +460,11 @@ export function useCreateTransaction() {
                 message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou a transação compartilhada "${data.description}".`,
                 icon: '🤝',
                 priority: 'NORMAL'
-              }).catch(e => console.error("Erro ao criar notificação de criação compartilhada:", e))
+              }).catch(e => logger.error("Erro ao criar notificação de criação compartilhada:", e))
             ));
           }
         } catch (notificationError) {
-          console.error("Erro ao notificar criação de compartilhada:", notificationError);
+          logger.error("Erro ao notificar criação de compartilhada:", notificationError);
         }
       }
 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import * as dateFns from "date-fns";
+import { logger } from '@/utils/logger';
 
 export interface MonthlyProjection {
   current_balance: number;
@@ -41,7 +42,7 @@ export function useMonthlyProjection(currency: string = "BRL") {
       });
 
       if (error) {
-        console.error('Erro ao buscar projeção mensal:', JSON.stringify(error, null, 2));
+        logger.error('Erro ao buscar projeção mensal:', JSON.stringify(error, null, 2));
         return null;
       }
 
