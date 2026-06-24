@@ -232,7 +232,7 @@ export function SharedTripCard({
                               <span className="truncate">{item.category}</span>
                             )}
                             <span className="whitespace-nowrap">
-                              {dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yy")}
+                              {(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yy") : '-'; })()}
                             </span>
                           </div>
 
@@ -362,7 +362,7 @@ export function SharedTripCard({
                         </div>
 
                         <div className="col-span-2 text-muted-foreground">
-                          {dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}
+                          {(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : '-'; })()}
                         </div>
 
                         <div className="col-span-2 text-right">

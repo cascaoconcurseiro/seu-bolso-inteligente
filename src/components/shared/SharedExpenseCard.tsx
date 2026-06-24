@@ -318,7 +318,7 @@ export function SharedExpenseCard({
 
                     <div className="col-start-2 md:col-start-auto md:col-span-2 flex flex-col justify-center w-full md:w-auto">
                       <div className="text-sm text-muted-foreground flex items-center justify-between md:justify-start">
-                        <span>{dateFns.format(new Date((item.originalDate || item.date) + 'T12:00:00'), "dd/MM/yy", { locale: ptBR })}</span>
+                        <span>{(() => { const d = item.originalDate || item.date; if (!d) return '-'; const dt = new Date(d + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yy", { locale: ptBR }) : '-'; })()}</span>
                         <span className={cn(
                           "font-mono text-sm font-bold md:hidden",
                           item.isPaid ? "text-muted-foreground" : isCredit ? "text-success" : "text-destructive"
