@@ -22,6 +22,7 @@ import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentA
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
 import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
+import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
@@ -292,6 +293,7 @@ export function Dashboard() {
             threshold={profile?.low_balance_threshold ?? 0}
           />
           <DashboardBillsDue />
+          <FamilyBalancePanel />
 
           <div className="space-y-4 md:space-y-5">
             <DashboardInvoices
