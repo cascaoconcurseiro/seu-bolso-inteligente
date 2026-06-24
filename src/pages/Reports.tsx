@@ -43,6 +43,8 @@ import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
+import { CategoryTrend } from "@/components/reports/CategoryTrend";
+import { CashFlowProjection } from "@/components/reports/CashFlowProjection";
 
 import { useToast } from "@/hooks/use-toast";
 import { exportMonthlyReport } from "@/services/exportService";
@@ -784,11 +786,15 @@ export function Reports() {
         </div>
       ) : (
         <Tabs defaultValue="overview" className="space-y-6 w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card/60 backdrop-blur-md p-1.5 rounded-3xl border border-border/40 shadow-inner overflow-x-auto">
-            <TabsTrigger value="overview" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Visão Geral</TabsTrigger>
-            <TabsTrigger value="evolution" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Evolução</TabsTrigger>
-            <TabsTrigger value="categories" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap">Categorias</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="inline-flex min-w-full bg-card/60 backdrop-blur-md p-1.5 rounded-3xl border border-border/40 shadow-inner">
+              <TabsTrigger value="overview" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Visão Geral</TabsTrigger>
+              <TabsTrigger value="evolution" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Evolução</TabsTrigger>
+              <TabsTrigger value="categories" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Categorias</TabsTrigger>
+              <TabsTrigger value="trend" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Tendências</TabsTrigger>
+              <TabsTrigger value="cashflow" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Projeção</TabsTrigger>
+            </TabsList>
+          </div>
 
         <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -909,11 +915,20 @@ export function Reports() {
         </div>
       </TabsContent>
 
-      {/*
-      <TabsContent value="dre" className="mt-4 animate-in fade-in-50 duration-500">
-        <AccountingDRE />
+      <TabsContent value="trend" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+        <CategoryTrend
+          transactions={allTransactions}
+          categories={categories}
+          formatCurrency={(v) => formatCurrency(v, displayCurrency)}
+        />
       </TabsContent>
-      */}
+
+      <TabsContent value="cashflow" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+        <CashFlowProjection
+          transactions={allTransactions}
+          currentBalance={accounts?.filter(a => a.type !== 'CREDIT_CARD' && a.type !== 'INVESTMENT' && a.type !== 'EMERGENCY_FUND').reduce((s, a) => s + Number(a.balance || 0), 0) ?? 0}
+        />
+      </TabsContent>
       </Tabs>
       )}
 

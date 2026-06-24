@@ -21,6 +21,8 @@ export interface UserProfile {
   shared_sync_credit_card_id?: string | null;
   global_cdi_rate?: number;
   default_account_id?: string | null;
+  default_credit_card_id?: string | null;
+  low_balance_threshold?: number | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -96,6 +98,9 @@ export function useUpdateUserProfile() {
       shared_expenses_behavior?: string;
       shared_sync_credit_card_id?: string | null;
       global_cdi_rate?: number;
+      low_balance_threshold?: number | null;
+      default_account_id?: string | null;
+      default_credit_card_id?: string | null;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -141,6 +146,15 @@ export function useUpdateUserProfile() {
       }
       if (input.global_cdi_rate !== undefined) {
         updateData.global_cdi_rate = input.global_cdi_rate;
+      }
+      if (input.low_balance_threshold !== undefined) {
+        updateData.low_balance_threshold = input.low_balance_threshold;
+      }
+      if (input.default_account_id !== undefined) {
+        updateData.default_account_id = input.default_account_id;
+      }
+      if (input.default_credit_card_id !== undefined) {
+        updateData.default_credit_card_id = input.default_credit_card_id;
       }
 
       const { data, error } = await supabase

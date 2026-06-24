@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCardCategories } from "./CreditCardCategories";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, CalendarClock } from "lucide-react";
+import { InstallmentSimulator } from "./InstallmentSimulator";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -357,7 +358,13 @@ export function CreditCardDetailView({
               <p className="text-xs opacity-60 mt-1">{usagePercent.toFixed(0)}% utilizado</p>
             </div>
           )}
-          
+
+          <InstallmentSimulator
+            creditLimit={selectedCard.credit_limit}
+            currentBalance={selectedCard.balance}
+            formatCurrency={formatCurrency}
+          />
+
           {/* Action Buttons */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-5 pt-4 border-t border-white/10">
             <Button 

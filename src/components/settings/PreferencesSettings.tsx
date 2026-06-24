@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, Wallet } from "lucide-react";
+import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
 import { NumericFormat } from "react-number-format";
@@ -23,7 +23,9 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedSyncCreditCardId, setSharedSyncCreditCardId] = useState<string>("none");
   const [globalCdiRate, setGlobalCdiRate] = useState<number>(11.15);
+  const [lowBalanceThreshold, setLowBalanceThreshold] = useState<number>(0);
   const [defaultAccountId, setDefaultAccountId] = useState<string>("none");
+  const [defaultCreditCardId, setDefaultCreditCardId] = useState<string>("none");
 
   const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
   const checkingAccounts = accounts?.filter(acc => acc.type !== 'CREDIT_CARD') || [];
@@ -41,7 +43,9 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       }
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
+      setLowBalanceThreshold(profile.low_balance_threshold ?? 0);
       setDefaultAccountId(profile.default_account_id || "none");
+      setDefaultCreditCardId(profile.default_credit_card_id || "none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -54,14 +58,15 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       shared_expenses_behavior: sharedExpensesBehavior,
       shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
       global_cdi_rate: globalCdiRate,
+      low_balance_threshold: lowBalanceThreshold || null,
       default_account_id: defaultAccountId === "none" ? null : defaultAccountId,
+      default_credit_card_id: defaultCreditCardId === "none" ? null : defaultCreditCardId,
     });
   };
 
   const hasChanges = () => {
     if (!profile) return false;
     const currentCardId = profile.shared_sync_credit_card_id || "none";
-    const currentDefaultAccount = profile.default_account_id || "none";
     return (
       baseCurrency !== (profile.base_currency || "BRL") ||
       monthStartDay !== (profile.month_start_day?.toString() || "1") ||
@@ -69,7 +74,9 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
       sharedSyncCreditCardId !== currentCardId ||
       globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
-      defaultAccountId !== currentDefaultAccount
+      lowBalanceThreshold !== (profile.low_balance_threshold ?? 0) ||
+      defaultAccountId !== (profile.default_account_id || "none") ||
+      defaultCreditCardId !== (profile.default_credit_card_id || "none")
     );
   };
 
@@ -87,34 +94,51 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       <div className="space-y-6 max-w-2xl">
         <div className="space-y-4">
 
-          {/* CONTA PADRÃO — novo campo */}
+          {/* CONTA PADRÃO */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <Wallet className="h-5 w-5" />
             </div>
             <div className="flex-1 space-y-2 w-full">
               <div className="flex items-center gap-2">
-                <Label>Conta Padrão para Despesas</Label>
-                <InfoTooltip content="A conta que será pré-selecionada automaticamente toda vez que você abrir o formulário de nova transação. Você pode trocar antes de salvar." />
+                <Label>Conta Padrão</Label>
+                <InfoTooltip content="Pré-selecionada ao abrir nova transação de receita ou transferência." />
               </div>
               <Select value={defaultAccountId} onValueChange={setDefaultAccountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma conta..." />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Sem padrão" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sem conta padrão</SelectItem>
                   {checkingAccounts.map(acc => (
-                    <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name}
-                    </SelectItem>
+                    <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Elimina a necessidade de selecionar a conta manualmente a cada lançamento.
-              </p>
             </div>
           </div>
+
+          {/* CARTÃO PADRÃO */}
+          {creditCards.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div className="flex-1 space-y-2 w-full">
+                <div className="flex items-center gap-2">
+                  <Label>Cartão Padrão</Label>
+                  <InfoTooltip content="Pré-selecionado ao abrir nova despesa. Tem prioridade sobre a conta padrão." />
+                </div>
+                <Select value={defaultCreditCardId} onValueChange={setDefaultCreditCardId}>
+                  <SelectTrigger><SelectValue placeholder="Sem padrão" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem cartão padrão</SelectItem>
+                    {creditCards.map(card => (
+                      <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
@@ -221,6 +245,32 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             </div>
           </div>
           
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <BellRing className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 delay-250 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Alerta de Saldo Baixo</Label>
+                <InfoTooltip content="Quando o saldo total das suas contas correntes cair abaixo deste valor, um alerta aparecerá no Dashboard. Deixe R$ 0,00 para desativar." />
+              </div>
+              <NumericFormat
+                value={lowBalanceThreshold || ""}
+                onValueChange={(values) => setLowBalanceThreshold(values.floatValue || 0)}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                decimalScale={2}
+                fixedDecimalScale
+                customInput={Input}
+                placeholder="R$ 0,00 (Desativado)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Aviso visual no Dashboard quando seu saldo disponível ficar abaixo do limite definido.
+              </p>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <CalendarDays className="h-5 w-5" />
@@ -302,10 +352,4 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       </div>
     </div>
   );
-}
-
-interface PreferencesSettingsProps {
-  profile: UserProfile | null;
-  isLoading: boolean;
-  updateProfile: any;
 }
