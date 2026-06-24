@@ -74,6 +74,7 @@ export function SharedExpenses() {
 
     if (period === 'MONTH') {
       filteredItems = allItems.filter(item => {
+        if (!item.date) return false;
         const [y, m] = item.date.split('-').map(Number);
         return y === currentDate.getFullYear() && (m - 1) === currentDate.getMonth();
       });
@@ -81,6 +82,7 @@ export function SharedExpenses() {
       periodLabel = `${monthNames[currentDate.getMonth()]} de ${currentDate.getFullYear()}`;
     } else {
       filteredItems = allItems.filter(item => {
+        if (!item.date) return false;
         const [y] = item.date.split('-').map(Number);
         return y === currentDate.getFullYear();
       });
@@ -227,6 +229,7 @@ export function SharedExpenses() {
             return !!item.tripId;
           case 'date_range': {
             if (!m.scope_start_date && !m.scope_end_date) return true;
+            if (!item.date) return false;
             const itemDate = new Date(item.date);
             const startDate = m.scope_start_date ? new Date(m.scope_start_date) : null;
             const endDate = m.scope_end_date ? new Date(m.scope_end_date) : null;
@@ -261,6 +264,7 @@ export function SharedExpenses() {
         }
       } else {
         // Regular (limite pelo mês atual para itens pagos, e menor/igual para pendentes)
+        if (!item.date) return;
         const [year, month] = item.date.split('-').map(Number);
         const itemDateObj = new Date(year, month - 1, 1);
         const currentViewDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
