@@ -2,7 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users, ChevronDown } from 'lucide-react';
+import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users, ChevronDown, Minus, Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { Calendar } from '@/components/ui/calendar';
@@ -62,7 +62,16 @@ export function AdvancedOptions({
   const setTripId = useTransactionStore((state) => state.setTripId);
   const setShowSplitModal = useTransactionStore((state) => state.setShowSplitModal);
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification);
+  const [quickSplitPeople, setQuickSplitPeople] = useState(0); // 0 = inactive
+  const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification || quickSplitPeople > 0);
+
+  const handleDividirClick = () => {
+    if (availableMembers.length > 0) {
+      setShowSplitModal(true);
+    } else {
+      setQuickSplitPeople(prev => prev > 0 ? 0 : 2);
+    }
+  };
 
   if (!isExpanded) {
     return (
@@ -156,20 +165,20 @@ export function AdvancedOptions({
         )}
 
         {/* 2. Dividir Despesa (Pessoas) */}
-        {isExpense && availableMembers.length > 0 && (
+        {isExpense && (
           <button
             type="button"
-            onClick={() => setShowSplitModal(true)}
+            onClick={handleDividirClick}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-              hasSharing 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+              (hasSharing || quickSplitPeople > 0)
+                ? "bg-success text-white border-success font-bold shadow-md"
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <Users className="h-5 w-5" />
             <span className="text-sm tracking-tight font-medium text-center">
-              {hasSharing ? 'Dividido' : 'Dividir'}
+              {hasSharing ? 'Dividido' : quickSplitPeople > 0 ? `${quickSplitPeople}x` : 'Dividir'}
             </span>
           </button>
         )}
@@ -304,6 +313,74 @@ export function AdvancedOptions({
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* 0. Divisão Rápida (restaurante / amigos sem cadastro) */}
+        {isExpense && quickSplitPeople > 0 && (
+          <div className="p-4 rounded-2xl border border-success/20 bg-success/5 space-y-4 animate-slide-in shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-success" />
+                <span className="font-bold text-sm">Divisão Rápida</span>
+                <InfoTooltip content="Calcule a parte de cada pessoa quando você paga a conta toda. Não registra dívidas — use 'Membros da Família' para rastrear o que cada um deve." />
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickSplitPeople(0)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+
+            {/* Contador de pessoas */}
+            <div className="flex items-center justify-center gap-6">
+              <button
+                type="button"
+                onClick={() => setQuickSplitPeople(p => Math.max(2, p - 1))}
+                className="w-10 h-10 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <div className="text-center">
+                <span className="text-3xl font-black text-foreground">{quickSplitPeople}</span>
+                <p className="text-xs text-muted-foreground mt-0.5">pessoas</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickSplitPeople(p => Math.min(20, p + 1))}
+                className="w-10 h-10 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Resultado */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-background border border-border text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Parte de cada um</p>
+                <p className="text-lg font-black text-foreground">
+                  R$ {(numericAmount / quickSplitPeople).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-center">
+                <p className="text-xs text-success uppercase tracking-wider font-medium mb-1">Você vai receber</p>
+                <p className="text-lg font-black text-success">
+                  R$ {(numericAmount - numericAmount / quickSplitPeople).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+
+            {availableMembers.length > 0 && (
+              <button
+                type="button"
+                onClick={() => { setQuickSplitPeople(0); setShowSplitModal(true); }}
+                className="w-full py-2 text-xs text-center text-primary hover:underline"
+              >
+                Registrar dívidas com membros da família →
+              </button>
+            )}
           </div>
         )}
 
