@@ -22,6 +22,7 @@ import { TransactionSplitData, TabType } from '@/types/transactions';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { useGoals } from '@/hooks/useGoals';
 import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
 import {
@@ -70,6 +71,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { user } = useAuth();
   const { contributeToGoal, goals } = useGoals();
   const { data: accounts, isLoading: accountsLoading } = useAccounts();
+  const { data: profile } = useUserProfile();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
   const { data: familyMembers = [], isLoading: membersLoading } = useFamilyMembers();
@@ -200,6 +202,44 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, context, profile?.id]);
+
+  // Aplicar conta/cartão padrão do perfil ao abrir formulário de nova transação
+  const hasAppliedProfileDefaults = useRef(false);
+  useEffect(() => {
+    // Só aplica na criação (sem initialData) e apenas uma vez por abertura do form
+    if (initialData?.id) { hasAppliedProfileDefaults.current = false; return; }
+    if (hasAppliedProfileDefaults.current) return;
+    if (!profile || accountsLoading) return;
+
+    hasAppliedProfileDefaults.current = true;
+
+    // Não sobrescrever se já foi definido via context
+    if (context?.accountId) return;
+
+    if (activeTab === 'EXPENSE') {
+      // Para despesas: preferir cartão padrão, depois conta padrão
+      const defaultCard = profile.default_credit_card_id;
+      const defaultAcc = profile.default_account_id;
+      if (defaultCard && !accountId) {
+        store.setAccountId(defaultCard);
+      } else if (defaultAcc && !accountId) {
+        store.setAccountId(defaultAcc);
+      }
+    } else if (activeTab === 'INCOME' || activeTab === 'TRANSFER') {
+      const defaultAcc = profile.default_account_id;
+      if (defaultAcc && !accountId) {
+        store.setAccountId(defaultAcc);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, accountsLoading, initialData?.id]);
+
+  // Resetar flag quando o form é reaberto para nova transação
+  useEffect(() => {
+    if (!initialData?.id) {
+      hasAppliedProfileDefaults.current = false;
+    }
+  }, [initialData?.id]);
 
   // Validation & Warnings
   const [duplicateWarning, setDuplicateWarning] = useState(false);
