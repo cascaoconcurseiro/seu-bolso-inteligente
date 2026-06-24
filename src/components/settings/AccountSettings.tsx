@@ -276,16 +276,20 @@ export function AccountSettings({
                 <Button variant="outline">Sair</Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Você deseja realmente sair?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Você precisará fazer login novamente para acessar seus dados financeiros.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={signOut}>Sair</AlertDialogAction>
-                </AlertDialogFooter>
+                <div className="px-6 pt-6 pb-2">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Você deseja realmente sair?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Você precisará fazer login novamente para acessar seus dados financeiros.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                </div>
+                <div className="px-6 pb-6">
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={signOut}>Sair</AlertDialogAction>
+                  </AlertDialogFooter>
+                </div>
               </AlertDialogContent>
             </AlertDialog>
           </div>
@@ -312,40 +316,44 @@ export function AccountSettings({
 
       <Dialog open={showPinSetup} onOpenChange={setShowPinSetup}>
         <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Configurar PIN</DialogTitle>
-            <DialogDescription>Digite um PIN de 4 números para bloquear o app.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="px-6 pt-6 pb-2">
+            <DialogHeader>
+              <DialogTitle>Configurar PIN</DialogTitle>
+              <DialogDescription>Digite um PIN de 4 números para bloquear o app.</DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-6 space-y-4 py-4">
             <div className="space-y-2">
               <p className="text-sm font-medium">Novo PIN (4 números)</p>
-              <Input 
-                type="password" 
-                inputMode="numeric" 
-                maxLength={4} 
-                value={setupPin} 
-                onChange={(e) => setSetupPin(e.target.value.replace(/\D/g, ''))} 
-                placeholder="Ex: 1234" 
+              <Input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={setupPin}
+                onChange={(e) => setSetupPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="Ex: 1234"
                 className="text-center text-base tracking-widest"
               />
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium">Confirmar PIN</p>
-              <Input 
-                type="password" 
-                inputMode="numeric" 
-                maxLength={4} 
-                value={confirmSetupPin} 
-                onChange={(e) => setConfirmSetupPin(e.target.value.replace(/\D/g, ''))} 
-                placeholder="Repita o PIN" 
+              <Input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={confirmSetupPin}
+                onChange={(e) => setConfirmSetupPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="Repita o PIN"
                 className="text-center text-base tracking-widest"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPinSetup(false)}>Cancelar</Button>
-            <Button onClick={handleSavePin}>Salvar PIN</Button>
-          </DialogFooter>
+          <div className="px-6 pb-6">
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowPinSetup(false)}>Cancelar</Button>
+              <Button onClick={handleSavePin}>Salvar PIN</Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
