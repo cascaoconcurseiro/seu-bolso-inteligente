@@ -44,6 +44,8 @@ import { useTripMembers } from '@/hooks/useTripMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { validateTransaction } from '@/services/validationService';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { CategoryPredictionService } from '@/services/categoryPredictionService';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
 import { haptics } from '@/utils/haptics';
@@ -77,6 +79,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
+  const { data: profile } = useUserProfile();
 
   // Zustand Store Integration
   const store = useTransactionStore();
@@ -414,7 +417,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       
       if (user && categoryId && description && activeTab !== 'TRANSFER') {
         try {
-          await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(prediction && prediction.categoryId !== categoryId));
+          await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(predictedCategoryId && predictedCategoryId !== categoryId));
         } catch (error) {
           logger.error('Erro ao registrar aprendizado de categoria:', error);
         }
