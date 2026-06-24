@@ -20,6 +20,7 @@ import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
+import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
@@ -285,6 +286,7 @@ export function Dashboard() {
       ) : (
         <div className="space-y-4 md:space-y-5 animate-in fade-in duration-500">
           <DashboardQuickAccess />
+          <DashboardBillsDue />
 
           <div className="space-y-4 md:space-y-5">
             <DashboardInvoices

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Loader2,
   ArrowDownLeft,
   ArrowUpRight,
   ArrowRightLeft,
   BellRing,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -29,6 +30,8 @@ import { AccountSelector } from './form/AccountSelector';
 import { AdvancedOptions } from './form/AdvancedOptions';
 
 import { useTransactionForm } from './form/useTransactionForm';
+import { useUpdateRecurringSeries } from '@/hooks/transactions/useTransactionMutations';
+import { moneyUtils as moneyUtilsImport } from "@/utils/money";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -43,6 +46,10 @@ interface TransactionFormProps {
 
 export function TransactionForm(props: TransactionFormProps) {
   const form = useTransactionForm(props);
+  const updateSeries = useUpdateRecurringSeries();
+  const [seriesUpdateMode, setSeriesUpdateMode] = useState<'single' | 'future'>('single');
+
+  const isEditingRecurring = !!(props.initialData?.series_id && props.initialData?.id && props.initialData?.current_installment);
 
   if (form.accountsLoading || form.categoriesLoading) {
     return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
@@ -238,12 +245,59 @@ export function TransactionForm(props: TransactionFormProps) {
           </div>
         )}
 
+        {isEditingRecurring && (
+          <div className="flex rounded-xl overflow-hidden border border-border/60 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setSeriesUpdateMode('single')}
+              className={cn(
+                "flex-1 px-3 py-2 transition-colors",
+                seriesUpdateMode === 'single' ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              Só esta
+            </button>
+            <button
+              type="button"
+              onClick={() => setSeriesUpdateMode('future')}
+              className={cn(
+                "flex-1 px-3 py-2 transition-colors flex items-center justify-center gap-1.5",
+                seriesUpdateMode === 'future' ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              )}
+            >
+              <RefreshCw className="h-3 w-3" />
+              Esta e próximas
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <Button type="button" variant="outline" className="w-1/2 h-11 text-base font-medium" onClick={() => props.onCancel ? props.onCancel() : form.navigate(-1)}>
             Cancelar
           </Button>
-          <Button type="submit" variant="default" className="w-1/2 h-11 text-base font-bold" disabled={form.createTransaction.isPending || form.updateTransaction?.isPending}>
-            {form.createTransaction.isPending || form.updateTransaction?.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
+          <Button
+            type={isEditingRecurring && seriesUpdateMode === 'future' ? 'button' : 'submit'}
+            onClick={isEditingRecurring && seriesUpdateMode === 'future' ? async (e) => {
+              e.preventDefault();
+              const amount = moneyUtilsImport.parse(form.amount);
+              await updateSeries.mutateAsync({
+                seriesId: props.initialData!.series_id!,
+                fromInstallment: props.initialData!.current_installment!,
+                updates: {
+                  description: form.description || undefined,
+                  amount: amount > 0 ? amount : undefined,
+                  category_id: form.categoryId || undefined,
+                  account_id: form.accountId || undefined,
+                  notes: form.notes || undefined,
+                },
+              });
+              props.onSuccess?.();
+            } : undefined}
+            variant="default"
+            className="w-1/2 h-11 text-base font-bold"
+            disabled={form.createTransaction.isPending || form.updateTransaction?.isPending || updateSeries.isPending}
+          >
+            {(form.createTransaction.isPending || form.updateTransaction?.isPending || updateSeries.isPending) ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar'}
           </Button>
         </div>
       </form>

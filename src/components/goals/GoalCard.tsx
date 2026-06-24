@@ -1,10 +1,11 @@
-import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info } from 'lucide-react';
+import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from '@/utils/money';
 import { useEconomicIndicators } from "@/hooks/useEconomicIndicators";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { differenceInMonths } from "date-fns";
+import { differenceInMonths, format, addMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Goal } from '../../types/database';
 
@@ -24,12 +25,12 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
   
   let adjustedTarget = goal.target_amount;
   let monthsToTarget = 0;
-  
+
   if (goal.target_date && indicators?.ipca) {
     const targetDate = new Date(goal.target_date);
     const now = new Date();
     monthsToTarget = differenceInMonths(targetDate, now);
-    
+
     if (monthsToTarget > 0) {
       adjustedTarget = SafeFinancialCalculator.calculateInflationAdjustedTarget(
         goal.target_amount,
@@ -38,6 +39,14 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
       );
     }
   }
+
+  // Projeção de conclusão baseada na taxa mensal média de aporte
+  const monthsSinceCreation = Math.max(1, differenceInMonths(new Date(), new Date(goal.created_at)));
+  const monthlyRate = (goal.current_amount ?? 0) / monthsSinceCreation;
+  const remainingAmount = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
+  const estimatedMonthsLeft = monthlyRate > 0 ? Math.ceil(remainingAmount / monthlyRate) : null;
+  const estimatedCompletionDate = estimatedMonthsLeft !== null ? addMonths(new Date(), estimatedMonthsLeft) : null;
+  const monthlyNeeded = monthsToTarget > 0 ? remainingAmount / monthsToTarget : null;
   
   return (
     <div 
@@ -165,7 +174,45 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             </div>
           </div>
 
-          <Button 
+          {/* Projeção de conclusão */}
+          {goal.status !== 'COMPLETED' && remaining > 0 && (
+            <div className="mt-3 flex flex-col gap-1.5 p-3 rounded-xl bg-muted/50 border border-border/40">
+              {goal.target_date && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                    <CalendarClock className="w-3.5 h-3.5" />
+                    Prazo
+                  </span>
+                  <span className={cn(
+                    "font-bold",
+                    monthsToTarget <= 0 ? "text-destructive" : monthsToTarget <= 3 ? "text-warning" : "text-foreground"
+                  )}>
+                    {format(new Date(goal.target_date), "MMM yyyy", { locale: ptBR })}
+                    {monthsToTarget > 0 ? ` · ${monthsToTarget}m restantes` : ' · Prazo atingido'}
+                  </span>
+                </div>
+              )}
+              {monthlyNeeded !== null && monthlyNeeded > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground font-medium">Aportar/mês</span>
+                  <span className="font-bold text-primary">{moneyUtils.format(monthlyNeeded, 'BRL')}</span>
+                </div>
+              )}
+              {estimatedCompletionDate && !goal.target_date && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                    <CalendarClock className="w-3.5 h-3.5" />
+                    Estimativa
+                  </span>
+                  <span className="font-bold text-foreground">
+                    {format(estimatedCompletionDate, "MMM yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <Button
             variant="default"
             size="sm"
             onClick={() => onContribute(goal)}

@@ -116,6 +116,37 @@ export function useCreateCategory() {
   });
 }
 
+export interface UpdateCategoryInput {
+  name?: string;
+  icon?: string;
+  color?: string;
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...input }: UpdateCategoryInput & { id: string }) => {
+      const { data, error } = await supabase
+        .from("categories")
+        .update(input)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Category;
+    },
+    onSuccess: async () => {
+      await invalidateCategoryQueries(queryClient);
+      categoryToasts.updated();
+    },
+    onError: (error) => {
+      categoryToasts.error('atualizar', error);
+    },
+  });
+}
+
 export function useDeleteCategory() {
   const queryClient = useQueryClient();
 

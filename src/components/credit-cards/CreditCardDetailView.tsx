@@ -319,7 +319,7 @@ export function CreditCardDetailView({
               <div className="flex items-center gap-2 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">
                 <CalendarClock className="w-3.5 h-3.5 opacity-70" />
                 <span className="text-xs font-medium">
-                  {localInvoiceData.status === 'OPEN' 
+                  {localInvoiceData.status === 'OPEN'
                     ? `Fecha em ${invoiceData.daysToClose} dias`
                     : localInvoiceData.status === 'PAID'
                     ? `Paga em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
@@ -334,6 +334,29 @@ export function CreditCardDetailView({
               )}
             </div>
           </div>
+
+          {/* Limite disponível */}
+          {selectedCard.credit_limit && selectedCard.credit_limit > 0 && (
+            <div className="mt-4 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs opacity-80 font-medium uppercase tracking-wider">Limite Disponível</p>
+                <p className="text-xs font-bold opacity-90">
+                  {formatCurrency(Math.max(0, selectedCard.credit_limit - Math.abs(selectedCard.balance)))}
+                  <span className="opacity-60 font-normal"> / {formatCurrency(selectedCard.credit_limit)}</span>
+                </p>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-1.5">
+                <div
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-700",
+                    usagePercent >= 90 ? "bg-red-400" : usagePercent >= 70 ? "bg-yellow-300" : "bg-green-400"
+                  )}
+                  style={{ width: `${Math.min(100, usagePercent)}%` }}
+                />
+              </div>
+              <p className="text-xs opacity-60 mt-1">{usagePercent.toFixed(0)}% utilizado</p>
+            </div>
+          )}
           
           {/* Action Buttons */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-5 pt-4 border-t border-white/10">

@@ -326,6 +326,42 @@ export function useDeleteTransaction() {
   });
 }
 
+export function useUpdateRecurringSeries() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      seriesId,
+      fromInstallment,
+      updates,
+    }: {
+      seriesId: string;
+      fromInstallment: number;
+      updates: Partial<Pick<Transaction, 'description' | 'amount' | 'category_id' | 'account_id' | 'notes'>>;
+    }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { error } = await supabase
+        .from("transactions")
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq("series_id", seriesId)
+        .eq("user_id", user.id)
+        .gte("current_installment", fromInstallment)
+        .is("deleted_at", null);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidateFinancialQueries(queryClient);
+      toast.success("Recorrências atualizadas!");
+    },
+    onError: (error) => {
+      transactionToasts.error('atualizar série', error);
+    },
+  });
+}
+
 export function useDeleteInstallmentSeries() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

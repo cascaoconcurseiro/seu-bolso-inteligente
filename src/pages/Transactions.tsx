@@ -152,7 +152,9 @@ export function Transactions() {
     });
   }, [annualTransactions, searchQuery, selectedType, selectedCategory, selectedAccount, selectedCurrency, user, familyMembers]);
 
-  const dayGroups = useMemo(() => groupTransactionsByDay(filteredTransactions), [filteredTransactions]);
+  const isSearchingHistory = searchQuery.trim().length > 0;
+  const displayTransactions = isSearchingHistory ? filteredAnnualTransactions : filteredTransactions;
+  const dayGroups = useMemo(() => groupTransactionsByDay(displayTransactions), [displayTransactions]);
   const totalIncome = filteredTransactions.filter((t) => t.type === "INCOME").reduce((sum, t) => sum + Number(t.amount), 0);
   const totalExpense = filteredTransactions.filter((t) => t.type === "EXPENSE").reduce((sum, t) => sum + Number(t.amount), 0);
   const hasFilters = selectedType !== "all" || selectedCategory !== "all" || selectedAccount !== "all" || selectedPeriod !== "all";
@@ -248,7 +250,7 @@ export function Transactions() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <TransactionHeader count={filteredTransactions.length} filteredTransactions={filteredTransactions} filteredAnnualTransactions={filteredAnnualTransactions} onImportOFX={() => setShowOfxModal(true)} />
+      <TransactionHeader count={displayTransactions.length} filteredTransactions={displayTransactions} filteredAnnualTransactions={filteredAnnualTransactions} onImportOFX={() => setShowOfxModal(true)} />
       
       {availableCurrencies.length > 1 && (
         <div className="flex justify-end">
@@ -289,6 +291,13 @@ export function Transactions() {
         categories={categories} accounts={accounts}
         hasFilters={hasFilters} clearFilters={clearFilters}
       />
+      {isSearchingHistory && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm text-primary font-medium">
+          <Clock className="h-4 w-4 shrink-0" />
+          Buscando em todo o ano · {displayTransactions.length} resultado{displayTransactions.length !== 1 ? 's' : ''}
+        </div>
+      )}
+
       <TransactionList
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}

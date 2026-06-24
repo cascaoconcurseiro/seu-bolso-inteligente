@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, RefreshCw } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Trash2, RefreshCw, Pencil, Check, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useUserProfile, useUpdateUserProfile } from "@/hooks/useUserProfile";
-import { useCreateDefaultCategories } from "@/hooks/useCategories";
+import { useCreateDefaultCategories, useUpdateCategory } from "@/hooks/useCategories";
 import { toast } from "sonner";
 
 interface CategorySettingsProps {
@@ -17,7 +19,32 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
   const { data: profile } = useUserProfile();
   const updateProfile = useUpdateUserProfile();
   const createDefaultCategories = useCreateDefaultCategories();
+  const updateCategory = useUpdateCategory();
   const useSubcategories = profile?.use_subcategories ?? false;
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editIcon, setEditIcon] = useState("");
+
+  const startEdit = (cat: any) => {
+    setEditingId(cat.id);
+    setEditName(cat.name);
+    setEditIcon(cat.icon || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditIcon("");
+  };
+
+  const saveEdit = (id: string) => {
+    if (!editName.trim()) return;
+    updateCategory.mutate(
+      { id, name: editName.trim(), icon: editIcon || undefined },
+      { onSuccess: cancelEdit }
+    );
+  };
 
   const handleRestoreDefaults = () => {
     toast.promise(createDefaultCategories.mutateAsync({ force: true }), {
@@ -99,42 +126,86 @@ export function CategorySettings({ categories, isLoading, onAddCategory, onDelet
                   return (
                     <div key={parent.id} className="space-y-2">
                       {/* Categoria Pai */}
-                      <div className="group flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-card hover:border-primary/30 transition-all shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl">{parent.icon}</span>
-                          <span className="font-bold text-sm sm:text-base">{parent.name}</span>
+                      {editingId === parent.id ? (
+                        <div className="flex items-center gap-2 p-2 rounded-2xl border border-primary/40 bg-primary/5">
+                          <Input
+                            value={editIcon}
+                            onChange={e => setEditIcon(e.target.value)}
+                            className="w-14 text-center text-lg p-1 h-9"
+                            placeholder="🏠"
+                            maxLength={4}
+                          />
+                          <Input
+                            value={editName}
+                            onChange={e => setEditName(e.target.value)}
+                            className="flex-1 h-9"
+                            onKeyDown={e => { if (e.key === 'Enter') saveEdit(parent.id); if (e.key === 'Escape') cancelEdit(); }}
+                            autoFocus
+                          />
+                          <Button size="icon" variant="ghost" className="h-9 w-9 text-success hover:bg-success/10" onClick={() => saveEdit(parent.id)} disabled={updateCategory.isPending}>
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={cancelEdit}>
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive/10"
-                          onClick={() => onDeleteCategory(parent.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      ) : (
+                        <div className="group flex items-center justify-between p-3 rounded-2xl border border-border/60 bg-card hover:border-primary/30 transition-all shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xl">{parent.icon}</span>
+                            <span className="font-bold text-sm sm:text-base">{parent.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                              onClick={() => startEdit(parent)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                              onClick={() => onDeleteCategory(parent.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Subcategorias (Filhas) */}
                       {useSubcategories && children.length > 0 && (
                         <div className="ml-6 pl-4 border-l-2 border-border/40 space-y-2">
                           {children.map((child) => (
-                            <div
-                              key={child.id}
-                              className="group flex items-center justify-between p-2.5 rounded-xl border border-dashed border-border/80 bg-muted/20 hover:bg-muted/40 transition-all"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-base">{child.icon}</span>
-                                <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{child.name}</span>
+                            editingId === child.id ? (
+                              <div key={child.id} className="flex items-center gap-2 p-1.5 rounded-xl border border-primary/40 bg-primary/5">
+                                <Input value={editIcon} onChange={e => setEditIcon(e.target.value)} className="w-12 text-center text-base p-1 h-8" placeholder="🏠" maxLength={4} />
+                                <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 h-8 text-sm" onKeyDown={e => { if (e.key === 'Enter') saveEdit(child.id); if (e.key === 'Escape') cancelEdit(); }} autoFocus />
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-success hover:bg-success/10" onClick={() => saveEdit(child.id)} disabled={updateCategory.isPending}><Check className="h-3.5 w-3.5" /></Button>
+                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={cancelEdit}><X className="h-3.5 w-3.5" /></Button>
                               </div>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive/70 hover:text-destructive"
-                                onClick={() => onDeleteCategory(child.id)}
+                            ) : (
+                              <div
+                                key={child.id}
+                                className="group flex items-center justify-between p-2.5 rounded-xl border border-dashed border-border/80 bg-muted/20 hover:bg-muted/40 transition-all"
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-base">{child.icon}</span>
+                                  <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{child.name}</span>
+                                </div>
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 text-muted-foreground hover:text-primary" onClick={() => startEdit(child)}>
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => onDeleteCategory(child.id)}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )
                           ))}
                         </div>
                       )}
