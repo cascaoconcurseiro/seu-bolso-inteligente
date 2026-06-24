@@ -44,6 +44,7 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
           category:categories(id, name, icon, parent_category_id),
           transaction_splits:transaction_splits!transaction_id(*)
         `)
+        .is("deleted_at", null)
         .in('account_id', cardIds)
         .not('payer_id', 'is', null);
 

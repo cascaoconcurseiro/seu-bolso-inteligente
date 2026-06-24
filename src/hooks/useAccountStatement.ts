@@ -75,7 +75,7 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         .select("type, amount, destination_account_id, account_id, destination_amount")
         .or(`account_id.eq.${accountId},destination_account_id.eq.${accountId}`)
         .lt(dateField, monthStart)
-        .eq("is_active", true);
+        .is("deleted_at", null);
 
       let openingBalance = 0;
       for (const t of prevRaw || []) {
@@ -106,7 +106,7 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         .or(`account_id.eq.${accountId},destination_account_id.eq.${accountId}`)
         .gte(dateField, monthStart)
         .lte(dateField, monthEnd)
-        .eq("is_active", true)
+        .is("deleted_at", null)
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
 
