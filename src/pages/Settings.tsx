@@ -48,6 +48,7 @@ import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { BackupManager } from "@/components/settings/BackupManager";
 import { HelpSettings } from "@/components/settings/HelpSettings";
+import { AutoShareRulesSettings } from "@/components/settings/AutoShareRulesSettings";
 
 export function Settings() {
   const { user, signOut } = useAuth();
@@ -190,6 +191,10 @@ export function Settings() {
 
           {activeSection === "backup" && (
             <BackupManager />
+          )}
+
+          {activeSection === "automations" && (
+            <AutoShareRulesSettings />
           )}
 
           {activeSection === "admin" && (

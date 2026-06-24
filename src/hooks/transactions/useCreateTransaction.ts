@@ -14,6 +14,7 @@ import { logger } from "@/utils/logger";
 import { generateAllNotifications, dismissRelatedNotifications } from "@/services/notificationGenerator";
 import { createNotification } from "@/services/notificationService";
 import { CategoryPredictionService } from "@/services/categoryPredictionService";
+import { matchAutoShareRule } from "@/hooks/useAutoShareRules";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 
@@ -367,8 +368,28 @@ export function useCreateTransaction() {
         }
       }
 
+      // Auto-share: verificar regras configuradas pelo usuário
+      if (input.type === 'EXPENSE' && (!finalSplits || finalSplits.length === 0)) {
+        try {
+          const { data: autoRules } = await supabase
+            .from("transaction_auto_share_rules")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("is_active", true);
+
+          if (autoRules && autoRules.length > 0) {
+            const matched = matchAutoShareRule(autoRules as any, categoryId, input.description);
+            if (matched) {
+              finalSplits.push({ member_id: matched.member_id, percentage: matched.split_ratio * 100 });
+            }
+          }
+        } catch {
+          // silencioso: auto-share não deve bloquear criação
+        }
+      }
+
       const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
-      
+
       const { data, error } = await supabase
         .from("transactions")
         .insert({

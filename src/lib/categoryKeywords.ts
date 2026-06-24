@@ -214,6 +214,58 @@ export const DEFAULT_KEYWORDS: Record<string, KeywordGroup[]> = {
   'Cashback': [
     { keywords: ['cashback', 'cash back', 'ame digital', 'meliuz', 'méliuz', 'cashback nubank'], weight: 10 },
   ],
+
+  // ========== BELEZA & ESTÉTICA ==========
+  'Beleza': [
+    { keywords: ['salão', 'salao', 'cabeleireiro', 'barbearia', 'barber', 'beauty', 'estética', 'estetica', 'manicure', 'pedicure', 'depilação', 'depilacao', 'spa', 'massagem', 'sobrancelha', 'maquiagem', 'makeup', 'coloração', 'coloracao', 'escova', 'hidratação capilar', 'unhas'], weight: 10 },
+    { keywords: ['wella', 'loreal', 'schwarzkopf', 'truss', 'kerastase', 'oboticario', 'o boticário', 'natura', 'avon', 'quem disse berenice', 'mac cosméticos'], weight: 8 },
+    { keywords: ['corte de cabelo', 'tintura', 'progressiva', 'botox capilar', 'nail designer', 'lash', 'extensão de cílios'], weight: 9 },
+  ],
+
+  // ========== COMPRAS ONLINE ==========
+  'Compras Online': [
+    { keywords: ['amazon', 'shopee', 'mercado livre', 'mercadolivre', 'shein', 'aliexpress', 'magalu', 'magazine luiza', 'americanas', 'submarino', 'shoptime', 'netshoes', 'dafiti', 'centauro', 'riachuelo', 'renner online', 'tok&stok', 'leroy merlin online', 'kabum', 'terabyte', 'pichau'], weight: 10 },
+    { keywords: ['marketplace', 'loja online', 'e-commerce', 'ecommerce', 'compra online', 'compra internet', 'frete', 'entrega expressa', 'prime'], weight: 6 },
+  ],
+
+  // ========== GAMES & ENTRETENIMENTO DIGITAL ==========
+  'Games': [
+    { keywords: ['steam', 'playstation', 'psn', 'ps store', 'xbox', 'game pass', 'gamepass', 'nintendo', 'eshop', 'epic games', 'epicgames', 'riot games', 'blizzard', 'ea sports', 'ea play', 'ubisoft', 'rockstar', 'humble bundle', 'twitch', 'nuuvem'], weight: 10 },
+    { keywords: ['jogo', 'game', 'dlc', 'in-game', 'skin', 'vbucks', 'robux', 'gems', 'tokens', 'gaming', 'streamer'], weight: 8 },
+  ],
+
+  // ========== IMPOSTOS & TAXAS GOVERNAMENTAIS ==========
+  'Impostos': [
+    { keywords: ['iptu', 'ipva', 'imposto de renda', 'irpf', 'ir ', 'receita federal', 'darf', 'das', 'simples nacional', 'iof', 'iss', 'icms', 'taxa municipal', 'taxa estadual', 'multa infração', 'cnd', 'certidão negativa', 'prefeitura', 'detran', 'cartório', 'tabelionato', 'registro de imóveis', 'guia de arrecadação', 'carne leão'], weight: 10 },
+    { keywords: ['tributo', 'imposto', 'taxa governo', 'licenciamento', 'vistoria', 'emplacamento', 'habite-se'], weight: 8 },
+  ],
+
+  // ========== TARIFAS BANCÁRIAS ==========
+  'Tarifas Bancárias': [
+    { keywords: ['tarifa bancária', 'tarifa banco', 'anuidade cartão', 'anuidade', 'ted', 'doc', 'taxa pix', 'taxa transferência', 'taxa operação', 'tarifa manutenção', 'taxa administração', 'cobrança bancária', 'iof cartão', 'encargos'], weight: 10 },
+    { keywords: ['tarifa', 'taxa serviço', 'débito automático taxa', 'juros rotativo', 'juros cartão', 'multa atraso'], weight: 7 },
+  ],
+
+  // ========== MANUTENÇÃO DA CASA ==========
+  'Manutenção Casa': [
+    { keywords: ['encanador', 'eletricista', 'pedreiro', 'pintor', 'marceneiro', 'carpinteiro', 'serralheiro', 'marido de aluguel', 'serviço doméstico', 'diarista', 'faxina', 'faxineira', 'limpeza residencial', 'dedetização', 'dedetizadora', 'ar condicionado instalação', 'instalação', 'manutenção residencial'], weight: 10 },
+    { keywords: ['reforma', 'obra', 'material construção', 'leroy merlin', 'telhanorte', 'C&C', 'castorama', 'bricolagem', 'tinta', 'cimento', 'azulejo', 'rejunte', 'calafetação'], weight: 8 },
+  ],
+
+  // ========== VIAGEM & HOSPEDAGEM ==========
+  'Hospedagem': [
+    { keywords: ['hotel', 'pousada', 'hostel', 'airbnb', 'booking', 'trivago', 'decolar', 'hurb', 'expedia', 'resort', 'flat', 'apart hotel', 'albergue', 'chalé', 'chale'], weight: 10 },
+    { keywords: ['diária', 'diaria', 'hospedagem', 'check-in', 'checkout', 'acomodação', 'acomodacao', 'estadia'], weight: 9 },
+  ],
+  'Passagem Aérea': [
+    { keywords: ['latam', 'gol', 'azul linhas', 'azul airlines', 'avianca', 'emirates', 'american airlines', 'united airlines', 'tap', 'lufthansa', 'air france', 'jetsmart', 'sky airline', 'passagem aérea', 'passagem area', 'voo', 'milhas'], weight: 10 },
+    { keywords: ['aeroporto', 'despacho bagagem', 'embarque', 'bilhete aéreo', 'bilhete aereo', 'smiles', 'tudoazul', 'latam pass'], weight: 8 },
+  ],
+
+  // ========== DOAÇÕES ==========
+  'Doação': [
+    { keywords: ['doação', 'doacao', 'dízimo', 'dizimo', 'oferta igreja', 'contribuição religiosa', 'ong', 'caridade', 'unicef', 'wwf', 'greenpeace', 'médicos sem fronteiras', 'gorjeta', 'gorjeta app', 'tip', 'vaquinha', 'vakinha'], weight: 10 },
+  ],
 };
 
 // Dicionário de Sinônimos e Conceitos (para traduzir conceitos globais às categorias dinâmicas dos usuários)
@@ -286,6 +338,16 @@ export const CONCEPT_SYNONYMS: Record<string, string[]> = {
   'Aluguel Recebido': ['aluguel', 'recebido', 'renda', 'receita', 'rendimentos', 'moradia'],
   'Reembolso': ['reembolso', 'devolução', 'devolucao', 'estorno', 'receita', 'ajuste'],
   'Cashback': ['cashback', 'receita', 'renda', 'bônus', 'bonus', 'ajuste'],
+
+  'Beleza': ['beleza', 'salão', 'salao', 'estética', 'estetica', 'manicure', 'barbearia', 'spa', 'cuidado pessoal', 'cabelo', 'maquiagem'],
+  'Compras Online': ['compras online', 'online', 'amazon', 'shopee', 'mercado livre', 'shein', 'marketplace', 'e-commerce', 'compras', 'loja virtual'],
+  'Games': ['games', 'jogo', 'gaming', 'entretenimento', 'lazer', 'digital', 'steam', 'playstation', 'xbox', 'nintendo'],
+  'Impostos': ['imposto', 'taxa', 'tributo', 'governo', 'municipal', 'federal', 'estadual', 'iptu', 'ipva', 'ir'],
+  'Tarifas Bancárias': ['tarifa', 'banco', 'financeiro', 'bancária', 'bancario', 'encargos', 'juros'],
+  'Manutenção Casa': ['manutenção', 'manutencao', 'casa', 'reforma', 'obra', 'serviço', 'conserto', 'moradia'],
+  'Hospedagem': ['hospedagem', 'hotel', 'pousada', 'viagem', 'airbnb', 'turismo', 'férias', 'ferias', 'acomodação', 'acomodacao'],
+  'Passagem Aérea': ['passagem', 'voo', 'avião', 'aviao', 'aérea', 'aerea', 'viagem', 'turismo', 'latam', 'gol', 'azul'],
+  'Doação': ['doação', 'doacao', 'caridade', 'dízimo', 'dizimo', 'oferta', 'contribuição', 'contribuicao', 'ong'],
 };
 
 // Dicionário deEmojis Associados aos Conceitos (para busca visual)
@@ -354,4 +416,14 @@ export const CONCEPT_EMOJIS: Record<string, string[]> = {
   'Aluguel Recebido': ['🏠', '🔑', '📈'],
   'Reembolso': [' Estorno', '💳', '🔄'],
   'Cashback': ['💰', '🪙', '🔙'],
+
+  'Beleza': ['💅', '💇', '🪒', '🧖', '✨', '💄'],
+  'Compras Online': ['📦', '🛍️', '💻', '🛒', '📲'],
+  'Games': ['🎮', '🕹️', '👾', '🎯', '💻'],
+  'Impostos': ['🏛️', '📋', '💼', '🗂️', '📄'],
+  'Tarifas Bancárias': ['🏦', '💳', '📊', '💸'],
+  'Manutenção Casa': ['🔧', '🏠', '🔨', '🪚', '🧹'],
+  'Hospedagem': ['🏨', '🛏️', '🌴', '🏖️', '🗺️'],
+  'Passagem Aérea': ['✈️', '🛫', '🎫', '🌍', '🛬'],
+  'Doação': ['❤️', '🙏', '⛪', '🫶', '💝'],
 };

@@ -44,8 +44,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
       setLowBalanceThreshold(profile.low_balance_threshold ?? 0);
-      setDefaultAccountId(profile.default_account_id || "none");
-      setDefaultCreditCardId(profile.default_credit_card_id || "none");
+      setDefaultAccountId(profile.default_account_id ?? "none");
+      setDefaultCreditCardId(profile.default_credit_card_id ?? "none");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -75,8 +75,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       sharedSyncCreditCardId !== currentCardId ||
       globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
       lowBalanceThreshold !== (profile.low_balance_threshold ?? 0) ||
-      defaultAccountId !== (profile.default_account_id || "none") ||
-      defaultCreditCardId !== (profile.default_credit_card_id || "none")
+      defaultAccountId !== (profile.default_account_id ?? "none") ||
+      defaultCreditCardId !== (profile.default_credit_card_id ?? "none")
     );
   };
 
@@ -245,6 +245,52 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             </div>
           </div>
           
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <Wallet className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Conta Padrão</Label>
+                <InfoTooltip content="Conta pré-selecionada ao abrir o formulário de nova transação. Economiza cliques no dia a dia." />
+              </div>
+              <Select value={defaultAccountId} onValueChange={setDefaultAccountId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma (selecionar manualmente)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma (selecionar manualmente)</SelectItem>
+                  {checkingAccounts.map(acc => (
+                    <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <CreditCard className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 fill-mode-both">
+              <div className="flex items-center gap-2">
+                <Label>Cartão de Crédito Padrão</Label>
+                <InfoTooltip content="Cartão pré-selecionado quando você escolhe 'Cartão de Crédito' no formulário de transação." />
+              </div>
+              <Select value={defaultCreditCardId} onValueChange={setDefaultCreditCardId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhum (selecionar manualmente)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (selecionar manualmente)</SelectItem>
+                  {creditCards.map(card => (
+                    <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <BellRing className="h-5 w-5" />
