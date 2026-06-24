@@ -211,7 +211,7 @@ export function SharedSettleDialog({
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm truncate">{item.description}</p>
-                        <p className="text-sm text-muted-foreground">{dateFns.format(new Date(item.date + 'T12:00:00'), "dd/MM/yyyy")}</p>
+                        <p className="text-sm text-muted-foreground">{(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : '-'; })()}</p>
                       </div>
                       <div className="text-right">
                         <span className={cn("font-mono text-sm font-medium", isCredit ? "text-success" : "text-destructive")}>

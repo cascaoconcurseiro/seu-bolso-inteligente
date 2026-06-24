@@ -198,7 +198,7 @@ export function SettlementConfirmationDialog({
                       <div className="flex-1 min-w-0 pr-3">
                         <p className="text-sm font-medium truncate">{item.description}</p>
                         <p className="text-sm text-muted-foreground font-mono">
-                          {dateFns.format(new Date(item.date + 'T12:00:00'), "dd MMM yyyy")} • {item.category}
+                          {(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd MMM yyyy") : '-'; })()} • {item.category}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
