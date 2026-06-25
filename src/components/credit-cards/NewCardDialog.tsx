@@ -111,7 +111,7 @@ export function NewCardDialog({
               <SelectTrigger id="card-bank">
                 <SelectValue placeholder="Selecione o banco…" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 <SelectItem value="other" className="text-warning focus:text-warning font-medium border-b mb-1 pb-1">
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
