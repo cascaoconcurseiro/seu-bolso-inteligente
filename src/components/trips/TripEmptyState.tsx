@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plane, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TripEmptyStateProps {
   onCreateClick: () => void;
@@ -7,15 +8,16 @@ interface TripEmptyStateProps {
 
 export function TripEmptyState({ onCreateClick }: TripEmptyStateProps) {
   return (
-    <div className="py-16 text-center border border-dashed border-border rounded-xl">
-      <Plane className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-      <h3 className="font-display font-semibold text-lg mb-2">Nenhuma viagem cadastrada</h3>
-      <p className="text-muted-foreground mb-6">Crie sua primeira viagem para organizar gastos</p>
-      <Button onClick={onCreateClick} className="h-12 md:h-10">
-        <Plus className="h-5 w-5 md:mr-2" />
-        <span className="hidden md:inline">Nova viagem</span>
-        <span className="md:hidden">Nova</span>
-      </Button>
-    </div>
+    <EmptyState
+      icon={Plane}
+      title="Nenhuma viagem cadastrada"
+      description="Crie sua primeira viagem para organizar gastos em grupo, dividi-los entre participantes e acompanhar o orçamento."
+      action={
+        <Button onClick={onCreateClick} className="h-12 px-8 rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all font-semibold">
+          <Plus className="h-5 w-5 mr-2" />
+          Nova Viagem
+        </Button>
+      }
+    />
   );
 }

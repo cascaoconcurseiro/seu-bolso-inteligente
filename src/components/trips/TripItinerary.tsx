@@ -42,6 +42,7 @@ interface ItineraryItem {
 }
 
 import { AITripSuggestions } from './AITripSuggestions';
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TripItineraryProps {
   trip: any;
@@ -237,22 +238,24 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   if (!isLoading && items.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="py-12 text-center border border-dashed border-border rounded-xl">
-          <Route className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-base mb-2">Roteiro da viagem</h3>
-          <p className="text-muted-foreground mb-6">Adicione atividades e passeios</p>
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar atividade
-            </Button>
-            <AITripSuggestions 
-              type="itinerary"
-              destination={trip.destination || trip.name}
-              onApply={handleApplyAISuggestions}
-            />
-          </div>
-        </div>
+        <EmptyState
+          icon={Route}
+          title="Roteiro vazio"
+          description="Adicione atividades e passeios para organizar os dias da viagem."
+          action={
+            <div className="flex items-center justify-center gap-3">
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar atividade
+              </Button>
+              <AITripSuggestions
+                type="itinerary"
+                destination={trip.destination || trip.name}
+                onApply={handleApplyAISuggestions}
+              />
+            </div>
+          }
+        />
 
         <ItineraryDialog
           open={showDialog}

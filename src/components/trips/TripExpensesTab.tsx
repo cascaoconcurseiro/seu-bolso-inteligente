@@ -10,6 +10,7 @@ import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import { Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];
@@ -381,16 +382,16 @@ export function TripExpensesTab({
             )}
           </div>
         ) : (
-          <div className="py-10 text-center border border-dashed border-accent/20 rounded-2xl bg-accent/3 flex flex-col items-center">
-            <Users className="h-10 w-9 mb-2.5 text-accent/60" />
-            <p className="text-sm font-semibold text-foreground">Nenhuma despesa compartilhada</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">
-              Despesas marcadas como compartilhadas aparecerão aqui
-            </p>
-            <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-accent hover:bg-accent/92">
-              <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
-            </Button>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Nenhuma despesa compartilhada"
+            description="Despesas marcadas como compartilhadas aparecerão aqui."
+            action={
+              <Button size="sm" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })} className="bg-accent hover:bg-accent/90">
+                <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
+              </Button>
+            }
+          />
         )}
       </section>
 
@@ -411,16 +412,16 @@ export function TripExpensesTab({
       {/* ===== SEÇÃO: DESPESAS PESSOAIS ===== */}
       <section className="space-y-4">
         {personalExpenses.length === 0 && sharedExpenses.length === 0 ? (
-          <div className="py-10 text-center border border-dashed border-border rounded-2xl bg-card/10 flex flex-col items-center">
-            <User className="h-10 w-9 mb-2.5 text-muted-foreground/40" />
-            <p className="text-sm font-semibold text-foreground">Nenhuma despesa pessoal</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">
-              Seus gastos privados na viagem aparecerão aqui
-            </p>
-            <Button size="sm" variant="outline" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })}>
-              <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
-            </Button>
-          </div>
+          <EmptyState
+            icon={User}
+            title="Nenhuma despesa pessoal"
+            description="Seus gastos privados na viagem aparecerão aqui."
+            action={
+              <Button size="sm" variant="outline" onClick={() => setShowTransactionModal(true, { tripId: selectedTrip.id })}>
+                <Plus className="h-4 w-4 mr-2" /> Lançar Despesa
+              </Button>
+            }
+          />
         ) : personalExpenses.length > 0 ? (
           <>
             {sharedExpenses.length === 0 && (

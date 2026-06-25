@@ -1,5 +1,6 @@
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface PeopleSettingsProps {
   members: any[];
@@ -20,11 +21,11 @@ export function PeopleSettings({ members, isLoading, getInitials }: PeopleSettin
 
   if (members.length === 0) {
     return (
-      <div className="py-12 text-center border border-dashed border-border rounded-xl">
-        <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-        <p className="font-medium">Nenhum membro</p>
-        <p className="text-sm text-muted-foreground">Adicione membros na página Família</p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="Nenhum membro"
+        description="Adicione membros na página Família para gerenciá-los aqui."
+      />
     );
   }
 

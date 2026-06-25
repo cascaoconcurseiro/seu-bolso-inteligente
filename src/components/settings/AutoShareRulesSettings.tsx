@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Trash2, ToggleLeft, ToggleRight, Zap } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,11 +62,11 @@ export function AutoShareRulesSettings() {
       {/* Rules list */}
       <div className="space-y-3">
         {rules.length === 0 && !showForm && (
-          <div className="py-10 text-center border border-dashed border-border/60 rounded-2xl text-muted-foreground">
-            <Zap className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm font-medium">Nenhuma regra configurada</p>
-            <p className="text-xs mt-1">Adicione regras para automatizar o compartilhamento de despesas.</p>
-          </div>
+          <EmptyState
+            icon={Zap}
+            title="Nenhuma regra configurada"
+            description="Adicione regras para automatizar o compartilhamento de despesas."
+          />
         )}
 
         {rules.map(rule => {

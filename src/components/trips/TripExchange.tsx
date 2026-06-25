@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, ArrowRightLeft, Info } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -97,19 +98,17 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
             <strong>Cotações em Tempo Real:</strong> A cotação oficial da moeda ({trip.currency}) é sincronizada automaticamente com a AwesomeAPI para ajudar no seu planejamento e conversão de gastos.
           </p>
         </div>
-        <div className="py-12 text-center border border-dashed border-border rounded-xl">
-          <ArrowRightLeft className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-base mb-2">
-            Controle de Câmbio
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            Registre suas compras de {trip.currency} para calcular a média ponderada
-          </p>
-          <Button onClick={handleOpenDialog}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Câmbio
-          </Button>
-        </div>
+        <EmptyState
+          icon={ArrowRightLeft}
+          title="Controle de Câmbio"
+          description={`Registre suas compras de ${trip.currency} para calcular a taxa média ponderada que você pagou.`}
+          action={
+            <Button onClick={handleOpenDialog}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Câmbio
+            </Button>
+          }
+        />
 
         <ExchangePurchaseDialog
           open={showDialog}

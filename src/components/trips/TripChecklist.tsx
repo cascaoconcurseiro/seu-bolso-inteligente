@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { AITripSuggestions } from './AITripSuggestions';
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ChecklistItem {
   id: string;
@@ -189,22 +190,24 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   if (!isLoading && items.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="py-12 text-center border border-dashed border-border rounded-xl">
-          <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-display font-semibold text-base mb-2">Checklist</h3>
-          <p className="text-muted-foreground mb-6">Organize o que levar na viagem</p>
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={() => setShowDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar item
-            </Button>
-            <AITripSuggestions 
-              type="checklist"
-              destination={trip.destination || trip.name}
-              onApply={handleApplyAISuggestions}
-            />
-          </div>
-        </div>
+        <EmptyState
+          icon={ListChecks}
+          title="Checklist vazio"
+          description="Organize o que levar na viagem. Adicione itens manualmente ou deixe a IA sugerir com base no destino."
+          action={
+            <div className="flex items-center justify-center gap-3">
+              <Button onClick={() => setShowDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar item
+              </Button>
+              <AITripSuggestions
+                type="checklist"
+                destination={trip.destination || trip.name}
+                onApply={handleApplyAISuggestions}
+              />
+            </div>
+          }
+        />
 
         <ChecklistDialog
           open={showDialog}

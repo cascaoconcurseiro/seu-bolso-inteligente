@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Loader2, Plus, Trash2, ShoppingCart, Check } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -239,13 +240,11 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
       {/* Shopping List */}
       {shoppingList.length === 0 ? (
-        <div className="py-12 text-center border border-dashed border-border rounded-xl">
-          <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Nenhum item na lista</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Adicione itens que deseja comprar para a viagem
-          </p>
-        </div>
+        <EmptyState
+          icon={ShoppingCart}
+          title="Nenhum item na lista"
+          description="Adicione itens que deseja comprar para a viagem."
+        />
       ) : (
         <div className="space-y-2">
           <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
