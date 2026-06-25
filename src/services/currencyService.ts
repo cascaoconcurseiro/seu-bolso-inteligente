@@ -1,5 +1,5 @@
 import { logger } from "@/utils/logger";
-import { moneyUtils } from "@/utils/money";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CurrencyRate {
   code: string;
@@ -9,120 +9,114 @@ export interface CurrencyRate {
   low: string;
   varBid: string;
   pctChange: string;
-  bid: string; // Isso é o que a gente usa para a cotação (valor de compra)
-  ask: string; // Valor de venda
+  bid: string;
+  ask: string;
   timestamp: string;
   create_date: string;
 }
 
-const CACHE_DURATION = 1000 * 60 * 15; // 15 minutos de cache
-const cache = new Map<string, { data: CurrencyRate; timestamp: number }>();
+const CACHE_DURATION = 1000 * 60 * 15;
+const cache = new Map<string, { rate: number; timestamp: number }>();
 
 /**
- * Busca cotações de moedas em tempo real (AwesomeAPI)
- * É 100% gratuita, sem necessidade de chaves e retorna os dados atualizados.
- *
- * @param currencyCode Código da moeda original (ex: USD, EUR, GBP)
- * @param targetCode Código da moeda de destino (ex: BRL)
+ * Busca cotação via Edge Function (server-side, sem CORS e sem token exposto).
+ * Fallback: AwesomeAPI direto do browser (sem token).
  */
 export async function getCurrencyRate(
   currencyCode: string,
   targetCode: string = "BRL"
 ): Promise<number | null> {
-  const pair = `${currencyCode}-${targetCode}`;
-  const pairKey = `${currencyCode}${targetCode}`;
-
-  // Se for a mesma moeda, taxa = 1
   if (currencyCode === targetCode) return 1;
 
-  // Checar cache em memória
-  const cached = cache.get(pairKey);
+  const cacheKey = `${currencyCode}${targetCode}`;
+  const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return moneyUtils.parse(cached.data.bid);
+    return cached.rate;
   }
 
+  // Tenta via Edge Function (server-side, sem CORS)
   try {
-    // Monta a URL. Se tivermos a chave (via .env), usamos para garantir maior estabilidade e limite.
-    // Usaremos import.meta.env.VITE_AWESOME_API_TOKEN se existir, senão vai sem token (que também funciona mas com limites).
-    const token = import.meta.env.VITE_AWESOME_API_TOKEN || "eaef71de8f585d5744e73835af36a596642a2300613f772decb2049fa906b7f9";
-    const url = `https://economia.awesomeapi.com.br/json/last/${pair}?token=${token}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data, error } = await supabase.functions.invoke('get-currency-quote', {
+        body: { currency: currencyCode, target: targetCode },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!error && data?.rate != null) {
+        const rate = parseFloat(data.rate);
+        cache.set(cacheKey, { rate, timestamp: Date.now() });
+        return rate;
+      }
     }
+  } catch (e) {
+    logger.warn('Edge Function indisponível, usando fallback direto:', e);
+  }
+
+  // Fallback: AwesomeAPI direto (sem token — funciona para uso básico)
+  try {
+    const pair = `${currencyCode}-${targetCode}`;
+    const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pair}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const data = await response.json();
-    const rateData = data[pairKey] as CurrencyRate;
+    const rateData = data[`${currencyCode}${targetCode}`];
+    if (!rateData) throw new Error('Par não encontrado');
 
-    if (!rateData) {
-      throw new Error("Moeda não encontrada na resposta da API.");
-    }
-
-    // Salvar no cache
-    cache.set(pairKey, { data: rateData, timestamp: Date.now() });
-
-    return moneyUtils.parse(rateData.bid);
+    const rate = parseFloat(rateData.bid);
+    cache.set(cacheKey, { rate, timestamp: Date.now() });
+    return rate;
   } catch (error) {
-    logger.error(`Erro ao buscar cotação de ${pair}:`, error);
+    logger.error(`Erro ao buscar cotação ${currencyCode}/${targetCode}:`, error);
     return null;
   }
 }
 
 /**
- * Busca múltiplas moedas de uma vez
+ * Busca múltiplas moedas de uma vez.
  */
 export async function getMultipleCurrencyRates(
   currencies: string[],
   targetCode: string = "BRL"
 ): Promise<Record<string, number>> {
-  const pairs = currencies.filter(c => c !== targetCode).map(c => `${c}-${targetCode}`).join(",");
-  
-  if (!pairs) return {};
+  const toFetch = currencies.filter(c => c !== targetCode);
+  const results: Record<string, number> = {};
 
-  try {
-    const token = import.meta.env.VITE_AWESOME_API_TOKEN || "eaef71de8f585d5744e73835af36a596642a2300613f772decb2049fa906b7f9";
-    const url = `https://economia.awesomeapi.com.br/json/last/${pairs}?token=${token}`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const results: Record<string, number> = {};
-
-    for (const currency of currencies) {
-      if (currency === targetCode) {
-        results[currency] = 1;
-        continue;
-      }
-      const pairKey = `${currency}${targetCode}`;
-      if (data[pairKey]) {
-        const rate = moneyUtils.parse(data[pairKey].bid);
-        results[currency] = rate;
-        cache.set(pairKey, { data: data[pairKey], timestamp: Date.now() });
-      } else {
-        // Se não conseguiu da API, tenta ver se tem no cache antigo
-        const cached = cache.get(pairKey);
-        results[currency] = cached ? moneyUtils.parse(cached.data.bid) : 0;
-      }
-    }
-
-    return results;
-  } catch (error) {
-    logger.error("Erro ao buscar múltiplas cotações:", error);
-    
-    // Fallback: tentar usar o que tem no cache
-    const results: Record<string, number> = {};
-    for (const currency of currencies) {
-      if (currency === targetCode) {
-        results[currency] = 1;
-        continue;
-      }
-      const cached = cache.get(`${currency}${targetCode}`);
-      results[currency] = cached ? moneyUtils.parse(cached.data.bid) : 0;
-    }
-    return results;
+  for (const c of currencies) {
+    if (c === targetCode) { results[c] = 1; continue; }
   }
+
+  if (toFetch.length === 0) return results;
+
+  // Tenta buscar todos de uma vez via AwesomeAPI (mais eficiente)
+  try {
+    const pairs = toFetch.map(c => `${c}-${targetCode}`).join(',');
+    const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pairs}`);
+    if (response.ok) {
+      const data = await response.json();
+      for (const c of toFetch) {
+        const key = `${c}${targetCode}`;
+        if (data[key]) {
+          const rate = parseFloat(data[key].bid);
+          results[c] = rate;
+          cache.set(key, { rate, timestamp: Date.now() });
+        }
+      }
+      // Preenche qualquer moeda que ficou faltando com cache antigo
+      for (const c of toFetch) {
+        if (!results[c]) {
+          const old = cache.get(`${c}${targetCode}`);
+          results[c] = old?.rate ?? 0;
+        }
+      }
+      return results;
+    }
+  } catch (_) { /* cai no fallback individual */ }
+
+  // Fallback: busca individual via Edge Function
+  await Promise.all(toFetch.map(async (c) => {
+    const rate = await getCurrencyRate(c, targetCode);
+    results[c] = rate ?? 0;
+  }));
+
+  return results;
 }

@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// BCB SGS series codes
+const BCB_SERIES: Record<string, number> = {
+  ipca: 13522,
+  selic: 432,
+  cdi: 4389,
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -35,40 +42,62 @@ serve(async (req) => {
       });
     }
 
-    const { currency } = await req.json();
+    const body = await req.json();
 
-    if (!currency || currency === 'BRL') {
+    // --- BCB indicators endpoint ---
+    if (body.indicator) {
+      const seriesCode = BCB_SERIES[body.indicator as string];
+      if (!seriesCode) {
+        return new Response(JSON.stringify({ error: 'Indicador desconhecido' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
+      }
+
+      const bcbRes = await fetch(
+        `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${seriesCode}/dados/ultimos/1?formato=json`
+      );
+      if (!bcbRes.ok) throw new Error(`BCB API error: ${bcbRes.status}`);
+
+      const bcbData = await bcbRes.json();
+      const entry = bcbData?.[0];
+      return new Response(
+        JSON.stringify({ date: entry?.data ?? null, value: entry ? parseFloat(entry.valor.replace(',', '.')) : null }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // --- Currency quote endpoint ---
+    const { currency, target = 'BRL' } = body;
+
+    if (!currency || currency === target) {
       return new Response(JSON.stringify({ rate: 1 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const token = Deno.env.get('BRAPI_TOKEN');
-    if (!token) throw new Error('Secret BRAPI_TOKEN não configurado no Supabase.');
+    const pair = `${currency}-${target}`;
+    const pairKey = `${currency}${target}`;
 
-    // Currency pair for BRAPI: e.g. "USD-BRL"
-    const pair = `${currency}-BRL`;
-    
-    const response = await fetch(`https://brapi.dev/api/v2/currency?currency=${pair}&token=${token}`);
-    if (!response.ok) {
-      throw new Error(`Falha na API da BRAPI: ${response.status} ${response.statusText}`);
-    }
+    // AwesomeAPI — free, no token required, server-side avoids any CORS issues
+    const awesomeRes = await fetch(
+      `https://economia.awesomeapi.com.br/json/last/${pair}`
+    );
+    if (!awesomeRes.ok) throw new Error(`AwesomeAPI error: ${awesomeRes.status}`);
 
-    const data = await response.json();
-    let rate = null;
-    
-    if (data.currency && data.currency.length > 0) {
-      rate = parseFloat(data.currency[0].bidPrice);
-    }
+    const awesomeData = await awesomeRes.json();
+    const rateData = awesomeData[pairKey];
+    if (!rateData) throw new Error(`Par ${pair} não encontrado`);
 
-    return new Response(JSON.stringify({ rate }), {
+    const rate = parseFloat(rateData.bid);
+    return new Response(JSON.stringify({ rate, high: parseFloat(rateData.high), low: parseFloat(rateData.low) }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error('Erro na cotação de moedas:', error);
-    return new Response(`Error: ${error.message}`, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+    console.error('Erro:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
   }

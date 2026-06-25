@@ -1,11 +1,5 @@
-import { moneyUtils } from "@/utils/money";
 import { logger } from '@/utils/logger';
-/**
- * Banco Central do Brasil (BCB) - Sistema Gerenciador de Séries Temporais (SGS)
- * API REST Pública e Gratuita. Não requer autenticação.
- */
-
-const BCB_API_BASE = "https://api.bcb.gov.br/dados/serie/bcdata.sgs";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface EconomicIndicator {
   date: string;
@@ -13,40 +7,47 @@ export interface EconomicIndicator {
 }
 
 /**
- * Busca o valor mais recente de uma série temporal do BCB.
- * @param seriesCode Código da série no SGS. Ex: 13522 (IPCA 12m), 432 (Selic Meta), 4389 (CDI anualizado)
+ * Busca indicador do BCB via Edge Function (server-side, evita CORS do browser).
+ * Fallback: chamada direta (funciona em alguns ambientes).
  */
-async function fetchLatestIndicator(seriesCode: number): Promise<EconomicIndicator | null> {
+async function fetchIndicator(indicator: 'ipca' | 'selic' | 'cdi'): Promise<EconomicIndicator | null> {
+  // Tenta via Edge Function
   try {
-    const response = await fetch(`${BCB_API_BASE}.${seriesCode}/dados/ultimos/1?formato=json`);
-    
-    if (!response.ok) {
-      throw new Error(`Erro na API do BCB (${response.status}) para a série ${seriesCode}`);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      const { data, error } = await supabase.functions.invoke('get-currency-quote', {
+        body: { indicator },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (!error && data?.value != null) {
+        return { date: data.date, value: data.value };
+      }
     }
-
-    const data = await response.json();
-    
-    if (data && data.length > 0) {
-      return {
-        date: data[0].data,
-        value: moneyUtils.parse(data[0].valor)
-      };
-    }
-    
-    return null;
-  } catch (error) {
-    logger.error(`Falha ao buscar indicador do BCB (Série ${seriesCode}):`, error);
-    return null;
+  } catch (e) {
+    logger.warn(`Edge Function indisponível para BCB ${indicator}:`, e);
   }
+
+  // Fallback: chamada direta (pode falhar por CORS dependendo do ambiente)
+  const seriesCodes: Record<string, number> = { ipca: 13522, selic: 432, cdi: 4389 };
+  try {
+    const code = seriesCodes[indicator];
+    const response = await fetch(
+      `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code}/dados/ultimos/1?formato=json`
+    );
+    if (!response.ok) throw new Error(`BCB HTTP ${response.status}`);
+    const data = await response.json();
+    if (data?.[0]) {
+      return { date: data[0].data, value: parseFloat(data[0].valor.replace(',', '.')) };
+    }
+  } catch (error) {
+    logger.error(`Falha ao buscar ${indicator} do BCB:`, error);
+  }
+
+  return null;
 }
 
 export const bcbService = {
-  /** IPCA Acumulado 12 meses (Inflação) */
-  getIPCA: () => fetchLatestIndicator(13522),
-  
-  /** Taxa Selic (Meta) Anualizada */
-  getSelic: () => fetchLatestIndicator(432),
-  
-  /** Taxa CDI Anualizada (Média) */
-  getCDI: () => fetchLatestIndicator(4389),
+  getIPCA: () => fetchIndicator('ipca'),
+  getSelic: () => fetchIndicator('selic'),
+  getCDI: () => fetchIndicator('cdi'),
 };
