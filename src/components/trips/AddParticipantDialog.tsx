@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, UserPlus } from "lucide-react";
+import { Users, UserPlus, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSharedContacts } from "@/hooks/useFamily";
 
 interface AddParticipantDialogProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface AddParticipantDialogProps {
   onAddGuest?: (guestName: string) => void;
   onNavigateToFamily: () => void;
   getInitials: (name: string) => string;
+  currentParticipantNames?: string[];
 }
 
 export function AddParticipantDialog({
@@ -24,14 +26,26 @@ export function AddParticipantDialog({
   onAddGuest,
   onNavigateToFamily,
   getInitials,
+  currentParticipantNames = [],
 }: AddParticipantDialogProps) {
-  const [tab, setTab] = useState<'family' | 'guest'>('family');
+  const [tab, setTab] = useState<'family' | 'contacts' | 'guest'>('family');
   const [guestName, setGuestName] = useState('');
+  const { data: contacts = [] } = useSharedContacts();
+
+  // Filter out contacts already in the trip
+  const availableContacts = contacts.filter(
+    c => !currentParticipantNames.includes(c.name)
+  );
 
   const handleAddGuest = () => {
     if (!guestName.trim()) return;
     onAddGuest?.(guestName.trim());
     setGuestName('');
+    onOpenChange(false);
+  };
+
+  const handleAddContact = (contact: any) => {
+    onAddGuest?.(contact.name);
     onOpenChange(false);
   };
 
@@ -43,7 +57,7 @@ export function AddParticipantDialog({
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle>Adicionar Participante</DialogTitle>
-          <DialogDescription>Família ou convidado externo</DialogDescription>
+          <DialogDescription>Família, contatos ou convidado externo</DialogDescription>
         </DialogHeader>
 
         {/* Tab toggle */}
@@ -53,27 +67,39 @@ export function AddParticipantDialog({
               type="button"
               onClick={() => setTab('family')}
               className={cn(
-                "flex-1 py-2 text-sm font-medium rounded-lg transition-all",
+                "flex-1 py-2 text-xs font-medium rounded-lg transition-all",
                 tab === 'family' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
               )}
             >
-              Da Família
+              Família
             </button>
+            {contacts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setTab('contacts')}
+                className={cn(
+                  "flex-1 py-2 text-xs font-medium rounded-lg transition-all",
+                  tab === 'contacts' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                )}
+              >
+                Contatos
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setTab('guest')}
               className={cn(
-                "flex-1 py-2 text-sm font-medium rounded-lg transition-all",
+                "flex-1 py-2 text-xs font-medium rounded-lg transition-all",
                 tab === 'guest' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
               )}
             >
-              Convidado
+              Novo
             </button>
           </div>
         </div>
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-3">
-          {tab === 'family' ? (
+          {tab === 'family' && (
             <>
               {availableMembers.length === 0 ? (
                 <div className="py-8 text-center bg-muted/20 rounded-xl border border-border/50">
@@ -103,7 +129,41 @@ export function AddParticipantDialog({
                 ))
               )}
             </>
-          ) : (
+          )}
+
+          {tab === 'contacts' && (
+            <>
+              {availableContacts.length === 0 ? (
+                <div className="py-8 text-center bg-muted/20 rounded-xl border border-border/50">
+                  <UserCircle2 className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm font-medium mb-1">Nenhum contato disponível</p>
+                  <p className="text-sm text-muted-foreground">
+                    Todos os seus contatos já estão nesta viagem, ou você ainda não adicionou contatos.
+                  </p>
+                </div>
+              ) : (
+                availableContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-foreground/20 hover:bg-accent/50 cursor-pointer transition-colors"
+                    onClick={() => handleAddContact(contact)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-sm">
+                        {getInitials(contact.name)}
+                      </div>
+                      <div>
+                        <span className="font-medium text-sm">{contact.name}</span>
+                        <p className="text-xs text-muted-foreground">Contato externo</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </>
+          )}
+
+          {tab === 'guest' && (
             <div className="space-y-4 pt-1">
               <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/50">
                 <UserPlus className="h-5 w-5 text-muted-foreground shrink-0" />

@@ -40,7 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTrips } from '@/hooks/useTrips';
-import { useFamilyMembers } from '@/hooks/useFamily';
+import { useFamilyMembers, useSharedContacts } from '@/hooks/useFamily';
 import { useTripMembers } from '@/hooks/useTripMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -74,7 +74,16 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { data: profile } = useUserProfile();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesHierarchical();
   const { data: trips } = useTrips();
-  const { data: familyMembers = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: rawFamilyMembers = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: contacts = [] } = useSharedContacts();
+
+  // Merge contacts into familyMembers so they appear in payer/split dropdowns
+  const familyMembers = useMemo(() => {
+    const existingIds = new Set(rawFamilyMembers.map(m => m.id));
+    const newContacts = contacts.filter(c => !existingIds.has(c.id));
+    return [...rawFamilyMembers, ...newContacts];
+  }, [rawFamilyMembers, contacts]);
+
   const myMemberRecord = useMemo(() => {
     return (familyMembers || []).find(m => m.linked_user_id === user?.id);
   }, [familyMembers, user?.id]);

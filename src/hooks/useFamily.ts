@@ -492,6 +492,7 @@ export function useSharedContacts() {
         .select("*")
         .eq("family_id", family.id)
         .eq("member_type", "contact")
+        .eq("invited_by", user.id)
         .order("name");
       if (error) throw error;
       return (data || []) as FamilyMember[];
