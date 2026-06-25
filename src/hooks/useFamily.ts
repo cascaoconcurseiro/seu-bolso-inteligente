@@ -25,6 +25,7 @@ export interface FamilyMember {
   scope_start_date: string | null;
   scope_end_date: string | null;
   scope_trip_id: string | null;
+  active_in_form: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -519,6 +520,26 @@ export function useConvertMemberToContact() {
       toast.success("Movido para contatos — histórico preservado");
     },
     onError: () => toast.error("Erro ao alterar tipo de membro"),
+  });
+}
+
+// Ativar/desativar contato no formulário de nova transação
+export function useToggleContactActiveInForm() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, active_in_form }: { id: string; active_in_form: boolean }) => {
+      const { error } = await supabase
+        .from("family_members")
+        .update({ active_in_form })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, { active_in_form }) => {
+      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
+      toast.success(active_in_form ? "Contato ativado no formulário" : "Contato desativado do formulário");
+    },
+    onError: () => toast.error("Erro ao alterar status do contato"),
   });
 }
 

@@ -77,13 +77,11 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { data: rawFamilyMembers = [], isLoading: membersLoading } = useFamilyMembers();
   const { data: contacts = [] } = useSharedContacts();
 
-  // Merge contacts into familyMembers so they appear in payer/split dropdowns
   const familyMembers = useMemo(() => {
     const existingIds = new Set(rawFamilyMembers.map(m => m.id));
-    const newContacts = contacts.filter(c => !existingIds.has(c.id));
-    return [...rawFamilyMembers, ...newContacts];
+    const activeContacts = contacts.filter(c => c.active_in_form && !existingIds.has(c.id));
+    return [...rawFamilyMembers, ...activeContacts];
   }, [rawFamilyMembers, contacts]);
-
   const myMemberRecord = useMemo(() => {
     return (familyMembers || []).find(m => m.linked_user_id === user?.id);
   }, [familyMembers, user?.id]);
