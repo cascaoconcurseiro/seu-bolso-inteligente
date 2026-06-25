@@ -8,7 +8,11 @@ import {
   RefreshCw,
   Plane,
   X,
+  CalendarCheck,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { isFuture, startOfDay } from 'date-fns';
 import { isWithinInterval, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -281,11 +285,30 @@ export function TransactionForm(props: TransactionFormProps) {
           isCreditCard={form.isCreditCard}
           currencySymbol={form.getCurrencySymbol(form.transactionCurrency)}
           numericAmount={moneyUtils.parse(form.amount) || 0}
-          
+
           trips={form.trips || []}
           hasSharing={form.hasSharing}
           availableMembers={form.availableMembers}
         />
+
+        {/* Toggle "Agendar": aparece quando a data é futura e não é recorrente */}
+        {isFuture(startOfDay(form.date)) && !form.isRecurring && (
+          <div className="flex items-center justify-between p-3 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-2.5">
+              <CalendarCheck className="h-4 w-4 text-primary flex-shrink-0" />
+              <div>
+                <Label className="text-sm font-medium cursor-pointer">Agendar (não lançar agora)</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Aparece em "Próximas" até você marcar como pago
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={form.saveAsPending}
+              onCheckedChange={form.setSaveAsPending}
+            />
+          </div>
+        )}
 
         {form.validationErrors.length > 0 && (
           <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm animate-fade-in">

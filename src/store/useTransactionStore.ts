@@ -33,6 +33,7 @@ export interface TransactionFormState {
 
   transferType: 'account' | 'goal';
   goalId: string;
+  saveAsPending: boolean;
 
   // Actions
   setActiveTab: (tab: TabType) => void;
@@ -63,6 +64,7 @@ export interface TransactionFormState {
   
   setTransferType: (type: 'account' | 'goal') => void;
   setGoalId: (id: string) => void;
+  setSaveAsPending: (val: boolean) => void;
 
   reset: () => void;
   initFromData: (data: Partial<Transaction>) => void;
@@ -98,6 +100,7 @@ const initialState = {
   
   transferType: 'account' as const,
   goalId: '',
+  saveAsPending: false,
 };
 
 export const useTransactionStore = create<TransactionFormState>((set) => ({
@@ -139,6 +142,7 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
 
   setTransferType: (type) => set({ transferType: type }),
   setGoalId: (id) => set({ goalId: id }),
+  setSaveAsPending: (val) => set({ saveAsPending: val }),
 
   reset: () => set({ ...initialState, date: new Date() }),
 

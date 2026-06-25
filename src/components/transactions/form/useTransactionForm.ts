@@ -117,6 +117,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
 
   const transferType = store.transferType;
   const goalId = store.goalId;
+  const saveAsPending = store.saveAsPending;
 
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
   // Refs anti-loop para effects que chamam setters derivados de variáveis compostas
@@ -623,6 +624,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       recurrence_day: isRecurring && frequency === 'MONTHLY' ? recurrenceDay : undefined,
       enable_notification: enableNotification,
       notification_date: enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
+      status: saveAsPending ? 'PENDING' : 'CONFIRMED',
     };
 
     const validation = validateTransaction(
