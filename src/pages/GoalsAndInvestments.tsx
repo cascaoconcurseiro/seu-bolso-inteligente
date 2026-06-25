@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Target, TrendingUp, Plus, Download, FileDown, ShieldCheck } from 'lucide-react';
+import { Target, TrendingUp, Plus, Download, FileDown, ShieldCheck, Edit, Trash2 } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, Asset } from '../types/database';
@@ -16,6 +16,7 @@ import { exportPortfolioToPDF, exportToCSV, exportToIRPDF, exportToIRExcel } fro
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { GoalCard } from '@/components/goals/GoalCard';
+import { SwipeableRow } from '@/components/ui/SwipeableRow';
 import { AssetCard } from '@/components/investments/AssetCard';
 import { InvestmentSummarySection } from '@/components/investments/InvestmentSummarySection';
 import { InvestmentIRPanel } from '@/components/investments/InvestmentIRPanel';
@@ -268,14 +269,20 @@ export function GoalsAndInvestments() {
                </div>
             ) : (
               goals?.map((goal, index) => (
-                <GoalCard
+                <SwipeableRow
                   key={goal.id}
-                  goal={goal}
-                  index={index}
-                  onEdit={handleEditGoal}
-                  onDelete={(g) => setItemToDelete({type: 'goal', id: g.id, name: g.name})}
-                  onContribute={handleContributeGoal}
-                />
+                  className="rounded-2xl overflow-hidden"
+                  leftAction={{ icon: <Edit className="h-5 w-5" />, color: "bg-primary", onClick: () => handleEditGoal(goal) }}
+                  rightAction={{ icon: <Trash2 className="h-5 w-5" />, color: "bg-destructive", onClick: () => setItemToDelete({type: 'goal', id: goal.id, name: goal.name}) }}
+                >
+                  <GoalCard
+                    goal={goal}
+                    index={index}
+                    onEdit={handleEditGoal}
+                    onDelete={(g) => setItemToDelete({type: 'goal', id: g.id, name: g.name})}
+                    onContribute={handleContributeGoal}
+                  />
+                </SwipeableRow>
               ))
             )}
           </div>
