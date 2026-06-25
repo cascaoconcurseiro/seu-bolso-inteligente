@@ -250,24 +250,19 @@ export function GoalsAndInvestments() {
         {activeTab === 'GOALS' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals?.length === 0 ? (
-               <div className="col-span-full relative overflow-hidden flex flex-col items-center justify-center py-24 px-4 text-center bg-card/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 shadow-sm">
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                 <div className="relative z-10 w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
-                   <Target className="w-12 h-12 text-primary" />
-                 </div>
-                 <h3 className="relative z-10 text-3xl font-display font-black text-foreground mb-3 tracking-tighter">Alcance seus objetivos</h3>
-                 <p className="relative z-10 text-muted-foreground text-center max-w-md text-base mb-10 font-medium leading-relaxed">
-                   Defina seus sonhos, seja uma viagem inesquecível, a casa própria ou sua reserva de segurança, e acompanhe cada passo do seu progresso.
-                 </p>
-                 <Button 
-                   onClick={() => setShowGoalForm(true)} 
-                   size="lg" 
-                   className="relative z-10 h-14 px-10 rounded-2xl shadow-xl shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all duration-300 font-bold text-base"
-                 >
-                   <Plus className="w-5 h-5 mr-2" />
-                   Criar Minha Primeira Meta
-                 </Button>
-               </div>
+              <div className="col-span-full">
+                <EmptyState
+                  icon={Target}
+                  title="Alcance seus objetivos"
+                  description="Defina sonhos — uma viagem, a casa própria, sua reserva de segurança — e acompanhe cada passo do progresso."
+                  action={
+                    <Button onClick={() => setShowGoalForm(true)} size="lg" className="h-12 px-8 rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all font-semibold">
+                      <Plus className="w-5 h-5 mr-2" />
+                      Criar Primeira Meta
+                    </Button>
+                  }
+                />
+              </div>
             ) : (
               goals?.map((goal, index) => (
                 <SwipeableRow
