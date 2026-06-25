@@ -104,7 +104,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
         ? generateLowBalanceNotifications(userId, prefs?.low_balance_threshold || 100)
         : 0,
       prefs?.credit_limit_warning_enabled !== false
-        ? generateCreditLimitNotifications(userId, 90) // 90% threshold
+        ? generateCreditLimitNotifications(userId, (prefs as any)?.credit_limit_warning_threshold ?? 90)
         : 0,
       prefs?.savings_goal_enabled !== false
         ? generateGoalMilestoneNotifications(userId)
