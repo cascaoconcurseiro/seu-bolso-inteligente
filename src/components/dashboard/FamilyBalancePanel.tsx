@@ -12,7 +12,7 @@ import { rpcWithRetry } from '@/utils/rpcWithRetry';
 export function FamilyBalancePanel() {
   const { user } = useAuth();
   const { isPrivate } = usePrivacy();
-  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
 
   const { data: sharedBalances, isLoading: balancesLoading } = useQuery({
     queryKey: ['shared-balances', user?.id],
