@@ -44,31 +44,28 @@
 
 ## 🟡 BACKLOG TÉCNICO — Próximas Sprints
 
-- [ ] **[ARC-03]** Adicionar `AbortController` em `rpcWithRetry`
-  - Problema: `Promise.race` não cancela a requisição original (conexões zumbi)
-  - Arquivo: `src/utils/rpcWithRetry.ts`
-  - Esforço: S
+- [x] **[ARC-03]** ~~AbortController em rpcWithRetry~~ ✅ DONE
+  - `rpcWithRetry.ts` — substituído `Promise.race` por `AbortController` + `.abortSignal()`
+  - Requests verdadeiramente cancelados no timeout, sem conexões zumbi
 
-- [ ] **[ARC-04]** Global search via full-text PostgreSQL
-  - Problema: busca limitada a 1000 transações em cache
-  - Fix: RPC `search_transactions(p_query TEXT)` com `tsvector`
-  - Esforço: S
+- [x] **[ARC-04]** ~~Global search server-side~~ ✅ DONE
+  - Migration: `search_transactions(p_query, p_limit)` RPC com ILIKE
+  - `GlobalSearch.tsx` — cache-first + fallback server com debounce 400ms
 
 - [ ] **[ARC-05]** PDF export via Web Worker
-  - Problema: geração bloqueia main thread → UI freeze
-  - Esforço: S
+  - Problema: jsPDF bloqueia main thread → UI freeze em relatórios grandes
+  - Esforço: M (requer testes de UI)
 
-- [ ] **[SEC-06]** CHECK constraints no PostgreSQL para validações críticas
-  - `CHECK (amount > 0)` em transactions
-  - `CHECK (competence_date = date_trunc('month', competence_date))` 
-  - Esforço: S
+- [x] **[SEC-06]** ~~CHECK constraints no PostgreSQL~~ ✅ DONE
+  - `amount > 0`, `competence_date = first of month`, `description not empty`
+  - Installment numbers válidos, split percentage 0-100, goals target > 0
 
-- [ ] **[SEC-07]** Revisar uso de `service_role` em `sync-b3-tickers`
-  - Verificar se policy específica resolve sem bypass total de RLS
-  - Esforço: S
+- [x] **[SEC-07]** ~~service_role em sync-b3-tickers~~ ✅ ACEITÁVEL
+  - Cron job escreve em tabela pública de referência (sem dados de usuário)
+  - Uso de service_role é justificado; sem mudança necessária
 
 - [ ] **[SEC-08]** Criptografar cache IndexedDB
-  - Dados financeiros em IndexedDB sem criptografia
+  - Dados financeiros em IndexedDB sem criptografia em dispositivos compartilhados
   - Esforço: M
 
 - [ ] **[FEAT-01]** Relatório mensal por email

@@ -1,11 +1,8 @@
 /**
  * RPC with Retry Logic
- * 
+ *
  * Wrapper para chamadas RPC com retry automático, backoff exponencial,
- * logging detalhado e tratamento de erros consistente.
- * 
- * Uso:
- *   const result = await rpcWithRetry('settle_split', { p_split_id: '123' });
+ * AbortController para cancelamento real de requests, e tratamento de erros.
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -25,51 +22,51 @@ interface RpcCallResult<T> {
   lastError?: Error;
 }
 
-/**
- * Calcula delay com backoff exponencial + jitter
- * Evita thundering herd quando múltiplas requisições falham simultaneamente
- */
 function calculateBackoffDelay(attempt: number, baseDelayMs: number): number {
   const exponentialDelay = baseDelayMs * Math.pow(2, attempt);
   const jitter = Math.random() * 0.1 * exponentialDelay; // 10% jitter
   return exponentialDelay + jitter;
 }
 
-/**
- * Verifica se um erro é retriável
- * Alguns erros (como 401 Unauthorized) não devem ser retentados
- */
 function isRetriableError(error: unknown): boolean {
   const err = error as Record<string, unknown>;
-  // Erros de autenticação não são retriáveis
-  if (err?.status === 401 || err?.code === 'PGRST301') {
-    return false;
-  }
-
-  // Erros de permissão não são retriáveis
-  if (err?.status === 403 || err?.code === '42501') {
-    return false;
-  }
-
-  // Erros de validação não são retriáveis
-  if (err?.status === 400 || err?.code === '42601') {
-    return false;
-  }
-
-  // Tudo mais é potencialmente retriável (network, timeout, etc)
+  if (err?.status === 401 || err?.code === 'PGRST301') return false;
+  if (err?.status === 403 || err?.code === '42501') return false;
+  if (err?.status === 400 || err?.code === '42601') return false;
+  // AbortError from our own timeout is retriable (network flakiness)
+  if ((err as Error)?.name === 'AbortError') return true;
   return true;
 }
 
 /**
- * Chama função RPC com retry automático
- * 
- * @param functionName - Nome da função RPC no Supabase
- * @param params - Parâmetros para passar à função
- * @param options - Opções de retry
- * @returns Resultado da chamada RPC
- * 
- * @throws Error se todas as tentativas falharem
+ * Executes a single RPC attempt with AbortController-based timeout.
+ * The underlying fetch is actually cancelled on timeout (no zombie connections).
  */
+async function rpcAttempt<T>(
+  functionName: string,
+  params: Record<string, unknown> | undefined,
+  timeoutMs: number
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const builder = supabase.rpc(functionName as never, params as never);
+    // abortSignal wires the AbortController to the underlying fetch call
+    const { data, error } = await (builder as any).abortSignal(controller.signal);
+
+    if (error) throw error;
+    return data as T;
+  } catch (err) {
+    if ((err as Error)?.name === 'AbortError') {
+      throw new Error(`RPC timeout após ${timeoutMs}ms: ${functionName}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function rpcWithRetry<T = unknown>(
   functionName: string,
   params?: Record<string, unknown>,
@@ -83,83 +80,45 @@ export async function rpcWithRetry<T = unknown>(
   } = options;
 
   let lastError: Error | null = null;
-  let attempt = 0;
 
-  for (attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      logger.debug(`[RPC] Tentativa ${attempt + 1}/${maxRetries}: ${functionName}`, {
-        params,
-      });
+      logger.debug(`[RPC] Tentativa ${attempt + 1}/${maxRetries}: ${functionName}`, { params });
 
-      // Criar promise com timeout
-      const rpcPromise = supabase.rpc(functionName as never, params as never);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
-          timeoutMs
-        )
-      );
+      const data = await rpcAttempt<T>(functionName, params, timeoutMs);
 
-      const { data, error } = (await Promise.race([
-        rpcPromise,
-        timeoutPromise,
-      ])) as { data: unknown; error: Error | null };
-
-      if (error) {
-        throw error;
-      }
-
-      logger.debug(`[RPC] Sucesso na tentativa ${attempt + 1}: ${functionName}`, {
-        dataSize: JSON.stringify(data).length,
-      });
-
-      return data as T;
+      logger.debug(`[RPC] Sucesso na tentativa ${attempt + 1}: ${functionName}`);
+      return data;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
       const isRetriable = isRetriableError(error);
       const isLastAttempt = attempt === maxRetries - 1;
 
-      logger.warn(
-        `[RPC] Tentativa ${attempt + 1}/${maxRetries} falhou: ${functionName}`,
-        {
-          error: lastError.message,
-          retriable: isRetriable,
-          isLastAttempt,
-        }
-      );
+      logger.warn(`[RPC] Tentativa ${attempt + 1}/${maxRetries} falhou: ${functionName}`, {
+        error: lastError.message,
+        retriable: isRetriable,
+        isLastAttempt,
+      });
 
-      if (onRetry && !isLastAttempt) {
-        onRetry(attempt + 1, lastError);
-      }
+      if (onRetry && !isLastAttempt) onRetry(attempt + 1, lastError);
 
-      // Se não é retriável ou é última tentativa, lançar erro
       if (!isRetriable || isLastAttempt) {
-        logger.error(
-          `[RPC] Falha final após ${attempt + 1} tentativa(s): ${functionName}`,
-          {
-            error: lastError.message,
-            retriable: isRetriable,
-          }
-        );
+        logger.error(`[RPC] Falha final após ${attempt + 1} tentativa(s): ${functionName}`, {
+          error: lastError.message,
+        });
         throw lastError;
       }
 
-      // Aguardar antes de retry
       const delay = calculateBackoffDelay(attempt, baseDelayMs);
       logger.debug(`[RPC] Aguardando ${delay.toFixed(0)}ms antes de retry...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  // Nunca deve chegar aqui, mas por segurança
   throw lastError || new Error(`RPC falhou após ${maxRetries} tentativas`);
 }
 
-/**
- * Versão simplificada que retorna resultado com metadados
- * Útil quando você quer saber quantas tentativas foram necessárias
- */
 export async function rpcWithRetryDetailed<T = unknown>(
   functionName: string,
   params?: Record<string, unknown>,
@@ -173,63 +132,32 @@ export async function rpcWithRetryDetailed<T = unknown>(
   } = options;
 
   let lastError: Error | null = null;
-  let attempt = 0;
 
-  for (attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       logger.debug(`[RPC] Tentativa ${attempt + 1}/${maxRetries}: ${functionName}`);
 
-      const rpcPromise = supabase.rpc(functionName as never, params as never);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error(`RPC timeout após ${timeoutMs}ms`)),
-          timeoutMs
-        )
-      );
-
-      const { data, error } = (await Promise.race([
-        rpcPromise,
-        timeoutPromise,
-      ])) as { data: unknown; error: Error | null };
-
-      if (error) {
-        throw error;
-      }
+      const data = await rpcAttempt<T>(functionName, params, timeoutMs);
 
       logger.debug(`[RPC] Sucesso na tentativa ${attempt + 1}: ${functionName}`);
-
-      return {
-        data: data as T,
-        error: null,
-        attempts: attempt + 1,
-      };
+      return { data, error: null, attempts: attempt + 1 };
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
       const isRetriable = isRetriableError(error);
       const isLastAttempt = attempt === maxRetries - 1;
 
-      logger.warn(
-        `[RPC] Tentativa ${attempt + 1}/${maxRetries} falhou: ${functionName}`,
-        { error: lastError.message }
-      );
+      logger.warn(`[RPC] Tentativa ${attempt + 1}/${maxRetries} falhou: ${functionName}`, {
+        error: lastError.message,
+      });
 
-      if (onRetry && !isLastAttempt) {
-        onRetry(attempt + 1, lastError);
-      }
+      if (onRetry && !isLastAttempt) onRetry(attempt + 1, lastError);
 
       if (!isRetriable || isLastAttempt) {
-        logger.error(
-          `[RPC] Falha final após ${attempt + 1} tentativa(s): ${functionName}`,
-          { error: lastError.message }
-        );
-
-        return {
-          data: null,
-          error: lastError,
-          attempts: attempt + 1,
-          lastError: lastError || undefined,
-        };
+        logger.error(`[RPC] Falha final após ${attempt + 1} tentativa(s): ${functionName}`, {
+          error: lastError.message,
+        });
+        return { data: null, error: lastError, attempts: attempt + 1, lastError };
       }
 
       const delay = calculateBackoffDelay(attempt, baseDelayMs);
@@ -240,20 +168,13 @@ export async function rpcWithRetryDetailed<T = unknown>(
   return {
     data: null,
     error: lastError || new Error(`RPC falhou após ${maxRetries} tentativas`),
-    attempts: attempt,
+    attempts: maxRetries,
     lastError: lastError || undefined,
   };
 }
 
-/**
- * Batch RPC calls com retry
- * Útil para múltiplas chamadas RPC que devem ser feitas em paralelo
- */
 export async function batchRpcWithRetry<T = unknown>(
-  calls: Array<{
-    functionName: string;
-    params?: Record<string, unknown>;
-  }>,
+  calls: Array<{ functionName: string; params?: Record<string, unknown> }>,
   options: RpcRetryOptions = {}
 ): Promise<T[]> {
   logger.debug(`[RPC] Iniciando batch de ${calls.length} chamadas RPC`);

@@ -53,11 +53,7 @@
 - Requer policy com `SECURITY DEFINER` para evitar recursão infinita
 - Mencionado no CLAUDE_HANDOFF.md como pendente
 
-### 3. ARC-03 — AbortController em rpcWithRetry
-- Arquivo: `src/utils/rpcWithRetry.ts`
-- `Promise.race` não cancela a request original; adicionar `AbortController`
-
-### 4. FEAT-01 — Relatório mensal por email
+### 3. FEAT-01 — Relatório mensal por email
 - Edge Function + Resend/SendGrid
 - pg_cron trigger no último dia do mês
 
