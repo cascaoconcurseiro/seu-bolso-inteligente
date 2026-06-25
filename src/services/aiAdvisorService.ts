@@ -4,7 +4,8 @@ import { logger } from "@/utils/logger";
 import {
   getFinancialAnalysisPrompt,
   getAutocompletePrompt,
-  getTripItineraryPrompt
+  getTripItineraryPrompt,
+  getTripChecklistPrompt
 } from "./ai/aiPrompts";
 
 const GROQ_API_URL = import.meta.env.DEV ? "/api/ai" : "https://api.groq.com/openai/v1/chat/completions";
@@ -104,7 +105,8 @@ export class AIAdvisorService {
     partialDescription: string,
     historicalDescriptions: string[],
     userCategories: { id: string; name: string }[],
-    transactionType?: 'expense' | 'income'
+    transactionType?: 'expense' | 'income',
+    historicalPairs?: { description: string; categoryName: string }[]
   ): Promise<{ suggestion: string; categoryId: string | null }> {
     const sanitizedPartial = (partialDescription || "").trim().substring(0, 80);
     if (sanitizedPartial.length < 2) {
@@ -225,7 +227,13 @@ export class AIAdvisorService {
 
     const categoryList = sanitizedCategories.map(c => `- Categoria: "${c.name}", ID: "${c.id}"`).join('\n');
 
-    const prompt = getAutocompletePrompt(sanitizedPartial, uniqueHistory, categoryList);
+    // Exemplos de classificações já feitas pelo usuário (aprendizado pessoal)
+    const userExamples = (historicalPairs || [])
+      .slice(0, 20)
+      .map(p => `"${p.description}" → ${p.categoryName}`)
+      .join('\n');
+
+    const prompt = getAutocompletePrompt(sanitizedPartial, uniqueHistory, categoryList, userExamples);
     const result = await this.fetchGroq({
       model: "llama-3.1-8b-instant",
       messages: [{ role: "system", content: prompt }],
@@ -237,13 +245,16 @@ export class AIAdvisorService {
     if (result && result.choices && result.choices[0]) {
       try {
         const parsed = JSON.parse(result.choices[0].message.content);
-        return parsed.suggestions || [];
+        return {
+          suggestion: parsed.suggestion || '',
+          categoryId: parsed.categoryId || null,
+        };
       } catch (e) {
-        return [];
+        return { suggestion: '', categoryId: null };
       }
     }
-    
-    return [];
+
+    return { suggestion: '', categoryId: null };
   }
 
   static async suggestTripItinerary(destination: string): Promise<Array<{ title: string; location: string; description: string; durationHours: number }>> {
@@ -273,19 +284,7 @@ export class AIAdvisorService {
   static async suggestTripChecklist(destination: string): Promise<Array<{ item: string; category: string }>> {
     if (!destination) return [];
 
-    const prompt = `
-Você é a inteligência artificial "Arquiteto Financeiro" especializada em organização de viagens.
-O usuário vai viajar para: "${destination}".
-Crie um checklist de até 10 itens fundamentais para esta viagem específica.
-Lembre-se das necessidades climáticas e burocráticas do destino (ex: Passaporte e Visto se for internacional, casaco pesado se for neve, protetor solar se for praia).
-Categorias permitidas: documentos, roupas, higiene, eletronicos, remedios, outros.
-
-RETORNE APENAS UM JSON no seguinte formato, e nada mais:
-{
-  "suggestions": [
-    { "item": "Nome do Item", "category": "documentos" }
-  ]
-}`;
+    const prompt = getTripChecklistPrompt(destination);
 
     const result = await this.fetchGroq({
       model: "llama-3.1-8b-instant",

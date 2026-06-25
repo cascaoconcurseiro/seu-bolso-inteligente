@@ -30,7 +30,7 @@ SUA MISSÃO:
 Não invente números, use apenas os dados acima. Se os dados estiverem todos zerados, diga que precisa de mais movimentações para gerar uma análise.
 `;
 
-export const getAutocompletePrompt = (sanitizedPartial: string, uniqueHistory: string[], categoryList: string) => `
+export const getAutocompletePrompt = (sanitizedPartial: string, uniqueHistory: string[], categoryList: string, userExamples: string = '') => `
 Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do aplicativo.
 Sua missão é ajudar o usuário a preencher campos difíceis (como descrições e títulos) ou responder perguntas rápidas de forma direta.
 O usuário começou a digitar uma transação (despesa ou receita): "${sanitizedPartial}"
@@ -75,7 +75,10 @@ EXEMPLOS EXPLICITOS DE MAPEAMENTO DIRETO (Mapeie sem hesitar):
 
 4. REGRA DE SOBREVIVÊNCIA E PROTEÇÃO DE FLUXO: É expressamente PROIBIDO sugerir uma categoria de despesa se a lista de categorias disponíveis só contiver categorias de receita, e vice-versa! Se você não tiver certeza de qual categoria escolher, escolha a categoria com nome "Outros" presente na lista de categorias disponíveis do usuário. NUNCA invente categorias fora da lista!
 
-Histórico recente do usuário (use como base, mas corrija erros absurdos):
+CLASSIFICAÇÕES JÁ FEITAS PELO USUÁRIO (MÁXIMA PRIORIDADE — aprenda com elas):
+${userExamples || '(nenhum histórico classificado ainda)'}
+
+Histórico de descrições recentes do usuário (use como base para sugestão de texto):
 [${uniqueHistory.join(', ')}]
 
 Categorias disponíveis no banco de dados do usuário:
@@ -104,14 +107,16 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 }`;
 
 export const getTripItineraryPrompt = (destination: string) => `
-Você é a inteligência artificial "Arquiteto Financeiro" especializada em viagens e turismo estratégico.
-O usuário vai viajar para: "${destination}".
-Sua missão é sugerir um Mini Roteiro (Itinerário) para essa viagem, contendo as principais atrações, de 5 a 8 itens.
-Pense em locais imperdíveis, pontos turísticos clássicos, ou joias escondidas.
-- 'title': Nome da atração ou atividade
-- 'location': Bairro, região ou rua principal
-- 'description': Breve descrição do por que ir
-- 'durationHours': Estimativa de tempo (em horas) para curtir o local
+Você é um viajante experiente que conhece ${destination} de verdade — não um guia turístico genérico.
+Crie um roteiro de 5 a 8 paradas para alguém que vai a ${destination}.
+Misture atrações clássicas com lugares que moradores e frequentadores regulares realmente frequentam.
+Seja específico: nomes reais de ruas, bairros, restaurantes, mirantes, feiras locais — nada de "explore o centro histórico" ou "visite museus locais".
+Cada item deve ter um motivo concreto para ir (uma especialidade da casa, o melhor horário, um detalhe único).
+
+- 'title': Nome real e específico do lugar ou atividade
+- 'location': Endereço aproximado, bairro ou ponto de referência concreto
+- 'description': Por que vale a pena — seja específico, não genérico
+- 'durationHours': Tempo realista para curtir (ex: 1.5 para um almoço)
 
 RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 {
@@ -121,17 +126,17 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 }`;
 
 export const getTripChecklistPrompt = (destination: string) => `
-Você é a inteligência artificial "Arquiteto Financeiro" especializada em viagens.
-O usuário vai viajar para: "${destination}".
-Sua missão é sugerir itens cruciais para a MALA ou PREPARAÇÃO do usuário antes de viajar (Checklist).
-Leve em consideração o clima comum do destino (ex: neve, praia, cidade grande) e exigências (passaporte, adaptador de tomada, biquíni, casaco de neve, repelente).
-Sugira de 8 a 12 itens importantes.
+Pense como alguém que já viajou para ${destination} várias vezes e sabe o que é realmente necessário — não o que qualquer lista genérica diz.
+Crie um checklist de mala/preparação com 8 a 12 itens concretos e específicos para ${destination}.
+Considere: clima real do destino (não apenas estação genérica), se é destino nacional ou internacional (visto, passaporte, câmbio), peculiaridades do local (tomadas diferentes, água potável, dress code em locais religiosos, segurança).
+Evite itens óbvios demais (ex: "roupas") — seja específico (ex: "Casaco impermeável para chuva repentina", "Adaptador de tomada tipo C").
+Inclua pelo menos 1-2 itens que a maioria das pessoas esquece mas fazem diferença real neste destino.
 A 'category' pode ser: "Roupas", "Eletrônicos", "Documentos", "Higiene", "Acessórios", ou "Outros".
 
 RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 {
   "suggestions": [
-    { "item": "Passaporte", "category": "Documentos" },
-    { "item": "Casaco Pesado", "category": "Roupas" }
+    { "item": "Passaporte válido por mais de 6 meses", "category": "Documentos" },
+    { "item": "Casaco impermeável leve", "category": "Roupas" }
   ]
 }`;

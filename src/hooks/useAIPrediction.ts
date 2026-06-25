@@ -12,7 +12,7 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
   
   // 🔥 OTIMIZAÇÃO CRÍTICA: Busca apenas as 50 transações mais recentes (usadas apenas p/ extrair últimas descrições)
   // Isso evita travar o sistema com um fetch massivo na primeira renderização ou em refetches pós-lançamento.
-  const { data: transactions } = useTransactions({ limit: 50 });
+  const { data: transactions } = useTransactions({ limit: 100 });
   const { data: categories } = useCategories();
   const { data: profile } = useUserProfile();
   const useSubcategories = profile?.use_subcategories ?? false;
@@ -71,20 +71,32 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
       
       try {
         const targetType = type === 'expense' ? 'EXPENSE' : 'INCOME';
-        const historyTransactions = (transactionsRef.current || []).filter(t => 
-          t.type === targetType && 
-          t.description && 
+        const allCatsForHistory = categoriesRef.current || [];
+        const historyTransactions = (transactionsRef.current || []).filter(t =>
+          t.type === targetType &&
+          t.description &&
           typeof t.description === 'string' &&
-          t.description.length < 150 && 
-          !t.description.startsWith('data:') && 
+          t.description.length < 150 &&
+          !t.description.startsWith('data:') &&
           !t.description.includes(';base64')
         );
-        const uniqueDescriptions = Array.from(
-          new Set(
-            historyTransactions.map(t => t.description.substring(0, 50).trim())
-          )
-        ).filter(d => d.length >= 2);
-        const historyDescriptions = uniqueDescriptions.slice(0, 20); // Limita a 20 itens únicos no frontend antes de enviar pela rede!
+
+        // Pares descrição→categoria para o modelo aprender com classificações passadas do usuário
+        const seenDescriptions = new Set<string>();
+        const historyPairs: { description: string; categoryName: string }[] = [];
+        for (const t of historyTransactions) {
+          const desc = t.description.substring(0, 50).trim();
+          if (seenDescriptions.has(desc.toLowerCase()) || desc.length < 2) continue;
+          seenDescriptions.add(desc.toLowerCase());
+          const cat = allCatsForHistory.find(c => c.id === t.category_id);
+          if (cat) {
+            const parentCat = cat.parent_category_id ? allCatsForHistory.find(c => c.id === cat.parent_category_id) : null;
+            historyPairs.push({ description: desc, categoryName: parentCat?.name ?? cat.name });
+          }
+          if (historyPairs.length >= 30) break;
+        }
+
+        const historyDescriptions = historyPairs.map(p => p.description).slice(0, 20);
         
         // Filtrar estritamente as categorias legítimas baseadas no tipo de transação
         const ALLOWED_EXPENSE_PARENTS = [
@@ -148,7 +160,8 @@ export function useAIPrediction(description: string, type: 'expense' | 'income' 
           description.trim(),
           historyDescriptions,
           formattedCategories,
-          type
+          type,
+          historyPairs
         );
         
         // 2. BLINDAGEM DE CONCORRÊNCIA: Se uma requisição mais nova foi disparada após esta, descarta o resultado!
