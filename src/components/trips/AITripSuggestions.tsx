@@ -107,8 +107,12 @@ export function AITripSuggestions({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="w-full sm:max-w-[500px] !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)] overflow-hidden">
+          <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+            <div className="w-12 h-2 bg-muted rounded-full" />
+          </div>
+
+          <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
             <DialogTitle className="flex items-center gap-2 text-accent">
               <Sparkles className="h-5 w-5" />
               {titles[type]}
@@ -118,17 +122,16 @@ export function AITripSuggestions({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 space-y-4">
+          <div className="px-6 pb-2 overflow-y-auto hide-scrollbar space-y-3 flex-1">
             {isLoading ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                   <Loader2 className="h-8 w-8 animate-spin mb-4 text-accent" />
-                  <p>A IA está montando sugestões personalizadas para {destination}...</p>
+                  <p className="text-sm text-center">A IA está montando sugestões personalizadas para {destination}...</p>
                 </div>
-                {/* Skeletons */}
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="flex items-start space-x-3 p-3 rounded-lg border border-border/50 bg-muted/20 animate-pulse">
-                    <div className="w-4 h-4 rounded bg-muted-foreground/20 mt-1" />
+                  <div key={i} className="flex items-start space-x-3 p-3 rounded-xl border border-border/50 bg-muted/20 animate-pulse">
+                    <div className="w-4 h-4 rounded bg-muted-foreground/20 mt-1 shrink-0" />
                     <div className="space-y-2 flex-1">
                       <div className="h-4 bg-muted-foreground/20 rounded w-3/4" />
                       <div className="h-3 bg-muted-foreground/20 rounded w-1/2" />
@@ -137,19 +140,19 @@ export function AITripSuggestions({
                 ))}
               </div>
             ) : suggestions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-muted-foreground text-sm">
                 Não foi possível gerar sugestões no momento. Tente novamente.
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex justify-between items-center mb-2 px-1">
+                <div className="flex justify-between items-center py-1">
                   <span className="text-sm font-medium text-muted-foreground">
                     {selectedIndices.size} de {suggestions.length} selecionados
                   </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-sm h-8"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-sm h-8 text-accent"
                     onClick={() => {
                       if (selectedIndices.size === suggestions.length) {
                         setSelectedIndices(new Set());
@@ -162,21 +165,21 @@ export function AITripSuggestions({
                   </Button>
                 </div>
 
-                <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                <div className="space-y-2">
                   {suggestions.map((item, index) => (
-                    <div 
+                    <div
                       key={index}
-                      className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                        selectedIndices.has(index) 
-                          ? 'border-accent/50 bg-accent/10 dark:bg-accent/20' 
+                      className={`flex items-start space-x-3 p-3 rounded-xl border transition-colors cursor-pointer ${
+                        selectedIndices.has(index)
+                          ? 'border-accent/50 bg-accent/10 dark:bg-accent/20'
                           : 'border-border/50 hover:bg-muted/50'
                       }`}
                       onClick={() => toggleSelection(index)}
                     >
-                      <Checkbox 
+                      <Checkbox
                         checked={selectedIndices.has(index)}
                         onCheckedChange={() => toggleSelection(index)}
-                        className="mt-1 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                        className="mt-1 data-[state=checked]:bg-accent data-[state=checked]:border-accent shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -185,13 +188,13 @@ export function AITripSuggestions({
                           {type === 'itinerary' && item.title}
                           {type === 'checklist' && item.item}
                         </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {type === 'shopping' && `Custo estimado: ${currency} ${item.estimatedCost.toFixed(2)}`}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {type === 'shopping' && `Custo estimado: ${currency} ${item.estimatedCost?.toFixed(2)}`}
                           {type === 'itinerary' && `${item.location} • Aprox. ${item.durationHours}h`}
-                          {type === 'checklist' && `Categoria: ${item.category}`}
+                          {type === 'checklist' && item.category}
                         </p>
                         {type === 'itinerary' && item.description && (
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {item.description}
                           </p>
                         )}
@@ -203,18 +206,18 @@ export function AITripSuggestions({
             )}
           </div>
 
-          <DialogFooter>
+          <div className="px-6 py-4 flex gap-3 justify-end border-t border-border/50 shrink-0">
             <Button variant="ghost" onClick={() => setIsOpen(false)}>
               Cancelar
             </Button>
-            <Button 
-              onClick={handleApply} 
+            <Button
+              onClick={handleApply}
               disabled={isLoading || suggestions.length === 0 || selectedIndices.size === 0}
-              className="bg-accent hover:bg-accent/92 text-white"
+              className="bg-accent hover:bg-accent/90 text-white"
             >
               Adicionar {selectedIndices.size} {selectedIndices.size === 1 ? 'item' : 'itens'}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
