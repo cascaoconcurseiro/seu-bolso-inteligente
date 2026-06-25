@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Clock } from "lucide-react";
+import { Clock, CalendarClock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal, CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
@@ -14,6 +14,7 @@ import { TransactionHeader } from "@/components/transactions/TransactionHeader";
 import { TransactionSummary } from "@/components/transactions/TransactionSummary";
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { TransactionList } from "@/components/transactions/TransactionList";
+import { UpcomingTransactions } from "@/components/transactions/UpcomingTransactions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTransactionCurrency, groupTransactionsByDay } from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
@@ -23,6 +24,7 @@ import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { haptics } from "@/utils/haptics";
 
 export function Transactions() {
+  const [activeTab, setActiveTab] = useState<"lancadas" | "proximas">("lancadas");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -264,7 +266,39 @@ export function Transactions() {
   return (
     <div className="space-y-6 animate-fade-in">
       <TransactionHeader count={displayTransactions.length} filteredTransactions={displayTransactions} filteredAnnualTransactions={filteredAnnualTransactions} onImportOFX={() => setShowOfxModal(true)} />
-      
+
+      {/* Tabs: Lançadas / Próximas */}
+      <div className="flex gap-1 p-1 rounded-xl bg-muted/50 border border-border/50">
+        <button
+          onClick={() => setActiveTab("lancadas")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+            activeTab === "lancadas"
+              ? "bg-card shadow-sm text-foreground border border-border/60"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <List className="h-4 w-4" />
+          Lançadas
+        </button>
+        <button
+          onClick={() => setActiveTab("proximas")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium transition-all",
+            activeTab === "proximas"
+              ? "bg-card shadow-sm text-foreground border border-border/60"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <CalendarClock className="h-4 w-4" />
+          Próximas
+        </button>
+      </div>
+
+      {activeTab === "proximas" ? (
+        <UpcomingTransactions />
+      ) : (
+        <>
       {availableCurrencies.length > 1 && (
         <div className="flex justify-end">
           <div className="w-32">
@@ -334,6 +368,9 @@ export function Transactions() {
         selectedAccount={selectedAccount}
         hasActiveFilter={searchQuery.trim().length > 0 || selectedType !== "all" || selectedCategory !== "all" || selectedAccount !== "all"}
       />
+
+        </>
+      )}
 
       {/* Alert Dialogs & Modals */}
       <DeleteTransactionModal 
