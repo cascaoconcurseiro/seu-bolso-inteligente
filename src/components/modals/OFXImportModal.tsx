@@ -3,7 +3,6 @@ import { sheetDialogCn } from "@/lib/dialog-variants";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -193,14 +192,17 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className={`max-w-md ${sheetDialogCn}`}>
-        <DialogHeader>
+        <div className="w-full flex justify-center pt-4 sm:hidden">
+          <div className="w-12 h-2 bg-muted rounded-full" />
+        </div>
+        <DialogHeader className="px-6 pt-2 pb-0">
           <DialogTitle>Importar Extrato (OFX)</DialogTitle>
-          <DialogDescription>
+          <p className="text-sm text-muted-foreground">
             Importe seu extrato bancário. O sistema filtrará duplicatas automaticamente.
-          </DialogDescription>
+          </p>
         </DialogHeader>
 
-        <div className="space-y-4 overflow-y-auto flex-1">
+        <div className="space-y-4 overflow-y-auto flex-1 px-6 pb-6 pt-4">
           {successCount !== null ? (
             <div className="flex flex-col items-center justify-center space-y-3 py-6 animate-fade-in">
               <div className="h-12 w-12 bg-positive/10 text-positive rounded-full flex items-center justify-center">

@@ -10,11 +10,13 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Search, Filter, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface TransactionFiltersProps {
   searchQuery: string;
@@ -53,7 +55,8 @@ export function TransactionFilters({
   hasFilters,
   clearFilters
 }: TransactionFiltersProps) {
-  
+  const isMobile = useIsMobile();
+
   const FilterFields = () => (
     <>
       <div className="space-y-2.5">
@@ -175,13 +178,15 @@ export function TransactionFilters({
       </div>
 
       {/* Mobile Filters (Drawer via Dialog) */}
+      {isMobile && (
       <Dialog open={showFilters} onOpenChange={setShowFilters}>
-        <DialogContent className="sm:hidden !bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] !rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
+        <DialogContent className="!bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] !rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
           <div className="w-full flex justify-center pt-3 pb-1">
             <div className="w-12 h-2 bg-muted rounded-full" />
           </div>
           <DialogHeader className="px-6 pt-2 pb-4 text-left">
             <DialogTitle className="font-display text-base font-bold">Filtros de Transação</DialogTitle>
+            <DialogDescription className="sr-only">Filtrar transações por tipo, categoria, conta e período.</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh]">
             <div className="px-6 pb-6 space-y-5">
@@ -209,6 +214,7 @@ export function TransactionFilters({
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 }
