@@ -29,7 +29,9 @@ import {
   EyeOff,
   Calculator,
   ChevronDown,
+  Search,
 } from "lucide-react";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -79,6 +81,18 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: profile } = useUserProfile();
   const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } = useTransactionModal();
   const { isPrivate, togglePrivacy } = usePrivacy();
+  const [showSearch, setShowSearch] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setShowSearch(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // Ativa a escuta de Realtime global para toda a aplicação
   useGlobalRealtime();
@@ -168,6 +182,16 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             {/* Right Section */}
             <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSearch(true)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Buscar (Ctrl+K)"
+                title="Buscar (Ctrl+K)"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
               <NotificationButton />
 
               <Button
@@ -290,6 +314,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       />
 
       <DraggableQuickAddFAB onClick={() => setShowQuickAddModal(true)} />
+      <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
     </div>
   );
 }
