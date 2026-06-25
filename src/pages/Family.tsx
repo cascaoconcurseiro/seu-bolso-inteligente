@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Users, Crown, X, UserPlus, Check, Plus, UserCircle2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { useFamily, useFamilyMembers, useSharedContacts, useAddSharedContact, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
 import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvitations";
@@ -114,19 +115,17 @@ export function Family() {
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Membros ({activeMembers.length})</h2>
         {activeMembers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-primary/20">
-              <Users className="w-10 h-10 text-primary" />
-            </div>
-            <h3 className="text-xl font-display font-bold text-foreground mb-2">Nenhum membro ativo</h3>
-            <p className="text-muted-foreground text-center max-w-md text-sm mb-6">
-              Convide familiares para participarem da sua conta, compartilharem viagens ou cartões de crédito em conjunto.
-            </p>
-            <Button onClick={() => setShowInviteDialog(true)} className="h-12 px-6 rounded-full shadow-lg shadow-primary/20">
-              <Plus className="w-4 h-4 mr-2" />
-              Convidar Membro
-            </Button>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Nenhum membro ativo"
+            description="Convide familiares para participarem da sua conta, compartilharem viagens ou cartões de crédito em conjunto."
+            action={
+              <Button onClick={() => setShowInviteDialog(true)} className="h-12 px-8 rounded-2xl shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all font-semibold">
+                <Plus className="w-4 h-4 mr-2" />
+                Convidar Membro
+              </Button>
+            }
+          />
         ) : (
           <div className="space-y-2">{activeMembers.map(m => <FamilyMemberCard key={m.id} member={m} isSelf={m.linked_user_id === user?.id} roleLabels={roleLabels} getInitials={getInitials} onUpdateRole={async (id, r) => {
             try {

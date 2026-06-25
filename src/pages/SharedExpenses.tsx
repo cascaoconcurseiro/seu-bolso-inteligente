@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plane, History, Undo2, Layers, CheckCircle2, Download, Settings } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -390,24 +391,17 @@ export function SharedExpenses() {
 
         <TabsContent value={activeTab}>
           {members.length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-border/80 bg-card/20 rounded-xl space-y-4 max-w-md mx-auto">
-              <Users className="h-12 w-12 mx-auto text-muted-foreground/60" />
-              <div className="space-y-2">
-                <p className="text-muted-foreground font-semibold text-base">Nenhum membro ativo</p>
-                <p className="text-sm text-muted-foreground/60 max-w-xs mx-auto">
-                  Convide membros da sua família para começar a dividir despesas e gerenciar orçamentos compartilhados.
-                </p>
-              </div>
-              <Button 
-                onClick={() => navigate("/familia")} 
-                variant="outline" 
-                size="sm" 
-                className="gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/40 active:scale-95 transition-all mt-2"
-              >
-                <Users className="h-4 w-4" />
-                Convidar Membros
-              </Button>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="Nenhum membro ativo"
+              description="Convide membros da sua família para começar a dividir despesas e gerenciar orçamentos compartilhados."
+              action={
+                <Button onClick={() => navigate("/familia")} variant="outline" className="h-12 px-8 rounded-2xl gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all font-semibold">
+                  <Users className="h-4 w-4" />
+                  Convidar Membros
+                </Button>
+              }
+            />
           ) : (
             <div className="space-y-4">
               {activeTab === 'HISTORY' && members.some(m => getFilteredInvoice(m.id).some(i => i.isPaid)) && <div className="flex justify-end"><Button variant="destructive" size="sm" onClick={() => setUndoAllConfirm(true)} className="gap-2"><Undo2 className="h-4 w-4" /> Desfazer Tudo</Button></div>}
@@ -442,7 +436,17 @@ export function SharedExpenses() {
                   onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
                 />
               )}
-              {(activeTab === 'TRAVEL' ? trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).length === 0 : members.filter(m => m.linked_user_id !== user?.id).every(m => getFilteredInvoice(m.id).length === 0)) && <div className="py-12 text-center border border-dashed rounded-xl"><CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-success" /><p className="text-muted-foreground">Tudo em dia!</p></div>}
+              {(activeTab === 'TRAVEL'
+                ? trips.filter(t => members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))).length === 0
+                : members.filter(m => m.linked_user_id !== user?.id).every(m => getFilteredInvoice(m.id).length === 0)
+              ) && (
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="Tudo em dia!"
+                  description="Nenhuma despesa compartilhada pendente neste período."
+                  variant="success"
+                />
+              )}
             </div>
           )}
         </TabsContent>
