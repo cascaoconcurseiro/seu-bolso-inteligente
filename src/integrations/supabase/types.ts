@@ -1563,6 +1563,7 @@ export type Database = {
           series_id: string | null
           settled_at: string | null
           source_transaction_id: string | null
+          status: string
           sync_status: Database["public"]["Enums"]["sync_status"]
           total_installments: number | null
           trip_id: string | null
@@ -1613,6 +1614,7 @@ export type Database = {
           series_id?: string | null
           settled_at?: string | null
           source_transaction_id?: string | null
+          status?: string
           sync_status?: Database["public"]["Enums"]["sync_status"]
           total_installments?: number | null
           trip_id?: string | null
@@ -1663,6 +1665,7 @@ export type Database = {
           series_id?: string | null
           settled_at?: string | null
           source_transaction_id?: string | null
+          status?: string
           sync_status?: Database["public"]["Enums"]["sync_status"]
           total_installments?: number | null
           trip_id?: string | null

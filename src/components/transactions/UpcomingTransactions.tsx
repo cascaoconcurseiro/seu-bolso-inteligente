@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { RefreshCw, CalendarClock, Zap, Repeat2 } from "lucide-react";
+import { ScheduledBillsSection } from "./ScheduledBillsSection";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -187,6 +188,9 @@ export function UpcomingTransactions() {
           </p>
         )}
       </div>
+
+      {/* Contas agendadas manualmente (PENDING) */}
+      <ScheduledBillsSection />
 
       {/* Esta semana */}
       {thisWeek.length > 0 && (

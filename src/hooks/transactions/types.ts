@@ -24,6 +24,7 @@ export interface Transaction {
   is_recurring: boolean;
   recurrence_pattern: string | null;
   source_transaction_id: string | null;
+  status: string; // 'CONFIRMED' | 'PENDING' | 'CANCELLED'
   external_id: string | null;
   notes: string | null;
   exchange_rate: number | null;
@@ -88,6 +89,7 @@ export interface CreateTransactionInput {
   is_recurring?: boolean;
   frequency?: string;
   recurrence_day?: number;
+  status?: string;
   enable_notification?: boolean;
   notification_date?: string;
   transaction_splits?: TransactionSplit[];
