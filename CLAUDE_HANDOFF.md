@@ -1,6 +1,6 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
-> Atualizado em: 2026-06-24  
+> Atualizado em: 2026-06-25  
 > Último commit: `463f6f8` | Branch: `main` | Deploy: meupedemeia.vercel.app
 
 ---
@@ -45,6 +45,7 @@
 - **fix FamilyBalancePanel** — link `/compartilhado` corrigido para `/compartilhados`
 - **Adicionar contato direto** — hook `useAddSharedContact` + formulário inline na seção Contatos de Despesa da página Família
 - **Push: alertas de metas** — Edge Function `send-bill-reminders` v3 agora notifica metas com prazo em 7 dias além das contas a pagar
+- **Fix dashboard `recent_transactions`** — migration `20260625165722`: filtra por `t.date` (não `competence_date`), ordena `t.date DESC, t.created_at DESC`, respeita filtro de payer/membro familiar. Totais mantêm lógica de competência/vencimento.
 
 ---
 

@@ -45,7 +45,6 @@ import { useTripMembers } from '@/hooks/useTripMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { validateTransaction } from '@/services/validationService';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { CategoryPredictionService } from '@/services/categoryPredictionService';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { logger } from '@/utils/logger';
