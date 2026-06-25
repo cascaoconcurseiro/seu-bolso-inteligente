@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Wallet, Plus, Globe, Download, Loader2, Edit, Archive } from "lucide-react";
+import { Wallet, Plus, Globe, Download, Loader2, Edit, Archive, AlertCircle } from "lucide-react";
 import { useAccounts, useCreateAccount, useUpdateAccount, useArchiveAccount } from "@/hooks/useAccounts";
 import { SwipeableRow } from "@/components/ui/SwipeableRow";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -22,6 +22,7 @@ import { AccountCard } from "@/components/accounts/AccountCard";
 import { AccountSummary } from "@/components/accounts/AccountSummary";
 import { AccountFormModal } from "@/components/accounts/AccountFormModal";
 import { logger } from '@/utils/logger';
+import { EmptyState } from "@/components/ui/empty-state";
 
 const accountTypeLabels: Record<string, string> = {
   CHECKING: "Conta Corrente", SAVINGS: "Poupança", INVESTMENT: "Investimento", CASH: "Dinheiro", EMERGENCY_FUND: "Reserva de Emergência", GLOBAL_ACCOUNT: "Conta Global",
@@ -144,7 +145,15 @@ export function Accounts() {
     </div>
   );
   
-  if (isError) return <div className="text-center p-8 border rounded-2xl"><h2 className="text-xl font-bold mb-2">Erro ao carregar contas</h2><Button onClick={() => refetch()} variant="outline">Tentar novamente</Button></div>;
+  if (isError) return (
+    <EmptyState
+      icon={AlertCircle}
+      title="Erro ao carregar contas"
+      description="Não foi possível buscar suas contas. Verifique sua conexão e tente novamente."
+      variant="danger"
+      action={<Button onClick={() => refetch()} variant="outline" className="h-12 px-8 rounded-full">Tentar novamente</Button>}
+    />
+  );
 
   return (
     <div className="space-y-8 animate-fade-in pb-20">
@@ -196,13 +205,75 @@ export function Accounts() {
       <AccountSummary balancesByCurrency={balancesByCurrency} activeAccountsCount={regularAccounts.length} />
 
       <div className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Contas Nacionais ({nationalAccounts.length})</h2>
-        {nationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl"><Wallet className="h-10 w-10 mx-auto mb-3 text-muted-foreground" /><p className="text-muted-foreground">Nenhuma conta cadastrada</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{nationalAccounts.map(acc => <SwipeableRow key={acc.id} className="rounded-2xl" leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }} rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}><AccountCard account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} /></SwipeableRow>)}</div>}
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2">
+          <Wallet className="h-4 w-4" />
+          Contas Nacionais ({nationalAccounts.length})
+        </h2>
+        {nationalAccounts.length === 0 ? (
+          <EmptyState
+            icon={Wallet}
+            title="Nenhuma conta cadastrada"
+            description="Adicione sua primeira conta corrente, poupança ou carteira para começar a acompanhar seu saldo."
+            action={
+              <Button onClick={() => setShowAddDialog(true)} className="h-12 px-8 rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all font-semibold">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Conta
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {nationalAccounts.map(acc => (
+              <SwipeableRow
+                key={acc.id}
+                className="rounded-2xl"
+                leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }}
+                rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}
+              >
+                <AccountCard
+                  account={acc}
+                  lastTransactions={getLastTransactions(acc.id)}
+                  formatCurrency={formatCurrency}
+                  getCurrencySymbol={getCurrencySymbol}
+                  accountTypeLabels={accountTypeLabels}
+                />
+              </SwipeableRow>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2"><Globe className="h-4 w-4" /> Contas Internacionais ({internationalAccounts.length})</h2>
-        {internationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl bg-accent/5"><Globe className="h-10 w-10 mx-auto mb-3 text-accent" /><p className="text-muted-foreground mb-4">Nenhuma conta global</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{internationalAccounts.map(acc => <SwipeableRow key={acc.id} className="rounded-2xl" leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }} rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}><AccountCard account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} /></SwipeableRow>)}</div>}
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2">
+          <Globe className="h-4 w-4" />
+          Contas Internacionais ({internationalAccounts.length})
+        </h2>
+        {internationalAccounts.length === 0 ? (
+          <EmptyState
+            icon={Globe}
+            title="Nenhuma conta global"
+            description="Adicione contas em dólar, euro ou outras moedas para acompanhar seu patrimônio internacional."
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {internationalAccounts.map(acc => (
+              <SwipeableRow
+                key={acc.id}
+                className="rounded-2xl"
+                leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }}
+                rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}
+              >
+                <AccountCard
+                  account={acc}
+                  lastTransactions={getLastTransactions(acc.id)}
+                  formatCurrency={formatCurrency}
+                  getCurrencySymbol={getCurrencySymbol}
+                  accountTypeLabels={accountTypeLabels}
+                />
+              </SwipeableRow>
+            ))}
+          </div>
+        )}
       </div>
 
       <AccountFormModal
