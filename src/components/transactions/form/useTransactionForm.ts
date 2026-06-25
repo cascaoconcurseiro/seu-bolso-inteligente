@@ -290,29 +290,58 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     return () => clearTimeout(handler);
   }, [amount, description, date, activeTab, allTransactions, initialData]);
 
+  // When a trip is selected, build a merged member list that includes trip participants
+  // who have a user account (user_id != null). Guests (user_id === null) are skipped
+  // because splits require a resolvable family_members record on the backend.
+  const effectiveFamilyMembers = useMemo(() => {
+    if (!tripId || !tripMembers || tripMembers.length === 0) return familyMembers || [];
+
+    const existingUserIds = new Set((familyMembers || []).map(m => m.linked_user_id).filter(Boolean));
+
+    const tripOnlyMembers = tripMembers
+      .filter(tm => tm.user_id && !existingUserIds.has(tm.user_id))
+      .map(tm => ({
+        id: tm.user_id as string,
+        family_id: '',
+        user_id: tm.user_id,
+        linked_user_id: tm.user_id as string,
+        name: tm.display_name || tm.profiles?.full_name || tm.profiles?.email || 'Participante',
+        email: tm.profiles?.email || null,
+        role: 'viewer' as const,
+        avatar_url: null,
+        avatar_color: null,
+        avatar_icon: null,
+        status: 'active' as const,
+        member_type: 'contact' as const,
+        invited_by: null,
+        sharing_scope: 'all' as const,
+        scope_start_date: null,
+        scope_end_date: null,
+        scope_trip_id: null,
+        active_in_form: true,
+        created_at: '',
+        updated_at: '',
+      }));
+
+    return [...(familyMembers || []), ...tripOnlyMembers];
+  }, [tripId, tripMembers, familyMembers]);
+
   // Available Members logic
   const availableMembers = useMemo(() => {
-    // If it's a trip
+    const membersList = effectiveFamilyMembers;
+
+    // If it's a trip, prefer trip members (exclude guests with null user_id)
     if (tripId && tripMembers && tripMembers.length > 0) {
       const payerUserId = payerId === 'me' ? user?.id : payerId;
-      return tripMembers
-        .filter(tm => tm.user_id !== payerUserId)
-        .map(tm => ({
-          id: tm.user_id,
-          name: tm.profiles?.full_name || tm.profiles?.email || 'Membro',
-          linked_user_id: tm.user_id,
-          role: 'viewer' as const,
-          status: 'active' as const,
-        }));
+      const tripUserIds = new Set(tripMembers.map(tm => tm.user_id).filter(Boolean));
+      return membersList.filter(m => m.linked_user_id !== payerUserId && tripUserIds.has(m.linked_user_id));
     }
-    
+
     // If it's family
-    const familyMembersList = familyMembers || [];
     const payerMemberId = payerId === 'me' ? myMemberRecord?.id : payerId;
-    
-    return familyMembersList.filter(m => m.id !== payerMemberId);
+    return membersList.filter(m => m.id !== payerMemberId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tripId, tripMembers, familyMembers, user?.id, payerId]);
+  }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
 
   // A limpeza automática de splits (setSplits([])) quando o payerId mudava 
   // foi removida pois apagava os splits recém-carregados na edição. O UX no modal 
@@ -625,6 +654,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     categoriesLoading,
     trips,
     familyMembers,
+    effectiveFamilyMembers,
     myMemberRecord,
     allTransactions,
     createTransaction,

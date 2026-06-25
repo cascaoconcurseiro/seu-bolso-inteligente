@@ -186,7 +186,7 @@ export function TransactionForm(props: TransactionFormProps) {
           selectedTrip={form.selectedTrip} 
           selectedAccount={form.selectedAccount} 
           isPaidByOther={form.isPaidByOther} 
-          payerName={form.payerId !== 'me' ? (form.familyMembers || []).find(m => m.id === form.payerId)?.name || 'outro' : ''} 
+          payerName={form.payerId !== 'me' ? (form.effectiveFamilyMembers || []).find(m => m.id === form.payerId)?.name || 'outro' : ''} 
           goals={form.goals}
         />
 
@@ -363,14 +363,14 @@ export function TransactionForm(props: TransactionFormProps) {
         setPayerId={form.setPayerId}
         splits={form.splits}
         setSplits={form.setSplits}
-        familyMembers={form.familyMembers}
+        familyMembers={form.effectiveFamilyMembers}
         activeAmount={moneyUtils.parse(form.amount) || 0}
         onNavigateToFamily={() => form.navigate('/familia')}
         isInstallment={form.isInstallment}
         setIsInstallment={form.setIsInstallment}
         totalInstallments={form.totalInstallments}
         setTotalInstallments={form.setTotalInstallments}
-        currentUserName={(form.familyMembers || []).find(m => m.linked_user_id === form.user?.id)?.name || 'Eu'}
+        currentUserName={(form.effectiveFamilyMembers || []).find(m => m.linked_user_id === form.user?.id)?.name || 'Eu'}
         currentUserMemberId={form.myMemberRecord?.id}
       />
 
