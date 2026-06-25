@@ -70,9 +70,8 @@ export function Dashboard() {
   }, []);
 
   const recentTransactions = useMemo(() => {
-    const allRecent = dashboardData?.recent_transactions || [];
-    return allRecent.filter(tx => (tx.currency || 'BRL') === selectedCurrency).slice(0, 5);
-  }, [dashboardData?.recent_transactions, selectedCurrency]);
+    return dashboardData?.recent_transactions || [];
+  }, [dashboardData?.recent_transactions]);
   const hasError = txError || accountsError;
   const isLoading = (txLoading || accountsLoading) && !hasError;
 
