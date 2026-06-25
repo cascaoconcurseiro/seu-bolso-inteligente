@@ -77,7 +77,7 @@ export function FamilyBalancePanel() {
           </h3>
         </div>
         <Link
-          to="/compartilhado"
+          to="/compartilhados"
           className="text-xs text-primary flex items-center gap-1 hover:underline"
         >
           Ver tudo <ArrowRight className="h-3 w-3" />

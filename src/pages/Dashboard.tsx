@@ -23,11 +23,9 @@ import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAcces
 import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
-import { useFamilyConsolidated } from "@/hooks/useFamilyConsolidated";
-import { useFamilyMembers } from "@/hooks/useFamily";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane, Users } from "lucide-react";
+import { Plane } from "lucide-react";
 import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { logger } from '@/utils/logger';
@@ -37,7 +35,6 @@ export function Dashboard() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
   const [isTripMode, setIsTripMode] = useState(false);
-  const [isCoupleMode, setIsCoupleMode] = useState(false);
 
   const { currentDate } = useMonth();
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
@@ -46,11 +43,6 @@ export function Dashboard() {
   const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
   const { data: profile } = useUserProfile();
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(selectedCurrency, "BRL");
-  const { data: familyMembers = [] } = useFamilyMembers();
-  const { data: familyConsolidated } = useFamilyConsolidated(currentDate);
-
-  // Só mostrar toggle Casal se houver outros membros vinculados
-  const hasLinkedFamilyMembers = familyMembers.some(m => m.linked_user_id && m.status === 'active');
 
 
 
@@ -133,23 +125,7 @@ export function Dashboard() {
   const brlData = currenciesData.find(c => c.currency === 'BRL') || { currency: 'BRL', balance: 0, total_patrimony: 0, income: 0, expense: 0, pending_income: 0, pending_expense: 0 };
   const activeCurrencyData = currenciesData.find(c => c.currency === selectedCurrency) || currenciesData[0] || brlData;
 
-  // Dados consolidados do casal (soma de todos os membros com linked_user_id)
-  const coupleData = useMemo(() => {
-    if (!familyConsolidated || familyConsolidated.length === 0) return null;
-    return familyConsolidated.reduce(
-      (acc, m) => ({
-        balance: SafeFinancialCalculator.add(acc.balance, m.balance),
-        total_patrimony: SafeFinancialCalculator.add(acc.total_patrimony, m.patrimony),
-        income: SafeFinancialCalculator.add(acc.income, m.income),
-        expense: SafeFinancialCalculator.add(acc.expense, m.expense),
-      }),
-      { balance: 0, total_patrimony: 0, income: 0, expense: 0 }
-    );
-  }, [familyConsolidated]);
-
-  const displayData = isCoupleMode && coupleData
-    ? { ...brlData, ...coupleData }
-    : activeCurrencyData;
+  const displayData = activeCurrencyData;
 
   const hasAccounts = accounts && accounts.length > 0;
   const hasTransactions = recentTransactions && recentTransactions.length > 0;
@@ -271,23 +247,6 @@ export function Dashboard() {
         />
 
         <div className="flex justify-end items-center gap-3 pt-1">
-          {hasLinkedFamilyMembers && (
-            <Button
-              variant="outline"
-              onClick={() => setIsCoupleMode(!isCoupleMode)}
-              className={`rounded-full h-10 px-4 flex items-center gap-2 border transition-all duration-500 shadow-md hover:shadow-lg active:scale-95 z-10 font-semibold backdrop-blur-md ${
-                isCoupleMode
-                  ? "bg-accent/20 border-accent text-accent hover:bg-accent/30 shadow-accent/20"
-                  : "bg-background/80 border-border text-muted-foreground hover:bg-background shadow-black/5"
-              }`}
-              title={isCoupleMode ? "Sair do Modo Casal" : "Modo Casal — visão consolidada"}
-            >
-              <div className={`flex items-center justify-center rounded-full p-1 transition-transform duration-500 ${isCoupleMode ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                <Users className="h-4 w-4" />
-              </div>
-              <span>{isCoupleMode ? "Visão Conjunta" : "Modo Casal"}</span>
-            </Button>
-          )}
           {activeTrip && (
             <Button
               variant="outline"

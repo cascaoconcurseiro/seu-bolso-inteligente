@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Users, Crown, X, UserPlus, Check, Plus, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useFamily, useFamilyMembers, useSharedContacts, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
+import { useFamily, useFamilyMembers, useSharedContacts, useAddSharedContact, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
 import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvitations";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
@@ -27,8 +28,11 @@ export function Family() {
   const cancelInvitation = useCancelInvitation();
   const moveToContact = useConvertMemberToContact();
   const moveToFamily = useConvertContactToMember();
+  const addContact = useAddSharedContact();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
   const isOwner = family?.owner_id === user?.id;
   const canInvite = !family || isOwner;
 
@@ -169,45 +173,75 @@ export function Family() {
         </div>
       )}
 
-      {contacts.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-              Contatos de Despesa ({contacts.length})
-            </h2>
+      <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+                Contatos de Despesa ({contacts.length})
+              </h2>
+            </div>
+            {isOwner && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => setShowAddContact(v => !v)}>
+                <Plus className="h-3.5 w-3.5" />
+                Adicionar contato
+              </Button>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Pessoas com quem você dividiu despesas mas que não fazem parte da família. Elas não aparecem nos painéis de saldo familiar nem no Modo Casal.
+            Pessoas com quem você divide despesas mas que não fazem parte da família. Não aparecem nos painéis de saldo familiar.
           </p>
-          <div className="space-y-2">
-            {contacts.map(c => (
-              <div key={c.id} className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
-                    {c.name.charAt(0).toUpperCase()}
+
+          {showAddContact && (
+            <form
+              className="flex gap-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!newContactName.trim()) return;
+                await addContact.mutateAsync({ name: newContactName });
+                setNewContactName("");
+                setShowAddContact(false);
+              }}
+            >
+              <Input
+                placeholder="Nome do contato"
+                value={newContactName}
+                onChange={e => setNewContactName(e.target.value)}
+                className="h-9 text-sm"
+                autoFocus
+              />
+              <Button type="submit" size="sm" disabled={addContact.isPending || !newContactName.trim()}>
+                Salvar
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => { setShowAddContact(false); setNewContactName(""); }}>
+                <X className="h-4 w-4" />
+              </Button>
+            </form>
+          )}
+
+          {contacts.length > 0 && (
+            <div className="space-y-2">
+              {contacts.map(c => (
+                <div key={c.id} className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
+                      {c.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">Contato externo — histórico preservado</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{c.name}</p>
-                    <p className="text-xs text-muted-foreground">Contato externo — histórico preservado</p>
-                  </div>
+                  {isOwner && (
+                    <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary/80" onClick={() => moveToFamily.mutate(c.id)} disabled={moveToFamily.isPending}>
+                      Mover para família
+                    </Button>
+                  )}
                 </div>
-                {isOwner && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-primary hover:text-primary/80"
-                    onClick={() => moveToFamily.mutate(c.id)}
-                    disabled={moveToFamily.isPending}
-                  >
-                    Mover para família
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
       <div className="p-6 rounded-xl border bg-muted/30"><h3 className="text-xs uppercase tracking-widest text-muted-foreground font-medium mb-4">Níveis de permissão</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

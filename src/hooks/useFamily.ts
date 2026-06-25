@@ -434,6 +434,50 @@ export function useUpdateFamily() {
   });
 }
 
+// Adicionar contato de despesa diretamente (sem convite, member_type='contact')
+export function useAddSharedContact() {
+  const { user } = useAuth();
+  const { data: family } = useFamily();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name }: { name: string }) => {
+      if (!user) throw new Error("Not authenticated");
+
+      let familyId = family?.id;
+      if (!familyId) {
+        const { data: newFamily, error } = await supabase
+          .from("families")
+          .insert({ owner_id: user.id, name: `Família de ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'}` })
+          .select()
+          .single();
+        if (error) throw error;
+        familyId = newFamily.id;
+        queryClient.invalidateQueries({ queryKey: ["family"] });
+      }
+
+      const { error } = await supabase.from("family_members").insert({
+        family_id: familyId,
+        user_id: null,
+        linked_user_id: null,
+        name: name.trim(),
+        email: null,
+        role: "viewer",
+        status: "active",
+        member_type: "contact",
+        invited_by: user.id,
+        sharing_scope: "all",
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
+      toast.success("Contato adicionado com sucesso");
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao adicionar contato"),
+  });
+}
+
 // Hook para buscar contatos de despesa (não família)
 export function useSharedContacts() {
   const { user } = useAuth();
