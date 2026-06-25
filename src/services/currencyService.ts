@@ -17,6 +17,10 @@ export interface CurrencyRate {
 const CACHE_DURATION = 1000 * 60 * 15;
 const cache = new Map<string, { rate: number; timestamp: number }>();
 
+/**
+ * Busca cotação via fawazahmed0 currency API (jsDelivr CDN, gratuita, sem token, CORS liberado).
+ * Fallback: Frankfurter API (ECB rates, gratuita, sem token).
+ */
 export async function getCurrencyRate(
   currencyCode: string,
   targetCode: string = "BRL"
@@ -29,56 +33,54 @@ export async function getCurrencyRate(
     return cached.rate;
   }
 
-  const pair = `${currencyCode}-${targetCode}`;
-  const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pair}`);
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const from = currencyCode.toLowerCase();
+  const to = targetCode.toLowerCase();
 
-  const data = await response.json();
-  const rateData = data[`${currencyCode}${targetCode}`];
-  if (!rateData) throw new Error(`Par ${pair} não encontrado`);
+  // Fonte 1: fawazahmed0 via jsDelivr CDN (gratuita, sem token, atualizada diariamente)
+  try {
+    const res = await fetch(
+      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${from}.min.json`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.[from]?.[to];
+      if (rate != null) {
+        cache.set(cacheKey, { rate, timestamp: Date.now() });
+        return rate;
+      }
+    }
+  } catch (e) {
+    logger.warn(`fawazahmed0 falhou para ${currencyCode}/${targetCode}:`, e);
+  }
 
-  const rate = parseFloat(rateData.bid);
-  cache.set(cacheKey, { rate, timestamp: Date.now() });
-  return rate;
+  // Fonte 2: Frankfurter API (ECB, gratuita, sem token)
+  try {
+    const res = await fetch(
+      `https://api.frankfurter.app/latest?from=${currencyCode}&to=${targetCode}`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.[targetCode];
+      if (rate != null) {
+        cache.set(cacheKey, { rate, timestamp: Date.now() });
+        return rate;
+      }
+    }
+  } catch (e) {
+    logger.warn(`Frankfurter falhou para ${currencyCode}/${targetCode}:`, e);
+  }
+
+  return null;
 }
 
 export async function getMultipleCurrencyRates(
   currencies: string[],
   targetCode: string = "BRL"
 ): Promise<Record<string, number>> {
-  const toFetch = currencies.filter(c => c !== targetCode);
   const results: Record<string, number> = {};
 
-  for (const c of currencies) {
-    if (c === targetCode) { results[c] = 1; continue; }
-  }
-
-  if (toFetch.length === 0) return results;
-
-  try {
-    const pairs = toFetch.map(c => `${c}-${targetCode}`).join(',');
-    const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pairs}`);
-    if (response.ok) {
-      const data = await response.json();
-      for (const c of toFetch) {
-        const key = `${c}${targetCode}`;
-        if (data[key]) {
-          const rate = parseFloat(data[key].bid);
-          results[c] = rate;
-          cache.set(key, { rate, timestamp: Date.now() });
-        }
-      }
-      for (const c of toFetch) {
-        if (!results[c]) {
-          const old = cache.get(`${c}${targetCode}`);
-          results[c] = old?.rate ?? 0;
-        }
-      }
-      return results;
-    }
-  } catch (_) { /* fall through to individual fetch */ }
-
-  await Promise.all(toFetch.map(async (c) => {
+  await Promise.all(currencies.map(async (c) => {
+    if (c === targetCode) { results[c] = 1; return; }
     const rate = await getCurrencyRate(c, targetCode);
     results[c] = rate ?? 0;
   }));

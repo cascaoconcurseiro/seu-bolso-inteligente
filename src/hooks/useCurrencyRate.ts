@@ -8,8 +8,8 @@ export function useCurrencyRate(currencyCode: string, targetCode: string = "BRL"
     enabled: !!currencyCode && currencyCode !== targetCode,
     staleTime: 1000 * 60 * 15,
     refetchInterval: 1000 * 60 * 15,
-    retry: 2,
-    retryDelay: 2000,
+    retry: 1,
+    retryDelay: 3000,
   });
 }
 
