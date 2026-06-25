@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Loader2,
   ArrowDownLeft,
@@ -6,7 +6,10 @@ import {
   ArrowRightLeft,
   BellRing,
   RefreshCw,
+  Plane,
+  X,
 } from 'lucide-react';
+import { isWithinInterval, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
@@ -48,8 +51,27 @@ export function TransactionForm(props: TransactionFormProps) {
   const form = useTransactionForm(props);
   const updateSeries = useUpdateRecurringSeries();
   const [seriesUpdateMode, setSeriesUpdateMode] = useState<'single' | 'future'>('single');
+  const [tripBannerDismissed, setTripBannerDismissed] = useState(false);
 
   const isEditingRecurring = !!(props.initialData?.series_id && props.initialData?.id && props.initialData?.current_installment);
+
+  // Viagem ativa: deve existir, cobrir a data de hoje, e o usuário ainda não ter selecionado/descartado
+  const activeTrip = useMemo(() => {
+    if (!form.trips || form.trips.length === 0) return null;
+    const now = new Date();
+    return form.trips.find((t: any) => {
+      try {
+        return isWithinInterval(now, { start: parseISO(t.start_date), end: parseISO(t.end_date) });
+      } catch { return false; }
+    }) ?? null;
+  }, [form.trips]);
+
+  const showTripBanner =
+    form.activeTab === 'EXPENSE' &&
+    !props.initialData?.id &&
+    !!activeTrip &&
+    !form.tripId &&
+    !tripBannerDismissed;
 
   if (form.accountsLoading || form.categoriesLoading) {
     return <div className="flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
@@ -101,6 +123,37 @@ export function TransactionForm(props: TransactionFormProps) {
           </button>
         ))}
       </div>
+
+      {/* Banner: vincular à viagem ativa */}
+      {showTripBanner && (
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/30 bg-primary/5 animate-in slide-in-from-top-2 duration-300">
+          <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
+            <Plane className="h-4 w-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground leading-tight">Vincular à viagem?</p>
+            <p className="text-xs text-muted-foreground truncate">{activeTrip.name}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="default"
+              className="h-8 text-xs px-3 rounded-lg"
+              onClick={() => { form.setTripId(activeTrip.id); setTripBannerDismissed(true); }}
+            >
+              Sim
+            </Button>
+            <button
+              type="button"
+              onClick={() => setTripBannerDismissed(true)}
+              className="p-1 rounded-lg hover:bg-muted transition-colors"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {form.duplicateWarning && <Alert className="border-destructive/50 bg-destructive/10 animate-pulse"><BellRing className="h-4 w-4 text-destructive" /><AlertDescription className="text-destructive font-medium">⚠️ Possível transação duplicada detectada!</AlertDescription></Alert>}
       {form.budgetWarning && (
