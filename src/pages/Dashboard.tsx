@@ -23,6 +23,7 @@ import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
 import { DashboardRecentActivity } from "@/components/dashboard/DashboardRecentActivity";
 import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAccess";
 import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
+import { DashboardUpcomingRecurring } from "@/components/dashboard/DashboardUpcomingRecurring";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -323,6 +324,7 @@ export function Dashboard() {
             {/* Sidebar — 4 cols */}
             <div className="lg:col-span-4 space-y-4 md:space-y-5">
               <DashboardBillsDue />
+              <DashboardUpcomingRecurring />
               <DashboardInvoices
                 creditCardsWithBalance={creditCardsWithBalance}
                 formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
