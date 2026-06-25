@@ -36,16 +36,12 @@
 - **Service Worker customizado** (`src/sw.ts`) — injectManifest com workbox, handlers de `push` e `notificationclick`
 - **Índices de performance** — `idx_transactions_notifications`, `idx_push_subscriptions_user_id`, `idx_goal_milestones_goal_pct`, `idx_family_members_type_family`
 - **RLS cartão compartilhado** — políticas SELECT em `accounts` e `transactions` para convidados com status `accepted`
+- **VAPID keys configuradas** — geradas e configuradas nos secrets da Edge Function + env var da Vercel + `.env` local
+- **Cron `send-bill-reminders-daily`** — pg_cron job #3, roda todo dia às 11:00 UTC (08:00 Brasília)
 
 ---
 
 ## O que falta (próximas sessões)
-
-### Configuração pendente (produção — requer ação manual do usuário)
-1. **VAPID keys**: gerar com `npx web-push generate-vapid-keys`
-   - Adicionar `VITE_VAPID_PUBLIC_KEY` nas env vars da Vercel
-   - Adicionar `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` nos secrets da Edge Function no Supabase Dashboard
-2. **Cron da Edge Function**: agendar `send-bill-reminders` para rodar diariamente (pg_cron ou Upstash Qstash)
 
 ### Features de UX (código)
 3. **Export PDF de meta específica** — botão no GoalCard para baixar resumo em PDF
