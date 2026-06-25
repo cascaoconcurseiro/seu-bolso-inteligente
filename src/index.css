@@ -23,13 +23,13 @@
     --text-muted: 218 11% 65%;                  /* #9CA3AF */
     
     /* ===== SEMANTIC TOKENS (Light) ===== */
-    --accent: 221 83% 53%;                      /* #2563EB — azul profissional */
+    --accent: 263 72% 52%;                      /* #6B35C9 — violeta premium */
     --accent-foreground: 0 0% 100%;
-    --success: 142 76% 36%;                     /* #16A34A */
+    --success: 152 68% 31%;                     /* #179560 — verde-esmeralda */
     --success-foreground: 0 0% 100%;
-    --danger: 0 72% 51%;                        /* #DC2626 */
+    --danger: 4 78% 48%;                        /* #D72B1A */
     --danger-foreground: 0 0% 100%;
-    --warning: 33 92% 44%;                      /* #D97706 */
+    --warning: 36 94% 42%;                      /* #D97000 */
     --warning-foreground: 0 0% 8%;
     
     /* ===== SHADCN/UI COMPAT (mapeados dos tokens acima) ===== */
@@ -49,7 +49,7 @@
     --destructive-foreground: var(--danger-foreground);
     --border: var(--border-color);
     --input: var(--border-color);
-    --ring: 221 83% 53%;
+    --ring: 263 72% 52%;
     
     /* ===== FINANCEIRO ===== */
     --positive: 142 76% 36%;
@@ -92,23 +92,23 @@
     --secondary-foreground: var(--text-primary);
     --muted: var(--bg-subtle);
     --muted-foreground: var(--text-secondary);
-    --accent: 221 83% 53%;
+    --accent: 263 72% 62%;
     --accent-foreground: 0 0% 100%;
     --destructive: var(--danger);
     --destructive-foreground: var(--danger-foreground);
     --border: var(--border-color);
     --input: var(--border-color);
-    --ring: 221 83% 53%;
-    
+    --ring: 263 72% 62%;
+
     /* ===== FINANCEIRO + SEMANTICO (Dark) ===== */
-    --success: 142 70% 45%;
+    --success: 152 60% 42%;
     --success-foreground: 0 0% 4%;
-    --danger: 0 62% 55%;
+    --danger: 4 70% 58%;
     --danger-foreground: 0 0% 100%;
-    --warning: 33 82% 55%;
+    --warning: 36 85% 52%;
     --warning-foreground: 0 0% 4%;
-    --positive: 142 70% 45%;
-    --negative: 0 62% 55%;
+    --positive: 152 60% 42%;
+    --negative: 4 70% 58%;
     --neutral: 218 11% 65%;
   }
 }

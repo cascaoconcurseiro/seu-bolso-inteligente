@@ -59,7 +59,7 @@ export function DashboardHero({
                <div className="p-1.5 rounded-lg bg-primary/10">
                   <TrendingUp className="h-4 w-4 text-primary" />
                </div>
-               <p className="text-sm text-muted-foreground uppercase tracking-[0.2em] font-bold flex items-center gap-1">
+               <p className="text-[11px] text-muted-foreground/70 uppercase tracking-[0.25em] font-semibold flex items-center gap-1">
                  Saldo das Contas ({currency})
                  <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
                </p>
@@ -83,45 +83,45 @@ export function DashboardHero({
           </div>
           
           <h1 className={cn(
-            "font-display font-black text-4xl sm:text-5xl md:text-6xl tracking-tighter transition-all duration-500",
-            predictedBalance >= 0 ? "text-primary" : "text-destructive",
+            "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500 animate-fade-in-up",
+            predictedBalance >= 0 ? "text-foreground" : "text-destructive",
             isPrivate && "blur-md opacity-50 select-none"
           )}>
             {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden">
+            <div className="animate-stagger stagger-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-accent/10 border border-accent/20 group/patrimony transition-all hover:bg-accent/15 overflow-hidden">
               <div className="shrink-0 p-1.5 rounded-full bg-accent text-white shadow-lg shadow-accent/20 group-hover/patrimony:scale-110 transition-transform">
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-accent/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-accent truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Patrimônio</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-foreground truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-success/12 border border-success/20 group/income transition-all hover:bg-success/15 overflow-hidden">
+            <div className="animate-stagger stagger-2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-positive/10 border border-positive/20 group/income transition-all hover:bg-positive/15 overflow-hidden">
               <div className="shrink-0 p-1.5 rounded-full bg-success text-white shadow-lg shadow-success/20 group-hover/income:scale-110 transition-transform">
                 <TrendingUp className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-success/70 font-bold uppercase tracking-wider truncate">Entradas</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-success truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Entradas</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-positive truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-destructive/12 border border-destructive/20 group/expense transition-all hover:bg-destructive/15 overflow-hidden">
+            <div className="animate-stagger stagger-3 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl bg-negative/10 border border-negative/20 group/expense transition-all hover:bg-negative/15 overflow-hidden">
               <div className="shrink-0 p-1.5 rounded-full bg-destructive text-white shadow-lg shadow-destructive/20 group-hover/expense:scale-110 transition-transform">
                 <TrendingDown className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-destructive/70 font-bold uppercase tracking-wider truncate">Saídas</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-destructive truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Saídas</p>
+                <p className={cn("text-xs sm:text-sm font-bold text-negative truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
               </div>
@@ -129,22 +129,22 @@ export function DashboardHero({
 
             {income > 0 && (
               <div className={cn(
-                "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all hover:bg-opacity-15 overflow-hidden",
-                savingsRate >= 0 
-                  ? "bg-success/10 border-success/20 text-success hover:bg-success/15" 
-                  : "bg-warning/10 border-warning/20 text-warning hover:bg-warning/15"
+                "animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden",
+                savingsRate >= 0
+                  ? "bg-positive/10 border-positive/20 hover:bg-positive/15"
+                  : "bg-warning/10 border-warning/20 hover:bg-warning/15"
               )}>
                 <div className={cn(
                   "shrink-0 p-1.5 rounded-full text-white shadow-lg",
-                  savingsRate >= 0 
-                    ? "bg-success shadow-success/20" 
+                  savingsRate >= 0
+                    ? "bg-success shadow-success/20"
                     : "bg-warning shadow-warning/20"
                 )}>
                   <Target className="h-3 w-3" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] opacity-75 font-bold uppercase tracking-wider truncate">Taxa Poupança</p>
-                  <p className="text-sm sm:text-sm font-bold truncate">
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Poupança</p>
+                  <p className={cn("text-sm font-bold truncate", savingsRate >= 0 ? "text-positive" : "text-warning")}>
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>
                 </div>

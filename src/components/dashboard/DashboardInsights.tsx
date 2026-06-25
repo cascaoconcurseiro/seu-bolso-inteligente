@@ -54,7 +54,7 @@ export function DashboardInsights() {
         >
           <Sparkles className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 flex h-3 w-3">
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-accent shadow-[0_0_8px_rgba(37,99,235,0.8)]"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-accent shadow-[0_0_8px_hsl(var(--accent)/0.8)]"></span>
           </span>
         </Button>
       </PopoverTrigger>

@@ -10,7 +10,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primário: bg accent (azul #2563EB), texto branco
+        // Primário: bg accent (violeta #6B35C9), texto branco
         default: "bg-accent text-accent-foreground hover:bg-accent/92",
         // Secundário: bg transparente, borda, texto primary
         outline: "border border-input bg-transparent text-foreground hover:bg-accent/8",
