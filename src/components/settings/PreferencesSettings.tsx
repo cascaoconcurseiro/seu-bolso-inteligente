@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet } from "lucide-react";
+import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet, Bell } from "lucide-react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
 import { NumericFormat } from "react-number-format";
@@ -26,6 +27,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [lowBalanceThreshold, setLowBalanceThreshold] = useState<number>(0);
   const [defaultAccountId, setDefaultAccountId] = useState<string>("none");
   const [defaultCreditCardId, setDefaultCreditCardId] = useState<string>("none");
+  const { isSupported: pushSupported, hasSubscription, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
   const checkingAccounts = accounts?.filter(acc => acc.type !== 'CREDIT_CARD') || [];
@@ -382,12 +384,39 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
               )}
             </div>
           </div>
-          
+
+          {/* Notificações Push */}
+          {pushSupported && (
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
+              <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+                <Bell className="h-5 w-5" />
+              </div>
+              <div className="flex-1 space-y-2 w-full">
+                <Label>Notificações Push</Label>
+                <p className="text-xs text-muted-foreground">
+                  Receba alertas de vencimentos mesmo com o app fechado. Contas com notificação ativada serão avisadas 3 dias antes.
+                </p>
+                <Button
+                  type="button"
+                  variant={hasSubscription ? "destructive" : "outline"}
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => hasSubscription ? pushUnsubscribe.mutate() : pushSubscribe.mutate()}
+                  disabled={pushSubscribe.isPending || pushUnsubscribe.isPending}
+                >
+                  {pushSubscribe.isPending || pushUnsubscribe.isPending
+                    ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    : null}
+                  {hasSubscription ? "Desativar notificações push" : "Ativar notificações push"}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="pt-4 flex justify-end">
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={!hasChanges() || updateProfile.isPending}
             className="w-full sm:w-auto"
           >
