@@ -1,80 +1,56 @@
-# Claude Handoff — Pé de Meia (seu-bolso-inteligente)
+# CLAUDE_HANDOFF.md — Pé de Meia
 
-> Atualizado em: 2026-06-24
-> Último commit: `ea9faee` | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Atualizado em: 2026-06-24  
+> Último commit: `0c25e16` | Branch: `main` | Deploy: meupedemeia.vercel.app
+
+---
+
+## Regras obrigatórias
+- **SEMPRE** fazer `git push origin main` após cada commit
+- **SEMPRE** atualizar este arquivo ao final de cada sessão ou ao aproximar do limite de contexto
+- Zero erros TypeScript antes de commitar: `npx tsc --noEmit`
+- Commits em português com mensagens detalhadas
 
 ---
 
 ## Stack
-React + Vite + TypeScript + Supabase + TanStack Query + Zustand + Tailwind + shadcn/ui  
-Supabase project: `vrrcagukyfnlhxuvnssp`
+- React + Vite + TypeScript + Supabase + TanStack Query + Zustand + Tailwind + shadcn/ui
+- Deploy: Vercel (`meupedemeia.vercel.app`), branch `main`
+- Supabase project ID: `vrrcagukyfnlhxuvnssp`
+- Toasts: `sonner` | Moeda: `moneyUtils.format(value, currency)` | Datas: `date-fns` + `ptBR`
+- Mutations sempre invalidam queries | soft delete com `deleted_at`
+- Mobile modals: Drawer bottom-sheet (não Dialog)
 
 ---
 
-## Regras da sessão (aplicar sempre)
-- **Push automático**: sempre `git push origin main` após cada commit
-- **Handoff atualizado**: atualizar este arquivo após cada bloco de features ou ao se aproximar do limite de contexto
+## Histórico de features implementadas ✅
 
----
-
-## Histórico de commits desta sprint
-
-| Commit | Feature |
-|---|---|
-| `e9b8ae8` | Conta/Cartão Padrão pré-selecionado no TransactionForm |
-| `f019f01` | Divisão Rápida inline |
-| `e0ccd78` | FamilyBalancePanel no Dashboard |
-| `fa9b688` | Travel Mode — banner de viagem ativa |
-| `f61d716` | Swipe gestures em TransactionItem |
-| `83a1ceb` | Participante de viagem sem conta (guest) + migration DB |
-| `3bdaf96` | Modo Casal completo — RPC + hook + toggle |
-| `56acd2e` | Fix: duplicate profile declaration (build fix) |
-| `7a99029` | Busca Global tipo Spotlight (Ctrl+K) |
-| `e6f91a6` | SwipeableRow genérico + swipe em Metas |
-| `55c5451` | Marcos de progresso em Metas (milestones) |
-| `ea9faee` | Notificações push reais (Edge Function + VAPID) |
-
----
-
-## O que foi implementado (COMPLETO)
-
-### Auditoria original (fases 1-3) ✅
-- GoalCard, CreditCardDetailView, busca histórica, edição de categorias
-- useBillsDue, useUpdateRecurringSeries, InstallmentSimulator
-- DashboardLowBalanceAlert, CategoryTrend, CashFlowProjection
-- Keywords expandidas, Cartão Padrão, Auto-Compartilhamento por Regras
-
-### Features desta sprint ✅
-- Conta/cartão padrão pré-selecionado no form
-- Divisão Rápida (N pessoas, sem família)
-- FamilyBalancePanel (dívidas entre membros no Dashboard)
-- Travel Mode (banner sugerindo vincular à viagem ativa)
-- Swipe left/right em TransactionItem
 - Participante de viagem sem conta (guest)
 - Modo Casal (visão consolidada de saldo/receita/despesa)
 - **Busca Global** — dialog cmdk, Ctrl+K, busca em transações/contas/metas
 - **SwipeableRow** — componente genérico reutilizável, aplicado em Metas
 - **Marcos de progresso (Milestones)** — tabela goal_milestones, linha do tempo visual no GoalCard
-- **Notificações push reais** — tabela push_subscriptions, Edge Function `send-bill-reminders` com VAPID/AES-128-GCM, toggle em Configurações
+- **Notificações push** — tabela push_subscriptions, Edge Function `send-bill-reminders` com VAPID/AES-128-GCM, toggle em Configurações
+- **Fix `usagePercent`** — CreditCardDetailView.tsx, variável estava no interface mas fora do destructuring
+- **Contatos de Despesa vs Família (cenário Jhonatan)** — coluna `member_type` em family_members, `useFamilyMembers()` filtra por padrão, seção "Contatos de Despesa" na página Família
+- **Service Worker customizado** (`src/sw.ts`) — injectManifest com workbox, handlers de `push` e `notificationclick`
+- **Índices de performance** — `idx_transactions_notifications`, `idx_push_subscriptions_user_id`, `idx_goal_milestones_goal_pct`, `idx_family_members_type_family`
+- **RLS cartão compartilhado** — políticas SELECT em `accounts` e `transactions` para convidados com status `accepted`
 
 ---
 
-## O que pode ser feito a seguir (próximas sessões)
+## O que falta (próximas sessões)
 
-### Configuração pendente (produção)
-1. **VAPID keys**: gerar par de chaves VAPID (ex: `npx web-push generate-vapid-keys`), adicionar `VITE_VAPID_PUBLIC_KEY` no .env da Vercel e `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` nos secrets da Edge Function no Supabase Dashboard.
-2. **Service Worker**: o `usePushNotifications` usa `navigator.serviceWorker.ready` — verificar se o SW do vite-plugin-pwa está registrado e tem `pushnotificationclick` handler para abrir o app ao clicar na notificação.
-3. **Cron da Edge Function**: agendar `send-bill-reminders` para rodar diariamente (ex: pg_cron ou webhook externo).
+### Configuração pendente (produção — requer ação manual do usuário)
+1. **VAPID keys**: gerar com `npx web-push generate-vapid-keys`
+   - Adicionar `VITE_VAPID_PUBLIC_KEY` nas env vars da Vercel
+   - Adicionar `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` nos secrets da Edge Function no Supabase Dashboard
+2. **Cron da Edge Function**: agendar `send-bill-reminders` para rodar diariamente (pg_cron ou Upstash Qstash)
 
-### Features de UX
-4. **SwipeableRow em Contas (listagem mobile)**: na versão mobile as contas aparecem em cards, mas em listas menores dentro de modais/sheets poderia ter swipe.
-5. **Export PDF de meta específica**: botão no GoalCard para baixar um resumo da meta em PDF.
-6. **Gráfico de evolução da meta**: linha do tempo de aportes no GoalContributeDialog.
-
-### Backend / Database
-7. **RLS cross-family para contas compartilhadas de cartão**: shared_credit_card já existe no schema mas visibilidade do saldo do parceiro depende de RLS manual.
-8. **Índices de performance**: verificar EXPLAIN ANALYZE nas queries mais pesadas.
-9. **Service Worker push handler**: adicionar evento `push` e `notificationclick` no SW para mostrar/abrir notificação recebida.
+### Features de UX (código)
+3. **Export PDF de meta específica** — botão no GoalCard para baixar resumo em PDF
+4. **Gráfico de evolução da meta** — linha do tempo de aportes no GoalContributeDialog (Recharts LineChart)
+5. **SwipeableRow em Contas mobile** — swipe para editar/arquivar contas na listagem mobile
 
 ---
 
@@ -82,6 +58,7 @@ Supabase project: `vrrcagukyfnlhxuvnssp`
 
 | Arquivo | Relevância |
 |---|---|
+| `src/sw.ts` | Service Worker customizado (push + precache + NetworkFirst Supabase) |
 | `src/components/search/GlobalSearch.tsx` | Dialog de busca global (Ctrl+K) |
 | `src/components/ui/SwipeableRow.tsx` | Componente genérico de swipe |
 | `src/components/goals/GoalMilestonesPanel.tsx` | Marcos de progresso |
@@ -94,16 +71,24 @@ Supabase project: `vrrcagukyfnlhxuvnssp`
 | `src/components/settings/PreferencesSettings.tsx` | Toggle notificações push |
 | `src/pages/GoalsAndInvestments.tsx` | SwipeableRow em metas |
 | `src/pages/Dashboard.tsx` | Toggle Modo Casal, FamilyBalancePanel |
+| `src/hooks/useFamily.ts` | member_type, useSharedContacts, useConvert* |
+| `src/pages/Family.tsx` | Seção "Contatos de Despesa" |
+
+---
+
+## Banco de dados — mudanças recentes
+
+| Migration | O que fez |
+|---|---|
+| `member_type_column` | Coluna `member_type TEXT DEFAULT 'family'` em family_members |
+| `performance_indexes` | 4 índices novos (notifications, push_sub, milestones, family_type) |
+| `shared_credit_card_rls` | Políticas SELECT em accounts e transactions para convidados aceitos |
 
 ---
 
 ## Convenções do projeto
 - Toasts: `sonner` (`toast.success`, `toast.error`)
 - Formatação de moeda: `moneyUtils.format(value, currency)` de `@/utils/money`
-- Datas: sempre `date-fns` + `ptBR` locale
-- Mutations: sempre invalidar queries com `invalidateFinancialQueries(queryClient)`
-- Soft delete: `deleted_at` column (nunca DELETE direto)
-- Padrão de modal mobile: Drawer bottom-sheet (não Dialog) para telas pequenas
-- Commits em português, mensagem detalhada
-- Push automático após cada commit (`git push origin main`)
-- Zero erros TypeScript antes de commitar (`npx tsc --noEmit`)
+- Datas: `format(date, 'dd/MM/yyyy', { locale: ptBR })`
+- TanStack Query: sempre `queryClient.invalidateQueries` no `onSuccess`
+- Soft delete: `.update({ deleted_at: new Date().toISOString() })`
