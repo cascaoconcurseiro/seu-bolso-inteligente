@@ -290,6 +290,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile Navigation Bar */}
       <MobileNav />
 
+      {/* FAB desktop — nova transação, visível ao rolar */}
+      <button
+        onClick={() => setShowTransactionModal(true)}
+        className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 items-center justify-center hover:brightness-110 active:scale-95 transition-all"
+        aria-label="Nova transação"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
+
       {/* Global Transaction Modal */}
       <TransactionModal
         isOpen={showTransactionModal}

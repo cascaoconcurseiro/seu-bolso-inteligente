@@ -1,6 +1,13 @@
 import { useState, useRef, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/utils/haptics";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
 interface SwipeAction {
   icon: ReactNode;
@@ -19,11 +26,40 @@ interface SwipeableRowProps {
 const THRESHOLD = 52;
 const MAX_OFFSET = 84;
 
+const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 export function SwipeableRow({ children, leftAction, rightAction, className }: SwipeableRowProps) {
   const [offset, setOffset] = useState(0);
   const [dir, setDir] = useState<'left' | 'right' | null>(null);
   const startX = useRef<number | null>(null);
   const isAnimating = useRef(false);
+
+  // Desktop: substituir swipe por DropdownMenu
+  if (!isTouchDevice && (leftAction || rightAction)) {
+    const actions = [leftAction, rightAction].filter(Boolean) as SwipeAction[];
+    return (
+      <div className={cn("relative group", className)}>
+        {children}
+        <div className="absolute top-1/2 -translate-y-1/2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1.5 rounded-lg bg-background/90 border border-border shadow-sm hover:bg-muted transition-colors">
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {actions.map((action, i) => (
+                <DropdownMenuItem key={i} onClick={action.onClick} className="gap-2">
+                  {action.icon}
+                  {action.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    );
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;

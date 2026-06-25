@@ -166,6 +166,20 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/cartoes/:id"
+                    element={
+                      <ProtectedRoute>
+                        <PinWrapper>
+                          <AppLayout>
+                            <Suspense fallback={<PageLoader />}>
+                              <CreditCards />
+                            </Suspense>
+                          </AppLayout>
+                        </PinWrapper>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/compartilhados"
                     element={
                       <ProtectedRoute>

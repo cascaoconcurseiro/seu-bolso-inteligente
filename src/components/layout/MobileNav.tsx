@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ArrowLeftRight, Plus, Menu, X, BarChart3, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { Home, ArrowLeftRight, Plus, Menu, X, Target, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTransactionModal } from '@/hooks/useTransactionModal';
 import { useTheme } from 'next-themes';
@@ -41,7 +41,7 @@ export function MobileNav() {
     { label: 'Início', icon: Home, path: '/' },
     { label: 'Extrato', icon: ArrowLeftRight, path: '/transacoes' },
     { label: 'Add', icon: Plus, isAction: true },
-    { label: 'Relatórios', icon: BarChart3, path: '/relatorios' },
+    { label: 'Metas', icon: Target, path: '/metas' },
     { label: 'Menu', icon: Menu, isMenu: true },
   ];
 

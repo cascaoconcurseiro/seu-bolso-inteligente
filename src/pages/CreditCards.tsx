@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -147,6 +147,38 @@ export function CreditCards() {
     user
   } = useCreditCardsDashboard();
 
+  const { id: urlCardId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Sincroniza URL → estado: ao navegar diretamente para /cartoes/:id
+  useEffect(() => {
+    if (!creditCards.length) return;
+    if (urlCardId) {
+      const card = creditCards.find(c => c.id === urlCardId);
+      if (card) {
+        setSelectedCard(card);
+        setView("detail");
+      } else {
+        navigate("/cartoes", { replace: true });
+      }
+    } else {
+      setView("list");
+      setSelectedCard(null);
+    }
+  }, [urlCardId, creditCards.length]);
+
+  const handleSelectCard = useCallback((card: CreditCardAccount) => {
+    setSelectedCard(card);
+    setView("detail");
+    navigate(`/cartoes/${card.id}`);
+  }, [navigate, setSelectedCard, setView]);
+
+  const handleGoBack = useCallback(() => {
+    setView("list");
+    setSelectedCard(null);
+    navigate("/cartoes");
+  }, [navigate, setSelectedCard, setView]);
+
   const { data: accounts = [] } = useAccounts();
 
   if (isLoading) return (
@@ -175,7 +207,7 @@ export function CreditCards() {
     return (
       <>
         <CreditCardDetailView 
-          selectedCard={selectedCard} goBack={() => { setView("list"); setSelectedCard(null); }}
+          selectedCard={selectedCard} goBack={handleGoBack}
           openEditCardDialog={(card) => { 
             setEditCardName(card.name); 
             setEditCardColor(card.bank_color || getBankById(card.bank_id).color || "#3b82f6"); 
@@ -207,7 +239,7 @@ export function CreditCards() {
           allYearTransactions={exportTransactions}
           canDelete={selectedCardCanDelete}
           onArchive={(card) => setShowArchiveConfirmModal(true)}
-          onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); setView("list"); setSelectedCard(null); }}
+          onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); handleGoBack(); }}
           setShowSharingDialog={setShowSharingDialog}
         />
 
@@ -438,7 +470,7 @@ export function CreditCards() {
           getCardInvoice={getCardInvoice}
           isLoading={isLoading || transactionsLoading}
           onRefresh={() => { refetchAccounts(); refetchTransactions(); }}
-          onSelectCard={(c) => { setSelectedCard(c); setView("detail"); }}
+          onSelectCard={handleSelectCard}
         />
       ) : (
         <EmptyState
@@ -450,7 +482,7 @@ export function CreditCards() {
         />
       )}
 
-      <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={(card) => { setSelectedCard(card); setView("detail"); }} />
+      <ArchivedCardsSection archivedCards={archivedCards} formatCurrency={formatCurrency} onUnarchive={(id) => unarchiveAccountMutation.mutate(id)} isUnarchiving={unarchiveAccountMutation.isPending} onCardSelect={handleSelectCard} />
 
       <NewCardDialog 
         open={showNewCardDialog} 
