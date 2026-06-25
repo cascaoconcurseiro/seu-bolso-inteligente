@@ -1,7 +1,7 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
 > Atualizado em: 2026-06-24  
-> Último commit: `0c25e16` | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Último commit: `74aa72a` | Branch: `main` | Deploy: meupedemeia.vercel.app
 
 ---
 
@@ -35,18 +35,22 @@
 - **Contatos de Despesa vs Família (cenário Jhonatan)** — coluna `member_type` em family_members, `useFamilyMembers()` filtra por padrão, seção "Contatos de Despesa" na página Família
 - **Service Worker customizado** (`src/sw.ts`) — injectManifest com workbox, handlers de `push` e `notificationclick`
 - **Índices de performance** — `idx_transactions_notifications`, `idx_push_subscriptions_user_id`, `idx_goal_milestones_goal_pct`, `idx_family_members_type_family`
-- **RLS cartão compartilhado** — políticas SELECT em `accounts` e `transactions` para convidados com status `accepted`
 - **VAPID keys configuradas** — geradas e configuradas nos secrets da Edge Function + env var da Vercel + `.env` local
 - **Cron `send-bill-reminders-daily`** — pg_cron job #3, roda todo dia às 11:00 UTC (08:00 Brasília)
+- **Export PDF de meta** — botão FileDown no GoalCard, gera PDF com jsPDF (barra de progresso visual, valores, prazo, descrição)
+- **Gráfico de evolução da meta** — AreaChart no GoalContributeDialog via `useGoalHistory` hook, visível com ≥2 aportes
+- **SwipeableRow em Contas** — swipe left = arquivar, swipe right = editar (modal reutiliza AccountFormModal mode="edit")
+- **fix audit_changes()** — trigger corrigido para usar `to_jsonb(NEW)->>'deleted_at'` (suporta tabelas sem coluna deleted_at)
 
 ---
 
 ## O que falta (próximas sessões)
 
-### Features de UX (código)
-3. **Export PDF de meta específica** — botão no GoalCard para baixar resumo em PDF
-4. **Gráfico de evolução da meta** — linha do tempo de aportes no GoalContributeDialog (Recharts LineChart)
-5. **SwipeableRow em Contas mobile** — swipe para editar/arquivar contas na listagem mobile
+### Sem pendências de código conhecidas
+Todas as features do backlog foram implementadas. Novas ideias a explorar:
+- RLS cross-family cartão compartilhado (requer função SECURITY DEFINER para evitar recursão)
+- Notificações push para outras categorias além de contas a pagar (metas próximas do prazo, etc.)
+- Relatório mensal automático por email
 
 ---
 
