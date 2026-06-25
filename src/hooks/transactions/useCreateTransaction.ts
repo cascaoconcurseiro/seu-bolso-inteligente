@@ -192,7 +192,7 @@ export function useCreateTransaction() {
 
       const { splits, transaction_splits, ...transactionData } = input;
 
-      // Parcelamento
+      // Parcelamento — usa RPC atômica (ARC-02: rollback automático se splits falharem)
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
         const seriesId = input.series_id || crypto.randomUUID();
         const startingInstallment = input.current_installment || 1;
@@ -202,66 +202,22 @@ export function useCreateTransaction() {
           input.amount,
           installmentsToCreate
         );
-        
+
         const baseDate = dateUtils.parseDate(input.date);
-        
-        const transactions = [];
-        let allocatedAmount = 0;
-        
-        for (let i = 0; i < installmentsToCreate; i++) {
-          const currentInstNum = startingInstallment + i;
-          const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
-          const formattedDate = dateUtils.formatDate(installmentDate);
-          const competenceDate = calculateCompetence(formattedDate);
-          
-          const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
-          
-          let currentAmount = installmentAmount;
-          if (i === installmentsToCreate - 1) {
-            currentAmount = SafeFinancialCalculator.subtract(input.amount, allocatedAmount);
-          } else {
-            allocatedAmount = SafeFinancialCalculator.add(allocatedAmount, currentAmount);
-          }
-          
-          transactions.push({
-            user_id: user.id,
-            creator_user_id: user.id,
-            ...transactionData,
-            amount: currentAmount,
-            date: formattedDate,
-            competence_date: competenceDate,
-            description: `${input.description} (${currentInstNum}/${input.total_installments})`,
-            current_installment: currentInstNum,
-            series_id: seriesId,
-            is_shared: isSharedNow,
-            domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
-            payer_id: input.payer_id
-          });
-        }
 
-        const { data, error } = await supabase
-          .from("transactions")
-          .insert(transactions)
-          .select();
+        // Resolve member data before building transactions (needed for embedded splits)
+        let memberNames: Record<string, string> = {};
+        let memberUserIds: Record<string, string> = {};
+        let userIdToMemberId: Record<string, string> = {};
+        let userIdToName: Record<string, string> = {};
 
-        if (error) {
-          logger.error("Erro ao criar parcelas:", error);
-          throw error;
-        }
-
-        // Criar splits para cada parcela
         if (finalSplits && finalSplits.length > 0) {
           const memberIds = finalSplits.map(s => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
             .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
-          
-          const memberNames: Record<string, string> = {};
-          const memberUserIds: Record<string, string> = {};
-          const userIdToMemberId: Record<string, string> = {};
-          const userIdToName: Record<string, string> = {};
-          
+
           membersData?.forEach(m => {
             memberNames[m.id] = m.name;
             if (m.linked_user_id) {
@@ -271,61 +227,78 @@ export function useCreateTransaction() {
             }
           });
 
-          // Validação de segurança: garantir que todos os membros de splits são válidos (Critério Alto #11)
           const invalidMembers = memberIds.filter(id => id !== user.id && !memberNames[id] && !userIdToName[id]);
           if (invalidMembers.length > 0) {
             logger.error("Membros de split inválidos detectados:", invalidMembers);
             throw new Error("Um ou mais membros selecionados para divisão não são válidos.");
           }
+        }
 
-          const allSplitsToInsert: Record<string, unknown>[] = [];
-          
-          for (const transaction of data) {
-            // Utiliza a lógica do Matemático (SafeFinancialCalculator) para precisão de centavos e absorção de erro pelo criador
-            const splitResults = calculateTransactionSplits(transaction.amount, finalSplits, user.id);
-            
-            const splitsToInsert = splitResults.map((split) => {
+        const transactionsForRpc = [];
+        let allocatedAmount = 0;
+
+        for (let i = 0; i < installmentsToCreate; i++) {
+          const currentInstNum = startingInstallment + i;
+          const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
+          const formattedDate = dateUtils.formatDate(installmentDate);
+          const competenceDate = calculateCompetence(formattedDate);
+          const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
+
+          let currentAmount = installmentAmount;
+          if (i === installmentsToCreate - 1) {
+            currentAmount = SafeFinancialCalculator.subtract(input.amount, allocatedAmount);
+          } else {
+            allocatedAmount = SafeFinancialCalculator.add(allocatedAmount, currentAmount);
+          }
+
+          // Build embedded splits for this installment
+          let embeddedSplits: Record<string, unknown>[] = [];
+          if (finalSplits && finalSplits.length > 0) {
+            const splitResults = calculateTransactionSplits(currentAmount, finalSplits, user.id);
+            embeddedSplits = splitResults.map((split) => {
               const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
-              const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
-              const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
-              const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
-              
-              const splitAmount = split.amount;
-              
               return {
-                transaction_id: transaction.id,
-                member_id: actualMemberId,
-                user_id: actualUserId,
+                member_id: isUserId ? userIdToMemberId[split.member_id] : split.member_id,
+                user_id: isUserId ? split.member_id : memberUserIds[split.member_id],
                 percentage: split.percentage,
-                amount: splitAmount,
-                name: actualName || "Membro",
-                is_settled: false,
+                amount: split.amount,
+                name: (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) || "Membro",
               };
             });
-            allSplitsToInsert.push(...splitsToInsert);
           }
 
-          if (allSplitsToInsert.length > 0) {
-            const { error: splitsError } = await supabase
-              .from("transaction_splits")
-              .insert(allSplitsToInsert);
-            
-            if (splitsError) {
-              logger.error("Erro ao criar splits para parcela:", splitsError);
-              throw new Error(`Erro ao criar splits: ${splitsError.message}`);
-            }
-          }
+          transactionsForRpc.push({
+            ...transactionData,
+            amount: currentAmount,
+            date: formattedDate,
+            competence_date: competenceDate,
+            description: `${input.description} (${currentInstNum}/${input.total_installments})`,
+            current_installment: currentInstNum,
+            series_id: seriesId,
+            is_shared: isSharedNow,
+            domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+            payer_id: input.payer_id,
+            splits: embeddedSplits,
+          });
         }
+
+        const { data: rpcData, error } = await supabase.rpc('create_installment_series', {
+          p_transactions: transactionsForRpc,
+        });
+
+        if (error) {
+          logger.error("Erro ao criar parcelas (RPC atômica):", error);
+          throw error;
+        }
+
         if (finalSplits && finalSplits.length > 0) {
           try {
-            // Extracts unique user_ids from actual splits inserted
             const otherUserIds = Array.from(new Set(finalSplits.map(s => {
               const isUserId = !memberNames[s.member_id] && userIdToName[s.member_id];
               return isUserId ? s.member_id : memberUserIds[s.member_id];
-            }).filter(uid => uid && uid !== user?.id)));
+            }).filter((uid): uid is string => !!uid && uid !== user?.id)));
 
-            // Fire and forget notification
-            Promise.all(otherUserIds.map(otherUserId => 
+            Promise.all(otherUserIds.map(otherUserId =>
               createNotification({
                 user_id: otherUserId,
                 type: 'SHARED_EXPENSE',
@@ -340,7 +313,7 @@ export function useCreateTransaction() {
           }
         }
 
-        return data;
+        return rpcData;
       }
 
       // Transação única
@@ -390,25 +363,17 @@ export function useCreateTransaction() {
 
       const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: user.id,
-          creator_user_id: user.id,
-          competence_date: input.competence_date || calculateCompetence(input.date),
-          ...transactionData,
-          category_id: categoryId,
-          is_shared: isSharedNow,
-          domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
-          payer_id: input.payer_id
-        })
-        .select()
-        .single();
+      // Transação única — usa RPC atômica se tiver splits (ARC-01)
+      const txPayload = {
+        competence_date: input.competence_date || calculateCompetence(input.date),
+        ...transactionData,
+        category_id: categoryId,
+        is_shared: isSharedNow,
+        domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+        payer_id: input.payer_id,
+      };
 
-      if (error) {
-        logger.error("Erro ao criar transação:", error);
-        throw error;
-      }
+      let data: any;
 
       if (finalSplits && finalSplits.length > 0) {
         const memberIds = finalSplits.map(s => s.member_id);
@@ -416,12 +381,12 @@ export function useCreateTransaction() {
           .from("family_members")
           .select("id, name, linked_user_id")
           .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
-        
+
         const memberNames: Record<string, string> = {};
         const memberUserIds: Record<string, string> = {};
         const userIdToMemberId: Record<string, string> = {};
         const userIdToName: Record<string, string> = {};
-        
+
         membersData?.forEach(m => {
           memberNames[m.id] = m.name;
           if (m.linked_user_id) {
@@ -431,36 +396,43 @@ export function useCreateTransaction() {
           }
         });
 
-        // Utiliza a lógica do Matemático (SafeFinancialCalculator) para precisão de centavos
-        const splitResults = calculateTransactionSplits(data.amount, finalSplits, user.id);
-
-        const splitsToInsert = splitResults.map((split) => {
+        const splitResults = calculateTransactionSplits(input.amount, finalSplits, user.id);
+        const splitsPayload = splitResults.map((split) => {
           const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
-          const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
-          const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
-          const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
-          
-          const splitAmount = split.amount;
-          
           return {
-            transaction_id: data.id,
-            member_id: actualMemberId,
-            user_id: actualUserId,
+            member_id: isUserId ? userIdToMemberId[split.member_id] : split.member_id,
+            user_id: isUserId ? split.member_id : memberUserIds[split.member_id],
             percentage: split.percentage,
-            amount: splitAmount,
-            name: actualName || "Membro",
+            amount: split.amount,
+            name: (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) || "Membro",
             is_settled: false,
           };
         });
 
-        const { error: splitsError } = await supabase
-          .from("transaction_splits")
-          .insert(splitsToInsert);
+        const { data: rpcResult, error } = await supabase.rpc('create_transaction_with_splits', {
+          p_transaction: txPayload,
+          p_splits: splitsPayload,
+        });
 
-        if (splitsError) {
-          logger.error("Erro ao criar splits:", splitsError);
-          throw new Error(`Erro ao criar splits: ${splitsError.message}`);
+        if (error) {
+          logger.error("Erro ao criar transação+splits (RPC atômica):", error);
+          throw error;
         }
+
+        data = rpcResult;
+      } else {
+        const { data: inserted, error } = await supabase
+          .from("transactions")
+          .insert({ user_id: user.id, creator_user_id: user.id, ...txPayload })
+          .select()
+          .single();
+
+        if (error) {
+          logger.error("Erro ao criar transação:", error);
+          throw error;
+        }
+
+        data = inserted;
       }
 
       const isTransactionShared = (finalSplits && finalSplits.length > 0) || data?.domain === 'SHARED' || input.domain === 'SHARED';

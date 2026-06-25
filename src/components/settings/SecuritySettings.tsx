@@ -7,6 +7,7 @@ import { UserProfile } from "@/hooks/useUserProfile";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SecuritySettingsProps {
   profile: UserProfile | null;
@@ -40,28 +41,35 @@ export function SecuritySettings({ profile, isLoading, updateProfile }: Security
       return;
     }
 
-    const updates: any = { require_pin_on_open: requirePin };
-    
-    // Only update pin if they typed a new one (not the placeholder)
-    if (pin !== "****" && pin.length === 4) {
-      updates.app_pin = pin;
-    }
+    try {
+      if (!requirePin) {
+        // Disabling PIN: clear hash via RPC + update flag
+        const { error } = await supabase.rpc('clear_pin');
+        if (error) throw error;
+      } else if (pin !== "****" && pin.length >= 4) {
+        // New PIN: hash via RPC (never send to profiles directly)
+        const { error } = await supabase.rpc('set_pin', {
+          p_pin: pin,
+          p_require_on_open: requirePin,
+        });
+        if (error) throw error;
+      } else {
+        // Only toggling require_pin_on_open without changing PIN
+        await updateProfile.mutateAsync({ require_pin_on_open: requirePin });
+      }
 
-    if (!requirePin) {
-      // If turning off, we don't necessarily clear the pin, just turn off the requirement,
-      // but clearing it is safer.
-      updates.app_pin = null;
+      toast.success("Configuração de segurança salva!");
+      setIsEditing(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao salvar PIN.");
     }
-
-    await updateProfile.mutateAsync(updates);
-    setIsEditing(false);
   };
 
   if (isLoading) {
     return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  const hasPinSet = !!profile?.app_pin;
+  const hasPinSet = !!(profile as any)?.app_pin_hash;
 
   return (
     <div className="space-y-8 animate-fade-in">

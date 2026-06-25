@@ -9,62 +9,57 @@
 ## ESTADO ATUAL DA SESSÃO
 
 **Branch ativa:** `claude/compassionate-mendel-6zyijq`
-**Última ação:** Auditoria técnica E2E completa (5 passos) + criação dos docs de gestão de sessão
+**Última ação:** Implementação de todos os fixes críticos de segurança e arquitetura
 
 ---
 
 ## O QUE FOI FEITO NESTA SESSÃO
 
-1. **Auditoria técnica E2E completa** — 5 passos:
-   - Passo 1: 15 fluxos E2E mapeados com pontos críticos
-   - Passo 2: 5 cenários de concorrência/race conditions auditados
-   - Passo 3: Matriz de error handling por fluxo + análise do rpcWithRetry
-   - Passo 4: 9 vulnerabilidades de segurança classificadas por severidade
-   - Passo 5: Matriz de risco consolidada + pontos fortes + ranking de fixes
+1. **Auditoria técnica E2E completa** — 5 passos (15 fluxos, 9 vulnerabilidades, matriz de risco)
 
-2. **Arquivos deletados** (por solicitação do usuário — não eram mais seguidos):
-   - `.kiro/steering/elite-agency-rules.md`
-   - `.kiro/steering/design-system.md`
-   - `.agents/AGENTS.md`
-   - `.kiro/specs/seu-bolso-inteligente-critical-fixes/requirements.md`
+2. **Documentos de gestão de sessão criados:** `MASTER_BLUEPRINT.md`, `CHECKLIST.md`, `HANDOFF.md`
 
-3. **Documentos criados** (gestão de sessão):
-   - `MASTER_BLUEPRINT.md` — mapa arquitetural completo
-   - `CHECKLIST.md` — kanban de tarefas em markdown
-   - `HANDOFF.md` — este documento
+3. **[SEC-01] Mock Auth bypass removido de produção**
+   - `src/contexts/AuthContext.tsx:24` — gate com `import.meta.env.DEV`
+
+4. **[SEC-02] PIN hashing via pgcrypto**
+   - Migration: `app_pin_hash` column + `verify_pin` / `set_pin` / `clear_pin` RPCs
+   - `PinWrapper.tsx` — verificação via RPC, lockout após 5 tentativas (60s)
+   - `SecuritySettings.tsx` — salva PIN via RPC (nunca plaintext)
+
+5. **[ARC-01] Transação simples + splits: atomicidade garantida**
+   - Migration: RPC `create_transaction_with_splits(p_transaction, p_splits)` — SECURITY DEFINER
+   - `useCreateTransaction.ts` — usa RPC quando há splits, INSERT direto quando não há
+
+6. **[ARC-02] Parcelamentos: atomicidade garantida**
+   - Migration: RPC `create_installment_series(p_transactions)` — splits embutidos em cada tx
+   - `useCreateTransaction.ts` — resolve membros ANTES do insert, embute splits, chama RPC
+
+7. **[SEC-03] Content-Security-Policy adicionado**
+   - `vercel.json` — CSP cobrindo Supabase, BCB, BrAPI, Yahoo Finance, blobs
+
+8. **Arquivos deletados** (outdated rules, por solicitação):
+   - `.kiro/steering/elite-agency-rules.md`, `design-system.md`, `.agents/AGENTS.md`, `requirements.md`
 
 ---
 
 ## PRÓXIMAS AÇÕES RECOMENDADAS (por prioridade)
 
-### 1. Fix IMEDIATO — 5 minutos (SEC-01)
-```typescript
-// src/contexts/AuthContext.tsx:24
-// ANTES:
-const isMockAuth = localStorage.getItem('PLAYWRIGHT_MOCK_AUTH') === 'true';
-// DEPOIS:
-const isMockAuth = import.meta.env.DEV && localStorage.getItem('PLAYWRIGHT_MOCK_AUTH') === 'true';
-```
+### 1. SEC-05 — OAuth redirect em Vercel Preview URLs (config Supabase, sem código)
+- No painel Supabase → Authentication → URL Configuration → Allowed Redirect URLs
+- Adicionar: `https://*.vercel.app/**` e `https://*.vercel.app/`
 
-### 2. Fix IMEDIATO — 5 minutos (SEC-03)
-Adicionar em `vercel.json` dentro do array de headers:
-```json
-{
-  "key": "Content-Security-Policy",
-  "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.bcb.gov.br; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
-}
-```
+### 2. RLS-01 — Cross-family cartão compartilhado
+- Requer policy com `SECURITY DEFINER` para evitar recursão infinita
+- Mencionado no CLAUDE_HANDOFF.md como pendente
 
-### 3. Fix MÉDIO (ARC-01 + ARC-02) — RPCs atômicas
-- Criar RPC `create_shared_transaction()` para transações compartilhadas
-- Criar RPC `create_installment_series()` para parcelamentos
-- Ambas com `BEGIN/COMMIT/ROLLBACK`
+### 3. ARC-03 — AbortController em rpcWithRetry
+- Arquivo: `src/utils/rpcWithRetry.ts`
+- `Promise.race` não cancela a request original; adicionar `AbortController`
 
-### 4. Fix MÉDIO (SEC-02) — PIN seguro
-- Criar RPC `verify_pin(p_pin_hash TEXT) RETURNS BOOLEAN`
-- Hash com `pgcrypto.crypt()` no banco
-- Rate limit: max 5 tentativas por hora por usuário
-- Remover `app_pin` plaintext do `profiles`
+### 4. FEAT-01 — Relatório mensal por email
+- Edge Function + Resend/SendGrid
+- pg_cron trigger no último dia do mês
 
 ---
 
@@ -92,12 +87,13 @@ Adicionar em `vercel.json` dentro do array de headers:
 
 ## VULNERABILIDADES CRÍTICAS ABERTAS
 
-| ID | Local | Descrição | Fix |
+| ID | Local | Descrição | Status |
 |---|---|---|---|
-| SEC-01 | AuthContext.tsx:24 | Mock Auth em produção | `import.meta.env.DEV &&` |
-| SEC-02 | PinWrapper.tsx | PIN plaintext + sem rate limit | RPC bcrypt |
-| ARC-01 | hooks/useSharedExpenses | N inserts sem atomicidade | RPC atômica |
-| ARC-02 | hooks/transactions/* | Parcelamento sem rollback | RPC atômica |
+| SEC-05 | AuthContext.tsx:85 | OAuth quebra em Vercel Preview URLs | 🟡 Config Supabase |
+| RLS-01 | migrations | RLS cross-family cartão compartilhado | 🟡 Pendente |
+| ARC-03 | rpcWithRetry.ts | Promise.race leak (conexões zumbi) | 🟡 Backlog |
+
+> Vulnerabilidades SEC-01, SEC-02, SEC-03, ARC-01, ARC-02 foram corrigidas nesta sessão ✅
 
 ---
 

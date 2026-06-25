@@ -7,36 +7,30 @@
 
 ## 🔴 CRÍTICO — Fazer Agora (Bloqueadores de Segurança)
 
-- [ ] **[SEC-01]** Remover Mock Auth de produção
-  - Arquivo: `src/contexts/AuthContext.tsx:24`
-  - Fix: `if (import.meta.env.DEV && localStorage.getItem('PLAYWRIGHT_MOCK_AUTH') === 'true')`
-  - Esforço: XS (1 linha)
+- [x] **[SEC-01]** ~~Remover Mock Auth de produção~~ ✅ DONE
+  - `AuthContext.tsx:24` — gate com `import.meta.env.DEV`
 
-- [ ] **[SEC-02]** PIN: mover verificação para RPC com bcrypt
-  - Arquivo: `src/components/auth/PinWrapper.tsx`
-  - Fix: criar RPC `verify_pin(p_pin_hash TEXT) RETURNS BOOLEAN` com rate limit no DB
-  - Remover `profiles.app_pin` plaintext; migrar para hash
-  - Esforço: M (1-2 dias)
+- [x] **[SEC-02]** ~~PIN: mover verificação para RPC com bcrypt~~ ✅ DONE
+  - Migration: `pgcrypto` + `app_pin_hash` column + `verify_pin` / `set_pin` / `clear_pin` RPCs
+  - Frontend: `PinWrapper.tsx` — RPC call + lockout 5 tentativas / 60s
+  - Frontend: `SecuritySettings.tsx` — `set_pin` / `clear_pin` RPCs
 
-- [ ] **[ARC-01]** Transações compartilhadas: atomicidade via RPC
-  - Problema: N inserts sequenciais sem rollback
-  - Fix: criar RPC `create_shared_transaction(...)` com `BEGIN/COMMIT/ROLLBACK`
-  - Esforço: M
+- [x] **[ARC-01]** ~~Transações compartilhadas: atomicidade via RPC~~ ✅ DONE
+  - Migration: `create_transaction_with_splits(p_transaction, p_splits)` RPC
+  - Frontend: `useCreateTransaction.ts` — usa RPC atômica quando há splits
 
-- [ ] **[ARC-02]** Parcelamentos: atomicidade via RPC
-  - Problema: N inserts sequenciais sem rollback
-  - Fix: criar RPC `create_installment_series(...)` com `BEGIN/COMMIT/ROLLBACK`
-  - Esforço: M
+- [x] **[ARC-02]** ~~Parcelamentos: atomicidade via RPC~~ ✅ DONE
+  - Migration: `create_installment_series(p_transactions)` RPC com splits embutidos
+  - Frontend: `useCreateTransaction.ts` — usa RPC atômica para todos os parcelamentos
 
 ---
 
 ## 🟠 ALTA PRIORIDADE — Esta Semana
 
-- [ ] **[SEC-03]** Adicionar Content-Security-Policy em `vercel.json`
-  - Valor sugerido: `default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'`
-  - Esforço: XS
+- [x] **[SEC-03]** ~~Adicionar Content-Security-Policy em `vercel.json`~~ ✅ DONE
+  - CSP adicionado cobrindo supabase, bcb.gov.br, brapi.dev
 
-- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs
+- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)
   - Problema: `window.location.origin` em `AuthContext.tsx:85` falha em previews
   - Fix: cadastrar wildcard `https://*.vercel.app/**` no Supabase Auth → Allowed Redirect URLs
   - Esforço: XS (config Supabase, sem código)
