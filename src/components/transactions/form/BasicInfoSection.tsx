@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,8 @@ export function BasicInfoSection({
     _setHasUserSelectedCategoryManually(true);
   };
   const activeTab = useTransactionStore((state) => state.activeTab);
+  const [descTouched, setDescTouched] = useState(false);
+  const descError = descTouched && !description.trim();
 
   const isTransfer = activeTab === 'TRANSFER';
 
@@ -46,13 +49,16 @@ export function BasicInfoSection({
     <div className="space-y-4">
       {/* Description */}
       <div className="space-y-2 relative">
-        <Label>Descrição</Label>
+        <Label className="flex items-center gap-1">
+          Descrição <span className="text-destructive">*</span>
+        </Label>
         <div className="relative">
           <Input
             placeholder="Ex: Almoço, Uber, Salário"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="pr-10 text-base relative z-10 bg-transparent"
+            onBlur={() => setDescTouched(true)}
+            className={cn("pr-10 text-base relative z-10 bg-transparent", descError && "border-destructive focus-visible:ring-destructive")}
           />
           
           {isPredicting && (
@@ -61,6 +67,7 @@ export function BasicInfoSection({
             </div>
           )}
         </div>
+        {descError && <p className="text-xs text-destructive font-medium">Descrição é obrigatória</p>}
       </div>
 
       {/* Date & Category (responsive: stacked on mobile, side by side on sm screens) */}

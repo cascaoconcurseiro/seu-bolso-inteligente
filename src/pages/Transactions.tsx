@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getTransactionCurrency, groupTransactionsByDay } from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { haptics } from "@/utils/haptics";
 
@@ -157,6 +158,18 @@ export function Transactions() {
   const dayGroups = useMemo(() => groupTransactionsByDay(displayTransactions), [displayTransactions]);
   const totalIncome = filteredTransactions.filter((t) => t.type === "INCOME").reduce((sum, t) => sum + Number(t.amount), 0);
   const totalExpense = filteredTransactions.filter((t) => t.type === "EXPENSE").reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const currencySummaries = useMemo(() => {
+    if (selectedCurrency !== 'all') return null;
+    const map: Record<string, { income: number; expense: number }> = {};
+    filteredTransactions.forEach((t) => {
+      const cur = getTransactionCurrency(t);
+      if (!map[cur]) map[cur] = { income: 0, expense: 0 };
+      if (t.type === 'INCOME') map[cur].income += Number(t.amount);
+      if (t.type === 'EXPENSE') map[cur].expense += Number(t.amount);
+    });
+    return Object.entries(map).filter(([, v]) => v.income > 0 || v.expense > 0);
+  }, [filteredTransactions, selectedCurrency]);
   const hasFilters = selectedType !== "all" || selectedCategory !== "all" || selectedAccount !== "all" || selectedPeriod !== "all";
 
   const clearFilters = () => {
@@ -276,11 +289,22 @@ export function Transactions() {
       
       {selectedCurrency !== 'all' ? (
         <TransactionSummary totalIncome={totalIncome} totalExpense={totalExpense} formatCurrency={(v) => formatCurrency(v, selectedCurrency)} />
-      ) : (
-        <div className="p-4 rounded-xl border border-border bg-card text-center text-muted-foreground text-sm">
-          Selecione uma moeda específica para ver o resumo de receitas e despesas.
+      ) : currencySummaries && currencySummaries.length > 0 ? (
+        <div className="space-y-2">
+          {currencySummaries.map(([cur, { income, expense }]) => (
+            <div key={cur} className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border bg-card text-sm">
+              <span className="font-bold text-xs uppercase tracking-widest text-muted-foreground w-10 shrink-0">{cur}</span>
+              <span className="text-positive font-mono font-bold tabular-nums">+{formatCurrency(income, cur)}</span>
+              <span className="text-muted-foreground mx-1">·</span>
+              <span className="text-negative font-mono font-bold tabular-nums">-{formatCurrency(expense, cur)}</span>
+              <span className="text-muted-foreground mx-1">·</span>
+              <span className={cn("font-mono font-bold tabular-nums ml-auto", income - expense >= 0 ? "text-primary" : "text-warning")}>
+                {income - expense >= 0 ? '+' : '-'}{formatCurrency(Math.abs(income - expense), cur)}
+              </span>
+            </div>
+          ))}
         </div>
-      )}
+      ) : null}
       <TransactionFilters
         searchQuery={searchQuery} setSearchQuery={setSearchQuery}
         selectedType={selectedType} setSelectedType={setSelectedType}

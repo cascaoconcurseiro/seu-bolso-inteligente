@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { sheetDialogCn } from "@/lib/dialog-variants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +59,7 @@ export function DeleteTransactionModal({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="border-border/50 max-w-md shadow-2xl w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+      <AlertDialogContent className={`max-w-md border-border/50 ${sheetDialogCn}`}>
         <AlertDialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <AlertDialogTitle>Excluir Transação</AlertDialogTitle>
           <AlertDialogDescription>
