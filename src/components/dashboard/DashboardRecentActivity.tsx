@@ -86,7 +86,7 @@ export function DashboardRecentActivity({
                         {tx.description}
                       </p>
                       {tx.is_shared && (
-                        <div className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_rgba(37,99,235,0.5)]" title="Compartilhado" />
+                        <div className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_hsl(var(--accent)/0.5)]" title="Compartilhado" />
                       )}
                     </div>
                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
