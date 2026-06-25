@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '@/components/ui/currency-input';
 import { AmountInput } from '@/components/ui/amount-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGoals } from '@/hooks/useGoals';
 import { useAccounts } from '@/hooks/useAccounts';
+import { useGoalHistory } from '@/hooks/useGoalHistory';
 import { Goal } from '@/types/database';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logger } from '@/utils/logger';
+import { moneyUtils } from '@/utils/money';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { AreaChart, Area, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer } from 'recharts';
 
 interface GoalContributeDialogProps {
   isOpen: boolean;
@@ -22,6 +25,7 @@ interface GoalContributeDialogProps {
 export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDialogProps) {
   const { contributeToGoal } = useGoals();
   const { data: accounts } = useAccounts();
+  const { data: history = [] } = useGoalHistory(goal.id, goal.name);
 
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'add' | 'withdraw'>('add');
@@ -72,6 +76,38 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
         </DialogHeader>
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
+          {/* Gráfico de evolução */}
+          {history.length >= 2 && (
+            <div className="mb-4">
+              <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest mb-2">Evolução do saldo</p>
+              <ResponsiveContainer width="100%" height={100}>
+                <AreaChart data={history} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="goalGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" hide />
+                  <YAxis hide domain={['auto', 'auto']} />
+                  <ReTooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const p = payload[0].payload;
+                      return (
+                        <div className="bg-popover border border-border rounded-lg px-3 py-1.5 text-xs shadow-lg">
+                          <p className="text-muted-foreground">{format(new Date(p.date), "dd MMM yyyy", { locale: ptBR })}</p>
+                          <p className="font-bold text-foreground">{moneyUtils.format(p.cumulative, 'BRL')}</p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Area type="monotone" dataKey="cumulative" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#goalGrad)" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex bg-secondary p-1 rounded-xl border border-border">
             <button

@@ -1,4 +1,4 @@
-import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock, ChevronDown } from 'lucide-react';
+import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock, ChevronDown, FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { GoalMilestonesPanel } from './GoalMilestonesPanel';
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { differenceInMonths, format, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Goal } from '../../types/database';
+import { toast } from 'sonner';
 
 interface GoalCardProps {
   goal: Goal;
@@ -17,6 +18,77 @@ interface GoalCardProps {
   onEdit: (goal: Goal) => void;
   onDelete: (goal: Goal) => void;
   onContribute: (goal: Goal) => void;
+}
+
+async function exportGoalToPDF(goal: Goal) {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const percentage = goal.target_amount > 0
+    ? Math.min(100, ((goal.current_amount ?? 0) / goal.target_amount) * 100)
+    : 0;
+  const remaining = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
+  const now = new Date();
+
+  // Header
+  doc.setFillColor(16, 185, 129); // primary green
+  doc.rect(0, 0, 210, 35, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Resumo da Meta', 14, 16);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text(goal.name, 14, 26);
+
+  // Gerado em
+  doc.setFontSize(9);
+  doc.text(`Gerado em ${format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 14, 32);
+
+  // Reset color
+  doc.setTextColor(30, 30, 30);
+
+  // Status badge
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  const statusLabel = goal.status === 'COMPLETED' ? 'Concluída' : 'Em Progresso';
+  doc.text(`Status: ${statusLabel}`, 14, 46);
+
+  // Valores
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(`Acumulado:  ${moneyUtils.format(goal.current_amount ?? 0, 'BRL')}`, 14, 56);
+  doc.text(`Objetivo:       ${moneyUtils.format(goal.target_amount, 'BRL')}`, 14, 63);
+  doc.text(`Progresso:   ${percentage.toFixed(1)}%`, 14, 70);
+  if (remaining > 0) doc.text(`Faltam:          ${moneyUtils.format(remaining, 'BRL')}`, 14, 77);
+
+  // Barra de progresso
+  doc.setFillColor(229, 231, 235);
+  doc.roundedRect(14, 83, 182, 7, 2, 2, 'F');
+  doc.setFillColor(16, 185, 129);
+  doc.roundedRect(14, 83, Math.max(2, (percentage / 100) * 182), 7, 2, 2, 'F');
+
+  // Datas
+  let y = 100;
+  if (goal.target_date) {
+    doc.text(`Prazo:  ${format(new Date(goal.target_date), "dd/MM/yyyy", { locale: ptBR })}`, 14, y);
+    y += 7;
+  }
+  doc.text(`Criada em:  ${format(new Date(goal.created_at), "dd/MM/yyyy", { locale: ptBR })}`, 14, y);
+  y += 7;
+  if (goal.description) {
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    const lines = doc.splitTextToSize(`Descrição: ${goal.description}`, 182);
+    doc.text(lines, 14, y + 4);
+  }
+
+  // Footer
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text('Pé de Meia — seu controle financeiro pessoal', 14, 285);
+
+  doc.save(`meta-${goal.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
 }
 
 export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCardProps) {
@@ -91,6 +163,9 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
           </div>
           
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+            <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }} className="h-8 w-8 rounded-lg hover:bg-muted">
+              <FileDown className="w-4 h-4 text-muted-foreground transition-colors" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={() => onEdit(goal)} className="h-8 w-8 rounded-lg hover:bg-primary/10">
               <Edit className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </Button>

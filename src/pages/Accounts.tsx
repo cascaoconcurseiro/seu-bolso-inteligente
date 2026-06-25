@@ -7,8 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Wallet, Plus, Globe, Download, Loader2 } from "lucide-react";
-import { useAccounts, useCreateAccount } from "@/hooks/useAccounts";
+import { Wallet, Plus, Globe, Download, Loader2, Edit, Archive } from "lucide-react";
+import { useAccounts, useCreateAccount, useUpdateAccount, useArchiveAccount } from "@/hooks/useAccounts";
+import { SwipeableRow } from "@/components/ui/SwipeableRow";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -41,7 +42,11 @@ export function Accounts() {
     endDate: `${currentDate.getFullYear()}-12-31`
   });
   const createAccount = useCreateAccount();
+  const updateAccount = useUpdateAccount();
+  const archiveAccount = useArchiveAccount();
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
+
+  const [editAccount, setEditAccount] = useState<typeof accounts[0] | null>(null);
 
   const regularAccounts = useMemo(() => {
     const endOfCurrentMonth = dateFns.endOfMonth(currentDate);
@@ -115,6 +120,12 @@ export function Accounts() {
     setShowAddDialog(false);
   };
 
+  const handleEditSubmit = async (data: any) => {
+    if (!editAccount) return;
+    await updateAccount.mutateAsync({ id: editAccount.id, ...data });
+    setEditAccount(null);
+  };
+
   if (isLoading) return (
     <div className="space-y-8 animate-fade-in pb-20">
       <div className="relative overflow-hidden rounded-2xl p-6 border border-border/50 bg-card/50">
@@ -186,12 +197,12 @@ export function Accounts() {
 
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">Contas Nacionais ({nationalAccounts.length})</h2>
-        {nationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl"><Wallet className="h-10 w-10 mx-auto mb-3 text-muted-foreground" /><p className="text-muted-foreground">Nenhuma conta cadastrada</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{nationalAccounts.map(acc => <AccountCard key={acc.id} account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} />)}</div>}
+        {nationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl"><Wallet className="h-10 w-10 mx-auto mb-3 text-muted-foreground" /><p className="text-muted-foreground">Nenhuma conta cadastrada</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{nationalAccounts.map(acc => <SwipeableRow key={acc.id} className="rounded-2xl" leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }} rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}><AccountCard account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} /></SwipeableRow>)}</div>}
       </div>
 
       <div className="space-y-4">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2"><Globe className="h-4 w-4" /> Contas Internacionais ({internationalAccounts.length})</h2>
-        {internationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl bg-accent/5"><Globe className="h-10 w-10 mx-auto mb-3 text-accent" /><p className="text-muted-foreground mb-4">Nenhuma conta global</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{internationalAccounts.map(acc => <AccountCard key={acc.id} account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} />)}</div>}
+        {internationalAccounts.length === 0 ? <div className="py-12 text-center border border-dashed rounded-xl bg-accent/5"><Globe className="h-10 w-10 mx-auto mb-3 text-accent" /><p className="text-muted-foreground mb-4">Nenhuma conta global</p></div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{internationalAccounts.map(acc => <SwipeableRow key={acc.id} className="rounded-2xl" leftAction={{ icon: <Edit className="w-5 h-5" />, color: "bg-primary", label: "Editar", onClick: () => setEditAccount(acc) }} rightAction={{ icon: <Archive className="w-5 h-5" />, color: "bg-muted-foreground", label: "Arquivar", onClick: () => archiveAccount.mutate(acc.id) }}><AccountCard account={acc} lastTransactions={getLastTransactions(acc.id)} formatCurrency={formatCurrency} getCurrencySymbol={getCurrencySymbol} accountTypeLabels={accountTypeLabels} /></SwipeableRow>)}</div>}
       </div>
 
       <AccountFormModal
@@ -200,6 +211,15 @@ export function Accounts() {
         onSubmit={handleCreateSubmit}
         mode="create"
         isLoading={createAccount.isPending}
+      />
+
+      <AccountFormModal
+        isOpen={!!editAccount}
+        onClose={() => setEditAccount(null)}
+        onSubmit={handleEditSubmit}
+        mode="edit"
+        initialData={editAccount}
+        isLoading={updateAccount.isPending}
       />
 
       <ArchivedAccountsSection />
