@@ -70,10 +70,14 @@ export function TransactionItem({
   const payerInfo = getPayerInfo(transaction);
   const isPayer = transaction.payer_id === user?.id || transaction.creator_user_id === user?.id;
   
-  // Swipe to delete logic
-  const [isSwiped, setIsSwiped] = useState(false);
+  // Swipe: left = delete, right = edit
   const [swipeOffset, setSwipeOffset] = useState(0);
   const touchStartX = useRef<number | null>(null);
+  // 'left' = delete revealed, 'right' = edit revealed, null = neutral
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
+
+  const SWIPE_THRESHOLD = 48; // px mínimo para revelar ação
+  const SWIPE_MAX = 80;       // px máximo de deslocamento
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -82,33 +86,40 @@ export function TransactionItem({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const diff = e.touches[0].clientX - touchStartX.current;
-    
-    if (diff < 0) {
-      const newOffset = Math.max(diff, -80);
-      if (swipeOffset > -40 && newOffset <= -40) {
-        haptics.light();
-      }
+
+    if (diff < 0 && canDelete) {
+      // Swipe left → deletar
+      const newOffset = Math.max(diff, -SWIPE_MAX);
+      if (swipeOffset > -SWIPE_THRESHOLD && newOffset <= -SWIPE_THRESHOLD) haptics.light();
       setSwipeOffset(newOffset);
-      if (diff < -40) {
-        setIsSwiped(true);
-      }
-    } else if (diff > 40) {
-      setIsSwiped(false);
-      setSwipeOffset(0);
+      setSwipeDir('left');
+    } else if (diff > 0) {
+      // Swipe right → editar
+      const newOffset = Math.min(diff, SWIPE_MAX);
+      if (swipeOffset < SWIPE_THRESHOLD && newOffset >= SWIPE_THRESHOLD) haptics.light();
+      setSwipeOffset(newOffset);
+      setSwipeDir('right');
     }
   };
 
   const handleTouchEnd = () => {
     touchStartX.current = null;
-    if (swipeOffset < -40) {
-      setSwipeOffset(-80);
-      setIsSwiped(true);
+    if (swipeOffset <= -SWIPE_THRESHOLD && canDelete) {
+      setSwipeOffset(-SWIPE_MAX);
       haptics.medium();
+    } else if (swipeOffset >= SWIPE_THRESHOLD) {
+      // Swipe right confirmado → disparar edição imediatamente
+      haptics.medium();
+      setSwipeOffset(0);
+      setSwipeDir(null);
+      onEdit(transaction);
     } else {
       setSwipeOffset(0);
-      setIsSwiped(false);
+      setSwipeDir(null);
     }
   };
+
+  const isSwiped = swipeDir === 'left' && swipeOffset <= -SWIPE_THRESHOLD;
   
   let displayType = transaction.type;
   if (transaction.is_shared && !isPayer) {
@@ -152,29 +163,34 @@ export function TransactionItem({
 
   return (
     <div className="relative overflow-hidden group/item border-b last:border-0 border-border/50">
-      {/* Background Delete Button (revealed on swipe) */}
-      <div 
-        className="absolute right-0 top-0 bottom-0 w-20 bg-destructive flex items-center justify-center text-white cursor-pointer transition-opacity"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(transaction);
-        }}
+      {/* Background Edit Button (revealed on swipe RIGHT) */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-20 bg-primary flex items-center justify-center text-white cursor-pointer"
+        onClick={(e) => { e.stopPropagation(); onEdit(transaction); }}
+      >
+        <Edit className="h-5 w-5" />
+      </div>
+
+      {/* Background Delete Button (revealed on swipe LEFT) */}
+      <div
+        className="absolute right-0 top-0 bottom-0 w-20 bg-destructive flex items-center justify-center text-white cursor-pointer"
+        onClick={(e) => { e.stopPropagation(); onDelete(transaction); }}
       >
         <Trash2 className="h-5 w-5" />
       </div>
 
-      {/* Main Content (slides left) */}
+      {/* Main Content (slides based on swipe direction) */}
       <div
         className={cn(
           "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background cursor-pointer relative z-10",
           settled && "opacity-60 bg-success/5 dark:bg-success/10",
           touchStartX.current === null && "transition-transform duration-200"
         )}
-        style={{ transform: `translateX(${isSwiped ? -80 : swipeOffset}px)` }}
+        style={{ transform: `translateX(${isSwiped ? -SWIPE_MAX : swipeOffset}px)` }}
         onClick={() => {
-          if (isSwiped) {
-            setIsSwiped(false);
+          if (swipeDir) {
             setSwipeOffset(0);
+            setSwipeDir(null);
           } else {
             onDetails(transaction);
           }
