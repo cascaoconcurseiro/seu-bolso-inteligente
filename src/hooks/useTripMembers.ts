@@ -7,7 +7,8 @@ import { logger } from "@/utils/logger";
 export interface TripMember {
   id: string;
   trip_id: string;
-  user_id: string;
+  user_id: string | null;   // null para participantes sem conta (guests)
+  guest_name?: string | null; // nome do convidado externo
   role: 'owner' | 'member';
   can_edit_details: boolean;
   can_manage_expenses: boolean;
@@ -18,6 +19,8 @@ export interface TripMember {
     full_name: string | null;
     email: string;
   };
+  // Campo computado: nome de exibição (perfil ou guest_name)
+  display_name?: string;
 }
 
 // Hook para buscar membros de uma viagem
@@ -31,7 +34,7 @@ export function useTripMembers(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_members")
-        .select("id, trip_id, user_id, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at")
+        .select("id, trip_id, user_id, guest_name, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at")
         .eq("trip_id", tripId)
         .order("created_at");
 
@@ -39,23 +42,29 @@ export function useTripMembers(tripId: string | null) {
         throw error;
       }
 
-      // Buscar dados dos profiles separadamente
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(m => m.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .in("id", userIds);
+        // Só buscar profiles para membros com user_id
+        const userIds = [...new Set(data.map(m => m.user_id).filter(Boolean))] as string[];
+        const profilesMap = new Map<string, { full_name: string | null; email: string }>();
 
-        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", userIds);
+          profiles?.forEach(p => profilesMap.set(p.id, p));
+        }
 
-        // Aplicar privacidade de orçamento: apenas o próprio usuário vê seu orçamento
-        const enrichedData = data.map(member => ({
-          ...member,
-          profiles: profilesMap.get(member.user_id),
-          // Ocultar orçamento pessoal de outros membros
-          personal_budget: member.user_id === user?.id ? member.personal_budget : null,
-        }));
+        const enrichedData = data.map(member => {
+          const profile = member.user_id ? profilesMap.get(member.user_id) : undefined;
+          const display_name = profile?.full_name || profile?.email || member.guest_name || 'Convidado';
+          return {
+            ...member,
+            profiles: profile,
+            display_name,
+            personal_budget: member.user_id === user?.id ? member.personal_budget : null,
+          };
+        });
 
         return enrichedData as TripMember[];
       }
@@ -103,6 +112,39 @@ export function useAddTripMember() {
     onError: (error: Error) => {
       logger.error("Erro ao adicionar membro:", error);
       toast.error("Erro ao adicionar membro à viagem");
+    },
+  });
+}
+
+// Hook para adicionar convidado externo (sem conta no app)
+export function useAddGuestTripMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ tripId, guestName }: { tripId: string; guestName: string }) => {
+      const { data, error } = await supabase
+        .from("trip_members")
+        .insert({
+          trip_id: tripId,
+          user_id: null,
+          guest_name: guestName.trim(),
+          role: 'member',
+          can_edit_details: false,
+          can_manage_expenses: false,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["trip-members", variables.tripId] });
+      toast.success("Convidado adicionado à viagem");
+    },
+    onError: (error: Error) => {
+      logger.error("Erro ao adicionar convidado:", error);
+      toast.error("Erro ao adicionar convidado");
     },
   });
 }

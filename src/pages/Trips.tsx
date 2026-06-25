@@ -6,7 +6,7 @@ import { Plus, Loader2, Trash2 } from "lucide-react";
 import { useTrips, useTrip, useTripParticipants, useTripTransactions, useTripFinancialSummary, useCreateTrip, useUpdateTrip, useDeleteTrip, useArchiveTrip, useUnarchiveTrip, useTripParticipantBalances, useRemoveTripParticipant } from "@/hooks/useTrips";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { NewTripDialog } from "@/components/trips/NewTripDialog";
-import { useTripPermissions } from "@/hooks/useTripMembers";
+import { useTripPermissions, useAddGuestTripMember } from "@/hooks/useTripMembers";
 import { EditTripDialog } from "@/components/trips/EditTripDialog";
 
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
@@ -80,6 +80,7 @@ export function Trips() {
   const archiveTrip = useArchiveTrip();
   const unarchiveTrip = useUnarchiveTrip();
   const createInvitation = useCreateTripInvitation();
+  const addGuestMember = useAddGuestTripMember();
   const { data: sentInvitations = [] } = useSentTripInvitations(selectedTripId);
   const pendingInvitations = sentInvitations.filter((inv: any) => inv.status === 'pending');
   const cancelInvitation = useCancelTripInvitation();
@@ -306,8 +307,14 @@ export function Trips() {
               }
             } 
           }} 
-          onNavigateToFamily={() => { setShowAddParticipantDialog(false); navigate("/familia"); }} 
-          getInitials={(n) => n.split(" ").map(x => x[0]).join("").toUpperCase().slice(0, 2)} 
+          onAddGuest={async (guestName) => {
+            if (selectedTripId) {
+              await addGuestMember.mutateAsync({ tripId: selectedTripId, guestName });
+              setShowAddParticipantDialog(false);
+            }
+          }}
+          onNavigateToFamily={() => { setShowAddParticipantDialog(false); navigate("/familia"); }}
+          getInitials={(n) => n.split(" ").map(x => x[0]).join("").toUpperCase().slice(0, 2)}
         />
         
         <EditTripDialog 
