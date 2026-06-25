@@ -1,4 +1,6 @@
-import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock } from 'lucide-react';
+import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { GoalMilestonesPanel } from './GoalMilestonesPanel';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from '@/utils/money';
@@ -18,6 +20,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCardProps) {
+  const [showMilestones, setShowMilestones] = useState(false);
   const percentage = goal.target_amount > 0 ? Math.min(100, Math.max(0, ((goal.current_amount ?? 0) / goal.target_amount) * 100)) : 0;
   const remaining = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
   
@@ -221,6 +224,17 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             <ArrowRightLeft className="w-4 h-4" />
             <span className="font-bold text-sm uppercase tracking-wider">Movimentar Saldo</span>
           </Button>
+
+          {/* Marcos */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+            onClick={() => setShowMilestones(!showMilestones)}
+          >
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showMilestones && "rotate-180")} />
+            {showMilestones ? "Ocultar marcos" : "Ver marcos de progresso"}
+          </button>
+          {showMilestones && <GoalMilestonesPanel goal={goal} />}
         </div>
       </div>
     </div>
