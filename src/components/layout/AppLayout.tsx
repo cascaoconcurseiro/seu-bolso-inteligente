@@ -32,6 +32,7 @@ import {
   Search,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { navigationItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -45,25 +46,11 @@ import { MonthSelector } from "./MonthSelector";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
 import { QuickAddModal } from "@/components/modals/QuickAddModal";
-import { DraggableQuickAddFAB } from "@/components/ui/DraggableQuickAddFAB";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 
-const navigationItems = [
-  { path: "/", label: "Início", icon: LayoutDashboard },
-  { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
-  { path: "/contas", label: "Contas", icon: Wallet },
-  { path: "/cartoes", label: "Cartões", icon: CreditCard },
-  { path: "/compartilhados", label: "Compartilhados", icon: Users },
-  { path: "/viagens", label: "Viagens", icon: Plane },
-  { path: "/familia", label: "Família", icon: UsersRound },
-  { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
-  { path: "/metas", label: "Metas & Inv.", icon: Target },
-  { path: "/simuladores", label: "Simuladores", icon: Calculator },
-];
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -80,6 +67,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
   const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } = useTransactionModal();
+
   const { isPrivate, togglePrivacy } = usePrivacy();
   const [showSearch, setShowSearch] = useState(false);
 
@@ -313,7 +301,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         onClose={() => setShowQuickAddModal(false)} 
       />
 
-      <DraggableQuickAddFAB onClick={() => setShowQuickAddModal(true)} />
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
     </div>
   );

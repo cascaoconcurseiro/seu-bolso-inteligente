@@ -39,7 +39,6 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
 import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
-import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 

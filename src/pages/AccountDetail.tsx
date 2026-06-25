@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
 import { logger } from '@/utils/logger';
+import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 
 export function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -156,8 +157,16 @@ export function AccountDetail() {
   const isCredit = account.type === "CREDIT_CARD";
   const monthLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
 
+  // Stats mensais calculados a partir das transações do extrato
+  const monthIncome = transactions
+    .filter(tx => tx.isIncoming && !tx.isInitialBalance)
+    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
+  const monthExpense = transactions
+    .filter(tx => !tx.isIncoming && !tx.isInitialBalance && tx.type !== "TRANSFER")
+    .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-24 md:pb-8">
       <AccountHeader account={account} bank={bank} />
 
       <AccountBalanceCard
@@ -174,6 +183,30 @@ export function AccountDetail() {
         onArchive={() => setShowArchiveConfirmModal(true)}
         onUnarchive={handleUnarchive}
       />
+
+      {/* Mini stats do mês */}
+      {transactions.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-success/8 border border-success/20">
+            <div className="p-2 rounded-lg bg-success/15">
+              <TrendingUp className="h-4 w-4 text-success" />
+            </div>
+            <div>
+              <p className="text-[11px] text-success/70 font-bold uppercase tracking-wider">Entradas</p>
+              <p className="text-sm font-bold text-success">{formatCurrency(monthIncome, accountCurrency)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/8 border border-destructive/20">
+            <div className="p-2 rounded-lg bg-destructive/15">
+              <TrendingDown className="h-4 w-4 text-destructive" />
+            </div>
+            <div>
+              <p className="text-[11px] text-destructive/70 font-bold uppercase tracking-wider">Saídas</p>
+              <p className="text-sm font-bold text-destructive">{formatCurrency(monthExpense, accountCurrency)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cabeçalho do extrato com o mês sendo exibido */}
       <div className="flex items-center justify-between">
@@ -194,6 +227,15 @@ export function AccountDetail() {
         closingBalance={closingBalance}
         onDeleteTransaction={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
       />
+
+      {/* FAB mobile para adicionar transação nesta conta */}
+      <button
+        onClick={() => setShowTransactionModal(true)}
+        className="md:hidden fixed bottom-20 right-4 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
+        aria-label="Nova transação"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
 
       {/* Modals */}
       <TransferModal

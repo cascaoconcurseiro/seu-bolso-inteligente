@@ -96,7 +96,7 @@ export function DashboardHero({
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-accent/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
+                <p className="text-[11px] text-accent/70 font-bold uppercase tracking-wider truncate">Patrimônio</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-accent truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
@@ -108,7 +108,7 @@ export function DashboardHero({
                 <TrendingUp className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-success/70 font-bold uppercase tracking-wider truncate">Entradas</p>
+                <p className="text-[11px] text-success/70 font-bold uppercase tracking-wider truncate">Entradas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-success truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
@@ -120,7 +120,7 @@ export function DashboardHero({
                 <TrendingDown className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[8px] sm:text-[9px] text-destructive/70 font-bold uppercase tracking-wider truncate">Saídas</p>
+                <p className="text-[11px] text-destructive/70 font-bold uppercase tracking-wider truncate">Saídas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-destructive truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
@@ -143,7 +143,7 @@ export function DashboardHero({
                   <Target className="h-3 w-3" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[8px] sm:text-[9px] opacity-75 font-bold uppercase tracking-wider truncate">Taxa Poupança</p>
+                  <p className="text-[11px] opacity-75 font-bold uppercase tracking-wider truncate">Taxa Poupança</p>
                   <p className="text-sm sm:text-sm font-bold truncate">
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>

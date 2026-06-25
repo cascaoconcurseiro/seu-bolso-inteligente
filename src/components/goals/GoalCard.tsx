@@ -1,4 +1,11 @@
-import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock, ChevronDown, FileDown } from 'lucide-react';
+import { Edit, Trash2, ArrowRightLeft, Target, TrendingUp, Info, CalendarClock, ChevronDown, FileDown, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState } from 'react';
 import { GoalMilestonesPanel } from './GoalMilestonesPanel';
 import { Button } from "@/components/ui/button";
@@ -162,16 +169,41 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             </div>
           </div>
           
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-            <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }} className="h-8 w-8 rounded-lg hover:bg-muted">
-              <FileDown className="w-4 h-4 text-muted-foreground transition-colors" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => onEdit(goal)} className="h-8 w-8 rounded-lg hover:bg-primary/10">
-              <Edit className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => onDelete(goal)} className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive">
-              <Trash2 className="w-4 h-4 text-muted-foreground transition-colors" />
-            </Button>
+          <div className="flex items-center gap-1">
+            {/* Desktop: ações visíveis no hover */}
+            <div className="hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+              <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }} className="h-8 w-8 rounded-lg hover:bg-muted">
+                <FileDown className="w-4 h-4 text-muted-foreground transition-colors" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="h-8 w-8 rounded-lg hover:bg-primary/10">
+                <Edit className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onDelete(goal); }} className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive">
+                <Trash2 className="w-4 h-4 text-muted-foreground transition-colors" />
+              </Button>
+            </div>
+            {/* Mobile: menu de 3 pontos sempre visível */}
+            <div className="sm:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()} className="h-8 w-8 rounded-lg">
+                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onEdit(goal)}>
+                    <Edit className="w-4 h-4 mr-2" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={async () => { try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }}>
+                    <FileDown className="w-4 h-4 mr-2" /> Exportar PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onDelete(goal)} className="text-destructive focus:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 

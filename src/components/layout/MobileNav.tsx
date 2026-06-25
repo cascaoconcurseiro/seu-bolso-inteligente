@@ -1,29 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  ArrowLeftRight, 
-  Plus, 
-  Menu,
-  X,
-  CreditCard,
-  Users,
-  Plane,
-  BarChart3,
-  Settings,
-  LogOut,
-  UsersRound,
-  PiggyBank,
-  Target,
-  Calculator,
-  Moon,
-  Sun,
-  LayoutDashboard
-} from 'lucide-react';
+import { Home, ArrowLeftRight, Plus, Menu, X, BarChart3, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTransactionModal } from '@/hooks/useTransactionModal';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
+import { navigationItems } from '@/config/navigation';
 
 // AUDITORIA 2026-05-10: Componente de Navegação Inferior para Mobile com BottomSheet.
 // Foco em usabilidade com uma mão só e estética de app nativo.
@@ -63,19 +45,7 @@ export function MobileNav() {
     { label: 'Menu', icon: Menu, isMenu: true },
   ];
 
-  const sheetItems = [
-    { path: "/", label: "Início", icon: LayoutDashboard },
-    { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
-    { path: "/contas", label: "Contas", icon: PiggyBank }, // PiggyBank as Wallet alternative
-    { path: "/cartoes", label: "Cartões", icon: CreditCard },
-    { path: "/compartilhados", label: "Compartilhados", icon: Users },
-    { path: "/viagens", label: "Viagens", icon: Plane },
-    { path: "/familia", label: "Família", icon: UsersRound },
-    { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
-    { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
-    { path: "/metas", label: "Metas & Inv.", icon: Target },
-    { path: "/simuladores", label: "Simuladores", icon: Calculator },
-  ];
+  const sheetItems = navigationItems;
 
   const isActive = (path: string) => location.pathname === path;
 

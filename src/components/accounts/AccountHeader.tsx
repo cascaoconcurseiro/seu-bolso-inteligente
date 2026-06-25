@@ -22,21 +22,30 @@ interface AccountHeaderProps {
 export function AccountHeader({ account, bank }: AccountHeaderProps) {
   const navigate = useNavigate();
 
+  const typeLabel: Record<string, string> = {
+    CHECKING: "Conta Corrente",
+    SAVINGS: "Poupança",
+    CREDIT_CARD: "Cartão de Crédito",
+    INVESTMENT: "Investimento",
+    CASH: "Dinheiro",
+    EMERGENCY_FUND: "Reserva de Emergência",
+  };
+
   return (
-    <div className="flex items-center gap-4">
-      <Button variant="ghost" size="icon" onClick={() => navigate("/contas")} className="rounded-full">
+    <div className="flex items-center gap-3">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => navigate("/contas")}
+        className="rounded-xl shrink-0 hover:bg-muted"
+      >
         <ArrowLeft className="h-5 w-5" />
       </Button>
       {bank && <BankIcon bankId={account.bank_id} size="lg" />}
-      <div className="flex-1">
-        <h1 className="font-display font-bold text-2xl tracking-tight">{account.name}</h1>
-        <p className="text-muted-foreground text-sm">
-          {account.type === "CHECKING" && "Conta Corrente"}
-          {account.type === "SAVINGS" && "Poupança"}
-          {account.type === "CREDIT_CARD" && "Cartão de Crédito"}
-          {account.type === "INVESTMENT" && "Investimento"}
-          {account.type === "CASH" && "Dinheiro"}
-          {account.type === "EMERGENCY_FUND" && "Reserva de Emergência"}
+      <div className="flex-1 min-w-0">
+        <h1 className="font-display font-bold text-xl md:text-2xl tracking-tight truncate">{account.name}</h1>
+        <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
+          {typeLabel[account.type] ?? account.type}
         </p>
       </div>
     </div>
