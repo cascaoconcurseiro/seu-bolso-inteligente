@@ -36,7 +36,7 @@ interface UseSharedFinancesProps {
 
 export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSharedFinancesProps) => {
   const { user } = useAuth();
-  const { data: members = [] } = useFamilyMembers();
+  const { data: members = [] } = useFamilyMembers(true);
   const { data: family } = useFamily();
   const { data: profile } = useUserProfile();
   const queryClient = useQueryClient();

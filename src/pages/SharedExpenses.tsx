@@ -97,7 +97,7 @@ export function SharedExpenses() {
   };
 
   const { invoices, getFilteredInvoice, getTotals, isLoading: sharedLoading, refetch, transactions } = useSharedFinances({ currentDate, activeTab });
-  const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
   const { data: profile } = useUserProfile();
   const { data: accounts = [] } = useAccounts();
   const { data: trips = [] } = useTrips();
