@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useCategories } from "@/hooks/useCategories";
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LayoutGrid } from "lucide-react";
 
 interface CreditCardCategoriesProps {
   transactions: any[];
@@ -69,9 +71,11 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
 
   if (categoryData.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-6 text-center text-muted-foreground border rounded-xl bg-card/40">
-        <p className="text-sm font-medium">Nenhum gasto por categoria nesta fatura</p>
-      </div>
+      <EmptyState
+        icon={LayoutGrid}
+        title="Nenhum gasto por categoria"
+        description="Nenhuma despesa registrada nesta fatura ainda."
+      />
     );
   }
 

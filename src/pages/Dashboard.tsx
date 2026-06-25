@@ -1,8 +1,9 @@
 import { moneyUtils } from "@/utils/money";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
-import { CreditCard, TrendingUp, Wallet } from "lucide-react";
+import { CreditCard, TrendingUp, Wallet, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useDashboardData } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useTrips } from "@/hooks/useTrips";
@@ -173,20 +174,13 @@ export function Dashboard() {
         <PendingInvitationsAlert />
         <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
-        <div className="text-center py-12 bg-background border border-border rounded-2xl">
-          <div className="w-14 h-14 bg-negative/10 text-negative rounded-full flex items-center justify-center mb-3 mx-auto">
-            <TrendingUp className="h-7 w-7 rotate-180" />
-          </div>
-          <h1 className="font-display font-bold text-xl tracking-tight mb-2">
-            Erro ao carregar dashboard
-          </h1>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Não conseguimos buscar seus dados financeiros no momento. Isso pode ser um problema temporário de conexão.
-          </p>
-          <Button onClick={() => window.location.reload()} variant="outline">
-            Recarregar página
-          </Button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          variant="danger"
+          title="Erro ao carregar dashboard"
+          description="Não conseguimos buscar seus dados financeiros no momento. Isso pode ser um problema temporário de conexão."
+          action={<Button onClick={() => window.location.reload()} variant="outline">Recarregar página</Button>}
+        />
       </div>
     );
   }
