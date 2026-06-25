@@ -292,7 +292,7 @@ export function Transactions() {
         hasFilters={hasFilters} clearFilters={clearFilters}
       />
       {isSearchingHistory && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm text-primary font-medium">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm text-primary font-medium -mt-1">
           <Clock className="h-4 w-4 shrink-0" />
           Buscando em todo o ano · {displayTransactions.length} resultado{displayTransactions.length !== 1 ? 's' : ''}
         </div>
