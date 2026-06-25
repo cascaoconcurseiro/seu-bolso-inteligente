@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet, Bell } from "lucide-react";
+import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet, Bell, Mail } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -27,6 +28,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [lowBalanceThreshold, setLowBalanceThreshold] = useState<number>(0);
   const [defaultAccountId, setDefaultAccountId] = useState<string>("none");
   const [defaultCreditCardId, setDefaultCreditCardId] = useState<string>("none");
+  const [monthlyReportEnabled, setMonthlyReportEnabled] = useState<boolean>(true);
   const { isSupported: pushSupported, hasSubscription, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
@@ -48,6 +50,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       setLowBalanceThreshold(profile.low_balance_threshold ?? 0);
       setDefaultAccountId(profile.default_account_id ?? "none");
       setDefaultCreditCardId(profile.default_credit_card_id ?? "none");
+      setMonthlyReportEnabled(profile.monthly_report_enabled ?? true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
@@ -63,6 +66,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       low_balance_threshold: lowBalanceThreshold || null,
       default_account_id: defaultAccountId === "none" ? null : defaultAccountId,
       default_credit_card_id: defaultCreditCardId === "none" ? null : defaultCreditCardId,
+      monthly_report_enabled: monthlyReportEnabled,
     });
   };
 
@@ -78,7 +82,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
       lowBalanceThreshold !== (profile.low_balance_threshold ?? 0) ||
       defaultAccountId !== (profile.default_account_id ?? "none") ||
-      defaultCreditCardId !== (profile.default_credit_card_id ?? "none")
+      defaultCreditCardId !== (profile.default_credit_card_id ?? "none") ||
+      monthlyReportEnabled !== (profile.monthly_report_enabled ?? true)
     );
   };
 
@@ -412,6 +417,26 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
               </div>
             </div>
           )}
+
+          {/* Relatório mensal por email */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
+            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-1 w-full">
+              <div className="flex items-center justify-between gap-4">
+                <Label htmlFor="monthly-report-toggle">Relatório mensal por email</Label>
+                <Switch
+                  id="monthly-report-toggle"
+                  checked={monthlyReportEnabled}
+                  onCheckedChange={setMonthlyReportEnabled}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Receba um resumo mensal com receitas, despesas, top categorias e evolução do patrimônio no dia 1º de cada mês.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="pt-4 flex justify-end">

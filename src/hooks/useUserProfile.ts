@@ -23,6 +23,7 @@ export interface UserProfile {
   default_account_id?: string | null;
   default_credit_card_id?: string | null;
   low_balance_threshold?: number | null;
+  monthly_report_enabled?: boolean;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -101,6 +102,7 @@ export function useUpdateUserProfile() {
       low_balance_threshold?: number | null;
       default_account_id?: string | null;
       default_credit_card_id?: string | null;
+      monthly_report_enabled?: boolean;
     }) => {
       if (!user) throw new Error("Não autenticado");
 
@@ -155,6 +157,9 @@ export function useUpdateUserProfile() {
       }
       if (input.default_credit_card_id !== undefined) {
         updateData.default_credit_card_id = input.default_credit_card_id;
+      }
+      if (input.monthly_report_enabled !== undefined) {
+        updateData.monthly_report_enabled = input.monthly_report_enabled;
       }
 
       const { data, error } = await supabase

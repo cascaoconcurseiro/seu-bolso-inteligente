@@ -417,7 +417,8 @@ Deno.serve(async (req) => {
     const profileQuery = supabase
       .from("profiles")
       .select("id")
-      .not("email", "is", null);
+      .not("email", "is", null)
+      .eq("monthly_report_enabled", true);
 
     if (targetUserId) profileQuery.eq("id", targetUserId);
 
