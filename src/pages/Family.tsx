@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Users, Crown, X, UserPlus, Check, Plus, UserCircle2 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
-import { useFamily, useFamilyMembers, useSharedContacts, useAddSharedContact, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
+import { useFamily, useFamilyMembers, useSharedContacts, useAddSharedContact, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, useToggleContactActiveInForm, FamilyRole } from "@/hooks/useFamily";
+import { Switch } from "@/components/ui/switch";
 import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvitations";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
@@ -29,6 +30,7 @@ export function Family() {
   const cancelInvitation = useCancelInvitation();
   const moveToContact = useConvertMemberToContact();
   const moveToFamily = useConvertContactToMember();
+  const toggleActiveInForm = useToggleContactActiveInForm();
   const addContact = useAddSharedContact();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -228,14 +230,26 @@ export function Family() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">Contato externo — histórico preservado</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.active_in_form ? "Ativo no formulário de transação" : "Contato externo — histórico preservado"}
+                      </p>
                     </div>
                   </div>
-                  {isOwner && (
-                    <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary/80" onClick={() => moveToFamily.mutate(c.id)} disabled={moveToFamily.isPending}>
-                      Mover para família
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">No formulário</span>
+                      <Switch
+                        checked={!!c.active_in_form}
+                        onCheckedChange={(checked) => toggleActiveInForm.mutate({ id: c.id, active_in_form: checked })}
+                        disabled={toggleActiveInForm.isPending}
+                      />
+                    </div>
+                    {isOwner && (
+                      <Button variant="ghost" size="sm" className="text-xs text-primary hover:text-primary/80" onClick={() => moveToFamily.mutate(c.id)} disabled={moveToFamily.isPending}>
+                        Mover para família
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
