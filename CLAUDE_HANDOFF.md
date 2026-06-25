@@ -1,7 +1,7 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
 > Atualizado em: 2026-06-24  
-> Último commit: `74aa72a` | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Último commit: `463f6f8` | Branch: `main` | Deploy: meupedemeia.vercel.app
 
 ---
 
@@ -41,16 +41,19 @@
 - **Gráfico de evolução da meta** — AreaChart no GoalContributeDialog via `useGoalHistory` hook, visível com ≥2 aportes
 - **SwipeableRow em Contas** — swipe left = arquivar, swipe right = editar (modal reutiliza AccountFormModal mode="edit")
 - **fix audit_changes()** — trigger corrigido para usar `to_jsonb(NEW)->>'deleted_at'` (suporta tabelas sem coluna deleted_at)
+- **Remove Modo Casal** — removido do Dashboard (estado, memo, imports, botão)
+- **fix FamilyBalancePanel** — link `/compartilhado` corrigido para `/compartilhados`
+- **Adicionar contato direto** — hook `useAddSharedContact` + formulário inline na seção Contatos de Despesa da página Família
+- **Push: alertas de metas** — Edge Function `send-bill-reminders` v3 agora notifica metas com prazo em 7 dias além das contas a pagar
 
 ---
 
 ## O que falta (próximas sessões)
 
 ### Sem pendências de código conhecidas
-Todas as features do backlog foram implementadas. Novas ideias a explorar:
-- RLS cross-family cartão compartilhado (requer função SECURITY DEFINER para evitar recursão)
-- Notificações push para outras categorias além de contas a pagar (metas próximas do prazo, etc.)
-- Relatório mensal automático por email
+Backlog zerado. Ideias para próximas sessões:
+- RLS cross-family cartão compartilhado (requer função `SECURITY DEFINER` para evitar recursão infinita em `accounts`)
+- Relatório mensal automático por email (Edge Function + Resend/SendGrid)
 
 ---
 
