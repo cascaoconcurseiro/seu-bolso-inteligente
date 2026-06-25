@@ -83,22 +83,26 @@ export function SharedSettleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:!rounded-3xl !rounded-b-none sm:!rounded-b-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)] overflow-hidden pb-[env(safe-area-inset-bottom)]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wallet className="h-6 w-6" />
-            {settlingMode === "SINGLE" 
-              ? "Acertar Item Específico" 
-              : (settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento")}
-          </DialogTitle>
-          <DialogDescription>
-            {settlingMode === "SINGLE"
-              ? "Registre o acerto apenas deste item específico"
-              : (settleType === "PAY" ? "Registre o pagamento da sua dívida total" : "Registre o recebimento do valor total devido")}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-lg w-full flex flex-col gap-0 p-0 !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl sm:rounded-3xl !rounded-b-none sm:!rounded-b-3xl max-h-[92dvh] border-b-0 sm:border-b overflow-hidden">
+        {/* Header fixo */}
+        <div className="px-6 pt-6 pb-4 shrink-0">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+              <Wallet className="h-5 w-5 text-primary" />
+              {settlingMode === "SINGLE"
+                ? "Acertar Item Específico"
+                : (settleType === "PAY" ? "Pagar Conta" : "Receber Pagamento")}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {settlingMode === "SINGLE"
+                ? "Registre o acerto apenas deste item específico"
+                : (settleType === "PAY" ? "Registre o pagamento da sua dívida total" : "Registre o recebimento do valor total devido")}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <div className="space-y-4">
+        {/* Corpo rolável */}
+        <div className="flex-1 overflow-y-auto px-6 space-y-4 pb-2">
           {isInternationalSettlement && (
             <Alert className="border-accent/20 bg-accent/5 dark:bg-accent/10">
               <Globe className="h-4 w-4 text-accent" />
@@ -113,10 +117,10 @@ export function SharedSettleDialog({
             const hasDebits = itemsToConsider.some(i => i.type === "DEBIT");
             if (hasCredits && hasDebits) {
               return (
-                <Alert className="border-accent/20 bg-accent/5">
-                  <Info className="h-4 w-4 text-accent shrink-0" />
-                  <AlertDescription className="text-sm text-accent leading-relaxed">
-                    <strong>💡 Compensação Automática de Saldos:</strong> Como você possui valores a pagar e a receber com <strong>{member?.name}</strong>, o sistema realiza automaticamente o <em>encontro de contas</em>. Os débitos e créditos mútuos são abatidos, resultando em apenas um único pagamento ou recebimento líquido (a diferença final).
+                <Alert className="border-primary/20 bg-primary/5">
+                  <Info className="h-4 w-4 text-primary shrink-0" />
+                  <AlertDescription className="text-sm text-primary/80 leading-relaxed">
+                    <strong>Compensação Automática:</strong> Como você possui valores a pagar e a receber com <strong>{member?.name}</strong>, o sistema abate os débitos e créditos mútuos, resultando no valor líquido final.
                   </AlertDescription>
                 </Alert>
               );
@@ -124,100 +128,69 @@ export function SharedSettleDialog({
             return null;
           })()}
 
+          {/* Card de transferência */}
           <div className={cn(
-            "flex items-center justify-center gap-4 p-4 rounded-2xl",
+            "flex items-center justify-center gap-6 p-4 rounded-2xl",
             settleType === "PAY" ? "bg-destructive/5" : "bg-success/5"
           )}>
-            {/* Lado esquerdo: quem ENVIA o dinheiro */}
             <div className="text-center">
               <div className="mx-auto w-12 h-12">
                 {settleType === "PAY" ? (
-                  // PAY: EU pago → meu avatar na esquerda
-                  <UserAvatar
-                    name={profile?.full_name || user?.email || "Eu"}
-                    avatarUrl={profile?.avatar_url}
-                    colorId={profile?.avatar_color || "green"}
-                    iconId={profile?.avatar_icon || "avatar_1"}
-                    size="md"
-                  />
+                  <UserAvatar name={profile?.full_name || user?.email || "Eu"} avatarUrl={profile?.avatar_url} colorId={profile?.avatar_color || "green"} iconId={profile?.avatar_icon || "avatar_1"} size="md" />
                 ) : (
-                  // RECEIVE: O MEMBRO me paga → avatar do membro na esquerda
-                  <UserAvatar
-                    name={member?.name || ""}
-                    avatarUrl={member?.avatar_url}
-                    colorId={member?.avatar_color}
-                    iconId={member?.avatar_icon}
-                    size="md"
-                  />
+                  <UserAvatar name={member?.name || ""} avatarUrl={member?.avatar_url} colorId={member?.avatar_color} iconId={member?.avatar_icon} size="md" />
                 )}
               </div>
-              <p className="text-sm mt-2">{settleType === "PAY" ? "Eu" : member?.name}</p>
+              <p className="text-xs font-medium mt-1.5 text-muted-foreground">{settleType === "PAY" ? "Eu" : member?.name}</p>
             </div>
 
-            <div className="text-center">
+            <div className="flex flex-col items-center gap-1">
               <ArrowRight className={cn("h-5 w-5", settleType === "PAY" ? "text-destructive" : "text-success")} />
-              <p className={cn("font-mono font-bold mt-1", settleType === "PAY" ? "text-destructive" : "text-success")}>
+              <p className={cn("font-mono font-bold text-base tabular-nums", settleType === "PAY" ? "text-destructive" : "text-success")}>
                 {getCurrencySymbol(settlementCurrency)} {settleAmount || "0,00"}
               </p>
             </div>
 
-            {/* Lado direito: quem RECEBE o dinheiro */}
             <div className="text-center">
               <div className="mx-auto w-12 h-12">
                 {settleType === "PAY" ? (
-                  // PAY: EU pago → avatar do membro na direita (quem recebe)
-                  <UserAvatar
-                    name={member?.name || ""}
-                    avatarUrl={member?.avatar_url}
-                    colorId={member?.avatar_color}
-                    iconId={member?.avatar_icon}
-                    size="md"
-                  />
+                  <UserAvatar name={member?.name || ""} avatarUrl={member?.avatar_url} colorId={member?.avatar_color} iconId={member?.avatar_icon} size="md" />
                 ) : (
-                  // RECEIVE: O membro me paga → meu avatar na direita (eu recebo)
-                  <UserAvatar
-                    name={profile?.full_name || user?.email || "Eu"}
-                    avatarUrl={profile?.avatar_url}
-                    colorId={profile?.avatar_color || "green"}
-                    iconId={profile?.avatar_icon || "avatar_1"}
-                    size="md"
-                  />
+                  <UserAvatar name={profile?.full_name || user?.email || "Eu"} avatarUrl={profile?.avatar_url} colorId={profile?.avatar_color || "green"} iconId={profile?.avatar_icon || "avatar_1"} size="md" />
                 )}
               </div>
-              <p className="text-sm mt-2">{settleType === "PAY" ? member?.name : "Eu"}</p>
+              <p className="text-xs font-medium mt-1.5 text-muted-foreground">{settleType === "PAY" ? member?.name : "Eu"}</p>
             </div>
           </div>
 
           {pendingMemberItems.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Label className="text-sm font-medium">Itens para acertar</Label>
+                <Label className="text-sm font-semibold">Itens para acertar</Label>
                 {settlingMode !== "SINGLE" && (
-                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-sm h-8 shrink-0">
-                    {selectedItems.length === pendingMemberItems.length ? "Desmarcar" : "Selecionar todos"}
+                  <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs h-7 px-2 text-primary shrink-0">
+                    {selectedItems.length === pendingMemberItems.length ? "Desmarcar todos" : "Selecionar todos"}
                   </Button>
                 )}
               </div>
-              <div className="max-h-48 overflow-y-auto border rounded-2xl divide-y">
+              <div className="border border-border/60 rounded-2xl divide-y divide-border/40 overflow-hidden">
                 {pendingMemberItems.filter(i => settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true).map(item => {
                   const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
                   const itemCurrency = itemTrip?.currency || "BRL";
                   const isCredit = item.type === "CREDIT";
                   return (
-                    <label key={item.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer">
+                    <label key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40 cursor-pointer transition-colors">
                       <Checkbox
                         checked={selectedItems.includes(item.id)}
                         onCheckedChange={() => onToggleItem(item.id)}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{item.description}</p>
-                        <p className="text-sm text-muted-foreground">{(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : '-'; })()}</p>
+                        <p className="text-sm font-medium truncate">{item.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : '-'; })()}</p>
                       </div>
-                      <div className="text-right">
-                        <span className={cn("font-mono text-sm font-medium", isCredit ? "text-success" : "text-destructive")}>
-                          {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
+                      <span className={cn("font-mono text-sm font-semibold tabular-nums shrink-0", isCredit ? "text-success" : "text-foreground")}>
+                        {getCurrencySymbol(itemCurrency)} {item.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </span>
                     </label>
                   );
                 })}
@@ -225,16 +198,16 @@ export function SharedSettleDialog({
             </div>
           )}
 
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label>Data do {settleType === "PAY" ? "Pagamento" : "Recebimento"}</Label>
-              <Input type="date" value={settleDate} onChange={(e) => setSettleDate(e.target.value)} />
+          <div className="grid gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-semibold">Data do {settleType === "PAY" ? "Pagamento" : "Recebimento"}</Label>
+              <Input type="date" value={settleDate} onChange={(e) => setSettleDate(e.target.value)} className="rounded-xl" />
             </div>
 
-            <div className="space-y-2">
-              <Label>Conta {isInternationalSettlement && `(${settlementCurrency})`}</Label>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-semibold">Conta {isInternationalSettlement && <span className="text-muted-foreground font-normal">({settlementCurrency})</span>}</Label>
               <Select value={settleAccountId} onValueChange={setSettleAccountId}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Selecione a conta" />
                 </SelectTrigger>
                 <SelectContent>
@@ -251,16 +224,19 @@ export function SharedSettleDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        {/* Footer fixo */}
+        <div className="px-6 py-4 shrink-0 border-t border-border/40 flex gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
           <Button
             onClick={onSettle}
             disabled={isSettling || !settleAccountId}
-            variant="default"
+            className="flex-1 rounded-xl h-11"
           >
             {isSettling ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Processando...</> : "Confirmar"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
