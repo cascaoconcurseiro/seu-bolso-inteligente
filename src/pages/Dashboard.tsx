@@ -287,25 +287,33 @@ export function Dashboard() {
           <TripDashboardView />
         </div>
       ) : (
-        <div className="space-y-4 md:space-y-5 animate-in fade-in duration-500">
-          <DashboardQuickAccess />
-          <DashboardLowBalanceAlert
-            currentBalance={brlData.balance}
-            threshold={profile?.low_balance_threshold ?? 0}
-          />
-          <DashboardBillsDue />
-          <FamilyBalancePanel />
+        <div className="animate-in fade-in duration-500">
+          {/* Mobile: stack | Desktop: 2-column grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
 
-          <div className="space-y-4 md:space-y-5">
-            <DashboardInvoices
-              creditCardsWithBalance={creditCardsWithBalance}
-              formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
-            />
+            {/* Coluna principal — 8 cols */}
+            <div className="lg:col-span-8 space-y-4 md:space-y-5">
+              <DashboardQuickAccess />
+              <DashboardLowBalanceAlert
+                currentBalance={brlData.balance}
+                threshold={profile?.low_balance_threshold ?? 0}
+              />
+              <DashboardRecentActivity
+                recentTransactions={recentTransactions}
+                formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
+              />
+            </div>
 
-            <DashboardRecentActivity
-              recentTransactions={recentTransactions}
-              formatCurrencyWithSymbol={(val, curr) => moneyUtils.format(val, curr)}
-            />
+            {/* Sidebar — 4 cols */}
+            <div className="lg:col-span-4 space-y-4 md:space-y-5">
+              <DashboardBillsDue />
+              <DashboardInvoices
+                creditCardsWithBalance={creditCardsWithBalance}
+                formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
+              />
+              <FamilyBalancePanel />
+            </div>
+
           </div>
         </div>
       )}
