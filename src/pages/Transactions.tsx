@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { Clock, CalendarClock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTransactions, useDeleteTransaction, Transaction } from "@/hooks/useTransactions";
@@ -24,7 +25,10 @@ import { useTransactionSync } from "@/hooks/useTransactionSync";
 import { haptics } from "@/utils/haptics";
 
 export function Transactions() {
-  const [activeTab, setActiveTab] = useState<"lancadas" | "proximas">("lancadas");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState<"lancadas" | "proximas">(
+    (location.state as any)?.tab === "proximas" ? "proximas" : "lancadas"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
