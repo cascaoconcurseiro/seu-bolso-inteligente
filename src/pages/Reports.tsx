@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Info, CreditCard, Wallet, HelpCircle } from "lucide-react";
+import { Download, Globe, TrendingUp, Calendar, Tag, Target, Search, Info, CreditCard, Wallet, HelpCircle, BarChart2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -47,6 +47,7 @@ import { CategoryTrend } from "@/components/reports/CategoryTrend";
 import { CashFlowProjection } from "@/components/reports/CashFlowProjection";
 
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/ui/empty-state";
 import { exportMonthlyReport } from "@/services/exportService";
 const getTransactionCurrency = (tx: any): string => {
   if (tx.currency && tx.currency !== 'BRL') return tx.currency;
@@ -771,19 +772,17 @@ export function Reports() {
       {availableCurrencies.length > 1 && <div className="flex items-center gap-2 p-3 rounded-lg border border-accent/20 bg-accent/5 dark:bg-accent/10"><Globe className="h-4 w-4 text-accent" /><span className="text-sm text-accent">Exibindo relatórios para {selectedCurrency}</span></div>}
 
       {periodTransactions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
-          <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-border/50">
-            <Calendar className="w-10 h-10 text-muted-foreground/60" />
-          </div>
-          <h2 className="font-display font-bold text-base mb-3 tracking-tight">Nenhum dado neste período</h2>
-          <p className="text-muted-foreground max-w-md mx-auto mb-8 text-sm">
-            Seus relatórios ganham vida quando você adiciona transações. Volte ao painel principal ou mude o mês/ano selecionado para explorar seus dados.
-          </p>
-          <Button onClick={() => setViewType('YEAR')} variant="outline" className="h-12 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
-            <Search className="w-4 h-4 mr-2" />
-            Ver Ano Completo
-          </Button>
-        </div>
+        <EmptyState
+          icon={BarChart2}
+          title="Nenhum dado neste período"
+          description="Seus relatórios ganham vida quando você adiciona transações. Mude o mês ou ano selecionado para explorar seus dados."
+          action={
+            <Button onClick={() => setViewType('YEAR')} variant="outline" className="h-12 px-8 rounded-full shadow-sm hover:shadow-md transition-all">
+              <Search className="w-4 h-4 mr-2" />
+              Ver Ano Completo
+            </Button>
+          }
+        />
       ) : (
         <Tabs defaultValue="overview" className="space-y-6 w-full">
           <div className="overflow-x-auto">
@@ -838,7 +837,7 @@ export function Reports() {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={largestExpense ? largestExpense.description : "Nenhum gasto"}>
-            🎯 {largestExpense ? largestExpense.description : "Nenhum gasto no período"}
+            {largestExpense ? largestExpense.description : "Nenhum gasto no período"}
           </p>
         </div>
 
