@@ -225,100 +225,184 @@ async function downloadWithRedirect(url, dest) {
   });
 }
 
-async function main() {
-  console.log('🏦 Baixando logos de bancos do Figma...\n');
+// ─── Coletores de IDs do Figma ──────────────────────────────────────────────
 
+/**
+ * Extrai componentes "Type=Logo" dos COMPONENT_SET do arquivo.
+ * O arquivo deste community tem a estrutura:
+ *   Page "Brazilian Institutions" → FRAME "Categoria" →
+ *     FRAME "Content" → COMPONENT_SET "Banco_do_Brasil" →
+ *       COMPONENT "Type=Logo" (id exportável)
+ *       COMPONENT "Type=Icon, Background=False"
+ *       COMPONENT "Type=Icon, Background=True"
+ */
+async function extractLogoComponents() {
+  // Tenta carregar do cache local primeiro (evita rate limit do /files)
+  const CACHE_FILE = path.join(__dirname, '../scratch/figma-logo-components.json');
+  if (fs.existsSync(CACHE_FILE)) {
+    console.log('📋 Usando cache local de componentes (scratch/figma-logo-components.json)...');
+    const cached = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8'));
+    // Normaliza nomes de campo (setName → componentSetName, id → nodeId)
+    const normalized = cached.map(c => ({
+      componentSetName: c.componentSetName || c.setName || c.name,
+      variantName: c.variantName || c.name || '',
+      nodeId: c.nodeId || c.id,
+    }));
+    console.log(`   Encontrados ${normalized.length} componentes "Type=Logo" (cache)\n`);
+    return normalized;
+  }
+
+  console.log('📋 Carregando estrutura do arquivo Figma...');
+  const file = await fetchFigmaAPI(`/files/${FILE_KEY}?geometry=paths`);
+
+  const doc = file.document || file;
+  const logoComponents = [];
+
+  function walk(node) {
+    if (!node) return;
+    if (node.type === 'COMPONENT_SET' && node.children) {
+      for (const child of node.children) {
+        if (child.type === 'COMPONENT' && child.name && child.name.includes('Logo')) {
+          logoComponents.push({
+            componentSetName: node.name,
+            variantName: child.name,
+            nodeId: child.id,
+          });
+        }
+      }
+    }
+    if (node.children) {
+      for (const child of node.children) walk(child);
+    }
+  }
+
+  for (const page of doc.children) {
+    walk(page);
+  }
+
+  console.log(`   Encontrados ${logoComponents.length} componentes "Type=Logo"\n`);
+  return logoComponents;
+}
+
+// ─── Filtro de categorias não-bancárias ─────────────────────────────────────
+
+const NON_BANK_CATEGORIES = [
+  'ame_digital', 'smiles', 'livelo', 'dotz', 'latam_pass', 'coopera',
+  'esfera', 'tudo_azul', 'petrobras_premia', 'semparar', 'taggy', 'veloe',
+  'zul', 'conectcar', 'movemais', 'brasilcard', 'credicard', 'poupex',
+  'boavista', 'serasa', 'transunion', 'crefisa', 'zema',
+  'viacerta', 'tentoscap', 'stellantis', 'sf3', 'empresta', 'realize',
+  'midway', 'mercado_credito', 'lecca', 'kab', 'kanastra', 'gazin',
+  'facta', 'credita', 'santander_financiamentos', 'atria', 'al5',
+  'banco_central', 'cvm', 'b3', 'susep', 'febraban', 'fgc', 'acrefi',
+  'rede', 'ton', 'sumup', 'yelly', 'cielo', 'iugu', 'interpag',
+  'c6pay', 'getnet', 'pagueveloz', 'conectcar', 'petrobras',
+];
+
+function isBankComponent(comp) {
+  const key = toFileName(comp.componentSetName);
+  return !NON_BANK_CATEGORIES.some(excl => key.includes(excl.toLowerCase()));
+}
+
+// ─── Exportação dos SVGs ────────────────────────────────────────────────────
+
+async function exportAndDownload(components) {
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  // 1. Busca todos os componentes do arquivo
-  console.log('📋 Buscando componentes do arquivo Figma...');
-  const file = await fetchFigmaAPI(`/files/${FILE_KEY}/components`);
-
-  const components = file.meta?.components || [];
-  console.log(`   Encontrados ${components.length} componentes\n`);
-
-  if (components.length === 0) {
-    console.log('⚠️  Nenhum componente encontrado. Tentando pela estrutura do arquivo...');
-    // Fallback: busca direto no arquivo
-    const fullFile = await fetchFigmaAPI(`/files/${FILE_KEY}`);
-    console.log('   Arquivo carregado. Verificar estrutura manualmente.');
-    return;
-  }
-
-  // 2. Filtra apenas componentes que parecem ser logos de bancos
-  const bankComponents = components.filter(c => {
-    const name = c.name.toLowerCase();
-    // Exclui variantes de cores (geralmente têm "=", "branco", "fundo", etc.)
-    return !name.includes('=') && !name.startsWith('.');
-  });
-
-  console.log(`🏦 ${bankComponents.length} logos de bancos identificados\n`);
-
-  // 3. Exporta em lotes de 50 (limite da API)
-  const BATCH_SIZE = 50;
+  const BATCH_MAX = 50; // limite da Figma Images API
   const downloaded = [];
   const failed = [];
+  let total = 0;
 
-  for (let i = 0; i < bankComponents.length; i += BATCH_SIZE) {
-    const batch = bankComponents.slice(i, i + BATCH_SIZE);
-    const ids = batch.map(c => c.node_id).join(',');
+  for (let i = 0; i < components.length; i += BATCH_MAX) {
+    const batch = components.slice(i, i + BATCH_MAX);
+    const ids = batch.map(c => c.nodeId).join(',');
+    const batchNum = Math.floor(i / BATCH_MAX) + 1;
+    const totalBatches = Math.ceil(components.length / BATCH_MAX);
 
-    console.log(`📥 Exportando lote ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(bankComponents.length / BATCH_SIZE)}...`);
+    console.log(`📥 Exportando lote ${batchNum}/${totalBatches} (${batch.length} logos)...`);
 
     try {
-      const exportData = await fetchFigmaAPI(
+      const result = await fetchFigmaAPI(
         `/images/${FILE_KEY}?ids=${encodeURIComponent(ids)}&format=svg&svg_include_id=false&svg_simplify_stroke=true`
       );
 
-      const imageUrls = exportData.images || {};
+      const imageUrls = result.images || {};
 
       for (const comp of batch) {
-        const url = imageUrls[comp.node_id];
+        const url = imageUrls[comp.nodeId];
         if (!url) {
-          console.log(`   ⚠️  Sem URL para: ${comp.name}`);
-          failed.push(comp.name);
+          console.log(`   ⚠️  Sem URL: ${comp.componentSetName}`);
+          failed.push(comp.componentSetName);
           continue;
         }
 
-        const fileName = `${toFileName(comp.name)}.svg`;
+        const fileName = `${toFileName(comp.componentSetName)}.svg`;
         const filePath = path.join(OUTPUT_DIR, fileName);
 
         try {
           await downloadWithRedirect(url, filePath);
-          console.log(`   ✅ ${comp.name} → ${fileName}`);
-          downloaded.push({ comp, fileName });
+          console.log(`   ✅ ${comp.componentSetName} → ${fileName}`);
+          downloaded.push({ componentSetName: comp.componentSetName, fileName });
+          total++;
         } catch (err) {
-          console.log(`   ❌ Falha ao baixar ${comp.name}: ${err.message}`);
-          failed.push(comp.name);
+          console.log(`   ❌ Erro ao baixar ${comp.componentSetName}: ${err.message}`);
+          failed.push(comp.componentSetName);
         }
       }
     } catch (err) {
       console.error(`   ❌ Erro no lote: ${err.message}`);
-      batch.forEach(c => failed.push(c.name));
+      batch.forEach(c => failed.push(c.componentSetName));
     }
 
-    // Respeita rate limit do Figma (máx 30 req/min)
-    if (i + BATCH_SIZE < bankComponents.length) {
-      await new Promise(r => setTimeout(r, 2000));
+    // Rate limit: 30 req/min para o endpoint /images
+    if (i + BATCH_MAX < components.length) {
+      await new Promise(r => setTimeout(r, 2500));
     }
   }
 
-  console.log(`\n✅ ${downloaded.length} logos baixados`);
+  console.log(`\n✅ ${total} logos baixados com sucesso`);
   if (failed.length > 0) {
-    console.log(`⚠️  ${failed.length} falhas: ${failed.join(', ')}`);
+    console.log(`⚠️  ${failed.length} falhas: ${failed.slice(0, 10).join(', ')}${failed.length > 10 ? '...' : ''}`);
   }
 
-  // 4. Gera o mapeamento bankLogos.ts
-  console.log('\n📝 Gerando src/utils/bankLogos.ts...');
-  generateBankLogosFile(downloaded);
+  return downloaded;
+}
 
-  console.log('\n🎉 Pronto! Logos em /public/banks/ e mapeamento atualizado em src/utils/bankLogos.ts');
+// ─── Main ────────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log('🏦 Download de logos de bancos do Figma\n');
+
+  // 1. Extrai IDs dos COMPONENT_SET → COMPONENT "Type=Logo"
+  const allComponents = await extractLogoComponents();
+
+  if (allComponents.length === 0) {
+    console.log('❌ Nenhum componente "Type=Logo" encontrado no arquivo.');
+    process.exit(1);
+  }
+
+  // 2. Filtra apenas bancos (exclui rewards, toll tags, reguladores etc.)
+  const bankComponents = allComponents.filter(isBankComponent);
+
+  console.log(`🏦 ${bankComponents.length} logos de bancos (filtrados de ${allComponents.length} total)\n`);
+
+  // 3. Exporta SVGs e baixa
+  const downloaded = await exportAndDownload(bankComponents);
+
+  // 4. Gera mapeamento
+  if (downloaded.length > 0) {
+    console.log('\n📝 Gerando src/utils/bankLogos.ts...');
+    generateBankLogosFile(downloaded);
+  }
+
+  console.log('\n🎉 Pronto! Logos em /public/banks/');
 }
 
 function generateBankLogosFile(downloaded) {
-  // Mantém os logos existentes que não foram sobrescritos
+  // Logos existentes (fallback manual)
   const existingLogos = {
     nubank: '/banks/nubank.svg',
     inter: '/banks/inter.svg',
@@ -389,14 +473,13 @@ function generateBankLogosFile(downloaded) {
   // Adiciona logos baixados do Figma
   const newLogos = { ...existingLogos };
 
-  for (const { comp, fileName } of downloaded) {
-    const normalizedName = toFileName(comp.name);
-    const bankId = BANK_ID_MAP[normalizedName] || BANK_ID_MAP[comp.name.toLowerCase()];
+  for (const { componentSetName, fileName } of downloaded) {
+    const normalizedName = toFileName(componentSetName);
+    const bankId = BANK_ID_MAP[normalizedName] || BANK_ID_MAP[(componentSetName || '').toLowerCase()];
 
     if (bankId) {
       newLogos[bankId] = `/banks/${fileName}`;
     }
-    // Sempre adiciona pelo nome normalizado também (como chave extra)
     newLogos[normalizedName] = `/banks/${fileName}`;
   }
 

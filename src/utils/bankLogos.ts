@@ -1,94 +1,172 @@
-// Logos dos bancos brasileiros baixados do repositório
-// https://github.com/Tgentil/Bancos-em-SVG
+// Logos dos bancos brasileiros
+// Gerado automaticamente por scripts/download-figma-logos.mjs
+// Fonte: https://www.figma.com/design/Cn0hnUpjuWr62R2Toli3Tu/Brazilian-Banks-Logos--Community-
 
-// ============================================
-// LOGOS DE BANCOS BRASILEIROS
-// ============================================
-export const BANK_LOGOS = {
-  // Principais bancos digitais
-  nubank: '/banks/nubank.svg',
-  inter: '/banks/inter.svg',
-  neon: '/banks/neon.svg',
-  c6: '/banks/c6.svg',
-  picpay: '/banks/picpay.svg',
-  mercadopago: '/banks/mercadopago.svg',
-  pagbank: '/banks/pagbank.svg',
-  stone: '/banks/stone.svg',
-  iti: '/banks/itau.svg', // Iti é do Itaú
-  next: '/banks/bradesco.svg', // Next é do Bradesco
-  original: '/banks/original.svg',
-  
-  // Grandes bancos tradicionais
-  itau: '/banks/itau.svg',
-  bradesco: '/banks/bradesco.svg',
-  bb: '/banks/banco-do-brasil.svg',
-  caixa: '/banks/caixa.svg',
-  santander: '/banks/santander.svg',
-  
-  // Bancos de investimento
-  btg: '/banks/btg.svg',
-  safra: '/banks/safra.svg',
-  xp: '/banks/xp.svg',
-  
-  // Bancos médios
-  bv: '/banks/banco-bv-logo.svg',
-  bmg: '/banks/banco-bmg-logo.svg',
-  daycoval: '/banks/logo-Daycoval.svg',
-  mercantil: '/banks/banco-mercantil-novo-azul.svg',
-  sofisa: '/banks/logo-banco-sofisa.svg',
-  pine: '/banks/banco-pine.svg',
-  rendimento: '/banks/banco rendimento logo nova .svg',
-  paulista: '/banks/banco-paulista.svg',
-  topazio: '/banks/logo-banco-topazio.svg',
+export const BANK_LOGOS: Record<string, string> = {
   abc: '/banks/logoabc.svg',
-  bs2: '/banks/Banco_BS2.svg',
-  
-  // Bancos regionais
-  banrisul: '/banks/banrisul.svg',
-  brb: '/banks/brb-logo.svg',
-  bnb: '/banks/Logo_BNB.svg',
-  parana: '/banks/Logo_do_Banpará.svg',
+  acquio: '/banks/acquio.svg',
+  adyen: '/banks/adyen.svg',
+  ailos: '/banks/logo-ailos.svg',
+  alfa: '/banks/banco-alfa.svg',
+  ame-digital: '/banks/ame-digital.svg',
+  appmax: '/banks/appmax.svg',
+  aproms-net: '/banks/aproms-net.svg',
+  arbi: '/banks/Banco_Arbi .svg',
+  asaas: '/banks/asaas.svg',
+  astropay: '/banks/astropay.svg',
+  banco-alfa: '/banks/banco-alfa.svg',
+  banco-arbi: '/banks/banco-arbi.svg',
+  banco-bmg: '/banks/banco-bmg.svg',
+  banco-caixa-geral: '/banks/banco-caixa-geral.svg',
+  banco-central-do-brasil: '/banks/banco-central-do-brasil.svg',
+  banco-comercial-e-de-investimentos-dos-paises-baixos-abn-amro: '/banks/banco-comercial-e-de-investimentos-dos-paises-baixos-abn-amro.svg',
+  banco-daycoval: '/banks/banco-daycoval.svg',
+  banco-do-brasil: '/banks/banco-do-brasil.svg',
+  banco-guanabara: '/banks/banco-guanabara.svg',
+  banco-luso-brasileiro: '/banks/banco-luso-brasileiro.svg',
+  banco-master: '/banks/banco-master.svg',
+  banco-mercantil: '/banks/banco-mercantil.svg',
+  banco-nacional-de-desenvolvimento-economico-e-social-bndes: '/banks/banco-nacional-de-desenvolvimento-economico-e-social-bndes.svg',
+  banco-pan: '/banks/banco-pan.svg',
+  banco-pine: '/banks/banco-pine.svg',
+  banco-semear: '/banks/banco-semear.svg',
+  banco-sofisa-direto: '/banks/banco-sofisa-direto.svg',
   banese: '/banks/logo banese.svg',
   banestes: '/banks/banestes.svg',
+  bank-of-america-merril-lynch-estados-unidos: '/banks/bank-of-america-merril-lynch-estados-unidos.svg',
   banpara: '/banks/banpara-logo-sem-fundo.svg',
-  
-  // Cooperativas
+  banqi-casas-bahia: '/banks/banqi-casas-bahia.svg',
+  banrisul: '/banks/banrisul.svg',
+  bb: '/banks/banco-do-brasil.svg',
+  bees: '/banks/BEESBank_Horizontal.svg',
+  beeteller: '/banks/beeteller.svg',
+  belvo: '/banks/belvo.svg',
+  bib: '/banks/BIB-logo.svg',
+  bitso: '/banks/bitso.svg',
+  bitz: '/banks/bitz.svg',
+  bk-bank: '/banks/bk-bank.svg',
+  bkbank: '/banks/bkBank.svg',
+  blu: '/banks/blu.svg',
+  bmg: '/banks/banco-bmg.svg',
+  bnb: '/banks/Logo_BNB.svg',
+  bnp: '/banks/logo-bnp.svg',
+  bnp-paribas-franca: '/banks/bnp-paribas-franca.svg',
+  bolt: '/banks/bolt.svg',
+  bonus-pago: '/banks/bonus-pago.svg',
+  bradesco: '/banks/bradesco.svg',
+  brb: '/banks/brb-logo.svg',
+  bs2: '/banks/Banco_BS2.svg',
+  btg: '/banks/btg.svg',
+  bullla: '/banks/bullla.svg',
+  bv: '/banks/banco-bv-logo.svg',
+  c6: '/banks/c6.svg',
+  caixa: '/banks/caixa-economica-federal.svg',
+  caixa-economica-federal: '/banks/caixa-economica-federal.svg',
+  caju: '/banks/caju.svg',
+  cappta: '/banks/cappta.svg',
+  celcoin: '/banks/celcoin.svg',
+  clara: '/banks/clara.svg',
+  claro-pay: '/banks/claro-pay.svg',
+  cloudwalk: '/banks/cloudwalk.svg',
+  conpay: '/banks/conpay.svg',
+  conta-pay: '/banks/conta-pay.svg',
+  contaip: '/banks/conta-ip.svg',
+  contasimples: '/banks/conta-simples_logo-novo.svg',
+  cora: '/banks/cora.svg',
+  credisis: '/banks/credisis.svg',
+  credit-agricole-corporate-&-investment-bank-franca: '/banks/credit-agricole-corporate-&-investment-bank-franca.svg',
+  crypto.com: '/banks/crypto.com.svg',
+  d-local-go: '/banks/d-local-go.svg',
+  datanomik: '/banks/datanomik.svg',
+  daycoval: '/banks/banco-daycoval.svg',
+  deustsche-bank-alemanha: '/banks/deustsche-bank-alemanha.svg',
+  deustsche-leasing-alemanha: '/banks/deustsche-leasing-alemanha.svg',
+  dll-financial-solutions-partner-paises-baixos: '/banks/dll-financial-solutions-partner-paises-baixos.svg',
+  dock: '/banks/dock.svg',
+  duepay: '/banks/Duepay.svg',
+  e2-bank: '/banks/e2-bank.svg',
+  eagle: '/banks/eagle.svg',
+  ebanx: '/banks/ebanx.svg',
+  ef: '/banks/logo-efi-bank-laranja.svg',
+  entrepay: '/banks/entrepay.svg',
+  facilita-pay: '/banks/facilita-pay.svg',
+  fator: '/banks/fator.svg',
+  feat-bank: '/banks/feat-bank.svg',
+  ferbraban: '/banks/ferbraban.svg',
+  fit-bank: '/banks/fit-bank.svg',
+  fortbrasil: '/banks/fortbrasil.svg',
+  friday: '/banks/friday.svg',
+  fundo-garantidor-de-creditos: '/banks/fundo-garantidor-de-creditos.svg',
+  genial: '/banks/genial.svg',
+  grafeno: '/banks/grafeno.svg',
+  greenpass: '/banks/greenpass.svg',
+  hinova-pay: '/banks/hinova-pay.svg',
+  inbursa: '/banks/inbursa.svg',
+  infinitepay: '/banks/infinitepay.svg',
+  inter: '/banks/inter.svg',
+  ip4y: '/banks/ip4y.svg',
+  itau: '/banks/itau.svg',
+  iti: '/banks/itau.svg',
+  iugo: '/banks/Iugo.svg',
+  klavi: '/banks/klavi.svg',
+  latam-pass: '/banks/latam-pass.svg',
+  letsbank: '/banks/letsbank.svg',
+  magalu-pay: '/banks/magalu-pay.svg',
+  master: '/banks/banco-master.svg',
+  mentore-bank: '/banks/mentore-bank.svg',
+  mercado-credito: '/banks/mercado-credito.svg',
+  mercadopago: '/banks/mercadopago.svg',
+  mercantil: '/banks/banco-mercantil.svg',
+  modal: '/banks/modal.svg',
+  mufg: '/banks/mufg-seeklogo.svg',
+  mwbank: '/banks/mwbank.svg',
+  nbcbank: '/banks/nbcbank.svg',
+  neon: '/banks/neon.svg',
+  next: '/banks/bradesco.svg',
+  nubank: '/banks/nubank.svg',
+  oicg-acg: '/banks/oicg-acg.svg',
+  omni: '/banks/logo-omni.svg',
+  omnie: '/banks/omnie.svg',
+  original: '/banks/original.svg',
+  ouribank: '/banks/ouribank.svg',
+  ouze: '/banks/ouze.svg',
+  pagbank: '/banks/pagbank.svg',
+  pagbrasil: '/banks/pagbrasil.svg',
+  pagseguro: '/banks/pagseguro.svg',
+  pan: '/banks/banco-pan.svg',
+  parana: '/banks/paranabanco.svg',
+  paranabanco: '/banks/paranabanco.svg',
+  paulista: '/banks/banco-paulista.svg',
+  payface: '/banks/payface.svg',
+  paymee: '/banks/paymee.svg',
+  picpay: '/banks/picpay.svg',
+  pine: '/banks/banco-pine.svg',
+  pluggy: '/banks/pluggy.svg',
+  pomelo: '/banks/pomelo.svg',
+  quality: '/banks/quality-logo-cinza.svg',
+  quesh: '/banks/quesh.svg',
+  rabobank-paises-baixos: '/banks/rabobank-paises-baixos.svg',
+  recarga-pay: '/banks/recarga-pay.svg',
+  recargapay: '/banks/RecargaPay.svg',
+  rendimento: '/banks/banco rendimento logo nova .svg',
+  safra: '/banks/safra.svg',
+  santander: '/banks/santander.svg',
+  santander-financiamentos: '/banks/santander-financiamentos.svg',
   sicoob: '/banks/sicoob.svg',
   sicredi: '/banks/sicredi.svg',
-  
-  // Outros
-  ef: '/banks/logo-efi-bank-laranja.svg',
-  
-  // Bancos adicionais encontrados nas logos
-  cora: '/banks/icone-cora-rosa-2500px.svg',
-  contasimples: '/banks/conta-simples_logo-novo.svg',
-  infinitepay: '/banks/InfitePay.svg',
-  omni: '/banks/logo-omni.svg',
-  pagseguro: '/banks/pagseguro.svg',
+  societe-generale-franca: '/banks/societe-generale-franca.svg',
+  sofisa: '/banks/logo-banco-sofisa.svg',
+  stone: '/banks/stone.svg',
+  strada: '/banks/strada.svg',
+  topazio: '/banks/logo-banco-topazio.svg',
   transfeera: '/banks/transfeera-logo-verde-nova.svg',
+  tribanco: '/banks/tribanco.svg',
   unicred: '/banks/unicred-centralizada.svg',
   uniprime: '/banks/uniprime.svg',
-  tribanco: '/banks/logotribanco.svg',
-  bnp: '/banks/logo-bnp.svg',
-  quality: '/banks/quality-logo-cinza.svg',
-  grafeno: '/banks/grafeno.svg',
-  credisis: '/banks/credisis.svg',
-  ailos: '/banks/logo-ailos.svg',
-  letsbank: '/banks/Logo Letsbank.svg',
-  bees: '/banks/BEESBank_Horizontal.svg',
-  bib: '/banks/BIB-logo.svg',
-  bkbank: '/banks/bkBank.svg',
-  duepay: '/banks/Duepay.svg',
-  iugo: '/banks/Iugo.svg',
-  recargapay: '/banks/RecargaPay.svg',
-  arbi: '/banks/Banco_Arbi .svg',
-  contaip: '/banks/conta-ip.svg',
-  mufg: '/banks/mufg-seeklogo.svg',
-} as const;
+  vindi: '/banks/vindi.svg',
+  xp: '/banks/xp.svg',
+};
 
-// ============================================
-// LOGOS DE BANDEIRAS DE CARTÃO
-// ============================================
 export const CARD_BRAND_LOGOS = {
   visa: '/card-brands/visa.png',
   mastercard: '/card-brands/mastercard.png',
@@ -101,125 +179,25 @@ export const CARD_BRAND_LOGOS = {
   jcb: '/card-brands/jcb.png',
 } as const;
 
-export type BankCode = keyof typeof BANK_LOGOS;
 export type CardBrandCode = keyof typeof CARD_BRAND_LOGOS;
 
-// ============================================
-// FUNÇÕES AUXILIARES
-// ============================================
-
-// Helper para buscar logo de banco por nome ou ID
 export function getBankLogo(bankName: string): string | undefined {
   if (!bankName) return undefined;
-  
   const normalized = bankName.toLowerCase().replace(/\s+/g, '');
-  
-  const aliases: Record<string, string> = {
-    // Banco do Brasil
-    'bancodobrasil': 'bb',
-    'bb': 'bb',
-    
-    // Caixa
-    'caixaeconomica': 'caixa',
-    'caixaeconomicafederal': 'caixa',
-    'cef': 'caixa',
-    
-    // Itaú
-    'itauunibanco': 'itau',
-    'itaú': 'itau',
-    'itau': 'itau',
-    
-    // BTG
-    'btgpactual': 'btg',
-    'btg': 'btg',
-    
-    // Outros bancos
-    'bancopan': 'pan',
-    'bancosafra': 'safra',
-    'bancomercantil': 'mercantil',
-    'bancodaycoval': 'daycoval',
-    'bancointer': 'inter',
-    'bancobmg': 'bmg',
-    'bancobv': 'bv',
-    'bancooriginal': 'original',
-    'banconext': 'next',
-    'bancomodal': 'modal',
-    'bancosofisa': 'sofisa',
-    'bancopine': 'pine',
-    'bancorendimento': 'rendimento',
-    'bancofibra': 'fibra',
-    'bancopaulista': 'paulista',
-    'bancotopazio': 'topazio',
-    'bancovotorantim': 'votorantim',
-    'bancoindustrial': 'industrial',
-    'bancoindusval': 'indusval',
-    'bancomaster': 'master',
-    'bancoabc': 'abc',
-    'bancoalfa': 'alfa',
-    'bancobs2': 'bs2',
-    'bancobanese': 'banese',
-    'bancobanestes': 'banestes',
-    'bancobanpara': 'banpara',
-    
-    // Digitais
-    'c6bank': 'c6',
-    'mercadopago': 'mercadopago',
-    'paranabanco': 'parana',
-    
-    // Regionais
-    'bancodonordeste': 'bnb',
-    'bancodoestadodoriograndedosul': 'banrisul',
-    'bancodebrasilia': 'brb',
-    
-    // Cooperativas
-    'sistemadecooperativasdecreditodobrasil': 'sicoob',
-    'sistemadecreditocooperativo': 'sicredi',
-    
-    // Novos bancos adicionados
-    'contasimples': 'contasimples',
-    'infinitepay': 'infinitepay',
-    'recargapay': 'recargapay',
-    'transfeera': 'transfeera',
-    'letsbank': 'letsbank',
-    'bkbank': 'bkbank',
-    'duepay': 'duepay',
-    'contaip': 'contaip',
-    'bancoarbi': 'arbi',
-  };
-  
-  const code = aliases[normalized] || normalized;
-  
-  // Busca direta usando asserção as any (já que as chaves podem faltar no tipo)
-  if ((BANK_LOGOS as Record<string, string>)[code]) {
-    return (BANK_LOGOS as Record<string, string>)[code];
-  }
-  
-  return undefined;
+  return BANK_LOGOS[normalized] || BANK_LOGOS[bankName.toLowerCase()] || undefined;
 }
 
-// Helper para buscar logo de bandeira de cartão
 export function getCardBrandLogo(brandName: string): string | undefined {
   if (!brandName) return undefined;
-  
   const normalized = brandName.toLowerCase().replace(/\s+/g, '');
-  
-  // Mapeamento de nomes comuns
   const aliases: Record<string, CardBrandCode> = {
-    'americanexpress': 'amex',
-    'dinersclub': 'diners',
-    'diners': 'diners',
+    americanexpress: 'amex',
+    dinersclub: 'diners',
+    diners: 'diners',
   };
-  
-  // Busca direta
   if (CARD_BRAND_LOGOS[normalized as CardBrandCode]) {
     return CARD_BRAND_LOGOS[normalized as CardBrandCode];
   }
-  
-  // Busca por alias
   const code = aliases[normalized];
-  if (code) {
-    return CARD_BRAND_LOGOS[code];
-  }
-  
-  return undefined;
+  return code ? CARD_BRAND_LOGOS[code] : undefined;
 }
