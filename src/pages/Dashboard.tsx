@@ -15,6 +15,7 @@ import { PendingInvitationsAlert } from "@/components/family/PendingInvitationsA
 import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
 import { useMonth } from "@/contexts/MonthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
@@ -24,6 +25,9 @@ import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAcces
 import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useTransactions } from "@/hooks/useTransactions";
+import { getTransactionCurrency } from "@/utils/transactionUtils";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
@@ -37,8 +41,11 @@ export function Dashboard() {
   const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
   const [isTripMode, setIsTripMode] = useState(false);
 
+  const { user } = useAuth();
   const { currentDate } = useMonth();
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
+  const { data: dashboardRecentTransactions = [], isLoading: recentLoading } = useTransactions({ limit: 100 });
+  const { data: familyMembers = [] } = useFamilyMembers();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: trips } = useTrips();
   const { data: wealthHistory } = useWealthEvolution(selectedCurrency);
@@ -71,10 +78,25 @@ export function Dashboard() {
   }, []);
 
   const recentTransactions = useMemo(() => {
-    return dashboardData?.recent_transactions || [];
-  }, [dashboardData?.recent_transactions]);
+    return dashboardRecentTransactions
+      .filter((tx) => {
+        if (getTransactionCurrency(tx) !== selectedCurrency) return false;
+
+        if (tx.source_transaction_id) return false;
+
+        if (tx.is_shared === true) {
+          const isCreator = tx.creator_user_id === user?.id;
+          const myFamilyMember = familyMembers.find((m) => m.linked_user_id === user?.id);
+          const isPayer = myFamilyMember && tx.payer_id === myFamilyMember.id;
+          if (!isCreator && !isPayer) return false;
+        }
+
+        return true;
+      })
+      .slice(0, 5);
+  }, [dashboardRecentTransactions, familyMembers, selectedCurrency, user?.id]);
   const hasError = txError || accountsError;
-  const isLoading = (txLoading || accountsLoading) && !hasError;
+  const isLoading = (txLoading || accountsLoading || recentLoading) && !hasError;
 
   const activeTrip = useMemo(() => {
     if (!trips || trips.length === 0) return null;
