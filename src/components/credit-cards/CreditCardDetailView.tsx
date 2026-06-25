@@ -64,7 +64,7 @@ export function CreditCardDetailView({
   invoiceData,
   formatCurrency,
   daysUntilDue,
-
+  usagePercent,
   bank,
   setShowPayDialog,
   setShowImportDialog,

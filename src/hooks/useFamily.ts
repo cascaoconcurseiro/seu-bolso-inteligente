@@ -19,6 +19,7 @@ export interface FamilyMember {
   avatar_color?: string | null;
   avatar_icon?: string | null;
   status: "pending" | "active";
+  member_type: "family" | "contact";
   invited_by: string | null;
   sharing_scope: SharingScope;
   scope_start_date: string | null;
@@ -87,22 +88,27 @@ export function useFamily() {
   });
 }
 
-export function useFamilyMembers() {
+export function useFamilyMembers(includeContacts = false) {
   const { user } = useAuth();
   const { data: family } = useFamily();
 
   return useQuery({
-    queryKey: ["family-members", user?.id, family?.id],
+    queryKey: ["family-members", user?.id, family?.id, includeContacts],
     queryFn: async () => {
       if (!user || !family) return [];
 
-      // Buscar TODOS os membros da família
-      const { data, error } = await supabase
+      // Buscar membros da família (por padrão exclui contatos de despesa)
+      let query = supabase
         .from("family_members")
         .select("*")
         .eq("family_id", family.id)
         .order("created_at");
 
+      if (!includeContacts) {
+        query = query.eq("member_type", "family") as any;
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
       const membersList = (data || []) as FamilyMember[];
@@ -169,6 +175,7 @@ export function useFamilyMembers() {
           email: familyWithOwner.owner.email,
           role: "admin",
           status: "active",
+          member_type: "family",
           linked_user_id: familyWithOwner.owner.id,
           sharing_scope: "all",
           // ✅ FIX: Avatar vem do perfil real, não estático null
@@ -424,5 +431,69 @@ export function useUpdateFamily() {
     onError: (error) => {
       toast.error("Erro ao atualizar família: " + error.message);
     },
+  });
+}
+
+// Hook para buscar contatos de despesa (não família)
+export function useSharedContacts() {
+  const { user } = useAuth();
+  const { data: family } = useFamily();
+
+  return useQuery({
+    queryKey: ["shared-contacts", user?.id, family?.id],
+    queryFn: async (): Promise<FamilyMember[]> => {
+      if (!user || !family) return [];
+      const { data, error } = await supabase
+        .from("family_members")
+        .select("*")
+        .eq("family_id", family.id)
+        .eq("member_type", "contact")
+        .order("name");
+      if (error) throw error;
+      return (data || []) as FamilyMember[];
+    },
+    enabled: !!user && !!family,
+  });
+}
+
+// Converter membro em contato de despesa (remove da família, mantém histórico)
+export function useConvertMemberToContact() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase
+        .from("family_members")
+        .update({ member_type: "contact" })
+        .eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
+      toast.success("Movido para contatos — histórico preservado");
+    },
+    onError: () => toast.error("Erro ao alterar tipo de membro"),
+  });
+}
+
+// Converter contato em membro da família
+export function useConvertContactToMember() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase
+        .from("family_members")
+        .update({ member_type: "family" })
+        .eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
+      toast.success("Adicionado como membro da família");
+    },
+    onError: () => toast.error("Erro ao alterar tipo de membro"),
   });
 }

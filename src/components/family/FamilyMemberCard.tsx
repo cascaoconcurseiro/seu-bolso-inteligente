@@ -1,4 +1,4 @@
-import { Crown, Mail, MoreHorizontal, Trash2 } from "lucide-react";
+import { Crown, Mail, MoreHorizontal, Trash2, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -14,16 +14,17 @@ interface FamilyMember {
 }
 
 interface FamilyMemberCardProps {
-  member: FamilyMember;
+  member: FamilyMember & { member_type?: string };
   isSelf: boolean;
   roleLabels: Record<string, { label: string; description: string }>;
   getInitials: (name: string) => string;
   onUpdateRole: (id: string, role: FamilyRole) => void;
   onRemove: (id: string) => void;
+  onMoveToContact?: (id: string) => void;
 }
 
-export function FamilyMemberCard({ 
-  member, isSelf, roleLabels, getInitials, onUpdateRole, onRemove 
+export function FamilyMemberCard({
+  member, isSelf, roleLabels, getInitials, onUpdateRole, onRemove, onMoveToContact
 }: FamilyMemberCardProps) {
   const memberIsOwner = member.role === "admin"; // Enhanced logic
 
@@ -75,8 +76,14 @@ export function FamilyMemberCard({
                 <DropdownMenuItem onClick={() => onUpdateRole(member.id, "editor")}>Tornar Editor</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onUpdateRole(member.id, "viewer")}>Tornar Visualizador</DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {onMoveToContact && (
+                  <DropdownMenuItem onClick={() => onMoveToContact(member.id)}>
+                    <UserMinus className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Mover para Contatos
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem className="text-destructive font-semibold focus:text-destructive" onClick={() => onRemove(member.id)}>
-                  <Trash2 className="h-4 w-4 mr-2 text-destructive" /> 
+                  <Trash2 className="h-4 w-4 mr-2 text-destructive" />
                   Remover Membro
                 </DropdownMenuItem>
               </DropdownMenuContent>

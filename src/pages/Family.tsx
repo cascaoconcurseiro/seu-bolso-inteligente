@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Users, Crown, X, UserPlus, Check, Plus } from "lucide-react";
+import { Users, Crown, X, UserPlus, Check, Plus, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useFamily, useFamilyMembers, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
+import { useFamily, useFamilyMembers, useSharedContacts, useConvertMemberToContact, useConvertContactToMember, useInviteFamilyMember, useUpdateFamilyMember, useRemoveFamilyMember, FamilyRole } from "@/hooks/useFamily";
 import { useFamilyInvitations, useCancelInvitation } from "@/hooks/useFamilyInvitations";
 import { useAuth } from "@/contexts/AuthContext";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
@@ -19,11 +19,14 @@ export function Family() {
   const { user } = useAuth();
   const { data: family, isLoading: familyLoading } = useFamily();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers();
+  const { data: contacts = [] } = useSharedContacts();
   const { data: invitations = [] } = useFamilyInvitations();
   const inviteMember = useInviteFamilyMember();
   const updateMember = useUpdateFamilyMember();
   const removeMember = useRemoveFamilyMember();
   const cancelInvitation = useCancelInvitation();
+  const moveToContact = useConvertMemberToContact();
+  const moveToFamily = useConvertContactToMember();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const isOwner = family?.owner_id === user?.id;
@@ -135,7 +138,9 @@ export function Family() {
             } catch (e: any) {
               toast.error(e.message || "Erro ao remover membro");
             }
-          }} />)}</div>
+          }} onMoveToContact={isOwner ? async (id) => {
+            await moveToContact.mutateAsync(id);
+          } : undefined} />)}</div>
         )}
       </div>
 
@@ -158,6 +163,46 @@ export function Family() {
                     toast.error(e.message || "Erro ao cancelar convite");
                   }
                 }}><X className="h-4 w-4" /></Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {contacts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
+              Contatos de Despesa ({contacts.length})
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Pessoas com quem você dividiu despesas mas que não fazem parte da família. Elas não aparecem nos painéis de saldo familiar nem no Modo Casal.
+          </p>
+          <div className="space-y-2">
+            {contacts.map(c => (
+              <div key={c.id} className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
+                    {c.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">Contato externo — histórico preservado</p>
+                  </div>
+                </div>
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-primary hover:text-primary/80"
+                    onClick={() => moveToFamily.mutate(c.id)}
+                    disabled={moveToFamily.isPending}
+                  >
+                    Mover para família
+                  </Button>
+                )}
               </div>
             ))}
           </div>
