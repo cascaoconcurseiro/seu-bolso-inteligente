@@ -81,7 +81,6 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
-  const { data: profile } = useUserProfile();
 
   // Zustand Store Integration
   const store = useTransactionStore();
