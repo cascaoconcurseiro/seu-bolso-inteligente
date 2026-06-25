@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { TransactionItem } from "./TransactionItem";
 import { Transaction, DayGroup } from "@/utils/transactionUtils";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Receipt } from "lucide-react";
+import { Receipt, SearchX } from "lucide-react";
 
 interface FamilyMember {
   id: string;
@@ -36,6 +36,7 @@ interface TransactionListProps {
   getCreatorName: (tx: Transaction) => string | null;
   getPayerInfo: (tx: Transaction) => PayerInfo | null;
   selectedAccount: string;
+  hasActiveFilter?: boolean;
 }
 
 export function TransactionList({
@@ -52,14 +53,24 @@ export function TransactionList({
   hasPendingSplits,
   getCreatorName,
   getPayerInfo,
-  selectedAccount
+  selectedAccount,
+  hasActiveFilter = false,
 }: TransactionListProps) {
   if (dayGroups.length === 0) {
+    if (hasActiveFilter) {
+      return (
+        <EmptyState
+          icon={SearchX}
+          title="Nenhum resultado para este filtro"
+          description="Tente ajustar o período, tipo ou categoria. Suas transações continuam lá."
+        />
+      );
+    }
     return (
       <EmptyState
         icon={Receipt}
-        title="Nenhuma transação encontrada"
-        description="Você não possui nenhuma transação neste período. Adicione uma nova transação clicando no botão de '+', ou altere o filtro de pesquisa."
+        title="Nenhuma transação ainda"
+        description="Registre sua primeira movimentação usando o botão '+' acima. Receitas, despesas e transferências ficam todos aqui."
       />
     );
   }

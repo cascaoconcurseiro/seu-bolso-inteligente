@@ -22,6 +22,7 @@ import { InvestmentSummarySection } from '@/components/investments/InvestmentSum
 import { InvestmentIRPanel } from '@/components/investments/InvestmentIRPanel';
 import { useSyncAssetPrices } from '@/hooks/useSyncAssetPrices';
 import { RefreshCw } from 'lucide-react';
+import { EmptyState } from "@/components/ui/empty-state";
 
 export function GoalsAndInvestments() {
   const [activeTab, setActiveTab] = useState<'GOALS' | 'INVESTMENTS' | 'IRPF'>('GOALS');
@@ -298,18 +299,19 @@ export function GoalsAndInvestments() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {assets?.length === 0 ? (
-                <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-card/30 rounded-3xl border border-border/50">
-                  <div className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner border border-success/20">
-                    <TrendingUp className="w-10 h-10 text-success" />
-                  </div>
-                  <h3 className="text-2xl font-display font-bold text-foreground mb-3 tracking-tight">Sua carteira está vazia</h3>
-                  <p className="text-muted-foreground text-center max-w-md text-base mb-8">
-                    Adicione seus investimentos para acompanhar a rentabilidade, cotações atualizadas e o histórico em um só lugar.
-                  </p>
-                  <Button onClick={() => setShowAssetForm(true)} size="lg" className="h-12 px-8 rounded-full shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 bg-emerald-600 hover:bg-emerald-700 text-white transition-all font-semibold">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Adicionar Primeiro Ativo
-                  </Button>
+                <div className="col-span-full">
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="Sua carteira está vazia"
+                    description="Adicione ações, FIIs, cripto ou renda fixa para acompanhar rentabilidade, cotações e histórico em um só lugar."
+                    variant="success"
+                    action={
+                      <Button onClick={() => setShowAssetForm(true)} size="lg" className="h-12 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all font-semibold">
+                        <Plus className="w-5 h-5 mr-2" />
+                        Adicionar Primeiro Ativo
+                      </Button>
+                    }
+                  />
                 </div>
               ) : (
                 assets?.map((asset, index) => (

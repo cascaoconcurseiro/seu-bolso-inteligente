@@ -23,7 +23,6 @@ import { DashboardQuickAccess } from "@/components/dashboard/DashboardQuickAcces
 import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
-import { DashboardInsights } from "@/components/dashboard/DashboardInsights";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plane } from "lucide-react";
@@ -247,7 +246,6 @@ export function Dashboard() {
         />
 
         <div className="flex justify-end items-center gap-3 pt-1">
-          <DashboardInsights />
           {activeTrip && (
             <Button
               variant="outline"

@@ -325,13 +325,14 @@ export function Transactions() {
       <TransactionList
         dayGroups={dayGroups} user={user} familyMembers={familyMembers} formatCurrency={formatCurrency}
         onDetails={setDetailsTransaction}
-        onSettlement={() => {}} // No settlement action in this view natively, or we can use setDetailsTransaction
+        onSettlement={() => {}}
         onAdvance={handleAdvance}
         onEdit={handleEdit}
         onDelete={(tx) => setDeleteConfirm({ isOpen: true, transaction: tx })}
         isFullySettled={isFullySettled} hasPendingSplits={hasPendingSplits}
         getCreatorName={getCreatorName} getPayerInfo={getPayerInfo}
         selectedAccount={selectedAccount}
+        hasActiveFilter={searchQuery.trim().length > 0 || selectedType !== "all" || selectedCategory !== "all" || selectedAccount !== "all"}
       />
 
       {/* Alert Dialogs & Modals */}

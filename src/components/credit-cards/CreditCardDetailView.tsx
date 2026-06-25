@@ -549,8 +549,8 @@ export function CreditCardDetailView({
       {localInvoiceData.transactions.length === 0 && (
         <EmptyState
           icon={CreditCard}
-          title="Nenhum lançamento"
-          description="Você ainda não possui compras registradas nesta fatura."
+          title="Fatura zerada"
+          description="Nenhuma compra registrada neste período. Use o botão '+' para lançar uma despesa no cartão."
         />
       )}
 
