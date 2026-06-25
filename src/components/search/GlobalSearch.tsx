@@ -1,14 +1,15 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { DialogTitle } from "@/components/ui/dialog";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useGoals } from "@/hooks/useGoals";
+import { supabase } from "@/integrations/supabase/client";
 import { moneyUtils } from "@/utils/money";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Wallet, Target, ArrowRightLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { Wallet, Target, ArrowRightLeft } from "lucide-react";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface GlobalSearchProps {
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [serverResults, setServerResults] = useState<any[]>([]);
 
   const { data: transactions = [] } = useTransactions();
   const { data: accounts = [] } = useAccounts();
@@ -25,16 +27,49 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const q = query.trim().toLowerCase();
 
-  const filteredTransactions = useMemo(() => {
+  // Cache-first: search in-memory immediately; fall back to server after 400ms debounce
+  const cachedTransactions = useMemo(() => {
     if (q.length < 2) return [];
     return transactions
       .filter(t => t.description.toLowerCase().includes(q))
       .slice(0, 8);
   }, [transactions, q]);
 
+  useEffect(() => {
+    if (q.length < 2) {
+      setServerResults([]);
+      return;
+    }
+
+    // Only hit the server if cache returns nothing (user has > cached transactions)
+    if (cachedTransactions.length >= 8) {
+      setServerResults([]);
+      return;
+    }
+
+    const id = setTimeout(async () => {
+      const { data } = await supabase.rpc('search_transactions', {
+        p_query: q,
+        p_limit: 20,
+      });
+      if (data) {
+        // Merge server results with cache, dedup by id
+        const cachedIds = new Set(cachedTransactions.map(t => t.id));
+        const extra = (data as any[]).filter(r => !cachedIds.has(r.id));
+        setServerResults(extra.slice(0, 8 - cachedTransactions.length));
+      }
+    }, 400);
+
+    return () => clearTimeout(id);
+  }, [q, cachedTransactions]);
+
+  const filteredTransactions = useMemo(() => {
+    return [...cachedTransactions, ...serverResults].slice(0, 8);
+  }, [cachedTransactions, serverResults]);
+
   const filteredAccounts = useMemo(() => {
     if (q.length < 2) return [];
-    return accounts.filter(a => a.name.toLowerCase().includes(q)).slice(0, 5);
+    return accounts.filter((a: any) => a.name.toLowerCase().includes(q)).slice(0, 5);
   }, [accounts, q]);
 
   const filteredGoals = useMemo(() => {
@@ -47,6 +82,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const close = useCallback(() => {
     onOpenChange(false);
     setQuery("");
+    setServerResults([]);
   }, [onOpenChange]);
 
   const goTo = useCallback((path: string) => {
@@ -85,7 +121,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
         {filteredTransactions.length > 0 && (
           <CommandGroup heading="Transações">
-            {filteredTransactions.map(t => (
+            {filteredTransactions.map((t: any) => (
               <CommandItem
                 key={t.id}
                 value={`tx-${t.id}-${t.description}`}
