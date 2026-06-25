@@ -112,6 +112,14 @@ export function NewCardDialog({
                 <SelectValue placeholder="Selecione o banco…" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="other" className="text-warning focus:text-warning font-medium border-b mb-1 pb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
+                      <CreditCard className="w-3 h-3" />
+                    </div>
+                    Outro Banco (Personalizado)
+                  </div>
+                </SelectItem>
                 {(isInternational ? Object.values(internationalBanks) : Object.values(banks)).map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     <div className="flex items-center gap-2">
@@ -120,14 +128,6 @@ export function NewCardDialog({
                     </div>
                   </SelectItem>
                 ))}
-                <SelectItem value="other" className="text-warning focus:text-warning font-medium border-t mt-1 pt-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
-                      <CreditCard className="w-3 h-3" />
-                    </div>
-                    Outro Banco (Personalizado)
-                  </div>
-                </SelectItem>
               </SelectContent>
             </Select>
             {bankId === "other" && (
