@@ -6,8 +6,10 @@ export function useCurrencyRate(currencyCode: string, targetCode: string = "BRL"
     queryKey: ["currency-rate", currencyCode, targetCode],
     queryFn: () => getCurrencyRate(currencyCode, targetCode),
     enabled: !!currencyCode && currencyCode !== targetCode,
-    staleTime: 1000 * 60 * 15, // 15 minutos
-    refetchInterval: 1000 * 60 * 15, // Refaz o fetch a cada 15 min automaticamente
+    staleTime: 1000 * 60 * 15,
+    refetchInterval: 1000 * 60 * 15,
+    retry: 2,
+    retryDelay: 2000,
   });
 }
 

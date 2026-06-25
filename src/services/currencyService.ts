@@ -29,22 +29,17 @@ export async function getCurrencyRate(
     return cached.rate;
   }
 
-  try {
-    const pair = `${currencyCode}-${targetCode}`;
-    const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pair}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const pair = `${currencyCode}-${targetCode}`;
+  const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${pair}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const data = await response.json();
-    const rateData = data[`${currencyCode}${targetCode}`];
-    if (!rateData) throw new Error('Par não encontrado');
+  const data = await response.json();
+  const rateData = data[`${currencyCode}${targetCode}`];
+  if (!rateData) throw new Error(`Par ${pair} não encontrado`);
 
-    const rate = parseFloat(rateData.bid);
-    cache.set(cacheKey, { rate, timestamp: Date.now() });
-    return rate;
-  } catch (error) {
-    logger.error(`Erro ao buscar cotação ${currencyCode}/${targetCode}:`, error);
-    return null;
-  }
+  const rate = parseFloat(rateData.bid);
+  cache.set(cacheKey, { rate, timestamp: Date.now() });
+  return rate;
 }
 
 export async function getMultipleCurrencyRates(

@@ -76,7 +76,7 @@ export function DashboardHero({
                 ) : realTimeRate ? (
                   <span>1 {currency} = {moneyUtils.format(realTimeRate, "BRL")}</span>
                 ) : (
-                  <span>Cotando...</span>
+                  <span className="text-xs opacity-60">Indisponível</span>
                 )}
               </div>
             )}
