@@ -1,17 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "./fixtures/auth";
 
-test.describe('Planejamento: Orçamentos', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('PLAYWRIGHT_MOCK_AUTH', 'true');
-    });
-  });
-
-  test('Deve carregar painel de limites', async ({ page }) => {
-    await page.goto('/orcamentos');
-    const header = page.locator('h1:has-text("Orçamentos")');
-    if (await header.isVisible()) {
-      await expect(page.locator('text="Disponível"').first()).toBeVisible();
-    }
+test.describe("Planejamento: Orçamentos", () => {
+  test("Deve carregar painel de limites", async ({ authenticatedPage: page }) => {
+    await page.goto("/orcamentos");
+    await expect(page.locator('h1:has-text("Orçamentos")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text="Disponível"').first()).toBeVisible();
   });
 });

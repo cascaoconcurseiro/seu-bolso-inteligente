@@ -43,7 +43,7 @@ export const useGoals = () => {
       logger.warn('[useGoals] get_goal_progress não disponível:', error.message);
       return [] as GoalProgress[];
     }
-    return (data as any[]).map(item => ({
+    return (data as Array<GoalProgress & { percentage_complete: number }>).map(item => ({
       ...item,
       percentage: item.percentage_complete
     })) as GoalProgress[];

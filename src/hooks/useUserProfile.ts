@@ -14,7 +14,6 @@ export interface UserProfile {
   use_subcategories?: boolean;
   month_start_day?: number;
   base_currency?: string;
-  app_pin?: string | null;
   require_pin_on_open?: boolean;
   monthly_budget?: number;
   shared_expenses_behavior?: string;
@@ -66,9 +65,6 @@ export function useUserProfile() {
           if (data.require_pin_on_open !== undefined) {
             localStorage.setItem('@pedemeia:require_pin', JSON.stringify(data.require_pin_on_open));
           }
-          if (data.app_pin !== undefined) {
-            localStorage.setItem('@pedemeia:app_pin', data.app_pin || '');
-          }
         } catch (e) { /* ignore */ }
       }
 
@@ -93,7 +89,6 @@ export function useUpdateUserProfile() {
       use_subcategories?: boolean;
       month_start_day?: number;
       base_currency?: string;
-      app_pin?: string | null;
       require_pin_on_open?: boolean;
       monthly_budget?: number;
       shared_expenses_behavior?: string;
@@ -130,9 +125,6 @@ export function useUpdateUserProfile() {
       }
       if (input.base_currency !== undefined) {
         updateData.base_currency = input.base_currency;
-      }
-      if (input.app_pin !== undefined) {
-        updateData.app_pin = input.app_pin;
       }
       if (input.require_pin_on_open !== undefined) {
         updateData.require_pin_on_open = input.require_pin_on_open;
@@ -175,9 +167,6 @@ export function useUpdateUserProfile() {
       try {
         if (input.require_pin_on_open !== undefined) {
           localStorage.setItem('@pedemeia:require_pin', JSON.stringify(input.require_pin_on_open));
-        }
-        if (input.app_pin !== undefined) {
-          localStorage.setItem('@pedemeia:app_pin', input.app_pin || '');
         }
       } catch (e) { /* ignore */ }
 

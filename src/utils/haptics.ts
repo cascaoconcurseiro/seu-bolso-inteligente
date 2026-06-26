@@ -1,3 +1,5 @@
+// iOS Safari does not support navigator.vibrate (returns undefined).
+// The Web Vibration API is Android/Chrome-only; iOS provides no fallback.
 export const vibrate = (pattern: number | number[] = 50) => {
   if (typeof window !== 'undefined' && navigator.vibrate) {
     try {

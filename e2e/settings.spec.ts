@@ -1,17 +1,20 @@
-import { test, expect } from '@playwright/test';
+import AxeBuilder from "@axe-core/playwright";
+import { test, expect } from "./fixtures/auth";
 
-test.describe('Configurações do Sistema', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('PLAYWRIGHT_MOCK_AUTH', 'true');
-    });
+test.describe("Configurações do Sistema", () => {
+  test("Deve carregar Preferências de Usuário", async ({ authenticatedPage: page }) => {
+    await page.goto("/configuracoes");
+    await expect(page.locator('h1:has-text("Configurações")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text="Notificações"').first()).toBeVisible();
   });
 
-  test('Deve carregar Preferências de Usuário', async ({ page }) => {
-    await page.goto('/configuracoes');
-    const header = page.locator('h1:has-text("Configurações")');
-    if (await header.isVisible()) {
-      await expect(page.locator('text="Notificações"').first()).toBeVisible();
-    }
+  test("Acessibilidade: sem violações críticas", async ({ authenticatedPage: page }) => {
+    await page.goto("/configuracoes");
+    await expect(page.locator('h1:has-text("Configurações")')).toBeVisible({ timeout: 10000 });
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      .disableRules(["color-contrast"])
+      .analyze();
+    expect(results.violations).toHaveLength(0);
   });
 });
