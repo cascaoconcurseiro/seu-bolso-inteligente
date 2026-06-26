@@ -9,6 +9,8 @@
     "build": "node scripts/generate-version.js && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
@@ -85,6 +87,7 @@
     "globals": "^15.15.0",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.6",
+    "prettier": "^3.8.4",
     "tailwindcss": "^3.4.17",
     "terser": "^5.46.1",
     "typescript": "^5.8.3",
