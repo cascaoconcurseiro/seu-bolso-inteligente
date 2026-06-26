@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, MapPin, Pencil, Plus, Route, Trash2 } from "lucide-react";
+import { Clock, ExternalLink, MapPin, Pencil, Plus, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 interface ItineraryItem {

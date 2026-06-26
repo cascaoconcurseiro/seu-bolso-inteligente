@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Loader2,
   ArrowDownLeft,
@@ -9,37 +9,37 @@ import {
   Plane,
   X,
   CalendarCheck,
-} from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { isFuture, startOfDay } from 'date-fns';
-import { isWithinInterval, parseISO } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
-import { SplitModal } from './SplitModal';
-import { TabType } from '@/types/transactions';
-import { Transaction } from '@/hooks/useTransactions';
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { isFuture, startOfDay } from "date-fns";
+import { isWithinInterval, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
+import { SplitModal } from "./SplitModal";
+import { TabType } from "@/types/transactions";
+import { Transaction } from "@/hooks/useTransactions";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { moneyUtils } from '@/utils/money';
-import { CurrencyInput } from '@/components/ui/currency-input';
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { moneyUtils } from "@/utils/money";
+import { CurrencyInput } from "@/components/ui/currency-input";
 
 // Refactored Sub-components
-import { AmountInput } from './form/AmountInput';
-import { BasicInfoSection } from './form/BasicInfoSection';
-import { AccountSelector } from './form/AccountSelector';
-import { AdvancedOptions } from './form/AdvancedOptions';
+import { AmountInput } from "./form/AmountInput";
+import { BasicInfoSection } from "./form/BasicInfoSection";
+import { AccountSelector } from "./form/AccountSelector";
+import { AdvancedOptions } from "./form/AdvancedOptions";
 
-import { useTransactionForm } from './form/useTransactionForm';
-import { useUpdateRecurringSeries } from '@/hooks/transactions/useTransactionMutations';
-import { moneyUtils as moneyUtilsImport } from '@/utils/money';
+import { useTransactionForm } from "./form/useTransactionForm";
+import { useUpdateRecurringSeries } from "@/hooks/transactions/useTransactionMutations";
+import { moneyUtils as moneyUtilsImport } from "@/utils/money";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -55,7 +55,7 @@ interface TransactionFormProps {
 export function TransactionForm(props: TransactionFormProps) {
   const form = useTransactionForm(props);
   const updateSeries = useUpdateRecurringSeries();
-  const [seriesUpdateMode, setSeriesUpdateMode] = useState<'single' | 'future'>('single');
+  const [seriesUpdateMode, setSeriesUpdateMode] = useState<"single" | "future">("single");
   const [tripBannerDismissed, setTripBannerDismissed] = useState(false);
 
   const isEditingRecurring = !!(
@@ -83,7 +83,7 @@ export function TransactionForm(props: TransactionFormProps) {
   }, [form.trips]);
 
   const showTripBanner =
-    form.activeTab === 'EXPENSE' &&
+    form.activeTab === "EXPENSE" &&
     !props.initialData?.id &&
     !!activeTrip &&
     !form.tripId &&
@@ -110,7 +110,7 @@ export function TransactionForm(props: TransactionFormProps) {
           onClick={(e) => {
             e.preventDefault();
             form.setShowTransactionModal(false);
-            form.navigate('/contas');
+            form.navigate("/contas");
           }}
         >
           Criar Conta
@@ -122,47 +122,47 @@ export function TransactionForm(props: TransactionFormProps) {
   return (
     <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-4 animate-fade-in overflow-x-hidden">
       <div className="grid grid-cols-3 gap-1 p-1 rounded-[10px] bg-[hsl(var(--bg-subtle))]">
-        {(['EXPENSE', 'INCOME', 'TRANSFER'] as TabType[]).map((tab) => (
+        {(["EXPENSE", "INCOME", "TRANSFER"] as TabType[]).map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => form.setActiveTab(tab)}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[13px] font-medium transition-all',
+              "flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-[13px] font-medium transition-all",
               form.activeTab === tab
-                ? 'bg-[hsl(var(--bg-surface))] shadow-[0_1px_3px_rgba(0,0,0,0.1)]'
-                : 'text-muted-foreground hover:text-foreground',
+                ? "bg-[hsl(var(--bg-surface))] shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {tab === 'EXPENSE' && (
+            {tab === "EXPENSE" && (
               <ArrowUpRight
-                className={cn('h-4 w-4', form.activeTab === tab && 'text-[hsl(var(--danger))]')}
+                className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--danger))]")}
               />
             )}
-            {tab === 'INCOME' && (
+            {tab === "INCOME" && (
               <ArrowDownLeft
-                className={cn('h-4 w-4', form.activeTab === tab && 'text-[hsl(var(--success))]')}
+                className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--success))]")}
               />
             )}
-            {tab === 'TRANSFER' && (
+            {tab === "TRANSFER" && (
               <ArrowRightLeft
-                className={cn('h-4 w-4', form.activeTab === tab && 'text-[hsl(var(--accent))]')}
+                className={cn("h-4 w-4", form.activeTab === tab && "text-[hsl(var(--accent))]")}
               />
             )}
 
             <span
               className={cn(
                 form.activeTab === tab &&
-                  (tab === 'EXPENSE'
-                    ? 'text-[hsl(var(--danger))]'
-                    : tab === 'INCOME'
-                      ? 'text-[hsl(var(--success))]'
-                      : 'text-[hsl(var(--accent))]'),
+                  (tab === "EXPENSE"
+                    ? "text-[hsl(var(--danger))]"
+                    : tab === "INCOME"
+                      ? "text-[hsl(var(--success))]"
+                      : "text-[hsl(var(--accent))]")
               )}
             >
-              {tab === 'EXPENSE' && 'Despesa'}
-              {tab === 'INCOME' && 'Receita'}
-              {tab === 'TRANSFER' && 'Transf.'}
+              {tab === "EXPENSE" && "Despesa"}
+              {tab === "INCOME" && "Receita"}
+              {tab === "TRANSFER" && "Transf."}
             </span>
           </button>
         ))}
@@ -216,21 +216,21 @@ export function TransactionForm(props: TransactionFormProps) {
         <Alert
           className={cn(
             form.budgetWarning.exceeded
-              ? 'border-destructive/50 bg-destructive/10'
-              : 'border-warning/50 bg-warning/12',
-            'animate-in slide-in-from-top-2',
+              ? "border-destructive/50 bg-destructive/10"
+              : "border-warning/50 bg-warning/12",
+            "animate-in slide-in-from-top-2"
           )}
         >
           <BellRing
             className={cn(
-              'h-4 w-4',
-              form.budgetWarning.exceeded ? 'text-destructive' : 'text-warning',
+              "h-4 w-4",
+              form.budgetWarning.exceeded ? "text-destructive" : "text-warning"
             )}
           />
           <AlertDescription
             className={cn(
-              'font-medium',
-              form.budgetWarning.exceeded ? 'text-destructive' : 'text-warning',
+              "font-medium",
+              form.budgetWarning.exceeded ? "text-destructive" : "text-warning"
             )}
           >
             {form.budgetWarning.message}
@@ -260,10 +260,10 @@ export function TransactionForm(props: TransactionFormProps) {
           selectedAccount={form.selectedAccount}
           isPaidByOther={form.isPaidByOther}
           payerName={
-            form.payerId !== 'me'
+            form.payerId !== "me"
               ? (form.effectiveFamilyMembers || []).find((m) => m.id === form.payerId)?.name ||
-                'outro'
-              : ''
+                "outro"
+              : ""
           }
           goals={form.goals}
         />
@@ -297,8 +297,8 @@ export function TransactionForm(props: TransactionFormProps) {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold z-10">
                     {form.getCurrencySymbol(
                       form.isCrossCurrencyTripExpense
-                        ? form.selectedTrip?.currency || 'USD'
-                        : form.selectedDestAccount?.currency || 'USD',
+                        ? form.selectedTrip?.currency || "USD"
+                        : form.selectedDestAccount?.currency || "USD"
                     )}
                   </span>
                   <CurrencyInput
@@ -307,10 +307,10 @@ export function TransactionForm(props: TransactionFormProps) {
                     onChange={(val) => form.handleDestAmountChange(val)}
                     currency={
                       form.isCrossCurrencyTripExpense
-                        ? form.selectedTrip?.currency || 'USD'
-                        : form.selectedDestAccount?.currency || 'USD'
+                        ? form.selectedTrip?.currency || "USD"
+                        : form.selectedDestAccount?.currency || "USD"
                     }
-                    className="w-full h-10 pl-10 pr-3 rounded-xl border border-border bg-background text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
+                    className="w-full h-10 pl-10 pr-3 rounded-xl border border-border bg-background text-base text-foreground font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary shadow-sm"
                   />
                 </div>
               </div>
@@ -331,11 +331,11 @@ export function TransactionForm(props: TransactionFormProps) {
                     placeholder="0,0000"
                     value={
                       form.exchangeRate
-                        ? Number(form.exchangeRate).toLocaleString('pt-BR', {
+                        ? Number(form.exchangeRate).toLocaleString("pt-BR", {
                             minimumFractionDigits: 4,
                             maximumFractionDigits: 4,
                           })
-                        : ''
+                        : ""
                     }
                     readOnly
                     className="w-full h-10 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
@@ -347,9 +347,9 @@ export function TransactionForm(props: TransactionFormProps) {
             <p className="text-sm text-muted-foreground leading-normal">
               💡 Digite apenas o valor exato que chegou no destino. O sistema irá calcular
               automaticamente a taxa de câmbio efetiva (incluindo spread, IOF e outras taxas)
-              baseada no valor de origem de{' '}
-              {form.getCurrencySymbol(form.selectedAccount?.currency || 'BRL')}{' '}
-              {moneyUtils.parse(form.amount || '0').toFixed(2)}.
+              baseada no valor de origem de{" "}
+              {form.getCurrencySymbol(form.selectedAccount?.currency || "BRL")}{" "}
+              {moneyUtils.parse(form.amount || "0").toFixed(2)}.
             </p>
           </div>
         )}
@@ -372,13 +372,13 @@ export function TransactionForm(props: TransactionFormProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1">
-                  1x de {form.getCurrencySymbol(form.transactionCurrency)}{' '}
-                  {(moneyUtils.parse(form.amount) || 0).toFixed(2).replace('.', ',')} (À vista)
+                  1x de {form.getCurrencySymbol(form.transactionCurrency)}{" "}
+                  {(moneyUtils.parse(form.amount) || 0).toFixed(2).replace(".", ",")} (À vista)
                 </SelectItem>
                 {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
                   <SelectItem key={n} value={n.toString()}>
-                    {n}x de {form.getCurrencySymbol(form.transactionCurrency)}{' '}
-                    {((moneyUtils.parse(form.amount) || 0) / n).toFixed(2).replace('.', ',')}
+                    {n}x de {form.getCurrencySymbol(form.transactionCurrency)}{" "}
+                    {((moneyUtils.parse(form.amount) || 0) / n).toFixed(2).replace(".", ",")}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -433,24 +433,24 @@ export function TransactionForm(props: TransactionFormProps) {
           <div className="flex rounded-xl overflow-hidden border border-border/60 text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setSeriesUpdateMode('single')}
+              onClick={() => setSeriesUpdateMode("single")}
               className={cn(
-                'flex-1 px-3 py-2 transition-colors',
-                seriesUpdateMode === 'single'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+                "flex-1 px-3 py-2 transition-colors",
+                seriesUpdateMode === "single"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
               Só esta
             </button>
             <button
               type="button"
-              onClick={() => setSeriesUpdateMode('future')}
+              onClick={() => setSeriesUpdateMode("future")}
               className={cn(
-                'flex-1 px-3 py-2 transition-colors flex items-center justify-center gap-1.5',
-                seriesUpdateMode === 'future'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+                "flex-1 px-3 py-2 transition-colors flex items-center justify-center gap-1.5",
+                seriesUpdateMode === "future"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
               )}
             >
               <RefreshCw className="h-3 w-3" />
@@ -469,9 +469,9 @@ export function TransactionForm(props: TransactionFormProps) {
             Cancelar
           </Button>
           <Button
-            type={isEditingRecurring && seriesUpdateMode === 'future' ? 'button' : 'submit'}
+            type={isEditingRecurring && seriesUpdateMode === "future" ? "button" : "submit"}
             onClick={
-              isEditingRecurring && seriesUpdateMode === 'future'
+              isEditingRecurring && seriesUpdateMode === "future"
                 ? async (e) => {
                     e.preventDefault();
                     const amount = moneyUtilsImport.parse(form.amount);
@@ -503,7 +503,7 @@ export function TransactionForm(props: TransactionFormProps) {
             updateSeries.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              'Salvar'
+              "Salvar"
             )}
           </Button>
         </div>
@@ -522,14 +522,14 @@ export function TransactionForm(props: TransactionFormProps) {
         setSplits={form.setSplits}
         familyMembers={form.effectiveFamilyMembers}
         activeAmount={moneyUtils.parse(form.amount) || 0}
-        onNavigateToFamily={() => form.navigate('/familia')}
+        onNavigateToFamily={() => form.navigate("/familia")}
         isInstallment={form.isInstallment}
         setIsInstallment={form.setIsInstallment}
         totalInstallments={form.totalInstallments}
         setTotalInstallments={form.setTotalInstallments}
         currentUserName={
           (form.effectiveFamilyMembers || []).find((m) => m.linked_user_id === form.user?.id)
-            ?.name || 'Eu'
+            ?.name || "Eu"
         }
         currentUserMemberId={form.myMemberRecord?.id}
       />
