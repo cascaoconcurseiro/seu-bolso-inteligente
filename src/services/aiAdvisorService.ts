@@ -89,7 +89,7 @@ export class AIAdvisorService {
     const prompt = getFinancialAnalysisPrompt(data);
 
     const result = await this.fetchGroq({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: prompt }],
       temperature: 0.5,
       max_tokens: 600,
@@ -266,7 +266,7 @@ export class AIAdvisorService {
       userExamples,
     );
     const result = await this.fetchGroq({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: prompt }],
       temperature: 0.5,
       max_tokens: 300,
@@ -352,7 +352,7 @@ export class AIAdvisorService {
 
     const prompt = getTripItineraryPrompt(destination);
     const result = await this.fetchGroq({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: prompt }],
       temperature: 0.4,
       max_tokens: 600,
@@ -381,7 +381,7 @@ export class AIAdvisorService {
     const prompt = getTripChecklistPrompt(destination, startDate, endDate);
 
     const result = await this.fetchGroq({
-      model: 'llama-3.1-8b-instant',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: prompt }],
       temperature: 0.3,
       max_tokens: 400,

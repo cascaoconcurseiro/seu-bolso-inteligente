@@ -125,41 +125,88 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
   ]
 }`;
 
+// Destinations in northern hemisphere — season is opposite to Brazil
+const NORTHERN_HEMISPHERE_KEYWORDS = [
+  'europa', 'europe', 'paris', 'london', 'londres', 'roma', 'rome', 'madrid', 'barcelona',
+  'amsterdam', 'berlin', 'berlim', 'viena', 'vienna', 'praga', 'prague', 'lisboa', 'lisbon',
+  'porto', 'budapest', 'varsóvia', 'warsaw', 'estocolmo', 'stockholm', 'copenhague', 'copenhagen',
+  'oslo', 'helsinki', 'dublin', 'edinburgh', 'edimburgo', 'zurique', 'zurich', 'genebra', 'geneva',
+  'bruxelas', 'brussels', 'milão', 'milan', 'florença', 'florence', 'veneza', 'venice', 'nápoles',
+  'naples', 'atenas', 'athens', 'istambul', 'istanbul', 'moscou', 'moscow',
+  'eua', 'usa', 'estados unidos', 'united states', 'new york', 'nova york', 'los angeles',
+  'miami', 'orlando', 'chicago', 'las vegas', 'san francisco', 'boston', 'washington',
+  'canada', 'canadá', 'toronto', 'vancouver', 'montreal',
+  'méxico', 'mexico', 'cidade do méxico', 'cancún', 'cancun',
+  'japão', 'japan', 'tóquio', 'tokyo', 'osaka', 'kyoto', 'beijing', 'xangai', 'shanghai',
+  'china', 'coreia', 'korea', 'seoul', 'seul', 'bangcoc', 'bangkok', 'tailândia', 'thailand',
+  'índia', 'india', 'dubai', 'abu dhabi', 'marrocos', 'morocco', 'egito', 'egypt', 'cairo',
+];
+
+const isNorthernHemisphere = (destination: string): boolean => {
+  const lower = destination.toLowerCase();
+  return NORTHERN_HEMISPHERE_KEYWORDS.some(kw => lower.includes(kw));
+};
+
 export const getTripChecklistPrompt = (destination: string, startDate?: string, endDate?: string) => {
-  // Determinar estação do ano baseado nas datas
   let seasonHint = '';
+  let durationHint = '';
+
   if (startDate && endDate) {
     const start = new Date(startDate);
-    const month = start.getMonth() + 1; // 1-12
-    
-    // Estações no Brasil (hemisfério sul)
-    if (month >= 10 || month <= 3) {
-      seasonHint = `A viagem é no VERÃO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
-Espere calor intenso, chuvas de verão e alta umidade.`;
-    } else if (month >= 4 && month <= 6) {
-      seasonHint = `A viagem é no OUTONO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
-Temperaturas amenas, menos chuva.`;
-    } else if (month >= 7 && month <= 9) {
-      seasonHint = `A viagem é no INVERNO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
-Espere frio, tempo seco e possibilidade de geada em regiões serranas.`;
+    const end = new Date(endDate);
+    const month = start.getMonth() + 1;
+    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const dateRange = `${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
+
+    durationHint = `Duração da viagem: ${days} dia${days > 1 ? 's' : ''}.`;
+
+    const northern = isNorthernHemisphere(destination);
+
+    // Northern hemisphere: seasons are opposite to Brazil
+    // Southern hemisphere (Brazil/Argentina/etc): standard seasons
+    let isSummer: boolean;
+    if (northern) {
+      isSummer = month >= 6 && month <= 8;
+    } else {
+      isSummer = month >= 10 || month <= 3;
+    }
+
+    const isWinter = northern ? (month === 12 || month <= 2) : (month >= 6 && month <= 8);
+    const isAutumn = northern ? (month >= 9 && month <= 11) : (month >= 3 && month <= 5);
+    const isSpring = northern ? (month >= 3 && month <= 5) : (month >= 9 && month <= 11);
+
+    if (isSummer) {
+      seasonHint = `ESTAÇÃO: VERÃO (${dateRange}). Calor, sol forte, possível alta umidade. Roupas leves, protetor solar alto FPS, óculos de sol. NÃO sugira casacos, agasalhos ou roupas de frio.`;
+    } else if (isWinter) {
+      seasonHint = `ESTAÇÃO: INVERNO (${dateRange}). Frio${northern ? ' intenso' : ', especialmente à noite'}. Casaco, agasalhos, meias grossas. NÃO sugira roupas de praia ou itens de calor.`;
+    } else if (isAutumn) {
+      seasonHint = `ESTAÇÃO: OUTONO (${dateRange}). Temperaturas amenas a frescas, pode chover. Jaqueta leve, camadas de roupa.`;
+    } else if (isSpring) {
+      seasonHint = `ESTAÇÃO: PRIMAVERA (${dateRange}). Temperaturas agradáveis, clima variável. Jaqueta leve para manhãs e noites.`;
     }
   }
-  
-  return `
-Pense como alguém que já viajou para ${destination} várias vezes e sabe o que é realmente necessário — não o que qualquer lista genérica diz.
-Crie um checklist de mala/preparação com 8 a 12 itens concretos e específicos para ${destination}.
-${seasonHint ? `\n⚠️ INFORMAÇÃO CRÍTICA SOBRE A ÉPOCA DA VIAGEM:\n${seasonHint}\n` : ''}
-Considere: clima real do destino (não apenas estação genérica), se é destino nacional ou internacional (visto, passaporte, câmbio), peculiaridades do local (tomadas diferentes, água potável, dress code em locais religiosos, segurança).
-Evite itens óbvios demais (ex: "roupas") — seja específico (ex: "Casaco impermeável para chuva repentina", "Adaptador de tomada tipo C").
-Inclua pelo menos 1-2 itens que a maioria das pessoas esquece mas fazem diferença real neste destino.
-${seasonHint ? 'ADAPTE AS ROUPAS E ACESSÓRIOS À ESTAÇÃO INDICADA ACIMA. NÃO sugira itens de frio se for verão, nem itens de calor se for inverno.' : ''}
-A 'category' pode ser: "Roupas", "Eletrônicos", "Documentos", "Higiene", "Acessórios", ou "Outros".
+
+  return `Você é um viajante experiente que já foi para ${destination} diversas vezes.
+Crie um checklist de mala/preparação com exatamente 10 itens PRÁTICOS e ESPECÍFICOS para quem vai viajar para ${destination}.
+${durationHint ? `\n${durationHint}` : ''}
+${seasonHint ? `\n⚠️ ESTAÇÃO/CLIMA — SIGA RIGOROSAMENTE:\n${seasonHint}\n` : ''}
+
+REGRAS OBRIGATÓRIAS:
+1. Pense no que um viajante REAL leva — não uma lista de hotel genérica.
+2. Considere se é destino internacional (passaporte, visto, adaptador de tomada, câmbio, chip internacional) ou nacional.
+3. Seja específico: não "roupas" mas "Camisetas leves de secagem rápida (${seasonHint.includes('VERÃO') ? '5-6 peças' : '3-4 peças'})".
+4. Inclua 1-2 itens que viajantes frequentemente ESQUECEM mas fazem diferença real neste destino.
+5. NUNCA sugira itens incompatíveis com a estação indicada acima.
+6. Adapte à duração da viagem — não sugira 10 pares de sapato para 3 dias.
+7. NÃO inclua itens óbvios como "escova de dentes" ou "roupas íntimas" — foque no que é específico para ESTE destino e ESTA época.
+
+A 'category' deve ser uma destas: "Roupas", "Eletrônicos", "Documentos", "Higiene", "Acessórios", ou "Outros".
 
 RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 {
   "suggestions": [
     { "item": "Passaporte válido por mais de 6 meses", "category": "Documentos" },
-    { "item": "Casaco impermeável leve", "category": "Roupas" }
+    { "item": "Adaptador de tomada tipo F (padrão europeu)", "category": "Eletrônicos" }
   ]
 }`;
 };
