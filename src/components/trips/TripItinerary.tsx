@@ -6,8 +6,8 @@ import {
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,17 +15,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as dateFns from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Clock, MapPin, Pencil, Plus, Route, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as dateFns from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Clock, MapPin, Pencil, Plus, Route, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 interface ItineraryItem {
   id: string;
@@ -40,8 +40,8 @@ interface ItineraryItem {
   created_at: string;
 }
 
-import { EmptyState } from '@/components/ui/empty-state';
-import { AITripSuggestions } from './AITripSuggestions';
+import { EmptyState } from "@/components/ui/empty-state";
+import { AITripSuggestions } from "./AITripSuggestions";
 
 interface TripItineraryProps {
   trip: any;
@@ -55,45 +55,45 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [isApplyingAI, setIsApplyingAI] = useState(false);
 
   // Form state
-  const [date, setDate] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [date, setDate] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
-    desc: string | null,
+    desc: string | null
   ): { text: string; mapsUrl: string; rating: number | null } => {
-    if (!desc) return { text: '', mapsUrl: '', rating: null };
+    if (!desc) return { text: "", mapsUrl: "", rating: null };
     const match = desc.match(/<!--meta:(.+?)-->/);
-    if (!match) return { text: desc, mapsUrl: '', rating: null };
+    if (!match) return { text: desc, mapsUrl: "", rating: null };
     try {
       const meta = JSON.parse(match[1]);
       return {
-        text: desc.replace(/<!--meta:.+?-->/, '').trim(),
-        mapsUrl: meta.mapsUrl || '',
+        text: desc.replace(/<!--meta:.+?-->/, "").trim(),
+        mapsUrl: meta.mapsUrl || "",
         rating: meta.rating || null,
       };
     } catch {
-      return { text: desc.replace(/<!--meta:.+?-->/, '').trim(), mapsUrl: '', rating: null };
+      return { text: desc.replace(/<!--meta:.+?-->/, "").trim(), mapsUrl: "", rating: null };
     }
   };
 
   // Fetch itinerary items
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['trip-itinerary', tripId],
+    queryKey: ["trip-itinerary", tripId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('trip_itinerary')
-        .select('*')
-        .eq('trip_id', tripId)
-        .order('date', { ascending: true })
-        .order('start_time', { ascending: true });
+        .from("trip_itinerary")
+        .select("*")
+        .eq("trip_id", tripId)
+        .order("date", { ascending: true })
+        .order("start_time", { ascending: true });
 
       if (error) throw error;
       return data as ItineraryItem[];
@@ -102,20 +102,20 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
   // Create mutation
   const createItem = useMutation({
-    mutationFn: async (item: Omit<ItineraryItem, 'id' | 'created_at'>) => {
-      const { data, error } = await supabase.from('trip_itinerary').insert(item).select().single();
+    mutationFn: async (item: Omit<ItineraryItem, "id" | "created_at">) => {
+      const { data, error } = await supabase.from("trip_itinerary").insert(item).select().single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
-      toast({ title: 'Atividade adicionada' });
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Atividade adicionada" });
       resetForm();
       setShowDialog(false);
     },
     onError: (error) => {
-      toast({ title: 'Erro ao adicionar', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
     },
   });
 
@@ -123,9 +123,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: Partial<ItineraryItem> & { id: string }) => {
       const { data, error } = await supabase
-        .from('trip_itinerary')
+        .from("trip_itinerary")
         .update(item)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -133,47 +133,47 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
-      toast({ title: 'Atividade atualizada' });
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Atividade atualizada" });
       resetForm();
       setShowDialog(false);
       setEditingItem(null);
     },
     onError: (error) => {
-      toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
     },
   });
 
   // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('trip_itinerary').delete().eq('id', id);
+      const { error } = await supabase.from("trip_itinerary").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
-      toast({ title: 'Atividade removida' });
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Atividade removida" });
       setDeletingItem(null);
     },
     onError: (error) => {
-      toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
     },
   });
 
   const handleApplyAISuggestions = async (suggestions: any[]) => {
     setIsApplyingAI(true);
-    const startDate = trip.start_date || dateFns.format(new Date(), 'yyyy-MM-dd');
+    const startDate = trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd");
 
     try {
       const promises = suggestions.map((s, idx) => {
         // Embed mapsUrl and rating as JSON metadata in description
-        const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || '', rating: s.rating || null });
+        const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || "", rating: s.rating || null });
         const fullDescription = s.description
           ? `${s.description}\n<!--meta:${metadata}-->`
           : `<!--meta:${metadata}-->`;
 
-        return supabase.from('trip_itinerary').insert({
+        return supabase.from("trip_itinerary").insert({
           trip_id: tripId,
           date: startDate,
           title: s.title,
@@ -187,25 +187,25 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
       await Promise.all(promises);
 
-      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
       toast({
-        title: 'Sucesso',
+        title: "Sucesso",
         description: `${suggestions.length} atividades adicionadas no 1º dia.`,
       });
     } catch (error: any) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } finally {
       setIsApplyingAI(false);
     }
   };
 
   const resetForm = () => {
-    setDate('');
-    setTitle('');
-    setDescription('');
-    setLocation('');
-    setStartTime('');
-    setEndTime('');
+    setDate("");
+    setTitle("");
+    setDescription("");
+    setLocation("");
+    setStartTime("");
+    setEndTime("");
   };
 
   const handleOpenDialog = (item?: ItineraryItem) => {
@@ -213,10 +213,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       setEditingItem(item);
       setDate(item.date);
       setTitle(item.title);
-      setDescription(item.description || '');
-      setLocation(item.location || '');
-      setStartTime(item.start_time || '');
-      setEndTime(item.end_time || '');
+      setDescription(item.description || "");
+      setLocation(item.location || "");
+      setStartTime(item.start_time || "");
+      setEndTime(item.end_time || "");
     } else {
       setEditingItem(null);
       resetForm();
@@ -253,7 +253,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       acc[dateKey].push(item);
       return acc;
     },
-    {} as Record<string, ItineraryItem[]>,
+    {} as Record<string, ItineraryItem[]>
   );
 
   // Estado vazio
@@ -359,7 +359,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         <a
                           href={
                             meta.mapsUrl ||
-                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`
+                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ", " + (item.location || trip.destination || ""))}`
                           }
                           target="_blank"
                           rel="noopener noreferrer"
@@ -367,10 +367,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                           title="Abrir no Google Maps"
                         >
                           <MapPin className="h-3 w-3" />
-                          Maps{meta.mapsUrl ? ' (exato)' : ''}
+                          Maps{meta.mapsUrl ? " (exato)" : ""}
                         </a>
                         <a
-                          href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`}
+                          href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ", " + (item.location || trip.destination || ""))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
@@ -386,50 +386,22 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         )}
                       </div>
                     </div>
-                    <p className="font-medium mt-1">{item.title}</p>
-                    {item.location && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {item.location}
-                      </p>
-                    )}
-                    {meta.text && (
-                      <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
-                    )}
-                    <div className="flex gap-1 mt-2">
-                      <a
-                        href={meta.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + (item.location ? ', ' + item.location : '') + ', ' + (trip.destination || ''))}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
-                        title={meta.mapsUrl ? 'Abrir localização exata no Google Maps' : 'Buscar no Google Maps'}
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeletingItem(item)}
+                        className="text-destructive hover:text-destructive"
                       >
-                        <MapPin className="h-3 w-3" />
-                        Maps{meta.mapsUrl ? ' ✓' : ''}
-                      </a>
-                      {meta.rating && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
-                          ⭐ {meta.rating}
-                        </span>
-                      )}
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeletingItem(item)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
             </div>
           </div>
         ))}
@@ -523,7 +495,7 @@ function ItineraryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Atividade' : 'Nova Atividade'}</DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
           <DialogDescription>Adicione uma atividade ao roteiro</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -597,7 +569,7 @@ function ItineraryDialog({
             Cancelar
           </Button>
           <Button onClick={onSubmit} disabled={isLoading || !date || !title}>
-            {isLoading ? 'Salvando…' : isEditing ? 'Salvar' : 'Adicionar'}
+            {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
           </Button>
         </DialogFooter>
       </DialogContent>
