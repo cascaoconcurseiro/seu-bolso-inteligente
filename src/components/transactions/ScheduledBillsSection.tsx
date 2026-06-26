@@ -37,19 +37,30 @@ export function ScheduledBillsSection() {
       {bills.map((bill) => {
         const { label, overdue } = daysLabel(bill.date);
         const isExpense = bill.type === "EXPENSE";
+        const isIncome = bill.type === "INCOME";
+        const isTransfer = bill.type === "TRANSFER";
+
+        const amountColor = isExpense ? "text-negative" : isIncome ? "text-positive" : "text-muted-foreground";
+        const amountPrefix = isExpense ? "-" : isIncome ? "+" : "↔";
+
+        const defaultIcon = isIncome ? "💰" : isTransfer ? "↔️" : "📋";
+        const confirmLabel = isIncome ? "Marcar como recebido" : isTransfer ? "Marcar como realizado" : "Marcar como pago";
+
+        const borderClass = overdue
+          ? "border-destructive/30 bg-destructive/5"
+          : isIncome
+            ? "border-positive/20 bg-positive/5"
+            : isTransfer
+              ? "border-border/60 bg-muted/30"
+              : "border-primary/20 bg-primary/5";
 
         return (
           <div
             key={bill.id}
-            className={cn(
-              "flex items-center gap-3 px-3 py-3 rounded-xl border transition-all",
-              overdue
-                ? "border-destructive/30 bg-destructive/5"
-                : "border-primary/20 bg-primary/5"
-            )}
+            className={cn("flex items-center gap-3 px-3 py-3 rounded-xl border transition-all", borderClass)}
           >
             <span className="text-xl flex-shrink-0">
-              {bill.category?.icon ?? "📋"}
+              {bill.category?.icon ?? defaultIcon}
             </span>
 
             <div className="flex-1 min-w-0">
@@ -60,7 +71,7 @@ export function ScheduledBillsSection() {
                 <span
                   className={cn(
                     "text-[11px] font-medium",
-                    overdue ? "text-destructive" : "text-primary"
+                    overdue ? "text-destructive" : isIncome ? "text-positive" : isTransfer ? "text-muted-foreground" : "text-primary"
                   )}
                 >
                   {label}
@@ -78,22 +89,18 @@ export function ScheduledBillsSection() {
 
             <div className="flex items-center gap-1 flex-shrink-0">
               <span
-                className={cn(
-                  "text-sm font-bold font-mono tabular-nums mr-1",
-                  isExpense ? "text-negative" : "text-positive"
-                )}
+                className={cn("text-sm font-bold font-mono tabular-nums mr-1", amountColor)}
               >
                 {isPrivate
                   ? "••••"
-                  : (isExpense ? "-" : "+") +
-                    moneyUtils.format(Number(bill.amount), bill.currency ?? "BRL")}
+                  : amountPrefix + moneyUtils.format(Number(bill.amount), bill.currency ?? "BRL")}
               </span>
 
               <Button
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 rounded-lg hover:bg-positive/10 hover:text-positive"
-                title="Marcar como pago"
+                title={confirmLabel}
                 onClick={() => confirm.mutate({ id: bill.id })}
                 disabled={confirm.isPending}
               >
