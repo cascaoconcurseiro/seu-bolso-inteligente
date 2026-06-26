@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, ExternalLink, MapPin, Pencil, Plus, Route, Trash2 } from "lucide-react";
+import { Clock, MapPin, Pencil, Plus, Route, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 interface ItineraryItem {
@@ -367,17 +367,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                           title="Abrir no Google Maps"
                         >
                           <MapPin className="h-3 w-3" />
-                          Maps{meta.mapsUrl ? " (exato)" : ""}
-                        </a>
-                        <a
-                          href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ", " + (item.location || trip.destination || ""))}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
-                          title="Buscar no TripAdvisor"
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          TripAdvisor
+                          Maps{meta.mapsUrl ? " ✓" : ""}
                         </a>
                         {meta.rating && (
                           <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">

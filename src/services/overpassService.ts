@@ -188,7 +188,7 @@ async function fetchOverpassPOIs(
 
     const location = buildLocation(tags);
     const description = buildDescription(tags, category);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${elLat},${elLon}`;
+    const mapsUrl = `https://www.google.com/maps/place/${elLat},${elLon}`;
 
     pois.push({ title: name, location, description, durationHours, lat: elLat, lon: elLon, mapsUrl, tags });
 
