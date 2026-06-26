@@ -3,6 +3,9 @@ import * as Sentry from "@sentry/react";
 import App from "./App.tsx";
 import "./index.css";
 import "./styles/mobile.css";
+import { initGlobalErrorLogger } from "./services/errorLogger";
+
+initGlobalErrorLogger();
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 

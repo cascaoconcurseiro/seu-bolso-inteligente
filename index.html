@@ -184,14 +184,27 @@
 
           if (!isChunkError && e.name !== 'ChunkLoadError') return;
 
-          // Captura o erro para exibir na tela de recuperação
+          // Captura o erro para exibir na tela de recuperação e persistir no localStorage
           lastErrorMessage = [
             'Erro: ' + (e.message || 'ChunkLoadError'),
             'Arquivo: ' + (e.filename || (e.target && e.target.src) || 'desconhecido'),
             'Linha: ' + (e.lineno || '-'),
             'Data: ' + new Date().toISOString(),
-            'UA: ' + navigator.userAgent.slice(0, 80),
+            'UA: ' + navigator.userAgent.slice(0, 120),
           ].join('\n');
+
+          // Persiste para o errorLogger do React enviar ao Supabase após reload
+          try {
+            var pending = JSON.parse(localStorage.getItem('pending_error_log') || '[]');
+            pending.push({
+              error_type: 'ChunkLoadError',
+              message: e.message || 'Failed to load module script',
+              file: e.filename || (e.target && e.target.src) || '',
+              line: e.lineno || null,
+              extra: { type: 'chunk_error', ua: navigator.userAgent.slice(0, 300) }
+            });
+            localStorage.setItem('pending_error_log', JSON.stringify(pending.slice(-5)));
+          } catch (_) {}
 
           console.warn('[PWA] Erro de carregamento de módulo detectado. Iniciando recuperação...');
 
