@@ -65,6 +65,7 @@ interface GenerationResult {
   creditLimit: number;
   goalMilestone: number;
   upcomingBills: number;
+  weeklySummary: number;
   total: number;
 }
 
@@ -81,6 +82,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     creditLimit: 0,
     goalMilestone: 0,
     upcomingBills: 0,
+    weeklySummary: 0,
     total: 0,
   };
 
@@ -89,7 +91,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     const prefs = await getNotificationPreferences(userId);
 
     // Gerar notificações em paralelo
-    const [invoices, budgets, shared, recurring, lowBalance, creditLimit, milestone, upcomingBills] = await Promise.all([
+    const [invoices, budgets, shared, recurring, lowBalance, creditLimit, milestone, upcomingBills, weekly] = await Promise.all([
       prefs?.invoice_due_enabled !== false
         ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
         : 0,
@@ -114,6 +116,9 @@ export async function generateAllNotifications(userId: string): Promise<Generati
       prefs?.invoice_due_enabled !== false
         ? generateUpcomingBillNotifications(userId, [0, 1, 3])
         : 0,
+      prefs?.weekly_summary_enabled
+        ? generateWeeklySummaryNotification(userId)
+        : 0,
     ]);
 
     result.invoiceDue = invoices;
@@ -124,7 +129,13 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     result.creditLimit = creditLimit || 0;
     result.goalMilestone = milestone || 0;
     result.upcomingBills = upcomingBills || 0;
-    result.total = invoices + budgets + shared + recurring + result.lowBalance + result.creditLimit + result.goalMilestone + result.upcomingBills;
+    result.weeklySummary = weekly || 0;
+    result.total = invoices + budgets + shared + recurring + result.lowBalance + result.creditLimit + result.goalMilestone + result.upcomingBills + result.weeklySummary;
+
+    // Disparar push para o dispositivo com as novas notificações
+    if (result.total > 0) {
+      supabase.functions.invoke('send-bill-reminders', { body: { user_id: userId } }).catch(() => {});
+    }
 
     return result;
   } catch (error) {
@@ -701,6 +712,66 @@ async function generateGoalMilestoneNotifications(userId: string): Promise<numbe
     logger.error('Erro ao gerar notificações de metas', error);
   }
   return count;
+}
+
+/**
+ * Gera resumo semanal financeiro (toda segunda-feira)
+ */
+async function generateWeeklySummaryNotification(userId: string): Promise<number> {
+  try {
+    const today = new Date();
+    // Só dispara às segundas (dia 1)
+    if (today.getDay() !== 1) return 0;
+
+    const todayStr = today.toISOString().split('T')[0];
+    const { data: existing } = await (supabase as any)
+      .from('notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('type', 'WEEKLY_SUMMARY')
+      .gte('created_at', todayStr)
+      .limit(1);
+
+    if (existing && existing.length > 0) return 0;
+
+    // Calcula receitas e despesas da semana passada
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+    const { data: txs } = await supabase
+      .from('transactions')
+      .select('amount, type')
+      .eq('user_id', userId)
+      .eq('status', 'CONFIRMED')
+      .is('deleted_at', null)
+      .gte('date', weekAgoStr)
+      .lt('date', todayStr);
+
+    if (!txs || txs.length === 0) return 0;
+
+    const expenses = txs.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
+    const income = txs.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+    const balance = income - expenses;
+    const sign = balance >= 0 ? '+' : '';
+
+    const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    const { createNotification } = await import('./notificationService');
+    await createNotification({
+      user_id: userId,
+      type: 'WEEKLY_SUMMARY',
+      title: '📊 Resumo da semana',
+      message: `Receitas ${fmt(income)} · Despesas ${fmt(expenses)} · Saldo ${sign}${fmt(balance)}`,
+      icon: '📊',
+      priority: 'LOW',
+      action_url: '/relatorios',
+      action_label: 'Ver relatório',
+    });
+    return 1;
+  } catch (error) {
+    logger.error('Erro ao gerar resumo semanal', error);
+    return 0;
+  }
 }
 
 /**

@@ -172,7 +172,7 @@ Deno.serve(async () => {
       ? msgs[0]
       : { title: `📬 ${msgs.length} lembretes financeiros`, body: msgs.map(m => m.body).join(" · ").slice(0, 120), url: "/" };
 
-    const status = await sendPush(sub.endpoint, sub.keys, { ...msg });
+    const status = await sendPush(sub.endpoint, { p256dh: sub.p256dh, auth: sub.auth }, { ...msg });
     if (status === 410 || status === 404) {
       toDelete.push(sub.id);
     } else if (status < 300) {

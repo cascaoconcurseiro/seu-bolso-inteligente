@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { createTripInviteNotification } from '@/services/notificationService';
 
 export interface TripInvitation {
   id: string;
@@ -143,18 +144,9 @@ export function useCreateTripInvitation() {
       const inviterName = inviterProfile?.full_name || user?.email?.split('@')[0] || 'Alguém';
       const tripName = trip?.name || 'uma viagem';
       try {
-        await supabase.rpc('fn_create_notification', {
-          p_user_id: inviteeId,
-          p_title: 'Novo Convite de Viagem',
-          p_body: `${inviterName} convidou você para "${tripName}"!`,
-          p_type: 'GENERAL',
-          p_related_id: tripId,
-          p_metadata: JSON.stringify({ trip_id: tripId, invitation_id: data.id }),
-          p_action_url: '/viagens',
-        });
+        await createTripInviteNotification(inviteeId, tripName, tripId, inviterName);
       } catch (notifErr) {
         logger.error('Erro ao criar notificação para convidado:', notifErr);
-        // Não falha a operação se notificação falhar
       }
 
       return data;
