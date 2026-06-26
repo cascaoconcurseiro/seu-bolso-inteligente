@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { AIAdvisorService } from '@/services/aiAdvisorService';
-import { Loader2, Sparkles } from 'lucide-react';
+import { ExternalLink, Loader2, MapPin, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -16,6 +16,8 @@ interface AITripSuggestionsProps {
   type: 'shopping' | 'itinerary' | 'checklist';
   destination: string;
   currency?: string;
+  startDate?: string;
+  endDate?: string;
   onApply: (selectedItems: any[]) => void;
   buttonClassName?: string;
 }
@@ -24,6 +26,8 @@ export function AITripSuggestions({
   type,
   destination,
   currency = 'BRL',
+  startDate,
+  endDate,
   onApply,
   buttonClassName,
 }: AITripSuggestionsProps) {
@@ -50,7 +54,7 @@ export function AITripSuggestions({
       } else if (type === 'itinerary') {
         results = await AIAdvisorService.suggestTripItinerary(destination);
       } else if (type === 'checklist') {
-        results = await AIAdvisorService.suggestTripChecklist(destination);
+        results = await AIAdvisorService.suggestTripChecklist(destination, startDate, endDate);
       }
 
       setSuggestions(results);
