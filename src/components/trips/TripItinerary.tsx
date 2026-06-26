@@ -65,6 +65,23 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Helper: extrai metadados embedados no description (mapsUrl, rating)
+  const parseMeta = (desc: string | null): { text: string; mapsUrl: string; rating: number | null } => {
+    if (!desc) return { text: '', mapsUrl: '', rating: null };
+    const match = desc.match(/<!--meta:(.+?)-->/);
+    if (!match) return { text: desc, mapsUrl: '', rating: null };
+    try {
+      const meta = JSON.parse(match[1]);
+      return {
+        text: desc.replace(/<!--meta:.+?-->/, '').trim(),
+        mapsUrl: meta.mapsUrl || '',
+        rating: meta.rating || null,
+      };
+    } catch {
+      return { text: desc.replace(/<!--meta:.+?-->/, '').trim(), mapsUrl: '', rating: null };
+    }
+  };
+
   // Fetch itinerary items
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['trip-itinerary', tripId],
@@ -147,13 +164,18 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     const startDate = trip.start_date || dateFns.format(new Date(), 'yyyy-MM-dd');
 
     try {
-      // Create all items
       const promises = suggestions.map((s, idx) => {
+        // Embed mapsUrl and rating as JSON metadata in description
+        const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || '', rating: s.rating || null });
+        const fullDescription = s.description 
+          ? `${s.description}\n<!--meta:${metadata}-->` 
+          : `<!--meta:${metadata}-->`;
+
         return supabase.from('trip_itinerary').insert({
           trip_id: tripId,
-          date: startDate, // Tudo pro primeiro dia
+          date: startDate,
           title: s.title,
-          description: s.description,
+          description: fullDescription,
           location: s.location,
           start_time: null,
           end_time: null,
@@ -304,7 +326,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           <div key={dateKey} className="space-y-3">
             {dateFns.format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             <div className="space-y-2">
-              {dayItems.map((item) => (
+              {dayItems.map((item) => {
+                const meta = parseMeta(item.description);
+                return (
                 <div
                   key={item.id}
                   className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
@@ -326,22 +350,22 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         {item.location}
                       </p>
                     )}
-                    {item.description && (
-                      <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
+                    {meta.text && (
+                      <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
                     )}
                     <div className="flex gap-1 mt-2">
                       <a
-                        href={`https://www.google.com/maps/search/${encodeURIComponent(item.title + ' ' + (item.location || '') + ' ' + (trip.destination || ''))}`}
+                        href={meta.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
                         title="Abrir no Google Maps"
                       >
                         <MapPin className="h-3 w-3" />
-                        Maps
+                        Maps{meta.mapsUrl ? ' (exato)' : ''}
                       </a>
                       <a
-                        href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ' ' + (item.location || '') + ' ' + (trip.destination || ''))}`}
+                        href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
@@ -350,6 +374,11 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         <ExternalLink className="h-3 w-3" />
                         TripAdvisor
                       </a>
+                      {meta.rating && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
+                          ⭐ {meta.rating}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

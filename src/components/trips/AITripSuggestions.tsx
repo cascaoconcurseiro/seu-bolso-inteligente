@@ -216,7 +216,7 @@ export function AITripSuggestions({
                         {type === 'itinerary' && (
                           <div className="flex gap-1 mt-2">
                             <a
-                              href={`https://www.google.com/maps/search/${encodeURIComponent(item.title + ' ' + (item.location || '') + ' ' + destination)}`}
+                              href={item.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ', ' + (item.location || destination))}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
@@ -224,10 +224,10 @@ export function AITripSuggestions({
                               title="Abrir no Google Maps"
                             >
                               <MapPin className="h-3 w-3" />
-                              Maps
+                              Maps{item.placeId ? ' (exato)' : ''}
                             </a>
                             <a
-                              href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ' ' + destination)}`}
+                              href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ', ' + (item.location || destination))}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
@@ -237,6 +237,11 @@ export function AITripSuggestions({
                               <ExternalLink className="h-3 w-3" />
                               TripAdvisor
                             </a>
+                            {item.rating && (
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
+                                ⭐ {item.rating}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

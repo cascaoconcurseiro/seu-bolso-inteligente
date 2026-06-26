@@ -288,12 +288,67 @@ export class AIAdvisorService {
     return { suggestion: '', categoryId: null };
   }
 
-  static async suggestTripItinerary(
-    destination: string,
-  ): Promise<
-    Array<{ title: string; location: string; description: string; durationHours: number }>
+  /**
+   * Busca lugares reais via Google Places (Edge Function no Supabase)
+   */
+  private static async fetchPlacesSuggestions(destination: string): Promise<
+    Array<{
+      title: string;
+      location: string;
+      description: string;
+      durationHours: number;
+      mapsUrl?: string;
+      rating?: number;
+      placeId?: string;
+    }>
+  > {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return [];
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/get-place-suggestions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({ destination }),
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return (data.suggestions || []).map((s: any) => ({
+      title: s.title,
+      location: s.location,
+      description: s.description,
+      durationHours: s.durationHours || 2,
+      mapsUrl: s.mapsUrl || '',
+      rating: s.rating,
+      placeId: s.placeId,
+    }));
+  }
+
+  static async suggestTripItinerary(destination: string): Promise<
+    Array<{
+      title: string;
+      location: string;
+      description: string;
+      durationHours: number;
+      mapsUrl?: string;
+      rating?: number;
+      placeId?: string;
+    }>
   > {
     if (!destination) return [];
+
+    // Tentar Google Places primeiro (dados reais)
+    try {
+      const placesResult = await this.fetchPlacesSuggestions(destination);
+      if (placesResult.length > 0) return placesResult;
+    } catch (e) {
+      logger.warn('[AIAdvisorService] Google Places falhou, usando IA como fallback', e);
+    }
 
     const prompt = getTripItineraryPrompt(destination);
     const result = await this.fetchGroq({
