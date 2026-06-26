@@ -7,6 +7,10 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare const self: ServiceWorkerGlobalScope;
 
+// Ativa o novo SW imediatamente sem esperar as abas fecharem (fix para iOS Safari)
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+
 // Precache e rotas geradas pelo vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
