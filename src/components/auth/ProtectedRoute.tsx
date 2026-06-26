@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppLock } from "./AppLock";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -26,9 +25,5 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  return (
-    <AppLock>
-      {children}
-    </AppLock>
-  );
+  return <>{children}</>;
 }

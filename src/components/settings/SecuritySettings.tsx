@@ -24,8 +24,8 @@ export function SecuritySettings({ profile, isLoading, updateProfile }: Security
   useEffect(() => {
     if (profile) {
       setRequirePin(profile.require_pin_on_open || false);
-      if (profile.app_pin) {
-        setPin("****"); // Just a visual placeholder
+      if ((profile as any).app_pin_hash) {
+        setPin("****"); // Visual placeholder — PIN já configurado
         setConfirmPin("****");
       }
     }

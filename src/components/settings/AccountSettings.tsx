@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, Lock, LogOut, AlertTriangle, Check, Download, FileSpreadsheet, FileJson, KeyRound } from "lucide-react";
+import { Loader2, Mail, Lock, LogOut, AlertTriangle, Check, Download, FileSpreadsheet, FileJson } from "lucide-react";
 import { AvatarCustomizer } from "./AvatarCustomizer";
 import { avatarIcons } from "@/lib/avatars";
 import { supabase } from "@/integrations/supabase/client";
 import { exportTransactions } from "@/services/exportService";
 import { toast } from "sonner";
-import { hashPin } from "@/utils/crypto";
 import { logger } from '@/utils/logger';
 
 interface AccountSettingsProps {
@@ -34,16 +33,6 @@ export function AccountSettings({
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
   const [isExporting, setIsExporting] = useState(false);
-  const [hasPin, setHasPin] = useState(false);
-  const [showPinSetup, setShowPinSetup] = useState(false);
-  const [setupPin, setSetupPin] = useState("");
-  const [confirmSetupPin, setConfirmSetupPin] = useState("");
-
-  useEffect(() => {
-    const savedPin = localStorage.getItem('@BolsoInteligente:pin');
-    setHasPin(!!savedPin);
-  }, []);
-
   useEffect(() => {
     if (profile?.name) {
       setNewName(profile.name);
@@ -83,34 +72,6 @@ export function AccountSettings({
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handleTogglePin = () => {
-    if (hasPin) {
-      localStorage.removeItem('@BolsoInteligente:pin');
-      setHasPin(false);
-      toast.success("PIN de segurança removido.");
-    } else {
-      setShowPinSetup(true);
-      setSetupPin("");
-      setConfirmSetupPin("");
-    }
-  };
-
-  const handleSavePin = async () => {
-    if (setupPin.length !== 4) {
-      toast.error("O PIN deve ter 4 dígitos numéricos.");
-      return;
-    }
-    if (setupPin !== confirmSetupPin) {
-      toast.error("Os PINs não conferem.");
-      return;
-    }
-    const hashedPin = await hashPin(setupPin);
-    localStorage.setItem('@BolsoInteligente:pin', hashedPin);
-    setHasPin(true);
-    setShowPinSetup(false);
-    toast.success("PIN de segurança configurado com sucesso!");
   };
 
   const getInitials = (name: string) => {
@@ -209,23 +170,6 @@ export function AccountSettings({
         </div>
 
         <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <KeyRound className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">Proteção por PIN</p>
-                <p className="text-sm text-muted-foreground">{hasPin ? 'PIN ativado. Remova para desativar.' : 'Adicione um PIN de 4 dígitos para proteger o app.'}</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleTogglePin} className={hasPin ? "text-destructive" : ""}>
-              {hasPin ? "Remover PIN" : "Configurar PIN"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
@@ -315,48 +259,6 @@ export function AccountSettings({
         </div>
       </div>
 
-      <Dialog open={showPinSetup} onOpenChange={setShowPinSetup}>
-        <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-          <div className="px-6 pt-6 pb-2">
-            <DialogHeader>
-              <DialogTitle>Configurar PIN</DialogTitle>
-              <DialogDescription>Digite um PIN de 4 números para bloquear o app.</DialogDescription>
-            </DialogHeader>
-          </div>
-          <div className="px-6 space-y-4 py-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Novo PIN (4 números)</p>
-              <Input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={setupPin}
-                onChange={(e) => setSetupPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="Ex: 1234"
-                className="text-center text-base tracking-widest"
-              />
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Confirmar PIN</p>
-              <Input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={confirmSetupPin}
-                onChange={(e) => setConfirmSetupPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="Repita o PIN"
-                className="text-center text-base tracking-widest"
-              />
-            </div>
-          </div>
-          <div className="px-6 pb-6">
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowPinSetup(false)}>Cancelar</Button>
-              <Button onClick={handleSavePin}>Salvar PIN</Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
