@@ -125,12 +125,34 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
   ]
 }`;
 
-export const getTripChecklistPrompt = (destination: string) => `
+export const getTripChecklistPrompt = (destination: string, startDate?: string, endDate?: string) => {
+  // Determinar estação do ano baseado nas datas
+  let seasonHint = '';
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    const month = start.getMonth() + 1; // 1-12
+    
+    // Estações no Brasil (hemisfério sul)
+    if (month >= 10 || month <= 3) {
+      seasonHint = `A viagem é no VERÃO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
+Espere calor intenso, chuvas de verão e alta umidade.`;
+    } else if (month >= 4 && month <= 6) {
+      seasonHint = `A viagem é no OUTONO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
+Temperaturas amenas, menos chuva.`;
+    } else if (month >= 7 && month <= 9) {
+      seasonHint = `A viagem é no INVERNO (${start.toLocaleDateString('pt-BR')} a ${new Date(endDate).toLocaleDateString('pt-BR')}). 
+Espere frio, tempo seco e possibilidade de geada em regiões serranas.`;
+    }
+  }
+  
+  return `
 Pense como alguém que já viajou para ${destination} várias vezes e sabe o que é realmente necessário — não o que qualquer lista genérica diz.
 Crie um checklist de mala/preparação com 8 a 12 itens concretos e específicos para ${destination}.
+${seasonHint ? `\n⚠️ INFORMAÇÃO CRÍTICA SOBRE A ÉPOCA DA VIAGEM:\n${seasonHint}\n` : ''}
 Considere: clima real do destino (não apenas estação genérica), se é destino nacional ou internacional (visto, passaporte, câmbio), peculiaridades do local (tomadas diferentes, água potável, dress code em locais religiosos, segurança).
 Evite itens óbvios demais (ex: "roupas") — seja específico (ex: "Casaco impermeável para chuva repentina", "Adaptador de tomada tipo C").
 Inclua pelo menos 1-2 itens que a maioria das pessoas esquece mas fazem diferença real neste destino.
+${seasonHint ? 'ADAPTE AS ROUPAS E ACESSÓRIOS À ESTAÇÃO INDICADA ACIMA. NÃO sugira itens de frio se for verão, nem itens de calor se for inverno.' : ''}
 A 'category' pode ser: "Roupas", "Eletrônicos", "Documentos", "Higiene", "Acessórios", ou "Outros".
 
 RETORNE APENAS UM JSON no seguinte formato, e nada mais:
@@ -140,3 +162,4 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
     { "item": "Casaco impermeável leve", "category": "Roupas" }
   ]
 }`;
+};

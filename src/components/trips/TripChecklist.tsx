@@ -203,6 +203,8 @@ export function TripChecklist({ trip }: TripChecklistProps) {
               <AITripSuggestions
                 type="checklist"
                 destination={trip.destination || trip.name}
+                startDate={trip.start_date}
+                endDate={trip.end_date}
                 onApply={handleApplyAISuggestions}
               />
             </div>
@@ -235,6 +237,8 @@ export function TripChecklist({ trip }: TripChecklistProps) {
             <AITripSuggestions 
               type="checklist"
               destination={trip.destination || trip.name}
+              startDate={trip.start_date}
+              endDate={trip.end_date}
               onApply={handleApplyAISuggestions}
             />
             <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
