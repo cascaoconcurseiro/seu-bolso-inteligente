@@ -1,22 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, ArrowRightLeft, Info } from "lucide-react";
+import { Pencil, Trash2, ArrowRightLeft, Info } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Trip } from "@/hooks/useTrips";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
-import { 
-  useTripExchangePurchases, 
-  useCreateExchangePurchase, 
+import {
+  useTripExchangePurchases,
+  useCreateExchangePurchase,
   useUpdateExchangePurchase,
   useDeleteExchangePurchase,
-  useExchangeSummary 
+  useExchangeSummary,
 } from "@/hooks/useTripExchange";
 import { ExchangeSummaryCard } from "./ExchangeSummaryCard";
 import { ExchangePurchaseDialog } from "./ExchangePurchaseDialog";
@@ -83,11 +79,6 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
     }
   };
 
-  const handleOpenDialog = () => {
-    setEditingPurchase(undefined);
-    setShowDialog(true);
-  };
-
   // Estado vazio
   if (!isLoading && purchases.length === 0) {
     return (
@@ -95,19 +86,15 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
         <div className="bg-accent/10 border border-accent/20 text-accent p-4 rounded-xl text-sm flex gap-3">
           <Info className="w-5 h-5 shrink-0 mt-0.5" />
           <p>
-            <strong>Cotações em Tempo Real:</strong> A cotação oficial da moeda ({trip.currency}) é sincronizada automaticamente com a AwesomeAPI para ajudar no seu planejamento e conversão de gastos.
+            <strong>Cotações em Tempo Real:</strong> A cotação oficial da moeda ({trip.currency}) é
+            sincronizada automaticamente com a AwesomeAPI para ajudar no seu planejamento e
+            conversão de gastos.
           </p>
         </div>
         <EmptyState
           icon={ArrowRightLeft}
           title="Controle de Câmbio"
           description={`Registre suas compras de ${trip.currency} para calcular a taxa média ponderada que você pagou.`}
-          action={
-            <Button onClick={handleOpenDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Câmbio
-            </Button>
-          }
         />
 
         <ExchangePurchaseDialog
@@ -125,7 +112,13 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
   return (
     <div className="space-y-6">
       {/* Resumo */}
-      {summary && <ExchangeSummaryCard summary={summary} currency={trip.currency} totalExpenses={totalExpenses} />}
+      {summary && (
+        <ExchangeSummaryCard
+          summary={summary}
+          currency={trip.currency}
+          totalExpenses={totalExpenses}
+        />
+      )}
 
       {/* Lista de compras */}
       <section className="space-y-4">
@@ -133,10 +126,6 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
           <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
             Compras de Câmbio ({purchases.length})
           </h2>
-          <Button variant="outline" size="sm" onClick={handleOpenDialog}>
-            <Plus className="h-4 w-4 mr-1" />
-            Adicionar
-          </Button>
         </div>
 
         <div className="space-y-2">
@@ -148,13 +137,15 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-3">
                   <div className="font-mono font-semibold">
-                    {currencySymbol} {purchase.foreign_amount.toLocaleString("pt-BR", {
+                    {currencySymbol}{" "}
+                    {purchase.foreign_amount.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}
                   </div>
                   <span className="text-muted-foreground">→</span>
                   <div className="font-mono">
-                    R$ {purchase.local_amount.toLocaleString("pt-BR", {
+                    R${" "}
+                    {purchase.local_amount.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}
                   </div>
@@ -165,21 +156,15 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                   )}
                 </div>
                 <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                  <span>
-                    Taxa: R$ {purchase.exchange_rate.toFixed(4)}
-                  </span>
-                  <span>
-                    CET: {purchase.cet_percentage}%
-                  </span>
-                  <span>
-                    Efetiva: R$ {purchase.effective_rate.toFixed(4)}
-                  </span>
-                    {dateFns.format(new Date(purchase.purchase_date), "dd MMM yyyy", { locale: ptBR })}
+                  <span>Taxa: R$ {purchase.exchange_rate.toFixed(4)}</span>
+                  <span>CET: {purchase.cet_percentage}%</span>
+                  <span>Efetiva: R$ {purchase.effective_rate.toFixed(4)}</span>
+                  {dateFns.format(new Date(purchase.purchase_date), "dd MMM yyyy", {
+                    locale: ptBR,
+                  })}
                 </div>
                 {purchase.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {purchase.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{purchase.description}</p>
                 )}
               </div>
 
@@ -205,16 +190,13 @@ export function TripExchange({ trip, totalExpenses }: TripExchangeProps) {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="left" className="max-w-[240px] text-sm p-3">
-                      Compra automática integrada das suas contas globais. Edite a transferência original na página de transações para efetuar alterações.
+                      Compra automática integrada das suas contas globais. Edite a transferência
+                      original na página de transações para efetuar alterações.
                     </TooltipContent>
                   </Tooltip>
                 ) : (
                   <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(purchase)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(purchase)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
