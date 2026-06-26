@@ -1,21 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "./fixtures/auth";
 
-test.describe('Módulos: Viagens', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      localStorage.setItem('PLAYWRIGHT_MOCK_AUTH', 'true');
-    });
-  });
-
-  test('Deve exibir gestão de viagens', async ({ page }) => {
-    await page.goto('/viagens');
-    const header = page.locator('h1:has-text("Viagens")');
-    if (await header.isVisible()) {
-      const newBtn = page.locator('button:has-text("Nova Viagem")');
-      if (await newBtn.isVisible()) {
-        await newBtn.click();
-        await expect(page.locator('text="Destino"').first()).toBeVisible();
-      }
+test.describe("Módulos: Viagens", () => {
+  test("Deve exibir gestão de viagens", async ({ authenticatedPage: page }) => {
+    await page.goto("/viagens");
+    await expect(page.locator('h1:has-text("Viagens")')).toBeVisible({ timeout: 10000 });
+    const newBtn = page.locator('button:has-text("Nova Viagem")');
+    if (await newBtn.isVisible()) {
+      await newBtn.click();
+      await expect(page.locator('text="Destino"').first()).toBeVisible();
     }
   });
 });
