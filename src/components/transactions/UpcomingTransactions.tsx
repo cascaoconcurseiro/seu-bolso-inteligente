@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { CheckCircle2, Trash2, CalendarClock, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,9 @@ import { usePrivacy } from "@/contexts/PrivacyContext";
 import { getMonthDateRange } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
 import { toast } from "sonner";
+import { generateAllNotifications } from "@/services/notificationGenerator";
+import { ConfirmTransactionDialog, ConfirmTarget } from "./ConfirmTransactionDialog";
+import { useConfirmScheduledBill, useConfirmRecurringOccurrence, useCancelScheduledBill } from "@/hooks/useScheduledBills";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -127,7 +130,7 @@ function UnifiedItemRow({
             : amountPrefix + moneyUtils.format(Number(item.amount), item.currency ?? "BRL")}
         </span>
 
-        {item.kind === "scheduled" && onConfirm && (
+        {onConfirm && (
           <Button
             size="icon"
             variant="ghost"
@@ -161,6 +164,12 @@ export function UpcomingTransactions() {
   const { isPrivate } = usePrivacy();
   const { currentDate, startDay } = useMonth();
   const queryClient = useQueryClient();
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const notifiedRef = useRef(false);
+
+  const confirmScheduled = useConfirmScheduledBill();
+  const confirmRecurring = useConfirmRecurringOccurrence();
+  const cancelMutation = useCancelScheduledBill();
 
   const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
 
@@ -273,36 +282,22 @@ export function UpcomingTransactions() {
     [allItems]
   );
 
-  const confirmMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("transactions")
-        .update({ status: "CONFIRMED", date: dateFns.format(new Date(), "yyyy-MM-dd") })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scheduled-bills"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Marcado como pago");
-    },
-    onError: () => toast.error("Erro ao confirmar"),
-  });
+  // Dispara notificações de vencimento uma vez por montagem
+  useEffect(() => {
+    if (user && !notifiedRef.current) {
+      notifiedRef.current = true;
+      generateAllNotifications(user.id).catch(() => {});
+    }
+  }, [user]);
 
-  const cancelMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("transactions")
-        .update({ status: "CANCELLED", deleted_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scheduled-bills"] });
-      toast.success("Agendamento removido");
-    },
-    onError: () => toast.error("Erro ao remover"),
-  });
+  function handleConfirm(id: string, amount: number, date: string, kind: "scheduled" | "recurring") {
+    setConfirmTarget(null);
+    if (kind === "scheduled") {
+      confirmScheduled.mutate({ id, amount, paidDate: date });
+    } else {
+      confirmRecurring.mutate({ templateId: id, amount, date });
+    }
+  }
 
   if (allItems.length === 0) {
     return (
@@ -357,13 +352,28 @@ export function UpcomingTransactions() {
             key={`${item.kind}-${item.id}`}
             item={item}
             isPrivate={isPrivate}
-            onConfirm={item.kind === "scheduled" ? () => confirmMutation.mutate(item.id) : undefined}
+            onConfirm={() => setConfirmTarget({
+              id: item.id,
+              description: item.description,
+              amount: item.amount,
+              date: item.date,
+              type: item.type,
+              kind: item.kind,
+              currency: item.currency,
+            })}
             onCancel={item.kind === "scheduled" ? () => cancelMutation.mutate(item.id) : undefined}
-            isConfirming={confirmMutation.isPending}
+            isConfirming={confirmScheduled.isPending || confirmRecurring.isPending}
             isCancelling={cancelMutation.isPending}
           />
         ))}
       </div>
+
+      <ConfirmTransactionDialog
+        target={confirmTarget}
+        onClose={() => setConfirmTarget(null)}
+        onConfirm={handleConfirm}
+        isPending={confirmScheduled.isPending || confirmRecurring.isPending}
+      />
     </div>
   );
 }

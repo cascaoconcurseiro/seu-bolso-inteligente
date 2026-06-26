@@ -49,11 +49,13 @@ export function useConfirmScheduledBill() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, paidDate }: { id: string; paidDate?: string }) => {
+    mutationFn: async ({ id, amount, paidDate }: { id: string; amount?: number; paidDate?: string }) => {
       const date = paidDate ?? format(new Date(), "yyyy-MM-dd");
+      const update: Record<string, unknown> = { status: "CONFIRMED", date };
+      if (amount !== undefined) update.amount = amount;
       const { error } = await supabase
         .from("transactions")
-        .update({ status: "CONFIRMED", date })
+        .update(update)
         .eq("id", id);
 
       if (error) throw error;
@@ -61,10 +63,60 @@ export function useConfirmScheduledBill() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scheduled-bills"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Conta marcada como paga");
+      toast.success("Confirmado com sucesso");
     },
     onError: () => {
-      toast.error("Erro ao confirmar pagamento");
+      toast.error("Erro ao confirmar");
+    },
+  });
+}
+
+// Confirma uma ocorrência de transação recorrente criando um registro avulso CONFIRMED
+// sem alterar o template original (is_recurring permanece intacto)
+export function useConfirmRecurringOccurrence() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      templateId,
+      amount,
+      date,
+    }: {
+      templateId: string;
+      amount: number;
+      date: string;
+    }) => {
+      // Busca o template para copiar os campos
+      const { data: template, error: fetchError } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("id", templateId)
+        .single();
+
+      if (fetchError || !template) throw fetchError ?? new Error("Template não encontrado");
+
+      const { id, created_at, updated_at, last_generated_date, is_recurring, recurrence_pattern, recurrence_day, status, ...fields } = template;
+
+      const { error } = await supabase.from("transactions").insert({
+        ...fields,
+        amount,
+        date,
+        status: "CONFIRMED",
+        is_recurring: false,
+        recurrence_pattern: null,
+        recurrence_day: null,
+        series_id: templateId, // vincula ao template original
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["recurring-for-month"] });
+      toast.success("Ocorrência confirmada");
+    },
+    onError: () => {
+      toast.error("Erro ao confirmar ocorrência");
     },
   });
 }

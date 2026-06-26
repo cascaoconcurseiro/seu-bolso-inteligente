@@ -64,6 +64,7 @@ interface GenerationResult {
   lowBalance: number;
   creditLimit: number;
   goalMilestone: number;
+  upcomingBills: number;
   total: number;
 }
 
@@ -79,6 +80,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     lowBalance: 0,
     creditLimit: 0,
     goalMilestone: 0,
+    upcomingBills: 0,
     total: 0,
   };
 
@@ -87,7 +89,7 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     const prefs = await getNotificationPreferences(userId);
 
     // Gerar notificações em paralelo
-    const [invoices, budgets, shared, recurring, lowBalance, creditLimit, milestone] = await Promise.all([
+    const [invoices, budgets, shared, recurring, lowBalance, creditLimit, milestone, upcomingBills] = await Promise.all([
       prefs?.invoice_due_enabled !== false
         ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
         : 0,
@@ -109,6 +111,9 @@ export async function generateAllNotifications(userId: string): Promise<Generati
       prefs?.savings_goal_enabled !== false
         ? generateGoalMilestoneNotifications(userId)
         : 0,
+      prefs?.invoice_due_enabled !== false
+        ? generateUpcomingBillNotifications(userId, [0, 1, 3])
+        : 0,
     ]);
 
     result.invoiceDue = invoices;
@@ -118,7 +123,8 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     result.lowBalance = lowBalance || 0;
     result.creditLimit = creditLimit || 0;
     result.goalMilestone = milestone || 0;
-    result.total = invoices + budgets + shared + recurring + result.lowBalance + result.creditLimit + result.goalMilestone;
+    result.upcomingBills = upcomingBills || 0;
+    result.total = invoices + budgets + shared + recurring + result.lowBalance + result.creditLimit + result.goalMilestone + result.upcomingBills;
 
     return result;
   } catch (error) {
@@ -693,6 +699,71 @@ async function generateGoalMilestoneNotifications(userId: string): Promise<numbe
     }
   } catch (error) {
     logger.error('Erro ao gerar notificações de metas', error);
+  }
+  return count;
+}
+
+/**
+ * Gera notificações para contas agendadas (PENDING) próximas do vencimento
+ */
+async function generateUpcomingBillNotifications(userId: string, daysBefore: number[]): Promise<number> {
+  let count = 0;
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const maxDays = Math.max(...daysBefore);
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + maxDays);
+
+    const { data: bills, error } = await supabase
+      .from('transactions')
+      .select('id, description, amount, date, type, currency')
+      .eq('user_id', userId)
+      .eq('status', 'PENDING')
+      .is('deleted_at', null)
+      .gte('date', today.toISOString().split('T')[0])
+      .lte('date', maxDate.toISOString().split('T')[0]);
+
+    if (error || !bills) return 0;
+
+    for (const bill of bills) {
+      const billDate = new Date(bill.date + 'T12:00:00');
+      const daysUntil = Math.round((billDate.getTime() - today.getTime()) / 86400000);
+
+      if (!daysBefore.includes(daysUntil)) continue;
+
+      // Deduplicar: verificar se já existe notificação para este item hoje
+      const { data: existing } = await (supabase as any)
+        .from('notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('related_id', bill.id)
+        .eq('related_type', 'scheduled_bill')
+        .gte('created_at', today.toISOString())
+        .limit(1);
+
+      if (existing && existing.length > 0) continue;
+
+      const typeLabel = bill.type === 'INCOME' ? 'Receita' : bill.type === 'TRANSFER' ? 'Transferência' : 'Conta';
+      const urgencyLabel = daysUntil === 0 ? 'vence hoje' : daysUntil === 1 ? 'vence amanhã' : `vence em ${daysUntil} dias`;
+
+      const { createNotification } = await import('./notificationService');
+      await createNotification({
+        user_id: userId,
+        type: 'INVOICE_DUE',
+        title: `${typeLabel} agendada: ${bill.description}`,
+        message: `${urgencyLabel.charAt(0).toUpperCase() + urgencyLabel.slice(1)}. Confirme quando for efetivada.`,
+        icon: bill.type === 'INCOME' ? '💰' : bill.type === 'TRANSFER' ? '↔️' : '📋',
+        priority: daysUntil === 0 ? 'URGENT' : daysUntil === 1 ? 'HIGH' : 'NORMAL',
+        action_url: '/transacoes',
+        action_label: 'Ver próximas',
+        related_id: bill.id,
+        related_type: 'scheduled_bill',
+      });
+      count++;
+    }
+  } catch (error) {
+    logger.error('Erro ao gerar notificações de contas agendadas', error);
   }
   return count;
 }
