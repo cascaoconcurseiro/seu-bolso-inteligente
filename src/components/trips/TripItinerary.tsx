@@ -1,16 +1,3 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,13 +7,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Plus, Route, Pencil, Trash2, MapPin, Clock } from "lucide-react";
-import * as dateFns from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as dateFns from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Clock, MapPin, Pencil, Plus, Route, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface ItineraryItem {
   id: string;
@@ -41,8 +41,8 @@ interface ItineraryItem {
   created_at: string;
 }
 
+import { EmptyState } from '@/components/ui/empty-state';
 import { AITripSuggestions } from './AITripSuggestions';
-import { EmptyState } from "@/components/ui/empty-state";
 
 interface TripItineraryProps {
   trip: any;
@@ -54,28 +54,28 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<ItineraryItem | null>(null);
   const [isApplyingAI, setIsApplyingAI] = useState(false);
-  
+
   // Form state
-  const [date, setDate] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [date, setDate] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Fetch itinerary items
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["trip-itinerary", tripId],
+    queryKey: ['trip-itinerary', tripId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("trip_itinerary")
-        .select("*")
-        .eq("trip_id", tripId)
-        .order("date", { ascending: true })
-        .order("start_time", { ascending: true });
+        .from('trip_itinerary')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true });
 
       if (error) throw error;
       return data as ItineraryItem[];
@@ -84,24 +84,20 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
   // Create mutation
   const createItem = useMutation({
-    mutationFn: async (item: Omit<ItineraryItem, "id" | "created_at">) => {
-      const { data, error } = await supabase
-        .from("trip_itinerary")
-        .insert(item)
-        .select()
-        .single();
+    mutationFn: async (item: Omit<ItineraryItem, 'id' | 'created_at'>) => {
+      const { data, error } = await supabase.from('trip_itinerary').insert(item).select().single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade adicionada" });
+      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
+      toast({ title: 'Atividade adicionada' });
       resetForm();
       setShowDialog(false);
     },
     onError: (error) => {
-      toast({ title: "Erro ao adicionar", description: error.message, variant: "destructive" });
+      toast({ title: 'Erro ao adicionar', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -109,9 +105,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: Partial<ItineraryItem> & { id: string }) => {
       const { data, error } = await supabase
-        .from("trip_itinerary")
+        .from('trip_itinerary')
         .update(item)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -119,45 +115,42 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade atualizada" });
+      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
+      toast({ title: 'Atividade atualizada' });
       resetForm();
       setShowDialog(false);
       setEditingItem(null);
     },
     onError: (error) => {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' });
     },
   });
 
   // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("trip_itinerary")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('trip_itinerary').delete().eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Atividade removida" });
+      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
+      toast({ title: 'Atividade removida' });
       setDeletingItem(null);
     },
     onError: (error) => {
-      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+      toast({ title: 'Erro ao remover', description: error.message, variant: 'destructive' });
     },
   });
 
   const handleApplyAISuggestions = async (suggestions: any[]) => {
     setIsApplyingAI(true);
     const startDate = trip.start_date || dateFns.format(new Date(), 'yyyy-MM-dd');
-    
+
     try {
       // Create all items
       const promises = suggestions.map((s, idx) => {
-        return supabase.from("trip_itinerary").insert({
+        return supabase.from('trip_itinerary').insert({
           trip_id: tripId,
           date: startDate, // Tudo pro primeiro dia
           title: s.title,
@@ -170,23 +163,26 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       });
 
       await Promise.all(promises);
-      
-      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
-      toast({ title: "Sucesso", description: `${suggestions.length} atividades adicionadas no 1º dia.` });
+
+      queryClient.invalidateQueries({ queryKey: ['trip-itinerary', tripId] });
+      toast({
+        title: 'Sucesso',
+        description: `${suggestions.length} atividades adicionadas no 1º dia.`,
+      });
     } catch (error: any) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
     } finally {
       setIsApplyingAI(false);
     }
   };
 
   const resetForm = () => {
-    setDate("");
-    setTitle("");
-    setDescription("");
-    setLocation("");
-    setStartTime("");
-    setEndTime("");
+    setDate('');
+    setTitle('');
+    setDescription('');
+    setLocation('');
+    setStartTime('');
+    setEndTime('');
   };
 
   const handleOpenDialog = (item?: ItineraryItem) => {
@@ -194,10 +190,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       setEditingItem(item);
       setDate(item.date);
       setTitle(item.title);
-      setDescription(item.description || "");
-      setLocation(item.location || "");
-      setStartTime(item.start_time || "");
-      setEndTime(item.end_time || "");
+      setDescription(item.description || '');
+      setLocation(item.location || '');
+      setStartTime(item.start_time || '');
+      setEndTime(item.end_time || '');
     } else {
       setEditingItem(null);
       resetForm();
@@ -227,12 +223,15 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   };
 
   // Agrupar por data
-  const groupedItems = items.reduce((acc, item) => {
-    const dateKey = item.date;
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(item);
-    return acc;
-  }, {} as Record<string, ItineraryItem[]>);
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      const dateKey = item.date;
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(item);
+      return acc;
+    },
+    {} as Record<string, ItineraryItem[]>,
+  );
 
   // Estado vazio
   if (!isLoading && items.length === 0) {
@@ -288,7 +287,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           Roteiro ({items.length} atividades)
         </h2>
         <div className="flex items-center gap-2">
-          <AITripSuggestions 
+          <AITripSuggestions
             type="itinerary"
             destination={trip.destination || trip.name}
             onApply={handleApplyAISuggestions}
@@ -304,7 +303,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       <div className="space-y-6">
         {Object.entries(groupedItems).map(([dateKey, dayItems]) => (
           <div key={dateKey} className="space-y-3">
-              {dateFns.format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            {dateFns.format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             <div className="space-y-2">
               {dayItems.map((item) => (
                 <div
@@ -331,6 +330,28 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                     {item.description && (
                       <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
                     )}
+                    <div className="flex gap-1 mt-2">
+                      <a
+                        href={`https://www.google.com/maps/search/${encodeURIComponent(item.title + ' ' + (item.location || '') + ' ' + (trip.destination || ''))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
+                        title="Abrir no Google Maps"
+                      >
+                        <MapPin className="h-3 w-3" />
+                        Maps
+                      </a>
+                      <a
+                        href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ' ' + (item.location || '') + ' ' + (trip.destination || ''))}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
+                        title="Buscar no TripAdvisor"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        TripAdvisor
+                      </a>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
@@ -378,9 +399,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir atividade?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -439,43 +458,81 @@ function ItineraryDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Atividade' : 'Nova Atividade'}</DialogTitle>
           <DialogDescription>Adicione uma atividade ao roteiro</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data *</Label>
-              <Input id="itineraryDate" name="itineraryDate" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <Input
+                id="itineraryDate"
+                name="itineraryDate"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Título *</Label>
-              <Input id="itineraryTitle" name="itineraryTitle" placeholder="Ex: Visita ao museu" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <Input
+                id="itineraryTitle"
+                name="itineraryTitle"
+                placeholder="Ex: Visita ao museu"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Horário início</Label>
-              <Input id="itineraryStartTime" name="itineraryStartTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              <Input
+                id="itineraryStartTime"
+                name="itineraryStartTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label>Horário fim</Label>
-              <Input id="itineraryEndTime" name="itineraryEndTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <Input
+                id="itineraryEndTime"
+                name="itineraryEndTime"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Local</Label>
-            <Input id="itineraryLocation" name="itineraryLocation" placeholder="Ex: Museu do Louvre" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <Input
+              id="itineraryLocation"
+              name="itineraryLocation"
+              placeholder="Ex: Museu do Louvre"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label>Descrição</Label>
-            <Textarea id="itineraryDescription" name="itineraryDescription" placeholder="Detalhes da atividade…" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Textarea
+              id="itineraryDescription"
+              name="itineraryDescription"
+              placeholder="Detalhes da atividade…"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
           <Button onClick={onSubmit} disabled={isLoading || !date || !title}>
-            {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
+            {isLoading ? 'Salvando…' : isEditing ? 'Salvar' : 'Adicionar'}
           </Button>
         </DialogFooter>
       </DialogContent>
