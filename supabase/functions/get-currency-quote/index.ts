@@ -79,18 +79,31 @@ serve(async (req) => {
     const pair = `${currency}-${target}`;
     const pairKey = `${currency}${target}`;
 
-    // AwesomeAPI — free, no token required, server-side avoids any CORS issues
-    const awesomeRes = await fetch(
-      `https://economia.awesomeapi.com.br/json/last/${pair}`
+    // Frankfurter API — free, reliable, no token required
+    const frankfurterRes = await fetch(
+      `https://api.frankfurter.app/latest?from=${currency}&to=${target}`
     );
-    if (!awesomeRes.ok) throw new Error(`AwesomeAPI error: ${awesomeRes.status}`);
+    if (frankfurterRes.ok) {
+      const frankfurterData = await frankfurterRes.json();
+      const rate = frankfurterData?.rates?.[target];
+      if (rate) {
+        return new Response(JSON.stringify({ rate }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
-    const awesomeData = await awesomeRes.json();
-    const rateData = awesomeData[pairKey];
-    if (!rateData) throw new Error(`Par ${pair} não encontrado`);
+    // Fallback: fawazahmed0 currency API via jsDelivr CDN
+    const base = currency.toLowerCase();
+    const cdnRes = await fetch(
+      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${base}.json`
+    );
+    if (!cdnRes.ok) throw new Error(`CDN currency API error: ${cdnRes.status}`);
+    const cdnData = await cdnRes.json();
+    const rate = cdnData?.[base]?.[target.toLowerCase()];
+    if (!rate) throw new Error(`Par ${currency}/${target} não encontrado`);
 
-    const rate = parseFloat(rateData.bid);
-    return new Response(JSON.stringify({ rate, high: parseFloat(rateData.high), low: parseFloat(rateData.low) }), {
+    return new Response(JSON.stringify({ rate }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 

@@ -92,10 +92,14 @@ function buildDescription(tags: Record<string, string>, category: string): strin
  */
 export async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number } | null> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}&format=json&limit=1`;
     const res = await fetch(url, {
       headers: { 'Accept-Language': 'pt-BR,pt;q=0.9', 'User-Agent': 'SeuBolsoInteligente/1.0' },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.length) return null;
@@ -126,14 +130,31 @@ async function fetchOverpassPOIs(
 
   const overpassQuery = `[out:json][timeout:20];(\n${unionParts}\n);out center tags 50;`;
 
-  // overpass-api.de blocks browser CORS; use kumi.systems mirror which allows it
-  const res = await fetch('https://overpass.kumi.systems/api/interpreter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `data=${encodeURIComponent(overpassQuery)}`,
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
 
-  if (!res.ok) throw new Error(`Overpass error: ${res.status}`);
+  // Try multiple Overpass mirrors — some block CORS, pick first that works
+  const mirrors = [
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.openstreetmap.fr/api/interpreter',
+  ];
+
+  let res: Response | null = null;
+  for (const mirror of mirrors) {
+    try {
+      res = await fetch(mirror, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `data=${encodeURIComponent(overpassQuery)}`,
+        signal: controller.signal,
+      });
+      if (res.ok) break;
+    } catch {
+      // try next mirror
+    }
+  }
+  clearTimeout(timeout);
+  if (!res || !res.ok) throw new Error(`Overpass error: all mirrors failed`);
   const data = await res.json();
 
   const elements: any[] = data.elements || [];
