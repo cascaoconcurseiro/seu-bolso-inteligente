@@ -326,7 +326,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       <div className="space-y-6">
         {Object.entries(groupedItems).map(([dateKey, dayItems]) => (
           <div key={dateKey} className="space-y-3">
-            {dateFns.format(new Date(dateKey), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            <h3 className="text-sm font-semibold capitalize text-foreground">
+              {dateFns.format(new Date(dateKey + 'T12:00:00'), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </h3>
             <div className="space-y-2">
               {dayItems.map((item) => {
                 const meta = parseMeta(item.description);
@@ -489,7 +491,7 @@ function ItineraryDialog({
           <DialogDescription>Adicione uma atividade ao roteiro</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data *</Label>
               <Input
