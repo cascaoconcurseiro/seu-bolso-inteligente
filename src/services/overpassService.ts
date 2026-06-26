@@ -126,7 +126,8 @@ async function fetchOverpassPOIs(
 
   const overpassQuery = `[out:json][timeout:20];(\n${unionParts}\n);out center tags 50;`;
 
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
+  // overpass-api.de blocks browser CORS; use kumi.systems mirror which allows it
+  const res = await fetch('https://overpass.kumi.systems/api/interpreter', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `data=${encodeURIComponent(overpassQuery)}`,
