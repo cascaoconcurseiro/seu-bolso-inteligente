@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Repeat2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTransactions } from "@/hooks/useTransactions";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { calculateNextOccurrence } from "@/services/recurrenceService";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { moneyUtils } from "@/utils/money";
@@ -19,15 +21,36 @@ function daysLabel(daysUntil: number) {
   if (daysUntil === 0) return "Hoje";
   if (daysUntil === 1) return "Amanhã";
   if (daysUntil <= 7) return `${daysUntil} dias`;
-  return dateFns.format(
-    dateFns.addDays(dateFns.startOfDay(new Date()), daysUntil),
-    "dd/MM"
-  );
+  return dateFns.format(dateFns.addDays(dateFns.startOfDay(new Date()), daysUntil), "dd/MM");
 }
 
 export function DashboardUpcomingRecurring() {
-  const { data: transactions = [] } = useTransactions();
+  const { user } = useAuth();
   const { isPrivate } = usePrivacy();
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["upcoming-recurring", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(
+          `
+          *,
+          category:categories(id, name, icon)
+        `
+        )
+        .eq("user_id", user.id)
+        .eq("is_recurring", true)
+        .not("recurrence_pattern", "is", null)
+        .is("deleted_at", null)
+        .order("date", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const today = useMemo(() => dateFns.startOfDay(new Date()), []);
 
@@ -45,10 +68,7 @@ export function DashboardUpcomingRecurring() {
           (tx as any).recurrence_day ?? null
         );
 
-        const daysUntil = dateFns.differenceInCalendarDays(
-          dateFns.startOfDay(nextDate),
-          today
-        );
+        const daysUntil = dateFns.differenceInCalendarDays(dateFns.startOfDay(nextDate), today);
 
         return { tx, daysUntil };
       })
@@ -80,7 +100,10 @@ export function DashboardUpcomingRecurring() {
 
       <div className="divide-y divide-border/40">
         {upcoming.map(({ tx, daysUntil }) => (
-          <div key={tx.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+          <div
+            key={tx.id}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+          >
             <span className="text-xl shrink-0">{tx.category?.icon ?? "🔁"}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">{tx.description}</p>
@@ -88,11 +111,16 @@ export function DashboardUpcomingRecurring() {
                 {daysLabel(daysUntil)}
               </p>
             </div>
-            <span className={cn(
-              "text-sm font-bold font-mono tabular-nums shrink-0",
-              tx.type === "EXPENSE" ? "text-destructive" : "text-positive"
-            )}>
-              {isPrivate ? "••••" : (tx.type === "EXPENSE" ? "-" : "+") + moneyUtils.format(Number(tx.amount), tx.currency || "BRL")}
+            <span
+              className={cn(
+                "text-sm font-bold font-mono tabular-nums shrink-0",
+                tx.type === "EXPENSE" ? "text-destructive" : "text-positive"
+              )}
+            >
+              {isPrivate
+                ? "••••"
+                : (tx.type === "EXPENSE" ? "-" : "+") +
+                  moneyUtils.format(Number(tx.amount), tx.currency || "BRL")}
             </span>
           </div>
         ))}
