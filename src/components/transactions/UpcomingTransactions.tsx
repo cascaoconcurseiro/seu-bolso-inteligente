@@ -192,24 +192,27 @@ export function UpcomingTransactions() {
   const nextDays = upcomingItems.filter((i) => i.daysUntil > 7 && i.daysUntil <= 30);
   const later = upcomingItems.filter((i) => i.daysUntil > 30);
 
-  if (upcomingItems.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-          <CalendarClock className="h-8 w-8 text-primary opacity-60" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-foreground">Nenhuma conta agendada</h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-            Crie uma transação recorrente para ver aqui suas contas fixas e o que está por vir.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5 animate-fade-in">
+      {/* Contas agendadas manualmente (PENDING) — sempre visível */}
+      <ScheduledBillsSection />
+
+      {upcomingItems.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <CalendarClock className="h-8 w-8 text-primary opacity-60" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">Nenhuma recorrência cadastrada</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+              Crie uma transação recorrente para ver aqui suas contas fixas e o que está por vir.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {upcomingItems.length > 0 && (
+      <>
       {/* Summary card */}
       <div className="p-4 rounded-2xl border border-primary/20 bg-primary/5 space-y-1">
         <p className="text-[11px] font-bold uppercase tracking-wider text-primary/70">
@@ -228,9 +231,6 @@ export function UpcomingTransactions() {
           </p>
         )}
       </div>
-
-      {/* Contas agendadas manualmente (PENDING) */}
-      <ScheduledBillsSection />
 
       {/* Esta semana */}
       {thisWeek.length > 0 && (
@@ -275,6 +275,8 @@ export function UpcomingTransactions() {
             <UpcomingItemRow key={item.id} item={item} isPrivate={isPrivate} />
           ))}
         </section>
+      )}
+      </>
       )}
     </div>
   );
