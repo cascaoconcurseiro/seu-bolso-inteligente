@@ -338,7 +338,7 @@ export function TransactionForm(props: TransactionFormProps) {
                         : ""
                     }
                     readOnly
-                    className="w-full h-10 pl-16 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
+                    className="w-full h-10 pl-20 pr-3 rounded-xl border border-border bg-muted text-sm font-medium focus:outline-none shadow-sm cursor-not-allowed"
                   />
                 </div>
               </div>
