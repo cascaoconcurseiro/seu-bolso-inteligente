@@ -9,6 +9,7 @@ import {
   invalidateTripQueries
 } from "@/utils/queryInvalidation";
 import { transactionToasts } from "@/utils/toastMessages";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { logger } from "@/utils/logger";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { createNotification } from "@/services/notificationService";
@@ -209,7 +210,7 @@ export function useUpdateTransaction() {
       invalidateFinancialQueries(queryClient);
       invalidateSharedQueries(queryClient);
       invalidateTripQueries(queryClient);
-      transactionToasts.updated();
+      showActionFeedback('success');
     },
     onError: (error, _variables, context: any) => {
       if (context?.previousTransactions) {
@@ -217,7 +218,7 @@ export function useUpdateTransaction() {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      transactionToasts.error('atualizar', error);
+      showActionFeedback('error');
     },
   });
 }

@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { ActionFeedback } from "@/components/ui/ActionFeedback";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -95,6 +96,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <ActionFeedback />
 
               <BrowserRouter>
                 <Routes>

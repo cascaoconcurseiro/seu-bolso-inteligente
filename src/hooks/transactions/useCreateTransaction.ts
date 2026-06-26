@@ -10,6 +10,7 @@ import {
   invalidateTripQueries,
 } from "@/utils/queryInvalidation";
 import { transactionToasts } from "@/utils/toastMessages";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { logger } from "@/utils/logger";
 import {
   generateAllNotifications,
@@ -515,9 +516,7 @@ export function useCreateTransaction() {
       return data as Transaction;
     },
     onSuccess: async (_data, variables) => {
-      // Sucesso não precisa mais invalidar *imediatamente*, pois o onSettled fará isso,
-      // mas mantemos as notificações de sucesso aqui.
-      transactionToasts.created();
+      showActionFeedback('success');
 
       if (user?.id) {
         if (variables?.type === "TRANSFER" && variables?.destination_account_id) {
@@ -548,7 +547,7 @@ export function useCreateTransaction() {
           );
         });
       }
-      transactionToasts.error("criar", error);
+      showActionFeedback('error');
     },
     onSettled: () => {
       // Ao finalizar (sucesso ou erro), revalidamos os dados finais
