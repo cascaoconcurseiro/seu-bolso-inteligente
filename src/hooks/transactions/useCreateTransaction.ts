@@ -32,7 +32,7 @@ export function useCreateTransaction() {
 
       // Injetar transação temporária em todas as consultas relacionadas a transações na UI
       if (user) {
-        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: Transaction[] | undefined) => {
           const optimisticTx = {
             id: `temp-${Date.now()}`,
             user_id: user.id,
@@ -51,8 +51,8 @@ export function useCreateTransaction() {
             account: { id: newTx.account_id, name: '...' }
           };
           
-          if (!old) return [optimisticTx];
-          return [optimisticTx, ...(Array.isArray(old) ? old : [])];
+          if (!old) return [optimisticTx] as Transaction[];
+          return [optimisticTx, ...old] as Transaction[];
         });
       }
 
@@ -373,7 +373,7 @@ export function useCreateTransaction() {
         payer_id: input.payer_id,
       };
 
-      let data: any;
+      let data: Transaction | null;
 
       if (finalSplits && finalSplits.length > 0) {
         const memberIds = finalSplits.map(s => s.member_id);
@@ -477,11 +477,11 @@ export function useCreateTransaction() {
         generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-transação', e));
       }
     },
-    onError: (error, _newTx, context: any) => {
+    onError: (error, _newTx, context: { previousTransactions: [unknown, unknown][] } | undefined) => {
       // Rollback da cache em caso de erro
       if (context?.previousTransactions) {
-        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
-          queryClient.setQueryData(queryKey, data);
+        context.previousTransactions.forEach(([queryKey, data]) => {
+          queryClient.setQueryData(queryKey as Parameters<typeof queryClient.setQueryData>[0], data);
         });
       }
       transactionToasts.error('criar', error);

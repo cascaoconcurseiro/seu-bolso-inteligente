@@ -33,7 +33,7 @@ export function useWealthEvolution(currency: string = "BRL", months: number = 6)
 
       if (!data) return [];
 
-      return data.map((item: any) => ({
+      return data.map((item: { month_label: string; balance: number | string }) => ({
         month_label: item.month_label,
         balance: Number(item.balance) || 0,
       })) as WealthPoint[];

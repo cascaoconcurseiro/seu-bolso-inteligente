@@ -64,7 +64,7 @@ export const useBudgets = () => {
       
       if (!prevError && prevData) {
         finalData = finalData.map(budget => {
-          const prevBudget = prevData.find((p: any) => p.budget_id === budget.budget_id);
+          const prevBudget = prevData.find((p: BudgetWithProgress) => p.budget_id === budget.budget_id);
           if (prevBudget && prevBudget.remaining_amount > 0) {
             const rollover = prevBudget.remaining_amount;
             const newBudgetAmount = budget.budget_amount + rollover;
