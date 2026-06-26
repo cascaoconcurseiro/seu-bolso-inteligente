@@ -15,7 +15,7 @@ export function useTransactions(filters?: TransactionFilters) {
   const { currentDate, startDay } = useMonth();
 
   const effectiveFilters = filters ? { ...filters } : {};
-  if (!effectiveFilters.startDate && !effectiveFilters.endDate) {
+  if (!effectiveFilters.noDateFilter && !effectiveFilters.startDate && !effectiveFilters.endDate) {
     const { startDate, endDate } = getMonthDateRange(currentDate, startDay);
     effectiveFilters.startDate = startDate;
     effectiveFilters.endDate = endDate;

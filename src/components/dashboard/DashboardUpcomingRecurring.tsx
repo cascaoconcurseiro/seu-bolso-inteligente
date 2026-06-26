@@ -26,7 +26,7 @@ function daysLabel(daysUntil: number) {
 }
 
 export function DashboardUpcomingRecurring() {
-  const { data: transactions = [] } = useTransactions();
+  const { data: transactions = [] } = useTransactions({ noDateFilter: true });
   const { isPrivate } = usePrivacy();
 
   const today = useMemo(() => dateFns.startOfDay(new Date()), []);

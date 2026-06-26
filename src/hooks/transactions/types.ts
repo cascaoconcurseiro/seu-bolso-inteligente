@@ -104,4 +104,7 @@ export interface TransactionFilters {
   tripId?: string;
   domain?: TransactionDomain;
   limit?: number;
+  /** Quando true, ignora o filtro de data automático do mês atual.
+   *  Use para buscar transações recorrentes independente do período. */
+  noDateFilter?: boolean;
 }

@@ -101,7 +101,7 @@ function UpcomingItemRow({ item, isPrivate }: { item: UpcomingItem; isPrivate: b
 export function UpcomingTransactions() {
   const { user } = useAuth();
   const { isPrivate } = usePrivacy();
-  const { data: transactions = [] } = useTransactions();
+  const { data: transactions = [] } = useTransactions({ noDateFilter: true });
 
   const today = useMemo(() => dateFns.startOfDay(new Date()), []);
 
