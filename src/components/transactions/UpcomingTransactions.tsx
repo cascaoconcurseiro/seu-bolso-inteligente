@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import { RefreshCw, CalendarClock, Zap, Repeat2 } from "lucide-react";
 import { ScheduledBillsSection } from "./ScheduledBillsSection";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTransactions } from "@/hooks/useTransactions";
 import { calculateNextOccurrence } from "@/services/recurrenceService";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import * as dateFns from "date-fns";
@@ -101,7 +102,29 @@ function UpcomingItemRow({ item, isPrivate }: { item: UpcomingItem; isPrivate: b
 export function UpcomingTransactions() {
   const { user } = useAuth();
   const { isPrivate } = usePrivacy();
-  const { data: transactions = [] } = useTransactions();
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["upcoming-recurring-full", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(`
+          *,
+          category:categories(id, name, icon),
+          account:accounts!account_id(id, name, currency)
+        `)
+        .eq("user_id", user.id)
+        .eq("is_recurring", true)
+        .not("recurrence_pattern", "is", null)
+        .is("deleted_at", null)
+        .order("date", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const today = useMemo(() => dateFns.startOfDay(new Date()), []);
 
