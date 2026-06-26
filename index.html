@@ -88,7 +88,7 @@
         // antes de recarregar, garantindo que o reload pegue os assets novos.
         // ────────────────────────────────────────────────────────────────────────
         var RECOVERY_KEY = 'pwa_chunk_recovery_ts';
-        var RECOVERY_LIMIT_MS = 15000; // 15s entre tentativas automáticas
+        var RECOVERY_LIMIT_MS = 30000; // 30s entre tentativas automáticas
 
         function showManualButton() {
           var splash = document.getElementById('native-splash');
@@ -96,16 +96,22 @@
             var btn = document.createElement('button');
             btn.id = 'force-reload-btn';
             btn.innerHTML = 'Atualizar App';
-            btn.style.cssText = 'margin-top:20px;padding:12px 24px;background:#10b981;color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:Inter,sans-serif;font-size:15px;font-weight:600;';
+            btn.style.cssText = 'margin-top:28px;padding:14px 32px;background:#10b981;color:#fff;border:none;border-radius:12px;cursor:pointer;font-family:Inter,sans-serif;font-size:16px;font-weight:700;box-shadow:0 4px 20px rgba(16,185,129,0.4);transition:opacity 0.2s;';
             btn.onclick = function() {
-              btn.innerHTML = 'Limpando...';
+              btn.innerHTML = '⏳ Limpando cache...';
+              btn.style.opacity = '0.7';
               btn.disabled = true;
-              localStorage.removeItem(RECOVERY_KEY); // libera nova tentativa
+              localStorage.removeItem(RECOVERY_KEY);
               hardClearAndReload();
             };
             splash.appendChild(btn);
+
+            // Mensagem explicativa acima do botão
+            var msg = document.createElement('p');
+            msg.style.cssText = 'margin-top:16px;font-family:Inter,sans-serif;font-size:13px;color:#71717a;text-align:center;max-width:240px;';
+            msg.innerHTML = 'Nova versão disponível.<br>Toque para atualizar.';
+            splash.insertBefore(msg, btn);
           }
-          console.error('[PWA] Fallback de recuperação falhou repetidamente. Atualize a página manualmente.');
         }
 
         function hardClearAndReload() {
@@ -159,7 +165,7 @@
         // (significa que o reload funcionou e não estamos em loop)
         setTimeout(function() {
           localStorage.removeItem(RECOVERY_KEY);
-        }, 8000);
+        }, 12000);
       })();
     </script>
 
