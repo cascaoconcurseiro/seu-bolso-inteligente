@@ -362,11 +362,20 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                           href={(() => {
                             if (meta.mapsUrl) return meta.mapsUrl;
                             const query = encodeURIComponent((item.location || item.title) + (trip.destination ? ", " + trip.destination : ""));
-                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                            return isIOS
-                              ? `https://maps.apple.com/?q=${query}`
-                              : `https://maps.google.com/?q=${query}`;
+                            return `https://www.google.com/maps/search/?api=1&query=${query}`;
                           })()}
+                          onClick={(e) => {
+                            const query = encodeURIComponent((item.location || item.title) + (trip.destination ? ", " + trip.destination : ""));
+                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                            if (isIOS) {
+                              e.preventDefault();
+                              // Tenta abrir o app do Google Maps; fallback para web
+                              window.location.href = `comgooglemaps://?q=${query}`;
+                              setTimeout(() => {
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                              }, 500);
+                            }
+                          }}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
