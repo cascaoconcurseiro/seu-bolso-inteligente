@@ -492,51 +492,53 @@ function ItineraryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        {/* Handle bar mobile */}
-        <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+      <DialogContent
+        className="max-w-lg max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <div className="w-full flex justify-center pt-4 sm:hidden">
           <div className="w-12 h-1.5 bg-muted rounded-full" />
         </div>
 
-        <DialogHeader className="px-6 pt-2 pb-0 text-left">
-          <DialogTitle className="text-xl font-bold">
-            {isEditing ? "Editar Atividade" : "Nova Atividade"}
-          </DialogTitle>
+        <DialogHeader>
+          <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
           <DialogDescription className="sr-only">Formulário de atividade do roteiro</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {/* Data + Título */}
+        <div className="space-y-4 py-2">
+          {/* Data */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Data *</Label>
+            <Label>Data *</Label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11" />
           </div>
+
+          {/* Título */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Título *</Label>
+            <Label>Título *</Label>
             <Input placeholder="Ex: Visita ao museu" value={title} onChange={(e) => setTitle(e.target.value)} className="h-11" />
           </div>
 
           {/* Horários */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Início</Label>
+              <Label>Horário início</Label>
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-11" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Fim</Label>
+              <Label>Horário fim</Label>
               <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-11" />
             </div>
           </div>
 
-          {/* Local + botão buscar */}
+          {/* Local + busca */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Local</Label>
+            <Label>Local</Label>
             <div className="flex gap-2">
               <Input
                 placeholder="Ex: Museu do Louvre"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="h-11 flex-1"
+                className="h-11"
               />
               <Button
                 type="button"
@@ -544,26 +546,26 @@ function ItineraryDialog({
                 size="icon"
                 className="h-11 w-11 shrink-0"
                 onClick={openMapsSearch}
-                title="Pesquisar no Maps"
                 disabled={!location && !title}
+                title="Buscar no Maps"
               >
                 <Search className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Link do Google Maps */}
+          {/* Link do Maps */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-1.5">
+            <Label className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
               Link do Google Maps
             </Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Cole o link do Maps aqui…"
+                placeholder="Cole o link copiado do Maps…"
                 value={mapsUrl}
                 onChange={(e) => setMapsUrl(e.target.value)}
-                className="h-11 flex-1 text-sm"
+                className="h-11 text-sm"
               />
               {mapsUrl && (
                 <a
@@ -571,20 +573,19 @@ function ItineraryDialog({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-11 w-11 shrink-0 flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent transition-colors"
-                  title="Abrir link"
                 >
                   <ExternalLink className="h-4 w-4" />
                 </a>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Pesquise pelo local acima, copie o link e cole aqui.
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Toque em 🔍 para buscar, copie o link no Maps e cole aqui.
             </p>
           </div>
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Descrição</Label>
+            <Label>Descrição</Label>
             <Textarea
               placeholder="Detalhes da atividade…"
               value={description}
@@ -593,15 +594,16 @@ function ItineraryDialog({
               rows={3}
             />
           </div>
-        </div>
 
-        <div className="px-6 py-4 flex gap-3 border-t border-border/50">
-          <Button variant="outline" className="flex-1 h-11" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button className="flex-1 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !date || !title}>
-            {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
-          </Button>
+          {/* Botões */}
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !date || !title}>
+              {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
