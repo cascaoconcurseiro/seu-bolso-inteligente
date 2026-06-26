@@ -211,6 +211,17 @@ export function getTodayKey(): string {
 }
 
 /**
+ * Converte uma string de data do banco (YYYY-MM-DD ou ISO) em Date com hora fixa
+ * ao meio-dia para evitar problemas de fuso horário.
+ * Retorna null se a string for nula, vazia ou resultar em data inválida.
+ */
+export function parseSafeDate(dateStr: string | null | undefined): Date | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00');
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
  * Converte uma string de data no formato YYYY-MM-DD em um objeto Date local,
  * evitando problemas de fuso horário (shifting).
  */

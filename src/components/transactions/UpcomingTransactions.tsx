@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import { calculateNextOccurrence } from "@/services/recurrenceService";
 import { usePrivacy } from "@/contexts/PrivacyContext";
-import { getMonthDateRange } from "@/utils/dateUtils";
+import { getMonthDateRange, parseSafeDate } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
 import { toast } from "sonner";
 import { generateAllNotifications } from "@/services/notificationGenerator";
@@ -195,12 +195,13 @@ export function UpcomingTransactions() {
 
       if (error) throw error;
       return (data || [])
-        .filter((t: any) => !!t.date)
+        .map((t: any) => ({ ...t, _date: parseSafeDate(t.date) }))
+        .filter((t: any) => t._date !== null)
         .map((t: any) => ({
           id: t.id,
           description: t.description,
           amount: Number(t.amount),
-          date: new Date(t.date + "T12:00:00"),
+          date: t._date as Date,
           type: t.type as "INCOME" | "EXPENSE" | "TRANSFER",
           kind: "scheduled" as const,
           categoryIcon: t.category?.icon,
@@ -239,12 +240,9 @@ export function UpcomingTransactions() {
 
   const recurringItems = useMemo<UnifiedItem[]>(() => {
     return recurringTxs.flatMap((tx) => {
-      if (!tx.date && !(tx as any).last_generated_date) return [];
-
       const recurrenceDay = (tx as any).recurrence_day ?? null;
-      const rawDate = (tx as any).last_generated_date ?? tx.date;
-      const lastDate = new Date(rawDate + "T12:00:00");
-      if (isNaN(lastDate.getTime())) return [];
+      const lastDate = parseSafeDate((tx as any).last_generated_date ?? tx.date);
+      if (!lastDate) return [];
 
       // Avança até encontrar ocorrência dentro ou após o mês
       let nextDate = calculateNextOccurrence(lastDate, tx.recurrence_pattern!, recurrenceDay);
@@ -253,8 +251,6 @@ export function UpcomingTransactions() {
         nextDate = calculateNextOccurrence(nextDate, tx.recurrence_pattern!, recurrenceDay);
         safety++;
       }
-
-      if (isNaN(nextDate.getTime())) return [];
 
       // Só inclui se a ocorrência cai dentro do mês
       if (dateFns.isAfter(dateFns.startOfDay(nextDate), monthEnd)) return [];
