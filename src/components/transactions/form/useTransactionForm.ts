@@ -532,11 +532,11 @@ export function useTransactionForm({
   const performSubmit = async (transactionData: CreateTransactionInput) => {
     try {
       if (initialData && initialData.id) {
-        // Edição: aguarda confirmação do servidor antes de fechar
-        await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
+        // Edição: fecha imediatamente (optimistic update em onMutate do useUpdateTransaction)
         haptics.success();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
         if (onSuccess) onSuccess(); else navigate('/transacoes');
+        updateTransaction.mutate({ ...transactionData, id: initialData.id });
       } else {
         // Criação: fecha o modal imediatamente (optimistic update já aplicado em onMutate)
         haptics.success();
