@@ -1,25 +1,30 @@
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { useEconomicIndicators } from "@/hooks/useEconomicIndicators";
-import { moneyUtils } from "@/utils/money";
-import { RefreshCcw, Download, Info } from "lucide-react";
-import { exportCalculatorToPDF } from "@/utils/calculatorExport";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { useEconomicIndicators } from '@/hooks/useEconomicIndicators';
+import { moneyUtils } from '@/utils/money';
+import { RefreshCcw, Download, Info } from 'lucide-react';
+import { exportCalculatorToPDF } from '@/utils/calculatorExport';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function PurchasingPowerSimulator() {
   const { data: indicators, isLoading } = useEconomicIndicators();
-  
+
   const [initialAmount, setInitialAmount] = useState<number>(10000);
   const [term, setTerm] = useState<number>(5);
-  const [termType, setTermType] = useState<"YEARS" | "MONTHS">("YEARS");
+  const [termType, setTermType] = useState<'YEARS' | 'MONTHS'>('YEARS');
   const [inflationRate, setInflationRate] = useState<number>(4.5);
-  const [viewMode, setViewMode] = useState<"YEARLY" | "MONTHLY">("YEARLY");
-  
+  const [viewMode, setViewMode] = useState<'YEARLY' | 'MONTHLY'>('YEARLY');
+
   // Sincroniza com a API quando carrega, mas permite edição
   const [hasSynced, setHasSynced] = useState(false);
   if (indicators?.ipca && !hasSynced) {
@@ -29,13 +34,13 @@ export function PurchasingPowerSimulator() {
 
   const results = useMemo(() => {
     const rateDecimal = inflationRate / 100;
-    const months = termType === "YEARS" ? term * 12 : term;
+    const months = termType === 'YEARS' ? term * 12 : term;
     const monthlyRate = Math.pow(1 + rateDecimal, 1 / 12) - 1;
-    
+
     const requiredFutureAmount = initialAmount * Math.pow(1 + monthlyRate, months);
     const futurePurchasingPower = initialAmount / Math.pow(1 + monthlyRate, months);
     const lostPower = initialAmount - futurePurchasingPower;
-    
+
     const monthlyData = [];
     for (let i = 1; i <= months; i++) {
       monthlyData.push({
@@ -51,33 +56,45 @@ export function PurchasingPowerSimulator() {
       futurePurchasingPower,
       lostPower,
       monthlyData,
-      months
+      months,
     };
   }, [initialAmount, term, termType, inflationRate]);
 
-  const visibleData = viewMode === "YEARLY"
-    ? results.monthlyData.filter(d => d.month % 12 === 0 || d.month === results.months)
-    : results.monthlyData;
+  const visibleData =
+    viewMode === 'YEARLY'
+      ? results.monthlyData.filter((d) => d.month % 12 === 0 || d.month === results.months)
+      : results.monthlyData;
 
   const handleExportPDF = () => {
     exportCalculatorToPDF({
-      title: "Simulação de Poder de Compra (Inflação)",
+      title: 'Simulação de Poder de Compra (Inflação)',
       parameters: [
-        { label: "Valor Base", value: moneyUtils.format(initialAmount, 'BRL') },
-        { label: "Prazo", value: `${term} ${termType === 'YEARS' ? 'anos' : 'meses'}` },
-        { label: "Inflação (IPCA) Projetada", value: `${inflationRate.toFixed(2)}% ao ano` }
+        { label: 'Valor Base', value: moneyUtils.format(initialAmount, 'BRL') },
+        { label: 'Prazo', value: `${term} ${termType === 'YEARS' ? 'anos' : 'meses'}` },
+        { label: 'Inflação (IPCA) Projetada', value: `${inflationRate.toFixed(2)}% ao ano` },
       ],
       summary: [
-        { label: "Valor necessário no futuro", value: moneyUtils.format(results.requiredFutureAmount, 'BRL') },
-        { label: "Poder de compra real no futuro", value: moneyUtils.format(results.futurePurchasingPower, 'BRL'), isWarning: true },
-        { label: "Poder de compra perdido", value: moneyUtils.format(results.lostPower, 'BRL'), isWarning: true }
+        {
+          label: 'Valor necessário no futuro',
+          value: moneyUtils.format(results.requiredFutureAmount, 'BRL'),
+        },
+        {
+          label: 'Poder de compra real no futuro',
+          value: moneyUtils.format(results.futurePurchasingPower, 'BRL'),
+          isWarning: true,
+        },
+        {
+          label: 'Poder de compra perdido',
+          value: moneyUtils.format(results.lostPower, 'BRL'),
+          isWarning: true,
+        },
       ],
-      tableHead: ["Período", "Necessário p/ Manter Padrão", "Poder de Compra Real"],
-      tableBody: visibleData.map(d => [
+      tableHead: ['Período', 'Necessário p/ Manter Padrão', 'Poder de Compra Real'],
+      tableBody: visibleData.map((d) => [
         `Mês ${d.month} (Ano ${d.year})`,
         moneyUtils.format(d.requiredToMaintain, 'BRL'),
-        moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')
-      ])
+        moneyUtils.format(d.purchasingPowerOfInitial, 'BRL'),
+      ]),
     });
   };
 
@@ -91,19 +108,23 @@ export function PurchasingPowerSimulator() {
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <Label>Valor Base (R$)</Label>
-            <Input type="number" inputMode="decimal" 
-              value={initialAmount || ''} 
-              onChange={e => setInitialAmount(Number(e.target.value))}
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={initialAmount || ''}
+              onChange={(e) => setInitialAmount(Number(e.target.value))}
               className="text-base font-mono bg-background"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Prazo</Label>
             <div className="flex items-center gap-2">
-              <Input type="number" inputMode="decimal" 
-                value={term || ''} 
-                onChange={e => setTerm(Number(e.target.value))}
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={term || ''}
+                onChange={(e) => setTerm(Number(e.target.value))}
                 className="font-mono bg-background flex-1"
               />
               <Select value={termType} onValueChange={(v: any) => setTermType(v)}>
@@ -128,14 +149,15 @@ export function PurchasingPowerSimulator() {
                       <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="w-64">
-                      A inflação acumulada de 12 meses pelo Banco Central hoje é de {indicators?.ipca?.value}%.
+                      A inflação acumulada de 12 meses pelo Banco Central hoje é de{' '}
+                      {indicators?.ipca?.value}%.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </Label>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-6 px-2 text-sm uppercase gap-1"
                 onClick={() => setInflationRate(indicators?.ipca?.value || 4.5)}
                 disabled={isLoading}
@@ -144,10 +166,12 @@ export function PurchasingPowerSimulator() {
               </Button>
             </div>
             <div className="flex items-center gap-2">
-              <Input type="number" inputMode="decimal" 
+              <Input
+                type="number"
+                inputMode="decimal"
                 step="0.01"
-                value={inflationRate || ''} 
-                onChange={e => setInflationRate(Number(e.target.value))}
+                value={inflationRate || ''}
+                onChange={(e) => setInflationRate(Number(e.target.value))}
                 className="font-mono bg-background"
               />
               <span className="text-muted-foreground font-bold">%</span>
@@ -166,11 +190,15 @@ export function PurchasingPowerSimulator() {
                 {moneyUtils.format(results.requiredFutureAmount, 'BRL')}
               </p>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Para comprar as mesmas coisas que <strong className="text-foreground">{moneyUtils.format(initialAmount, 'BRL')}</strong> compra hoje.
+                Para comprar as mesmas coisas que{' '}
+                <strong className="text-foreground">
+                  {moneyUtils.format(initialAmount, 'BRL')}
+                </strong>{' '}
+                compra hoje.
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-warning/5 border-warning/20 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-warning/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-6 relative z-10">
@@ -179,7 +207,8 @@ export function PurchasingPowerSimulator() {
                 {moneyUtils.format(results.futurePurchasingPower, 'BRL')}
               </p>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Seus {moneyUtils.format(initialAmount, 'BRL')} debaixo do colchão terão o poder de compra equivalente a este valor.
+                Seus {moneyUtils.format(initialAmount, 'BRL')} debaixo do colchão terão o poder de
+                compra equivalente a este valor.
               </p>
             </CardContent>
           </Card>
@@ -214,17 +243,24 @@ export function PurchasingPowerSimulator() {
                     <tr>
                       <th className="px-4 py-3 font-medium">Período</th>
                       <th className="px-4 py-3 font-medium text-right">Manter Padrão</th>
-                      <th className="px-4 py-3 font-medium text-right text-warning dark:text-warning">Poder de Compra Real</th>
+                      <th className="px-4 py-3 font-medium text-right text-warning dark:text-warning">
+                        Poder de Compra Real
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {visibleData.map((d) => (
                       <tr key={d.month} className="hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-3 font-medium text-sm">
-                          Mês {d.month} <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
+                          Mês {d.month}{' '}
+                          <span className="text-muted-foreground font-normal">(Ano {d.year})</span>
                         </td>
-                        <td className="px-4 py-3 font-mono text-right text-sm">{moneyUtils.format(d.requiredToMaintain, 'BRL')}</td>
-                        <td className="px-4 py-3 font-mono text-right text-warning dark:text-warning text-sm font-bold">{moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}</td>
+                        <td className="px-4 py-3 font-mono text-right text-sm">
+                          {moneyUtils.format(d.requiredToMaintain, 'BRL')}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-right text-warning dark:text-warning text-sm font-bold">
+                          {moneyUtils.format(d.purchasingPowerOfInitial, 'BRL')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

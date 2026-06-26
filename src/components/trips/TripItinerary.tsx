@@ -66,7 +66,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const { toast } = useToast();
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
-  const parseMeta = (desc: string | null): { text: string; mapsUrl: string; rating: number | null } => {
+  const parseMeta = (
+    desc: string | null,
+  ): { text: string; mapsUrl: string; rating: number | null } => {
     if (!desc) return { text: '', mapsUrl: '', rating: null };
     const match = desc.match(/<!--meta:(.+?)-->/);
     if (!match) return { text: desc, mapsUrl: '', rating: null };
@@ -167,8 +169,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       const promises = suggestions.map((s, idx) => {
         // Embed mapsUrl and rating as JSON metadata in description
         const metadata = JSON.stringify({ mapsUrl: s.mapsUrl || '', rating: s.rating || null });
-        const fullDescription = s.description 
-          ? `${s.description}\n<!--meta:${metadata}-->` 
+        const fullDescription = s.description
+          ? `${s.description}\n<!--meta:${metadata}-->`
           : `<!--meta:${metadata}-->`;
 
         return supabase.from('trip_itinerary').insert({
@@ -329,19 +331,60 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               {dayItems.map((item) => {
                 const meta = parseMeta(item.description);
                 return (
-                <div
-                  key={item.id}
-                  className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      {item.start_time && (
-                        <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {item.start_time.slice(0, 5)}
-                          {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
-                        </span>
+                  <div
+                    key={item.id}
+                    className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {item.start_time && (
+                          <span className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {item.start_time.slice(0, 5)}
+                            {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-medium mt-1">{item.title}</p>
+                      {item.location && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3" />
+                          {item.location}
+                        </p>
                       )}
+                      {meta.text && (
+                        <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
+                      )}
+                      <div className="flex gap-1 mt-2">
+                        <a
+                          href={
+                            meta.mapsUrl ||
+                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
+                          title="Abrir no Google Maps"
+                        >
+                          <MapPin className="h-3 w-3" />
+                          Maps{meta.mapsUrl ? ' (exato)' : ''}
+                        </a>
+                        <a
+                          href={`https://www.tripadvisor.com.br/Search?q=${encodeURIComponent(item.title + ', ' + (item.location || trip.destination || ''))}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950 dark:text-green-400 dark:hover:bg-green-900 transition-colors"
+                          title="Buscar no TripAdvisor"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          TripAdvisor
+                        </a>
+                        {meta.rating && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
+                            ⭐ {meta.rating}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="font-medium mt-1">{item.title}</p>
                     {item.location && (
