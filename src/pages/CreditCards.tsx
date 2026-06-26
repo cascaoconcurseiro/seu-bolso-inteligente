@@ -147,6 +147,19 @@ export function CreditCards() {
     user
   } = useCreditCardsDashboard();
 
+  // Fetch transactions from family members who used owned cards
+  const ownedCardIds = useMemo(
+    () => creditCards.filter((c: any) => !c.is_shared_with_me).map((c: any) => c.id),
+    [creditCards]
+  );
+  const depStartDate = selectedDate ? dateFns.format(dateFns.subMonths(selectedDate, 2), 'yyyy-MM-dd') : undefined;
+  const depEndDate = selectedDate ? dateFns.format(dateFns.addMonths(selectedDate, 1), 'yyyy-MM-dd') : undefined;
+  const { data: dependentTransactions = [] } = useDependentTransactions({
+    cardIds: ownedCardIds,
+    startDate: depStartDate,
+    endDate: depEndDate,
+  });
+
   const { id: urlCardId } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -241,6 +254,7 @@ export function CreditCards() {
           onArchive={(card) => setShowArchiveConfirmModal(true)}
           onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); handleGoBack(); }}
           setShowSharingDialog={setShowSharingDialog}
+          dependentTransactions={dependentTransactions}
         />
 
         <ShareCardDialog isOpen={showSharingDialog} onClose={() => setShowSharingDialog(false)} card={selectedCard} />
