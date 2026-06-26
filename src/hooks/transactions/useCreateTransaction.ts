@@ -7,11 +7,14 @@ import { calculateTransactionSplits } from "@/utils/sharedFinanceCalculations";
 import {
   invalidateFinancialQueries,
   invalidateSharedQueries,
-  invalidateTripQueries
+  invalidateTripQueries,
 } from "@/utils/queryInvalidation";
 import { transactionToasts } from "@/utils/toastMessages";
 import { logger } from "@/utils/logger";
-import { generateAllNotifications, dismissRelatedNotifications } from "@/services/notificationGenerator";
+import {
+  generateAllNotifications,
+  dismissRelatedNotifications,
+} from "@/services/notificationGenerator";
 import { createNotification } from "@/services/notificationService";
 import { CategoryPredictionService } from "@/services/categoryPredictionService";
 import { matchAutoShareRule } from "@/hooks/useAutoShareRules";
@@ -32,43 +35,51 @@ export function useCreateTransaction() {
 
       // Injetar transação temporária em todas as consultas relacionadas a transações na UI
       if (user) {
-        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: Transaction[] | undefined) => {
-          const optimisticTx = {
-            id: `temp-${Date.now()}`,
-            user_id: user.id,
-            creator_user_id: user.id,
-            amount: newTx.amount,
-            description: newTx.description,
-            date: newTx.date,
-            type: newTx.type,
-            account_id: newTx.account_id,
-            category_id: newTx.category_id,
-            is_shared: newTx.is_shared,
-            domain: newTx.domain || "PERSONAL",
-            created_at: new Date().toISOString(),
-            is_optimistic: true, // Útil caso queiramos mostrar um ícone de carregando
-            category: { id: newTx.category_id, name: '...', icon: '⏳' },
-            account: { id: newTx.account_id, name: '...' }
-          };
-          
-          if (!old) return [optimisticTx] as Transaction[];
-          return [optimisticTx, ...old] as Transaction[];
-        });
+        queryClient.setQueriesData(
+          { queryKey: ["transactions"] },
+          (old: Transaction[] | undefined) => {
+            const optimisticTx = {
+              id: `temp-${Date.now()}`,
+              user_id: user.id,
+              creator_user_id: user.id,
+              amount: newTx.amount,
+              description: newTx.description,
+              date: newTx.date,
+              type: newTx.type,
+              account_id: newTx.account_id,
+              category_id: newTx.category_id,
+              is_shared: newTx.is_shared,
+              domain: newTx.domain || "PERSONAL",
+              created_at: new Date().toISOString(),
+              is_optimistic: true, // Útil caso queiramos mostrar um ícone de carregando
+              category: { id: newTx.category_id, name: "...", icon: "⏳" },
+              account: { id: newTx.account_id, name: "..." },
+            };
+
+            if (!old) return [optimisticTx] as Transaction[];
+            return [optimisticTx, ...old] as Transaction[];
+          }
+        );
       }
 
       return { previousTransactions };
     },
     mutationFn: async (input: CreateTransactionInput) => {
       if (!user) throw new Error("User not authenticated");
-      
+
       // ✅ PARALELIZAR CONSULTAS INICIAIS
-      const accDataPromise = input.account_id 
-        ? supabase.from("accounts").select("type, closing_day").eq("id", input.account_id).maybeSingle()
+      const accDataPromise = input.account_id
+        ? supabase
+            .from("accounts")
+            .select("type, closing_day")
+            .eq("id", input.account_id)
+            .maybeSingle()
         : Promise.resolve({ data: null });
 
-      const memberDataPromise = (input.is_shared && !input.payer_id)
-        ? supabase.from('family_members').select('id').eq('linked_user_id', user.id).maybeSingle()
-        : Promise.resolve({ data: null });
+      const memberDataPromise =
+        input.is_shared && !input.payer_id
+          ? supabase.from("family_members").select("id").eq("linked_user_id", user.id).maybeSingle()
+          : Promise.resolve({ data: null });
 
       const existingTxPromise = supabase
         .from("transactions")
@@ -84,11 +95,11 @@ export function useCreateTransaction() {
       const [accResult, memberResult, existingTxResult] = await Promise.all([
         accDataPromise,
         memberDataPromise,
-        existingTxPromise
+        existingTxPromise,
       ]);
 
       let cardClosingDay: number | null = null;
-      if (accResult.data && accResult.data.type === 'CREDIT_CARD') {
+      if (accResult.data && accResult.data.type === "CREDIT_CARD") {
         cardClosingDay = accResult.data.closing_day || 1;
       }
 
@@ -105,14 +116,14 @@ export function useCreateTransaction() {
               compYear++;
             }
           }
-          return `${compYear}-${String(compMonth + 1).padStart(2, '0')}-01`;
+          return `${compYear}-${String(compMonth + 1).padStart(2, "0")}-01`;
         }
         return dateUtils.getCompetenceDate(d);
       };
-      
+
       // ✅ VALIDAÇÃO: Payer ID (Quem pagou)
       let resolvedPayerId = input.payer_id;
-      
+
       if (input.is_shared && !resolvedPayerId) {
         if (memberResult.data) {
           resolvedPayerId = memberResult.data.id;
@@ -120,12 +131,12 @@ export function useCreateTransaction() {
         } else {
           // Fallback final: Tentar encontrar admin se necessário
           const { data: adminMember } = await supabase
-            .from('family_members')
-            .select('id')
-            .eq('role', 'admin')
+            .from("family_members")
+            .select("id")
+            .eq("role", "admin")
             .limit(1)
             .maybeSingle();
-            
+
           if (adminMember) {
             resolvedPayerId = adminMember.id;
             input.payer_id = resolvedPayerId;
@@ -142,12 +153,17 @@ export function useCreateTransaction() {
 
       // ✅ VALIDAÇÃO E AUTO-COMPLETAGEM DE SPLITS
       const finalSplits = [...(input.splits || [])];
-      
+
       if (input.is_shared) {
-        const totalPercentage = finalSplits.reduce((sum, s) => SafeFinancialCalculator.add(sum, Number(s.percentage || 0)), 0);
-        
+        const totalPercentage = finalSplits.reduce(
+          (sum, s) => SafeFinancialCalculator.add(sum, Number(s.percentage || 0)),
+          0
+        );
+
         if (totalPercentage > 100) {
-          throw new Error(`A soma das porcentagens não pode exceder 100% (atualmente: ${totalPercentage.toFixed(1)}%)`);
+          throw new Error(
+            `A soma das porcentagens não pode exceder 100% (atualmente: ${totalPercentage.toFixed(1)}%)`
+          );
         }
 
         if (finalSplits.length === 0) {
@@ -156,22 +172,22 @@ export function useCreateTransaction() {
 
         if (totalPercentage < 100) {
           const remainingPercentage = 100 - totalPercentage;
-          const mySplitIndex = finalSplits.findIndex(s => s.member_id === user!.id);
-          
+          const mySplitIndex = finalSplits.findIndex((s) => s.member_id === user!.id);
+
           if (mySplitIndex >= 0) {
             const currentPct = finalSplits[mySplitIndex].percentage || 0;
             const newPct = currentPct + remainingPercentage;
-            
+
             finalSplits[mySplitIndex] = {
               ...finalSplits[mySplitIndex],
               percentage: newPct,
-              amount: SafeFinancialCalculator.percentage(input.amount, newPct)
+              amount: SafeFinancialCalculator.percentage(input.amount, newPct),
             };
           } else {
             finalSplits.push({
               member_id: user!.id,
               percentage: remainingPercentage,
-              amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage)
+              amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage),
             });
           }
         }
@@ -181,13 +197,15 @@ export function useCreateTransaction() {
         throw new Error("O valor da transação deve ser maior que zero");
       }
 
-      if (!input.description || input.description.trim() === '') {
+      if (!input.description || input.description.trim() === "") {
         throw new Error("A descrição é obrigatória");
       }
 
       // ✅ TRAVA DE DUPLICIDADE
       if (existingTxResult.data) {
-        throw new Error("⚠️ Transação duplicada detectada! Aguarde alguns segundos ou verifique se já foi lançada.");
+        throw new Error(
+          "⚠️ Transação duplicada detectada! Aguarde alguns segundos ou verifique se já foi lançada."
+        );
       }
 
       const { splits, transaction_splits, ...transactionData } = input;
@@ -212,13 +230,13 @@ export function useCreateTransaction() {
         let userIdToName: Record<string, string> = {};
 
         if (finalSplits && finalSplits.length > 0) {
-          const memberIds = finalSplits.map(s => s.member_id);
+          const memberIds = finalSplits.map((s) => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
-            .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
+            .or(`id.in.(${memberIds.join(",")}),linked_user_id.in.(${memberIds.join(",")})`);
 
-          membersData?.forEach(m => {
+          membersData?.forEach((m) => {
             memberNames[m.id] = m.name;
             if (m.linked_user_id) {
               memberUserIds[m.id] = m.linked_user_id;
@@ -227,7 +245,9 @@ export function useCreateTransaction() {
             }
           });
 
-          const invalidMembers = memberIds.filter(id => id !== user.id && !memberNames[id] && !userIdToName[id]);
+          const invalidMembers = memberIds.filter(
+            (id) => id !== user.id && !memberNames[id] && !userIdToName[id]
+          );
           if (invalidMembers.length > 0) {
             logger.error("Membros de split inválidos detectados:", invalidMembers);
             throw new Error("Um ou mais membros selecionados para divisão não são válidos.");
@@ -242,7 +262,7 @@ export function useCreateTransaction() {
           const installmentDate = dateUtils.addMonthsToDate(baseDate, i);
           const formattedDate = dateUtils.formatDate(installmentDate);
           const competenceDate = calculateCompetence(formattedDate);
-          const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
+          const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === "SHARED";
 
           let currentAmount = installmentAmount;
           if (i === installmentsToCreate - 1) {
@@ -262,7 +282,9 @@ export function useCreateTransaction() {
                 user_id: isUserId ? split.member_id : memberUserIds[split.member_id],
                 percentage: split.percentage,
                 amount: split.amount,
-                name: (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) || "Membro",
+                name:
+                  (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) ||
+                  "Membro",
               };
             });
           }
@@ -276,13 +298,13 @@ export function useCreateTransaction() {
             current_installment: currentInstNum,
             series_id: seriesId,
             is_shared: isSharedNow,
-            domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+            domain: input.trip_id ? "TRAVEL" : isSharedNow ? "SHARED" : input.domain || "PERSONAL",
             payer_id: input.payer_id,
             splits: embeddedSplits,
           });
         }
 
-        const { data: rpcData, error } = await supabase.rpc('create_installment_series', {
+        const { data: rpcData, error } = await supabase.rpc("create_installment_series", {
           p_transactions: transactionsForRpc,
         });
 
@@ -293,23 +315,36 @@ export function useCreateTransaction() {
 
         if (finalSplits && finalSplits.length > 0) {
           try {
-            const otherUserIds = Array.from(new Set(finalSplits.map(s => {
-              const isUserId = !memberNames[s.member_id] && userIdToName[s.member_id];
-              return isUserId ? s.member_id : memberUserIds[s.member_id];
-            }).filter((uid): uid is string => !!uid && uid !== user?.id)));
+            const otherUserIds = Array.from(
+              new Set(
+                finalSplits
+                  .map((s) => {
+                    const isUserId = !memberNames[s.member_id] && userIdToName[s.member_id];
+                    return isUserId ? s.member_id : memberUserIds[s.member_id];
+                  })
+                  .filter((uid): uid is string => !!uid && uid !== user?.id)
+              )
+            );
 
-            Promise.all(otherUserIds.map(otherUserId =>
-              createNotification({
-                user_id: otherUserId,
-                type: 'SHARED_EXPENSE',
-                title: 'Novas Transações Compartilhadas',
-                message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou uma transação parcelada compartilhada "${input.description}".`,
-                icon: '🤝',
-                priority: 'NORMAL'
-              }).catch(e => logger.error("Erro ao criar notificação de parcelamento compartilhado:", e))
-            ));
+            Promise.all(
+              otherUserIds.map((otherUserId) =>
+                createNotification({
+                  user_id: otherUserId,
+                  type: "SHARED_EXPENSE",
+                  title: "Novas Transações Compartilhadas",
+                  message: `${user?.user_metadata?.name || user?.email || "Alguém"} criou uma transação parcelada compartilhada "${input.description}".`,
+                  icon: "🤝",
+                  priority: "NORMAL",
+                }).catch((e) =>
+                  logger.error("Erro ao criar notificação de parcelamento compartilhado:", e)
+                )
+              )
+            );
           } catch (notificationError) {
-            logger.error("Erro ao notificar criação de parcelamento compartilhado:", notificationError);
+            logger.error(
+              "Erro ao notificar criação de parcelamento compartilhado:",
+              notificationError
+            );
           }
         }
 
@@ -318,18 +353,18 @@ export function useCreateTransaction() {
 
       // Transação única
       let categoryId = input.category_id;
-      
-      if (!categoryId && (input.type === 'EXPENSE' || input.type === 'INCOME')) {
+
+      if (!categoryId && (input.type === "EXPENSE" || input.type === "INCOME")) {
         try {
           const prediction = await CategoryPredictionService.predictCategory(
             input.description,
             user.id,
-            input.type.toLowerCase() as 'expense' | 'income'
+            input.type.toLowerCase() as "expense" | "income"
           );
-          
+
           if (prediction && prediction.confidence > 0.5) {
             categoryId = prediction.categoryId;
-            logger.debug('Categorização automática aplicada', {
+            logger.debug("Categorização automática aplicada", {
               description: input.description,
               categoryId,
               confidence: prediction.confidence,
@@ -337,12 +372,12 @@ export function useCreateTransaction() {
             });
           }
         } catch (error) {
-          logger.warn('Categorização automática falhou, continuando sem categoria', { error });
+          logger.warn("Categorização automática falhou, continuando sem categoria", { error });
         }
       }
 
       // Auto-share: verificar regras configuradas pelo usuário
-      if (input.type === 'EXPENSE' && (!finalSplits || finalSplits.length === 0)) {
+      if (input.type === "EXPENSE" && (!finalSplits || finalSplits.length === 0)) {
         try {
           const { data: autoRules } = await supabase
             .from("transaction_auto_share_rules")
@@ -353,7 +388,10 @@ export function useCreateTransaction() {
           if (autoRules && autoRules.length > 0) {
             const matched = matchAutoShareRule(autoRules as any, categoryId, input.description);
             if (matched) {
-              finalSplits.push({ member_id: matched.member_id, percentage: matched.split_ratio * 100 });
+              finalSplits.push({
+                member_id: matched.member_id,
+                percentage: matched.split_ratio * 100,
+              });
             }
           }
         } catch {
@@ -361,7 +399,7 @@ export function useCreateTransaction() {
         }
       }
 
-      const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === 'SHARED';
+      const isSharedNow = (finalSplits && finalSplits.length > 0) || input.domain === "SHARED";
 
       // Transação única — usa RPC atômica se tiver splits (ARC-01)
       const txPayload = {
@@ -369,25 +407,28 @@ export function useCreateTransaction() {
         ...transactionData,
         category_id: categoryId,
         is_shared: isSharedNow,
-        domain: input.trip_id ? "TRAVEL" : (isSharedNow ? "SHARED" : (input.domain || "PERSONAL")),
+        domain: input.trip_id ? "TRAVEL" : isSharedNow ? "SHARED" : input.domain || "PERSONAL",
         payer_id: input.payer_id,
+        is_recurring: input.is_recurring || false,
+        recurrence_pattern: input.frequency || null,
+        recurrence_day: input.recurrence_day || null,
       };
 
       let data: Transaction | null;
 
       if (finalSplits && finalSplits.length > 0) {
-        const memberIds = finalSplits.map(s => s.member_id);
+        const memberIds = finalSplits.map((s) => s.member_id);
         const { data: membersData } = await supabase
           .from("family_members")
           .select("id, name, linked_user_id")
-          .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
+          .or(`id.in.(${memberIds.join(",")}),linked_user_id.in.(${memberIds.join(",")})`);
 
         const memberNames: Record<string, string> = {};
         const memberUserIds: Record<string, string> = {};
         const userIdToMemberId: Record<string, string> = {};
         const userIdToName: Record<string, string> = {};
 
-        membersData?.forEach(m => {
+        membersData?.forEach((m) => {
           memberNames[m.id] = m.name;
           if (m.linked_user_id) {
             memberUserIds[m.id] = m.linked_user_id;
@@ -404,12 +445,13 @@ export function useCreateTransaction() {
             user_id: isUserId ? split.member_id : memberUserIds[split.member_id],
             percentage: split.percentage,
             amount: split.amount,
-            name: (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) || "Membro",
+            name:
+              (isUserId ? userIdToName[split.member_id] : memberNames[split.member_id]) || "Membro",
             is_settled: false,
           };
         });
 
-        const { data: rpcResult, error } = await supabase.rpc('create_transaction_with_splits', {
+        const { data: rpcResult, error } = await supabase.rpc("create_transaction_with_splits", {
           p_transaction: txPayload,
           p_splits: splitsPayload,
         });
@@ -435,26 +477,35 @@ export function useCreateTransaction() {
         data = inserted;
       }
 
-      const isTransactionShared = (finalSplits && finalSplits.length > 0) || data?.domain === 'SHARED' || input.domain === 'SHARED';
+      const isTransactionShared =
+        (finalSplits && finalSplits.length > 0) ||
+        data?.domain === "SHARED" ||
+        input.domain === "SHARED";
       if (data && isTransactionShared) {
         try {
           const { data: splitsData } = await supabase
             .from("transaction_splits")
             .select("user_id")
             .eq("transaction_id", data.id);
-          
+
           if (splitsData && splitsData.length > 0) {
-            const otherUserIds = Array.from(new Set(splitsData.map(s => s.user_id).filter(uid => uid && uid !== user?.id)));
-            Promise.all(otherUserIds.map(otherUserId => 
-              createNotification({
-                user_id: otherUserId,
-                type: 'SHARED_EXPENSE',
-                title: 'Nova Transação Compartilhada',
-                message: `${user?.user_metadata?.name || user?.email || 'Alguém'} criou a transação compartilhada "${data.description}".`,
-                icon: '🤝',
-                priority: 'NORMAL'
-              }).catch(e => logger.error("Erro ao criar notificação de criação compartilhada:", e))
-            ));
+            const otherUserIds = Array.from(
+              new Set(splitsData.map((s) => s.user_id).filter((uid) => uid && uid !== user?.id))
+            );
+            Promise.all(
+              otherUserIds.map((otherUserId) =>
+                createNotification({
+                  user_id: otherUserId,
+                  type: "SHARED_EXPENSE",
+                  title: "Nova Transação Compartilhada",
+                  message: `${user?.user_metadata?.name || user?.email || "Alguém"} criou a transação compartilhada "${data.description}".`,
+                  icon: "🤝",
+                  priority: "NORMAL",
+                }).catch((e) =>
+                  logger.error("Erro ao criar notificação de criação compartilhada:", e)
+                )
+              )
+            );
           }
         } catch (notificationError) {
           logger.error("Erro ao notificar criação de compartilhada:", notificationError);
@@ -467,30 +518,43 @@ export function useCreateTransaction() {
       // Sucesso não precisa mais invalidar *imediatamente*, pois o onSettled fará isso,
       // mas mantemos as notificações de sucesso aqui.
       transactionToasts.created();
-      
+
       if (user?.id) {
-        if (variables?.type === 'TRANSFER' && variables?.destination_account_id) {
+        if (variables?.type === "TRANSFER" && variables?.destination_account_id) {
           // Fire and forget
-          dismissRelatedNotifications(user.id, variables.destination_account_id, 'credit_card').catch(e => logger.error('Erro dismiss', e));
+          dismissRelatedNotifications(
+            user.id,
+            variables.destination_account_id,
+            "credit_card"
+          ).catch((e) => logger.error("Erro dismiss", e));
         }
         // Fire and forget
-        generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-transação', e));
+        generateAllNotifications(user.id).catch((e) =>
+          logger.error("Erro ao gerar notificações pós-transação", e)
+        );
       }
     },
-    onError: (error, _newTx, context: { previousTransactions: [unknown, unknown][] } | undefined) => {
+    onError: (
+      error,
+      _newTx,
+      context: { previousTransactions: [unknown, unknown][] } | undefined
+    ) => {
       // Rollback da cache em caso de erro
       if (context?.previousTransactions) {
         context.previousTransactions.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey as Parameters<typeof queryClient.setQueryData>[0], data);
+          queryClient.setQueryData(
+            queryKey as Parameters<typeof queryClient.setQueryData>[0],
+            data
+          );
         });
       }
-      transactionToasts.error('criar', error);
+      transactionToasts.error("criar", error);
     },
     onSettled: () => {
       // Ao finalizar (sucesso ou erro), revalidamos os dados finais
       invalidateFinancialQueries(queryClient);
       invalidateSharedQueries(queryClient);
       invalidateTripQueries(queryClient);
-    }
+    },
   });
 }

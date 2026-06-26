@@ -71,7 +71,12 @@ function UpcomingItemRow({ item, isPrivate }: { item: UpcomingItem; isPrivate: b
 
   return (
     <div className="flex items-center gap-3 px-3 py-3 rounded-xl border border-border/60 bg-card/50 hover:bg-card hover:border-border transition-all">
-      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-base flex-shrink-0", dotClass)}>
+      <div
+        className={cn(
+          "w-9 h-9 rounded-lg flex items-center justify-center text-base flex-shrink-0",
+          dotClass
+        )}
+      >
         {icon}
       </div>
 
@@ -90,7 +95,12 @@ function UpcomingItemRow({ item, isPrivate }: { item: UpcomingItem; isPrivate: b
       </div>
 
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-        <span className={cn("text-sm font-bold font-mono tabular-nums", isExpense ? "text-negative" : "text-positive")}>
+        <span
+          className={cn(
+            "text-sm font-bold font-mono tabular-nums",
+            isExpense ? "text-negative" : "text-positive"
+          )}
+        >
           {isPrivate ? "••••" : (isExpense ? "-" : "+") + formatCurrencyBRL(Number(item.amount))}
         </span>
         <UrgencyBadge daysUntil={item.daysUntil} />
@@ -110,11 +120,13 @@ export function UpcomingTransactions() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           category:categories(id, name, icon),
           account:accounts!account_id(id, name, currency)
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("is_recurring", true)
         .not("recurrence_pattern", "is", null)
@@ -206,8 +218,8 @@ export function UpcomingTransactions() {
             {nearestDue.daysUntil <= 0
               ? `${nearestDue.description} vence hoje`
               : nearestDue.daysUntil === 1
-              ? `Próxima: ${nearestDue.description} amanhã`
-              : `Próxima: ${nearestDue.description} em ${nearestDue.daysUntil} dias`}
+                ? `Próxima: ${nearestDue.description} amanhã`
+                : `Próxima: ${nearestDue.description} em ${nearestDue.daysUntil} dias`}
           </p>
         )}
       </div>
@@ -220,7 +232,9 @@ export function UpcomingTransactions() {
         <section className="space-y-2">
           <div className="flex items-center gap-2">
             <Zap className="h-3.5 w-3.5 text-warning" />
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Esta semana</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Esta semana
+            </h3>
           </div>
           {thisWeek.map((item) => (
             <UpcomingItemRow key={item.id} item={item} isPrivate={isPrivate} />
@@ -233,7 +247,9 @@ export function UpcomingTransactions() {
         <section className="space-y-2">
           <div className="flex items-center gap-2">
             <CalendarClock className="h-3.5 w-3.5 text-muted-foreground" />
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Próximas semanas</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Próximas semanas
+            </h3>
           </div>
           {nextDays.map((item) => (
             <UpcomingItemRow key={item.id} item={item} isPrivate={isPrivate} />
@@ -246,7 +262,9 @@ export function UpcomingTransactions() {
         <section className="space-y-2">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Mais adiante</h3>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Mais adiante
+            </h3>
           </div>
           {later.map((item) => (
             <UpcomingItemRow key={item.id} item={item} isPrivate={isPrivate} />
