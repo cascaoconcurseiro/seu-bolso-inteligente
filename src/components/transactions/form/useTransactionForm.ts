@@ -1,57 +1,31 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Loader2,
-  Users,
-  ArrowDownLeft,
-  ArrowUpRight,
-  ArrowRightLeft,
-  Wallet,
-  Landmark,
-  BellRing,
-} from 'lucide-react';
-import { useTransactionModal } from '@/hooks/useTransactionModal';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
-import { SplitModal } from './SplitModal';
-import { TransactionSplitData, TabType } from '@/types/transactions';
-import { format, parseISO, differenceInDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useGoals } from '@/hooks/useGoals';
-import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
-import {
-  useCreateTransaction,
-  useUpdateTransaction,
-  useTransactions,
-  TransactionType,
-  CreateTransactionInput,
-} from '@/hooks/useTransactions';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useTrips } from '@/hooks/useTrips';
-import { useFamilyMembers, useSharedContacts } from '@/hooks/useFamily';
-import { useTripMembers } from '@/hooks/useTripMembers';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-import { validateTransaction } from '@/services/validationService';
-import { CategoryPredictionService } from '@/services/categoryPredictionService';
+import { useAccounts } from '@/hooks/useAccounts';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
-import { logger } from '@/utils/logger';
-import { haptics } from '@/utils/haptics';
+import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
+import { useFamilyMembers, useSharedContacts } from '@/hooks/useFamily';
+import { useGoals } from '@/hooks/useGoals';
+import { useTransactionModal } from '@/hooks/useTransactionModal';
+import {
+  CreateTransactionInput,
+  TransactionType,
+  useCreateTransaction,
+  useTransactions,
+  useUpdateTransaction,
+} from '@/hooks/useTransactions';
+import { useTripMembers } from '@/hooks/useTripMembers';
+import { useTrips } from '@/hooks/useTrips';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { CategoryPredictionService } from '@/services/categoryPredictionService';
+import { validateTransaction } from '@/services/validationService';
 import { useTransactionStore } from '@/store/useTransactionStore';
+import { haptics } from '@/utils/haptics';
+import { logger } from '@/utils/logger';
+import { differenceInDays, format, parseISO } from 'date-fns';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-import { moneyUtils } from "@/utils/money";
+import { moneyUtils } from '@/utils/money';
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -64,7 +38,12 @@ interface TransactionFormProps {
   };
 }
 
-export function useTransactionForm({ onSuccess, onCancel, context, initialData }: TransactionFormProps) {
+export function useTransactionForm({
+  onSuccess,
+  onCancel,
+  context,
+  initialData,
+}: TransactionFormProps) {
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
   const { user } = useAuth();
@@ -77,12 +56,12 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { data: contacts = [] } = useSharedContacts();
 
   const familyMembers = useMemo(() => {
-    const existingIds = new Set(rawFamilyMembers.map(m => m.id));
-    const activeContacts = contacts.filter(c => c.active_in_form && !existingIds.has(c.id));
+    const existingIds = new Set(rawFamilyMembers.map((m) => m.id));
+    const activeContacts = contacts.filter((c) => c.active_in_form && !existingIds.has(c.id));
     return [...rawFamilyMembers, ...activeContacts];
   }, [rawFamilyMembers, contacts]);
   const myMemberRecord = useMemo(() => {
-    return (familyMembers || []).find(m => m.linked_user_id === user?.id);
+    return (familyMembers || []).find((m) => m.linked_user_id === user?.id);
   }, [familyMembers, user?.id]);
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
@@ -90,7 +69,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
 
   // Zustand Store Integration
   const store = useTransactionStore();
-  
+
   const activeTab = store.activeTab;
   const amount = store.amount;
   const description = store.description;
@@ -102,7 +81,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const notes = store.notes;
   const exchangeRate = store.exchangeRate;
   const destinationAmount = store.destinationAmount;
-  
+
   const isInstallment = store.isInstallment;
   const totalInstallments = store.totalInstallments;
   const showSplitModal = store.showSplitModal;
@@ -134,7 +113,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(
     description,
     predictionType || 'expense',
-    !!predictionType
+    !!predictionType,
   );
 
   // Context application
@@ -149,7 +128,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   useEffect(() => {
     if (predictedCategoryId) {
       const isCurrentCategoryFromAI = categoryId === lastAppliedCategoryIdRef.current;
-      
+
       if (!store.hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
         store.setCategoryId(predictedCategoryId);
         lastAppliedCategoryIdRef.current = predictedCategoryId;
@@ -178,16 +157,16 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   // Reset hasInitialized when initialData changes to fix state persistence bug
   const hasInitialized = useRef(false);
   const lastInitialDataId = useRef<string | undefined>(undefined);
-  
+
   useEffect(() => {
     const currentId = initialData?.id;
-    
+
     // Reset initialization flag if we're opening a different transaction or creating a new one
     if (lastInitialDataId.current !== currentId) {
       hasInitialized.current = false;
       lastInitialDataId.current = currentId;
     }
-    
+
     if (!hasInitialized.current) {
       if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
         store.initFromData(initialData);
@@ -213,7 +192,10 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const hasAppliedProfileDefaults = useRef(false);
   useEffect(() => {
     // Só aplica na criação (sem initialData) e apenas uma vez por abertura do form
-    if (initialData?.id) { hasAppliedProfileDefaults.current = false; return; }
+    if (initialData?.id) {
+      hasAppliedProfileDefaults.current = false;
+      return;
+    }
     if (hasAppliedProfileDefaults.current) return;
     if (!profile || accountsLoading) return;
 
@@ -277,10 +259,12 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       }
       const hasDuplicate = allTransactions.some((tx) => {
         if (initialData && tx.id === initialData.id) return false;
-        if (initialData && initialData.series_id && tx.series_id === initialData.series_id) return false;
+        if (initialData && initialData.series_id && tx.series_id === initialData.series_id)
+          return false;
         if (tx.type !== activeTab) return false;
         const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
-        const descMatch = tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
+        const descMatch =
+          tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
           description.toLowerCase().trim().includes(tx.description.toLowerCase());
         const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
         const daysDiff = Math.abs(differenceInDays(txDate, date));
@@ -297,16 +281,23 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const effectiveFamilyMembers = useMemo(() => {
     if (!tripId || !tripMembers || tripMembers.length === 0) return familyMembers || [];
 
-    const existingUserIds = new Set((familyMembers || []).map(m => m.linked_user_id).filter(Boolean));
+    const existingUserIds = new Set(
+      (familyMembers || []).map((m) => m.linked_user_id).filter(Boolean),
+    );
 
     const tripOnlyMembers = tripMembers
-      .filter(tm => tm.user_id && !existingUserIds.has(tm.user_id))
-      .map(tm => ({
+      .filter((tm) => tm.user_id && !existingUserIds.has(tm.user_id))
+      .map((tm) => ({
         id: tm.user_id as string,
         family_id: '',
         user_id: tm.user_id,
         linked_user_id: tm.user_id as string,
-        name: tm.display_name || tm.profiles?.full_name || tm.profiles?.email || 'Participante',
+        name:
+          tm.display_name ||
+          tm.guest_name ||
+          tm.profiles?.full_name ||
+          tm.profiles?.email ||
+          'Participante',
         email: tm.profiles?.email || null,
         role: 'viewer' as const,
         avatar_url: null,
@@ -324,7 +315,33 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
         updated_at: '',
       }));
 
-    return [...(familyMembers || []), ...tripOnlyMembers];
+    // Incluir guests (trip_members com user_id: null) como membros virtuais
+    const guestMembers = tripMembers
+      .filter((tm) => !tm.user_id)
+      .map((tm) => ({
+        id: tm.id,
+        family_id: '',
+        user_id: null,
+        linked_user_id: tm.id,
+        name: tm.guest_name || tm.display_name || 'Convidado',
+        email: null,
+        role: 'viewer' as const,
+        avatar_url: null,
+        avatar_color: null,
+        avatar_icon: null,
+        status: 'active' as const,
+        member_type: 'contact' as const,
+        invited_by: null,
+        sharing_scope: 'all' as const,
+        scope_start_date: null,
+        scope_end_date: null,
+        scope_trip_id: null,
+        active_in_form: true,
+        created_at: '',
+        updated_at: '',
+      }));
+
+    return [...(familyMembers || []), ...tripOnlyMembers, ...guestMembers];
   }, [tripId, tripMembers, familyMembers]);
 
   // Available Members logic
@@ -334,18 +351,24 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     // If it's a trip, prefer trip members (exclude guests with null user_id)
     if (tripId && tripMembers && tripMembers.length > 0) {
       const payerUserId = payerId === 'me' ? user?.id : payerId;
-      const tripUserIds = new Set(tripMembers.map(tm => tm.user_id).filter(Boolean));
-      return membersList.filter(m => m.linked_user_id !== payerUserId && tripUserIds.has(m.linked_user_id));
+      // Inclui tanto user_id (usuários registrados) quanto trip_members.id (guests)
+      const tripAllIds = new Set([
+        ...tripMembers.map((tm) => tm.user_id).filter(Boolean),
+        ...tripMembers.filter((tm) => !tm.user_id).map((tm) => tm.id),
+      ] as string[]);
+      return membersList.filter(
+        (m) => m.linked_user_id !== payerUserId && tripAllIds.has(m.linked_user_id as string),
+      );
     }
 
     // If it's family
     const payerMemberId = payerId === 'me' ? myMemberRecord?.id : payerId;
-    return membersList.filter(m => m.id !== payerMemberId);
+    return membersList.filter((m) => m.id !== payerMemberId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
 
-  // A limpeza automática de splits (setSplits([])) quando o payerId mudava 
-  // foi removida pois apagava os splits recém-carregados na edição. O UX no modal 
+  // A limpeza automática de splits (setSplits([])) quando o payerId mudava
+  // foi removida pois apagava os splits recém-carregados na edição. O UX no modal
   // lida bem com a manutenção dos splits caso o usuário troque "Eu Paguei" / "Outro Pagou".
 
   const creditCards = (accounts || []).filter((a) => a.type === 'CREDIT_CARD');
@@ -354,7 +377,12 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const isExpense = activeTab === 'EXPENSE';
   const selectedTrip = trips?.find((t) => t.id === tripId);
   const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
-  const isPaidByOther = !membersLoading && payerId !== 'me' && payerId !== '' && payerId !== myMemberRecord?.id && payerId !== user?.id;
+  const isPaidByOther =
+    !membersLoading &&
+    payerId !== 'me' &&
+    payerId !== '' &&
+    payerId !== myMemberRecord?.id &&
+    payerId !== user?.id;
   const selectedAccount = accounts?.find((a) => a.id === accountId);
   const selectedDestAccount = accounts?.find((a) => a.id === destinationAccountId);
 
@@ -362,8 +390,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   // ANTI-LOOP: usa ref para não chamar setPayerId se o valor já é 'me'
   useEffect(() => {
     const shouldNormalize =
-      (user?.id && payerId === user.id) ||
-      (myMemberRecord?.id && payerId === myMemberRecord.id);
+      (user?.id && payerId === user.id) || (myMemberRecord?.id && payerId === myMemberRecord.id);
 
     if (shouldNormalize && lastSetPayerIdRef.current !== 'me') {
       lastSetPayerIdRef.current = 'me';
@@ -373,13 +400,15 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, myMemberRecord?.id, payerId]);
-  
-  const isExchangeTransfer = activeTab === 'TRANSFER' && 
-    selectedAccount && 
-    selectedDestAccount && 
+
+  const isExchangeTransfer =
+    activeTab === 'TRANSFER' &&
+    selectedAccount &&
+    selectedDestAccount &&
     selectedAccount.currency !== selectedDestAccount.currency;
 
-  const isCrossCurrencyTripExpense = isExpense &&
+  const isCrossCurrencyTripExpense =
+    isExpense &&
     selectedTrip &&
     selectedAccount &&
     selectedAccount.currency !== selectedTrip.currency;
@@ -429,14 +458,21 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   // ANTI-LOOP: só chama setAccountId se o combo activeTab+accountId ainda não foi limpo
   useEffect(() => {
     const key = `${activeTab}:${accountId}`;
-    if (activeTab === 'INCOME' && selectedAccount?.type === 'CREDIT_CARD' && lastClearedAccountForTabRef.current !== key) {
+    if (
+      activeTab === 'INCOME' &&
+      selectedAccount?.type === 'CREDIT_CARD' &&
+      lastClearedAccountForTabRef.current !== key
+    ) {
       lastClearedAccountForTabRef.current = key;
       store.setAccountId('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedAccount?.type, accountId]);
 
-  const transactionCurrency = selectedTrip?.currency || (selectedAccount?.is_international ? selectedAccount.currency : null) || 'BRL';
+  const transactionCurrency =
+    selectedTrip?.currency ||
+    (selectedAccount?.is_international ? selectedAccount.currency : null) ||
+    'BRL';
 
   const filteredAccounts = useMemo(() => {
     if (!accounts) return [];
@@ -444,7 +480,10 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
         return false;
       }
-      if ((activeTab === 'INCOME' || activeTab === 'EXPENSE') && (acc.type === 'INVESTMENT' || acc.type === 'EMERGENCY_FUND')) {
+      if (
+        (activeTab === 'INCOME' || activeTab === 'EXPENSE') &&
+        (acc.type === 'INVESTMENT' || acc.type === 'EMERGENCY_FUND')
+      ) {
         return false;
       }
       if (activeTab === 'TRANSFER') {
@@ -465,7 +504,7 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   const lastInvalidatedAccountRef = useRef<string>('');
   useEffect(() => {
     if (accountId && filteredAccounts && filteredAccounts.length > 0) {
-      const isAccountValid = filteredAccounts.some(acc => acc.id === accountId);
+      const isAccountValid = filteredAccounts.some((acc) => acc.id === accountId);
       if (!isAccountValid && lastInvalidatedAccountRef.current !== accountId) {
         lastInvalidatedAccountRef.current = accountId;
         store.setAccountId('');
@@ -478,7 +517,15 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
   }, [filteredAccounts, accountId]);
 
   const getCurrencySymbol = (currency: string) => {
-    const symbols: Record<string, string> = { 'BRL': 'R$', 'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$', 'JPY': '¥' };
+    const symbols: Record<string, string> = {
+      BRL: 'R$',
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      CAD: 'C$',
+      AUD: 'A$',
+      JPY: '¥',
+    };
     return symbols[currency] || currency;
   };
 
@@ -489,22 +536,28 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       } else {
         await createTransaction.mutateAsync(transactionData);
       }
-      
+
       if (user && categoryId && description && activeTab !== 'TRANSFER') {
         try {
-          await CategoryPredictionService.learnFromUser(description, categoryId, user.id, !!(predictedCategoryId && predictedCategoryId !== categoryId));
+          await CategoryPredictionService.learnFromUser(
+            description,
+            categoryId,
+            user.id,
+            !!(predictedCategoryId && predictedCategoryId !== categoryId),
+          );
         } catch (error) {
           logger.error('Erro ao registrar aprendizado de categoria:', error);
         }
       }
       haptics.success();
-      
+
       // Blur active element to hide keyboard on mobile
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
 
-      if (onSuccess) onSuccess(); else navigate('/transacoes');
+      if (onSuccess) onSuccess();
+      else navigate('/transacoes');
     } catch (error: any) {
       logger.error('Erro ao salvar transação:', error);
       toast.error(error.message || 'Erro de conexão ou timeout. Tente novamente.');
@@ -516,11 +569,14 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     setValidationErrors([]);
     setValidationWarnings([]);
     const numericAmount = moneyUtils.parse(amount) || 0;
-    const transactionSplits = activeTab === 'EXPENSE' ? splits.map((s) => ({
-      member_id: s.memberId,
-      percentage: s.percentage,
-      amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
-    })) : [];
+    const transactionSplits =
+      activeTab === 'EXPENSE'
+        ? splits.map((s) => ({
+            member_id: s.memberId,
+            percentage: s.percentage,
+            amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
+          }))
+        : [];
     const isShared = transactionSplits.length > 0 || (activeTab === 'EXPENSE' && isPaidByOther);
 
     if (isShared && !isPaidByOther && transactionSplits.length === 0) {
@@ -528,37 +584,60 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       setShowSplitModal(true);
       return;
     }
-    if (numericAmount <= 0) { toast.error('O valor da transação deve ser maior que zero'); return; }
-    if (!description.trim()) { toast.error('A descrição é obrigatória'); return; }
-    if (activeTab === 'EXPENSE' && !categoryId) { toast.error('A categoria é obrigatória para despesas'); return; }
-    if (!accountId && !isPaidByOther) { toast.error('A conta de origem é obrigatória'); return; }
+    if (numericAmount <= 0) {
+      toast.error('O valor da transação deve ser maior que zero');
+      return;
+    }
+    if (!description.trim()) {
+      toast.error('A descrição é obrigatória');
+      return;
+    }
+    if (activeTab === 'EXPENSE' && !categoryId) {
+      toast.error('A categoria é obrigatória para despesas');
+      return;
+    }
+    if (!accountId && !isPaidByOther) {
+      toast.error('A conta de origem é obrigatória');
+      return;
+    }
     if (activeTab === 'TRANSFER') {
       if (transferType === 'goal') {
-        if (!goalId) { toast.error('Selecione uma meta de destino'); return; }
+        if (!goalId) {
+          toast.error('Selecione uma meta de destino');
+          return;
+        }
         setPendingSubmit(true);
-        contributeToGoal({
-          id: goalId,
-          amount: numericAmount,
-          accountId: accountId,
-          description: description || 'Transferência para Meta'
-        }, {
-          onSuccess: () => {
-            setPendingSubmit(false);
-            onSuccess?.();
+        contributeToGoal(
+          {
+            id: goalId,
+            amount: numericAmount,
+            accountId: accountId,
+            description: description || 'Transferência para Meta',
           },
-          onError: () => {
-            setPendingSubmit(false);
-          }
-        });
+          {
+            onSuccess: () => {
+              setPendingSubmit(false);
+              onSuccess?.();
+            },
+            onError: () => {
+              setPendingSubmit(false);
+            },
+          },
+        );
         return;
       }
-      if (!destinationAccountId) { toast.error('A conta de destino é obrigatória'); return; }
+      if (!destinationAccountId) {
+        toast.error('A conta de destino é obrigatória');
+        return;
+      }
     }
 
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {
         if (!destinationAmount || moneyUtils.parse(destinationAmount) <= 0) {
-          toast.error(`Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`);
+          toast.error(
+            `Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`,
+          );
           return;
         }
       }
@@ -567,19 +646,21 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     const resolvedPayerId = (() => {
       if (!isShared && payerId === 'me') return undefined;
       if (payerId !== 'me') return payerId || undefined;
-      const me = familyMembers.find(m => m.linked_user_id === user?.id);
+      const me = familyMembers.find((m) => m.linked_user_id === user?.id);
       if (me) return me.id;
-      const meFallback = familyMembers.find(m => m.email === user?.email || m.role === 'admin');
+      const meFallback = familyMembers.find((m) => m.email === user?.email || m.role === 'admin');
       return meFallback?.id;
     })();
 
     if (isShared && !resolvedPayerId) {
-      toast.error('Não foi possível identificar seu perfil de membro na família. Verifique suas configurações.');
+      toast.error(
+        'Não foi possível identificar seu perfil de membro na família. Verifique suas configurações.',
+      );
       return;
     }
 
-    const isActuallyInstallment = isCreditCard 
-      ? totalInstallments > 1 
+    const isActuallyInstallment = isCreditCard
+      ? totalInstallments > 1
       : isInstallment && totalInstallments > 1;
 
     let calculatedCompetenceDate = format(date, 'yyyy-MM-01');
@@ -615,34 +696,50 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
       total_installments: isActuallyInstallment ? totalInstallments : undefined,
       notes: notes || undefined,
       exchange_rate: showExchangePanel && exchangeRate ? moneyUtils.parse(exchangeRate) : undefined,
-      destination_amount: showExchangePanel && destinationAmount ? moneyUtils.parse(destinationAmount) : undefined,
-      destination_currency: isExchangeTransfer && selectedDestAccount ? selectedDestAccount.currency : (isCrossCurrencyTripExpense && selectedTrip ? selectedTrip.currency : undefined),
+      destination_amount:
+        showExchangePanel && destinationAmount ? moneyUtils.parse(destinationAmount) : undefined,
+      destination_currency:
+        isExchangeTransfer && selectedDestAccount
+          ? selectedDestAccount.currency
+          : isCrossCurrencyTripExpense && selectedTrip
+            ? selectedTrip.currency
+            : undefined,
       splits: transactionSplits,
       is_refund: isRefund,
       is_recurring: isRecurring,
       frequency: isRecurring ? frequency : undefined,
       recurrence_day: isRecurring && frequency === 'MONTHLY' ? recurrenceDay : undefined,
       enable_notification: enableNotification,
-      notification_date: enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
+      notification_date:
+        enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
       status: saveAsPending ? 'PENDING' : 'CONFIRMED',
     };
 
     const validation = validateTransaction(
-      { ...transactionData, id: isEdit ? initialData?.id : undefined, series_id: isEdit ? initialData?.series_id : undefined } as Partial<Transaction>,
+      {
+        ...transactionData,
+        id: isEdit ? initialData?.id : undefined,
+        series_id: isEdit ? initialData?.series_id : undefined,
+      } as Partial<Transaction>,
       selectedAccount,
-      accounts?.find(a => a.id === destinationAccountId),
+      accounts?.find((a) => a.id === destinationAccountId),
       selectedTrip,
       allTransactions,
       isPaidByOther,
       myMemberRecord?.id,
-      user?.id
+      user?.id,
     );
-    if (!validation.isValid) { 
-      setValidationErrors(validation.errors); 
-      toast.error('Corrija os erros:', { description: validation.errors.join(' • ') }); 
-      return; 
+    if (!validation.isValid) {
+      setValidationErrors(validation.errors);
+      toast.error('Corrija os erros:', { description: validation.errors.join(' • ') });
+      return;
     }
-    if (validation.warnings.length > 0) { setValidationWarnings(validation.warnings); setPendingSubmit(transactionData); setShowWarningModal(true); return; }
+    if (validation.warnings.length > 0) {
+      setValidationWarnings(validation.warnings);
+      setPendingSubmit(transactionData);
+      setShowWarningModal(true);
+      return;
+    }
     await performSubmit(transactionData);
   };
 
@@ -661,18 +758,20 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     allTransactions,
     createTransaction,
     updateTransaction,
-    
+
     ...store,
-    
+
     duplicateWarning,
     validationErrors,
     validationWarnings,
-    showWarningModal, setShowWarningModal,
-    pendingSubmit, setPendingSubmit,
-    
+    showWarningModal,
+    setShowWarningModal,
+    pendingSubmit,
+    setPendingSubmit,
+
     predictedCategoryId,
     isPredicting,
-    
+
     availableMembers,
     creditCards,
     transferAccounts,
@@ -687,11 +786,11 @@ export function useTransactionForm({ onSuccess, onCancel, context, initialData }
     isCrossCurrencyTripExpense,
     transactionCurrency,
     filteredAccounts,
-    
+
     handleDestAmountChange,
     getCurrencySymbol,
     handleSubmit,
     performSubmit,
-    goals
+    goals,
   };
 }

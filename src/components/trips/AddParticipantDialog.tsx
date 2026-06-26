@@ -45,7 +45,13 @@ export function AddParticipantDialog({
   };
 
   const handleAddContact = (contact: any) => {
-    onAddGuest?.(contact.name);
+    // Se o contato tem linked_user_id (usuário registrado), envia convite
+    if (contact.linked_user_id) {
+      onAdd({ linked_user_id: contact.linked_user_id, name: contact.name, email: contact.email });
+    } else {
+      // Contato externo sem conta → adiciona como guest
+      onAddGuest?.(contact.name);
+    }
     onOpenChange(false);
   };
 
@@ -154,7 +160,7 @@ export function AddParticipantDialog({
                       </div>
                       <div>
                         <span className="font-medium text-sm">{contact.name}</span>
-                        <p className="text-xs text-muted-foreground">Contato externo</p>
+                        <p className="text-xs text-muted-foreground">{contact.linked_user_id ? 'Usuário registrado' : 'Contato externo'}</p>
                       </div>
                     </div>
                   </div>

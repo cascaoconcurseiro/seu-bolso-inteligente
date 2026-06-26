@@ -136,12 +136,14 @@ export function useTripParticipants(tripId: string | null) {
       if (!tripId) return [];
 
       // CORREÇÃO: Usar um JOIN único com profiles para evitar o problema N+1
+      // Incluir guest_name para participantes sem conta (convidados externos)
       const { data, error } = await supabase
         .from("trip_members")
         .select(`
           id,
           trip_id,
           user_id,
+          guest_name,
           role,
           personal_budget,
           created_at,
@@ -158,7 +160,7 @@ export function useTripParticipants(tripId: string | null) {
         user_id: member.user_id,
         member_id: member.id, // ID da tabela trip_members
         role: member.role,
-        name: member.profile?.full_name || "Usuário",
+        name: member.profile?.full_name || member.guest_name || "Participante",
         avatar: member.profile?.avatar_url,
         personal_budget: member.personal_budget,
         created_at: member.created_at,
