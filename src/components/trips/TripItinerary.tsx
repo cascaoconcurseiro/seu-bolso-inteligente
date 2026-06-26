@@ -395,7 +395,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                     </Button>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </div>
         ))}
