@@ -1,0 +1,213 @@
+/**
+ * Overpass API + Nominatim service
+ * Fetches real POIs (points of interest) for a destination using OpenStreetMap data.
+ * Completely free, no API key required.
+ */
+
+export interface POI {
+  title: string;
+  location: string;
+  description: string;
+  durationHours: number;
+  lat: number;
+  lon: number;
+  mapsUrl: string;
+  osmType?: string;
+  tags?: Record<string, string>;
+}
+
+// OSM tourism/amenity tags mapped to readable categories and suggested duration
+const POI_TYPES: Array<{
+  query: string;
+  category: string;
+  durationHours: number;
+}> = [
+  { query: 'tourism=museum',          category: 'Museu',        durationHours: 2   },
+  { query: 'tourism=attraction',      category: 'Atração',      durationHours: 1.5 },
+  { query: 'tourism=viewpoint',       category: 'Mirante',      durationHours: 1   },
+  { query: 'tourism=gallery',         category: 'Galeria',      durationHours: 1.5 },
+  { query: 'historic=castle',         category: 'Castelo',      durationHours: 2   },
+  { query: 'historic=monument',       category: 'Monumento',    durationHours: 1   },
+  { query: 'historic=ruins',          category: 'Ruínas',       durationHours: 1.5 },
+  { query: 'amenity=restaurant',      category: 'Restaurante',  durationHours: 1.5 },
+  { query: 'amenity=cafe',            category: 'Café',         durationHours: 1   },
+  { query: 'leisure=park',            category: 'Parque',       durationHours: 1.5 },
+  { query: 'natural=beach',           category: 'Praia',        durationHours: 2.5 },
+  { query: 'amenity=marketplace',     category: 'Mercado',      durationHours: 1.5 },
+  { query: 'shop=mall',               category: 'Shopping',     durationHours: 2   },
+];
+
+// Best name field from OSM tags, in order of preference
+function getBestName(tags: Record<string, string>): string | null {
+  return (
+    tags['name:pt'] ||
+    tags['name'] ||
+    tags['official_name'] ||
+    tags['alt_name'] ||
+    null
+  );
+}
+
+// Build human-readable location string from OSM tags
+function buildLocation(tags: Record<string, string>): string {
+  const parts: string[] = [];
+  if (tags['addr:street']) {
+    parts.push(tags['addr:street'] + (tags['addr:housenumber'] ? `, ${tags['addr:housenumber']}` : ''));
+  }
+  if (tags['addr:suburb'] || tags['addr:neighbourhood']) {
+    parts.push(tags['addr:suburb'] || tags['addr:neighbourhood']);
+  }
+  if (tags['addr:city']) parts.push(tags['addr:city']);
+  if (parts.length === 0 && tags['district']) parts.push(tags['district']);
+  return parts.join(' — ') || '';
+}
+
+// Build description from available OSM tags
+function buildDescription(tags: Record<string, string>, category: string): string {
+  const parts: string[] = [];
+
+  if (tags['description'] || tags['description:pt']) {
+    parts.push(tags['description:pt'] || tags['description']);
+  }
+  if (tags['opening_hours']) {
+    parts.push(`Horário: ${tags['opening_hours']}`);
+  }
+  if (tags['fee'] === 'yes' && tags['charge']) {
+    parts.push(`Entrada: ${tags['charge']}`);
+  } else if (tags['fee'] === 'no') {
+    parts.push('Entrada gratuita');
+  }
+  if (tags['cuisine']) {
+    parts.push(`Culinária: ${tags['cuisine'].replace(/_/g, ' ')}`);
+  }
+  if (tags['website'] || tags['url']) {
+    parts.push(`Site: ${tags['website'] || tags['url']}`);
+  }
+
+  return parts.length > 0 ? parts.join(' | ') : category;
+}
+
+/**
+ * Get lat/lon for a destination string using Nominatim (OpenStreetMap geocoder).
+ */
+export async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}&format=json&limit=1`;
+    const res = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9', 'User-Agent': 'SeuBolsoInteligente/1.0' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.length) return null;
+    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch real POIs from Overpass API for a given lat/lon.
+ * Returns up to `limit` diverse POIs sorted by tourist relevance.
+ */
+async function fetchOverpassPOIs(
+  lat: number,
+  lon: number,
+  radiusMeters = 5000,
+  limit = 12,
+): Promise<POI[]> {
+  // Build union query for all POI types
+  const unionParts = POI_TYPES.map(({ query }) => {
+    const [key, value] = query.split('=');
+    return (
+      `node["${key}"="${value}"](around:${radiusMeters},${lat},${lon});\n` +
+      `way["${key}"="${value}"](around:${radiusMeters},${lat},${lon});`
+    );
+  }).join('\n');
+
+  const overpassQuery = `[out:json][timeout:20];(\n${unionParts}\n);out center tags 50;`;
+
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `data=${encodeURIComponent(overpassQuery)}`,
+  });
+
+  if (!res.ok) throw new Error(`Overpass error: ${res.status}`);
+  const data = await res.json();
+
+  const elements: any[] = data.elements || [];
+
+  // Deduplicate by name and map to POI
+  const seen = new Set<string>();
+  const pois: POI[] = [];
+
+  for (const el of elements) {
+    const tags: Record<string, string> = el.tags || {};
+    const name = getBestName(tags);
+    if (!name || seen.has(name.toLowerCase())) continue;
+    seen.add(name.toLowerCase());
+
+    // Determine coordinates (nodes have lat/lon directly, ways have center)
+    const elLat = el.lat ?? el.center?.lat;
+    const elLon = el.lon ?? el.center?.lon;
+    if (!elLat || !elLon) continue;
+
+    // Find matching POI type for category/duration
+    let category = 'Atração';
+    let durationHours = 1.5;
+    for (const { query, category: cat, durationHours: dur } of POI_TYPES) {
+      const [key, value] = query.split('=');
+      if (tags[key] === value) {
+        category = cat;
+        durationHours = dur;
+        break;
+      }
+    }
+
+    const location = buildLocation(tags);
+    const description = buildDescription(tags, category);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${elLat},${elLon}`;
+
+    pois.push({ title: name, location, description, durationHours, lat: elLat, lon: elLon, mapsUrl, tags });
+
+    if (pois.length >= limit * 3) break; // collect extra for diversity filtering
+  }
+
+  // Ensure category diversity — pick best spread
+  const byCategory = new Map<string, POI[]>();
+  for (const poi of pois) {
+    const cat = poi.tags?.tourism || poi.tags?.amenity || poi.tags?.historic || poi.tags?.leisure || 'other';
+    if (!byCategory.has(cat)) byCategory.set(cat, []);
+    byCategory.get(cat)!.push(poi);
+  }
+
+  const diverse: POI[] = [];
+  const iters = Math.ceil(limit / byCategory.size) + 1;
+  for (let i = 0; i < iters && diverse.length < limit; i++) {
+    for (const items of byCategory.values()) {
+      if (i < items.length && diverse.length < limit) diverse.push(items[i]);
+    }
+  }
+
+  return diverse.slice(0, limit);
+}
+
+/**
+ * Main entry point: geocode destination then fetch real POIs.
+ * Falls back to empty array on any error.
+ */
+export async function fetchRealPOIs(destination: string, limit = 10): Promise<POI[]> {
+  const coords = await geocodeDestination(destination);
+  if (!coords) return [];
+
+  try {
+    return await fetchOverpassPOIs(coords.lat, coords.lon, 5000, limit);
+  } catch {
+    // Try wider radius if first attempt returns too few results
+    try {
+      return await fetchOverpassPOIs(coords.lat, coords.lon, 15000, limit);
+    } catch {
+      return [];
+    }
+  }
+}
