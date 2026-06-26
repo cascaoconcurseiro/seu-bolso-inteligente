@@ -194,17 +194,19 @@ export function UpcomingTransactions() {
         .order("date", { ascending: true });
 
       if (error) throw error;
-      return (data || []).map((t: any) => ({
-        id: t.id,
-        description: t.description,
-        amount: Number(t.amount),
-        date: new Date(t.date + "T12:00:00"),
-        type: t.type as "INCOME" | "EXPENSE" | "TRANSFER",
-        kind: "scheduled" as const,
-        categoryIcon: t.category?.icon,
-        accountName: t.account?.name,
-        currency: t.currency,
-      }));
+      return (data || [])
+        .filter((t: any) => !!t.date)
+        .map((t: any) => ({
+          id: t.id,
+          description: t.description,
+          amount: Number(t.amount),
+          date: new Date(t.date + "T12:00:00"),
+          type: t.type as "INCOME" | "EXPENSE" | "TRANSFER",
+          kind: "scheduled" as const,
+          categoryIcon: t.category?.icon,
+          accountName: t.account?.name,
+          currency: t.currency,
+        }));
     },
   });
 
@@ -237,10 +239,12 @@ export function UpcomingTransactions() {
 
   const recurringItems = useMemo<UnifiedItem[]>(() => {
     return recurringTxs.flatMap((tx) => {
+      if (!tx.date && !(tx as any).last_generated_date) return [];
+
       const recurrenceDay = (tx as any).recurrence_day ?? null;
-      const lastDate = (tx as any).last_generated_date
-        ? new Date((tx as any).last_generated_date + "T12:00:00")
-        : new Date(tx.date + "T12:00:00");
+      const rawDate = (tx as any).last_generated_date ?? tx.date;
+      const lastDate = new Date(rawDate + "T12:00:00");
+      if (isNaN(lastDate.getTime())) return [];
 
       // Avança até encontrar ocorrência dentro ou após o mês
       let nextDate = calculateNextOccurrence(lastDate, tx.recurrence_pattern!, recurrenceDay);
@@ -249,6 +253,8 @@ export function UpcomingTransactions() {
         nextDate = calculateNextOccurrence(nextDate, tx.recurrence_pattern!, recurrenceDay);
         safety++;
       }
+
+      if (isNaN(nextDate.getTime())) return [];
 
       // Só inclui se a ocorrência cai dentro do mês
       if (dateFns.isAfter(dateFns.startOfDay(nextDate), monthEnd)) return [];
@@ -269,7 +275,10 @@ export function UpcomingTransactions() {
   }, [recurringTxs, monthStart, monthEnd]);
 
   const allItems = useMemo(
-    () => [...pendingBills, ...recurringItems].sort((a, b) => a.date.getTime() - b.date.getTime()),
+    () =>
+      [...pendingBills, ...recurringItems]
+        .filter((i) => i.date instanceof Date && !isNaN(i.date.getTime()))
+        .sort((a, b) => a.date.getTime() - b.date.getTime()),
     [pendingBills, recurringItems]
   );
 
