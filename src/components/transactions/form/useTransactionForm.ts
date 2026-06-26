@@ -532,32 +532,30 @@ export function useTransactionForm({
   const performSubmit = async (transactionData: CreateTransactionInput) => {
     try {
       if (initialData && initialData.id) {
+        // Edição: aguarda confirmação do servidor antes de fechar
         await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
+        haptics.success();
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (onSuccess) onSuccess(); else navigate('/transacoes');
       } else {
-        await createTransaction.mutateAsync(transactionData);
-      }
+        // Criação: fecha o modal imediatamente (optimistic update já aplicado em onMutate)
+        haptics.success();
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (onSuccess) onSuccess(); else navigate('/transacoes');
 
-      if (user && categoryId && description && activeTab !== 'TRANSFER') {
-        try {
-          await CategoryPredictionService.learnFromUser(
+        // Dispara em background — onError faz rollback e mostra toast se falhar
+        createTransaction.mutate(transactionData);
+
+        // Aprendizado de categoria também em background
+        if (user && categoryId && description && activeTab !== 'TRANSFER') {
+          CategoryPredictionService.learnFromUser(
             description,
             categoryId,
             user.id,
             !!(predictedCategoryId && predictedCategoryId !== categoryId),
-          );
-        } catch (error) {
-          logger.error('Erro ao registrar aprendizado de categoria:', error);
+          ).catch((error) => logger.error('Erro ao registrar aprendizado de categoria:', error));
         }
       }
-      haptics.success();
-
-      // Blur active element to hide keyboard on mobile
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-
-      if (onSuccess) onSuccess();
-      else navigate('/transacoes');
     } catch (error: any) {
       logger.error('Erro ao salvar transação:', error);
       toast.error(error.message || 'Erro de conexão ou timeout. Tente novamente.');
