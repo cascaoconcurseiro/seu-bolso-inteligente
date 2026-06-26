@@ -62,11 +62,16 @@ export function DashboardUpcomingRecurring() {
           ? new Date((tx as any).last_generated_date + "T12:00:00")
           : new Date(tx.date + "T12:00:00");
 
-        const nextDate = calculateNextOccurrence(
+        let nextDate = calculateNextOccurrence(
           lastDate,
           tx.recurrence_pattern!,
           (tx as any).recurrence_day ?? null
         );
+        let safety = 0;
+        while (dateFns.isBefore(dateFns.startOfDay(nextDate), today) && safety < 1000) {
+          nextDate = calculateNextOccurrence(nextDate, tx.recurrence_pattern!, (tx as any).recurrence_day ?? null);
+          safety++;
+        }
 
         const daysUntil = dateFns.differenceInCalendarDays(dateFns.startOfDay(nextDate), today);
 
