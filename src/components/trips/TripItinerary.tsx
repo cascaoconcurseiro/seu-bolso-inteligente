@@ -359,7 +359,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         <a
                           href={
                             meta.mapsUrl ||
-                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + ", " + (item.location || trip.destination || ""))}`
+                            `https://www.google.com/maps/place/${encodeURIComponent(item.title + ", " + (item.location || trip.destination || ""))}`
                           }
                           target="_blank"
                           rel="noopener noreferrer"
