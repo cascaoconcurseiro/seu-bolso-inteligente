@@ -21,7 +21,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Mail, Check, X, Loader2, ChevronDown, Settings } from "lucide-react";
+import { Mail, Check, X, Loader2, ChevronDown, Settings, Users, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,16 +39,21 @@ interface InviteMemberDialogProps {
     scopeEndDate?: string;
     scopeTripId?: string;
   }) => Promise<void>;
+  onAddContact?: (data: { name: string; email?: string }) => Promise<void>;
   isPending: boolean;
+  isContactPending?: boolean;
 }
 
 export function InviteMemberDialog({ 
   open, 
   onOpenChange, 
-  onInvite, 
-  isPending 
+  onInvite,
+  onAddContact,
+  isPending,
+  isContactPending = false,
 }: InviteMemberDialogProps) {
   const { user } = useAuth();
+  const [tab, setTab] = useState<'family' | 'contact'>('family');
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<FamilyRole>("editor");
@@ -144,15 +149,19 @@ export function InviteMemberDialog({
   }, [email, name]);
 
   const handleSubmit = async () => {
-    await onInvite({ 
-      name, 
-      email, 
-      role,
-      sharingScope: showAdvanced ? sharingScope : "all",
-      scopeStartDate: sharingScope === "date_range" ? scopeStartDate : undefined,
-      scopeEndDate: sharingScope === "date_range" ? scopeEndDate : undefined,
-      scopeTripId: sharingScope === "specific_trip" ? scopeTripId : undefined,
-    });
+    if (tab === 'contact' && onAddContact) {
+      await onAddContact({ name, email: email || undefined });
+    } else {
+      await onInvite({ 
+        name, 
+        email, 
+        role,
+        sharingScope: showAdvanced ? sharingScope : "all",
+        scopeStartDate: sharingScope === "date_range" ? scopeStartDate : undefined,
+        scopeEndDate: sharingScope === "date_range" ? scopeEndDate : undefined,
+        scopeTripId: sharingScope === "specific_trip" ? scopeTripId : undefined,
+      });
+    }
     handleClose(false);
   };
 
@@ -168,24 +177,56 @@ export function InviteMemberDialog({
       setShowAdvanced(false);
       setUserExists(null);
       setFoundUser(null);
+      setTab('family');
     }
     onOpenChange(isOpen);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+      <DialogContent className="w-full sm:max-w-2xl !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden pb-[env(safe-area-inset-bottom)]">
         <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
-          <DialogTitle>Convidar membro</DialogTitle>
+          <DialogTitle>{tab === 'family' ? 'Convidar membro' : 'Adicionar contato'}</DialogTitle>
           <DialogDescription>
-            {userExists 
-              ? "Usuário encontrado! Será enviada uma solicitação." 
-              : "Adicione alguém para compartilhar finanças"}
+            {tab === 'family'
+              ? (userExists 
+                ? "Usuário encontrado! Será enviada uma solicitação." 
+                : "Adicione alguém para compartilhar finanças")
+              : "Contatos aparecem no formulário de transação mas não têm acesso à família"
+            }
           </DialogDescription>
         </DialogHeader>
+
+        {/* Tab toggle */}
+        <div className="px-6 pt-3 pb-1 shrink-0">
+          <div className="flex gap-1 p-1 rounded-xl bg-muted">
+            <button
+              type="button"
+              onClick={() => setTab('family')}
+              className={cn(
+                "flex-1 py-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5",
+                tab === 'family' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+              )}
+            >
+              <Users className="h-3.5 w-3.5" />
+              Família
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('contact')}
+              className={cn(
+                "flex-1 py-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5",
+                tab === 'contact' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+              )}
+            >
+              <UserCircle2 className="h-3.5 w-3.5" />
+              Contato
+            </button>
+          </div>
+        </div>
         
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-4 mt-4">
@@ -239,6 +280,7 @@ export function InviteMemberDialog({
               />
             </FormField>
 
+            {tab === 'family' && (
             <FormField label="Permissão" htmlFor="invite-role">
               <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
                 <SelectTrigger id="invite-role" className="h-12 rounded-xl">
@@ -266,7 +308,9 @@ export function InviteMemberDialog({
                 </SelectContent>
               </Select>
             </FormField>
+            )}
 
+            {tab === 'family' && (
             <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border border-border/50 rounded-xl overflow-hidden bg-muted/10">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="gap-2 w-full justify-between h-12 px-4 hover:bg-muted/20">
@@ -383,8 +427,9 @@ export function InviteMemberDialog({
                 )}
               </CollapsibleContent>
             </Collapsible>
+            )}
 
-            {userExists === true && (
+            {tab === 'family' && userExists === true && (
               <div className="p-3 rounded-xl bg-positive/10 border border-positive/20">
                 <p className="text-sm text-positive">
                   ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
@@ -400,10 +445,16 @@ export function InviteMemberDialog({
             <Button
               className="flex-1 rounded-xl h-12 font-bold"
               onClick={handleSubmit}
-              disabled={!name || !email || isPending}
+              disabled={
+                !email.trim() ||
+                !name.trim() ||
+                (tab === 'family' ? isPending : isContactPending)
+              }
             >
-              <Mail className="h-4 w-4 mr-2" />
-              {isPending ? "Adicionando…" : "Convidar"}
+              {(tab === 'family' ? isPending : isContactPending) ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              {tab === 'family' ? 'Enviar Convite' : 'Salvar Contato'}
             </Button>
           </div>
         </div>

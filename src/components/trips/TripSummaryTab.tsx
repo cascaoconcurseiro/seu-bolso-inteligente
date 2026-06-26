@@ -430,7 +430,9 @@ export function TripSummaryTab({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {participants.map((participant) => {
+            {participants
+              .filter(p => permissions?.isOwner || p.user_id === user?.id)
+              .map((participant) => {
               // CORREÇÃO: usar user_id para lookup consistente com o RPC
               const balance = balances.find(b => b.participantId === participant.user_id);
               const currentBalance = balance?.balance ?? 0;

@@ -20,7 +20,7 @@ import {
 } from '@/hooks/useFamily';
 import { useCancelInvitation, useFamilyInvitations } from '@/hooks/useFamilyInvitations';
 import { cn } from '@/lib/utils';
-import { Check, Crown, Plus, UserCircle2, UserPlus, Users, X } from 'lucide-react';
+import { Check, Crown, Plus, Trash2, UserCircle2, UserPlus, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -46,9 +46,6 @@ export function Family() {
   const addContact = useAddSharedContact();
 
   const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [showAddContact, setShowAddContact] = useState(false);
-  const [newContactName, setNewContactName] = useState('');
-  const [newContactEmail, setNewContactEmail] = useState('');
   const isOwner = family?.owner_id === user?.id;
   const canInvite = !family || isOwner;
 
@@ -274,10 +271,10 @@ export function Family() {
               variant="ghost"
               size="sm"
               className="h-8 text-xs gap-1"
-              onClick={() => setShowAddContact((v) => !v)}
+              onClick={() => setShowInviteDialog(true)}
             >
               <Plus className="h-3.5 w-3.5" />
-              Adicionar contato
+              Adicionar
             </Button>
           )}
         </div>
@@ -285,59 +282,6 @@ export function Family() {
           Pessoas com quem você divide despesas mas que não fazem parte da família. Não aparecem nos
           painéis de saldo familiar.
         </p>
-
-        {showAddContact && (
-          <form
-            className="flex flex-col gap-2"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!newContactName.trim()) return;
-              await addContact.mutateAsync({
-                name: newContactName,
-                email: newContactEmail || undefined,
-              });
-              setNewContactName('');
-              setNewContactEmail('');
-              setShowAddContact(false);
-            }}
-          >
-            <div className="flex gap-2">
-              <Input
-                placeholder="Nome do contato"
-                value={newContactName}
-                onChange={(e) => setNewContactName(e.target.value)}
-                className="h-9 text-sm flex-1"
-                autoFocus
-              />
-              <Button
-                type="submit"
-                size="sm"
-                disabled={addContact.isPending || !newContactName.trim()}
-              >
-                Salvar
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowAddContact(false);
-                  setNewContactName('');
-                  setNewContactEmail('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <Input
-              placeholder="Email (opcional — para vincular ao app)"
-              type="email"
-              value={newContactEmail}
-              onChange={(e) => setNewContactEmail(e.target.value)}
-              className="h-9 text-sm"
-            />
-          </form>
-        )}
 
         {contacts.length > 0 && (
           <div className="space-y-2">
@@ -353,9 +297,11 @@ export function Family() {
                   <div>
                     <p className="text-sm font-medium">{c.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {c.active_in_form
-                        ? 'Ativo no formulário de transação'
-                        : 'Contato externo — histórico preservado'}
+                      {c.linked_user_id
+                        ? 'Vinculado ao app — convites habilitados'
+                        : c.active_in_form
+                          ? 'Ativo no formulário de transação'
+                          : 'Contato externo — histórico preservado'}
                     </p>
                   </div>
                 </div>
@@ -379,6 +325,25 @@ export function Family() {
                       disabled={moveToFamily.isPending}
                     >
                       Mover para família
+                    </Button>
+                  )}
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      onClick={async () => {
+                        try {
+                          await removeMember.mutateAsync(c.id);
+                          toast.success('Contato excluído');
+                        } catch (e: any) {
+                          toast.error(e.message || 'Erro ao excluir contato');
+                        }
+                      }}
+                      disabled={removeMember.isPending}
+                      title="Excluir contato"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -425,7 +390,12 @@ export function Family() {
           await inviteMember.mutateAsync(d);
           setShowInviteDialog(false);
         }}
+        onAddContact={async (d) => {
+          await addContact.mutateAsync({ name: d.name, email: d.email });
+          setShowInviteDialog(false);
+        }}
         isPending={inviteMember.isPending}
+        isContactPending={addContact.isPending}
       />
     </div>
   );
