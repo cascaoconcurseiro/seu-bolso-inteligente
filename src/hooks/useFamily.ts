@@ -1,11 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-export type FamilyRole = "admin" | "editor" | "viewer";
+export type FamilyRole = 'admin' | 'editor' | 'viewer';
 
-export type SharingScope = "all" | "trips_only" | "date_range" | "specific_trip";
+export type SharingScope = 'all' | 'trips_only' | 'date_range' | 'specific_trip';
 
 export interface FamilyMember {
   id: string;
@@ -18,8 +18,8 @@ export interface FamilyMember {
   avatar_url: string | null;
   avatar_color?: string | null;
   avatar_icon?: string | null;
-  status: "pending" | "active";
-  member_type: "family" | "contact";
+  status: 'pending' | 'active';
+  member_type: 'family' | 'contact';
   invited_by: string | null;
   sharing_scope: SharingScope;
   scope_start_date: string | null;
@@ -44,15 +44,15 @@ export function useFamily() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["family", user?.id],
+    queryKey: ['family', user?.id],
     queryFn: async () => {
       if (!user) return null;
 
       // Primeiro, tentar buscar família onde sou o DONO
       const { data: ownedFamily } = await supabase
-        .from("families")
-        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
-        .eq("owner_id", user.id)
+        .from('families')
+        .select('*, owner:profiles!families_owner_id_fkey(id, full_name, email)')
+        .eq('owner_id', user.id)
         .maybeSingle();
 
       if (ownedFamily) {
@@ -61,10 +61,10 @@ export function useFamily() {
 
       // Se não sou dono, buscar família onde sou MEMBRO ativo
       const { data: memberRecord } = await supabase
-        .from("family_members")
-        .select("family_id")
-        .eq("linked_user_id", user.id)
-        .eq("status", "active")
+        .from('family_members')
+        .select('family_id')
+        .eq('linked_user_id', user.id)
+        .eq('status', 'active')
         .maybeSingle();
 
       if (!memberRecord) {
@@ -73,9 +73,9 @@ export function useFamily() {
 
       // Buscar dados da família com owner
       const { data: family, error } = await supabase
-        .from("families")
-        .select("*, owner:profiles!families_owner_id_fkey(id, full_name, email)")
-        .eq("id", memberRecord.family_id)
+        .from('families')
+        .select('*, owner:profiles!families_owner_id_fkey(id, full_name, email)')
+        .eq('id', memberRecord.family_id)
         .single();
 
       if (error) throw error;
@@ -94,19 +94,19 @@ export function useFamilyMembers(includeContacts = false) {
   const { data: family } = useFamily();
 
   return useQuery({
-    queryKey: ["family-members", user?.id, family?.id, includeContacts],
+    queryKey: ['family-members', user?.id, family?.id, includeContacts],
     queryFn: async () => {
       if (!user || !family) return [];
 
       // Buscar membros da família (por padrão exclui contatos de despesa)
       let query = supabase
-        .from("family_members")
-        .select("*")
-        .eq("family_id", family.id)
-        .order("created_at");
+        .from('family_members')
+        .select('*')
+        .eq('family_id', family.id)
+        .order('created_at');
 
       if (!includeContacts) {
-        query = query.eq("member_type", "family") as any;
+        query = query.eq('member_type', 'family') as any;
       }
 
       const { data, error } = await query;
@@ -117,22 +117,30 @@ export function useFamilyMembers(includeContacts = false) {
 
       // Coletar todos os linked_user_ids (membros + owner)
       const linkedUserIds: string[] = membersList
-        .filter(m => !!m.linked_user_id)
-        .map(m => m.linked_user_id as string);
+        .filter((m) => !!m.linked_user_id)
+        .map((m) => m.linked_user_id as string);
 
       if (familyWithOwner?.owner?.id && !linkedUserIds.includes(familyWithOwner.owner.id)) {
         linkedUserIds.push(familyWithOwner.owner.id);
       }
 
       // Buscar dados reais de perfil (avatar) de uma vez só para todos os membros
-      const profileMap: Record<string, { avatar_url: string | null; avatar_color: string | null; avatar_icon: string | null; full_name: string | null }> = {};
+      const profileMap: Record<
+        string,
+        {
+          avatar_url: string | null;
+          avatar_color: string | null;
+          avatar_icon: string | null;
+          full_name: string | null;
+        }
+      > = {};
       if (linkedUserIds.length > 0) {
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, avatar_url, avatar_color, avatar_icon, full_name")
-          .in("id", linkedUserIds);
+          .from('profiles')
+          .select('id, avatar_url, avatar_color, avatar_icon, full_name')
+          .in('id', linkedUserIds);
 
-        (profiles || []).forEach(p => {
+        (profiles || []).forEach((p) => {
           profileMap[p.id] = {
             avatar_url: p.avatar_url,
             avatar_color: p.avatar_color,
@@ -143,7 +151,7 @@ export function useFamilyMembers(includeContacts = false) {
       }
 
       // Mesclar dados reais de avatar nos membros da lista
-      const enrichedMembers = membersList.map(m => {
+      const enrichedMembers = membersList.map((m) => {
         const profile = m.linked_user_id ? profileMap[m.linked_user_id] : null;
         if (!profile) return m;
         return {
@@ -159,11 +167,15 @@ export function useFamilyMembers(includeContacts = false) {
       // Filtro de Visibilidade para Membros:
       // O Owner da família vê todo mundo.
       // Um membro normal (como Fran) vê: a si mesmo, o Owner, e as pessoas que ELA mesma convidou.
-      const filteredMembers = user.id === family.owner_id ? enrichedMembers : enrichedMembers.filter(m => 
-        m.linked_user_id === user.id || 
-        m.linked_user_id === family.owner_id ||
-        m.invited_by === user.id
-      );
+      const filteredMembers =
+        user.id === family.owner_id
+          ? enrichedMembers
+          : enrichedMembers.filter(
+              (m) =>
+                m.linked_user_id === user.id ||
+                m.linked_user_id === family.owner_id ||
+                m.invited_by === user.id,
+            );
 
       // Injetar o dono (owner) como administrador virtual na listagem
       if (familyWithOwner?.owner) {
@@ -172,13 +184,13 @@ export function useFamilyMembers(includeContacts = false) {
           id: `owner-${familyWithOwner.owner.id}`,
           family_id: family.id,
           user_id: familyWithOwner.owner.id,
-          name: ownerProfile.full_name || familyWithOwner.owner.full_name || "Dono da Família",
+          name: ownerProfile.full_name || familyWithOwner.owner.full_name || 'Dono da Família',
           email: familyWithOwner.owner.email,
-          role: "admin",
-          status: "active",
-          member_type: "family",
+          role: 'admin',
+          status: 'active',
+          member_type: 'family',
           linked_user_id: familyWithOwner.owner.id,
-          sharing_scope: "all",
+          sharing_scope: 'all',
           // ✅ FIX: Avatar vem do perfil real, não estático null
           avatar_url: ownerProfile.avatar_url ?? null,
           avatar_color: ownerProfile.avatar_color ?? null,
@@ -188,10 +200,12 @@ export function useFamilyMembers(includeContacts = false) {
           scope_end_date: null,
           scope_trip_id: null,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         };
 
-        const alreadyExists = filteredMembers.some(m => m.linked_user_id === familyWithOwner.owner.id);
+        const alreadyExists = filteredMembers.some(
+          (m) => m.linked_user_id === familyWithOwner.owner.id,
+        );
         if (!alreadyExists) {
           return [ownerAsMember, ...filteredMembers];
         }
@@ -212,30 +226,30 @@ export function useInviteFamilyMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      name, 
-      email, 
+    mutationFn: async ({
+      name,
+      email,
       role,
       sharingScope,
       scopeStartDate,
       scopeEndDate,
-      scopeTripId
-    }: { 
-      name: string; 
-      email: string; 
+      scopeTripId,
+    }: {
+      name: string;
+      email: string;
       role: FamilyRole;
       sharingScope?: SharingScope;
       scopeStartDate?: string;
       scopeEndDate?: string;
       scopeTripId?: string;
     }) => {
-      if (!user) throw new Error("Not authenticated");
+      if (!user) throw new Error('Not authenticated');
 
       // Criar família se não existir
       let familyId = family?.id;
       if (!familyId) {
         const { data: newFamily, error: familyError } = await supabase
-          .from("families")
+          .from('families')
           .insert({
             owner_id: user.id,
             name: `Família de ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'}`,
@@ -245,39 +259,39 @@ export function useInviteFamilyMember() {
 
         if (familyError) throw familyError;
         familyId = newFamily.id;
-        
+
         // Invalidar query da família
-        queryClient.invalidateQueries({ queryKey: ["family"] });
+        queryClient.invalidateQueries({ queryKey: ['family'] });
       }
 
       // Impedir que o usuário se adicione a si mesmo
       if (email.toLowerCase() === user.email?.toLowerCase()) {
-        throw new Error("Você não pode se adicionar como membro da família");
+        throw new Error('Você não pode se adicionar como membro da família');
       }
 
       // Verificar se o email já está cadastrado no app (busca case-insensitive)
       const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id, email, full_name")
-        .ilike("email", email)
+        .from('profiles')
+        .select('id, email, full_name')
+        .ilike('email', email)
         .maybeSingle();
 
       // Verificar se é o próprio usuário pelo ID
       if (existingProfile?.id === user.id) {
-        throw new Error("Você não pode se adicionar como membro da família");
+        throw new Error('Você não pode se adicionar como membro da família');
       }
 
       // Se usuário existe, criar solicitação
       if (existingProfile) {
         const { data, error } = await supabase
-          .from("family_invitations")
+          .from('family_invitations')
           .insert({
             from_user_id: user.id,
             to_user_id: existingProfile.id,
             family_id: familyId,
             member_name: name,
             role,
-            status: "pending",
+            status: 'pending',
             sharing_scope: sharingScope || 'all',
             scope_start_date: scopeStartDate || null,
             scope_end_date: scopeEndDate || null,
@@ -287,8 +301,9 @@ export function useInviteFamilyMember() {
           .single();
 
         if (error) {
-          if (error.code === '23505') { // duplicate key
-            throw new Error("Solicitação já enviada para este usuário");
+          if (error.code === '23505') {
+            // duplicate key
+            throw new Error('Solicitação já enviada para este usuário');
           }
           throw error;
         }
@@ -297,7 +312,7 @@ export function useInviteFamilyMember() {
 
       // Se usuário não existe, criar membro local
       const { data, error } = await supabase
-        .from("family_members")
+        .from('family_members')
         .insert({
           family_id: familyId,
           user_id: null,
@@ -305,7 +320,7 @@ export function useInviteFamilyMember() {
           name,
           email: email.toLowerCase(),
           role,
-          status: "pending",
+          status: 'pending',
           invited_by: user.id,
           sharing_scope: sharingScope || 'all',
           scope_start_date: scopeStartDate || null,
@@ -319,23 +334,23 @@ export function useInviteFamilyMember() {
       return { type: 'local', data };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      queryClient.invalidateQueries({ queryKey: ["family-invitations"] });
-      queryClient.invalidateQueries({ queryKey: ["family"] });
-      
+      queryClient.invalidateQueries({ queryKey: ['family-members'] });
+      queryClient.invalidateQueries({ queryKey: ['family-invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['family'] });
+
       if (result.type === 'invitation') {
-        toast.success("Solicitação enviada! Aguardando aceitação.");
+        toast.success('Solicitação enviada! Aguardando aceitação.');
       } else {
-        toast.success("Membro adicionado localmente!");
+        toast.success('Membro adicionado localmente!');
       }
     },
     onError: (error) => {
-      if (error.message.includes("duplicate") || error.message.includes("já enviada")) {
-        toast.error("Solicitação já enviada para este usuário");
-      } else if (error.message.includes("não pode se adicionar")) {
+      if (error.message.includes('duplicate') || error.message.includes('já enviada')) {
+        toast.error('Solicitação já enviada para este usuário');
+      } else if (error.message.includes('não pode se adicionar')) {
         toast.error(error.message);
       } else {
-        toast.error("Erro ao adicionar: " + error.message);
+        toast.error('Erro ao adicionar: ' + error.message);
       }
     },
   });
@@ -346,27 +361,27 @@ export function useUpdateFamilyMember() {
 
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<FamilyMember> & { id: string }) => {
-      if (id.startsWith("owner-")) {
+      if (id.startsWith('owner-')) {
         // Se for o dono virtual (ex: Wesley), simular sucesso visual.
         // O proprietário no banco de dados continua com seus dados intactos,
         // mas retornamos sucesso para não quebrar a tela de quem alterou.
         return {
           id,
-          family_id: "",
-          user_id: id.replace("owner-", ""),
-          linked_user_id: id.replace("owner-", ""),
-          name: "Dono",
-          email: "",
-          role: input.role || "admin",
-          status: "active",
-          sharing_scope: "all"
+          family_id: '',
+          user_id: id.replace('owner-', ''),
+          linked_user_id: id.replace('owner-', ''),
+          name: 'Dono',
+          email: '',
+          role: input.role || 'admin',
+          status: 'active',
+          sharing_scope: 'all',
         } as any;
       }
 
       const { data, error } = await supabase
-        .from("family_members")
+        .from('family_members')
         .update(input)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -374,11 +389,11 @@ export function useUpdateFamilyMember() {
       return data as FamilyMember;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      toast.success("Membro atualizado!");
+      queryClient.invalidateQueries({ queryKey: ['family-members'] });
+      toast.success('Membro atualizado!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar: " + error.message);
+      toast.error('Erro ao atualizar: ' + error.message);
     },
   });
 }
@@ -388,24 +403,21 @@ export function useRemoveFamilyMember() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (id.startsWith("owner-")) {
+      if (id.startsWith('owner-')) {
         // Se for remover o dono virtual, simular sucesso visual
         return;
       }
 
-      const { error } = await supabase
-        .from("family_members")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from('family_members').delete().eq('id', id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      toast.success("Membro removido!");
+      queryClient.invalidateQueries({ queryKey: ['family-members'] });
+      toast.success('Membro removido!');
     },
     onError: (error) => {
-      toast.error("Erro ao remover: " + error.message);
+      toast.error('Erro ao remover: ' + error.message);
     },
   });
 }
@@ -416,9 +428,9 @@ export function useUpdateFamily() {
   return useMutation({
     mutationFn: async ({ id, ...input }: Partial<Family> & { id: string }) => {
       const { data, error } = await supabase
-        .from("families")
+        .from('families')
         .update(input)
-        .eq("id", id)
+        .eq('id', id)
         .select()
         .single();
 
@@ -426,11 +438,11 @@ export function useUpdateFamily() {
       return data as Family;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family"] });
-      toast.success("Família atualizada!");
+      queryClient.invalidateQueries({ queryKey: ['family'] });
+      toast.success('Família atualizada!');
     },
     onError: (error) => {
-      toast.error("Erro ao atualizar família: " + error.message);
+      toast.error('Erro ao atualizar família: ' + error.message);
     },
   });
 }
@@ -442,40 +454,78 @@ export function useAddSharedContact() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name }: { name: string }) => {
-      if (!user) throw new Error("Not authenticated");
+    mutationFn: async ({ name, email }: { name: string; email?: string }) => {
+      if (!user) throw new Error('Not authenticated');
 
       let familyId = family?.id;
       if (!familyId) {
         const { data: newFamily, error } = await supabase
-          .from("families")
-          .insert({ owner_id: user.id, name: `Família de ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'}` })
+          .from('families')
+          .insert({
+            owner_id: user.id,
+            name: `Família de ${user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'}`,
+          })
           .select()
           .single();
         if (error) throw error;
         familyId = newFamily.id;
-        queryClient.invalidateQueries({ queryKey: ["family"] });
+        queryClient.invalidateQueries({ queryKey: ['family'] });
       }
 
-      const { error } = await supabase.from("family_members").insert({
+      // Tentar encontrar usuário registrado pelo email ou nome
+      let linkedUserId: string | null = null;
+      const trimmedEmail = email?.trim().toLowerCase();
+
+      if (trimmedEmail) {
+        const { data: profileByEmail } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', trimmedEmail)
+          .maybeSingle();
+        if (profileByEmail?.id && profileByEmail.id !== user.id) {
+          linkedUserId = profileByEmail.id;
+        }
+      }
+
+      // Se não encontrou por email, tenta por nome
+      if (!linkedUserId) {
+        const trimmedName = name.trim();
+        const { data: profileByName } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('full_name', trimmedName)
+          .neq('id', user.id)
+          .maybeSingle();
+        if (profileByName?.id) {
+          linkedUserId = profileByName.id;
+        }
+      }
+
+      const { error } = await supabase.from('family_members').insert({
         family_id: familyId,
-        user_id: null,
-        linked_user_id: null,
+        user_id: linkedUserId,
+        linked_user_id: linkedUserId,
         name: name.trim(),
-        email: null,
-        role: "viewer",
-        status: "active",
-        member_type: "contact",
+        email: trimmedEmail || null,
+        role: 'viewer',
+        status: 'active',
+        member_type: 'contact',
         invited_by: user.id,
-        sharing_scope: "all",
+        sharing_scope: 'all',
       });
       if (error) throw error;
+
+      return { linkedUserId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
-      toast.success("Contato adicionado com sucesso");
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['shared-contacts'] });
+      if (result?.linkedUserId) {
+        toast.success('Contato vinculado a um usuário registrado — convites habilitados');
+      } else {
+        toast.success('Contato adicionado com sucesso');
+      }
     },
-    onError: (e: any) => toast.error(e.message || "Erro ao adicionar contato"),
+    onError: (e: any) => toast.error(e.message || 'Erro ao adicionar contato'),
   });
 }
 
@@ -485,16 +535,16 @@ export function useSharedContacts() {
   const { data: family } = useFamily();
 
   return useQuery({
-    queryKey: ["shared-contacts", user?.id, family?.id],
+    queryKey: ['shared-contacts', user?.id, family?.id],
     queryFn: async (): Promise<FamilyMember[]> => {
       if (!user || !family) return [];
       const { data, error } = await supabase
-        .from("family_members")
-        .select("*")
-        .eq("family_id", family.id)
-        .eq("member_type", "contact")
-        .eq("invited_by", user.id)
-        .order("name");
+        .from('family_members')
+        .select('*')
+        .eq('family_id', family.id)
+        .eq('member_type', 'contact')
+        .eq('invited_by', user.id)
+        .order('name');
       if (error) throw error;
       return (data || []) as FamilyMember[];
     },
@@ -509,17 +559,17 @@ export function useConvertMemberToContact() {
   return useMutation({
     mutationFn: async (memberId: string) => {
       const { error } = await supabase
-        .from("family_members")
-        .update({ member_type: "contact" })
-        .eq("id", memberId);
+        .from('family_members')
+        .update({ member_type: 'contact' })
+        .eq('id', memberId);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
-      toast.success("Movido para contatos — histórico preservado");
+      queryClient.invalidateQueries({ queryKey: ['family-members'] });
+      queryClient.invalidateQueries({ queryKey: ['shared-contacts'] });
+      toast.success('Movido para contatos — histórico preservado');
     },
-    onError: () => toast.error("Erro ao alterar tipo de membro"),
+    onError: () => toast.error('Erro ao alterar tipo de membro'),
   });
 }
 
@@ -530,16 +580,18 @@ export function useToggleContactActiveInForm() {
   return useMutation({
     mutationFn: async ({ id, active_in_form }: { id: string; active_in_form: boolean }) => {
       const { error } = await supabase
-        .from("family_members")
+        .from('family_members')
         .update({ active_in_form })
-        .eq("id", id);
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: (_, { active_in_form }) => {
-      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
-      toast.success(active_in_form ? "Contato ativado no formulário" : "Contato desativado do formulário");
+      queryClient.invalidateQueries({ queryKey: ['shared-contacts'] });
+      toast.success(
+        active_in_form ? 'Contato ativado no formulário' : 'Contato desativado do formulário',
+      );
     },
-    onError: () => toast.error("Erro ao alterar status do contato"),
+    onError: () => toast.error('Erro ao alterar status do contato'),
   });
 }
 
@@ -550,16 +602,16 @@ export function useConvertContactToMember() {
   return useMutation({
     mutationFn: async (memberId: string) => {
       const { error } = await supabase
-        .from("family_members")
-        .update({ member_type: "family" })
-        .eq("id", memberId);
+        .from('family_members')
+        .update({ member_type: 'family' })
+        .eq('id', memberId);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-members"] });
-      queryClient.invalidateQueries({ queryKey: ["shared-contacts"] });
-      toast.success("Adicionado como membro da família");
+      queryClient.invalidateQueries({ queryKey: ['family-members'] });
+      queryClient.invalidateQueries({ queryKey: ['shared-contacts'] });
+      toast.success('Adicionado como membro da família');
     },
-    onError: () => toast.error("Erro ao alterar tipo de membro"),
+    onError: () => toast.error('Erro ao alterar tipo de membro'),
   });
 }
