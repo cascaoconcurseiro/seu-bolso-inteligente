@@ -75,7 +75,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 hide-scrollbar">
           {/* Gráfico de evolução */}
           {history.length >= 2 && (
             <div className="mb-4">
@@ -108,7 +108,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form id="contribute-form" onSubmit={handleSubmit} className="space-y-6">
             <div className="flex bg-secondary p-1 rounded-xl border border-border">
             <button
               type="button"
@@ -168,23 +168,15 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
             </Select>
           </div>
 
-          <div className="pt-2 flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1"
-            >
-              Confirmar
-            </Button>
-          </div>
         </form>
+        </div>
+        <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
+          <Button type="button" variant="outline" className="flex-1 h-11" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" form="contribute-form" className="flex-1 h-11 font-bold">
+            Confirmar
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -95,75 +95,79 @@ export function EditTripDialog({
             Apenas o criador da viagem pode editar estes campos
           </DialogDescription>
         </DialogHeader>
-        <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
-          <div className="space-y-2 mt-2">
-            <Label>Destino</Label>
-            <Input
-              placeholder="Ex: Rio de Janeiro, RJ"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              className="rounded-xl"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Início</Label>
+        <div className="flex-1 overflow-y-auto px-6 hide-scrollbar">
+          <div className="space-y-4 py-2">
+            <div className="space-y-2 mt-2">
+              <Label>Destino</Label>
               <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                placeholder="Ex: Rio de Janeiro, RJ"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
                 className="rounded-xl"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Fim</Label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate}
-                className="rounded-xl"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Início</Label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Fim</Label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Moeda</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {CURRENCIES.map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.symbol} {curr.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Orçamento Geral</Label>
+                <Input
+                  placeholder="5000"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
+                  className="rounded-xl"
+                />
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Moeda</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {CURRENCIES.map((curr) => (
-                    <SelectItem key={curr.code} value={curr.code}>
-                      {curr.symbol} {curr.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Orçamento Geral</Label>
-              <Input
-                placeholder="5000"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value.replace(/\D/g, ""))}
-                className="rounded-xl"
-              />
-            </div>
-          </div>
-          <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="flex-1 rounded-xl font-bold"
-              onClick={handleSubmit}
-              disabled={isLoading || !destination || !startDate || !endDate || !budget}
-            >
-              {isLoading ? "Salvando..." : "Salvar"}
-            </Button>
-          </div>
+        </div>
+
+        {/* Rodapé fixo */}
+        <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
+          <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            className="flex-1 h-11 rounded-xl font-bold"
+            onClick={handleSubmit}
+            disabled={isLoading || !destination || !startDate || !endDate || !budget}
+          >
+            {isLoading ? "Salvando..." : "Salvar"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

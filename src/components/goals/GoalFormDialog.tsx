@@ -80,8 +80,9 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-5 pb-5 overflow-y-auto hide-scrollbar">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3 pt-2">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
+        <div className="px-5 overflow-y-auto hide-scrollbar flex-1">
+          <div className="flex flex-col gap-3 pt-2">
             <FormSection icon={<Target />} title="Objetivo">
               <FormField label="Nome da meta" htmlFor="goal-name" required>
                 <Input
@@ -148,24 +149,17 @@ export function GoalFormDialog({ isOpen, onClose, goal }: GoalFormDialogProps) {
               </FormField>
             </FormSection>
 
-            <div className="flex gap-3 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                disabled={isCreating || isUpdating}
-                className="flex-1"
-              >
-                {isCreating || isUpdating ? 'Salvando…' : 'Salvar Meta'}
-              </Button>
-            </div>
-          </form>
+          </div>
         </div>
+        <div className="shrink-0 flex gap-3 px-5 py-4 border-t border-border bg-background">
+          <Button type="button" variant="outline" className="h-11" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isCreating || isUpdating} className="flex-1 h-11 font-bold">
+            {isCreating || isUpdating ? 'Salvando…' : 'Salvar Meta'}
+          </Button>
+        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
