@@ -46,6 +46,7 @@ import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { BackupManager } from "@/components/settings/BackupManager";
+import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { HelpSettings } from "@/components/settings/HelpSettings";
 import { AutoShareRulesSettings } from "@/components/settings/AutoShareRulesSettings";
 
@@ -170,6 +171,10 @@ export function Settings() {
 
           {activeSection === "backup" && (
             <BackupManager />
+          )}
+
+          {activeSection === "privacy" && (
+            <PrivacySettings />
           )}
 
           {activeSection === "automations" && (
