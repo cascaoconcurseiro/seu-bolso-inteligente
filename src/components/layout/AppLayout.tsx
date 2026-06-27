@@ -51,14 +51,13 @@ import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 
-
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { theme, setTheme, systemTheme } = useTheme();
-  
+
   // Resolvemos o tema atual (se 'system', olhamos para systemTheme)
   const currentTheme = theme === "system" ? systemTheme : theme;
   const isDark = currentTheme === "dark";
@@ -66,7 +65,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
-  const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } = useTransactionModal();
+  const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } =
+    useTransactionModal();
 
   const { isPrivate, togglePrivacy } = usePrivacy();
   const [showSearch, setShowSearch] = useState(false);
@@ -88,9 +88,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Injeção automática de categorias padrão para novos usuários
   const { data: categories, isSuccess: categoriesLoaded } = useCategories();
   const createDefaultCategories = useCreateDefaultCategories();
-  
+
   useEffect(() => {
-    if (categoriesLoaded && categories && categories.length < 10 && !createDefaultCategories.isPending) {
+    if (
+      categoriesLoaded &&
+      categories &&
+      categories.length < 10 &&
+      !createDefaultCategories.isPending
+    ) {
       createDefaultCategories.mutate({ force: false });
     }
   }, [categoriesLoaded, categories, createDefaultCategories]);
@@ -104,29 +109,27 @@ export function AppLayout({ children }: AppLayoutProps) {
     navigate("/auth");
   };
 
-
-
   // Detectar contexto baseado na rota atual
   const handleNewTransaction = () => {
     // Extrair contexto da URL
     const context: Record<string, any> = {};
-    
+
     // Se estiver em uma viagem específica
-    if (location.pathname.startsWith('/viagens/')) {
-      const tripId = location.pathname.split('/viagens/')[1];
-      if (tripId && tripId !== '') {
+    if (location.pathname.startsWith("/viagens/")) {
+      const tripId = location.pathname.split("/viagens/")[1];
+      if (tripId && tripId !== "") {
         context.tripId = tripId;
       }
     }
-    
+
     // Se estiver em uma conta específica
-    if (location.pathname.startsWith('/contas/')) {
-      const accountId = location.pathname.split('/contas/')[1];
-      if (accountId && accountId !== '') {
+    if (location.pathname.startsWith("/contas/")) {
+      const accountId = location.pathname.split("/contas/")[1];
+      if (accountId && accountId !== "") {
         context.accountId = accountId;
       }
     }
-    
+
     setShowTransactionModal(true, context);
   };
 
@@ -234,7 +237,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center gap-2 p-2">
                     <div className="flex flex-col space-y-2 leading-none">
-                      <p className="font-medium text-sm truncate">{profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0]}</p>
+                      <p className="font-medium text-sm truncate">
+                        {profile?.full_name ||
+                          user?.user_metadata?.full_name ||
+                          user?.email?.split("@")[0]}
+                      </p>
                       <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                     </div>
                   </div>
@@ -245,59 +252,42 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
             </div>
           </div>
         </div>
 
-
-
         {/* Month Selector - Below TopBar */}
         {/* Hide month selector on pages that don't use monthly context */}
-        {!['/cartoes', '/simuladores', '/configuracoes', '/familia'].includes(location.pathname) && !location.pathname.startsWith('/cartoes/') && (
-          <div className="border-t border-border bg-background shadow-sm">
-            <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
-              <div className="flex-1 hidden md:block" />
-              
-              <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
-                <MonthSelector />
-              </div>
+        {!["/cartoes", "/simuladores", "/configuracoes", "/familia"].includes(location.pathname) &&
+          !location.pathname.startsWith("/cartoes/") && (
+            <div className="border-t border-border bg-background shadow-sm">
+              <div className="w-full px-4 md:px-6 lg:px-8 py-1.5 md:py-2 flex items-center justify-between gap-4">
+                <div className="flex-1 hidden md:block" />
 
-              <div className="hidden md:flex justify-end md:flex-1">
-                <Button
-                  size="default"
-                  onClick={handleNewTransaction}
-                  className="gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Nova transação</span>
-                </Button>
+                <div className="flex items-center gap-2 flex-1 md:flex-initial justify-center md:justify-center">
+                  <MonthSelector />
+                </div>
+
+                <div className="hidden md:flex justify-end md:flex-1">
+                  <Button size="default" onClick={handleNewTransaction} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    <span>Nova transação</span>
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </header>
 
       {/* Main Content */}
       <main className="flex-1 pb-32 md:pb-8">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
-          <OnboardingGuard>
-            {children}
-          </OnboardingGuard>
+          <OnboardingGuard>{children}</OnboardingGuard>
         </div>
       </main>
 
       {/* Mobile Navigation Bar */}
       <MobileNav />
-
-      {/* FAB desktop — nova transação, visível ao rolar */}
-      <button
-        onClick={() => setShowTransactionModal(true)}
-        className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 items-center justify-center hover:brightness-110 active:scale-95 transition-all"
-        aria-label="Nova transação"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
 
       {/* Global Transaction Modal */}
       <TransactionModal
@@ -305,10 +295,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         onClose={() => setShowTransactionModal(false)}
       />
 
-      <QuickAddModal 
-        isOpen={showQuickAddModal} 
-        onClose={() => setShowQuickAddModal(false)} 
-      />
+      <QuickAddModal isOpen={showQuickAddModal} onClose={() => setShowQuickAddModal(false)} />
 
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
     </div>

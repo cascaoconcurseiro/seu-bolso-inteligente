@@ -38,20 +38,20 @@ export function TripCard({ trip, onClick }: TripCardProps) {
   return (
     <div
       onClick={onClick}
-      className="group relative overflow-hidden rounded-2xl cursor-pointer hover:shadow-2xl hover:shadow-primary/20 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border border-border bg-card text-card-foreground"
+      className="group relative overflow-hidden rounded-2xl cursor-pointer hover:shadow-xl hover:shadow-primary/15 transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] border-2 border-border/80 bg-gradient-to-br from-card via-card to-primary/[0.03] dark:from-card dark:via-card dark:to-primary/[0.06]"
     >
-      {/* Pattern de "Boarding Pass" */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-700" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 group-hover:bg-primary/20 transition-colors duration-700" />
+      {/* Padrão decorativo sutil */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-primary/[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/[0.12] transition-colors duration-700" />
+      <div className="absolute bottom-0 left-0 w-28 h-28 bg-primary/[0.12] rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 group-hover:bg-primary/[0.18] transition-colors duration-700" />
 
-      {/* Recorte simulando ticket e serrilhado */}
-      <div className="absolute right-24 top-0 bottom-0 w-px border-r-2 border-dashed border-border hidden sm:block" />
+      {/* Recorte simulando ticket */}
+      <div className="absolute right-24 top-0 bottom-0 w-px border-r-2 border-dashed border-border/60 hidden sm:block" />
 
       <div className="relative p-5 sm:pr-28 flex flex-col sm:flex-row gap-5">
         <div className="flex-1 flex flex-col gap-5">
           <div className="flex items-start justify-between">
             <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 rounded-xl bg-primary/15 border-2 border-primary/25 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500">
                 <Plane className="h-6 w-6 text-primary" />
               </div>
               <div>
