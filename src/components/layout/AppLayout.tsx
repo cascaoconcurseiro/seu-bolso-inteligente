@@ -282,7 +282,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 pb-32 md:pb-8">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
+        <div key={location.pathname} className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 animate-fade-in">
           <OnboardingGuard>{children}</OnboardingGuard>
         </div>
       </main>
