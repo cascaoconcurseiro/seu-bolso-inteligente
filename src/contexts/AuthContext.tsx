@@ -82,17 +82,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Limpa estado imediatamente para a UI reagir
+    setUser(null);
+    setSession(null);
+
     try {
       await supabase.auth.signOut({ scope: 'local' });
     } catch (_) {
-      // ignora erro de rede — continua o logout local
+      // ignora erro de rede
     }
-    // Limpa sessão do Supabase no localStorage
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('sb-')) localStorage.removeItem(key);
-    });
-    // Limpa cache do React Query
-    await localforage.clear();
+
+    // Limpa TODO o localStorage (sessão Supabase + outros)
+    localStorage.clear();
+
+    // Limpa cache do React Query (IndexedDB via localforage)
+    try { await localforage.clear(); } catch (_) {}
+
+    // Apaga caches do service worker para evitar restauração de sessão
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch (_) {}
+
     window.location.replace('/auth');
   };
 
