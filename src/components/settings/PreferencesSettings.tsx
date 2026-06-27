@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet, Bell, Mail } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet } from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
 import { NumericFormat } from "react-number-format";
@@ -29,7 +27,6 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [defaultAccountId, setDefaultAccountId] = useState<string>("none");
   const [defaultCreditCardId, setDefaultCreditCardId] = useState<string>("none");
   const [monthlyReportEnabled, setMonthlyReportEnabled] = useState<boolean>(true);
-  const { isSupported: pushSupported, hasSubscription, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
   const checkingAccounts = accounts?.filter(acc => acc.type !== 'CREDIT_CARD') || [];
@@ -66,7 +63,6 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       low_balance_threshold: lowBalanceThreshold || null,
       default_account_id: defaultAccountId === "none" ? null : defaultAccountId,
       default_credit_card_id: defaultCreditCardId === "none" ? null : defaultCreditCardId,
-      monthly_report_enabled: monthlyReportEnabled,
     });
   };
 
@@ -82,8 +78,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
       lowBalanceThreshold !== (profile.low_balance_threshold ?? 0) ||
       defaultAccountId !== (profile.default_account_id ?? "none") ||
-      defaultCreditCardId !== (profile.default_credit_card_id ?? "none") ||
-      monthlyReportEnabled !== (profile.monthly_report_enabled ?? true)
+      defaultCreditCardId !== (profile.default_credit_card_id ?? "none")
     );
   };
 
@@ -254,52 +249,6 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
           
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
-              <Wallet className="h-5 w-5" />
-            </div>
-            <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 fill-mode-both">
-              <div className="flex items-center gap-2">
-                <Label>Conta Padrão</Label>
-                <InfoTooltip content="Conta pré-selecionada ao abrir o formulário de nova transação. Economiza cliques no dia a dia." />
-              </div>
-              <Select value={defaultAccountId} onValueChange={setDefaultAccountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Nenhuma (selecionar manualmente)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma (selecionar manualmente)</SelectItem>
-                  {checkingAccounts.map(acc => (
-                    <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
-              <CreditCard className="h-5 w-5" />
-            </div>
-            <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 fill-mode-both">
-              <div className="flex items-center gap-2">
-                <Label>Cartão de Crédito Padrão</Label>
-                <InfoTooltip content="Cartão pré-selecionado quando você escolhe 'Cartão de Crédito' no formulário de transação." />
-              </div>
-              <Select value={defaultCreditCardId} onValueChange={setDefaultCreditCardId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Nenhum (selecionar manualmente)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum (selecionar manualmente)</SelectItem>
-                  {creditCards.map(card => (
-                    <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <BellRing className="h-5 w-5" />
             </div>
             <div className="flex-1 space-y-2 w-full animate-in slide-in-from-bottom-2 duration-300 delay-250 fill-mode-both">
@@ -390,53 +339,6 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             </div>
           </div>
 
-          {/* Notificações Push */}
-          {pushSupported && (
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
-              <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
-                <Bell className="h-5 w-5" />
-              </div>
-              <div className="flex-1 space-y-2 w-full">
-                <Label>Notificações Push</Label>
-                <p className="text-xs text-muted-foreground">
-                  Receba alertas de vencimentos mesmo com o app fechado. Contas com notificação ativada serão avisadas 3 dias antes.
-                </p>
-                <Button
-                  type="button"
-                  variant={hasSubscription ? "destructive" : "outline"}
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => hasSubscription ? pushUnsubscribe.mutate() : pushSubscribe.mutate()}
-                  disabled={pushSubscribe.isPending || pushUnsubscribe.isPending}
-                >
-                  {pushSubscribe.isPending || pushUnsubscribe.isPending
-                    ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    : null}
-                  {hasSubscription ? "Desativar notificações push" : "Ativar notificações push"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Relatório mensal por email */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mt-6 pt-6 border-t border-border">
-            <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
-              <Mail className="h-5 w-5" />
-            </div>
-            <div className="flex-1 space-y-1 w-full">
-              <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="monthly-report-toggle">Relatório mensal por email</Label>
-                <Switch
-                  id="monthly-report-toggle"
-                  checked={monthlyReportEnabled}
-                  onCheckedChange={setMonthlyReportEnabled}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Receba um resumo mensal com receitas, despesas, top categorias e evolução do patrimônio no dia 1º de cada mês.
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="pt-4 flex justify-end">

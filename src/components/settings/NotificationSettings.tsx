@@ -10,17 +10,20 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Bell, BellOff } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { UserProfile } from "@/hooks/useUserProfile";
 
 interface NotificationSettingsProps {
   preferences: any;
   isLoading: boolean;
   isUpdating: boolean;
   updatePreferences: (prefs: any) => void;
+  profile: UserProfile | null;
+  updateProfile: any;
 }
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 6h a 22h
 
-export function NotificationSettings({ preferences, isLoading, isUpdating, updatePreferences }: NotificationSettingsProps) {
+export function NotificationSettings({ preferences, isLoading, isUpdating, updatePreferences, profile, updateProfile }: NotificationSettingsProps) {
   const { isSupported, permission, hasSubscription, subscribe, unsubscribe } = usePushNotifications();
 
   if (isLoading) {
@@ -43,7 +46,6 @@ export function NotificationSettings({ preferences, isLoading, isUpdating, updat
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Notificações Push</h3>
 
         <div className="p-4 rounded-xl border border-border space-y-4">
-          {/* Ativar / desativar push */}
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Alertas no Dispositivo</p>
@@ -78,7 +80,6 @@ export function NotificationSettings({ preferences, isLoading, isUpdating, updat
             )}
           </div>
 
-          {/* Horário preferido — só mostra se push ativo */}
           {hasSubscription && (
             <div className="pt-3 border-t space-y-3">
               <div>
@@ -193,6 +194,29 @@ export function NotificationSettings({ preferences, isLoading, isUpdating, updat
             </div>
           )}
         </div>
+        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Limite do Cartão</p>
+              <p className="text-sm text-muted-foreground">Aviso quando o uso ultrapassar o percentual configurado</p>
+            </div>
+            <Switch checked={preferences?.credit_limit_warning_enabled ?? true} onCheckedChange={(checked) => updatePreferences({ credit_limit_warning_enabled: checked })} disabled={isUpdating} />
+          </div>
+          {preferences?.credit_limit_warning_enabled !== false && (
+            <div className="mt-4 pt-4 border-t">
+              <Label className="text-sm">Alerta a partir de</Label>
+              <Select value={String(preferences?.credit_limit_warning_threshold ?? 90)} onValueChange={(v) => updatePreferences({ credit_limit_warning_threshold: parseInt(v) })}>
+                <SelectTrigger className="w-32 mt-2"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="70">70%</SelectItem>
+                  <SelectItem value="80">80%</SelectItem>
+                  <SelectItem value="90">90%</SelectItem>
+                  <SelectItem value="95">95%</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -267,52 +291,10 @@ export function NotificationSettings({ preferences, isLoading, isUpdating, updat
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Saldo Baixo</p>
-              <p className="text-sm text-muted-foreground">Alerta quando o saldo cair abaixo do limite</p>
+              <p className="text-sm text-muted-foreground">Alerta quando o saldo cair abaixo do limite definido em Preferências</p>
             </div>
             <Switch checked={preferences?.low_balance_enabled ?? true} onCheckedChange={(checked) => updatePreferences({ low_balance_enabled: checked })} disabled={isUpdating} />
           </div>
-          {preferences?.low_balance_enabled !== false && (
-            <div className="mt-4 pt-4 border-t">
-              <Label className="text-sm">Limite mínimo de saldo</Label>
-              <Select value={String(preferences?.low_balance_threshold ?? 100)} onValueChange={(v) => updatePreferences({ low_balance_threshold: parseInt(v) })}>
-                <SelectTrigger className="w-40 mt-2"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="50">R$ 50</SelectItem>
-                  <SelectItem value="100">R$ 100</SelectItem>
-                  <SelectItem value="200">R$ 200</SelectItem>
-                  <SelectItem value="500">R$ 500</SelectItem>
-                  <SelectItem value="1000">R$ 1.000</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Cartões de Crédito</h3>
-        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Limite do Cartão</p>
-              <p className="text-sm text-muted-foreground">Aviso quando o uso ultrapassar o percentual configurado</p>
-            </div>
-            <Switch checked={preferences?.credit_limit_warning_enabled ?? true} onCheckedChange={(checked) => updatePreferences({ credit_limit_warning_enabled: checked })} disabled={isUpdating} />
-          </div>
-          {preferences?.credit_limit_warning_enabled !== false && (
-            <div className="mt-4 pt-4 border-t">
-              <Label className="text-sm">Alerta a partir de</Label>
-              <Select value={String(preferences?.credit_limit_warning_threshold ?? 90)} onValueChange={(v) => updatePreferences({ credit_limit_warning_threshold: parseInt(v) })}>
-                <SelectTrigger className="w-32 mt-2"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="70">70%</SelectItem>
-                  <SelectItem value="80">80%</SelectItem>
-                  <SelectItem value="90">90%</SelectItem>
-                  <SelectItem value="95">95%</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
       </div>
 
@@ -330,14 +312,18 @@ export function NotificationSettings({ preferences, isLoading, isUpdating, updat
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Canais</h3>
-        <div className="p-4 rounded-xl border border-border bg-muted/30">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Email</h3>
+        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-muted-foreground">Notificações por Email</p>
-              <p className="text-sm text-muted-foreground">Em breve — receba alertas importantes por email</p>
+              <p className="font-medium">Relatório Mensal por Email</p>
+              <p className="text-sm text-muted-foreground">Resumo com receitas, despesas e evolução do patrimônio no dia 1º de cada mês</p>
             </div>
-            <Switch checked={false} disabled />
+            <Switch
+              checked={profile?.monthly_report_enabled ?? true}
+              onCheckedChange={(checked) => updateProfile.mutate({ monthly_report_enabled: checked })}
+              disabled={updateProfile.isPending}
+            />
           </div>
         </div>
       </div>

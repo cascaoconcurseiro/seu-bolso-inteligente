@@ -156,7 +156,6 @@ export function Settings() {
             <AccountSettings
               profile={profile} user={user} profileLoading={profileLoading}
               updateProfile={updateProfile} signOut={signOut}
-              onChangePassword={() => setShowChangePasswordDialog(true)}
               onDeleteAccount={() => setShowDeleteAccountDialog(true)}
             />
           )}
@@ -166,7 +165,7 @@ export function Settings() {
           )}
 
           {activeSection === "security" && (
-            <SecuritySettings profile={profile} isLoading={profileLoading} updateProfile={updateProfile} />
+            <SecuritySettings profile={profile} isLoading={profileLoading} updateProfile={updateProfile} onChangePassword={() => setShowChangePasswordDialog(true)} />
           )}
 
           {activeSection === "categories" && (
@@ -186,7 +185,7 @@ export function Settings() {
           )}
 
           {activeSection === "notifications" && (
-            <NotificationSettings preferences={preferences} isLoading={prefsLoading} isUpdating={isUpdating} updatePreferences={updatePreferences} />
+            <NotificationSettings preferences={preferences} isLoading={prefsLoading} isUpdating={isUpdating} updatePreferences={updatePreferences} profile={profile ?? null} updateProfile={updateProfile} />
           )}
 
           {activeSection === "backup" && (

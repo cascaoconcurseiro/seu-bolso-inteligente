@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, Mail, Lock, LogOut, AlertTriangle, Check, Download, FileSpreadsheet, FileJson } from "lucide-react";
+import { Loader2, Mail, LogOut, AlertTriangle, Check } from "lucide-react";
 import { AvatarCustomizer } from "./AvatarCustomizer";
 import { avatarIcons } from "@/lib/avatars";
-import { supabase } from "@/integrations/supabase/client";
-import { exportTransactions } from "@/services/exportService";
 import { toast } from "sonner";
-import { logger } from '@/utils/logger';
 
 interface AccountSettingsProps {
   profile: any;
@@ -17,7 +13,6 @@ interface AccountSettingsProps {
   profileLoading: boolean;
   updateProfile: any;
   signOut: () => void;
-  onChangePassword: () => void;
   onDeleteAccount: () => void;
 }
 
@@ -27,12 +22,10 @@ export function AccountSettings({
   profileLoading,
   updateProfile,
   signOut,
-  onChangePassword,
   onDeleteAccount
 }: AccountSettingsProps) {
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
-  const [isExporting, setIsExporting] = useState(false);
   useEffect(() => {
     if (profile?.name) {
       setNewName(profile.name);
@@ -43,35 +36,6 @@ export function AccountSettings({
     if (!newName.trim()) return;
     await updateProfile.mutateAsync({ name: newName.trim() });
     setEditingName(false);
-  };
-
-  const handleExport = async (format: "csv" | "json") => {
-    try {
-      setIsExporting(true);
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(`
-          *,
-          account:accounts!account_id(id, name, currency),
-          category:categories(id, name, icon)
-        `)
-        .order("date", { ascending: false });
-        
-      if (error) throw error;
-      
-      if (!data || data.length === 0) {
-        toast.info("Você ainda não possui transações registradas para exportar.");
-        return;
-      }
-      
-      exportTransactions(data, format);
-      toast.success("Backup financeiro exportado com sucesso!");
-    } catch (e) {
-      logger.error("Erro ao exportar backup:", e);
-      toast.error("Ocorreu um erro ao exportar seus dados. Tente novamente.");
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   const getInitials = (name: string) => {
@@ -152,57 +116,6 @@ export function AccountSettings({
             }}
             isSaving={updateProfile.isPending}
           />
-        </div>
-
-        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <Lock className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-medium">Alterar Senha</p>
-                <p className="text-sm text-muted-foreground">Atualize sua senha de acesso</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={onChangePassword}>Alterar</Button>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                <Download className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">Exportar Dados (Backup)</p>
-                <p className="text-sm text-muted-foreground">Baixe seu histórico completo de transações em formato aberto</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleExport("csv")}
-                disabled={isExporting}
-                className="flex-1 sm:flex-none flex items-center gap-2 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-              >
-                {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
-                CSV (Excel)
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleExport("json")}
-                disabled={isExporting}
-                className="flex-1 sm:flex-none flex items-center gap-2 hover:bg-primary/5 hover:text-primary transition-all duration-200"
-              >
-                {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileJson className="h-3.5 w-3.5" />}
-                JSON
-              </Button>
-            </div>
-          </div>
         </div>
 
         <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">

@@ -13,9 +13,10 @@ interface SecuritySettingsProps {
   profile: UserProfile | null;
   isLoading: boolean;
   updateProfile: any;
+  onChangePassword: () => void;
 }
 
-export function SecuritySettings({ profile, isLoading, updateProfile }: SecuritySettingsProps) {
+export function SecuritySettings({ profile, isLoading, updateProfile, onChangePassword }: SecuritySettingsProps) {
   const [requirePin, setRequirePin] = useState(false);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -79,6 +80,22 @@ export function SecuritySettings({ profile, isLoading, updateProfile }: Security
       </div>
 
       <div className="space-y-6 max-w-2xl">
+
+        <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">Alterar Senha</p>
+                <p className="text-sm text-muted-foreground">Atualize sua senha de acesso ao app</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={onChangePassword}>Alterar</Button>
+          </div>
+        </div>
+
         <div className="p-4 bg-muted/30 border border-border rounded-xl flex items-start gap-4">
           <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0 mt-1">
             <ShieldCheck className="h-6 w-6" />

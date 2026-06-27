@@ -27,5 +27,4 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/get-place-suggestions/index.ts"
 
-[functions.get-place-suggestions.secrets]
-GOOGLE_PLACES_API_KEY = "env(GOOGLE_PLACES_API_KEY)"
+
