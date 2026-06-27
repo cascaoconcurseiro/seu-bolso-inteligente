@@ -20,6 +20,7 @@ import { lazy, Suspense } from "react";
 import { Auth } from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Privacidade from "./pages/Privacidade";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const Dashboard = lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard })));
@@ -100,6 +101,7 @@ const App = () => (
                   {/* Public Routes */}
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/privacidade" element={<Privacidade />} />
 
                   {/* Protected Routes */}
                   <Route
