@@ -18,6 +18,7 @@ import { useMonth } from "@/contexts/MonthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import * as dateFns from "date-fns";
 import { GreetingCard } from "@/components/dashboard/GreetingCard";
+import { MonthInsight } from "@/components/dashboard/MonthInsight";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { DashboardInvoices } from "@/components/dashboard/DashboardInvoices";
@@ -246,6 +247,12 @@ export function Dashboard() {
     <PullToRefresh queryKeys={[['dashboard-data'], ['accounts'], ['trips']]}>
     <div className="space-y-5">
       <GreetingCard className="animate-fade-in-down" />
+      <MonthInsight
+        income={displayData.income}
+        expense={displayData.expense}
+        pendingExpense={displayData.pending_expense}
+        currency={displayData.currency}
+      />
       <PendingInvitationsAlert />
       <PendingTripInvitationsAlert />
         <PendingSharedCardInvitationsAlert />
