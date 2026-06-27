@@ -172,13 +172,13 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
           <div className="flex items-center gap-1">
             {/* Desktop: ações visíveis no hover */}
             <div className="hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-              <Button variant="ghost" size="icon" onClick={async (e) => { e.stopPropagation(); try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }} className="h-8 w-8 rounded-lg hover:bg-muted">
+              <Button variant="ghost" size="icon" aria-label="Exportar meta em PDF" onClick={async (e) => { e.stopPropagation(); try { await exportGoalToPDF(goal); } catch { toast.error('Erro ao exportar PDF'); } }} className="h-8 w-8 rounded-lg hover:bg-muted">
                 <FileDown className="w-4 h-4 text-muted-foreground transition-colors" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="h-8 w-8 rounded-lg hover:bg-primary/10">
+              <Button variant="ghost" size="icon" aria-label="Editar meta" onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="h-8 w-8 rounded-lg hover:bg-primary/10">
                 <Edit className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onDelete(goal); }} className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive">
+              <Button variant="ghost" size="icon" aria-label="Excluir meta" onClick={(e) => { e.stopPropagation(); onDelete(goal); }} className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive">
                 <Trash2 className="w-4 h-4 text-muted-foreground transition-colors" />
               </Button>
             </div>
@@ -186,7 +186,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()} className="h-8 w-8 rounded-lg">
+                  <Button variant="ghost" size="icon" aria-label="Mais opções" onClick={(e) => e.stopPropagation()} className="h-8 w-8 rounded-lg">
                     <MoreVertical className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
