@@ -82,7 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (_) {
+      // ignora erro de rede — continua o logout local
+    }
+    // Limpa sessão do Supabase no localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('sb-')) localStorage.removeItem(key);
+    });
+    // Limpa cache do React Query
     await localforage.clear();
     window.location.replace('/auth');
   };
