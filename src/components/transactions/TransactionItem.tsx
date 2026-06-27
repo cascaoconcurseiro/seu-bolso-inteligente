@@ -314,7 +314,7 @@ export function TransactionItem({
                   e.stopPropagation();
                   onEdit(transaction);
                 }}
-                title="Editar"
+                aria-label="Editar transação"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -326,7 +326,7 @@ export function TransactionItem({
                   e.stopPropagation();
                   onDelete(transaction);
                 }}
-                title="Excluir"
+                aria-label="Excluir transação"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
