@@ -475,12 +475,11 @@ export function useDeleteAccount() {
 
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    onSuccess: () => {
       accountToasts.deleted();
     },
-    onError: (error) => {
-      accountToasts.error('remover', error);
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
     },
   });
 }

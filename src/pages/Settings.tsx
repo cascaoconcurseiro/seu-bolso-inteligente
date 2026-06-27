@@ -44,7 +44,6 @@ import { CategorySettings } from "@/components/settings/CategorySettings";
 import { PeopleSettings } from "@/components/settings/PeopleSettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
-import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { BackupManager } from "@/components/settings/BackupManager";
 import { HelpSettings } from "@/components/settings/HelpSettings";
@@ -70,13 +69,6 @@ export function Settings() {
   const [showPassword, setShowPassword] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return document.documentElement.classList.contains('dark');
-  });
-
   useEffect(() => {
     const section = searchParams.get('section');
     if (section === 'notifications') setActiveSection('notifications');
@@ -93,14 +85,6 @@ export function Settings() {
 
   const createCategory = useCreateCategory();
   const deleteCategory = useDeleteCategory();
-
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    document.documentElement.classList.toggle('dark', newIsDark);
-    // Persistência: sincroniza com o AppLayout
-    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
-  };
 
   const handleCreateCategory = async () => {
     await createCategory.mutateAsync({ 
@@ -178,10 +162,6 @@ export function Settings() {
 
           {activeSection === "people" && (
             <PeopleSettings members={members} isLoading={membersLoading} getInitials={getInitials} />
-          )}
-
-          {activeSection === "appearance" && (
-            <AppearanceSettings isDark={isDark} onToggleTheme={toggleTheme} />
           )}
 
           {activeSection === "notifications" && (

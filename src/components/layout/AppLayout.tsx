@@ -45,7 +45,6 @@ import { NotificationButton } from "./NotificationButton";
 import { MonthSelector } from "./MonthSelector";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { TransactionModal } from "@/components/modals/TransactionModal";
-import { QuickAddModal } from "@/components/modals/QuickAddModal";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
@@ -65,8 +64,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: profile } = useUserProfile();
-  const { showTransactionModal, setShowTransactionModal, showQuickAddModal, setShowQuickAddModal } =
-    useTransactionModal();
+  const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
 
   const { isPrivate, togglePrivacy } = usePrivacy();
   const [showSearch, setShowSearch] = useState(false);
@@ -294,8 +292,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         isOpen={showTransactionModal}
         onClose={() => setShowTransactionModal(false)}
       />
-
-      <QuickAddModal isOpen={showQuickAddModal} onClose={() => setShowQuickAddModal(false)} />
 
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
     </div>
