@@ -1,8 +1,8 @@
-import { EditTripDialog } from '@/components/trips/EditTripDialog';
-import { NewTripDialog } from '@/components/trips/NewTripDialog';
-import { Button } from '@/components/ui/button';
-import { useFamilyMembers } from '@/hooks/useFamily';
-import { useAddGuestTripMember, useTripPermissions } from '@/hooks/useTripMembers';
+import { EditTripDialog } from "@/components/trips/EditTripDialog";
+import { NewTripDialog } from "@/components/trips/NewTripDialog";
+import { Button } from "@/components/ui/button";
+import { useFamilyMembers } from "@/hooks/useFamily";
+import { useAddGuestTripMember, useTripPermissions } from "@/hooks/useTripMembers";
 import {
   useArchiveTrip,
   useCreateTrip,
@@ -16,24 +16,24 @@ import {
   useTripTransactions,
   useUnarchiveTrip,
   useUpdateTrip,
-} from '@/hooks/useTrips';
-import { moneyUtils } from '@/utils/money';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+} from "@/hooks/useTrips";
+import { moneyUtils } from "@/utils/money";
+import { Loader2, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { AddParticipantDialog } from '@/components/trips/AddParticipantDialog';
-import { PendingTripInvitationsAlert } from '@/components/trips/PendingTripInvitationsAlert';
+import { AddParticipantDialog } from "@/components/trips/AddParticipantDialog";
+import { PendingTripInvitationsAlert } from "@/components/trips/PendingTripInvitationsAlert";
 import {
   useCancelTripInvitation,
   useCreateTripInvitation,
   useSentTripInvitations,
-} from '@/hooks/useTripInvitations';
+} from "@/hooks/useTripInvitations";
 
-import { RemoveParticipantDialog } from '@/components/trips/RemoveParticipantDialog';
-import { TripDetailView } from '@/components/trips/TripDetailView';
-import { TripEmptyState } from '@/components/trips/TripEmptyState';
-import { TripListView } from '@/components/trips/TripListView';
+import { RemoveParticipantDialog } from "@/components/trips/RemoveParticipantDialog";
+import { TripDetailView } from "@/components/trips/TripDetailView";
+import { TripEmptyState } from "@/components/trips/TripEmptyState";
+import { TripListView } from "@/components/trips/TripListView";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,24 +43,24 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAccounts } from '@/hooks/useAccounts';
-import { supabase } from '@/integrations/supabase/client';
-import { dismissRelatedNotifications } from '@/services/notificationGenerator';
-import { logger } from '@/utils/logger';
-import { exportTripToExcel, exportTripToPDF } from '@/utils/tripExport';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAccounts } from "@/hooks/useAccounts";
+import { supabase } from "@/integrations/supabase/client";
+import { dismissRelatedNotifications } from "@/services/notificationGenerator";
+import { logger } from "@/utils/logger";
+import { exportTripToExcel, exportTripToPDF } from "@/utils/tripExport";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function Trips() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<'list' | 'detail'>('list');
+  const [view, setView] = useState<"list" | "detail">("list");
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('summary');
-  const [tripFilter, setTripFilter] = useState<'active' | 'archived'>('active');
+  const [activeTab, setActiveTab] = useState("summary");
+  const [tripFilter, setTripFilter] = useState<"active" | "archived">("active");
   const [showNewTripDialog, setShowNewTripDialog] = useState(false);
   const [showEditTripDialog, setShowEditTripDialog] = useState(false);
 
@@ -73,12 +73,12 @@ export function Trips() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
 
-  const [tripName, setTripName] = useState('');
-  const [tripDestination, setTripDestination] = useState('');
-  const [tripStartDate, setTripStartDate] = useState('');
-  const [tripEndDate, setTripEndDate] = useState('');
-  const [tripBudget, setTripBudget] = useState('');
-  const [tripCurrency, setTripCurrency] = useState('BRL');
+  const [tripName, setTripName] = useState("");
+  const [tripDestination, setTripDestination] = useState("");
+  const [tripStartDate, setTripStartDate] = useState("");
+  const [tripEndDate, setTripEndDate] = useState("");
+  const [tripBudget, setTripBudget] = useState("");
+  const [tripCurrency, setTripCurrency] = useState("BRL");
 
   const { data: trips = [], isLoading } = useTrips();
   const { data: selectedTrip } = useTrip(selectedTripId);
@@ -98,7 +98,7 @@ export function Trips() {
   const createInvitation = useCreateTripInvitation();
   const addGuestMember = useAddGuestTripMember();
   const { data: sentInvitations = [] } = useSentTripInvitations(selectedTripId);
-  const pendingInvitations = sentInvitations.filter((inv: any) => inv.status === 'pending');
+  const pendingInvitations = sentInvitations.filter((inv: any) => inv.status === "pending");
   const cancelInvitation = useCancelTripInvitation();
 
   const removeParticipant = useRemoveTripParticipant();
@@ -112,17 +112,17 @@ export function Trips() {
         id: removingParticipant.member_id,
         tripId: selectedTripId,
       });
-      queryClient.invalidateQueries({ queryKey: ['trip-participants', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-participant-balances', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-financial-summary', selectedTripId] });
-      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
+      queryClient.invalidateQueries({ queryKey: ["trip-participants", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participant-balances", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, "family_member");
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-      toast.success('Membro removido da viagem com sucesso');
+      toast.success("Membro removido da viagem com sucesso");
     } catch (err: any) {
       logger.error(err);
-      toast.error(err.message || 'Erro ao remover membro da viagem');
+      toast.error(err.message || "Erro ao remover membro da viagem");
     } finally {
       setIsRemovingState(false);
     }
@@ -140,21 +140,21 @@ export function Trips() {
     setIsRemovingState(true);
     try {
       const balanceVal = removingParticipantBalance.balance;
-      const { error: txError } = await supabase.from('transactions').insert({
+      const { error: txError } = await supabase.from("transactions").insert({
         user_id: user.id,
         creator_user_id: user.id,
         account_id: accountId,
         amount: Math.abs(balanceVal),
-        type: balanceVal < 0 ? 'INCOME' : 'EXPENSE',
+        type: balanceVal < 0 ? "INCOME" : "EXPENSE",
         description: `Acerto de Contas - Remoção de ${removingParticipant.name}`,
-        date: new Date().toISOString().split('T')[0],
-        competence_date: new Date().toISOString().slice(0, 7) + '-01',
-        domain: 'TRAVEL',
+        date: new Date().toISOString().split("T")[0],
+        competence_date: new Date().toISOString().slice(0, 7) + "-01",
+        domain: "TRAVEL",
         trip_id: selectedTripId,
         is_shared: false,
         is_settled: true,
         payer_id: balanceVal < 0 ? removingParticipant.user_id || removingParticipant.id : user.id,
-        currency: selectedTrip.currency || 'BRL',
+        currency: selectedTrip.currency || "BRL",
       });
 
       if (txError) throw txError;
@@ -164,19 +164,19 @@ export function Trips() {
         tripId: selectedTripId,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['trip-participants', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-participant-balances', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-transactions', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-financial-summary', selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participants", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participant-balances", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-transactions", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
 
-      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, "family_member");
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-      toast.success('Membro removido e acerto de contas registrado');
+      toast.success("Membro removido e acerto de contas registrado");
     } catch (err: any) {
       logger.error(err);
-      toast.error(err.message || 'Erro ao remover membro e acertar contas');
+      toast.error(err.message || "Erro ao remover membro e acertar contas");
     } finally {
       setIsRemovingState(false);
     }
@@ -194,20 +194,20 @@ export function Trips() {
     setIsRemovingState(true);
     try {
       const balanceVal = removingParticipantBalance.balance;
-      const { error: txError } = await supabase.from('transactions').insert({
+      const { error: txError } = await supabase.from("transactions").insert({
         user_id: user.id,
         creator_user_id: user.id,
         amount: Math.abs(balanceVal),
-        type: balanceVal < 0 ? 'EXPENSE' : 'INCOME',
+        type: balanceVal < 0 ? "EXPENSE" : "INCOME",
         description: `Ajuste Contábil (Perdão de Dívida) - Remoção de ${removingParticipant.name}`,
-        date: new Date().toISOString().split('T')[0],
-        competence_date: new Date().toISOString().slice(0, 7) + '-01',
-        domain: 'TRAVEL',
+        date: new Date().toISOString().split("T")[0],
+        competence_date: new Date().toISOString().slice(0, 7) + "-01",
+        domain: "TRAVEL",
         trip_id: selectedTripId,
         is_shared: true,
         is_settled: true,
         payer_id: user.id,
-        currency: selectedTrip.currency || 'BRL',
+        currency: selectedTrip.currency || "BRL",
       });
 
       if (txError) throw txError;
@@ -217,19 +217,19 @@ export function Trips() {
         tripId: selectedTripId,
       });
 
-      queryClient.invalidateQueries({ queryKey: ['trip-participants', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-participant-balances', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-transactions', selectedTripId] });
-      queryClient.invalidateQueries({ queryKey: ['trip-financial-summary', selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participants", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-participant-balances", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-transactions", selectedTripId] });
+      queryClient.invalidateQueries({ queryKey: ["trip-financial-summary", selectedTripId] });
 
-      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, 'family_member');
+      await dismissRelatedNotifications(user!.id, removingParticipant.member_id, "family_member");
       setShowRemoveDialog(false);
       setRemovingParticipant(null);
       setRemovingParticipantBalance(null);
-      toast.success('Membro removido e dívida perdoada');
+      toast.success("Membro removido e dívida perdoada");
     } catch (err: any) {
       logger.error(err);
-      toast.error(err.message || 'Erro ao remover membro e perdoar dívida');
+      toast.error(err.message || "Erro ao remover membro e perdoar dívida");
     } finally {
       setIsRemovingState(false);
     }
@@ -268,7 +268,7 @@ export function Trips() {
       </div>
     );
 
-  if (view === 'detail' && selectedTrip) {
+  if (view === "detail" && selectedTrip) {
     return (
       <div className="animate-fade-in space-y-6">
         <TripDetailView
@@ -283,21 +283,25 @@ export function Trips() {
           myPersonalBudget={selectedTrip.budget || null}
           balances={balances}
           onBack={() => {
-            setView('list');
+            setView("list");
             setSelectedTripId(null);
           }}
           onEdit={() => setShowEditTripDialog(true)}
           onAddParticipant={() => setShowAddParticipantDialog(true)}
           onArchive={async () => {
-            try { await archiveTrip.mutateAsync(selectedTripId!); } catch { /* onError do hook */ }
-            setView('list');
+            try {
+              await archiveTrip.mutateAsync(selectedTripId!);
+            } catch {
+              /* onError do hook */
+            }
+            setView("list");
           }}
           onUnarchive={async () => {
             try {
               await unarchiveTrip.mutateAsync(selectedTripId!);
-              toast.success('Viagem desarquivada com sucesso!');
+              toast.success("Viagem desarquivada com sucesso!");
             } catch (err: any) {
-              toast.error(err.message || 'Erro ao desarquivar viagem');
+              toast.error(err.message || "Erro ao desarquivar viagem");
             }
           }}
           onDelete={() => {
@@ -306,9 +310,13 @@ export function Trips() {
           }}
           onOpenBudget={() => setShowEditTripDialog(true)}
           onUpdateTrip={async (u) => {
-            try { await updateTrip.mutateAsync({ id: selectedTrip.id, ...u }); } catch { /* onError do hook */ }
+            try {
+              await updateTrip.mutateAsync({ id: selectedTrip.id, ...u });
+            } catch {
+              /* onError do hook */
+            }
           }}
-          formatCurrency={(val, cur) => moneyUtils.format(val, cur || 'BRL')}
+          formatCurrency={(val, cur) => moneyUtils.format(val, cur || "BRL")}
           onExportPDF={() => {
             if (user)
               exportTripToPDF({
@@ -347,7 +355,7 @@ export function Trips() {
           onConfirmSettleRemove={handleConfirmSettleRemove}
           onConfirmForgiveRemove={handleConfirmForgiveRemove}
           isRemoving={isRemovingState}
-          currency={selectedTrip.currency || 'BRL'}
+          currency={selectedTrip.currency || "BRL"}
           accounts={accounts}
         />
 
@@ -358,7 +366,7 @@ export function Trips() {
             (m) =>
               m.linked_user_id &&
               !participants.some((p) => p.user_id === m.linked_user_id) &&
-              m.linked_user_id !== user?.id,
+              m.linked_user_id !== user?.id
           )}
           currentParticipantNames={participants.map((p) => p.name)}
           onAdd={async (m) => {
@@ -377,20 +385,23 @@ export function Trips() {
           }}
           onAddGuest={async (guestName) => {
             if (selectedTripId) {
-            try {
-              await addGuestMember.mutateAsync({ tripId: selectedTripId, guestName });
-              setShowAddParticipantDialog(false);
+              try {
+                await addGuestMember.mutateAsync({ tripId: selectedTripId, guestName });
+                setShowAddParticipantDialog(false);
+              } catch {
+                /* onError do hook já trata */
+              }
             }
           }}
           onNavigateToFamily={() => {
             setShowAddParticipantDialog(false);
-            navigate('/familia');
+            navigate("/familia");
           }}
           getInitials={(n) =>
             n
-              .split(' ')
+              .split(" ")
               .map((x) => x[0])
-              .join('')
+              .join("")
               .toUpperCase()
               .slice(0, 2)
           }
@@ -408,7 +419,7 @@ export function Trips() {
                 document.activeElement.blur();
               }
             } catch (err) {
-              logger.error('Erro ao editar viagem', err);
+              logger.error("Erro ao editar viagem", err);
             }
           }}
           isLoading={updateTrip.isPending}
@@ -450,15 +461,15 @@ export function Trips() {
           setTripFilter={setTripFilter}
           onTripClick={(id) => {
             setSelectedTripId(id);
-            setView('detail');
-            setActiveTab('summary');
+            setView("detail");
+            setActiveTab("summary");
           }}
           onUnarchive={async (id) => {
             try {
               await unarchiveTrip.mutateAsync(id);
-              toast.success('Viagem desarquivada com sucesso!');
+              toast.success("Viagem desarquivada com sucesso!");
             } catch (err: any) {
-              toast.error(err.message || 'Erro ao desarquivar viagem');
+              toast.error(err.message || "Erro ao desarquivar viagem");
             }
           }}
         />
@@ -479,19 +490,19 @@ export function Trips() {
               memberIds: mids,
             });
             setShowNewTripDialog(false);
-            setTripName('');
-            setTripDestination('');
-            setTripStartDate('');
-            setTripEndDate('');
-            setTripBudget('');
-            setTripCurrency('BRL');
+            setTripName("");
+            setTripDestination("");
+            setTripStartDate("");
+            setTripEndDate("");
+            setTripBudget("");
+            setTripCurrency("BRL");
 
             // Close keyboard on mobile
             if (document.activeElement instanceof HTMLElement) {
               document.activeElement.blur();
             }
           } catch (err) {
-            logger.error('Erro ao criar viagem', err);
+            logger.error("Erro ao criar viagem", err);
           }
         }}
         isLoading={createTrip.isPending}
@@ -525,11 +536,11 @@ export function Trips() {
                 if (tripToDelete) {
                   try {
                     await deleteTrip.mutateAsync(tripToDelete);
-                    toast.success('Viagem excluída com sucesso');
-                    setView('list');
+                    toast.success("Viagem excluída com sucesso");
+                    setView("list");
                     setShowDeleteConfirm(false);
                   } catch (err: any) {
-                    toast.error(err.message || 'Erro ao excluir viagem');
+                    toast.error(err.message || "Erro ao excluir viagem");
                   }
                 }
               }}
@@ -541,7 +552,7 @@ export function Trips() {
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
-              {deleteTrip.isPending ? 'Excluindo...' : 'Excluir'}
+              {deleteTrip.isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
