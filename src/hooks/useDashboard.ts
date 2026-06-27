@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMonth } from '@/contexts/MonthContext';
@@ -69,6 +69,7 @@ export function useDashboardData() {
     },
     enabled: !!user,
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -9,7 +9,7 @@
  * após mutações (create/update/delete) via invalidateQueries.
  */
 
-import { UseQueryOptions } from '@tanstack/react-query';
+import { UseQueryOptions, keepPreviousData } from '@tanstack/react-query';
 
 /**
  * Default query configuration
@@ -22,6 +22,7 @@ export const defaultQueryConfig = {
   refetchOnMount: true as const,
   refetchOnWindowFocus: false,
   retry: 1,
+  placeholderData: keepPreviousData,
 };
 
 /**
@@ -45,6 +46,7 @@ export const realtimeQueryConfig = {
   refetchOnMount: true as const,
   refetchOnWindowFocus: false,
   retry: 1,
+  placeholderData: keepPreviousData,
 };
 
 /**
