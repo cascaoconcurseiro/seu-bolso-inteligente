@@ -357,45 +357,57 @@ function ChecklistDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+        {/* Swipe handle */}
+        <div className="w-full flex justify-center pt-4 sm:hidden shrink-0">
+          <div className="w-12 h-1.5 bg-muted rounded-full" />
+        </div>
+
+        <DialogHeader className="px-6 shrink-0">
           <DialogTitle>Novo Item</DialogTitle>
           <DialogDescription>Adicione um item ao checklist</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label>Item *</Label>
-            <Input
-              placeholder="Ex: Passaporte"
-              value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && onSubmit()}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Categoria</Label>
-            <Select value={newCategory} onValueChange={setNewCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+        {/* Conteúdo rolável */}
+        <div className="flex-1 overflow-y-auto px-6">
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Item *</Label>
+              <Input
+                placeholder="Ex: Passaporte"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Select value={newCategory} onValueChange={setNewCategory}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+
+        {/* Rodapé fixo */}
+        <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
+          <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={onSubmit} disabled={isLoading || !newItem.trim()}>
+          <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !newItem.trim()}>
             {isLoading ? "Adicionando..." : "Adicionar"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

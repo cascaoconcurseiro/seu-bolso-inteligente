@@ -15,8 +15,6 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useAssets } from "@/hooks/useAssets";
 import { Download, Printer, Eye, EyeOff, Scale, BadgePercent, Activity } from "lucide-react";
 import * as dateFns from "date-fns";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { formatExportMoney } from "@/utils/exportCurrency";
 import { toast } from "sonner";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
@@ -306,8 +304,10 @@ export function useAccountingDRE() {
     }
   };
 
-  const handleExportDREPDF = () => {
+  const handleExportDREPDF = async () => {
     try {
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF();
       const title = `DEMONSTRATIVO DO RESULTADO DO EXERCÍCIO (DRE)`;
       const subtitle = viewType === 'MONTH' 
@@ -585,8 +585,10 @@ export function useAccountingDRE() {
     }
   };
 
-  const handleExportBalanceSheetPDF = () => {
+  const handleExportBalanceSheetPDF = async () => {
     try {
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF();
       const title = `BALANÇO PATRIMONIAL CONTÁBIL (ATIVOS, PASSIVOS E PL)`;
           doc.setFont("helvetica", "bold");
