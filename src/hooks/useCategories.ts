@@ -126,6 +126,18 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async ({ id, ...input }: UpdateCategoryInput & { id: string }) => {
+      await queryClient.cancelQueries({ queryKey: ["categories"] });
+      const previousData = queryClient.getQueriesData<Category[]>({ queryKey: ["categories"] });
+      queryClient.setQueriesData<Category[]>({ queryKey: ["categories"] }, (old) =>
+        old?.map((c) => c.id === id ? { ...c, ...input } : c) ?? []
+      );
+      return { previousData };
+    },
+    onError: (error, _vars, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      categoryToasts.error('atualizar', error);
+    },
     mutationFn: async ({ id, ...input }: UpdateCategoryInput & { id: string }) => {
       const { data, error } = await supabase
         .from("categories")
@@ -137,12 +149,11 @@ export function useUpdateCategory() {
       if (error) throw error;
       return data as Category;
     },
-    onSuccess: async () => {
-      await invalidateCategoryQueries(queryClient);
+    onSuccess: () => {
       categoryToasts.updated();
     },
-    onError: (error) => {
-      categoryToasts.error('atualizar', error);
+    onSettled: async () => {
+      await invalidateCategoryQueries(queryClient);
     },
   });
 }
@@ -151,6 +162,18 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["categories"] });
+      const previousData = queryClient.getQueriesData<Category[]>({ queryKey: ["categories"] });
+      queryClient.setQueriesData<Category[]>({ queryKey: ["categories"] }, (old) =>
+        old?.filter((c) => c.id !== id) ?? []
+      );
+      return { previousData };
+    },
+    onError: (error, _id, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      categoryToasts.error('remover', error);
+    },
     mutationFn: async (id: string) => {
       // INTEGRIDADE DO BANCO: Verificar subcategorias filhas antes de excluir
       const { count: subCount } = await supabase
@@ -175,12 +198,11 @@ export function useDeleteCategory() {
 
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await invalidateCategoryQueries(queryClient);
+    onSuccess: () => {
       categoryToasts.deleted();
     },
-    onError: (error) => {
-      categoryToasts.error('remover', error);
+    onSettled: async () => {
+      await invalidateCategoryQueries(queryClient);
     },
   });
 }

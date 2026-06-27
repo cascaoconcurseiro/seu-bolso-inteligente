@@ -35,7 +35,7 @@ export function useGlobalRealtime() {
           (window as { _realtimeTimeout?: ReturnType<typeof setTimeout> })._realtimeTimeout = setTimeout(() => {
             logger.debug('Executando invalidação financeira após evento Realtime');
             invalidateAllFinancialData(queryClient);
-          }, 1500);
+          }, 100);
         }
       )
       .subscribe((status) => {

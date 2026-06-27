@@ -39,7 +39,7 @@ export function useWealthEvolution(currency: string = "BRL", months: number = 6)
       })) as WealthPoint[];
     },
     enabled: !!user,
-    staleTime: 0, // Dados sempre frescos para responder reativamente a inserções/edições
-    refetchOnMount: 'always',
+    staleTime: 60 * 1000,
+    refetchOnMount: true,
   });
 }

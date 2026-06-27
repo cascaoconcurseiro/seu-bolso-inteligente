@@ -135,6 +135,17 @@ export const useBudgets = () => {
 
   // Criar orçamento
   const createBudget = useMutation({
+    onMutate: async (budget: Omit<Budget, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted'>) => {
+      await queryClient.cancelQueries({ queryKey: ['budgets', user?.id] });
+      const previous = queryClient.getQueryData<Budget[]>(['budgets', user?.id]);
+      const optimistic = { ...budget, id: `temp-${Date.now()}`, user_id: user?.id ?? '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), deleted: false } as Budget;
+      queryClient.setQueryData<Budget[]>(['budgets', user?.id], (old) => [optimistic, ...(old ?? [])]);
+      return { previous };
+    },
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['budgets', user?.id], context.previous);
+      budgetToasts.error('criar', error);
+    },
     mutationFn: async (budget: Omit<Budget, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted'>) => {
       if (!user) throw new Error('Usuário não autenticado');
 
@@ -147,17 +158,28 @@ export const useBudgets = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: async () => {
-      await invalidateBudgetQueries(queryClient);
+    onSuccess: () => {
       budgetToasts.created();
     },
-    onError: (error: Error) => {
-      budgetToasts.error('criar', error);
+    onSettled: async () => {
+      await invalidateBudgetQueries(queryClient);
     },
   });
 
   // Atualizar orçamento
   const updateBudget = useMutation({
+    onMutate: async ({ id, ...budget }: Partial<Budget> & { id: string }) => {
+      await queryClient.cancelQueries({ queryKey: ['budgets', user?.id] });
+      const previous = queryClient.getQueryData<Budget[]>(['budgets', user?.id]);
+      queryClient.setQueryData<Budget[]>(['budgets', user?.id], (old) =>
+        old?.map((b) => b.id === id ? { ...b, ...budget } : b) ?? []
+      );
+      return { previous };
+    },
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['budgets', user?.id], context.previous);
+      budgetToasts.error('atualizar', error);
+    },
     mutationFn: async ({ id, ...budget }: Partial<Budget> & { id: string }) => {
       const { data, error } = await supabase
         .from('budgets')
@@ -169,17 +191,28 @@ export const useBudgets = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: async () => {
-      await invalidateBudgetQueries(queryClient);
+    onSuccess: () => {
       budgetToasts.updated();
     },
-    onError: (error: Error) => {
-      budgetToasts.error('atualizar', error);
+    onSettled: async () => {
+      await invalidateBudgetQueries(queryClient);
     },
   });
 
   // Deletar orçamento (soft delete)
   const deleteBudget = useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['budgets', user?.id] });
+      const previous = queryClient.getQueryData<Budget[]>(['budgets', user?.id]);
+      queryClient.setQueryData<Budget[]>(['budgets', user?.id], (old) =>
+        old?.filter((b) => b.id !== id) ?? []
+      );
+      return { previous };
+    },
+    onError: (error: Error, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['budgets', user?.id], context.previous);
+      budgetToasts.error('excluir', error);
+    },
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('budgets')
@@ -188,12 +221,11 @@ export const useBudgets = () => {
 
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await invalidateBudgetQueries(queryClient);
+    onSuccess: () => {
       budgetToasts.deleted();
     },
-    onError: (error: Error) => {
-      budgetToasts.error('excluir', error);
+    onSettled: async () => {
+      await invalidateBudgetQueries(queryClient);
     },
   });
 

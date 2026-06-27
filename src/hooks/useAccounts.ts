@@ -308,6 +308,18 @@ export function useUpdateAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async ({ id, ...input }: Partial<Account> & { id: string }) => {
+      await queryClient.cancelQueries({ queryKey: ["accounts"] });
+      const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
+      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
+        old?.map((a) => a.id === id ? { ...a, ...input } : a) ?? []
+      );
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      accountToasts.error('atualizar', _err as Error);
+    },
     mutationFn: async ({ id, ...input }: Partial<Account> & { id: string }) => {
       // Se está atualizando o saldo, criar transação de ajuste
       if (input.balance !== undefined && user) {
@@ -392,8 +404,8 @@ export function useUpdateAccount() {
       await invalidateAccountQueries(queryClient);
       accountToasts.updated();
     },
-    onError: (error) => {
-      accountToasts.error('atualizar', error);
+    onSettled: async () => {
+      await invalidateAccountQueries(queryClient);
     },
   });
 }
@@ -420,6 +432,17 @@ export function useDeleteAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["accounts"] });
+      const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
+      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
+        old?.filter((a) => a.id !== id) ?? []
+      );
+      return { previousData };
+    },
+    onError: (_err, _id, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+    },
     mutationFn: async (id: string) => {
       // AUDITORIA 2026-05-10: Verificar dependências antes de excluir
       try {
@@ -467,9 +490,19 @@ export function useArchiveAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["accounts"] });
+      const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
+      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
+        old?.filter((a) => a.id !== id) ?? []
+      );
+      return { previousData };
+    },
+    onError: (_err, _id, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      accountToasts.error('arquivar', _err as Error);
+    },
     mutationFn: async (id: string) => {
-      // Arquivar conta (is_archived = true)
-      // Transações são preservadas
       const { error } = await supabase
         .from("accounts")
         .update({ is_archived: true })
@@ -477,13 +510,12 @@ export function useArchiveAccount() {
 
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
+    onSuccess: () => {
       accountToasts.archived();
     },
-    onError: (error) => {
-      accountToasts.error('arquivar', error);
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
     },
   });
 }
@@ -492,8 +524,19 @@ export function useUnarchiveAccount() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["archived-accounts"] });
+      const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["archived-accounts"] });
+      queryClient.setQueriesData<Account[]>({ queryKey: ["archived-accounts"] }, (old) =>
+        old?.filter((a) => a.id !== id) ?? []
+      );
+      return { previousData };
+    },
+    onError: (_err, _id, context) => {
+      context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
+      accountToasts.error('desarquivar', _err as Error);
+    },
     mutationFn: async (id: string) => {
-      // Desarquivar conta (is_archived = false)
       const { error } = await supabase
         .from("accounts")
         .update({ is_archived: false })
@@ -501,13 +544,12 @@ export function useUnarchiveAccount() {
 
       if (error) throw error;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
-      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
+    onSuccess: () => {
       accountToasts.unarchived();
     },
-    onError: (error) => {
-      accountToasts.error('desarquivar', error);
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["archived-accounts"] });
     },
   });
 }

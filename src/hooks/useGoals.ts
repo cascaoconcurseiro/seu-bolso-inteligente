@@ -51,6 +51,17 @@ export const useGoals = () => {
 
   // Criar meta
   const createGoal = useMutation({
+    onMutate: async (goal: Omit<Goal, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted' | 'completed_at' | 'creator_user_id'>) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previous = queryClient.getQueryData<Goal[]>(['goals']);
+      const optimistic = { ...goal, id: `temp-${Date.now()}`, user_id: '', creator_user_id: '', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), deleted: false, completed_at: null } as Goal;
+      queryClient.setQueryData<Goal[]>(['goals'], (old) => [optimistic, ...(old ?? [])]);
+      return { previous };
+    },
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['goals'], context.previous);
+      toast({ title: 'Erro ao criar meta', description: error.message, variant: 'destructive' });
+    },
     mutationFn: async (goal: Omit<Goal, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted' | 'completed_at' | 'creator_user_id'>) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
@@ -65,23 +76,27 @@ export const useGoals = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast({
-        title: 'Meta criada',
-        description: 'Meta criada com sucesso!',
-      });
+      toast({ title: 'Meta criada', description: 'Meta criada com sucesso!' });
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Erro ao criar meta',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
   // Atualizar meta
   const updateGoal = useMutation({
+    onMutate: async ({ id, ...goal }: Partial<Goal> & { id: string }) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previous = queryClient.getQueryData<Goal[]>(['goals']);
+      queryClient.setQueryData<Goal[]>(['goals'], (old) =>
+        old?.map((g) => g.id === id ? { ...g, ...goal } : g) ?? []
+      );
+      return { previous };
+    },
+    onError: (error: Error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['goals'], context.previous);
+      toast({ title: 'Erro ao atualizar meta', description: error.message, variant: 'destructive' });
+    },
     mutationFn: async ({ id, ...goal }: Partial<Goal> & { id: string }) => {
       const { data, error } = await supabase
         .from('goals')
@@ -94,18 +109,10 @@ export const useGoals = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast({
-        title: 'Meta atualizada',
-        description: 'Meta atualizada com sucesso!',
-      });
+      toast({ title: 'Meta atualizada', description: 'Meta atualizada com sucesso!' });
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Erro ao atualizar meta',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
@@ -242,6 +249,16 @@ export const useGoals = () => {
 
   // Deletar meta (soft delete)
   const deleteGoal = useMutation({
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ['goals'] });
+      const previous = queryClient.getQueryData<Goal[]>(['goals']);
+      queryClient.setQueryData<Goal[]>(['goals'], (old) => old?.filter((g) => g.id !== id) ?? []);
+      return { previous };
+    },
+    onError: (error: Error, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['goals'], context.previous);
+      toast({ title: 'Erro ao excluir meta', description: error.message, variant: 'destructive' });
+    },
     mutationFn: async (id: string) => {
       // 1. Fetch the goal to know its name
       const { data: goal, error: fetchError } = await supabase
@@ -268,18 +285,10 @@ export const useGoals = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast({
-        title: 'Meta excluída',
-        description: 'Meta excluída com sucesso!',
-      });
+      toast({ title: 'Meta excluída', description: 'Meta excluída com sucesso!' });
     },
-    onError: (error: Error) => {
-      toast({
-        title: 'Erro ao excluir meta',
-        description: error.message,
-        variant: 'destructive',
-      });
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
