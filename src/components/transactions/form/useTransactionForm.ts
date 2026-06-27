@@ -1,31 +1,32 @@
-import { useAuth } from '@/contexts/AuthContext';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useAIPrediction } from '@/hooks/useAIPrediction';
-import { useCategoriesHierarchical, useCreateDefaultCategories } from '@/hooks/useCategories';
-import { useFamilyMembers, useSharedContacts } from '@/hooks/useFamily';
-import { useGoals } from '@/hooks/useGoals';
-import { useTransactionModal } from '@/hooks/useTransactionModal';
+import { useAuth } from "@/contexts/AuthContext";
+import { useAccounts } from "@/hooks/useAccounts";
+import { useAIPrediction } from "@/hooks/useAIPrediction";
+import { useCategoriesHierarchical, useCreateDefaultCategories } from "@/hooks/useCategories";
+import { useFamilyMembers, useSharedContacts } from "@/hooks/useFamily";
+import { useAutoShareRules, matchAutoShareRule } from "@/hooks/useAutoShareRules";
+import { useGoals } from "@/hooks/useGoals";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
 import {
   CreateTransactionInput,
   TransactionType,
   useCreateTransaction,
   useTransactions,
   useUpdateTransaction,
-} from '@/hooks/useTransactions';
-import { useTripMembers } from '@/hooks/useTripMembers';
-import { useTrips } from '@/hooks/useTrips';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { CategoryPredictionService } from '@/services/categoryPredictionService';
-import { validateTransaction } from '@/services/validationService';
-import { useTransactionStore } from '@/store/useTransactionStore';
-import { haptics } from '@/utils/haptics';
-import { logger } from '@/utils/logger';
-import { differenceInDays, format, parseISO } from 'date-fns';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+} from "@/hooks/useTransactions";
+import { useTripMembers } from "@/hooks/useTripMembers";
+import { useTrips } from "@/hooks/useTrips";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { CategoryPredictionService } from "@/services/categoryPredictionService";
+import { validateTransaction } from "@/services/validationService";
+import { useTransactionStore } from "@/store/useTransactionStore";
+import { haptics } from "@/utils/haptics";
+import { logger } from "@/utils/logger";
+import { differenceInDays, format, parseISO } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-import { moneyUtils } from '@/utils/money';
+import { moneyUtils } from "@/utils/money";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -63,6 +64,7 @@ export function useTransactionForm({
   const myMemberRecord = useMemo(() => {
     return (familyMembers || []).find((m) => m.linked_user_id === user?.id);
   }, [familyMembers, user?.id]);
+  const { data: autoShareRules = [] } = useAutoShareRules();
   const { data: allTransactions = [] } = useTransactions();
   const createTransaction = useCreateTransaction();
   const createDefaultCategories = useCreateDefaultCategories();
@@ -104,22 +106,57 @@ export function useTransactionForm({
   const lastClearedAccountForPaidByOtherRef = useRef<boolean | null>(null);
   const lastClearedAccountForTabRef = useRef<string | null>(null);
 
+  // Auto-share: pré-popular splits quando regra casa (feedback visual imediato)
+  const autoShareAppliedRef = useRef(false);
+  useEffect(() => {
+    // Só aplica em despesa nova, sem splits manuais, e só uma vez por "sessão" do form
+    if (
+      activeTab !== "EXPENSE" ||
+      initialData ||
+      splits.length > 0 ||
+      autoShareAppliedRef.current ||
+      autoShareRules.length === 0
+    )
+      return;
+
+    const matched = matchAutoShareRule(autoShareRules, categoryId || null, description);
+    if (!matched) return;
+
+    const otherPct = matched.split_ratio * 100;
+    const myMemberId = myMemberRecord?.id;
+    if (!myMemberId) return;
+
+    autoShareAppliedRef.current = true;
+    store.setSplits([
+      { memberId: matched.member_id, percentage: otherPct, amount: 0 },
+      { memberId: myMemberId, percentage: 100 - otherPct, amount: 0 },
+    ]);
+  }, [
+    activeTab,
+    categoryId,
+    description,
+    autoShareRules,
+    splits.length,
+    initialData,
+    myMemberRecord?.id,
+  ]);
+
   const predictionType = useMemo(() => {
-    if (activeTab === 'INCOME') return 'income';
-    if (activeTab === 'EXPENSE') return 'expense';
+    if (activeTab === "INCOME") return "income";
+    if (activeTab === "EXPENSE") return "expense";
     return null;
   }, [activeTab]);
 
   const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(
     description,
-    predictionType || 'expense',
-    !!predictionType,
+    predictionType || "expense",
+    !!predictionType
   );
 
   // Context application
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
-    if (description.trim() === '') {
+    if (description.trim() === "") {
       lastAppliedCategoryIdRef.current = null;
     }
   }, [description]);
@@ -147,7 +184,7 @@ export function useTransactionForm({
 
   useEffect(() => {
     if (context?.accountId && context?.tripId === tripId) return;
-    store.setAccountId('');
+    store.setAccountId("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId, context?.accountId, context?.tripId]);
 
@@ -168,7 +205,7 @@ export function useTransactionForm({
     }
 
     if (!hasInitialized.current) {
-      if (initialData && typeof initialData === 'object' && Object.keys(initialData).length > 0) {
+      if (initialData && typeof initialData === "object" && Object.keys(initialData).length > 0) {
         store.initFromData(initialData);
       } else {
         store.reset();
@@ -204,7 +241,7 @@ export function useTransactionForm({
     // Não sobrescrever se já foi definido via context
     if (context?.accountId) return;
 
-    if (activeTab === 'EXPENSE') {
+    if (activeTab === "EXPENSE") {
       // Para despesas: preferir cartão padrão, depois conta padrão
       const defaultCard = profile.default_credit_card_id;
       const defaultAcc = profile.default_account_id;
@@ -213,7 +250,7 @@ export function useTransactionForm({
       } else if (defaultAcc && !accountId) {
         store.setAccountId(defaultAcc);
       }
-    } else if (activeTab === 'INCOME' || activeTab === 'TRANSFER') {
+    } else if (activeTab === "INCOME" || activeTab === "TRANSFER") {
       const defaultAcc = profile.default_account_id;
       if (defaultAcc && !accountId) {
         store.setAccountId(defaultAcc);
@@ -266,7 +303,7 @@ export function useTransactionForm({
         const descMatch =
           tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
           description.toLowerCase().trim().includes(tx.description.toLowerCase());
-        const txDate = typeof tx.date === 'string' ? parseISO(tx.date) : tx.date;
+        const txDate = typeof tx.date === "string" ? parseISO(tx.date) : tx.date;
         const daysDiff = Math.abs(differenceInDays(txDate, date));
         return amountMatch && descMatch && daysDiff <= 3;
       });
@@ -282,14 +319,14 @@ export function useTransactionForm({
     if (!tripId || !tripMembers || tripMembers.length === 0) return familyMembers || [];
 
     const existingUserIds = new Set(
-      (familyMembers || []).map((m) => m.linked_user_id).filter(Boolean),
+      (familyMembers || []).map((m) => m.linked_user_id).filter(Boolean)
     );
 
     const tripOnlyMembers = tripMembers
       .filter((tm) => tm.user_id && !existingUserIds.has(tm.user_id))
       .map((tm) => ({
         id: tm.user_id as string,
-        family_id: '',
+        family_id: "",
         user_id: tm.user_id,
         linked_user_id: tm.user_id as string,
         name:
@@ -297,22 +334,22 @@ export function useTransactionForm({
           tm.guest_name ||
           tm.profiles?.full_name ||
           tm.profiles?.email ||
-          'Participante',
+          "Participante",
         email: tm.profiles?.email || null,
-        role: 'viewer' as const,
+        role: "viewer" as const,
         avatar_url: null,
         avatar_color: null,
         avatar_icon: null,
-        status: 'active' as const,
-        member_type: 'contact' as const,
+        status: "active" as const,
+        member_type: "contact" as const,
         invited_by: null,
-        sharing_scope: 'all' as const,
+        sharing_scope: "all" as const,
         scope_start_date: null,
         scope_end_date: null,
         scope_trip_id: null,
         active_in_form: true,
-        created_at: '',
-        updated_at: '',
+        created_at: "",
+        updated_at: "",
       }));
 
     // Incluir guests (trip_members com user_id: null) como membros virtuais
@@ -320,25 +357,25 @@ export function useTransactionForm({
       .filter((tm) => !tm.user_id)
       .map((tm) => ({
         id: tm.id,
-        family_id: '',
+        family_id: "",
         user_id: null,
         linked_user_id: tm.id,
-        name: tm.guest_name || tm.display_name || 'Convidado',
+        name: tm.guest_name || tm.display_name || "Convidado",
         email: null,
-        role: 'viewer' as const,
+        role: "viewer" as const,
         avatar_url: null,
         avatar_color: null,
         avatar_icon: null,
-        status: 'active' as const,
-        member_type: 'contact' as const,
+        status: "active" as const,
+        member_type: "contact" as const,
         invited_by: null,
-        sharing_scope: 'all' as const,
+        sharing_scope: "all" as const,
         scope_start_date: null,
         scope_end_date: null,
         scope_trip_id: null,
         active_in_form: true,
-        created_at: '',
-        updated_at: '',
+        created_at: "",
+        updated_at: "",
       }));
 
     return [...(familyMembers || []), ...tripOnlyMembers, ...guestMembers];
@@ -350,19 +387,19 @@ export function useTransactionForm({
 
     // If it's a trip, prefer trip members (exclude guests with null user_id)
     if (tripId && tripMembers && tripMembers.length > 0) {
-      const payerUserId = payerId === 'me' ? user?.id : payerId;
+      const payerUserId = payerId === "me" ? user?.id : payerId;
       // Inclui tanto user_id (usuários registrados) quanto trip_members.id (guests)
       const tripAllIds = new Set([
         ...tripMembers.map((tm) => tm.user_id).filter(Boolean),
         ...tripMembers.filter((tm) => !tm.user_id).map((tm) => tm.id),
       ] as string[]);
       return membersList.filter(
-        (m) => m.linked_user_id !== payerUserId && tripAllIds.has(m.linked_user_id as string),
+        (m) => m.linked_user_id !== payerUserId && tripAllIds.has(m.linked_user_id as string)
       );
     }
 
     // If it's family
-    const payerMemberId = payerId === 'me' ? myMemberRecord?.id : payerId;
+    const payerMemberId = payerId === "me" ? myMemberRecord?.id : payerId;
     return membersList.filter((m) => m.id !== payerMemberId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
@@ -371,16 +408,16 @@ export function useTransactionForm({
   // foi removida pois apagava os splits recém-carregados na edição. O UX no modal
   // lida bem com a manutenção dos splits caso o usuário troque "Eu Paguei" / "Outro Pagou".
 
-  const creditCards = (accounts || []).filter((a) => a.type === 'CREDIT_CARD');
-  const transferAccounts = (accounts || []).filter((a) => a.type !== 'CREDIT_CARD');
+  const creditCards = (accounts || []).filter((a) => a.type === "CREDIT_CARD");
+  const transferAccounts = (accounts || []).filter((a) => a.type !== "CREDIT_CARD");
   const isCreditCard = creditCards.some((c) => c.id === accountId);
-  const isExpense = activeTab === 'EXPENSE';
+  const isExpense = activeTab === "EXPENSE";
   const selectedTrip = trips?.find((t) => t.id === tripId);
-  const hasSharing = splits.length > 0 || (payerId !== 'me' && payerId !== '');
+  const hasSharing = splits.length > 0 || (payerId !== "me" && payerId !== "");
   const isPaidByOther =
     !membersLoading &&
-    payerId !== 'me' &&
-    payerId !== '' &&
+    payerId !== "me" &&
+    payerId !== "" &&
     payerId !== myMemberRecord?.id &&
     payerId !== user?.id;
   const selectedAccount = accounts?.find((a) => a.id === accountId);
@@ -392,9 +429,9 @@ export function useTransactionForm({
     const shouldNormalize =
       (user?.id && payerId === user.id) || (myMemberRecord?.id && payerId === myMemberRecord.id);
 
-    if (shouldNormalize && lastSetPayerIdRef.current !== 'me') {
-      lastSetPayerIdRef.current = 'me';
-      store.setPayerId('me');
+    if (shouldNormalize && lastSetPayerIdRef.current !== "me") {
+      lastSetPayerIdRef.current = "me";
+      store.setPayerId("me");
     } else if (!shouldNormalize) {
       lastSetPayerIdRef.current = payerId;
     }
@@ -402,7 +439,7 @@ export function useTransactionForm({
   }, [user?.id, myMemberRecord?.id, payerId]);
 
   const isExchangeTransfer =
-    activeTab === 'TRANSFER' &&
+    activeTab === "TRANSFER" &&
     selectedAccount &&
     selectedDestAccount &&
     selectedAccount.currency !== selectedDestAccount.currency;
@@ -423,7 +460,7 @@ export function useTransactionForm({
       const computedRate = (numAmount / numDest).toFixed(4);
       store.setExchangeRate(computedRate);
     } else {
-      store.setExchangeRate('');
+      store.setExchangeRate("");
     }
   };
 
@@ -436,7 +473,7 @@ export function useTransactionForm({
         const computedRate = (numAmount / numDest).toFixed(4);
         store.setExchangeRate(computedRate);
       } else {
-        store.setExchangeRate('');
+        store.setExchangeRate("");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -447,7 +484,7 @@ export function useTransactionForm({
   useEffect(() => {
     if (isPaidByOther && lastClearedAccountForPaidByOtherRef.current !== true) {
       lastClearedAccountForPaidByOtherRef.current = true;
-      store.setAccountId('');
+      store.setAccountId("");
     } else if (!isPaidByOther) {
       lastClearedAccountForPaidByOtherRef.current = false;
     }
@@ -459,12 +496,12 @@ export function useTransactionForm({
   useEffect(() => {
     const key = `${activeTab}:${accountId}`;
     if (
-      activeTab === 'INCOME' &&
-      selectedAccount?.type === 'CREDIT_CARD' &&
+      activeTab === "INCOME" &&
+      selectedAccount?.type === "CREDIT_CARD" &&
       lastClearedAccountForTabRef.current !== key
     ) {
       lastClearedAccountForTabRef.current = key;
-      store.setAccountId('');
+      store.setAccountId("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedAccount?.type, accountId]);
@@ -472,25 +509,25 @@ export function useTransactionForm({
   const transactionCurrency =
     selectedTrip?.currency ||
     (selectedAccount?.is_international ? selectedAccount.currency : null) ||
-    'BRL';
+    "BRL";
 
   const filteredAccounts = useMemo(() => {
     if (!accounts) return [];
     return accounts.filter((acc) => {
-      if (activeTab === 'INCOME' && acc.type === 'CREDIT_CARD') {
+      if (activeTab === "INCOME" && acc.type === "CREDIT_CARD") {
         return false;
       }
       if (
-        (activeTab === 'INCOME' || activeTab === 'EXPENSE') &&
-        (acc.type === 'INVESTMENT' || acc.type === 'EMERGENCY_FUND')
+        (activeTab === "INCOME" || activeTab === "EXPENSE") &&
+        (acc.type === "INVESTMENT" || acc.type === "EMERGENCY_FUND")
       ) {
         return false;
       }
-      if (activeTab === 'TRANSFER') {
+      if (activeTab === "TRANSFER") {
         return true;
       }
       if (selectedTrip) {
-        if (selectedTrip.currency === 'BRL') return !acc.is_international;
+        if (selectedTrip.currency === "BRL") return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
       }
       return !acc.is_international;
@@ -501,30 +538,30 @@ export function useTransactionForm({
 
   // ANTI-LOOP: Ref guarda o último accountId que foi invalidado para evitar chamar
   // setAccountId('') repetidamente quando já está vazio (loop: filteredAccounts → setAccountId → filteredAccounts).
-  const lastInvalidatedAccountRef = useRef<string>('');
+  const lastInvalidatedAccountRef = useRef<string>("");
   useEffect(() => {
     if (accountId && filteredAccounts && filteredAccounts.length > 0) {
       const isAccountValid = filteredAccounts.some((acc) => acc.id === accountId);
       if (!isAccountValid && lastInvalidatedAccountRef.current !== accountId) {
         lastInvalidatedAccountRef.current = accountId;
-        store.setAccountId('');
+        store.setAccountId("");
       }
     } else if (!accountId) {
       // Reset ref quando conta já está vazia — próxima seleção inválida pode ser detectada
-      lastInvalidatedAccountRef.current = '';
+      lastInvalidatedAccountRef.current = "";
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredAccounts, accountId]);
 
   const getCurrencySymbol = (currency: string) => {
     const symbols: Record<string, string> = {
-      BRL: 'R$',
-      USD: '$',
-      EUR: '€',
-      GBP: '£',
-      CAD: 'C$',
-      AUD: 'A$',
-      JPY: '¥',
+      BRL: "R$",
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      CAD: "C$",
+      AUD: "A$",
+      JPY: "¥",
     };
     return symbols[currency] || currency;
   };
@@ -535,30 +572,32 @@ export function useTransactionForm({
         // Edição: fecha imediatamente (optimistic update em onMutate do useUpdateTransaction)
         haptics.success();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        if (onSuccess) onSuccess(); else navigate('/transacoes');
+        if (onSuccess) onSuccess();
+        else navigate("/transacoes");
         updateTransaction.mutate({ ...transactionData, id: initialData.id });
       } else {
         // Criação: fecha o modal imediatamente (optimistic update já aplicado em onMutate)
         haptics.success();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        if (onSuccess) onSuccess(); else navigate('/transacoes');
+        if (onSuccess) onSuccess();
+        else navigate("/transacoes");
 
         // Dispara em background — onError faz rollback e mostra toast se falhar
         createTransaction.mutate(transactionData);
 
         // Aprendizado de categoria também em background
-        if (user && categoryId && description && activeTab !== 'TRANSFER') {
+        if (user && categoryId && description && activeTab !== "TRANSFER") {
           CategoryPredictionService.learnFromUser(
             description,
             categoryId,
             user.id,
-            !!(predictedCategoryId && predictedCategoryId !== categoryId),
-          ).catch((error) => logger.error('Erro ao registrar aprendizado de categoria:', error));
+            !!(predictedCategoryId && predictedCategoryId !== categoryId)
+          ).catch((error) => logger.error("Erro ao registrar aprendizado de categoria:", error));
         }
       }
     } catch (error: any) {
-      logger.error('Erro ao salvar transação:', error);
-      toast.error(error.message || 'Erro de conexão ou timeout. Tente novamente.');
+      logger.error("Erro ao salvar transação:", error);
+      toast.error(error.message || "Erro de conexão ou timeout. Tente novamente.");
     }
   };
 
@@ -568,40 +607,40 @@ export function useTransactionForm({
     setValidationWarnings([]);
     const numericAmount = moneyUtils.parse(amount) || 0;
     const transactionSplits =
-      activeTab === 'EXPENSE'
+      activeTab === "EXPENSE"
         ? splits.map((s) => ({
             member_id: s.memberId,
             percentage: s.percentage,
             amount: Number(((numericAmount * s.percentage) / 100).toFixed(2)),
           }))
         : [];
-    const isShared = transactionSplits.length > 0 || (activeTab === 'EXPENSE' && isPaidByOther);
+    const isShared = transactionSplits.length > 0 || (activeTab === "EXPENSE" && isPaidByOther);
 
     if (isShared && !isPaidByOther && transactionSplits.length === 0) {
-      toast.error('Selecione pelo menos um membro para dividir a despesa');
+      toast.error("Selecione pelo menos um membro para dividir a despesa");
       setShowSplitModal(true);
       return;
     }
     if (numericAmount <= 0) {
-      toast.error('O valor da transação deve ser maior que zero');
+      toast.error("O valor da transação deve ser maior que zero");
       return;
     }
     if (!description.trim()) {
-      toast.error('A descrição é obrigatória');
+      toast.error("A descrição é obrigatória");
       return;
     }
-    if (activeTab === 'EXPENSE' && !categoryId) {
-      toast.error('A categoria é obrigatória para despesas');
+    if (activeTab === "EXPENSE" && !categoryId) {
+      toast.error("A categoria é obrigatória para despesas");
       return;
     }
     if (!accountId && !isPaidByOther) {
-      toast.error('A conta de origem é obrigatória');
+      toast.error("A conta de origem é obrigatória");
       return;
     }
-    if (activeTab === 'TRANSFER') {
-      if (transferType === 'goal') {
+    if (activeTab === "TRANSFER") {
+      if (transferType === "goal") {
         if (!goalId) {
-          toast.error('Selecione uma meta de destino');
+          toast.error("Selecione uma meta de destino");
           return;
         }
         setPendingSubmit(true);
@@ -610,7 +649,7 @@ export function useTransactionForm({
             id: goalId,
             amount: numericAmount,
             accountId: accountId,
-            description: description || 'Transferência para Meta',
+            description: description || "Transferência para Meta",
           },
           {
             onSuccess: () => {
@@ -620,12 +659,12 @@ export function useTransactionForm({
             onError: () => {
               setPendingSubmit(false);
             },
-          },
+          }
         );
         return;
       }
       if (!destinationAccountId) {
-        toast.error('A conta de destino é obrigatória');
+        toast.error("A conta de destino é obrigatória");
         return;
       }
     }
@@ -634,7 +673,7 @@ export function useTransactionForm({
       if (selectedAccount.currency !== selectedTrip.currency) {
         if (!destinationAmount || moneyUtils.parse(destinationAmount) <= 0) {
           toast.error(
-            `Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`,
+            `Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`
           );
           return;
         }
@@ -642,17 +681,17 @@ export function useTransactionForm({
     }
 
     const resolvedPayerId = (() => {
-      if (!isShared && payerId === 'me') return undefined;
-      if (payerId !== 'me') return payerId || undefined;
+      if (!isShared && payerId === "me") return undefined;
+      if (payerId !== "me") return payerId || undefined;
       const me = familyMembers.find((m) => m.linked_user_id === user?.id);
       if (me) return me.id;
-      const meFallback = familyMembers.find((m) => m.email === user?.email || m.role === 'admin');
+      const meFallback = familyMembers.find((m) => m.email === user?.email || m.role === "admin");
       return meFallback?.id;
     })();
 
     if (isShared && !resolvedPayerId) {
       toast.error(
-        'Não foi possível identificar seu perfil de membro na família. Verifique suas configurações.',
+        "Não foi possível identificar seu perfil de membro na família. Verifique suas configurações."
       );
       return;
     }
@@ -661,33 +700,33 @@ export function useTransactionForm({
       ? totalInstallments > 1
       : isInstallment && totalInstallments > 1;
 
-    let calculatedCompetenceDate = format(date, 'yyyy-MM-01');
+    let calculatedCompetenceDate = format(date, "yyyy-MM-01");
     const isEdit = !!initialData && !!initialData.id;
     const isInstallmentTx = isEdit ? initialData.is_installment : isActuallyInstallment;
 
     if (isEdit && isInstallmentTx && initialData.competence_date) {
       calculatedCompetenceDate = initialData.competence_date;
-    } else if (selectedAccount?.type === 'CREDIT_CARD' && selectedAccount.closing_day) {
+    } else if (selectedAccount?.type === "CREDIT_CARD" && selectedAccount.closing_day) {
       const txDay = date.getDate();
       if (txDay >= selectedAccount.closing_day) {
         // Se a data da compra for >= ao dia de fechamento, a competência é no mês seguinte
         const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-        calculatedCompetenceDate = format(nextMonth, 'yyyy-MM-01');
+        calculatedCompetenceDate = format(nextMonth, "yyyy-MM-01");
       }
     }
 
     const transactionData: CreateTransactionInput = {
       amount: numericAmount,
       description: description.trim(),
-      date: format(date, 'yyyy-MM-dd'),
+      date: format(date, "yyyy-MM-dd"),
       competence_date: calculatedCompetenceDate,
       type: activeTab as TransactionType,
       account_id: !isPaidByOther ? accountId || undefined : undefined,
-      destination_account_id: activeTab === 'TRANSFER' ? destinationAccountId : undefined,
+      destination_account_id: activeTab === "TRANSFER" ? destinationAccountId : undefined,
       category_id: categoryId || undefined,
       trip_id: tripId || undefined,
       currency: transactionCurrency,
-      domain: tripId ? 'TRAVEL' : isShared ? 'SHARED' : 'PERSONAL',
+      domain: tripId ? "TRAVEL" : isShared ? "SHARED" : "PERSONAL",
       is_shared: isShared,
       payer_id: resolvedPayerId,
       is_installment: isActuallyInstallment,
@@ -706,11 +745,11 @@ export function useTransactionForm({
       is_refund: isRefund,
       is_recurring: isRecurring,
       frequency: isRecurring ? frequency : undefined,
-      recurrence_day: isRecurring && frequency === 'MONTHLY' ? recurrenceDay : undefined,
+      recurrence_day: isRecurring && frequency === "MONTHLY" ? recurrenceDay : undefined,
       enable_notification: enableNotification,
       notification_date:
-        enableNotification && notificationDate ? format(notificationDate, 'yyyy-MM-dd') : undefined,
-      status: saveAsPending ? 'PENDING' : 'CONFIRMED',
+        enableNotification && notificationDate ? format(notificationDate, "yyyy-MM-dd") : undefined,
+      status: saveAsPending ? "PENDING" : "CONFIRMED",
     };
 
     const validation = validateTransaction(
@@ -725,11 +764,11 @@ export function useTransactionForm({
       allTransactions,
       isPaidByOther,
       myMemberRecord?.id,
-      user?.id,
+      user?.id
     );
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
-      toast.error('Corrija os erros:', { description: validation.errors.join(' • ') });
+      toast.error("Corrija os erros:", { description: validation.errors.join(" • ") });
       return;
     }
     if (validation.warnings.length > 0) {

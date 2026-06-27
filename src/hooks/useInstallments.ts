@@ -30,7 +30,8 @@ export function useInstallmentSeries(seriesId: string | null) {
 
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           id,
           description,
           amount,
@@ -41,7 +42,8 @@ export function useInstallmentSeries(seriesId: string | null) {
           series_id,
           account_id,
           category_id
-        `)
+        `
+        )
         .eq("user_id", user!.id)
         .eq("series_id", seriesId)
         .order("current_installment", { ascending: true });
@@ -51,7 +53,7 @@ export function useInstallmentSeries(seriesId: string | null) {
     },
     enabled: !!user && !!seriesId,
     staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
   });
 }
 
@@ -60,7 +62,7 @@ export function useInstallmentSeries(seriesId: string | null) {
  */
 export function useFutureInstallments(seriesId: string | null) {
   const { user } = useAuth();
-  const currentMonth = dateFns.format(dateFns.startOfMonth(new Date()), 'yyyy-MM-01');
+  const currentMonth = dateFns.format(dateFns.startOfMonth(new Date()), "yyyy-MM-01");
 
   return useQuery({
     queryKey: ["future-installments", seriesId, currentMonth],
@@ -69,7 +71,8 @@ export function useFutureInstallments(seriesId: string | null) {
 
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           id,
           description,
           amount,
@@ -78,7 +81,8 @@ export function useFutureInstallments(seriesId: string | null) {
           current_installment,
           total_installments,
           series_id
-        `)
+        `
+        )
         .eq("user_id", user!.id)
         .eq("series_id", seriesId)
         .gt("competence_date", currentMonth) // Apenas parcelas futuras
@@ -88,8 +92,8 @@ export function useFutureInstallments(seriesId: string | null) {
       return data as Installment[];
     },
     enabled: !!user && !!seriesId,
-    staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    staleTime: 15 * 1000, // Realtime cobre a invalidação
+    refetchOnMount: "always",
   });
 }
 
@@ -99,7 +103,7 @@ export function useFutureInstallments(seriesId: string | null) {
  */
 export function useAdvanceInstallments() {
   const queryClient = useQueryClient();
-  const currentMonth = dateFns.format(dateFns.startOfMonth(new Date()), 'yyyy-MM-01');
+  const currentMonth = dateFns.format(dateFns.startOfMonth(new Date()), "yyyy-MM-01");
 
   return useMutation({
     mutationFn: async (installmentIds: string[]) => {
@@ -142,15 +146,15 @@ export function useUndoAdvanceInstallments() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      installmentIds, 
-      originalCompetenceDates 
-    }: { 
-      installmentIds: string[]; 
+    mutationFn: async ({
+      installmentIds,
+      originalCompetenceDates,
+    }: {
+      installmentIds: string[];
       originalCompetenceDates: Record<string, string>;
     }) => {
       // Atualizar cada parcela com sua competência original
-      const updates = installmentIds.map(id => 
+      const updates = installmentIds.map((id) =>
         supabase
           .from("transactions")
           .update({

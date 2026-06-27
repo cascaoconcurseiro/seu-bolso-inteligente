@@ -196,7 +196,7 @@ export function Transactions() {
       return;
     }
     
-    await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
+    try { await deleteTransaction.mutateAsync({ id: tx.id, cascadeType }); } catch { /* onError do hook já trata */ }
     if (tx.is_shared) await invalidateRelated(tx.id);
     
     haptics.heavy();

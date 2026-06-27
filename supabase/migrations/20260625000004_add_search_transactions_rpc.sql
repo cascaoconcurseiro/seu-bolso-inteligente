@@ -1,6 +1,7 @@
 -- ARC-04: Server-side search for transactions beyond local cache
 -- Supports queries by description (ILIKE), scoped to the authenticated user
 
+DROP FUNCTION IF EXISTS search_transactions(TEXT, INTEGER);
 CREATE OR REPLACE FUNCTION search_transactions(
   p_query TEXT,
   p_limit INTEGER DEFAULT 20

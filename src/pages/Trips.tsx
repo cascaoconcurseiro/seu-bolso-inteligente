@@ -289,7 +289,7 @@ export function Trips() {
           onEdit={() => setShowEditTripDialog(true)}
           onAddParticipant={() => setShowAddParticipantDialog(true)}
           onArchive={async () => {
-            await archiveTrip.mutateAsync(selectedTripId!);
+            try { await archiveTrip.mutateAsync(selectedTripId!); } catch { /* onError do hook */ }
             setView('list');
           }}
           onUnarchive={async () => {
@@ -306,7 +306,7 @@ export function Trips() {
           }}
           onOpenBudget={() => setShowEditTripDialog(true)}
           onUpdateTrip={async (u) => {
-            await updateTrip.mutateAsync({ id: selectedTrip.id, ...u });
+            try { await updateTrip.mutateAsync({ id: selectedTrip.id, ...u }); } catch { /* onError do hook */ }
           }}
           formatCurrency={(val, cur) => moneyUtils.format(val, cur || 'BRL')}
           onExportPDF={() => {
@@ -367,7 +367,7 @@ export function Trips() {
                 await createInvitation.mutateAsync({
                   tripId: selectedTripId,
                   inviteeId: m.linked_user_id,
-                  message: `Você foi convidado para participar da viagem "${selectedTrip?.name}"!`,
+                  message: null,
                 });
                 setShowAddParticipantDialog(false);
               } catch (err) {
@@ -377,6 +377,7 @@ export function Trips() {
           }}
           onAddGuest={async (guestName) => {
             if (selectedTripId) {
+            try {
               await addGuestMember.mutateAsync({ tripId: selectedTripId, guestName });
               setShowAddParticipantDialog(false);
             }

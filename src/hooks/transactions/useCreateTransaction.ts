@@ -219,7 +219,7 @@ export function useCreateTransaction() {
 
         const installmentAmount = SafeFinancialCalculator.calculateInstallment(
           input.amount,
-          installmentsToCreate
+          input.total_installments // divisor é o TOTAL de parcelas, não as restantes
         );
 
         const baseDate = dateUtils.parseDate(input.date);
@@ -389,9 +389,16 @@ export function useCreateTransaction() {
           if (autoRules && autoRules.length > 0) {
             const matched = matchAutoShareRule(autoRules as any, categoryId, input.description);
             if (matched) {
+              const otherPct = matched.split_ratio * 100;
               finalSplits.push({
                 member_id: matched.member_id,
-                percentage: matched.split_ratio * 100,
+                percentage: otherPct,
+              });
+              // Criador também precisa de split explícito — senão o último split
+              // (que é o outro membro) absorve 100% em calculateTransactionSplits
+              finalSplits.push({
+                member_id: user.id,
+                percentage: 100 - otherPct,
               });
             }
           }
@@ -516,7 +523,7 @@ export function useCreateTransaction() {
       return data as Transaction;
     },
     onSuccess: async (_data, variables) => {
-      showActionFeedback('success');
+      showActionFeedback("success");
 
       if (user?.id) {
         if (variables?.type === "TRANSFER" && variables?.destination_account_id) {
@@ -547,7 +554,7 @@ export function useCreateTransaction() {
           );
         });
       }
-      showActionFeedback('error');
+      showActionFeedback("error");
     },
     onSettled: () => {
       // Ao finalizar (sucesso ou erro), revalidamos os dados finais

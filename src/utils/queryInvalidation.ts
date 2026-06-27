@@ -3,7 +3,7 @@
  * Centralized query invalidation to avoid duplication across hooks
  */
 
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 /**
  * Invalidate all financial-related queries
@@ -11,18 +11,34 @@ import { QueryClient } from '@tanstack/react-query';
  */
 export const invalidateFinancialQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['accounts'] }),
-    queryClient.invalidateQueries({ queryKey: ['account-statement'] }),
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] }),
-    queryClient.invalidateQueries({ queryKey: ['credit-card-invoice'] }),
-    queryClient.invalidateQueries({ queryKey: ['budgets'] }),
-    queryClient.invalidateQueries({ queryKey: ['budgets-progress'] }),
-    queryClient.invalidateQueries({ queryKey: ['monthly-evolution'] }),
-    queryClient.invalidateQueries({ queryKey: ['expenses-by-category'] }),
-    queryClient.invalidateQueries({ queryKey: ['dashboard-data'] }),
-    queryClient.invalidateQueries({ queryKey: ['monthly-projection'] }),
-    queryClient.invalidateQueries({ queryKey: ['wealth-evolution'] }),
+    queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+    queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+    queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
+    queryClient.invalidateQueries({ queryKey: ["financial-summary"] }),
+    queryClient.invalidateQueries({ queryKey: ["credit-card-invoice"] }),
+    queryClient.invalidateQueries({ queryKey: ["budgets"] }),
+    queryClient.invalidateQueries({ queryKey: ["budgets-progress"] }),
+    queryClient.invalidateQueries({ queryKey: ["monthly-evolution"] }),
+    queryClient.invalidateQueries({ queryKey: ["expenses-by-category"] }),
+    queryClient.invalidateQueries({ queryKey: ["dashboard-data"] }),
+    queryClient.invalidateQueries({ queryKey: ["monthly-projection"] }),
+    queryClient.invalidateQueries({ queryKey: ["wealth-evolution"] }),
+    queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations"] }),
+    queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] }),
+    // Metas e investimentos
+    queryClient.invalidateQueries({ queryKey: ["goals"] }),
+    queryClient.invalidateQueries({ queryKey: ["goal-history"] }),
+    queryClient.invalidateQueries({ queryKey: ["goal-milestones"] }),
+    queryClient.invalidateQueries({ queryKey: ["assets"] }),
+    queryClient.invalidateQueries({ queryKey: ["asset-transactions"] }),
+    // Contas agendadas e recorrentes
+    queryClient.invalidateQueries({ queryKey: ["bills-due"] }),
+    queryClient.invalidateQueries({ queryKey: ["scheduled-bills"] }),
+    queryClient.invalidateQueries({ queryKey: ["upcoming-recurring"] }),
+    queryClient.invalidateQueries({ queryKey: ["recurring-for-month"] }),
+    queryClient.invalidateQueries({ queryKey: ["installment-series"] }),
+    queryClient.invalidateQueries({ queryKey: ["future-installments"] }),
   ]);
 };
 
@@ -32,9 +48,11 @@ export const invalidateFinancialQueries = (queryClient: QueryClient) => {
  */
 export const invalidateSharedQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] }),
-    queryClient.invalidateQueries({ queryKey: ['paid-by-others-transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] }),
+    queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] }),
+    queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] }),
+    queryClient.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] }),
+    queryClient.invalidateQueries({ queryKey: ["shared-balances"] }),
+    queryClient.invalidateQueries({ queryKey: ["auto-share-rules"] }),
   ]);
 };
 
@@ -44,11 +62,16 @@ export const invalidateSharedQueries = (queryClient: QueryClient) => {
  */
 export const invalidateTripQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['trips'] }),
-    queryClient.invalidateQueries({ queryKey: ['trip-members'] }),
-    queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['trip-budget-summary'] }),
-    queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
+    queryClient.invalidateQueries({ queryKey: ["trips"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-members"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-participants"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-participant-balances"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-transactions"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-budget-summary"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-financial-summary"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-checklist"] }),
+    queryClient.invalidateQueries({ queryKey: ["trip-itinerary"] }),
+    queryClient.invalidateQueries({ queryKey: ["sent-trip-invitations"] }),
   ]);
 };
 
@@ -58,9 +81,10 @@ export const invalidateTripQueries = (queryClient: QueryClient) => {
  */
 export const invalidateFamilyQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['family-members'] }),
-    queryClient.invalidateQueries({ queryKey: ['family-invitations'] }),
-    queryClient.invalidateQueries({ queryKey: ['family-users'] }),
+    queryClient.invalidateQueries({ queryKey: ["family"] }),
+    queryClient.invalidateQueries({ queryKey: ["family-members"] }),
+    queryClient.invalidateQueries({ queryKey: ["family-invitations"] }),
+    queryClient.invalidateQueries({ queryKey: ["family-users"] }),
   ]);
 };
 
@@ -69,9 +93,7 @@ export const invalidateFamilyQueries = (queryClient: QueryClient) => {
  * Use after mutations that affect categories
  */
 export const invalidateCategoryQueries = (queryClient: QueryClient) => {
-  return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['categories'] }),
-  ]);
+  return Promise.all([queryClient.invalidateQueries({ queryKey: ["categories"] })]);
 };
 
 /**
@@ -95,13 +117,13 @@ export const invalidateAllFinancialData = (queryClient: QueryClient) => {
  */
 export const invalidateTransactionQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['accounts'] }),
-    queryClient.invalidateQueries({ queryKey: ['account-statement'] }),
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] }),
-    queryClient.invalidateQueries({ queryKey: ['dashboard-data'] }),
-    queryClient.invalidateQueries({ queryKey: ['monthly-projection'] }),
-    queryClient.invalidateQueries({ queryKey: ['wealth-evolution'] }),
+    queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+    queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+    queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
+    queryClient.invalidateQueries({ queryKey: ["financial-summary"] }),
+    queryClient.invalidateQueries({ queryKey: ["dashboard-data"] }),
+    queryClient.invalidateQueries({ queryKey: ["monthly-projection"] }),
+    queryClient.invalidateQueries({ queryKey: ["wealth-evolution"] }),
   ]);
 };
 
@@ -111,10 +133,10 @@ export const invalidateTransactionQueries = (queryClient: QueryClient) => {
  */
 export const invalidateAccountQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['accounts'] }),
-    queryClient.invalidateQueries({ queryKey: ['account-statement'] }),
-    queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['financial-summary'] }),
+    queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+    queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
+    queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+    queryClient.invalidateQueries({ queryKey: ["financial-summary"] }),
   ]);
 };
 
@@ -124,7 +146,7 @@ export const invalidateAccountQueries = (queryClient: QueryClient) => {
  */
 export const invalidateBudgetQueries = (queryClient: QueryClient) => {
   return Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['budgets'] }),
-    queryClient.invalidateQueries({ queryKey: ['budgets-progress'] }),
+    queryClient.invalidateQueries({ queryKey: ["budgets"] }),
+    queryClient.invalidateQueries({ queryKey: ["budgets-progress"] }),
   ]);
 };

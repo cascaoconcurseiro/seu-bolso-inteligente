@@ -49,6 +49,7 @@ import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -169,88 +170,90 @@ export function AppLayout({ children }: AppLayoutProps) {
               })}
             </nav>
 
-            {/* Right Section */}
-            <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSearch(true)}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="Buscar (Ctrl+K)"
-                title="Buscar (Ctrl+K)"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-              <NotificationButton />
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={togglePrivacy}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label={isPrivate ? "Mostrar valores" : "Ocultar valores"}
-              >
-                {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
-              >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-
-              <Link to="/configuracoes" className="hidden md:block">
+            {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}
+            <ErrorBoundary fallback={null}>
+              <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => setShowSearch(true)}
                   className="text-muted-foreground hover:text-foreground"
-                  aria-label="Configurações"
+                  aria-label="Buscar (Ctrl+K)"
+                  title="Buscar (Ctrl+K)"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </Button>
-              </Link>
+                <NotificationButton />
 
-              {/* User Menu - Hidden on mobile */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild className="hidden md:flex">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePrivacy}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={isPrivate ? "Mostrar valores" : "Ocultar valores"}
+                >
+                  {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
+
+                <Link to="/configuracoes" className="hidden md:block">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full p-0"
-                    aria-label="Menu do usuário"
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Configurações"
                   >
-                    <UserAvatar
-                      name={profile?.full_name || user?.email || "User"}
-                      avatarUrl={profile?.avatar_url}
-                      colorId={profile?.avatar_color || "green"}
-                      iconId={profile?.avatar_icon || "avatar_1"}
-                      size="sm"
-                    />
+                    <Settings className="h-4 w-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="flex items-center gap-2 p-2">
-                    <div className="flex flex-col space-y-2 leading-none">
-                      <p className="font-medium text-sm truncate">
-                        {profile?.full_name ||
-                          user?.user_metadata?.full_name ||
-                          user?.email?.split("@")[0]}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                </Link>
+
+                {/* User Menu - Hidden on mobile */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild className="hidden md:flex">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full p-0"
+                      aria-label="Menu do usuário"
+                    >
+                      <UserAvatar
+                        name={profile?.full_name || user?.email || "User"}
+                        avatarUrl={profile?.avatar_url}
+                        colorId={profile?.avatar_color || "green"}
+                        iconId={profile?.avatar_icon || "avatar_1"}
+                        size="sm"
+                      />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="flex items-center gap-2 p-2">
+                      <div className="flex flex-col space-y-2 leading-none">
+                        <p className="font-medium text-sm truncate">
+                          {profile?.full_name ||
+                            user?.user_metadata?.full_name ||
+                            user?.email?.split("@")[0]}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+                      </div>
                     </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </ErrorBoundary>
           </div>
         </div>
 

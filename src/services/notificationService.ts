@@ -1,6 +1,6 @@
 /**
  * Serviço de Notificações
- * 
+ *
  * Gerencia criação, leitura e dismissal de notificações do sistema.
  * Integra com faturas, orçamentos, despesas compartilhadas, recorrências, etc.
  */
@@ -9,31 +9,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
 
 export type NotificationType =
-  | 'WELCOME'
-  | 'INVOICE_DUE'
-  | 'INVOICE_OVERDUE'
-  | 'BUDGET_WARNING'
-  | 'BUDGET_EXCEEDED'
-  | 'SHARED_PENDING'
-  | 'SHARED_SETTLED'
-  | 'SHARED_EXPENSE'
-  | 'RECURRING_PENDING'
-  | 'RECURRING_GENERATED'
-  | 'SAVINGS_GOAL'
-  | 'GOAL_MILESTONE'
-  | 'LOW_BALANCE'
-  | 'CREDIT_LIMIT_WARNING'
-  | 'SUBSCRIPTION_REMINDER'
-  | 'WEEKLY_SUMMARY'
-  | 'TRIP_INVITE'
-  | 'FAMILY_INVITE'
-  | 'SETTLEMENT_REQUEST'
-  | 'PAYMENT_CONFIRMED'
-  | 'SETTLEMENT_REJECTED'
-  | 'SECURITY_ALERT'
-  | 'GENERAL';
+  | "WELCOME"
+  | "INVOICE_DUE"
+  | "INVOICE_OVERDUE"
+  | "BUDGET_WARNING"
+  | "BUDGET_EXCEEDED"
+  | "SHARED_PENDING"
+  | "SHARED_SETTLED"
+  | "SHARED_EXPENSE"
+  | "RECURRING_PENDING"
+  | "RECURRING_GENERATED"
+  | "SAVINGS_GOAL"
+  | "GOAL_MILESTONE"
+  | "LOW_BALANCE"
+  | "CREDIT_LIMIT_WARNING"
+  | "SUBSCRIPTION_REMINDER"
+  | "WEEKLY_SUMMARY"
+  | "TRIP_INVITE"
+  | "FAMILY_INVITE"
+  | "SETTLEMENT_REQUEST"
+  | "PAYMENT_CONFIRMED"
+  | "SETTLEMENT_REJECTED"
+  | "SECURITY_ALERT"
+  | "GENERAL";
 
-export type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 
 export interface Notification {
   id: string;
@@ -96,14 +96,14 @@ export interface CreateNotificationInput {
  */
 export async function getActiveNotifications(userId: string): Promise<Notification[]> {
   const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_dismissed', false)
-    .order('created_at', { ascending: false });
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_dismissed", false)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error('Erro ao buscar notificações', error);
+    logger.error("Erro ao buscar notificações", error);
     return [];
   }
 
@@ -115,15 +115,15 @@ export async function getActiveNotifications(userId: string): Promise<Notificati
  */
 export async function getUnreadNotifications(userId: string): Promise<Notification[]> {
   const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('is_read', false)
-    .eq('is_dismissed', false)
-    .order('created_at', { ascending: false });
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("is_read", false)
+    .eq("is_dismissed", false)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error('Erro ao buscar notificações não lidas', error);
+    logger.error("Erro ao buscar notificações não lidas", error);
     return [];
   }
 
@@ -135,14 +135,14 @@ export async function getUnreadNotifications(userId: string): Promise<Notificati
  */
 export async function countUnreadNotifications(userId: string): Promise<number> {
   const { count, error } = await supabase
-    .from('notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('is_read', false)
-    .eq('is_dismissed', false);
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("is_read", false)
+    .eq("is_dismissed", false);
 
   if (error) {
-    logger.error('Erro ao contar notificações', error);
+    logger.error("Erro ao contar notificações", error);
     return 0;
   }
 
@@ -152,34 +152,37 @@ export async function countUnreadNotifications(userId: string): Promise<number> 
 /**
  * Cria uma nova notificação
  */
-export async function createNotification(input: CreateNotificationInput): Promise<Notification | null> {
-  // Verifica se já existe notificação similar não dispensada (evita duplicatas)
+export async function createNotification(
+  input: CreateNotificationInput
+): Promise<Notification | null> {
+  // Verifica se já existe notificação similar NÃO DISPENSADA (evita duplicatas)
   if (input.related_id && input.type) {
     const { data: existing } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('user_id', input.user_id)
-      .eq('type', input.type)
-      .eq('related_id', input.related_id)
+      .from("notifications")
+      .select("id")
+      .eq("user_id", input.user_id)
+      .eq("type", input.type)
+      .eq("related_id", input.related_id)
+      .eq("is_dismissed", false)
       .maybeSingle();
 
     if (existing) {
-      return null; // Já existe, não cria duplicata
+      return null; // Já existe ativa, não cria duplicata
     }
   }
 
   const { data, error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .insert({
       ...input,
       metadata: input.metadata as any,
-      priority: input.priority || 'NORMAL',
+      priority: input.priority || "NORMAL",
     })
     .select()
     .single();
 
   if (error) {
-    logger.error('Erro ao criar notificação', error);
+    logger.error("Erro ao criar notificação", error);
     return null;
   }
 
@@ -191,15 +194,15 @@ export async function createNotification(input: CreateNotificationInput): Promis
  */
 export async function markAsRead(notificationId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .update({
       is_read: true,
-      read_at: new Date().toISOString()
+      read_at: new Date().toISOString(),
     })
-    .eq('id', notificationId);
+    .eq("id", notificationId);
 
   if (error) {
-    logger.error('Erro ao marcar como lida', error);
+    logger.error("Erro ao marcar como lida", error);
     return false;
   }
 
@@ -211,16 +214,16 @@ export async function markAsRead(notificationId: string): Promise<boolean> {
  */
 export async function markAllAsRead(userId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .update({
       is_read: true,
-      read_at: new Date().toISOString()
+      read_at: new Date().toISOString(),
     })
-    .eq('user_id', userId)
-    .eq('is_read', false);
+    .eq("user_id", userId)
+    .eq("is_read", false);
 
   if (error) {
-    logger.error('Erro ao marcar todas como lidas', error);
+    logger.error("Erro ao marcar todas como lidas", error);
     return false;
   }
 
@@ -232,15 +235,15 @@ export async function markAllAsRead(userId: string): Promise<boolean> {
  */
 export async function dismissNotification(notificationId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .update({
       is_dismissed: true,
-      dismissed_at: new Date().toISOString()
+      dismissed_at: new Date().toISOString(),
     })
-    .eq('id', notificationId);
+    .eq("id", notificationId);
 
   if (error) {
-    logger.error('Erro ao dispensar notificação', error);
+    logger.error("Erro ao dispensar notificação", error);
     return false;
   }
 
@@ -252,17 +255,17 @@ export async function dismissNotification(notificationId: string): Promise<boole
  */
 export async function dismissAllRead(userId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .update({
       is_dismissed: true,
-      dismissed_at: new Date().toISOString()
+      dismissed_at: new Date().toISOString(),
     })
-    .eq('user_id', userId)
-    .eq('is_read', true)
-    .eq('is_dismissed', false);
+    .eq("user_id", userId)
+    .eq("is_read", true)
+    .eq("is_dismissed", false);
 
   if (error) {
-    logger.error('Erro ao dispensar notificações lidas', error);
+    logger.error("Erro ao dispensar notificações lidas", error);
     return false;
   }
 
@@ -277,15 +280,15 @@ export async function cleanupOldNotifications(userId: string): Promise<number> {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const { data, error } = await supabase
-    .from('notifications')
+    .from("notifications")
     .delete()
-    .eq('user_id', userId)
-    .eq('is_read', true)
-    .lt('created_at', thirtyDaysAgo.toISOString())
-    .select('id');
+    .eq("user_id", userId)
+    .eq("is_read", true)
+    .lt("created_at", thirtyDaysAgo.toISOString())
+    .select("id");
 
   if (error) {
-    logger.error('Erro ao limpar notificações antigas', error);
+    logger.error("Erro ao limpar notificações antigas", error);
     return 0;
   }
 
@@ -297,15 +300,17 @@ export async function cleanupOldNotifications(userId: string): Promise<number> {
 /**
  * Busca preferências de notificação do usuário
  */
-export async function getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
+export async function getNotificationPreferences(
+  userId: string
+): Promise<NotificationPreferences | null> {
   const { data, error } = await supabase
-    .from('notification_preferences')
-    .select('*')
-    .eq('user_id', userId)
+    .from("notification_preferences")
+    .select("*")
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) {
-    logger.error('Erro ao buscar preferências', error);
+    logger.error("Erro ao buscar preferências", error);
     return null;
   }
 
@@ -322,13 +327,13 @@ export async function getNotificationPreferences(userId: string): Promise<Notifi
  */
 async function createDefaultPreferences(userId: string): Promise<NotificationPreferences | null> {
   const { data, error } = await supabase
-    .from('notification_preferences')
+    .from("notification_preferences")
     .insert({ user_id: userId })
     .select()
     .single();
 
   if (error) {
-    logger.error('Erro ao criar preferências', error);
+    logger.error("Erro ao criar preferências", error);
     return null;
   }
 
@@ -343,12 +348,12 @@ export async function updateNotificationPreferences(
   updates: Partial<NotificationPreferences>
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('notification_preferences')
+    .from("notification_preferences")
     .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('user_id', userId);
+    .eq("user_id", userId);
 
   if (error) {
-    logger.error('Erro ao atualizar preferências', error);
+    logger.error("Erro ao atualizar preferências", error);
     return false;
   }
 
@@ -363,13 +368,13 @@ export async function updateNotificationPreferences(
 export async function createWelcomeNotification(userId: string, userName: string): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'WELCOME',
+    type: "WELCOME",
     title: `Bem-vindo, ${userName}! 🎉`,
-    message: 'Comece adicionando suas contas e registrando suas primeiras transações.',
-    icon: '👋',
-    action_url: '/configuracoes',
-    action_label: 'Configurar conta',
-    priority: 'NORMAL',
+    message: "Comece adicionando suas contas e registrando suas primeiras transações.",
+    icon: "👋",
+    action_url: "/configuracoes",
+    action_label: "Configurar conta",
+    priority: "NORMAL",
   });
 }
 
@@ -385,11 +390,21 @@ export async function createInvoiceDueNotification(
   invoiceKey?: string
 ): Promise<void> {
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
   const months = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
   ];
 
   // Identificar o ano e mês de referência da fatura a partir do invoiceKey
@@ -398,7 +413,7 @@ export async function createInvoiceDueNotification(
   let refMonthLabel = months[refMonth];
 
   if (invoiceKey) {
-    const parts = invoiceKey.split('-');
+    const parts = invoiceKey.split("-");
     if (parts.length >= 3) {
       refYear = parseInt(parts[parts.length - 2], 10);
       refMonth = parseInt(parts[parts.length - 1], 10) - 1; // 0-indexed
@@ -411,27 +426,27 @@ export async function createInvoiceDueNotification(
   // Determinar o título com base no status do vencimento
   let title = "";
   const isOverdue = daysUntilDue < 0;
-  
+
   if (isOverdue) {
     const daysOverdue = Math.abs(daysUntilDue);
-    title = `🚨 Fatura de ${refMonthLabel} (${cardName}) - VENCIDA há ${daysOverdue} dia${daysOverdue !== 1 ? 's' : ''}`;
+    title = `🚨 Fatura de ${refMonthLabel} (${cardName}) - VENCIDA há ${daysOverdue} dia${daysOverdue !== 1 ? "s" : ""}`;
   } else if (daysUntilDue === 0) {
     title = `⚠️ Fatura de ${refMonthLabel} (${cardName}) - VENCE HOJE!`;
   } else {
-    title = `💳 Fatura de ${refMonthLabel} (${cardName}) - Vence em ${daysUntilDue} dia${daysUntilDue !== 1 ? 's' : ''}`;
+    title = `💳 Fatura de ${refMonthLabel} (${cardName}) - Vence em ${daysUntilDue} dia${daysUntilDue !== 1 ? "s" : ""}`;
   }
 
   await createNotification({
     user_id: userId,
-    type: isOverdue ? 'INVOICE_OVERDUE' : 'INVOICE_DUE',
+    type: isOverdue ? "INVOICE_OVERDUE" : "INVOICE_DUE",
     title,
     message: `Valor: ${formatCurrency(amount)}. Não esqueça de pagar!`,
-    icon: isOverdue ? '🚨' : '💳',
-    action_url: `/cartoes?cardId=${cardId}&month=${refYear}-${String(refMonth + 1).padStart(2, '0')}`,
-    action_label: 'Ver fatura',
+    icon: isOverdue ? "🚨" : "💳",
+    action_url: `/cartoes?cardId=${cardId}&month=${refYear}-${String(refMonth + 1).padStart(2, "0")}`,
+    action_label: "Ver fatura",
     related_id: cardId,
-    related_type: 'credit_card',
-    priority: isOverdue || daysUntilDue <= 1 ? 'HIGH' : 'NORMAL',
+    related_type: "credit_card",
+    priority: isOverdue || daysUntilDue <= 1 ? "HIGH" : "NORMAL",
     metadata: invoiceKey ? { invoice_key: invoiceKey } : undefined,
   });
 }
@@ -448,19 +463,19 @@ export async function createBudgetWarningNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: isExceeded ? 'BUDGET_EXCEEDED' : 'BUDGET_WARNING',
+    type: isExceeded ? "BUDGET_EXCEEDED" : "BUDGET_WARNING",
     title: isExceeded
       ? `Orçamento "${budgetName}" excedido! 🚨`
       : `Orçamento "${budgetName}" em ${percentage.toFixed(0)}%`,
     message: isExceeded
-      ? 'Você ultrapassou o limite definido para este orçamento.'
-      : 'Atenção! Você está próximo do limite.',
-    icon: isExceeded ? '🚨' : '⚠️',
-    action_url: '/orcamentos',
-    action_label: 'Ver orçamento',
+      ? "Você ultrapassou o limite definido para este orçamento."
+      : "Atenção! Você está próximo do limite.",
+    icon: isExceeded ? "🚨" : "⚠️",
+    action_url: "/orcamentos",
+    action_label: "Ver orçamento",
     related_id: budgetId,
-    related_type: 'budget',
-    priority: isExceeded ? 'HIGH' : 'NORMAL',
+    related_type: "budget",
+    priority: isExceeded ? "HIGH" : "NORMAL",
     metadata: { exceeded: isExceeded },
   });
 }
@@ -476,19 +491,19 @@ export async function createSharedPendingNotification(
   itemCount: number
 ): Promise<void> {
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
   await createNotification({
     user_id: userId,
-    type: 'SHARED_PENDING',
+    type: "SHARED_PENDING",
     title: `${memberName} te deve ${formatCurrency(amount)}`,
-    message: `${itemCount} ${itemCount === 1 ? 'item pendente' : 'itens pendentes'} de acerto.`,
-    icon: '👥',
-    action_url: '/compartilhados',
-    action_label: 'Ver detalhes',
+    message: `${itemCount} ${itemCount === 1 ? "item pendente" : "itens pendentes"} de acerto.`,
+    icon: "👥",
+    action_url: "/compartilhados",
+    action_label: "Ver detalhes",
     related_id: memberId,
-    related_type: 'family_member',
-    priority: 'NORMAL',
+    related_type: "family_member",
+    priority: "NORMAL",
   });
 }
 
@@ -501,13 +516,13 @@ export async function createRecurringPendingNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'RECURRING_PENDING',
+    type: "RECURRING_PENDING",
     title: `${count} transação(ões) recorrente(s) pendente(s)`,
-    message: 'Clique para gerar as transações automaticamente.',
-    icon: '🔄',
-    action_url: '/',
-    action_label: 'Gerar agora',
-    priority: 'NORMAL',
+    message: "Clique para gerar as transações automaticamente.",
+    icon: "🔄",
+    action_url: "/",
+    action_label: "Gerar agora",
+    priority: "NORMAL",
   });
 }
 
@@ -522,15 +537,15 @@ export async function createTripInviteNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'TRIP_INVITE',
-    title: `Convite para viagem: ${tripName}`,
-    message: `${inviterName} te convidou para participar desta viagem.`,
-    icon: '✈️',
-    action_url: '/viagens',
-    action_label: 'Ver convite',
+    type: "TRIP_INVITE",
+    title: tripName,
+    message: `${inviterName} te convidou para "${tripName}".`,
+    icon: "✈️",
+    action_url: "/viagens",
+    action_label: "Ver convite",
     related_id: tripId,
-    related_type: 'trip',
-    priority: 'HIGH',
+    related_type: "trip",
+    priority: "HIGH",
   });
 }
 
@@ -545,15 +560,15 @@ export async function createFamilyInviteNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'FAMILY_INVITE',
+    type: "FAMILY_INVITE",
     title: `Convite para família: ${familyName}`,
     message: `${inviterName} te convidou para fazer parte da família.`,
-    icon: '👨‍👩‍👧‍👦',
-    action_url: '/familia',
-    action_label: 'Ver convite',
+    icon: "👨‍👩‍👧‍👦",
+    action_url: "/familia",
+    action_label: "Ver convite",
     related_id: invitationId,
-    related_type: 'family_invitation',
-    priority: 'HIGH',
+    related_type: "family_invitation",
+    priority: "HIGH",
   });
 }
 
@@ -569,7 +584,7 @@ export async function createSettlementRequestNotification(
   isCompensated?: boolean
 ): Promise<void> {
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(v);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(v);
 
   const message = isCompensated
     ? `${debtorName} realizou uma compensação de dívidas e marcou o acerto líquido de ${formatCurrency(amount)} como pago. Por favor, confirme o recebimento.`
@@ -577,15 +592,15 @@ export async function createSettlementRequestNotification(
 
   await createNotification({
     user_id: userId,
-    type: 'SETTLEMENT_REQUEST',
-    title: 'Confirmação de Pagamento',
+    type: "SETTLEMENT_REQUEST",
+    title: "Confirmação de Pagamento",
     message: message,
-    icon: '💰',
+    icon: "💰",
     action_url: `/compartilhados?confirmSettlement=${splitId}`,
-    action_label: 'Confirmar',
+    action_label: "Confirmar",
     related_id: splitId,
-    related_type: 'transaction_split',
-    priority: 'HIGH',
+    related_type: "transaction_split",
+    priority: "HIGH",
   });
 }
 
@@ -602,7 +617,7 @@ export async function createDebtorSettlementRequestNotification(
   isCompensated?: boolean
 ): Promise<void> {
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(v);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(v);
 
   const message = isCompensated
     ? `${creditorName} realizou uma compensação de dívidas e informou que você deve transferir o valor líquido de ${formatCurrency(amount)}. Por favor, selecione a conta de onde saiu o dinheiro para confirmar ou recuse o acerto.`
@@ -610,22 +625,22 @@ export async function createDebtorSettlementRequestNotification(
 
   await createNotification({
     user_id: userId,
-    type: 'SETTLEMENT_REQUEST',
-    title: 'Confirmar Saída de Dinheiro',
+    type: "SETTLEMENT_REQUEST",
+    title: "Confirmar Saída de Dinheiro",
     message: message,
-    icon: '💰',
-    action_url: `/compartilhados?confirmPaymentSplit=${splitIds.join(',')}`,
-    action_label: 'Confirmar Conta',
+    icon: "💰",
+    action_url: `/compartilhados?confirmPaymentSplit=${splitIds.join(",")}`,
+    action_label: "Confirmar Conta",
     related_id: splitIds[0],
-    related_type: 'transaction_split',
-    priority: 'HIGH',
-    metadata: { 
-      is_creditor_initiated: true, 
-      split_ids: splitIds, 
+    related_type: "transaction_split",
+    priority: "HIGH",
+    metadata: {
+      is_creditor_initiated: true,
+      split_ids: splitIds,
       creditor_tx_id: creditorTxId,
       amount,
-      currency
-    }
+      currency,
+    },
   });
 }
 
@@ -639,13 +654,13 @@ export async function createPerfectCompensationNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'SHARED_SETTLED',
-    title: 'Dívidas Compensadas',
+    type: "SHARED_SETTLED",
+    title: "Dívidas Compensadas",
     message: `${userName} realizou uma compensação perfeita de ${itemCount} despesas mútuas. Os valores se anularam e não há pendências.`,
-    icon: '✅',
-    action_url: '/compartilhados?tab=history',
-    action_label: 'Ver Histórico',
-    priority: 'NORMAL',
+    icon: "✅",
+    action_url: "/compartilhados?tab=history",
+    action_label: "Ver Histórico",
+    priority: "NORMAL",
   });
 }
 
@@ -658,13 +673,13 @@ export async function createPaymentConfirmedNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'PAYMENT_CONFIRMED',
-    title: 'Pagamento Confirmado',
+    type: "PAYMENT_CONFIRMED",
+    title: "Pagamento Confirmado",
     message: `${creditorName} confirmou o recebimento do seu pagamento.`,
-    icon: '✅',
-    action_url: '/compartilhados',
-    action_label: 'Ver',
-    priority: 'NORMAL',
+    icon: "✅",
+    action_url: "/compartilhados",
+    action_label: "Ver",
+    priority: "NORMAL",
   });
 }
 
@@ -679,13 +694,13 @@ export async function createSettlementRejectedNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'SETTLEMENT_REJECTED',
-    title: 'Acerto Desfeito/Recusado',
-    message: `${userName} desfez o acerto da despesa "${description}".${reason ? ` Motivo: ${reason}` : ''}`,
-    icon: '❌',
-    action_url: '/compartilhados',
-    action_label: 'Ver',
-    priority: 'HIGH',
+    type: "SETTLEMENT_REJECTED",
+    title: "Acerto Desfeito/Recusado",
+    message: `${userName} desfez o acerto da despesa "${description}".${reason ? ` Motivo: ${reason}` : ""}`,
+    icon: "❌",
+    action_url: "/compartilhados",
+    action_label: "Ver",
+    priority: "HIGH",
   });
 }
 
@@ -699,19 +714,19 @@ export async function createLowBalanceNotification(
   balance: number
 ): Promise<void> {
   const formatCurrency = (v: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
   await createNotification({
     user_id: userId,
-    type: 'LOW_BALANCE',
+    type: "LOW_BALANCE",
     title: `Saldo baixo: ${accountName}`,
     message: `Seu saldo atual é de ${formatCurrency(balance)}.`,
-    icon: '⚠️',
-    action_url: '/',
-    action_label: 'Ver saldo',
+    icon: "⚠️",
+    action_url: "/",
+    action_label: "Ver saldo",
     related_id: accountId,
-    related_type: 'account',
-    priority: 'HIGH',
+    related_type: "account",
+    priority: "HIGH",
   });
 }
 
@@ -726,15 +741,15 @@ export async function createCreditLimitWarningNotification(
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'CREDIT_LIMIT_WARNING',
+    type: "CREDIT_LIMIT_WARNING",
     title: `Limite do cartão ${cardName}`,
     message: `Você já usou ${percentage.toFixed(0)}% do limite do seu cartão.`,
-    icon: '💳',
+    icon: "💳",
     action_url: `/cartoes`,
-    action_label: 'Ver cartão',
+    action_label: "Ver cartão",
     related_id: cardId,
-    related_type: 'credit_card',
-    priority: 'HIGH',
+    related_type: "credit_card",
+    priority: "HIGH",
   });
 }
 
@@ -745,20 +760,21 @@ export async function createGoalMilestoneNotification(
   userId: string,
   goalName: string,
   goalId: string,
-  percentage: number
+  percentage: number,
+  milestone: number
 ): Promise<void> {
   await createNotification({
     user_id: userId,
-    type: 'GOAL_MILESTONE',
+    type: "GOAL_MILESTONE",
     title: `Meta: ${goalName}`,
     message: `Parabéns! Você alcançou ${percentage.toFixed(0)}% da sua meta!`,
-    icon: '🎯',
+    icon: "🎯",
     action_url: `/metas`,
-    action_label: 'Ver metas',
+    action_label: "Ver metas",
     related_id: goalId,
-    related_type: 'goal',
-    priority: 'NORMAL',
-    metadata: { milestone: percentage.toFixed(0) },
+    related_type: "goal",
+    priority: "NORMAL",
+    metadata: { milestone },
   });
 }
 
@@ -766,32 +782,32 @@ export async function createGoalMilestoneNotification(
 
 export function getNotificationIcon(type: NotificationType): string {
   const icons: Record<NotificationType, string> = {
-    WELCOME: '👋',
-    INVOICE_DUE: '💳',
-    INVOICE_OVERDUE: '🚨',
-    BUDGET_WARNING: '⚠️',
-    BUDGET_EXCEEDED: '🚨',
-    SHARED_PENDING: '👥',
-    SHARED_SETTLED: '✅',
-    SHARED_EXPENSE: '💸',
-    RECURRING_PENDING: '🔄',
-    RECURRING_GENERATED: '✅',
-    SAVINGS_GOAL: '🎯',
-    GOAL_MILESTONE: '🎯',
-    LOW_BALANCE: '⚠️',
-    CREDIT_LIMIT_WARNING: '💳',
-    SUBSCRIPTION_REMINDER: '📅',
-    WEEKLY_SUMMARY: '📊',
-    TRIP_INVITE: '✈️',
-    FAMILY_INVITE: '👨‍👩‍👧‍👦',
-    SETTLEMENT_REQUEST: '💰',
-    PAYMENT_CONFIRMED: '✅',
-    SETTLEMENT_REJECTED: '❌',
-    SECURITY_ALERT: '🛡️',
-    GENERAL: '📢',
+    WELCOME: "👋",
+    INVOICE_DUE: "💳",
+    INVOICE_OVERDUE: "🚨",
+    BUDGET_WARNING: "⚠️",
+    BUDGET_EXCEEDED: "🚨",
+    SHARED_PENDING: "👥",
+    SHARED_SETTLED: "✅",
+    SHARED_EXPENSE: "💸",
+    RECURRING_PENDING: "🔄",
+    RECURRING_GENERATED: "✅",
+    SAVINGS_GOAL: "🎯",
+    GOAL_MILESTONE: "🎯",
+    LOW_BALANCE: "⚠️",
+    CREDIT_LIMIT_WARNING: "💳",
+    SUBSCRIPTION_REMINDER: "📅",
+    WEEKLY_SUMMARY: "📊",
+    TRIP_INVITE: "✈️",
+    FAMILY_INVITE: "👨‍👩‍👧‍👦",
+    SETTLEMENT_REQUEST: "💰",
+    PAYMENT_CONFIRMED: "✅",
+    SETTLEMENT_REJECTED: "❌",
+    SECURITY_ALERT: "🛡️",
+    GENERAL: "📢",
   };
 
-  return icons[type] || '📢';
+  return icons[type] || "📢";
 }
 
 /**
@@ -799,10 +815,10 @@ export function getNotificationIcon(type: NotificationType): string {
  */
 export function getPriorityColor(priority: NotificationPriority): string {
   const colors: Record<NotificationPriority, string> = {
-    LOW: 'bg-muted text-muted-foreground',
-    NORMAL: 'bg-accent/15 text-accent',
-    HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    URGENT: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    LOW: "bg-muted text-muted-foreground",
+    NORMAL: "bg-accent/15 text-accent",
+    HIGH: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    URGENT: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   };
 
   return colors[priority] || colors.NORMAL;

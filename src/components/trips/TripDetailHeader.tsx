@@ -1,7 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Coins, Pencil, MoreVertical, Plus, Archive, ArchiveRestore, Trash2, MapPin, Globe, Download, FileDown, RefreshCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  Coins,
+  Pencil,
+  MoreVertical,
+  Plus,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  MapPin,
+  Globe,
+  Download,
+  FileDown,
+  RefreshCcw,
+} from "lucide-react";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 
@@ -34,26 +55,29 @@ export function TripDetailHeader({
   onOpenBudget,
   hasPersonalBudget,
   onExportPDF,
-  onExportExcel
+  onExportExcel,
 }: TripDetailHeaderProps) {
-  const currency = trip.currency || 'BRL';
-  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency !== 'BRL' ? currency : '', 'BRL');
+  const currency = trip.currency || "BRL";
+  const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(
+    currency !== "BRL" ? currency : "",
+    "BRL"
+  );
 
   return (
     <div className="relative overflow-hidden rounded-4xl p-5 md:p-8 transition-all duration-700 ease-out bg-background/60 backdrop-blur-xl border border-border/40 shadow-sm mb-8">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      
+
       <div className="relative flex flex-col md:flex-row md:items-start md:justify-between gap-6">
         <div className="flex items-start gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onBack} 
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
             className="mt-1 rounded-full h-12 w-11 hover:bg-muted transition-all active:scale-95 shrink-0 shadow-sm border border-border/40"
           >
             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
           </Button>
-          
+
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="font-display font-black text-3xl md:text-3xl tracking-tighter text-foreground truncate">
@@ -65,31 +89,42 @@ export function TripDetailHeader({
                     Arquivada
                   </span>
                 )}
-                <span className={cn(
-                  "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border flex items-center shadow-sm",
-                  trip.status === "ACTIVE" 
-                    ? "bg-success/12 text-success border-success/20" 
-                    : trip.status === "PLANNING"
-                    ? "bg-accent/10 text-accent border-accent/20"
-                    : "bg-muted text-muted-foreground border-border/50"
-                )}>
-                  {trip.status === "PLANNING" ? "Planejando" :
-                   trip.status === "ACTIVE" ? "Em andamento" :
-                   trip.status === "COMPLETED" ? "Finalizada" : "Cancelada"}
+                <span
+                  className={cn(
+                    "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest border flex items-center shadow-sm",
+                    trip.status === "ACTIVE"
+                      ? "bg-success/12 text-success border-success/20"
+                      : trip.status === "PLANNING"
+                        ? "bg-accent/10 text-accent border-accent/20"
+                        : "bg-muted text-muted-foreground border-border/50"
+                  )}
+                >
+                  {trip.status === "PLANNING"
+                    ? "Planejando"
+                    : trip.status === "ACTIVE"
+                      ? "Em andamento"
+                      : trip.status === "COMPLETED"
+                        ? "Finalizada"
+                        : "Cancelada"}
                 </span>
-                
+
                 {participants && participants.length > 0 && (
-                  <div 
+                  <div
                     className="flex -space-x-2 ml-2 cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={onAddParticipant}
                     title="Gerenciar participantes"
                   >
                     {participants.slice(0, 4).map((p) => (
-                      <div key={p.id || p.user_id} className="hover:scale-110 transition-transform hover:z-10 relative z-0">
-                        <UserAvatar 
-                          name={p.name} 
-                          avatarUrl={p.avatar_url} 
-                          size="sm" 
+                      <div
+                        key={p.id || p.user_id}
+                        className="hover:scale-110 transition-transform hover:z-10 relative z-0"
+                      >
+                        <UserAvatar
+                          name={p.name}
+                          avatarUrl={p.avatar_url}
+                          colorId={p.avatar_color || undefined}
+                          iconId={p.avatar_icon || undefined}
+                          size="sm"
                           className="w-8 h-8 border-2 border-background shadow-sm"
                         />
                       </div>
@@ -120,13 +155,17 @@ export function TripDetailHeader({
                 <Globe className="h-4 w-4 text-primary/70" />
                 Moeda: <strong className="text-foreground">{trip.currency}</strong>
               </span>
-              {currency !== 'BRL' && (
+              {currency !== "BRL" && (
                 <span className="flex items-center gap-2 font-medium px-2.5 py-1 bg-card/60 backdrop-blur shadow-sm border border-border/50 rounded-lg">
                   {isRateLoading ? (
                     <RefreshCcw className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
                   ) : realTimeRate ? (
                     <span className="font-mono text-sm font-bold text-foreground">
-                      1 {currency} = R$ {realTimeRate.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 3 })}
+                      1 {currency} = R${" "}
+                      {realTimeRate.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 3,
+                      })}
                     </span>
                   ) : (
                     <span className="text-sm text-muted-foreground">Cotação indisponível</span>
@@ -140,7 +179,7 @@ export function TripDetailHeader({
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3 mt-4 md:mt-0">
           <Button
             variant={hasPersonalBudget ? "outline" : "default"}
@@ -148,13 +187,15 @@ export function TripDetailHeader({
             onClick={onOpenBudget}
             className={cn(
               "gap-2 rounded-2xl h-12 px-6 transition-all hover:-translate-y-1 font-bold",
-              !hasPersonalBudget ? "shadow-xl shadow-primary/20 hover:shadow-primary/30" : "bg-card/50 backdrop-blur-sm"
+              !hasPersonalBudget
+                ? "shadow-xl shadow-primary/20 hover:shadow-primary/30"
+                : "bg-card/50 backdrop-blur-sm"
             )}
           >
             <Coins className="h-5 w-5" />
             <span>{hasPersonalBudget ? "Meu Orçamento" : "Definir Orçamento"}</span>
           </Button>
-          
+
           {permissions?.isOwner && (
             <>
               <Button
@@ -166,7 +207,7 @@ export function TripDetailHeader({
                 <Pencil className="h-4 w-4" />
                 <span className="hidden sm:inline font-bold">Editar</span>
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -177,7 +218,10 @@ export function TripDetailHeader({
                     <MoreVertical className="h-5 w-5 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-xl p-2 shadow-xl border-border/50 backdrop-blur-sm">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 rounded-xl p-2 shadow-xl border-border/50 backdrop-blur-sm"
+                >
                   <DropdownMenuItem
                     onClick={onAddParticipant}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
@@ -185,9 +229,9 @@ export function TripDetailHeader({
                     <Plus className="h-4 w-4 text-primary" />
                     <span>Adicionar participante</span>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator className="my-1" />
-                  
+
                   <DropdownMenuItem
                     onClick={onExportPDF}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
@@ -195,7 +239,7 @@ export function TripDetailHeader({
                     <FileDown className="h-4 w-4 text-success" />
                     <span>Exportar Relatório PDF</span>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuItem
                     onClick={onExportExcel}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer"
@@ -203,9 +247,9 @@ export function TripDetailHeader({
                     <Download className="h-4 w-4 text-success" />
                     <span>Exportar Planilha Excel</span>
                   </DropdownMenuItem>
-                  
+
                   <DropdownMenuSeparator className="my-1" />
-                  
+
                   {trip.is_archived ? (
                     <DropdownMenuItem
                       onClick={onUnarchive}
@@ -223,9 +267,9 @@ export function TripDetailHeader({
                       <span>Arquivar viagem</span>
                     </DropdownMenuItem>
                   )}
-                  
+
                   <DropdownMenuSeparator className="my-1" />
-                  
+
                   <DropdownMenuItem
                     onClick={onDelete}
                     className="gap-3 rounded-lg py-2.5 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
@@ -235,8 +279,8 @@ export function TripDetailHeader({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-          </>
-        )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 /**
  * Gerador de Notificações Automáticas
- * 
+ *
  * Verifica condições do sistema e gera notificações apropriadas:
  * - Faturas próximas do vencimento
  * - Orçamentos em alerta
@@ -26,15 +26,14 @@ import { SafeFinancialCalculator } from "./SafeFinancialCalculator";
 import { Database } from "@/integrations/supabase/types";
 
 // Type definitions for better type safety
-type Account = Database['public']['Tables']['accounts']['Row'];
-type Transaction = Database['public']['Tables']['transactions']['Row'];
-type Budget = Database['public']['Tables']['budgets']['Row'];
+type Account = Database["public"]["Tables"]["accounts"]["Row"];
+type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
+type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 interface TransactionData {
   amount: number;
   date: string;
   description: string;
 }
-
 
 interface MemberPendingData {
   name: string;
@@ -91,34 +90,39 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     const prefs = await getNotificationPreferences(userId);
 
     // Gerar notificações em paralelo
-    const [invoices, budgets, shared, recurring, lowBalance, creditLimit, milestone, upcomingBills, weekly] = await Promise.all([
+    const [
+      invoices,
+      budgets,
+      shared,
+      recurring,
+      lowBalance,
+      creditLimit,
+      milestone,
+      upcomingBills,
+      weekly,
+    ] = await Promise.all([
       prefs?.invoice_due_enabled !== false
         ? generateInvoiceDueNotifications(userId, prefs?.invoice_due_days_before || 3)
         : 0,
       prefs?.budget_warning_enabled !== false
         ? generateBudgetWarningNotifications(userId, prefs?.budget_warning_threshold || 80)
         : 0,
-      prefs?.shared_pending_enabled !== false
-        ? generateSharedPendingNotifications(userId)
-        : 0,
-      prefs?.recurring_enabled !== false
-        ? generateRecurringPendingNotifications(userId)
-        : 0,
+      prefs?.shared_pending_enabled !== false ? generateSharedPendingNotifications(userId) : 0,
+      prefs?.recurring_enabled !== false ? generateRecurringPendingNotifications(userId) : 0,
       prefs?.low_balance_enabled !== false
         ? generateLowBalanceNotifications(userId, prefs?.low_balance_threshold || 100)
         : 0,
       prefs?.credit_limit_warning_enabled !== false
-        ? generateCreditLimitNotifications(userId, (prefs as any)?.credit_limit_warning_threshold ?? 90)
+        ? generateCreditLimitNotifications(
+            userId,
+            (prefs as any)?.credit_limit_warning_threshold ?? 90
+          )
         : 0,
-      prefs?.savings_goal_enabled !== false
-        ? generateGoalMilestoneNotifications(userId)
-        : 0,
+      prefs?.savings_goal_enabled !== false ? generateGoalMilestoneNotifications(userId) : 0,
       prefs?.invoice_due_enabled !== false
         ? generateUpcomingBillNotifications(userId, [0, 1, 3])
         : 0,
-      prefs?.weekly_summary_enabled
-        ? generateWeeklySummaryNotification(userId)
-        : 0,
+      prefs?.weekly_summary_enabled ? generateWeeklySummaryNotification(userId) : 0,
     ]);
 
     result.invoiceDue = invoices;
@@ -130,16 +134,27 @@ export async function generateAllNotifications(userId: string): Promise<Generati
     result.goalMilestone = milestone || 0;
     result.upcomingBills = upcomingBills || 0;
     result.weeklySummary = weekly || 0;
-    result.total = invoices + budgets + shared + recurring + result.lowBalance + result.creditLimit + result.goalMilestone + result.upcomingBills + result.weeklySummary;
+    result.total =
+      invoices +
+      budgets +
+      shared +
+      recurring +
+      result.lowBalance +
+      result.creditLimit +
+      result.goalMilestone +
+      result.upcomingBills +
+      result.weeklySummary;
 
     // Disparar push para o dispositivo com as novas notificações
     if (result.total > 0) {
-      supabase.functions.invoke('send-bill-reminders', { body: { user_id: userId } }).catch(() => {});
+      supabase.functions
+        .invoke("send-bill-reminders", { body: { user_id: userId } })
+        .catch(() => {});
     }
 
     return result;
   } catch (error) {
-    logger.error('Erro ao gerar notificações', error);
+    logger.error("Erro ao gerar notificações", error);
     return result;
   }
 }
@@ -156,11 +171,11 @@ async function generateInvoiceDueNotifications(
   try {
     // Buscar cartões de crédito ativos
     const { data: cards, error } = await supabase
-      .from('accounts')
-      .select('id, name, due_day, closing_day')
-      .eq('user_id', userId)
-      .eq('type', 'CREDIT_CARD')
-      .eq('is_active', true);
+      .from("accounts")
+      .select("id, name, due_day, closing_day")
+      .eq("user_id", userId)
+      .eq("type", "CREDIT_CARD")
+      .eq("is_active", true);
 
     if (error || !cards) return 0;
 
@@ -195,24 +210,26 @@ async function generateInvoiceDueNotifications(
       billingStart.setDate(closingDay);
       // Adicionar 1 dia ao início (transações começam no dia seguinte ao fechamento)
       billingStart.setDate(billingStart.getDate() + 1);
-      
+
       const billingEnd = new Date(today); // Até hoje (inclusive)
 
       logger.debug(`Notificação Fatura - Cartão: ${card.name}`);
-      logger.debug(`  Período: ${billingStart.toISOString().split('T')[0]} a ${billingEnd.toISOString().split('T')[0]}`);
-      logger.debug(`  Vencimento: ${dueDate.toISOString().split('T')[0]} (${daysUntilDue} dias)`);
+      logger.debug(
+        `  Período: ${billingStart.toISOString().split("T")[0]} a ${billingEnd.toISOString().split("T")[0]}`
+      );
+      logger.debug(`  Vencimento: ${dueDate.toISOString().split("T")[0]} (${daysUntilDue} dias)`);
 
       // Buscar transações da fatura FECHADA
       const { data: transactions } = await supabase
-        .from('transactions')
-        .select('amount, date, description')
-        .eq('account_id', card.id)
-        .eq('type', 'EXPENSE')
-        .gte('date', billingStart.toISOString().split('T')[0])
-        .lte('date', billingEnd.toISOString().split('T')[0]);
+        .from("transactions")
+        .select("amount, date, description")
+        .eq("account_id", card.id)
+        .eq("type", "EXPENSE")
+        .gte("date", billingStart.toISOString().split("T")[0])
+        .lte("date", billingEnd.toISOString().split("T")[0]);
 
       const invoiceAmount = SafeFinancialCalculator.safeSum(
-        (transactions as TransactionData[] || []).map((tx: TransactionData) => Number(tx.amount))
+        ((transactions as TransactionData[]) || []).map((tx: TransactionData) => Number(tx.amount))
       );
 
       logger.debug(`  Transações: ${transactions?.length || 0}`);
@@ -225,20 +242,22 @@ async function generateInvoiceDueNotifications(
       }
 
       // Definir a chave única da fatura
-      const invoiceKey = `${card.id}-${billingEnd.getFullYear()}-${(billingEnd.getMonth() + 1).toString().padStart(2, '0')}`;
+      const invoiceKey = `${card.id}-${billingEnd.getFullYear()}-${(billingEnd.getMonth() + 1).toString().padStart(2, "0")}`;
 
       // Verificar se já existe notificação para ESTA FATURA ESPECÍFICA
       const { data: existingNotifications } = await (supabase as any)
-        .from('notifications')
-        .select('id, metadata')
-        .eq('user_id', userId)
-        .eq('related_id', card.id)
-        .eq('related_type', 'credit_card')
-        .eq('type', 'INVOICE_DUE');
+        .from("notifications")
+        .select("id, metadata")
+        .eq("user_id", userId)
+        .eq("related_id", card.id)
+        .eq("related_type", "credit_card")
+        .eq("type", "INVOICE_DUE");
 
       // Se já existe notificação para esta fatura, pular
       if (existingNotifications) {
-        const hasExisting = existingNotifications.some((n: any /* any */) => n.metadata?.invoice_key === invoiceKey);
+        const hasExisting = existingNotifications.some(
+          (n: any /* any */) => n.metadata?.invoice_key === invoiceKey
+        );
         if (hasExisting) {
           logger.debug(`  Notificação já existe para fatura ${invoiceKey}`);
           continue;
@@ -258,7 +277,7 @@ async function generateInvoiceDueNotifications(
       count++;
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de fatura:', error);
+    logger.error("Erro ao gerar notificações de fatura:", error);
   }
 
   return count;
@@ -276,10 +295,10 @@ async function generateBudgetWarningNotifications(
   try {
     // Buscar orçamentos ativos
     const { data: budgets, error: budgetError } = await (supabase as any)
-      .from('budgets')
-      .select('id, name, amount, currency, category_id')
-      .eq('user_id', userId)
-      .eq('is_active', true);
+      .from("budgets")
+      .select("id, name, amount, currency, category_id")
+      .eq("user_id", userId)
+      .eq("is_active", true);
 
     if (budgetError || !budgets || budgets.length === 0) return 0;
 
@@ -289,62 +308,69 @@ async function generateBudgetWarningNotifications(
     periodStart.setHours(0, 0, 0, 0);
 
     const { data: transactions, error: txError } = await supabase
-      .from('transactions')
-      .select('amount, category_id, currency, type, is_refund, exchange_rate')
-      .eq('user_id', userId)
-      .or('type.eq.EXPENSE,and(type.eq.INCOME,is_refund.eq.true)')
-      .gte('competence_date', periodStart.toISOString().split('T')[0]);
+      .from("transactions")
+      .select("amount, category_id, currency, type, is_refund, exchange_rate")
+      .eq("user_id", userId)
+      .or("type.eq.EXPENSE,and(type.eq.INCOME,is_refund.eq.true)")
+      .gte("competence_date", periodStart.toISOString().split("T")[0]);
 
     if (txError) return 0;
 
     const spentByCategory: Record<string, Record<string, number>> = {};
 
-    (transactions as (Transaction & { is_refund: boolean })[] || []).forEach((tx) => {
-      const catId = tx.category_id || 'all';
-      const txCurrency = tx.currency || 'BRL';
+    ((transactions as (Transaction & { is_refund: boolean })[]) || []).forEach((tx) => {
+      const catId = tx.category_id || "all";
+      const txCurrency = tx.currency || "BRL";
       const amount = Number(tx.amount);
-      const isRefund = tx.type === 'INCOME' && tx.is_refund;
+      const isRefund = tx.type === "INCOME" && tx.is_refund;
       const rate = Number(tx.exchange_rate) || 1.0;
 
       if (!spentByCategory[catId]) spentByCategory[catId] = {};
-      
+
       // Se for estorno, subtraímos
       const finalAmount = isRefund ? -amount : amount;
 
       // Armazenar valor nominal na moeda da transação
       if (!spentByCategory[catId][txCurrency]) spentByCategory[catId][txCurrency] = 0;
-      spentByCategory[catId][txCurrency] = SafeFinancialCalculator.add(spentByCategory[catId][txCurrency], finalAmount);
+      spentByCategory[catId][txCurrency] = SafeFinancialCalculator.add(
+        spentByCategory[catId][txCurrency],
+        finalAmount
+      );
 
       // Se for moeda diferente de BRL, também armazenamos o valor convertido em BRL para orçamentos em BRL
-      if (txCurrency !== 'BRL' && rate > 0) {
-        if (!spentByCategory[catId]['BRL']) spentByCategory[catId]['BRL'] = 0;
-        spentByCategory[catId]['BRL'] = SafeFinancialCalculator.add(spentByCategory[catId]['BRL'], finalAmount * rate);
+      if (txCurrency !== "BRL" && rate > 0) {
+        if (!spentByCategory[catId]["BRL"]) spentByCategory[catId]["BRL"] = 0;
+        spentByCategory[catId]["BRL"] = SafeFinancialCalculator.add(
+          spentByCategory[catId]["BRL"],
+          finalAmount * rate
+        );
       }
     });
 
     // Verificar cada orçamento
     for (const budget of budgets as Budget[]) {
-      const catId = budget.category_id || 'all';
+      const catId = budget.category_id || "all";
       const spent = spentByCategory[catId]?.[budget.currency] || 0;
       const percentage = (spent / budget.amount) * 100;
 
       // Verificar se já existe notificação para este orçamento NESTE MÊS
-      const periodStartStr = periodStart.toISOString().split('T')[0];
+      const periodStartStr = periodStart.toISOString().split("T")[0];
       const { data: existingNotification } = await (supabase as any)
-        .from('notifications')
-        .select('id, created_at, metadata')
-        .eq('user_id', userId)
-        .eq('related_id', budget.id)
-        .eq('related_type', 'budget')
-        .gte('created_at', periodStartStr) // Criada neste mês
+        .from("notifications")
+        .select("id, created_at, metadata")
+        .eq("user_id", userId)
+        .eq("related_id", budget.id)
+        .eq("related_type", "budget")
+        .gte("created_at", periodStartStr) // Criada neste mês
         .limit(50);
 
       // Precisamos garantir que não criamos a mesma notificação (ex: 80% já notificado)
       if (existingNotification && existingNotification.length > 0) {
         const isExceeded = percentage >= 100;
-        const alreadyNotified = existingNotification.some((n: any /* any */) => 
-          (isExceeded && n.metadata?.exceeded === true) || 
-          (!isExceeded && n.metadata?.exceeded === false)
+        const alreadyNotified = existingNotification.some(
+          (n: any /* any */) =>
+            (isExceeded && n.metadata?.exceeded === true) ||
+            (!isExceeded && n.metadata?.exceeded === false)
         );
         if (alreadyNotified) {
           logger.debug(`Notificação de orçamento já existe este mês para budget ${budget.id}`);
@@ -373,7 +399,7 @@ async function generateBudgetWarningNotifications(
       }
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de orçamento:', error);
+    logger.error("Erro ao gerar notificações de orçamento:", error);
   }
 
   return count;
@@ -402,8 +428,9 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
   try {
     // Buscar splits não acertados onde o usuário é o pagador
     const { data: pendingSplits, error } = await supabase
-      .from('transaction_splits')
-      .select(`
+      .from("transaction_splits")
+      .select(
+        `
         id,
         amount,
         member_id,
@@ -415,18 +442,17 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
           id,
           name
         )
-      `)
-      .eq('is_settled', false)
-      .not('member_id', 'is', null);
+      `
+      )
+      .eq("is_settled", false)
+      .not("member_id", "is", null);
 
     if (error || !pendingSplits) return 0;
 
     const typedSplits = (pendingSplits as unknown as PendingSplitItem[]) || [];
 
     // Filtrar apenas splits onde o usuário é o pagador original
-    const userSplits = typedSplits.filter((split) =>
-      split.transaction?.user_id === userId
-    );
+    const userSplits = typedSplits.filter((split) => split.transaction?.user_id === userId);
 
     // Agrupar por membro
     const byMember: Record<string, MemberPendingData> = {};
@@ -434,53 +460,53 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
     userSplits.forEach((split) => {
       const memberId = split.member_id;
       if (!memberId) return;
-      const memberName = split.member?.name || 'Membro';
+      const memberName = split.member?.name || "Membro";
 
       if (!byMember[memberId]) {
         byMember[memberId] = { name: memberName, amount: 0, count: 0 };
       }
 
-      byMember[memberId].amount = SafeFinancialCalculator.add(byMember[memberId].amount, Number(split.amount));
+      byMember[memberId].amount = SafeFinancialCalculator.add(
+        byMember[memberId].amount,
+        Number(split.amount)
+      );
       byMember[memberId].count++;
     });
 
     // Criar notificação para cada membro com pendência significativa
     for (const [memberId, data] of Object.entries(byMember)) {
-      if (data.amount >= 10) { // Mínimo de R$ 10 para notificar
+      if (data.amount >= 10) {
+        // Mínimo de R$ 10 para notificar
         // Verificar se já existe notificação não dispensada para este membro nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
         const { data: existingNotification } = await (supabase as any)
-          .from('notifications')
-          .select('id, created_at, is_dismissed')
-          .eq('user_id', userId)
-          .eq('related_id', memberId)
-          .eq('related_type', 'family_member')
-          .eq('type', 'SHARED_PENDING')
-          .gte('created_at', sevenDaysAgoStr) // Criada nos últimos 7 dias
-          .order('created_at', { ascending: false })
+          .from("notifications")
+          .select("id, created_at, is_dismissed")
+          .eq("user_id", userId)
+          .eq("related_id", memberId)
+          .eq("related_type", "family_member")
+          .eq("type", "SHARED_PENDING")
+          .gte("created_at", sevenDaysAgoStr) // Criada nos últimos 7 dias
+          .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
         // Se já existe notificação recente (ativa ou dispensada nos últimos 7 dias), pular
         if (existingNotification) {
-          logger.debug(`Notificação de compartilhado já existe nos últimos 7 dias para membro ${memberId}`);
+          logger.debug(
+            `Notificação de compartilhado já existe nos últimos 7 dias para membro ${memberId}`
+          );
           continue;
         }
 
-        await createSharedPendingNotification(
-          userId,
-          data.name,
-          memberId,
-          data.amount,
-          data.count
-        );
+        await createSharedPendingNotification(userId, data.name, memberId, data.amount, data.count);
         count++;
       }
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de compartilhados:', error);
+    logger.error("Erro ao gerar notificações de compartilhados:", error);
   }
 
   return count;
@@ -497,13 +523,13 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
       // Verificar se já existe notificação nos ÚLTIMOS 7 DIAS
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+      const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
       const { data: existingNotification } = await (supabase as any)
-        .from('notifications')
-        .select('id, created_at, is_dismissed')
-        .eq('user_id', userId)
-        .eq('type', 'RECURRING_PENDING')
-        .gte('created_at', sevenDaysAgoStr) // Criada nos últimos 7 dias
+        .from("notifications")
+        .select("id, created_at, is_dismissed")
+        .eq("user_id", userId)
+        .eq("type", "RECURRING_PENDING")
+        .gte("created_at", sevenDaysAgoStr) // Criada nos últimos 7 dias
         .limit(1)
         .maybeSingle();
 
@@ -517,7 +543,7 @@ async function generateRecurringPendingNotifications(userId: string): Promise<nu
       return 1;
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de recorrência', error);
+    logger.error("Erro ao gerar notificações de recorrência", error);
   }
 
   return 0;
@@ -533,19 +559,19 @@ export async function checkAndCreateWelcomeNotification(
   try {
     // Verificar se já existe notificação de boas-vindas
     const { data: existing, error: checkError } = await (supabase as any)
-      .from('notifications')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('type', 'WELCOME')
+      .from("notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "WELCOME")
       .maybeSingle();
 
     if (checkError) {
       // Se for erro de tabela inexistente, apenas loga e ignora
-      if (checkError.code === '42P01') {
-        logger.warn('Tabela notifications não existe ainda');
+      if (checkError.code === "42P01") {
+        logger.warn("Tabela notifications não existe ainda");
         return false;
       }
-      logger.error('Erro ao verificar boas-vindas', checkError);
+      logger.error("Erro ao verificar boas-vindas", checkError);
       return false;
     }
 
@@ -555,16 +581,16 @@ export async function checkAndCreateWelcomeNotification(
 
     // Verificar se é usuário novo (sem transações)
     const { count } = await supabase
-      .from('transactions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .from("transactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
 
     if (count === 0) {
       await createWelcomeNotification(userId, userName);
       return true;
     }
   } catch (error) {
-    logger.error('Erro ao verificar boas-vindas', error);
+    logger.error("Erro ao verificar boas-vindas", error);
   }
 
   return false;
@@ -573,18 +599,15 @@ export async function checkAndCreateWelcomeNotification(
 /**
  * Gera notificações de saldo baixo
  */
-async function generateLowBalanceNotifications(
-  userId: string,
-  threshold: number
-): Promise<number> {
+async function generateLowBalanceNotifications(userId: string, threshold: number): Promise<number> {
   let count = 0;
   try {
     const { data: accounts, error } = await supabase
-      .from('accounts')
-      .select('id, name, balance, type')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .neq('type', 'CREDIT_CARD');
+      .from("accounts")
+      .select("id, name, balance, type")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .neq("type", "CREDIT_CARD");
 
     if (error || !accounts) return 0;
 
@@ -593,14 +616,14 @@ async function generateLowBalanceNotifications(
         // Verificar se já existe nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
         const { data: existing } = await (supabase as any)
-          .from('notifications')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('related_id', acc.id)
-          .eq('type', 'LOW_BALANCE')
-          .gte('created_at', sevenDaysAgoStr)
+          .from("notifications")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("related_id", acc.id)
+          .eq("type", "LOW_BALANCE")
+          .gte("created_at", sevenDaysAgoStr)
           .limit(1)
           .maybeSingle();
 
@@ -611,7 +634,7 @@ async function generateLowBalanceNotifications(
       }
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de saldo baixo', error);
+    logger.error("Erro ao gerar notificações de saldo baixo", error);
   }
   return count;
 }
@@ -626,11 +649,11 @@ async function generateCreditLimitNotifications(
   let count = 0;
   try {
     const { data: cards, error } = await supabase
-      .from('accounts')
-      .select('id, name, balance, credit_limit, type')
-      .eq('user_id', userId)
-      .eq('type', 'CREDIT_CARD')
-      .eq('is_active', true);
+      .from("accounts")
+      .select("id, name, balance, credit_limit, type")
+      .eq("user_id", userId)
+      .eq("type", "CREDIT_CARD")
+      .eq("is_active", true);
 
     if (error || !cards) return 0;
 
@@ -644,14 +667,14 @@ async function generateCreditLimitNotifications(
         // Verificar se já existe nos ÚLTIMOS 7 DIAS
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+        const sevenDaysAgoStr = sevenDaysAgo.toISOString().split("T")[0];
         const { data: existing } = await (supabase as any)
-          .from('notifications')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('related_id', card.id)
-          .eq('type', 'CREDIT_LIMIT_WARNING')
-          .gte('created_at', sevenDaysAgoStr)
+          .from("notifications")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("related_id", card.id)
+          .eq("type", "CREDIT_LIMIT_WARNING")
+          .gte("created_at", sevenDaysAgoStr)
           .limit(1)
           .maybeSingle();
 
@@ -662,7 +685,7 @@ async function generateCreditLimitNotifications(
       }
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de limite de cartão', error);
+    logger.error("Erro ao gerar notificações de limite de cartão", error);
   }
   return count;
 }
@@ -674,17 +697,17 @@ async function generateGoalMilestoneNotifications(userId: string): Promise<numbe
   let count = 0;
   try {
     const { data: goals, error } = await supabase
-      .from('goals')
-      .select('id, name, current_amount, target_amount')
-      .eq('user_id', userId)
-      .eq('deleted', false)
-      .eq('status', 'IN_PROGRESS');
+      .from("goals")
+      .select("id, name, current_amount, target_amount")
+      .eq("user_id", userId)
+      .eq("deleted", false)
+      .eq("status", "IN_PROGRESS");
 
     if (error || !goals) return 0;
 
     for (const goal of goals) {
       const percentage = (Number(goal.current_amount) / Number(goal.target_amount)) * 100;
-      
+
       // Marcos: 50%, 80%, 100%
       let milestone = 0;
       if (percentage >= 100) milestone = 100;
@@ -694,22 +717,22 @@ async function generateGoalMilestoneNotifications(userId: string): Promise<numbe
       if (milestone > 0) {
         // Verificar se já notificamos esse marco
         const { data: existing } = await (supabase as any)
-          .from('notifications')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('related_id', goal.id)
-          .eq('type', 'GOAL_MILESTONE')
-          .filter('metadata->>milestone', 'eq', milestone.toString())
+          .from("notifications")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("related_id", goal.id)
+          .eq("type", "GOAL_MILESTONE")
+          .filter("metadata->>milestone", "eq", milestone.toString())
           .maybeSingle();
 
         if (existing) continue;
 
-        await createGoalMilestoneNotification(userId, goal.name, goal.id, percentage);
+        await createGoalMilestoneNotification(userId, goal.name, goal.id, percentage, milestone);
         count++;
       }
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de metas', error);
+    logger.error("Erro ao gerar notificações de metas", error);
   }
   return count;
 }
@@ -723,13 +746,13 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
     // Só dispara às segundas (dia 1)
     if (today.getDay() !== 1) return 0;
 
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split("T")[0];
     const { data: existing } = await (supabase as any)
-      .from('notifications')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('type', 'WEEKLY_SUMMARY')
-      .gte('created_at', todayStr)
+      .from("notifications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("type", "WEEKLY_SUMMARY")
+      .gte("created_at", todayStr)
       .limit(1);
 
     if (existing && existing.length > 0) return 0;
@@ -737,39 +760,42 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
     // Calcula receitas e despesas da semana passada
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+    const weekAgoStr = weekAgo.toISOString().split("T")[0];
 
     const { data: txs } = await supabase
-      .from('transactions')
-      .select('amount, type')
-      .eq('user_id', userId)
-      .eq('status', 'CONFIRMED')
-      .is('deleted_at', null)
-      .gte('date', weekAgoStr)
-      .lt('date', todayStr);
+      .from("transactions")
+      .select("amount, type")
+      .eq("user_id", userId)
+      .eq("status", "CONFIRMED")
+      .is("deleted_at", null)
+      .gte("date", weekAgoStr)
+      .lt("date", todayStr);
 
     if (!txs || txs.length === 0) return 0;
 
-    const expenses = txs.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + Number(t.amount), 0);
-    const income = txs.filter(t => t.type === 'INCOME').reduce((s, t) => s + Number(t.amount), 0);
+    const expenses = txs
+      .filter((t) => t.type === "EXPENSE")
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const income = txs.filter((t) => t.type === "INCOME").reduce((s, t) => s + Number(t.amount), 0);
     const balance = income - expenses;
-    const sign = balance >= 0 ? '+' : '';
+    const sign = balance >= 0 ? "+" : "";
 
-    const fmt = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-    const { createNotification } = await import('./notificationService');
+    const fmt = (v: number) =>
+      new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+    const { createNotification } = await import("./notificationService");
     await createNotification({
       user_id: userId,
-      type: 'WEEKLY_SUMMARY',
-      title: '📊 Resumo da semana',
+      type: "WEEKLY_SUMMARY",
+      title: "📊 Resumo da semana",
       message: `Receitas ${fmt(income)} · Despesas ${fmt(expenses)} · Saldo ${sign}${fmt(balance)}`,
-      icon: '📊',
-      priority: 'LOW',
-      action_url: '/relatorios',
-      action_label: 'Ver relatório',
+      icon: "📊",
+      priority: "LOW",
+      action_url: "/relatorios",
+      action_label: "Ver relatório",
     });
     return 1;
   } catch (error) {
-    logger.error('Erro ao gerar resumo semanal', error);
+    logger.error("Erro ao gerar resumo semanal", error);
     return 0;
   }
 }
@@ -777,7 +803,10 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
 /**
  * Gera notificações para contas agendadas (PENDING) próximas do vencimento
  */
-async function generateUpcomingBillNotifications(userId: string, daysBefore: number[]): Promise<number> {
+async function generateUpcomingBillNotifications(
+  userId: string,
+  daysBefore: number[]
+): Promise<number> {
   let count = 0;
   try {
     const today = new Date();
@@ -787,54 +816,60 @@ async function generateUpcomingBillNotifications(userId: string, daysBefore: num
     maxDate.setDate(maxDate.getDate() + maxDays);
 
     const { data: bills, error } = await supabase
-      .from('transactions')
-      .select('id, description, amount, date, type, currency')
-      .eq('user_id', userId)
-      .eq('status', 'PENDING')
-      .is('deleted_at', null)
-      .gte('date', today.toISOString().split('T')[0])
-      .lte('date', maxDate.toISOString().split('T')[0]);
+      .from("transactions")
+      .select("id, description, amount, date, type, currency")
+      .eq("user_id", userId)
+      .eq("status", "PENDING")
+      .is("deleted_at", null)
+      .gte("date", today.toISOString().split("T")[0])
+      .lte("date", maxDate.toISOString().split("T")[0]);
 
     if (error || !bills) return 0;
 
     for (const bill of bills) {
-      const billDate = new Date(bill.date + 'T12:00:00');
+      const billDate = new Date(bill.date + "T12:00:00");
       const daysUntil = Math.round((billDate.getTime() - today.getTime()) / 86400000);
 
       if (!daysBefore.includes(daysUntil)) continue;
 
       // Deduplicar: verificar se já existe notificação para este item hoje
       const { data: existing } = await (supabase as any)
-        .from('notifications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('related_id', bill.id)
-        .eq('related_type', 'scheduled_bill')
-        .gte('created_at', today.toISOString())
+        .from("notifications")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("related_id", bill.id)
+        .eq("related_type", "scheduled_bill")
+        .gte("created_at", today.toISOString())
         .limit(1);
 
       if (existing && existing.length > 0) continue;
 
-      const typeLabel = bill.type === 'INCOME' ? 'Receita' : bill.type === 'TRANSFER' ? 'Transferência' : 'Conta';
-      const urgencyLabel = daysUntil === 0 ? 'vence hoje' : daysUntil === 1 ? 'vence amanhã' : `vence em ${daysUntil} dias`;
+      const typeLabel =
+        bill.type === "INCOME" ? "Receita" : bill.type === "TRANSFER" ? "Transferência" : "Conta";
+      const urgencyLabel =
+        daysUntil === 0
+          ? "vence hoje"
+          : daysUntil === 1
+            ? "vence amanhã"
+            : `vence em ${daysUntil} dias`;
 
-      const { createNotification } = await import('./notificationService');
+      const { createNotification } = await import("./notificationService");
       await createNotification({
         user_id: userId,
-        type: 'INVOICE_DUE',
+        type: "INVOICE_DUE",
         title: `${typeLabel} agendada: ${bill.description}`,
         message: `${urgencyLabel.charAt(0).toUpperCase() + urgencyLabel.slice(1)}. Confirme quando for efetivada.`,
-        icon: bill.type === 'INCOME' ? '💰' : bill.type === 'TRANSFER' ? '↔️' : '📋',
-        priority: daysUntil === 0 ? 'URGENT' : daysUntil === 1 ? 'HIGH' : 'NORMAL',
-        action_url: '/transacoes',
-        action_label: 'Ver próximas',
+        icon: bill.type === "INCOME" ? "💰" : bill.type === "TRANSFER" ? "↔️" : "📋",
+        priority: daysUntil === 0 ? "URGENT" : daysUntil === 1 ? "HIGH" : "NORMAL",
+        action_url: "/transacoes",
+        action_label: "Ver próximas",
         related_id: bill.id,
-        related_type: 'scheduled_bill',
+        related_type: "scheduled_bill",
       });
       count++;
     }
   } catch (error) {
-    logger.error('Erro ao gerar notificações de contas agendadas', error);
+    logger.error("Erro ao gerar notificações de contas agendadas", error);
   }
   return count;
 }
@@ -849,16 +884,16 @@ export async function dismissRelatedNotifications(
 ): Promise<void> {
   try {
     await (supabase as any)
-      .from('notifications')
+      .from("notifications")
       .update({
         is_dismissed: true,
-        dismissed_at: new Date().toISOString()
+        dismissed_at: new Date().toISOString(),
       })
-      .eq('user_id', userId)
-      .eq('related_id', relatedId)
-      .eq('related_type', relatedType)
-      .eq('is_dismissed', false);
+      .eq("user_id", userId)
+      .eq("related_id", relatedId)
+      .eq("related_type", relatedType)
+      .eq("is_dismissed", false);
   } catch (error) {
-    logger.error('Erro ao dispensar notificações relacionadas', error);
+    logger.error("Erro ao dispensar notificações relacionadas", error);
   }
 }

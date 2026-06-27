@@ -6,7 +6,7 @@ import { dateUtils } from "@/lib/dateUtils";
 import {
   invalidateFinancialQueries,
   invalidateSharedQueries,
-  invalidateTripQueries
+  invalidateTripQueries,
 } from "@/utils/queryInvalidation";
 import { transactionToasts } from "@/utils/toastMessages";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
@@ -25,10 +25,10 @@ export function useBulkCreateTransactions() {
   return useMutation({
     mutationFn: async (inputs: CreateTransactionInput[]) => {
       if (!user) throw new Error("Usuário não autenticado");
-      
-      const transactionsToInsert = inputs.map(input => {
+
+      const transactionsToInsert = inputs.map((input) => {
         const { splits, transaction_splits, ...transactionData } = input;
-        
+
         return {
           user_id: user.id,
           creator_user_id: user.id,
@@ -56,7 +56,7 @@ export function useBulkCreateTransactions() {
       transactionToasts.created();
     },
     onError: (error) => {
-      transactionToasts.error('criar', error);
+      transactionToasts.error("criar", error);
     },
   });
 }
@@ -73,7 +73,7 @@ export function useUpdateTransaction() {
       if (user) {
         queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
           if (!Array.isArray(old)) return old;
-          return old.map(tx => tx.id === updateData.id ? { ...tx, ...updateData } : tx);
+          return old.map((tx) => (tx.id === updateData.id ? { ...tx, ...updateData } : tx));
         });
       }
       return { previousTransactions };
@@ -81,22 +81,38 @@ export function useUpdateTransaction() {
     mutationFn: async ({ id, ...updateData }: Partial<Transaction> & { id: string }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
-      // Verificar se a transação já foi liquidada
+      // Verificar se a transação já foi liquidada OU tem splits com acertos parciais
       const { data: existingTx } = await supabase
         .from("transactions")
         .select("is_settled")
         .eq("id", id)
         .single();
-        
+
       if (existingTx?.is_settled) {
-        throw new Error("Esta transação já foi liquidada/acertada. Desfaça o acerto antes de editá-la.");
+        throw new Error(
+          "Esta transação já foi liquidada/acertada. Desfaça o acerto antes de editá-la."
+        );
+      }
+
+      // Verificar se há splits com acertos parciais (settled_by_debtor/creditor)
+      const { data: existingSplits } = await supabase
+        .from("transaction_splits")
+        .select("id, is_settled, settled_by_debtor, settled_by_creditor")
+        .eq("transaction_id", id);
+
+      if (
+        existingSplits?.some((s) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
+      ) {
+        throw new Error(
+          "Esta transação possui acertos parciais. Desfaça os acertos antes de editá-la."
+        );
       }
 
       // Validate payer_id and members if they are being updated
       if (updateData.payer_id !== undefined) {
         await validatePayerId(updateData.payer_id);
       }
-      
+
       // We update splits separately since they are in another table.
       const { splits, transaction_splits, ...restUpdateData } = updateData as any;
       const actualSplits = transaction_splits || splits;
@@ -105,7 +121,7 @@ export function useUpdateTransaction() {
         .from("transactions")
         .update({
           ...restUpdateData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id)
         .eq("user_id", user.id)
@@ -119,10 +135,12 @@ export function useUpdateTransaction() {
 
       if (actualSplits) {
         const finalSplits = [...actualSplits];
-        
+
         // Auto-completar splits se a soma for menor que 100% (Critério #6: O próprio criador assume o restante)
         if (finalSplits.length > 0) {
-          const totalPercentage = SafeFinancialCalculator.safeSum(finalSplits.map((s: any) => s.percentage));
+          const totalPercentage = SafeFinancialCalculator.safeSum(
+            finalSplits.map((s: any) => s.percentage)
+          );
           if (totalPercentage < 100) {
             const remainingPercentage = SafeFinancialCalculator.subtract(100, totalPercentage);
             const { data: currentUserMember } = await supabase
@@ -130,12 +148,12 @@ export function useUpdateTransaction() {
               .select("id")
               .eq("linked_user_id", user.id)
               .maybeSingle();
-              
+
             if (currentUserMember) {
               finalSplits.push({
                 member_id: currentUserMember.id,
                 percentage: remainingPercentage,
-                amount: SafeFinancialCalculator.percentage(data.amount, remainingPercentage)
+                amount: SafeFinancialCalculator.percentage(data.amount, remainingPercentage),
               });
             }
           }
@@ -143,21 +161,21 @@ export function useUpdateTransaction() {
 
         // Excluir splits existentes
         await supabase.from("transaction_splits").delete().eq("transaction_id", id);
-        
+
         // Inserir os novos
         if (finalSplits.length > 0) {
           const memberIds = finalSplits.map((s: any) => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
-            .or(`id.in.(${memberIds.join(',')}),linked_user_id.in.(${memberIds.join(',')})`);
-          
+            .or(`id.in.(${memberIds.join(",")}),linked_user_id.in.(${memberIds.join(",")})`);
+
           const memberNames: Record<string, string> = {};
           const memberUserIds: Record<string, string> = {};
           const userIdToMemberId: Record<string, string> = {};
           const userIdToName: Record<string, string> = {};
-          
-          membersData?.forEach(m => {
+
+          membersData?.forEach((m) => {
             memberNames[m.id] = m.name;
             if (m.linked_user_id) {
               memberUserIds[m.id] = m.linked_user_id;
@@ -171,13 +189,18 @@ export function useUpdateTransaction() {
             const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
             const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
             const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
-            const actualName = isUserId ? userIdToName[split.member_id] : memberNames[split.member_id];
-            
+            const actualName = isUserId
+              ? userIdToName[split.member_id]
+              : memberNames[split.member_id];
+
             let splitAmount = 0;
             if (index === finalSplits.length - 1) {
               splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
             } else {
-              const baseAmount = split.amount !== undefined ? split.amount : SafeFinancialCalculator.percentage(data.amount, split.percentage);
+              const baseAmount =
+                split.amount !== undefined
+                  ? split.amount
+                  : SafeFinancialCalculator.percentage(data.amount, split.percentage);
               splitAmount = baseAmount;
               allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
             }
@@ -210,7 +233,7 @@ export function useUpdateTransaction() {
       invalidateFinancialQueries(queryClient);
       invalidateSharedQueries(queryClient);
       invalidateTripQueries(queryClient);
-      showActionFeedback('success');
+      showActionFeedback("success");
     },
     onError: (error, _variables, context: any) => {
       if (context?.previousTransactions) {
@@ -218,7 +241,7 @@ export function useUpdateTransaction() {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      showActionFeedback('error');
+      showActionFeedback("error");
     },
   });
 }
@@ -228,54 +251,82 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    onMutate: async ({ id, cascadeType = 'NONE' }) => {
+    onMutate: async ({ id, cascadeType = "NONE" }) => {
       await queryClient.cancelQueries({ queryKey: ["transactions"] });
       const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
 
       if (user) {
         queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
           if (!Array.isArray(old)) return old;
-          return old.filter(tx => tx.id !== id);
+          return old.filter((tx) => tx.id !== id);
         });
       }
       return { previousTransactions };
     },
-    mutationFn: async ({ id, cascadeType = 'NONE' }: { id: string, cascadeType?: 'ALL' | 'NEXT' | 'NONE' }) => {
+    mutationFn: async ({
+      id,
+      cascadeType = "NONE",
+    }: {
+      id: string;
+      cascadeType?: "ALL" | "NEXT" | "NONE";
+    }) => {
       // 1. Buscar a transação antes de deletar
       const { data: existingTx } = await supabase
         .from("transactions")
-        .select("is_shared, domain, description, user_id, is_settled, series_id, current_installment")
+        .select(
+          "is_shared, domain, description, user_id, is_settled, series_id, current_installment"
+        )
         .eq("id", id)
         .maybeSingle();
 
       if (existingTx && existingTx.is_settled) {
-        throw new Error("Esta transação já foi liquidada/acertada. Desfaça o acerto antes de excluí-la.");
+        throw new Error(
+          "Esta transação já foi liquidada/acertada. Desfaça o acerto antes de excluí-la."
+        );
+      }
+
+      // Verificar splits com acertos parciais
+      const { data: existingSplits } = await supabase
+        .from("transaction_splits")
+        .select("id, is_settled, settled_by_debtor, settled_by_creditor")
+        .eq("transaction_id", id);
+
+      if (
+        existingSplits?.some((s) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
+      ) {
+        throw new Error(
+          "Esta transação possui acertos parciais. Desfaça os acertos antes de excluí-la."
+        );
       }
 
       // 2. Se for compartilhada, buscar splits antes de deletar
       let otherUserIds: string[] = [];
-      if (existingTx && (existingTx.is_shared || existingTx.domain === 'SHARED')) {
+      if (existingTx && (existingTx.is_shared || existingTx.domain === "SHARED")) {
         const { data: splitsData } = await supabase
           .from("transaction_splits")
           .select("user_id")
           .eq("transaction_id", id);
-        
+
         if (splitsData && splitsData.length > 0) {
-          otherUserIds = Array.from(new Set(splitsData.map(s => s.user_id).filter(uid => uid && uid !== user?.id)));
+          otherUserIds = Array.from(
+            new Set(splitsData.map((s) => s.user_id).filter((uid) => uid && uid !== user?.id))
+          );
         }
       }
 
       // 3. Deletar a transação (com lógica de cascata)
-      let deleteQuery = supabase.from("transactions").update({ deleted_at: new Date().toISOString() });
-      
-      if (cascadeType === 'ALL' && existingTx?.series_id) {
-        deleteQuery = deleteQuery.eq('series_id', existingTx.series_id);
-      } else if (cascadeType === 'NEXT' && existingTx?.series_id) {
+      let deleteQuery = supabase
+        .from("transactions")
+        .update({ deleted_at: new Date().toISOString() });
+
+      if (cascadeType === "ALL" && existingTx?.series_id) {
+        deleteQuery = deleteQuery.eq("series_id", existingTx.series_id);
+      } else if (cascadeType === "NEXT" && existingTx?.series_id) {
         // Para NEXT, precisamos deletar onde series_id bate E current_installment >= tx.current_installment
         // Como o Supabase delete() com múltiplos filtros funciona com AND, podemos fazer:
         deleteQuery = deleteQuery
-          .eq('series_id', existingTx.series_id)
-          .gte('current_installment', existingTx.current_installment || 1);
+          .eq("series_id", existingTx.series_id)
+          .gte("current_installment", existingTx.current_installment || 1);
       } else {
         // Padrão (NONE) ou transação sem série
         deleteQuery = deleteQuery.eq("id", id);
@@ -289,18 +340,25 @@ export function useDeleteTransaction() {
       if (existingTx && otherUserIds.length > 0) {
         try {
           // Fire and forget notification
-          Promise.all(otherUserIds.map(otherUserId => 
-            createNotification({
-              user_id: otherUserId,
-              type: 'SHARED_EXPENSE',
-              title: 'Transação Excluída',
-              message: `${user?.user_metadata?.name || user?.email || 'Alguém'} excluiu a transação compartilhada "${existingTx.description}".`,
-              icon: '❌',
-              priority: 'NORMAL'
-            }).catch(e => logger.error("Erro ao criar notificação de exclusão compartilhada:", e))
-          ));
+          Promise.all(
+            otherUserIds.map((otherUserId) =>
+              createNotification({
+                user_id: otherUserId,
+                type: "SHARED_EXPENSE",
+                title: "Transação Excluída",
+                message: `${user?.user_metadata?.name || user?.email || "Alguém"} excluiu a transação compartilhada "${existingTx.description}".`,
+                icon: "❌",
+                priority: "NORMAL",
+              }).catch((e) =>
+                logger.error("Erro ao criar notificação de exclusão compartilhada:", e)
+              )
+            )
+          );
         } catch (notificationError) {
-          logger.error("Erro ao tentar enviar notificação de exclusão compartilhada:", notificationError);
+          logger.error(
+            "Erro ao tentar enviar notificação de exclusão compartilhada:",
+            notificationError
+          );
         }
       }
     },
@@ -310,10 +368,12 @@ export function useDeleteTransaction() {
       invalidateSharedQueries(queryClient);
       invalidateTripQueries(queryClient);
       transactionToasts.deleted();
-      
+
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
       if (user?.id) {
-        generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-exclusão', e));
+        generateAllNotifications(user.id).catch((e) =>
+          logger.error("Erro ao gerar notificações pós-exclusão", e)
+        );
       }
     },
     onError: (error, _variables, context: any) => {
@@ -322,7 +382,7 @@ export function useDeleteTransaction() {
           queryClient.setQueryData(queryKey, data);
         });
       }
-      transactionToasts.error('remover', error);
+      transactionToasts.error("remover", error);
     },
   });
 }
@@ -339,7 +399,9 @@ export function useUpdateRecurringSeries() {
     }: {
       seriesId: string;
       fromInstallment: number;
-      updates: Partial<Pick<Transaction, 'description' | 'amount' | 'category_id' | 'account_id' | 'notes'>>;
+      updates: Partial<
+        Pick<Transaction, "description" | "amount" | "category_id" | "account_id" | "notes">
+      >;
     }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
@@ -358,7 +420,7 @@ export function useUpdateRecurringSeries() {
       toast.success("Recorrências atualizadas!");
     },
     onError: (error) => {
-      transactionToasts.error('atualizar série', error);
+      transactionToasts.error("atualizar série", error);
     },
   });
 }
@@ -370,12 +432,14 @@ export function useDeleteInstallmentSeries() {
   return useMutation({
     mutationFn: async (seriesId: string) => {
       // CORREÇÃO: Usar RPC com retry para maior resiliência (Critério Alto #7)
-      const data = await rpcWithRetry('delete_installment_series', { p_series_id: seriesId });
-      
+      const data = await rpcWithRetry("delete_installment_series", { p_series_id: seriesId });
+
       const deletedCount = (data as any)?.[0]?.deleted_count || 0;
-      
+
       if (deletedCount === 0) {
-        throw new Error("Nenhuma parcela foi excluída. Verifique se a série existe e pertence a você.");
+        throw new Error(
+          "Nenhuma parcela foi excluída. Verifique se a série existe e pertence a você."
+        );
       }
 
       return { deletedCount };
@@ -386,32 +450,33 @@ export function useDeleteInstallmentSeries() {
       invalidateSharedQueries(queryClient);
       invalidateTripQueries(queryClient);
       toast.success("Série de parcelas excluída com sucesso!");
-      
+
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
       if (user?.id) {
-        generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-exclusão de série', e));
+        generateAllNotifications(user.id).catch((e) =>
+          logger.error("Erro ao gerar notificações pós-exclusão de série", e)
+        );
       }
     },
     onError: (error) => {
-      transactionToasts.error('remover série', error);
+      transactionToasts.error("remover série", error);
     },
   });
 }
-
 
 export function useAnticipateInstallments() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      seriesId, 
-      fromInstallment, 
+    mutationFn: async ({
+      seriesId,
+      fromInstallment,
       newDate,
-      updateFutureOnly = true
-    }: { 
-      seriesId: string; 
-      fromInstallment: number; 
+      updateFutureOnly = true,
+    }: {
+      seriesId: string;
+      fromInstallment: number;
       newDate: string;
       updateFutureOnly?: boolean;
     }) => {
@@ -419,7 +484,7 @@ export function useAnticipateInstallments() {
         .from("transactions")
         .select("id, date, competence_date, current_installment")
         .eq("series_id", seriesId);
-      
+
       if (updateFutureOnly) {
         query = query.gte("current_installment", fromInstallment);
       }
@@ -433,7 +498,7 @@ export function useAnticipateInstallments() {
         const installmentDate = dateUtils.addMonthsToDate(dateUtils.parseDate(newDate), index);
         const formattedDate = dateUtils.formatDate(installmentDate);
         const competenceDate = dateUtils.getCompetenceDate(installmentDate);
-        
+
         return supabase
           .from("transactions")
           .update({
@@ -450,14 +515,16 @@ export function useAnticipateInstallments() {
       // Run invalidations without awaiting to unblock UI instantly
       invalidateFinancialQueries(queryClient);
       toast.success("Parcelas antecipadas com sucesso!");
-      
+
       // ✅ INTELIGÊNCIA FINANCEIRA: Atualizar orçamentos e saldos em tempo real
       if (user?.id) {
-        generateAllNotifications(user.id).catch(e => logger.error('Erro ao gerar notificações pós-antecipação', e));
+        generateAllNotifications(user.id).catch((e) =>
+          logger.error("Erro ao gerar notificações pós-antecipação", e)
+        );
       }
     },
     onError: (error) => {
-      transactionToasts.error('antecipar', error);
+      transactionToasts.error("antecipar", error);
     },
   });
 }

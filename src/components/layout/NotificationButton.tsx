@@ -1,6 +1,6 @@
 /**
  * Botão de Notificações com Centro de Notificações Integrado
- * 
+ *
  * Exibe badge com contagem de não lidas e abre dropdown com lista completa
  */
 
@@ -8,47 +8,38 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Bell, CheckCheck, X, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  useNotifications, 
-  useMarkNotificationAsRead, 
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
   useMarkAllAsRead,
   useDismissNotification,
-  useDismissAll
+  useDismissAll,
 } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { 
-  getNotificationIcon, 
-  getPriorityColor, 
-  Notification 
+import {
+  getNotificationIcon,
+  getPriorityColor,
+  Notification,
 } from "@/services/notificationService";
-import { 
-  generateAllNotifications, 
-  checkAndCreateWelcomeNotification 
+import {
+  generateAllNotifications,
+  checkAndCreateWelcomeNotification,
 } from "@/services/notificationGenerator";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export function NotificationButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useAuth();
-  const { data: profile } = useUserProfile();
-  const { 
-    data: notifications = [],
-    unreadCount, 
-    isLoading,
-    refetch,
-  } = useNotifications();
-  
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
+  const { data: notifications = [], unreadCount, isLoading, refetch } = useNotifications();
+
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const dismiss = useDismissNotification();
@@ -56,40 +47,51 @@ export function NotificationButton() {
 
   // Gerar notificações ao abrir o app (uma vez por sessão)
   useEffect(() => {
+    // Só gera quando user E profile já carregaram
+    if (!user || isProfileLoading || !profile) return;
+
+    let cancelled = false;
+
     const generateNotifications = async () => {
-      if (!user) return;
-      
       const sessionKey = `notifications_generated_${user.id}`;
       const lastGenerated = localStorage.getItem(sessionKey);
       const now = Date.now();
-      
+
       // Gerar no máximo uma vez a cada 5 minutos
       if (lastGenerated && now - parseInt(lastGenerated) < 5 * 60 * 1000) {
         return;
       }
 
-      // Prevenir execuções concorrentes movendo o setItem para antes do await
       localStorage.setItem(sessionKey, now.toString());
       setIsGenerating(true);
+
+      // Timeout de segurança: 30s máximo
+      const safetyTimer = setTimeout(() => {
+        if (!cancelled) {
+          logger.warn("Geração de notificações excedeu 30s — abortando");
+          setIsGenerating(false);
+        }
+      }, 30000);
+
       try {
-        // Verificar boas-vindas para novos usuários
-        const userName = profile?.full_name || user.email?.split('@')[0] || 'Usuário';
+        const userName = profile.full_name || user.email?.split("@")[0] || "Usuário";
         await checkAndCreateWelcomeNotification(user.id, userName);
-        
-        // Gerar outras notificações
         await generateAllNotifications(user.id);
-        
         refetch();
       } catch (error) {
-        logger.error('Erro ao gerar notificações:', error);
+        logger.error("Erro ao gerar notificações:", error);
       } finally {
-        setIsGenerating(false);
+        clearTimeout(safetyTimer);
+        if (!cancelled) setIsGenerating(false);
       }
     };
 
     generateNotifications();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, profile]);
+  }, [user?.id, isProfileLoading]);
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
@@ -100,22 +102,22 @@ export function NotificationButton() {
     }
   };
 
-  const unreadNotifications = notifications.filter(n => !n.is_read);
-  const readNotifications = notifications.filter(n => n.is_read);
+  const unreadNotifications = notifications.filter((n) => !n.is_read);
+  const readNotifications = notifications.filter((n) => n.is_read);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="relative text-muted-foreground hover:text-foreground"
-          aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
+          aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ""}`}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-white text-sm flex items-center justify-center font-bold animate-pulse">
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
           {isGenerating && (
@@ -125,12 +127,8 @@ export function NotificationButton() {
           )}
         </Button>
       </PopoverTrigger>
-      
-      <PopoverContent 
-        className="w-[380px] p-0" 
-        align="end"
-        sideOffset={8}
-      >
+
+      <PopoverContent className="w-[380px] p-0" align="end" sideOffset={8}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notificações</h3>
@@ -172,9 +170,7 @@ export function NotificationButton() {
                 <Bell className="h-8 w-8 text-muted-foreground/50" />
               </div>
               <p className="font-medium text-muted-foreground">Nenhuma notificação</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                Você está em dia! 🎉
-              </p>
+              <p className="text-sm text-muted-foreground/70 mt-1">Você está em dia! 🎉</p>
             </div>
           ) : (
             <div className="divide-y">
@@ -221,7 +217,7 @@ export function NotificationButton() {
 
         {/* Footer */}
         <div className="p-3 border-t bg-muted/30">
-          <Link 
+          <Link
             to="/configuracoes?section=notifications"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setIsOpen(false)}
@@ -266,23 +262,22 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
       onClick={handleClick}
     >
       {/* Icon */}
-      <div className={cn(
-        "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg",
-        !notification.is_read ? "bg-primary/10" : "bg-muted"
-      )}>
+      <div
+        className={cn(
+          "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg",
+          !notification.is_read ? "bg-primary/10" : "bg-muted"
+        )}
+      >
         {icon}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className={cn(
-            "text-sm leading-tight",
-            !notification.is_read && "font-medium"
-          )}>
+          <p className={cn("text-sm leading-tight", !notification.is_read && "font-medium")}>
             {notification.title}
           </p>
-          
+
           {/* Dismiss button */}
           <Button
             variant="ghost"
@@ -297,33 +292,29 @@ function NotificationItem({ notification, onClick, onDismiss }: NotificationItem
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
-        
-        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-          {notification.message}
-        </p>
-        
+
+        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{notification.message}</p>
+
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-sm text-muted-foreground">
-            {timeAgo}
-          </span>
-          
-          {notification.priority !== 'NORMAL' && notification.priority !== 'LOW' && (
-            <span className={cn(
-              "text-xs px-1.5 py-0.5 rounded-full",
-              getPriorityColor(notification.priority)
-            )}>
-              {notification.priority === 'HIGH' ? 'Importante' : 'Urgente'}
+          <span className="text-sm text-muted-foreground">{timeAgo}</span>
+
+          {notification.priority !== "NORMAL" && notification.priority !== "LOW" && (
+            <span
+              className={cn(
+                "text-xs px-1.5 py-0.5 rounded-full",
+                getPriorityColor(notification.priority)
+              )}
+            >
+              {notification.priority === "HIGH" ? "Importante" : "Urgente"}
             </span>
           )}
-          
-          {!notification.is_read && (
-            <span className="w-2 h-2 rounded-full bg-primary" />
-          )}
+
+          {!notification.is_read && <span className="w-2 h-2 rounded-full bg-primary" />}
         </div>
 
         {/* Action button */}
         {notification.action_url && notification.action_label && (
-          <Link 
+          <Link
             to={notification.action_url}
             className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline"
             onClick={(e) => e.stopPropagation()}

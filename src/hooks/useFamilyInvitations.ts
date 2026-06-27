@@ -26,7 +26,7 @@ export function usePendingInvitations() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["family-invitations-pending", user?.id],
+    queryKey: ["pending-family-invitations", user?.id],
     queryFn: async () => {
       if (!user) return [];
 
@@ -115,7 +115,7 @@ export function useAcceptInvitation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["family-members"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       toast.success("Solicitação aceita! Vínculo criado.");
@@ -141,7 +141,7 @@ export function useRejectInvitation() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       toast.success("Solicitação rejeitada.");
     },
@@ -166,7 +166,7 @@ export function useCancelInvitation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["family-invitations-sent"] });
-      queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
       toast.success("Convite cancelado.");
     },
     onError: (error: Error) => {
@@ -194,7 +194,7 @@ export function useResendInvitation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["family-invitations-sent"] });
-      queryClient.invalidateQueries({ queryKey: ["family-invitations-pending"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-family-invitations"] });
       toast.success("Convite reenviado!");
     },
     onError: (error: Error) => {

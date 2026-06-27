@@ -25,12 +25,12 @@ export function useNotifications() {
       return data as Notification[];
     },
     enabled: !!user,
-    refetchInterval: 60000, // Refetch a cada 1 minuto
-    staleTime: 60000,      // 1 minuto de cache
+    refetchInterval: 15000, // Polling a cada 15s como fallback do Realtime
+    staleTime: 10000, // 10s de cache (Realtime invalida antes)
   });
 
   // Calcular notificações não lidas
-  const unreadCount = query.data?.filter(n => !n.is_read).length || 0;
+  const unreadCount = query.data?.filter((n) => !n.is_read).length || 0;
 
   return {
     ...query,
@@ -117,7 +117,7 @@ export function useDeleteNotification() {
         .from("notifications")
         .update({
           is_dismissed: true,
-          dismissed_at: new Date().toISOString()
+          dismissed_at: new Date().toISOString(),
         })
         .eq("id", notificationId);
 
@@ -155,7 +155,7 @@ export function useDismissNotification() {
         .from("notifications")
         .update({
           is_dismissed: true,
-          dismissed_at: new Date().toISOString()
+          dismissed_at: new Date().toISOString(),
         })
         .eq("id", notificationId);
 
@@ -191,7 +191,7 @@ export function useDismissAll() {
         .from("notifications")
         .update({
           is_dismissed: true,
-          dismissed_at: new Date().toISOString()
+          dismissed_at: new Date().toISOString(),
         })
         .eq("user_id", user.id)
         .or("is_dismissed.eq.false,is_dismissed.is.null");
@@ -228,18 +228,18 @@ export function useNotificationPreferences() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await (supabase
-        .from("notification_preferences" as any) as any)
+      const { data, error } = await (supabase.from("notification_preferences" as any) as any)
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
-      
+
       // Se não existir, criar com valores padrão
       if (!data) {
-        const { data: newPrefs, error: insertError } = await (supabase
-          .from("notification_preferences" as any) as any)
+        const { data: newPrefs, error: insertError } = await (
+          supabase.from("notification_preferences" as any) as any
+        )
           .insert({
             user_id: user.id,
             invoice_due_enabled: true,
@@ -270,8 +270,7 @@ export function useNotificationPreferences() {
     mutationFn: async (updates: any) => {
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await (supabase
-        .from("notification_preferences" as any) as any)
+      const { data, error } = await (supabase.from("notification_preferences" as any) as any)
         .update(updates)
         .eq("user_id", user.id)
         .select()

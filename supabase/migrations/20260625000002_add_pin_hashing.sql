@@ -7,10 +7,16 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- New column for hashed PIN (bcrypt)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS app_pin_hash TEXT;
 
--- Backfill: hash existing plaintext PINs
-UPDATE profiles
-SET app_pin_hash = crypt(app_pin, gen_salt('bf', 8))
-WHERE app_pin IS NOT NULL AND app_pin != '' AND app_pin_hash IS NULL;
+-- Backfill: hash existing plaintext PINs (skip if pgcrypto functions unavailable)
+DO $$
+BEGIN
+  UPDATE profiles
+  SET app_pin_hash = crypt(app_pin, gen_salt('bf', 8))
+  WHERE app_pin IS NOT NULL AND app_pin != '' AND app_pin_hash IS NULL;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'Skipping PIN backfill: %', SQLERRM;
+END;
+$$;
 
 -- Clear plaintext after hashing
 UPDATE profiles SET app_pin = NULL WHERE app_pin_hash IS NOT NULL;

@@ -252,7 +252,7 @@ export function CreditCards() {
           allYearTransactions={exportTransactions}
           canDelete={selectedCardCanDelete}
           onArchive={(card) => setShowArchiveConfirmModal(true)}
-          onUnarchive={async (card) => { await unarchiveAccountMutation.mutateAsync(card.id); toast.success("Cartão desarquivado!"); handleGoBack(); }}
+          onUnarchive={async (card) => { try { await unarchiveAccountMutation.mutateAsync(card.id); } catch { /* onError do hook já trata */ } toast.success("Cartão desarquivado!"); handleGoBack(); }}
           setShowSharingDialog={setShowSharingDialog}
           dependentTransactions={dependentTransactions}
         />
@@ -260,7 +260,7 @@ export function CreditCards() {
         <ShareCardDialog isOpen={showSharingDialog} onClose={() => setShowSharingDialog(false)} card={selectedCard} />
 
         <ImportBillsDialog isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} account={selectedCard} onImport={async (txs) => { 
-          await bulkCreateTransactions.mutateAsync(txs as any); 
+          try { await bulkCreateTransactions.mutateAsync(txs as any); } catch { /* onError do hook já trata */ } 
           toast.success("Faturas importadas!"); 
           setShowImportDialog(false); 
         }} />
@@ -421,9 +421,9 @@ export function CreditCards() {
           <AlertDialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
             <AlertDialogHeader><AlertDialogTitle>Remover cartão "{deleteCardConfirm.card?.name}"?</AlertDialogTitle></AlertDialogHeader>
             <div className="flex flex-col gap-3 py-4">
-               <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
+               <Button variant="outline" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { try { await archiveAccountMutation.mutateAsync(deleteCardConfirm.card.id); } catch { /* onError do hook já trata */ } setDeleteCardConfirm({ isOpen: false, card: null }); } }}><Archive className="h-4 w-4" /> Arquivar (Recomendado)</Button>
                {deleteCardCanDelete && (
-                 <Button variant="destructive" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { await deleteAccountMutation.mutateAsync(deleteCardConfirm.card.id); setDeleteCardConfirm({ isOpen: false, card: null }); setView("list"); refetchAccounts(); } }}><Trash2 className="h-4 w-4" /> Excluir Permanentemente</Button>
+                 <Button variant="destructive" className="justify-start gap-3" onClick={async () => { if (deleteCardConfirm.card) { try { await deleteAccountMutation.mutateAsync(deleteCardConfirm.card.id); } catch { /* onError do hook já trata */ } setDeleteCardConfirm({ isOpen: false, card: null }); setView("list"); refetchAccounts(); } }}><Trash2 className="h-4 w-4" /> Excluir Permanentemente</Button>
                )}
             </div>
             <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel></AlertDialogFooter>
@@ -528,7 +528,7 @@ export function CreditCards() {
           isOpen={showArchiveConfirmModal}
           onClose={() => setShowArchiveConfirmModal(false)}
           onConfirm={async () => {
-            await archiveAccountMutation.mutateAsync(selectedCard.id);
+            try { await archiveAccountMutation.mutateAsync(selectedCard.id); } catch { /* onError do hook já trata */ }
             toast.success("Cartão arquivado com sucesso!");
             setShowArchiveConfirmModal(false);
             setView("list");

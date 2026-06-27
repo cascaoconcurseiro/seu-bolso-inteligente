@@ -87,12 +87,12 @@ export function Settings() {
   const deleteCategory = useDeleteCategory();
 
   const handleCreateCategory = async () => {
-    await createCategory.mutateAsync({ 
+    try { await createCategory.mutateAsync({ 
       name: newCategoryName, 
       type: newCategoryType, 
       icon: newCategoryIcon,
       parent_category_id: parentCategoryId
-    });
+    }); } catch { /* onError do hook já trata */ }
     setShowAddCategoryDialog(false);
     setNewCategoryName("");
     setNewCategoryType("expense");
@@ -102,7 +102,7 @@ export function Settings() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword || newPassword.length < 6) return;
-    await updatePassword.mutateAsync({ newPassword });
+    try { await updatePassword.mutateAsync({ newPassword }); } catch { /* onError do hook já trata */ }
     setShowChangePasswordDialog(false);
     setNewPassword("");
     setConfirmPassword("");

@@ -1,25 +1,25 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Plane, Check, X, Calendar, MapPin } from "lucide-react";
-import { 
-  usePendingTripInvitations, 
-  useAcceptTripInvitation, 
-  useRejectTripInvitation 
+import {
+  usePendingTripInvitations,
+  useAcceptTripInvitation,
+  useRejectTripInvitation,
 } from "@/hooks/useTripInvitations";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export function PendingTripInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingTripInvitations();
   const acceptInvitation = useAcceptTripInvitation();
   const rejectInvitation = useRejectTripInvitation();
 
-  // logger.debug('🟣 [PendingTripInvitationsAlert] Renderizado:', { 
-  //   invitations, 
-  //   isLoading, 
+  // logger.debug('🟣 [PendingTripInvitationsAlert] Renderizado:', {
+  //   invitations,
+  //   isLoading,
   //   error,
-  //   hasInvitations: invitations && invitations.length > 0 
+  //   hasInvitations: invitations && invitations.length > 0
   // });
 
   if (isLoading) {
@@ -31,7 +31,7 @@ export function PendingTripInvitationsAlert() {
     // logger.error("🟣 [PendingTripInvitationsAlert] Erro ao carregar convites:", error);
     return null;
   }
-  
+
   if (!invitations || invitations.length === 0) {
     // logger.debug('🟣 [PendingTripInvitationsAlert] Nenhum convite pendente');
     return null;
@@ -54,17 +54,16 @@ export function PendingTripInvitationsAlert() {
             <AlertTitle>Novo Convite de Viagem</AlertTitle>
             <AlertDescription className="mt-2 space-y-3">
               <p>
-                Você foi convidado por <strong>{inviterName}</strong> para participar da viagem{" "}
-                <strong>"{tripName}"</strong>!
+                <strong>{inviterName}</strong> te convidou para <strong>"{tripName}"</strong>
               </p>
-              
+
               {destination && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   <span>{destination}</span>
                 </div>
               )}
-              
+
               {startDate && endDate && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
@@ -73,10 +72,6 @@ export function PendingTripInvitationsAlert() {
                     {dateFns.format(new Date(endDate), "dd/MM/yyyy", { locale: ptBR })}
                   </span>
                 </div>
-              )}
-
-              {invitation.message && (
-                <p className="text-sm italic text-muted-foreground">"{invitation.message}"</p>
               )}
 
               <div className="flex gap-2">

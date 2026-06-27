@@ -79,11 +79,19 @@ export async function getMultipleCurrencyRates(
 ): Promise<Record<string, number>> {
   const results: Record<string, number> = {};
 
-  await Promise.all(currencies.map(async (c) => {
-    if (c === targetCode) { results[c] = 1; return; }
-    const rate = await getCurrencyRate(c, targetCode);
-    results[c] = rate ?? 0;
-  }));
+  await Promise.all(
+    currencies.map(async (c) => {
+      if (c === targetCode) {
+        results[c] = 1;
+        return;
+      }
+      const rate = await getCurrencyRate(c, targetCode);
+      if (rate !== null && rate !== undefined) {
+        results[c] = rate;
+      }
+      // Se falhar, omite do resultado — consumidor trata undefined, não 0
+    })
+  );
 
   return results;
 }

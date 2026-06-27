@@ -35,6 +35,9 @@ export interface TripParticipant {
   user_id: string | null;
   member_id: string | null;
   name: string;
+  avatar_url: string | null;
+  avatar_color: string | null;
+  avatar_icon: string | null;
   personal_budget: number | null;
   created_at: string;
 }
@@ -65,10 +68,10 @@ export function useTrips() {
         .eq("user_id", user.id);
 
       if (memberError) throw memberError;
-      
+
       if (!memberTrips || memberTrips.length === 0) return [];
 
-      const tripIds = memberTrips.map(m => m.trip_id);
+      const tripIds = memberTrips.map((m) => m.trip_id);
 
       // Buscar as viagens completas
       const { data: trips, error: tripsError } = await supabase
@@ -79,7 +82,7 @@ export function useTrips() {
         .order("start_date", { ascending: true });
 
       if (tripsError) throw tripsError;
-      
+
       if (!trips || trips.length === 0) return [];
 
       // Buscar orçamentos pessoais para essas viagens (de trip_members)
@@ -90,9 +93,9 @@ export function useTrips() {
         .in("trip_id", tripIds);
 
       // Mapear orçamentos para viagens
-      const budgetMap = new Map(budgets?.map(b => [b.trip_id, b.personal_budget]) || []);
-      
-      return trips.map(trip => ({
+      const budgetMap = new Map(budgets?.map((b) => [b.trip_id, b.personal_budget]) || []);
+
+      return trips.map((trip) => ({
         ...trip,
         my_personal_budget: budgetMap.get(trip.id) || null,
       })) as unknown as TripWithPersonalBudget[];
@@ -112,11 +115,7 @@ export function useTrip(id: string | null) {
     queryFn: async () => {
       if (!id) return null;
 
-      const { data, error } = await supabase
-        .from("trips")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabase.from("trips").select("*").eq("id", id).single();
 
       if (error) throw error;
       return data as unknown as Trip;
@@ -139,7 +138,8 @@ export function useTripParticipants(tripId: string | null) {
       // Incluir guest_name para participantes sem conta (convidados externos)
       const { data, error } = await supabase
         .from("trip_members")
-        .select(`
+        .select(
+          `
           id,
           trip_id,
           user_id,
@@ -147,13 +147,14 @@ export function useTripParticipants(tripId: string | null) {
           role,
           personal_budget,
           created_at,
-          profile:profiles!fk_trip_members_profiles(full_name)
-        `)
+          profile:profiles!fk_trip_members_profiles(full_name, avatar_url, avatar_color, avatar_icon)
+        `
+        )
         .eq("trip_id", tripId)
         .order("created_at");
 
       if (error) throw error;
-      
+
       return (data || []).map((member: any) => ({
         id: member.id,
         trip_id: member.trip_id,
@@ -161,7 +162,9 @@ export function useTripParticipants(tripId: string | null) {
         member_id: member.id, // ID da tabela trip_members
         role: member.role,
         name: member.profile?.full_name || member.guest_name || "Participante",
-        avatar: member.profile?.avatar_url,
+        avatar_url: member.profile?.avatar_url || null,
+        avatar_color: member.profile?.avatar_color || null,
+        avatar_icon: member.profile?.avatar_icon || null,
         personal_budget: member.personal_budget,
         created_at: member.created_at,
       })) as TripParticipant[];
@@ -171,7 +174,6 @@ export function useTripParticipants(tripId: string | null) {
     refetchOnWindowFocus: false,
   });
 }
-
 
 export function useCreateTrip() {
   const { user } = useAuth();
@@ -199,11 +201,11 @@ export function useCreateTrip() {
 
       // Criar convites para membros selecionados
       if (memberIds && memberIds.length > 0) {
-        const invitations = memberIds.map(userId => ({
+        const invitations = memberIds.map((userId) => ({
           trip_id: data.id,
           inviter_id: user.id,
           invitee_id: userId,
-          message: `Você foi convidado para participar da viagem "${data.name}"!`,
+          message: null,
         }));
 
         const { error: invitationsError } = await supabase
@@ -217,10 +219,9 @@ export function useCreateTrip() {
             { duration: 5000 }
           );
         } else {
-          toast.success(
-            `Viagem criada com sucesso! ${memberIds.length} convite(s) enviado(s).`,
-            { duration: 3000 }
-          );
+          toast.success(`Viagem criada com sucesso! ${memberIds.length} convite(s) enviado(s).`, {
+            duration: 3000,
+          });
         }
       } else {
         // Sem convites, apenas sucesso simples
@@ -297,9 +298,9 @@ export function useArchiveTrip() {
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
         .from("trips")
-        .update({ 
+        .update({
           is_archived: true,
-          archived_at: new Date().toISOString()
+          archived_at: new Date().toISOString(),
         } as any)
         .eq("id", id)
         .select()
@@ -315,7 +316,7 @@ export function useArchiveTrip() {
     onError: (error: Error) => {
       logger.error("Erro ao arquivar viagem:", error);
       toast.error("Erro ao arquivar viagem");
-    }
+    },
   });
 }
 
@@ -326,9 +327,9 @@ export function useUnarchiveTrip() {
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
         .from("trips")
-        .update({ 
+        .update({
           is_archived: false,
-          archived_at: null
+          archived_at: null,
         } as unknown)
         .eq("id", id)
         .select()
@@ -370,14 +371,14 @@ export function useAddTripParticipant() {
           trip_id: tripId,
           user_id: userId,
           personal_budget: personalBudget || null,
-          role: 'member',
-          status: 'active'
+          role: "member",
+          status: "active",
         })
         .select()
         .single();
 
       if (error) {
-        if (error.code === '23505') {
+        if (error.code === "23505") {
           throw new Error("Este participante já está na viagem");
         }
         throw error;
@@ -389,7 +390,7 @@ export function useAddTripParticipant() {
         user_id: data.user_id,
         name: name,
         personal_budget: data.personal_budget,
-        created_at: data.created_at
+        created_at: data.created_at,
       } as TripParticipant;
     },
     onSuccess: (_, variables) => {
@@ -409,10 +410,7 @@ export function useRemoveTripParticipant() {
 
   return useMutation({
     mutationFn: async ({ id, tripId }: { id: string; tripId: string }) => {
-      const { error } = await supabase
-        .from("trip_members")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("trip_members").delete().eq("id", id);
 
       if (error) throw error;
       return tripId;
@@ -442,12 +440,14 @@ export function useTripTransactions(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           account:accounts!account_id(name, bank_id),
           category:categories(name, icon),
           transaction_splits:transaction_splits!transaction_id(*)
-        `)
+        `
+        )
         .eq("trip_id", tripId)
         .is("source_transaction_id", null)
         .order("date", { ascending: false });
@@ -483,12 +483,12 @@ export function useTripFinancialSummary(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return null;
       try {
-        const data = await callRPCWithRetry('get_trip_financial_summary', {
-          p_trip_id: tripId
+        const data = await callRPCWithRetry("get_trip_financial_summary", {
+          p_trip_id: tripId,
         });
         return (Array.isArray(data) ? data[0] : data) as TripFinancialSummary;
       } catch (error) {
-        logger.error('Erro ao buscar resumo financeiro da viagem:', error);
+        logger.error("Erro ao buscar resumo financeiro da viagem:", error);
         throw error;
       }
     },
@@ -507,13 +507,13 @@ export function useMyTripSpent(tripId: string | null) {
     queryFn: async () => {
       if (!tripId || !user) return 0;
       try {
-        const data = await callRPCWithRetry('calculate_trip_spent', {
+        const data = await callRPCWithRetry("calculate_trip_spent", {
           p_trip_id: tripId,
-          p_user_id: user?.id
+          p_user_id: user?.id,
         });
         return Number(data || 0);
       } catch (error) {
-        logger.error('Erro ao calcular gasto da viagem:', error);
+        logger.error("Erro ao calcular gasto da viagem:", error);
         throw error;
       }
     },
@@ -542,12 +542,12 @@ export function useTripParticipantBalances(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return [];
       try {
-        const data = await callRPCWithRetry('get_trip_participant_balances', {
-          p_trip_id: tripId
+        const data = await callRPCWithRetry("get_trip_participant_balances", {
+          p_trip_id: tripId,
         });
         return data as TripParticipantBalance[];
       } catch (error) {
-        logger.error('Erro ao buscar saldos dos participantes:', error);
+        logger.error("Erro ao buscar saldos dos participantes:", error);
         throw error;
       }
     },
