@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { PullToRefresh } from "@/components/ui/PullToRefresh";
 import { useLocation } from "react-router-dom";
 import { Clock, CalendarClock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -268,6 +269,7 @@ export function Transactions() {
   if (isError) return <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-background border border-border rounded-2xl"><div className="w-16 h-16 bg-negative/10 text-negative rounded-full flex items-center justify-center mb-4"><Clock className="h-8 w-8 opacity-50" /></div><h2 className="text-xl font-bold mb-2">Erro ao carregar transações</h2><Button onClick={() => refetch()} variant="outline">Tentar novamente</Button></div>;
 
   return (
+    <PullToRefresh queryKeys={[['transactions'], ['scheduled-bills']]}>
     <div className="space-y-6 animate-fade-in">
       <TransactionHeader count={displayTransactions.length} filteredTransactions={displayTransactions} filteredAnnualTransactions={filteredAnnualTransactions} onImportOFX={() => setShowOfxModal(true)} />
 
@@ -390,5 +392,6 @@ export function Transactions() {
       <TransactionModal isOpen={showTransactionModal} onClose={() => { setShowTransactionModal(false); setEditTransactionData(null); }} initialData={editTransactionData} />
       <OFXImportModal isOpen={showOfxModal} onClose={() => setShowOfxModal(false)} />
     </div>
+    </PullToRefresh>
   );
 }
