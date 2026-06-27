@@ -1,5 +1,4 @@
 import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from "@/utils/exportCurrency";
-import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -201,6 +200,7 @@ export const exportMonthlyReport = async (data: ExportData) => {
       .from('templates')
       .download('template_base.xlsx');
 
+    const ExcelJS = await import('exceljs');
     const workbook = new ExcelJS.Workbook();
 
     if (downloadError || !templateData) {
