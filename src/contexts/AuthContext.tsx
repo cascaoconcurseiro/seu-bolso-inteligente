@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import localforage from "localforage";
 
 interface AuthContextType {
   user: User | null;
@@ -82,6 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    await localforage.clear();
+    window.location.replace('/auth');
   };
 
   return (
