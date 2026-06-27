@@ -493,20 +493,19 @@ function ItineraryDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-lg max-h-[90vh] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl flex flex-col overflow-hidden"
+        className="max-w-lg max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="w-full flex justify-center pt-4 sm:hidden shrink-0">
+        <div className="w-full flex justify-center pt-4 sm:hidden">
           <div className="w-12 h-1.5 bg-muted rounded-full" />
         </div>
 
-        <DialogHeader className="px-6 shrink-0">
+        <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
           <DialogDescription className="sr-only">Formulário de atividade do roteiro</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6">
-        <div className="space-y-4 py-2">
+        <div className="space-y-4">
           {/* Data */}
           <div className="space-y-2">
             <Label>Data *</Label>
@@ -596,17 +595,15 @@ function ItineraryDialog({
             />
           </div>
 
-        </div>
-        </div>
-
-        {/* Botões fixos no rodapé — fora do scroll */}
-        <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
-          <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !date || !title}>
-            {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
-          </Button>
+          {/* Botões */}
+          <div className="flex gap-3 pt-2 pb-2">
+            <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !date || !title}>
+              {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
