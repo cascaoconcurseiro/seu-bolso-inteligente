@@ -14,53 +14,77 @@ export function useGlobalRealtime() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryCountRef = useRef(0);
-  const MAX_RETRIES = 5;
+  const errorTimestampsRef = useRef<number[]>([]);
+  const MAX_ERRORS_PER_WINDOW = 5;
+  const ERROR_WINDOW_MS = 30000; // 30 segundos
 
   useEffect(() => {
     if (!user?.id) return;
 
     let cancelled = false;
     let channel: ReturnType<typeof supabase.channel>;
+    let stableTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanupTimers = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (stableTimer) {
+        clearTimeout(stableTimer);
+        stableTimer = null;
+      }
+    };
+
+    const shouldStopRetrying = (): boolean => {
+      const now = Date.now();
+      // Remove erros fora da janela
+      errorTimestampsRef.current = errorTimestampsRef.current.filter(
+        (t) => now - t < ERROR_WINDOW_MS
+      );
+      return errorTimestampsRef.current.length >= MAX_ERRORS_PER_WINDOW;
+    };
 
     const connect = () => {
       if (cancelled) return;
-
-      logger.debug("Conectando ao Supabase Realtime...");
 
       channel = supabase
         .channel("global-db-changes")
         .on("postgres_changes", { event: "*", schema: "public" }, (payload) => {
           const { table } = payload;
-          logger.debug(`Evento Realtime recebido na tabela: ${table}`);
 
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
           timeoutRef.current = setTimeout(() => {
-            logger.debug("Executando invalidação financeira após evento Realtime");
             invalidateAllFinancialData(queryClient);
           }, 1500);
         })
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
             logger.info("Conectado ao Supabase Realtime com sucesso");
-            retryCountRef.current = 0; // reset retry count on success
+            // Reset do contador de erros só depois de 10s estável
+            if (stableTimer) clearTimeout(stableTimer);
+            stableTimer = setTimeout(() => {
+              errorTimestampsRef.current = [];
+            }, 10000);
           } else if (status === "CHANNEL_ERROR") {
-            logger.error("Erro no canal Supabase Realtime");
-            // Tentar reconectar com backoff exponencial
-            if (!cancelled && retryCountRef.current < MAX_RETRIES) {
-              const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
-              retryCountRef.current++;
-              logger.warn(`Tentando reconectar em ${delay}ms (tentativa ${retryCountRef.current})`);
+            errorTimestampsRef.current.push(Date.now());
+            logger.error(
+              `Erro no canal Supabase Realtime (${errorTimestampsRef.current.length} erros em ${ERROR_WINDOW_MS / 1000}s)`
+            );
+
+            if (!cancelled && !shouldStopRetrying()) {
+              const delay = Math.min(2000 * (errorTimestampsRef.current.length + 1), 30000);
+              logger.warn(`Reconectando em ${delay}ms`);
               setTimeout(connect, delay);
-            } else if (retryCountRef.current >= MAX_RETRIES) {
-              logger.error("Número máximo de tentativas de reconexão atingido");
+            } else if (shouldStopRetrying()) {
+              logger.error(
+                "Muitos erros no canal Realtime. Parando tentativas — usando apenas polling."
+              );
             }
           } else if (status === "CLOSED" || status === "TIMED_OUT") {
-            // Supabase Realtime fecha o canal depois de um tempo — reconectar
-            if (!cancelled) {
-              logger.debug("Canal Realtime fechado, reconectando...");
-              setTimeout(connect, 1000);
+            if (!cancelled && !shouldStopRetrying()) {
+              setTimeout(connect, 5000);
             }
           }
         });
@@ -72,7 +96,7 @@ export function useGlobalRealtime() {
 
     return () => {
       cancelled = true;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      cleanupTimers();
       if (activeChannel) supabase.removeChannel(activeChannel);
     };
   }, [user?.id, queryClient]);
