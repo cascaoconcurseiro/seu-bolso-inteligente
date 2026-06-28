@@ -81,10 +81,11 @@ export function useCreateTransaction() {
             .maybeSingle()
         : Promise.resolve({ data: null });
 
-      const memberDataPromise =
-        input.is_shared && !input.payer_id
-          ? supabase.from("family_members").select("id").eq("linked_user_id", user.id).maybeSingle()
-          : Promise.resolve({ data: null });
+      const memberDataPromise = supabase
+        .from("family_members")
+        .select("id")
+        .eq("linked_user_id", user.id)
+        .maybeSingle();
 
       const existingTxPromise = supabase
         .from("transactions")
@@ -126,12 +127,15 @@ export function useCreateTransaction() {
         return dateUtils.getCompetenceDate(d);
       };
 
+      // Resolve o family_member ID do criador para uso consistente em splits
+      const myFamilyMemberId = memberResult.data?.id || null;
+
       // ✅ VALIDAÇÃO: Payer ID (Quem pagou)
       let resolvedPayerId = input.payer_id;
 
       if (input.is_shared && !resolvedPayerId) {
-        if (memberResult.data) {
-          resolvedPayerId = memberResult.data.id;
+        if (myFamilyMemberId) {
+          resolvedPayerId = myFamilyMemberId;
           input.payer_id = resolvedPayerId;
         } else {
           // Fallback final: Tentar encontrar admin se necessário
@@ -179,7 +183,9 @@ export function useCreateTransaction() {
           const remainingPercentage = 100 - totalPercentage;
           // Guard: floating-point imprecision can produce a near-zero remainder — skip it
           if (remainingPercentage >= 0.01) {
-            const mySplitIndex = finalSplits.findIndex((s) => s.member_id === user!.id);
+            const mySplitIndex = finalSplits.findIndex(
+              (s) => s.member_id === myFamilyMemberId || s.member_id === user!.id
+            );
 
             if (mySplitIndex >= 0) {
               const currentPct = finalSplits[mySplitIndex].percentage || 0;
@@ -190,9 +196,9 @@ export function useCreateTransaction() {
                 percentage: newPct,
                 amount: SafeFinancialCalculator.percentage(input.amount, newPct),
               };
-            } else {
+            } else if (myFamilyMemberId) {
               finalSplits.push({
-                member_id: user!.id,
+                member_id: myFamilyMemberId,
                 percentage: remainingPercentage,
                 amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage),
               });
@@ -282,7 +288,11 @@ export function useCreateTransaction() {
           // Build embedded splits for this installment
           let embeddedSplits: Record<string, unknown>[] = [];
           if (finalSplits && finalSplits.length > 0) {
-            const splitResults = calculateTransactionSplits(currentAmount, finalSplits, user.id);
+            const splitResults = calculateTransactionSplits(
+              currentAmount,
+              finalSplits,
+              myFamilyMemberId || user.id
+            );
             embeddedSplits = splitResults.map((split) => {
               const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
               return {
@@ -394,7 +404,11 @@ export function useCreateTransaction() {
             .eq("is_active", true);
 
           if (autoRules && autoRules.length > 0) {
-            const matched = matchAutoShareRule(autoRules as AutoShareRule[], categoryId, input.description);
+            const matched = matchAutoShareRule(
+              autoRules as AutoShareRule[],
+              categoryId,
+              input.description
+            );
             if (matched) {
               const otherPct = matched.split_ratio * 100;
               finalSplits.push({
@@ -405,9 +419,9 @@ export function useCreateTransaction() {
               // (que é o outro membro) absorve 100% em calculateTransactionSplits.
               // Só adiciona se o criador tiver participação (evita split com 0%).
               const myPct = 100 - otherPct;
-              if (myPct > 0) {
+              if (myPct > 0 && myFamilyMemberId) {
                 finalSplits.push({
-                  member_id: user.id,
+                  member_id: myFamilyMemberId,
                   percentage: myPct,
                 });
               }
@@ -456,7 +470,11 @@ export function useCreateTransaction() {
           }
         });
 
-        const splitResults = calculateTransactionSplits(input.amount, finalSplits, user.id);
+        const splitResults = calculateTransactionSplits(
+          input.amount,
+          finalSplits,
+          myFamilyMemberId || user.id
+        );
         const splitsPayload = splitResults.map((split) => {
           const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
           return {
