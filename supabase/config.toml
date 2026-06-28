@@ -27,4 +27,12 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/get-place-suggestions/index.ts"
 
+[functions.send-bill-reminders]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-bill-reminders/index.ts"
 
+[functions.send-monthly-report]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-monthly-report/index.ts"

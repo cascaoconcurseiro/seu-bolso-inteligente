@@ -1,0 +1,36 @@
+-- =========================================================================
+-- MIGRATION: pg_cron job para relatório mensal (FEAT-01)
+-- Data: 2026-06-28
+-- Branch: fix/29-bugs-report
+--
+-- ⚠️ Esta migration só cria a extensão pg_net e documenta o job.
+-- O pg_cron job deve ser criado MANUALMENTE no SQL Editor do Supabase
+-- porque pg_net.http_post com named params pode variar por versão.
+-- =========================================================================
+
+-- Garantir que pg_net está disponível
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- ═════════════════════════════════════════════════════════════════════════
+-- RODE ESTE COMANDO MANUALMENTE NO SQL EDITOR DO SUPABASE:
+-- ═════════════════════════════════════════════════════════════════════════
+--
+-- SELECT cron.schedule(
+--   'send-monthly-report-job',
+--   '0 10 1 * *',
+--   $$
+--   SELECT net.http_post(
+--     url:='https://vrrcagukyfnlhxuvnssp.supabase.co/functions/v1/send-monthly-report',
+--     headers:='{"Content-Type":"application/json"}'::jsonb,
+--     body:='{}'::jsonb
+--   );
+--   $$
+-- );
+--
+-- ═════════════════════════════════════════════════════════════════════════
+-- CONFIGURAÇÃO MANUAL OBRIGATÓRIA:
+-- 1. Adicionar RESEND_API_KEY no Dashboard > Edge Functions > send-monthly-report > Secrets
+-- 2. Criar conta em https://resend.com e verificar domínio meupedemeia.vercel.app
+-- 3. Testar: curl -X POST https://vrrcagukyfnlhxuvnssp.supabase.co/functions/v1/send-monthly-report
+--    Com body: {"user_id": "SEU_USER_ID", "month": 6, "year": 2026}
+-- ═════════════════════════════════════════════════════════════════════════
