@@ -6,40 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 60_000; // 1 minute
-const ATTEMPTS_KEY = '@pedemeia:pin_attempts';
-const LOCKOUT_UNTIL_KEY = '@pedemeia:pin_lockout_until';
-
-function getRemainingLockout(): number {
-  try {
-    const until = Number(localStorage.getItem(LOCKOUT_UNTIL_KEY) || '0');
-    return Math.max(0, until - Date.now());
-  } catch {
-    return 0;
-  }
-}
-
-function recordFailedAttempt(): number {
-  try {
-    const attempts = Number(localStorage.getItem(ATTEMPTS_KEY) || '0') + 1;
-    localStorage.setItem(ATTEMPTS_KEY, String(attempts));
-    if (attempts >= MAX_ATTEMPTS) {
-      localStorage.setItem(LOCKOUT_UNTIL_KEY, String(Date.now() + LOCKOUT_MS));
-      localStorage.setItem(ATTEMPTS_KEY, '0');
-    }
-    return attempts;
-  } catch {
-    return 1;
-  }
-}
-
-function clearAttempts() {
-  try {
-    localStorage.removeItem(ATTEMPTS_KEY);
-    localStorage.removeItem(LOCKOUT_UNTIL_KEY);
-  } catch { /* ignore */ }
-}
+/**
+ * PinWrapper — Proteção de sessão com PIN.
+ *
+ * Segurança (LGPD Art. 46):
+ * - PIN armazenado com bcrypt (pgcrypto) — nunca plaintext
+ * - Verificação server-side via verify_pin RPC
+ * - Lockout server-side: 5 tentativas, 60s (tabela pin_attempts)
+ * - PIN nunca trafega em localStorage para lockout (era bypassável)
+ */
 
 export function PinWrapper({ children }: { children: React.ReactNode }) {
   const { data: profile } = useUserProfile();
@@ -54,7 +29,7 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
 
   const [pinInput, setPinInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
   const hasCheckedProfile = useRef(false);
 
   useEffect(() => {
@@ -70,18 +45,6 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [profile]);
 
-  // Lockout countdown
-  useEffect(() => {
-    if (!isLocked) return;
-    const interval = setInterval(() => {
-      const remaining = getRemainingLockout();
-      setLockoutSeconds(Math.ceil(remaining / 1000));
-      if (remaining === 0) clearInterval(interval);
-    }, 1000);
-    setLockoutSeconds(Math.ceil(getRemainingLockout() / 1000));
-    return () => clearInterval(interval);
-  }, [isLocked]);
-
   const requirePin = profile?.require_pin_on_open ?? (localStorage.getItem('@pedemeia:require_pin') === 'true');
   const hasPinHash = !!(profile as any)?.app_pin_hash;
 
@@ -91,41 +54,29 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const remaining = getRemainingLockout();
-    if (remaining > 0) {
-      toast.error(`Muitas tentativas. Aguarde ${Math.ceil(remaining / 1000)}s.`);
-      return;
-    }
-
     setIsVerifying(true);
+    setErrorMessage('');
+
     try {
       const { data: ok, error } = await supabase.rpc('verify_pin', { p_pin: pinInput });
 
       if (error) {
-        toast.error('Erro ao verificar PIN. Tente novamente.');
+        // Erro do servidor (inclui lockout — P0004)
+        setErrorMessage(error.message);
+        setPinInput('');
         return;
       }
 
       if (ok === true) {
-        clearAttempts();
         setIsLocked(false);
       } else {
-        const attempts = recordFailedAttempt();
-        const newRemaining = getRemainingLockout();
-        if (newRemaining > 0) {
-          toast.error(`PIN bloqueado por ${Math.ceil(newRemaining / 1000)}s após ${MAX_ATTEMPTS} tentativas incorretas.`);
-        } else {
-          toast.error(`PIN incorreto. Tentativa ${attempts} de ${MAX_ATTEMPTS}.`);
-        }
+        setErrorMessage('PIN incorreto.');
         setPinInput('');
       }
     } finally {
       setIsVerifying(false);
     }
   };
-
-  const isLockedOut = lockoutSeconds > 0;
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-background px-4">
@@ -138,9 +89,9 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
           <p className="text-sm text-muted-foreground">
             Digite o seu PIN de segurança para acessar as suas informações financeiras.
           </p>
-          {isLockedOut && (
+          {errorMessage && (
             <p className="text-sm font-medium text-destructive">
-              Bloqueado por {lockoutSeconds}s
+              {errorMessage}
             </p>
           )}
         </div>
@@ -156,12 +107,12 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
             onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
             className="text-center text-xl tracking-[0.5em] h-14"
             autoFocus
-            disabled={isVerifying || isLockedOut}
+            disabled={isVerifying}
           />
           <Button
             type="submit"
             className="w-full h-12"
-            disabled={pinInput.length < 4 || isVerifying || isLockedOut}
+            disabled={pinInput.length < 4 || isVerifying}
           >
             {isVerifying ? 'Verificando...' : 'Desbloquear'}
           </Button>
