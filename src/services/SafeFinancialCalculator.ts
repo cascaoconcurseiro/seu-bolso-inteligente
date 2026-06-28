@@ -158,7 +158,7 @@ export class SafeFinancialCalculator {
    */
   static calculateInstallment(total: number, installments: number): number {
     if (installments <= 0) throw new Error('Invalid number of installments');
-    return SafeFinancialCalculator.round(total / installments);
+    return SafeFinancialCalculator.divide(total, installments);
   }
 
   /**

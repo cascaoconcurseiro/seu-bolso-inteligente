@@ -66,7 +66,8 @@ export const useBudgets = () => {
         finalData = finalData.map(budget => {
           const prevBudget = prevData.find((p: BudgetWithProgress) => p.budget_id === budget.budget_id);
           if (prevBudget && prevBudget.remaining_amount > 0) {
-            const rollover = prevBudget.remaining_amount;
+            // Cap rollover to the current month's original budget to prevent infinite accumulation
+            const rollover = Math.min(prevBudget.remaining_amount, budget.budget_amount);
             const newBudgetAmount = budget.budget_amount + rollover;
             const newRemaining = newBudgetAmount - budget.spent_amount;
             const newPercentage = newBudgetAmount > 0 
