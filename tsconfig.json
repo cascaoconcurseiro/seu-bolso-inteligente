@@ -13,5 +13,6 @@
     "noUnusedLocals": false,
     "strict": true,
     "strictNullChecks": true
-  }
+  },
+  "exclude": ["supabase/functions", "node_modules", "dist"]
 }

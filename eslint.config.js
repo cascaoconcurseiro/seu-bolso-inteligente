@@ -5,7 +5,15 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "scripts/sandbox/**", "src/integrations/supabase/types.ts", ".eslintignore"] },
+  {
+    ignores: [
+      "dist",
+      "scripts/sandbox/**",
+      "src/integrations/supabase/types.ts",
+      ".eslintignore",
+      "supabase/functions/**",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
@@ -24,7 +32,7 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-require-imports": "off",
       "no-useless-escape": "off",
-      "no-empty": "warn"
+      "no-empty": "warn",
     },
-  },
+  }
 );
