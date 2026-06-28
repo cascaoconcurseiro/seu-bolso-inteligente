@@ -29,10 +29,12 @@ import {
   EyeOff,
   Calculator,
   ChevronDown,
+  MoreHorizontal,
   Search,
+  Settings,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
-import { navigationItems } from "@/config/navigation";
+import { navigationItems, secondaryNavItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -146,10 +148,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               </span>
             </Link>
 
-            {/* Desktop Navigation — header ocupa largura total para caber todos os itens */}
+            {/* Desktop Navigation — 7 itens + Mais (Miller's Law) */}
             <nav className="hidden md:flex items-center gap-0 flex-1 justify-center">
               {navigationItems.map((item) => {
-                const isActive = location.pathname === item.path;
+                const isActive =
+                  location.pathname === item.path ||
+                  (item.path !== "/" && location.pathname.startsWith(item.path));
                 const Icon = item.icon;
                 return (
                   <Link
@@ -157,17 +161,53 @@ export function AppLayout({ children }: AppLayoutProps) {
                     to={item.path}
                     title={item.label}
                     className={cn(
-                      "flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5 flex-shrink-0 hidden lg:block" />
+                    <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                     {item.label}
                   </Link>
                 );
               })}
+              {/* Submenu Mais */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150",
+                      secondaryNavItems.some((s) => location.pathname.startsWith(s.path))
+                        ? "bg-primary/20 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
+                    )}
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    Mais
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {secondaryNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname.startsWith(item.path);
+                    return (
+                      <DropdownMenuItem key={item.path} asChild>
+                        <Link
+                          to={item.path}
+                          className={cn(
+                            "flex items-center gap-2 w-full",
+                            isActive && "text-primary font-medium"
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
 
             {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}
@@ -282,7 +322,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main className="flex-1 pb-32 md:pb-8">
-        <div key={location.pathname} className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 animate-fade-in">
+        <div
+          key={location.pathname}
+          className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 animate-fade-in"
+        >
           <OnboardingGuard>{children}</OnboardingGuard>
         </div>
       </main>

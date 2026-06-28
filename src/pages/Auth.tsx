@@ -19,7 +19,7 @@ const authSchema = z.object({
 export function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
   const navigate = useNavigate();
-  
+
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,7 +86,7 @@ export function Auth() {
           }
         } else {
           toast.success("Conta criada com sucesso!");
-          navigate("/contas");
+          navigate("/");
         }
       }
     } catch (err) {
@@ -117,21 +117,23 @@ export function Auth() {
           {/* Title */}
           <div className="text-center">
             <div className="mx-auto w-20 h-20 flex items-center justify-center mb-3">
-              <img src="/icon-512.png" alt="Pé de Meia" className="w-full h-full object-contain drop-shadow-sm" />
+              <img
+                src="/icon-512.png"
+                alt="Pé de Meia"
+                className="w-full h-full object-contain drop-shadow-sm"
+              />
             </div>
             <h1 className="font-display font-bold text-2xl tracking-tight">
               {isResetting ? "Recuperar senha" : isLogin ? "Bem-vindo de volta" : "Crie sua conta"}
             </h1>
             <p className="text-muted-foreground mt-2">
-              {isResetting 
+              {isResetting
                 ? "Enviaremos um link de recuperação para seu e-mail"
-                : isLogin 
-                  ? "Entre para gerenciar suas finanças" 
-                  : "Comece a organizar suas finanças hoje"
-              }
+                : isLogin
+                  ? "Entre para gerenciar suas finanças"
+                  : "Comece a organizar suas finanças hoje"}
             </p>
           </div>
-
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="form-stack">
@@ -231,7 +233,7 @@ export function Auth() {
             >
               {isResetting ? "Enviar link de recuperação" : isLogin ? "Entrar" : "Criar conta"}
             </Button>
-            
+
             {isResetting && (
               <Button
                 type="button"
