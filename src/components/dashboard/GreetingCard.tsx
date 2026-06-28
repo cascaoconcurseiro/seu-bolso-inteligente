@@ -9,7 +9,6 @@ interface GreetingCardProps {
 }
 
 const tips = [
-  "A regra 50/30/20 divide sua renda em essencial, lazer e poupança — sem culpa e sem sofrimento.",
   "Pagar faturas no vencimento evita juros e constrói seu score de crédito ao longo do tempo.",
   "Reserva de emergência de 3 a 6 meses de despesas é o alicerce de qualquer plano financeiro sólido.",
   "Juros compostos funcionam a seu favor quando você investe um valor fixo todo mês, mesmo que pequeno.",
@@ -39,13 +38,15 @@ export function GreetingCard({ className }: GreetingCardProps) {
   }, []);
 
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-2xl px-5 py-4 transition-all duration-600 ease-out",
-      "bg-gradient-to-br from-accent/8 via-accent/4 to-transparent",
-      "border border-accent/15",
-      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
-      className
-    )}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl px-5 py-4 transition-all duration-600 ease-out",
+        "bg-gradient-to-br from-accent/8 via-accent/4 to-transparent",
+        "border border-accent/15",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+        className
+      )}
+    >
       {/* Decorative blur */}
       <div className="absolute top-0 right-0 w-36 h-36 bg-accent/8 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
@@ -67,9 +68,7 @@ export function GreetingCard({ className }: GreetingCardProps) {
             <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-accent/15 flex items-center justify-center">
               <Lightbulb className="w-3 h-3 text-accent" />
             </div>
-            <p className="text-xs font-medium text-muted-foreground leading-relaxed">
-              {tip}
-            </p>
+            <p className="text-xs font-medium text-muted-foreground leading-relaxed">{tip}</p>
           </div>
         )}
       </div>

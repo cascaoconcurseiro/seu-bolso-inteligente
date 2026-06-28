@@ -17,7 +17,12 @@ interface Insight {
   variant: "positive" | "warning" | "danger" | "neutral";
 }
 
-function buildInsight(income: number, expense: number, pendingExpense: number, currency: string): Insight | null {
+function buildInsight(
+  income: number,
+  expense: number,
+  pendingExpense: number,
+  currency: string
+): Insight | null {
   if (income === 0 && expense === 0) return null;
 
   const savingsRate = income > 0 ? ((income - expense) / income) * 100 : 0;
@@ -43,7 +48,7 @@ function buildInsight(income: number, expense: number, pendingExpense: number, c
   if (income > 0 && savingsRate >= 20) {
     return {
       icon: CheckCircle2,
-      message: `Você está poupando ${savingsRate.toFixed(0)}% da renda este mês. Excelente disciplina financeira!`,
+      message: `Você está poupando ${savingsRate.toFixed(0)}% da renda este mês.`,
       variant: "positive",
     };
   }
@@ -90,7 +95,13 @@ const variantStyles = {
   },
 };
 
-export function MonthInsight({ income, expense, pendingExpense, currency, className }: MonthInsightProps) {
+export function MonthInsight({
+  income,
+  expense,
+  pendingExpense,
+  currency,
+  className,
+}: MonthInsightProps) {
   const insight = useMemo(
     () => buildInsight(income, expense, pendingExpense, currency),
     [income, expense, pendingExpense, currency]
@@ -102,17 +113,22 @@ export function MonthInsight({ income, expense, pendingExpense, currency, classN
   const Icon = insight.icon;
 
   return (
-    <div className={cn(
-      "flex items-start gap-3 px-4 py-3 rounded-2xl border animate-fade-in",
-      styles.bg,
-      className
-    )}>
-      <div className={cn("shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5", styles.icon)}>
+    <div
+      className={cn(
+        "flex items-start gap-3 px-4 py-3 rounded-2xl border animate-fade-in",
+        styles.bg,
+        className
+      )}
+    >
+      <div
+        className={cn(
+          "shrink-0 w-8 h-8 rounded-xl flex items-center justify-center mt-0.5",
+          styles.icon
+        )}
+      >
         <Icon className="w-4 h-4" strokeWidth={2} />
       </div>
-      <p className={cn("text-sm font-medium leading-snug pt-1", styles.text)}>
-        {insight.message}
-      </p>
+      <p className={cn("text-sm font-medium leading-snug pt-1", styles.text)}>{insight.message}</p>
     </div>
   );
 }
