@@ -6,8 +6,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoalMilestonesPanel } from './GoalMilestonesPanel';
+import { Confetti } from '@/components/ui/Confetti';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from '@/utils/money';
@@ -100,6 +101,19 @@ async function exportGoalToPDF(goal: Goal) {
 
 export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCardProps) {
   const [showMilestones, setShowMilestones] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const wasCompleted = useRef(goal.status === 'COMPLETED');
+
+  // Dispara confetti quando a meta é concluída
+  useEffect(() => {
+    if (goal.status === 'COMPLETED' && !wasCompleted.current) {
+      setShowConfetti(true);
+      wasCompleted.current = true;
+      const timer = setTimeout(() => setShowConfetti(false), 3500);
+      return () => clearTimeout(timer);
+    }
+    wasCompleted.current = goal.status === 'COMPLETED';
+  }, [goal.status]);
   const percentage = goal.target_amount > 0 ? Math.min(100, Math.max(0, ((goal.current_amount ?? 0) / goal.target_amount) * 100)) : 0;
   const remaining = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
   
@@ -345,5 +359,6 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
         </div>
       </div>
     </div>
+    <Confetti active={showConfetti} />
   );
 }
