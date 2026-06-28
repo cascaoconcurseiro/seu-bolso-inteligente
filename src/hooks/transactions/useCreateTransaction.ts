@@ -18,13 +18,15 @@ import {
 } from "@/services/notificationGenerator";
 import { createNotification } from "@/services/notificationService";
 import { CategoryPredictionService } from "@/services/categoryPredictionService";
-import { matchAutoShareRule } from "@/hooks/useAutoShareRules";
+import { matchAutoShareRule, AutoShareRule } from "@/hooks/useAutoShareRules";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
+import { useRef } from "react";
 
 export function useCreateTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const inFlightRef = useRef(false);
   return useMutation({
     onMutate: async (newTx) => {
       // Cancelar refetches de transações para não sobrescrever nossa atualização otimista
@@ -67,6 +69,8 @@ export function useCreateTransaction() {
     },
     mutationFn: async (input: CreateTransactionInput) => {
       if (!user) throw new Error("User not authenticated");
+      if (inFlightRef.current) throw new Error("Submissão em andamento. Aguarde.");
+      inFlightRef.current = true;
 
       // ✅ PARALELIZAR CONSULTAS INICIAIS
       const accDataPromise = input.account_id
@@ -173,23 +177,26 @@ export function useCreateTransaction() {
 
         if (totalPercentage < 100) {
           const remainingPercentage = 100 - totalPercentage;
-          const mySplitIndex = finalSplits.findIndex((s) => s.member_id === user!.id);
+          // Guard: floating-point imprecision can produce a near-zero remainder — skip it
+          if (remainingPercentage >= 0.01) {
+            const mySplitIndex = finalSplits.findIndex((s) => s.member_id === user!.id);
 
-          if (mySplitIndex >= 0) {
-            const currentPct = finalSplits[mySplitIndex].percentage || 0;
-            const newPct = currentPct + remainingPercentage;
+            if (mySplitIndex >= 0) {
+              const currentPct = finalSplits[mySplitIndex].percentage || 0;
+              const newPct = currentPct + remainingPercentage;
 
-            finalSplits[mySplitIndex] = {
-              ...finalSplits[mySplitIndex],
-              percentage: newPct,
-              amount: SafeFinancialCalculator.percentage(input.amount, newPct),
-            };
-          } else {
-            finalSplits.push({
-              member_id: user!.id,
-              percentage: remainingPercentage,
-              amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage),
-            });
+              finalSplits[mySplitIndex] = {
+                ...finalSplits[mySplitIndex],
+                percentage: newPct,
+                amount: SafeFinancialCalculator.percentage(input.amount, newPct),
+              };
+            } else {
+              finalSplits.push({
+                member_id: user!.id,
+                percentage: remainingPercentage,
+                amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage),
+              });
+            }
           }
         }
       }
@@ -387,7 +394,7 @@ export function useCreateTransaction() {
             .eq("is_active", true);
 
           if (autoRules && autoRules.length > 0) {
-            const matched = matchAutoShareRule(autoRules as any, categoryId, input.description);
+            const matched = matchAutoShareRule(autoRules as AutoShareRule[], categoryId, input.description);
             if (matched) {
               const otherPct = matched.split_ratio * 100;
               finalSplits.push({
@@ -395,11 +402,15 @@ export function useCreateTransaction() {
                 percentage: otherPct,
               });
               // Criador também precisa de split explícito — senão o último split
-              // (que é o outro membro) absorve 100% em calculateTransactionSplits
-              finalSplits.push({
-                member_id: user.id,
-                percentage: 100 - otherPct,
-              });
+              // (que é o outro membro) absorve 100% em calculateTransactionSplits.
+              // Só adiciona se o criador tiver participação (evita split com 0%).
+              const myPct = 100 - otherPct;
+              if (myPct > 0) {
+                finalSplits.push({
+                  member_id: user.id,
+                  percentage: myPct,
+                });
+              }
             }
           }
         } catch {
@@ -557,6 +568,7 @@ export function useCreateTransaction() {
       showActionFeedback("error");
     },
     onSettled: () => {
+      inFlightRef.current = false;
       // Ao finalizar (sucesso ou erro), revalidamos os dados finais
       invalidateFinancialQueries(queryClient);
       invalidateSharedQueries(queryClient);
