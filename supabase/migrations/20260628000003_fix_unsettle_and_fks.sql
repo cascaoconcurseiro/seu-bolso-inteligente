@@ -76,6 +76,8 @@ $$;
 
 -- ─── unsettle_split (fix B-06: soft delete; B-01: remove manual balance) ────
 
+DROP FUNCTION IF EXISTS unsettle_split(UUID) CASCADE;
+
 CREATE OR REPLACE FUNCTION unsettle_split(
   p_split_id UUID
 )
@@ -173,6 +175,8 @@ GRANT EXECUTE ON FUNCTION unsettle_split(UUID) TO authenticated;
 
 
 -- ─── unsettle_multiple_splits (fix B-06, B-01, B-13) ────────────────────────
+
+DROP FUNCTION IF EXISTS unsettle_multiple_splits(UUID[]) CASCADE;
 
 CREATE OR REPLACE FUNCTION unsettle_multiple_splits(
   p_split_ids UUID[]
