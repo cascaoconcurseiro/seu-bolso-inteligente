@@ -18,7 +18,7 @@ interface SwipeAction {
 
 interface SwipeableRowProps {
   children: ReactNode;
-  leftAction?: SwipeAction;  // revealed on swipe-right
+  leftAction?: SwipeAction; // revealed on swipe-right
   rightAction?: SwipeAction; // revealed on swipe-left
   className?: string;
 }
@@ -26,11 +26,12 @@ interface SwipeableRowProps {
 const THRESHOLD = 52;
 const MAX_OFFSET = 84;
 
-const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+const isTouchDevice =
+  typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
 export function SwipeableRow({ children, leftAction, rightAction, className }: SwipeableRowProps) {
   const [offset, setOffset] = useState(0);
-  const [dir, setDir] = useState<'left' | 'right' | null>(null);
+  const [dir, setDir] = useState<"left" | "right" | null>(null);
   const startX = useRef<number | null>(null);
   const isAnimating = useRef(false);
 
@@ -43,7 +44,10 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
         <div className="absolute top-1/2 -translate-y-1/2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1.5 rounded-lg bg-background/90 border border-border shadow-sm hover:bg-muted transition-colors">
+              <button
+                className="p-1.5 rounded-lg bg-background/90 border border-border shadow-sm hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                aria-label="Mais ações"
+              >
                 <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -74,12 +78,12 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
       const next = Math.max(diff, -MAX_OFFSET);
       if (offset > -THRESHOLD && next <= -THRESHOLD) haptics.light();
       setOffset(next);
-      setDir('left');
+      setDir("left");
     } else if (diff > 0 && leftAction) {
       const next = Math.min(diff, MAX_OFFSET);
       if (offset < THRESHOLD && next >= THRESHOLD) haptics.light();
       setOffset(next);
-      setDir('right');
+      setDir("right");
     }
   };
 
@@ -101,17 +105,27 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
     }
   };
 
-  const reset = () => { setOffset(0); setDir(null); };
+  const reset = () => {
+    setOffset(0);
+    setDir(null);
+  };
 
-  const isSnapped = dir === 'left' && offset <= -THRESHOLD;
+  const isSnapped = dir === "left" && offset <= -THRESHOLD;
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
       {/* Left action background (swipe right) */}
       {leftAction && (
         <div
-          className={cn("absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center text-white cursor-pointer", leftAction.color)}
-          onClick={(e) => { e.stopPropagation(); leftAction.onClick(); reset(); }}
+          className={cn(
+            "absolute left-0 top-0 bottom-0 w-20 flex items-center justify-center text-white cursor-pointer",
+            leftAction.color
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            leftAction.onClick();
+            reset();
+          }}
         >
           {leftAction.icon}
         </div>
@@ -120,8 +134,15 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
       {/* Right action background (swipe left) */}
       {rightAction && (
         <div
-          className={cn("absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center text-white cursor-pointer", rightAction.color)}
-          onClick={(e) => { e.stopPropagation(); rightAction.onClick(); reset(); }}
+          className={cn(
+            "absolute right-0 top-0 bottom-0 w-20 flex items-center justify-center text-white cursor-pointer",
+            rightAction.color
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            rightAction.onClick();
+            reset();
+          }}
         >
           {rightAction.icon}
         </div>
@@ -131,7 +152,11 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
       <div
         className={cn(isAnimating.current && "transition-transform duration-200")}
         style={{ transform: `translateX(${isSnapped ? -MAX_OFFSET : offset}px)` }}
-        onClick={() => { if (dir) { reset(); } }}
+        onClick={() => {
+          if (dir) {
+            reset();
+          }
+        }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
