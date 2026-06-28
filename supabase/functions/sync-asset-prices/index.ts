@@ -1,14 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Restrict CORS to the known app origins; the function also validates JWT so
+// a wildcard origin would still require auth, but defense-in-depth is better.
+const ALLOWED_ORIGINS = [
+  'https://pedemeia.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
+function corsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin',
+  };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders(req.headers.get("origin")) });
   }
 
   try {
@@ -20,7 +34,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response('Missing Authorization header', {
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
         status: 401,
       });
     }
@@ -30,7 +44,7 @@ serve(async (req) => {
 
     if (userError || !user) {
       return new Response(`Auth error: ${userError?.message || 'User not found'}`, {
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
         status: 401,
       });
     }
@@ -44,7 +58,7 @@ serve(async (req) => {
     if (fetchError) throw fetchError;
     if (!assets || assets.length === 0) {
       return new Response(JSON.stringify({ updated: 0, message: 'Nenhum ativo encontrado' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'application/json' },
       });
     }
 
@@ -102,14 +116,32 @@ serve(async (req) => {
               const data = await res.json();
               const usdPrice = parseFloat(data.price);
               // Busca cotação USD/BRL para converter o preço
-              let usdBrl = 5.0; // fallback conservador
+              let usdBrl: number | null = null;
+              // Primary: Binance USDT/BRL
               try {
-                const fxRes = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL`);
+                const fxRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
                 if (fxRes.ok) {
                   const fxData = await fxRes.json();
-                  usdBrl = parseFloat(fxData.price) || usdBrl;
+                  const parsed = parseFloat(fxData.price);
+                  if (parsed > 1) usdBrl = parsed;
                 }
-              } catch {/* mantém fallback */}
+              } catch {/* try next source */}
+              // Fallback: AwesomeAPI (dados do Banco Central do Brasil)
+              if (!usdBrl) {
+                try {
+                  const bcbRes = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+                  if (bcbRes.ok) {
+                    const bcbData = await bcbRes.json();
+                    const parsed = parseFloat(bcbData['USDBRL']?.bid ?? '0');
+                    if (parsed > 1) usdBrl = parsed;
+                  }
+                } catch {/* give up */}
+              }
+              // Skip asset rather than save corrupted data
+              if (!usdBrl) {
+                console.warn(`Taxa USD/BRL indisponível para ${symbol}. Asset ignorado.`);
+                continue;
+              }
               price = usdPrice * usdBrl;
             }
           }
@@ -169,13 +201,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ updated: updatedCount }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
     console.error('Erro na sincronização:', error);
     return new Response(`Error: ${error.message}`, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+      headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
       status: 500,
     });
   }

@@ -1,22 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  'https://pedemeia.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
+function corsHeaders(origin: string | null) {
+  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin',
+  };
+}
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders(req.headers.get("origin")) });
   }
 
   // Verify the caller is an authenticated Supabase user
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+    return new Response('Unauthorized', { status: 401, headers: corsHeaders(req.headers.get("origin")) });
   }
 
   const supabase = createClient(
@@ -25,19 +37,19 @@ serve(async (req) => {
   );
   const { data: { user }, error } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
   if (error || !user) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+    return new Response('Unauthorized', { status: 401, headers: corsHeaders(req.headers.get("origin")) });
   }
 
   const groqApiKey = Deno.env.get('GROQ_API_KEY');
   if (!groqApiKey) {
-    return new Response('AI service unavailable', { status: 503, headers: corsHeaders });
+    return new Response('AI service unavailable', { status: 503, headers: corsHeaders(req.headers.get("origin")) });
   }
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return new Response('Invalid JSON', { status: 400, headers: corsHeaders });
+    return new Response('Invalid JSON', { status: 400, headers: corsHeaders(req.headers.get("origin")) });
   }
 
   const groqRes = await fetch(GROQ_URL, {
@@ -52,6 +64,6 @@ serve(async (req) => {
   const data = await groqRes.text();
   return new Response(data, {
     status: groqRes.status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'application/json' },
   });
 });
