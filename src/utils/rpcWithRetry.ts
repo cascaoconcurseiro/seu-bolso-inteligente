@@ -30,12 +30,13 @@ function calculateBackoffDelay(attempt: number, baseDelayMs: number): number {
 
 function isRetriableError(error: unknown): boolean {
   const err = error as Record<string, unknown>;
-  if (err?.status === 401 || err?.code === 'PGRST301') return false;
-  if (err?.status === 403 || err?.code === '42501') return false;
-  if (err?.status === 400 || err?.code === '42601') return false;
-  // AbortError from our own timeout is retriable (network flakiness)
-  if ((err as Error)?.name === 'AbortError') return true;
-  return true;
+  // Whitelist-only: never retry client errors (4xx) unless explicitly allowed
+  if ((err as Error)?.name === 'AbortError') return true;  // our own timeout = network flakiness
+  if (err?.status === 429) return true;                    // rate-limited
+  if (err?.status === 503 || err?.status === 504) return true; // server unavailable / gateway timeout
+  if (err?.code === 'PGRST999') return true;               // Supabase internal transient
+  // Everything else (400, 401, 403, 404, 409, 422, 500 logic errors) is not retriable
+  return false;
 }
 
 /**

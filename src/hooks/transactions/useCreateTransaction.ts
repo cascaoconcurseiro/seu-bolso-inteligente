@@ -327,7 +327,7 @@ export function useCreateTransaction() {
               )
             );
 
-            Promise.all(
+            await Promise.all(
               otherUserIds.map((otherUserId) =>
                 createNotification({
                   user_id: otherUserId,
@@ -500,7 +500,7 @@ export function useCreateTransaction() {
             const otherUserIds = Array.from(
               new Set(splitsData.map((s) => s.user_id).filter((uid) => uid && uid !== user?.id))
             );
-            Promise.all(
+            await Promise.all(
               otherUserIds.map((otherUserId) =>
                 createNotification({
                   user_id: otherUserId,

@@ -85,7 +85,7 @@ export const moneyUtils = {
    */
   div: (a: string | number, b: string | number): number => {
     const denom = moneyUtils.parseToDecimal(b);
-    if (denom.isZero()) return 0;
+    if (denom.isZero()) throw new Error(`moneyUtils.div: divisão por zero (numerador: ${a})`);
     const res = moneyUtils.parseToDecimal(a).dividedBy(denom);
     return res.toDecimalPlaces(2).toNumber();
   },

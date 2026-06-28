@@ -16,10 +16,20 @@ export function AppLock({ children }: AppLockProps) {
   const [setupStep, setSetupStep] = useState<'initial' | 'confirm'>('initial');
   const [tempPin, setTempPin] = useState('');
   const [error, setError] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const MAX_ATTEMPTS = 5;
-  const LOCKOUT_MS = 30_000; // 30 s
+  const LOCKOUT_MS = 30_000;
+  const LOCKOUT_KEY = '@BolsoInteligente:pinLockedUntil';
+  const ATTEMPTS_KEY = '@BolsoInteligente:pinAttempts';
+
+  const [lockedUntil, setLockedUntil] = useState<number | null>(() => {
+    const v = typeof window !== 'undefined' ? localStorage.getItem(LOCKOUT_KEY) : null;
+    const ts = v ? Number(v) : null;
+    return ts && ts > Date.now() ? ts : null;
+  });
+  const [attempts, setAttempts] = useState<number>(() => {
+    const v = typeof window !== 'undefined' ? localStorage.getItem(ATTEMPTS_KEY) : null;
+    return v ? Number(v) : 0;
+  });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -33,10 +43,27 @@ export function AppLock({ children }: AppLockProps) {
       const savedPin = localStorage.getItem('@BolsoInteligente:pin');
       if (savedPin) {
         setPinCode(savedPin);
-        setIsLocked(true); // Lock the app initially if PIN exists
+        setIsLocked(true);
       }
     }
   }, []);
+
+  const persistLockout = (until: number) => {
+    localStorage.setItem(LOCKOUT_KEY, String(until));
+    setLockedUntil(until);
+  };
+
+  const persistAttempts = (n: number) => {
+    localStorage.setItem(ATTEMPTS_KEY, String(n));
+    setAttempts(n);
+  };
+
+  const clearLockout = () => {
+    localStorage.removeItem(LOCKOUT_KEY);
+    localStorage.removeItem(ATTEMPTS_KEY);
+    setLockedUntil(null);
+    setAttempts(0);
+  };
 
   // Use the Web Authentication API for biometrics if available, otherwise fallback to PIN
   const handleBiometrics = async () => {
@@ -109,13 +136,13 @@ export function AppLock({ children }: AppLockProps) {
                   });
                 }
                 setIsLocked(false);
-                setAttempts(0);
+                clearLockout();
                 setInputPin('');
                 haptics.success();
               } else {
                 const next = attempts + 1;
-                setAttempts(next);
-                if (next >= MAX_ATTEMPTS) setLockedUntil(Date.now() + LOCKOUT_MS);
+                persistAttempts(next);
+                if (next >= MAX_ATTEMPTS) persistLockout(Date.now() + LOCKOUT_MS);
                 setError(true);
                 setInputPin('');
                 haptics.error();
