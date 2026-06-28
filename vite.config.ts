@@ -75,7 +75,6 @@ export default defineConfig(({ mode }) => {
         injectManifestConfig: {
           maximumFileSizeToCacheInBytes: 2097152, // 2MB
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
-          globIgnores: ["**/banks/Duepay.svg"], // 6.8MB PNG em base64 — carregado sob demanda
         },
       }),
     ].filter(Boolean),

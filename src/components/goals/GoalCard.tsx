@@ -174,6 +174,10 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
   return (
     <>
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Meta: ${goal.name}, ${percentage.toFixed(0)}% concluída`}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(goal); } }}
         onClick={(e) => {
           const target = e.target as HTMLElement;
           if (target.closest("button")) return;

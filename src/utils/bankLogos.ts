@@ -83,7 +83,7 @@ export const BANK_LOGOS: Record<string, string> = {
   "deustsche-leasing-alemanha": '/banks/deustsche-leasing-alemanha.svg',
   "dll-financial-solutions-partner-paises-baixos": '/banks/dll-financial-solutions-partner-paises-baixos.svg',
   dock: '/banks/dock.svg',
-  duepay: '/banks/Duepay.svg',
+  duepay: '/banks/Duepay.png',
   "e2-bank": '/banks/e2-bank.svg',
   eagle: '/banks/eagle.svg',
   ebanx: '/banks/ebanx.svg',
