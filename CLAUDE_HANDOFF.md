@@ -1,7 +1,7 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
-> Atualizado em: 2026-06-25  
-> Último commit: `463f6f8` | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Atualizado em: 2026-06-28
+> Último commit: `d699d9d` | Branch: `fix/29-bugs-report` | Deploy: meupedemeia.vercel.app
 
 ---
 
@@ -49,7 +49,43 @@
 
 ---
 
-## O que falta (próximas sessões)
+## 🐛 Bug Hunt 2026-06-28 — Auditoria completa
+
+### Auditoria com 9 skills — 29 bugs encontrados, 25 corrigidos
+
+**Branch:** `fix/29-bugs-report` (PR pendente de criação manual → `main`)
+**Backup:** `backup/bug-hunt-20260628` (snapshot pré-fixes)
+
+### Migrations novas (aplicar via `supabase db push`)
+| Migration                                    | O que faz                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `20260628000002_fix_critical_rpc_bugs.sql`   | settle_split: remove double-count, FOR UPDATE, ownership, p_amount validation, p_date param |
+| `20260628000003_fix_unsettle_and_fks.sql`    | unsettle_split: soft delete, FK RESTRICT em settlement_reversals, validação multi-conta     |
+| `20260628000004_fix_admin_password.sql`      | Remove senha '909496', usa is_admin()                                                       |
+| `20260628000005_fix_recalculate_balance.sql` | = ANY(ARRAY(...)) em vez de LIMIT 1                                                         |
+| `20260628000006_fix_error_logs_rls.sql`      | RLS restrito (admin + próprio usuário)                                                      |
+
+### Arquivos editados
+| Arquivo                                          | Mudança                                                |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| `src/lib/queryClient.ts`                         | NOVO — instância compartilhada do QueryClient          |
+| `src/App.tsx`                                    | Usa queryClient de @/lib/queryClient                   |
+| `src/contexts/AuthContext.tsx`                   | queryClient.clear() no signOut                         |
+| `src/hooks/transactions/useCreateTransaction.ts` | inFlightRef cleanup, duplicidade 15s + account_id null |
+| `src/services/validationService.ts`              | isReasonableDate usa dateUtils.parseDate()             |
+| `src/components/settings/PrivacySettings.tsx`    | .limit(500) anti N+1                                   |
+| `src/sw.ts`                                      | cache maxAge 7d → 1h                                   |
+| `vercel.json`                                    | CSP sem 'unsafe-eval'                                  |
+| `supabase/functions/groq-proxy/index.ts`         | CORS *.vercel.app                                      |
+
+### PRÓXIMO PASSO
+1. Criar PR: `fix/29-bugs-report` → `main` manualmente
+2. Revisar migrations antes de `supabase db push`
+3. Rodar `npx tsc --noEmit` para verificar TypeScript
+4. Após merge, testar fluxo de settlement no ambiente de preview
+
+### Sem pendências de código
+Backlog zerado. Fixes aplicados e documentados.
 
 ### Sem pendências de código conhecidas
 Backlog zerado. Ideias para próximas sessões:
@@ -60,32 +96,32 @@ Backlog zerado. Ideias para próximas sessões:
 
 ## Arquivos-chave
 
-| Arquivo | Relevância |
-|---|---|
-| `src/sw.ts` | Service Worker customizado (push + precache + NetworkFirst Supabase) |
-| `src/components/search/GlobalSearch.tsx` | Dialog de busca global (Ctrl+K) |
-| `src/components/ui/SwipeableRow.tsx` | Componente genérico de swipe |
-| `src/components/goals/GoalMilestonesPanel.tsx` | Marcos de progresso |
-| `src/components/goals/GoalCard.tsx` | Toggle de milestones |
-| `src/hooks/useGoalMilestones.ts` | CRUD de milestones |
-| `src/hooks/usePushNotifications.ts` | Registro/remoção de push subscription |
-| `src/hooks/useFamilyConsolidated.ts` | Visão consolidada do casal |
-| `src/hooks/useTripMembers.ts` | guest_name, display_name, useAddGuestTripMember |
-| `src/components/layout/AppLayout.tsx` | Botão busca + atalho Ctrl+K + GlobalSearch |
-| `src/components/settings/PreferencesSettings.tsx` | Toggle notificações push |
-| `src/pages/GoalsAndInvestments.tsx` | SwipeableRow em metas |
-| `src/pages/Dashboard.tsx` | Toggle Modo Casal, FamilyBalancePanel |
-| `src/hooks/useFamily.ts` | member_type, useSharedContacts, useConvert* |
-| `src/pages/Family.tsx` | Seção "Contatos de Despesa" |
+| Arquivo                                           | Relevância                                                           |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| `src/sw.ts`                                       | Service Worker customizado (push + precache + NetworkFirst Supabase) |
+| `src/components/search/GlobalSearch.tsx`          | Dialog de busca global (Ctrl+K)                                      |
+| `src/components/ui/SwipeableRow.tsx`              | Componente genérico de swipe                                         |
+| `src/components/goals/GoalMilestonesPanel.tsx`    | Marcos de progresso                                                  |
+| `src/components/goals/GoalCard.tsx`               | Toggle de milestones                                                 |
+| `src/hooks/useGoalMilestones.ts`                  | CRUD de milestones                                                   |
+| `src/hooks/usePushNotifications.ts`               | Registro/remoção de push subscription                                |
+| `src/hooks/useFamilyConsolidated.ts`              | Visão consolidada do casal                                           |
+| `src/hooks/useTripMembers.ts`                     | guest_name, display_name, useAddGuestTripMember                      |
+| `src/components/layout/AppLayout.tsx`             | Botão busca + atalho Ctrl+K + GlobalSearch                           |
+| `src/components/settings/PreferencesSettings.tsx` | Toggle notificações push                                             |
+| `src/pages/GoalsAndInvestments.tsx`               | SwipeableRow em metas                                                |
+| `src/pages/Dashboard.tsx`                         | Toggle Modo Casal, FamilyBalancePanel                                |
+| `src/hooks/useFamily.ts`                          | member_type, useSharedContacts, useConvert*                          |
+| `src/pages/Family.tsx`                            | Seção "Contatos de Despesa"                                          |
 
 ---
 
 ## Banco de dados — mudanças recentes
 
-| Migration | O que fez |
-|---|---|
-| `member_type_column` | Coluna `member_type TEXT DEFAULT 'family'` em family_members |
-| `performance_indexes` | 4 índices novos (notifications, push_sub, milestones, family_type) |
+| Migration                | O que fez                                                           |
+| ------------------------ | ------------------------------------------------------------------- |
+| `member_type_column`     | Coluna `member_type TEXT DEFAULT 'family'` em family_members        |
+| `performance_indexes`    | 4 índices novos (notifications, push_sub, milestones, family_type)  |
 | `shared_credit_card_rls` | Políticas SELECT em accounts e transactions para convidados aceitos |
 
 ---
