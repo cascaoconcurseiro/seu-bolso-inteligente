@@ -8,22 +8,70 @@
 -- B-13: unsettle_multiple: valida que todos payment_txs são da mesma conta
 -- =========================================================================
 
--- ─── B-03/B-24: Corrigir FKs de settlement_reversals ────────────────────────
+-- ─── B-03/B-24: Garantir que settlement_reversals existe com FKs RESTRICT ──
 
-ALTER TABLE settlement_reversals
-  DROP CONSTRAINT IF EXISTS settlement_reversals_split_id_fkey,
-  ADD CONSTRAINT settlement_reversals_split_id_fkey
-    FOREIGN KEY (split_id) REFERENCES transaction_splits(id) ON DELETE RESTRICT;
+CREATE TABLE IF NOT EXISTS settlement_reversals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  split_id UUID NOT NULL,
+  original_transaction_id UUID NOT NULL,
+  payment_transaction_id UUID NOT NULL,
+  amount NUMERIC(15, 2) NOT NULL,
+  reversal_reason TEXT NOT NULL,
+  reversed_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE SET NULL,
+  reversed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
 
-ALTER TABLE settlement_reversals
-  DROP CONSTRAINT IF EXISTS settlement_reversals_original_transaction_id_fkey,
-  ADD CONSTRAINT settlement_reversals_original_transaction_id_fkey
-    FOREIGN KEY (original_transaction_id) REFERENCES transactions(id) ON DELETE RESTRICT;
+-- Índices (idempotentes)
+CREATE INDEX IF NOT EXISTS idx_settlement_reversals_split_id ON settlement_reversals(split_id);
+CREATE INDEX IF NOT EXISTS idx_settlement_reversals_reversed_by ON settlement_reversals(reversed_by);
+CREATE INDEX IF NOT EXISTS idx_settlement_reversals_reversed_at ON settlement_reversals(reversed_at);
+CREATE INDEX IF NOT EXISTS idx_settlement_reversals_original_tx ON settlement_reversals(original_transaction_id);
 
-ALTER TABLE settlement_reversals
-  DROP CONSTRAINT IF EXISTS settlement_reversals_payment_transaction_id_fkey,
-  ADD CONSTRAINT settlement_reversals_payment_transaction_id_fkey
-    FOREIGN KEY (payment_transaction_id) REFERENCES transactions(id) ON DELETE RESTRICT;
+-- RLS (idempotente)
+ALTER TABLE settlement_reversals ENABLE ROW LEVEL SECURITY;
+
+-- Substituir FKs existentes por RESTRICT (usa DROP+ADD com DO block seguro)
+DO $$
+BEGIN
+  -- split_id FK
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_split_id_fkey') THEN
+    ALTER TABLE settlement_reversals DROP CONSTRAINT settlement_reversals_split_id_fkey;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_split_id_fkey') THEN
+    ALTER TABLE settlement_reversals
+      ADD CONSTRAINT settlement_reversals_split_id_fkey
+      FOREIGN KEY (split_id) REFERENCES transaction_splits(id) ON DELETE RESTRICT;
+  END IF;
+
+  -- original_transaction_id FK
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_original_transaction_id_fkey') THEN
+    ALTER TABLE settlement_reversals DROP CONSTRAINT settlement_reversals_original_transaction_id_fkey;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_original_transaction_id_fkey') THEN
+    ALTER TABLE settlement_reversals
+      ADD CONSTRAINT settlement_reversals_original_transaction_id_fkey
+      FOREIGN KEY (original_transaction_id) REFERENCES transactions(id) ON DELETE RESTRICT;
+  END IF;
+
+  -- payment_transaction_id FK
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_payment_transaction_id_fkey') THEN
+    ALTER TABLE settlement_reversals DROP CONSTRAINT settlement_reversals_payment_transaction_id_fkey;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'settlement_reversals_payment_transaction_id_fkey') THEN
+    ALTER TABLE settlement_reversals
+      ADD CONSTRAINT settlement_reversals_payment_transaction_id_fkey
+      FOREIGN KEY (payment_transaction_id) REFERENCES transactions(id) ON DELETE RESTRICT;
+  END IF;
+END;
+$$;
 
 
 -- ─── unsettle_split (fix B-06: soft delete; B-01: remove manual balance) ────
