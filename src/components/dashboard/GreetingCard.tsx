@@ -2,20 +2,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
-import { Lightbulb } from "lucide-react";
 
 interface GreetingCardProps {
   className?: string;
 }
-
-const tips = [
-  "Pagar faturas no vencimento evita juros e constrói seu score de crédito ao longo do tempo.",
-  "Reserva de emergência de 3 a 6 meses de despesas é o alicerce de qualquer plano financeiro sólido.",
-  "Juros compostos funcionam a seu favor quando você investe um valor fixo todo mês, mesmo que pequeno.",
-  "Espere 24 horas antes de compras por impulso. A maioria perde o apelo até o dia seguinte.",
-  "Acompanhar cada gasto, por menor que seja, revela padrões que abrem espaço para economizar.",
-  "Concentrar gastos estratégicos no cartão pode render cashback ou milhas — desde que você pague o total da fatura.",
-];
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -28,7 +18,6 @@ export function GreetingCard({ className }: GreetingCardProps) {
   const { user } = useAuth();
   const { data: profile } = useUserProfile();
   const [isVisible, setIsVisible] = useState(false);
-  const [tip] = useState(() => tips[Math.floor(Math.random() * tips.length)]);
 
   const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "usuário";
 
@@ -62,15 +51,6 @@ export function GreetingCard({ className }: GreetingCardProps) {
             Seu resumo financeiro está atualizado.
           </p>
         </div>
-
-        {tip && (
-          <div className="flex items-start gap-2.5 pt-3 border-t border-accent/10">
-            <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-accent/15 flex items-center justify-center">
-              <Lightbulb className="w-3 h-3 text-accent" />
-            </div>
-            <p className="text-xs font-medium text-muted-foreground leading-relaxed">{tip}</p>
-          </div>
-        )}
       </div>
     </div>
   );
