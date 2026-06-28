@@ -159,7 +159,12 @@ export function useUpdateTransaction() {
           }
         }
 
-        // Excluir splits existentes
+        // Save existing splits so we can restore them if the insert fails
+        const { data: existingSplits } = await supabase
+          .from("transaction_splits")
+          .select("*")
+          .eq("transaction_id", id);
+
         await supabase.from("transaction_splits").delete().eq("transaction_id", id);
 
         // Inserir os novos
@@ -221,6 +226,10 @@ export function useUpdateTransaction() {
             .insert(splitsToInsert);
 
           if (splitsError) {
+            // Restore original splits to avoid data loss
+            if (existingSplits && existingSplits.length > 0) {
+              await supabase.from("transaction_splits").insert(existingSplits);
+            }
             logger.error("Erro ao atualizar splits:", splitsError);
             throw new Error(`Erro ao atualizar divisões: ${splitsError.message}`);
           }

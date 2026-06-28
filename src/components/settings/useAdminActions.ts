@@ -196,9 +196,10 @@ export function useAdminActions() {
   const handleAuthenticate = async () => {
     setIsLoadingStats(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_system_stats', {
-        admin_password: password
-      });
+      // Authentication is now handled by the DB via is_admin() (admin_users table).
+      // The password field in the UI is kept as an extra local confirmation step,
+      // but it is NOT sent to the database.
+      const { data, error } = await supabase.rpc('get_admin_system_stats');
       if (error) throw error;
       
       setIsAuthenticated(true);
@@ -236,9 +237,7 @@ export function useAdminActions() {
   const loadSystemStats = async () => {
     setIsLoadingStats(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_system_stats', {
-        admin_password: password
-      });
+      const { data, error } = await supabase.rpc('get_admin_system_stats');
       
       if (error) throw error;
       
@@ -263,9 +262,7 @@ export function useAdminActions() {
   const loadUsersDetailed = async () => {
     setIsLoadingUsers(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_users_detailed', {
-        admin_password: password
-      });
+      const { data, error } = await supabase.rpc('get_admin_users_detailed');
       
       if (error) throw error;
       
@@ -295,9 +292,7 @@ export function useAdminActions() {
   const loadAuditLogs = async () => {
     setIsLoadingLogs(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_audit_logs', {
-        admin_password: password
-      });
+      const { data, error } = await supabase.rpc('get_admin_audit_logs');
       
       if (error) throw error;
       
@@ -313,9 +308,7 @@ export function useAdminActions() {
   const loadErrorLogs = async () => {
     setIsLoadingErrorLogs(true);
     try {
-      const { data, error } = await supabase.rpc('get_admin_error_logs', {
-        admin_password: password
-      });
+      const { data, error } = await supabase.rpc('get_admin_error_logs');
       if (error) throw error;
       setErrorLogs(data || []);
     } catch (error) {
@@ -328,10 +321,7 @@ export function useAdminActions() {
 
   const resolveErrorLog = async (reportId: string) => {
     try {
-      const { error } = await supabase.rpc('resolve_error_report', {
-        admin_password: password,
-        p_report_id: reportId
-      });
+      const { error } = await supabase.rpc('resolve_error_report', { p_report_id: reportId });
       if (error) throw error;
       toast.success('Erro marcado como resolvido!');
       loadErrorLogs();
@@ -345,9 +335,7 @@ export function useAdminActions() {
   const handleClearErrorLogs = async () => {
     setIsPurging(true);
     try {
-      const { error } = await supabase.rpc('clear_error_logs', {
-        admin_password: password
-      });
+      const { error } = await supabase.rpc('clear_error_logs');
       
       if (error) throw error;
       
@@ -393,18 +381,13 @@ export function useAdminActions() {
   };
 
   const resetAllUsers = async () => {
-    const { error } = await supabase.rpc('admin_reset_all_data', {
-      admin_password: password
-    });
-    if (error) throw error;
+    // This RPC is now service_role only — must be called from a server-side function, not the browser.
+    throw new Error('admin_reset_all_data deve ser chamado via Edge Function com service_role.');
   };
 
   const resetSingleUser = async (userId: string) => {
-    const { error } = await supabase.rpc('admin_reset_single_user', {
-      admin_password: password,
-      target_user_id: userId
-    });
-    if (error) throw error;
+    // This RPC is now service_role only — must be called from a server-side function, not the browser.
+    throw new Error('admin_reset_single_user deve ser chamado via Edge Function com service_role.');
   };
 
   const handlePurgeSoftDeleted = async () => {
@@ -522,7 +505,6 @@ export function useAdminActions() {
     setUserDetailOpen(true);
     try {
       const { data, error } = await supabase.rpc('get_admin_user_dossier', {
-        admin_password: password,
         target_user_id: targetUser.id
       });
       

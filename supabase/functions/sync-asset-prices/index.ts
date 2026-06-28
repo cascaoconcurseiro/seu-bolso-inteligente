@@ -96,11 +96,21 @@ serve(async (req) => {
             const data = await res.json();
             price = parseFloat(data.price);
           } else {
-            // Se não tiver par BRL (ex: alguma altcoin menor), tenta USDT
+            // Fallback: busca em USDT e converte para BRL usando a cotação atual USD/BRL
             res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}USDT`);
             if (res.ok) {
               const data = await res.json();
-              price = parseFloat(data.price); // Nota: Isso salvará em USD. O ideal é o card do ativo saber a currency.
+              const usdPrice = parseFloat(data.price);
+              // Busca cotação USD/BRL para converter o preço
+              let usdBrl = 5.0; // fallback conservador
+              try {
+                const fxRes = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL`);
+                if (fxRes.ok) {
+                  const fxData = await fxRes.json();
+                  usdBrl = parseFloat(fxData.price) || usdBrl;
+                }
+              } catch {/* mantém fallback */}
+              price = usdPrice * usdBrl;
             }
           }
         } catch (e) {

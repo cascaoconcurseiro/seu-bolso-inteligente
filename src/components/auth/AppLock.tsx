@@ -16,6 +16,10 @@ export function AppLock({ children }: AppLockProps) {
   const [setupStep, setSetupStep] = useState<'initial' | 'confirm'>('initial');
   const [tempPin, setTempPin] = useState('');
   const [error, setError] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS = 30_000; // 30 s
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -51,7 +55,10 @@ export function AppLock({ children }: AppLockProps) {
     }
   }, [isLocked]);
 
+  const isLockedOut = lockedUntil !== null && Date.now() < lockedUntil;
+
   const handleKeyPress = (num: number) => {
+    if (isLockedOut) return;
     haptics.light();
     setError(false);
     
@@ -98,10 +105,14 @@ export function AppLock({ children }: AppLockProps) {
                   localStorage.setItem('@BolsoInteligente:pin', hashedPin);
                   setPinCode(hashedPin);
                   setIsLocked(false);
+                  setAttempts(0);
                   setInputPin('');
                   haptics.success();
                 });
               } else {
+                const next = attempts + 1;
+                setAttempts(next);
+                if (next >= MAX_ATTEMPTS) setLockedUntil(Date.now() + LOCKOUT_MS);
                 setError(true);
                 setInputPin('');
                 haptics.error();
@@ -111,9 +122,13 @@ export function AppLock({ children }: AppLockProps) {
               hashPin(newPin).then(hashedPin => {
                 if (hashedPin === pinCode) {
                   setIsLocked(false);
+                  setAttempts(0);
                   setInputPin('');
                   haptics.success();
                 } else {
+                  const next = attempts + 1;
+                  setAttempts(next);
+                  if (next >= MAX_ATTEMPTS) setLockedUntil(Date.now() + LOCKOUT_MS);
                   setError(true);
                   setInputPin('');
                   haptics.error();
@@ -162,7 +177,13 @@ export function AppLock({ children }: AppLockProps) {
         </div>
         
         <h2 className="text-2xl font-bold font-display tracking-tight mb-2">Aplicativo Bloqueado</h2>
-        <p className="text-muted-foreground text-center mb-8">Digite seu PIN para acessar.</p>
+        <p className="text-muted-foreground text-center mb-8">
+          {isLockedOut
+            ? `Muitas tentativas. Aguarde ${Math.ceil(((lockedUntil ?? 0) - Date.now()) / 1000)}s.`
+            : attempts > 0
+              ? `PIN incorreto. ${MAX_ATTEMPTS - attempts} tentativa(s) restante(s).`
+              : 'Digite seu PIN para acessar.'}
+        </p>
 
         <div className={`flex gap-4 mb-12 ${error ? 'animate-shake' : ''}`}>
           {renderDots()}

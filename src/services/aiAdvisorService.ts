@@ -9,9 +9,11 @@ import {
 import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from './ai/localMappings';
 import { fetchRealPOIs } from './overpassService';
 
+// In production, all Groq calls are proxied through a Supabase Edge Function
+// so the API key never reaches the client bundle.
 const GROQ_API_URL = import.meta.env.DEV
   ? '/api/ai'
-  : 'https://api.groq.com/openai/v1/chat/completions';
+  : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/groq-proxy`;
 
 export interface FinancialReportData {
   totalIncome: number;
@@ -28,19 +30,26 @@ export interface FinancialReportData {
 export class AIAdvisorService {
   private static async fetchGroq(payload: any): Promise<any> {
     const isDev = import.meta.env.DEV;
-    const clientApiKey = import.meta.env.VITE_GROQ_API_KEY;
 
-    if (!isDev && !clientApiKey) {
-      logger.warn('[AIAdvisorService] Chave VITE_GROQ_API_KEY ausente em produção. IA desativada.');
-      return null; // Falha silenciosa permitida para evitar quebrar a UI
-    }
+    // In dev, use the local proxy (vite config) with optional direct key fallback.
+    // In production, always route through the Supabase Edge Function — no client key.
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    if (!isDev) {
+      // Attach the anon key so the Edge Function can authenticate the caller
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (anonKey) headers['apikey'] = anonKey;
 
-    if (!isDev && clientApiKey) {
-      headers['Authorization'] = `Bearer ${clientApiKey}`;
+      // Also forward the user's auth token so the function can verify identity
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY,
+      );
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
     }
 
     try {
@@ -56,27 +65,23 @@ export class AIAdvisorService {
         throw new Error(`Status ${response.status}`);
       }
     } catch (error) {
-      logger.warn(`[AIAdvisorService] Erro no fluxo principal para ${GROQ_API_URL}`, error);
+      logger.warn(`[AIAdvisorService] Erro ao chamar ${GROQ_API_URL}`, error);
 
-      if (isDev && clientApiKey) {
-        try {
-          logger.debug('[AIAdvisorService] Tentando fallback direto na API da Groq...');
-          const fallbackResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${clientApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          });
-          if (fallbackResponse.ok) {
-            return await fallbackResponse.json();
+      // Dev-only: fallback direto à API da Groq com a chave local (nunca em produção)
+      if (isDev) {
+        const devKey = import.meta.env.VITE_GROQ_API_KEY;
+        if (devKey) {
+          try {
+            logger.debug('[AIAdvisorService] Tentando fallback direto na Groq (dev)...');
+            const fallbackResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${devKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            if (fallbackResponse.ok) return await fallbackResponse.json();
+          } catch (fallbackError) {
+            logger.error('[AIAdvisorService] Erro no fallback dev', fallbackError instanceof Error ? fallbackError : undefined);
           }
-        } catch (fallbackError) {
-          logger.error(
-            '[AIAdvisorService] Erro no fallback',
-            fallbackError instanceof Error ? fallbackError : undefined,
-          );
         }
       }
       return null;
