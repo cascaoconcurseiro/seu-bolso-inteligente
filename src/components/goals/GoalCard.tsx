@@ -116,9 +116,9 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
   }, [goal.status]);
   const percentage = goal.target_amount > 0 ? Math.min(100, Math.max(0, ((goal.current_amount ?? 0) / goal.target_amount) * 100)) : 0;
   const remaining = Math.max(0, goal.target_amount - (goal.current_amount ?? 0));
-  
+
   const { data: indicators } = useEconomicIndicators();
-  
+
   let adjustedTarget = goal.target_amount;
   let monthsToTarget = 0;
 
@@ -143,9 +143,10 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
   const estimatedMonthsLeft = monthlyRate > 0 ? Math.ceil(remainingAmount / monthlyRate) : null;
   const estimatedCompletionDate = estimatedMonthsLeft !== null ? addMonths(new Date(), estimatedMonthsLeft) : null;
   const monthlyNeeded = monthsToTarget > 0 ? remainingAmount / monthsToTarget : null;
-  
+
   return (
-    <div 
+    <>
+    <div
       onClick={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('button')) return;
@@ -182,7 +183,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1">
             {/* Desktop: ações visíveis no hover */}
             <div className="hidden sm:flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
@@ -250,8 +251,8 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                     </TooltipTrigger>
                     <TooltipContent className="w-64 p-3 bg-card border-border/50 shadow-xl rounded-xl z-50">
                       <p className="text-sm leading-relaxed text-foreground/90">
-                        Devido à inflação atual de <strong className="text-warning">{indicators?.ipca?.value}% ao ano</strong> (IPCA BCB), 
-                        você precisará de <strong className="font-mono">{moneyUtils.format(adjustedTarget, 'BRL')}</strong> em {monthsToTarget} meses 
+                        Devido à inflação atual de <strong className="text-warning">{indicators?.ipca?.value}% ao ano</strong> (IPCA BCB),
+                        você precisará de <strong className="font-mono">{moneyUtils.format(adjustedTarget, 'BRL')}</strong> em {monthsToTarget} meses
                         para ter o mesmo poder de compra de {moneyUtils.format(goal.target_amount, 'BRL')} hoje.
                       </p>
                     </TooltipContent>
@@ -277,7 +278,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
                   {percentage.toFixed(0)}% <span className="text-muted-foreground font-medium">concluído</span>
                 </span>
               </div>
-              
+
               {remaining > 0 && (
                 <p className="text-sm font-medium text-muted-foreground">
                   Faltam <span className="text-foreground font-bold">{moneyUtils.format(remaining, 'BRL')}</span>
@@ -286,11 +287,11 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
             </div>
 
             <div className="relative w-full bg-muted rounded-full h-4 overflow-hidden shadow-inner border border-border/30">
-              <div 
+              <div
                 className={cn(
                   "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.1)]",
-                  percentage >= 100 
-                    ? "bg-gradient-to-r from-positive/80 to-positive" 
+                  percentage >= 100
+                    ? "bg-gradient-to-r from-positive/80 to-positive"
                     : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
                 )}
                 style={{ width: `${percentage}%` }}
@@ -360,5 +361,6 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
       </div>
     </div>
     <Confetti active={showConfetti} />
+  </>
   );
 }
