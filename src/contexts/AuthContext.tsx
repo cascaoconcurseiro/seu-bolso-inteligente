@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
 
     try {
-      await supabase.auth.signOut({ scope: 'local' });
+      await supabase.auth.signOut({ scope: "local" });
     } catch (_) {
       // ignora erro de rede
     }
@@ -103,7 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
 
     // Limpa cache do React Query (IndexedDB via localforage)
-    try { await localforage.clear(); } catch (_) {}
+    try {
+      await localforage.clear();
+    } catch (_) {}
 
     // Apaga caches do service worker para evitar restauração de sessão
     try {
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await Promise.all(keys.map((k) => caches.delete(k)));
     } catch (_) {}
 
-    window.location.replace('/auth');
+    window.location.replace("/auth");
   };
 
   return (

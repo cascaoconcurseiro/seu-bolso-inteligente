@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Download, Trash2, FileText, ShieldCheck, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,18 +30,28 @@ export function PrivacySettings() {
 
     try {
       const tables = [
-        "accounts", "categories", "transactions", "transaction_splits",
-        "trips", "trip_members", "trip_itinerary", "trip_checklist",
-        "trip_exchange_purchases", "budgets", "goals", "assets", "asset_transactions",
+        "accounts",
+        "categories",
+        "transactions",
+        "transaction_splits",
+        "trips",
+        "trip_members",
+        "trip_itinerary",
+        "trip_checklist",
+        "trip_exchange_purchases",
+        "budgets",
+        "goals",
+        "assets",
+        "asset_transactions",
       ];
 
       // [B-25] Evitar SELECT * massivo — limita a 500 linhas por tabela
-      const results = await Promise.all(
-        tables.map((t) => supabase.from(t).select("*").limit(500))
-      );
+      const results = await Promise.all(tables.map((t) => supabase.from(t).select("*").limit(500)));
 
       const data: Record<string, any[]> = {};
-      tables.forEach((t, i) => { data[t] = results[i].data || []; });
+      tables.forEach((t, i) => {
+        data[t] = results[i].data || [];
+      });
 
       const payload = { exportedAt: new Date().toISOString(), userId: user.id, data };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -68,7 +87,9 @@ export function PrivacySettings() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display font-black text-2xl tracking-tight">Privacidade & LGPD</h2>
-        <p className="text-sm text-muted-foreground">Seus direitos sobre seus dados pessoais conforme a Lei 13.709/2018</p>
+        <p className="text-sm text-muted-foreground">
+          Seus direitos sobre seus dados pessoais conforme a Lei 13.709/2018
+        </p>
       </div>
 
       <Card className="p-5 border border-primary/20 bg-primary/5 rounded-2xl flex gap-4">
@@ -76,9 +97,13 @@ export function PrivacySettings() {
         <div className="space-y-1">
           <p className="text-sm font-semibold">Seus dados pertencem a você</p>
           <p className="text-sm text-muted-foreground">
-            O Pé de Meia armazena seus dados financeiros exclusivamente para funcionar. Nunca vendemos ou compartilhamos dados com terceiros para fins publicitários.
+            O Pé de Meia armazena seus dados financeiros exclusivamente para funcionar. Nunca
+            vendemos ou compartilhamos dados com terceiros para fins publicitários.
           </p>
-          <Link to="/privacidade" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1">
+          <Link
+            to="/privacidade"
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
+          >
             <FileText className="h-3.5 w-3.5" />
             Ler Política de Privacidade completa
             <ExternalLink className="h-3 w-3" />
@@ -94,7 +119,8 @@ export function PrivacySettings() {
           <div>
             <h3 className="font-semibold">Exportar meus dados</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Baixe uma cópia completa de todas as suas transações, contas, metas e viagens em formato JSON.
+              Baixe uma cópia completa de todas as suas transações, contas, metas e viagens em
+              formato JSON.
             </p>
           </div>
           <Button className="w-full rounded-xl h-10" onClick={handleExport} disabled={isExporting}>
@@ -109,10 +135,15 @@ export function PrivacySettings() {
           <div>
             <h3 className="font-semibold text-destructive">Excluir minha conta</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Remove permanentemente sua conta e todos os dados associados. Esta ação é irreversível.
+              Remove permanentemente sua conta e todos os dados associados. Esta ação é
+              irreversível.
             </p>
           </div>
-          <Button variant="destructive" className="w-full rounded-xl h-10" onClick={() => setShowDeleteConfirm(true)}>
+          <Button
+            variant="destructive"
+            className="w-full rounded-xl h-10"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             Excluir conta permanentemente
           </Button>
         </Card>
@@ -123,7 +154,8 @@ export function PrivacySettings() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Todos os seus dados financeiros, transações, contas e configurações serão removidos do nosso sistema. Esta ação não pode ser desfeita.
+              Todos os seus dados financeiros, transações, contas e configurações serão removidos do
+              nosso sistema. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

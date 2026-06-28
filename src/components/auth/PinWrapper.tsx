@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { supabase } from '@/integrations/supabase/client';
-import { Lock, ShieldCheck } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import React, { useState, useEffect, useRef } from "react";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { supabase } from "@/integrations/supabase/client";
+import { Lock, ShieldCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 /**
  * PinWrapper — Proteção de sessão com PIN.
@@ -21,15 +21,15 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
 
   const [isLocked, setIsLocked] = useState(() => {
     try {
-      return localStorage.getItem('@pedemeia:require_pin') === 'true';
+      return localStorage.getItem("@pedemeia:require_pin") === "true";
     } catch {
       return false;
     }
   });
 
-  const [pinInput, setPinInput] = useState('');
+  const [pinInput, setPinInput] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const hasCheckedProfile = useRef(false);
 
   useEffect(() => {
@@ -37,15 +37,16 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
       hasCheckedProfile.current = true;
       const hasPinHash = !!(profile as any).app_pin_hash;
       if (profile.require_pin_on_open && hasPinHash) {
-        const localConfig = localStorage.getItem('@pedemeia:require_pin');
-        if (localConfig !== 'true' && localConfig !== 'false') {
+        const localConfig = localStorage.getItem("@pedemeia:require_pin");
+        if (localConfig !== "true" && localConfig !== "false") {
           setIsLocked(true);
         }
       }
     }
   }, [profile]);
 
-  const requirePin = profile?.require_pin_on_open ?? (localStorage.getItem('@pedemeia:require_pin') === 'true');
+  const requirePin =
+    profile?.require_pin_on_open ?? localStorage.getItem("@pedemeia:require_pin") === "true";
   const hasPinHash = !!(profile as any)?.app_pin_hash;
 
   if (!requirePin || !hasPinHash || !isLocked) {
@@ -55,23 +56,23 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsVerifying(true);
-    setErrorMessage('');
+    setErrorMessage("");
 
     try {
-      const { data: ok, error } = await supabase.rpc('verify_pin', { p_pin: pinInput });
+      const { data: ok, error } = await supabase.rpc("verify_pin", { p_pin: pinInput });
 
       if (error) {
         // Erro do servidor (inclui lockout — P0004)
         setErrorMessage(error.message);
-        setPinInput('');
+        setPinInput("");
         return;
       }
 
       if (ok === true) {
         setIsLocked(false);
       } else {
-        setErrorMessage('PIN incorreto.');
-        setPinInput('');
+        setErrorMessage("PIN incorreto.");
+        setPinInput("");
       }
     } finally {
       setIsVerifying(false);
@@ -89,11 +90,7 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
           <p className="text-sm text-muted-foreground">
             Digite o seu PIN de segurança para acessar as suas informações financeiras.
           </p>
-          {errorMessage && (
-            <p className="text-sm font-medium text-destructive">
-              {errorMessage}
-            </p>
-          )}
+          {errorMessage && <p className="text-sm font-medium text-destructive">{errorMessage}</p>}
         </div>
 
         <form onSubmit={handleUnlock} className="space-y-4">
@@ -104,7 +101,7 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
             maxLength={6}
             placeholder="Digite o PIN numérico"
             value={pinInput}
-            onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+            onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ""))}
             className="text-center text-xl tracking-[0.5em] h-14"
             autoFocus
             disabled={isVerifying}
@@ -114,7 +111,7 @@ export function PinWrapper({ children }: { children: React.ReactNode }) {
             className="w-full h-12"
             disabled={pinInput.length < 4 || isVerifying}
           >
-            {isVerifying ? 'Verificando...' : 'Desbloquear'}
+            {isVerifying ? "Verificando..." : "Desbloquear"}
           </Button>
         </form>
 

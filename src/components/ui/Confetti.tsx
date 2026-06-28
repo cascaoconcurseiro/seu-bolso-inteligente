@@ -21,8 +21,16 @@ export function Confetti({ active, duration = 3000 }: ConfettiProps) {
     if (!ctx) return;
 
     const colors = [
-      "#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6",
-      "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#fbbf24",
+      "#6366f1",
+      "#f59e0b",
+      "#10b981",
+      "#ef4444",
+      "#3b82f6",
+      "#8b5cf6",
+      "#ec4899",
+      "#14b8a6",
+      "#f97316",
+      "#fbbf24",
     ];
 
     canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
@@ -33,8 +41,14 @@ export function Confetti({ active, duration = 3000 }: ConfettiProps) {
     const h = canvas.offsetHeight;
 
     const particles: {
-      x: number; y: number; vx: number; vy: number;
-      color: string; size: number; rotation: number; rotSpeed: number;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      color: string;
+      size: number;
+      rotation: number;
+      rotSpeed: number;
     }[] = [];
 
     for (let i = 0; i < 80; i++) {

@@ -23,19 +23,31 @@ import NotFound from "./pages/NotFound";
 import Privacidade from "./pages/Privacidade";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
-const Dashboard = lazy(() => import("./pages/Dashboard").then(m => ({ default: m.Dashboard })));
-const Transactions = lazy(() => import("./pages/Transactions").then(m => ({ default: m.Transactions })));
-const Accounts = lazy(() => import("./pages/Accounts").then(m => ({ default: m.Accounts })));
-const AccountDetail = lazy(() => import("./pages/AccountDetail").then(m => ({ default: m.AccountDetail })));
-const SharedExpenses = lazy(() => import("./pages/SharedExpenses").then(m => ({ default: m.SharedExpenses })));
-const Trips = lazy(() => import("./pages/Trips").then(m => ({ default: m.Trips })));
-const CreditCards = lazy(() => import("./pages/CreditCards").then(m => ({ default: m.CreditCards })));
-const Reports = lazy(() => import("./pages/Reports").then(m => ({ default: m.Reports })));
-const Settings = lazy(() => import("./pages/Settings").then(m => ({ default: m.Settings })));
-const Family = lazy(() => import("./pages/Family").then(m => ({ default: m.Family })));
-const Budgets = lazy(() => import("./pages/Budgets").then(m => ({ default: m.Budgets })));
-const GoalsAndInvestments = lazy(() => import("./pages/GoalsAndInvestments").then(m => ({ default: m.GoalsAndInvestments })));
-const Calculators = lazy(() => import("./pages/Calculators").then(m => ({ default: m.Calculators })));
+const Dashboard = lazy(() => import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })));
+const Transactions = lazy(() =>
+  import("./pages/Transactions").then((m) => ({ default: m.Transactions }))
+);
+const Accounts = lazy(() => import("./pages/Accounts").then((m) => ({ default: m.Accounts })));
+const AccountDetail = lazy(() =>
+  import("./pages/AccountDetail").then((m) => ({ default: m.AccountDetail }))
+);
+const SharedExpenses = lazy(() =>
+  import("./pages/SharedExpenses").then((m) => ({ default: m.SharedExpenses }))
+);
+const Trips = lazy(() => import("./pages/Trips").then((m) => ({ default: m.Trips })));
+const CreditCards = lazy(() =>
+  import("./pages/CreditCards").then((m) => ({ default: m.CreditCards }))
+);
+const Reports = lazy(() => import("./pages/Reports").then((m) => ({ default: m.Reports })));
+const Settings = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
+const Family = lazy(() => import("./pages/Family").then((m) => ({ default: m.Family })));
+const Budgets = lazy(() => import("./pages/Budgets").then((m) => ({ default: m.Budgets })));
+const GoalsAndInvestments = lazy(() =>
+  import("./pages/GoalsAndInvestments").then((m) => ({ default: m.GoalsAndInvestments }))
+);
+const Calculators = lazy(() =>
+  import("./pages/Calculators").then((m) => ({ default: m.Calculators }))
+);
 
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -62,8 +74,8 @@ function PageLoader() {
 }
 
 localforage.config({
-  name: 'SeuBolsoInteligente',
-  storeName: 'reactQueryCache',
+  name: "SeuBolsoInteligente",
+  storeName: "reactQueryCache",
 });
 
 const asyncStoragePersister = createAsyncStoragePersister({
@@ -72,229 +84,229 @@ const asyncStoragePersister = createAsyncStoragePersister({
 
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <PersistQueryClientProvider 
+    <PersistQueryClientProvider
       client={queryClient}
       persistOptions={{ persister: asyncStoragePersister, maxAge: 1000 * 60 * 60 * 24 }} // 24 horas
     >
       <ErrorBoundary>
         <AuthProvider>
           <MonthProvider>
-          <TransactionModalProvider>
-            <PrivacyProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <ActionFeedback />
+            <TransactionModalProvider>
+              <PrivacyProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <ActionFeedback />
 
-              <BrowserRouter>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/privacidade" element={<Privacidade />} />
+                  <BrowserRouter>
+                    <Routes>
+                      {/* Public Routes */}
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/privacidade" element={<Privacidade />} />
 
-                  {/* Protected Routes */}
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Dashboard />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/transacoes"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Transactions />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/contas"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Accounts />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/contas/:id"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <AccountDetail />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/cartoes"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <CreditCards />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/cartoes/:id"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <CreditCards />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/compartilhados"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <SharedExpenses />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/viagens"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Trips />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/familia"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Family />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/relatorios"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Reports />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/orcamentos"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Budgets />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/metas"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <GoalsAndInvestments />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/simuladores"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Calculators />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/configuracoes"
-                    element={
-                      <ProtectedRoute>
-                        <PinWrapper>
-                          <AppLayout>
-                            <Suspense fallback={<PageLoader />}>
-                              <Settings />
-                            </Suspense>
-                          </AppLayout>
-                        </PinWrapper>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-            </PrivacyProvider>
+                      {/* Protected Routes */}
+                      <Route
+                        path="/"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Dashboard />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/transacoes"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Transactions />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/contas"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Accounts />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/contas/:id"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <AccountDetail />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cartoes"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <CreditCards />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cartoes/:id"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <CreditCards />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/compartilhados"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <SharedExpenses />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/viagens"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Trips />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/familia"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Family />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/relatorios"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Reports />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/orcamentos"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Budgets />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/metas"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <GoalsAndInvestments />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/simuladores"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Calculators />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/configuracoes"
+                        element={
+                          <ProtectedRoute>
+                            <PinWrapper>
+                              <AppLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                  <Settings />
+                                </Suspense>
+                              </AppLayout>
+                            </PinWrapper>
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </PrivacyProvider>
             </TransactionModalProvider>
           </MonthProvider>
         </AuthProvider>

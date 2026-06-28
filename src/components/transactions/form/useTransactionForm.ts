@@ -129,9 +129,7 @@ export function useTransactionForm({
     autoShareAppliedRef.current = true;
     // Só armazena o split do parceiro — o SplitModal em modo "Eu Paguei"
     // trabalha com splits implícitos (o criador assume o restante).
-    store.setSplits([
-      { memberId: matched.member_id, percentage: otherPct, amount: 0 },
-    ]);
+    store.setSplits([{ memberId: matched.member_id, percentage: otherPct, amount: 0 }]);
   }, [
     activeTab,
     categoryId,
