@@ -135,6 +135,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const splitIds = itemsToSettle.map((i) => i.splitId).filter((id): id is string => !!id);
       const txId: string | null = null;
 
+      // SEC-004: bloquear liquidação de itens de domínios distintos na mesma operação
+      const uniqueTripIdsCheck = [...new Set(itemsToSettle.map((i) => i.tripId ?? null))];
+      const domainsInBatch = new Set(itemsToSettle.map((i) => (i.tripId ? "TRAVEL" : "PERSONAL")));
+      if (domainsInBatch.size > 1 || uniqueTripIdsCheck.filter(Boolean).length > 1) {
+        toast.error("Não é possível acertar itens de viagens diferentes em uma única operação. Selecione apenas itens da mesma origem.");
+        setIsSettling(false);
+        return;
+      }
+
       const hasCredits = itemsToSettle.some((i) => i.type === "CREDIT");
       const hasDebits = itemsToSettle.some((i) => i.type === "DEBIT");
       const isCompensated = hasCredits && hasDebits;
@@ -260,6 +269,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
             isCompensated
           );
         }
+
+        toast.success(
+          `Acerto de ${formatCurrency(amount, settlementCurrency)} enviado para confirmação do credor!`
+        );
       }
 
       setSelectedMember(null);
@@ -271,12 +284,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         await invalidateRelated(itemsToSettle[0].originalTxId);
       }
       refetch(); // Sem await para não travar a UI
-
-      if (Math.abs(itemsTotal) >= 0.01) {
-        toast.success(
-          `Acerto de ${formatCurrency(amount, settlementCurrency)} processado com sucesso!`
-        );
-      }
     } catch (error) {
       logger.error("Settlement error", error);
       // Rollback imediato do optimistic update
