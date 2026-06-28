@@ -24,7 +24,7 @@ registerRoute(
   new NetworkFirst({
     cacheName: 'supabase-api-cache',
     plugins: [
-      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 }),
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 }), // [B-28] 1h em vez de 7 dias
       new CacheableResponsePlugin({ statuses: [0, 200] }),
     ],
   })

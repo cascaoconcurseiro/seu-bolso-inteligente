@@ -21,12 +21,21 @@ import { CategoryPredictionService } from "@/services/categoryPredictionService"
 import { matchAutoShareRule, AutoShareRule } from "@/hooks/useAutoShareRules";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 export function useCreateTransaction() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const inFlightRef = useRef(false);
+
+  // [B-16] Reset inFlightRef on unmount para evitar bloqueio permanente
+  // se o usuário navegar durante um submit
+  useEffect(() => {
+    return () => {
+      inFlightRef.current = false;
+    };
+  }, []);
+
   return useMutation({
     onMutate: async (newTx) => {
       // Cancelar refetches de transações para não sobrescrever nossa atualização otimista
@@ -94,14 +103,30 @@ export function useCreateTransaction() {
         .eq("amount", input.amount)
         .eq("description", (input.description || "").trim())
         .eq("date", input.date)
-        .eq("account_id", input.account_id || "")
-        .gt("created_at", new Date(Date.now() - 10000).toISOString())
+        .eq("is_active", true)
+        .gt("created_at", new Date(Date.now() - 15000).toISOString())
         .maybeSingle();
 
-      const [accResult, memberResult, existingTxResult] = await Promise.all([
+      // [B-17] Só filtra por account_id se fornecido (evita .eq("account_id", "") para null)
+      const existingTxPromise2 = input.account_id
+        ? supabase
+            .from("transactions")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("amount", input.amount)
+            .eq("description", (input.description || "").trim())
+            .eq("date", input.date)
+            .eq("account_id", input.account_id)
+            .eq("is_active", true)
+            .gt("created_at", new Date(Date.now() - 15000).toISOString())
+            .maybeSingle()
+        : Promise.resolve({ data: null });
+
+      const [accResult, memberResult, existingTxResult, existingTxResult2] = await Promise.all([
         accDataPromise,
         memberDataPromise,
         existingTxPromise,
+        existingTxPromise2,
       ]);
 
       let cardClosingDay: number | null = null;
@@ -215,8 +240,8 @@ export function useCreateTransaction() {
         throw new Error("A descrição é obrigatória");
       }
 
-      // ✅ TRAVA DE DUPLICIDADE
-      if (existingTxResult.data) {
+      // [B-17] TRAVA DE DUPLICIDADE — janela de 15s, com e sem account_id
+      if (existingTxResult.data || existingTxResult2?.data) {
         throw new Error(
           "⚠️ Transação duplicada detectada! Aguarde alguns segundos ou verifique se já foi lançada."
         );

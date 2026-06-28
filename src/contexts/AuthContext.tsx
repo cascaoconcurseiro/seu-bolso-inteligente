@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import localforage from "localforage";
+import { queryClient } from "@/lib/queryClient";
 
 interface AuthContextType {
   user: User | null;
@@ -96,6 +97,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Limpa TODO o localStorage (sessão Supabase + outros)
     localStorage.clear();
+
+    // [B-10] Limpa cache do React Query em memória antes do IndexedDB
+    // Evita que dados do usuário anterior apareçam no próximo login
+    queryClient.clear();
 
     // Limpa cache do React Query (IndexedDB via localforage)
     try { await localforage.clear(); } catch (_) {}

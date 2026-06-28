@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 import { SafeFinancialCalculator } from './SafeFinancialCalculator';
+import { dateUtils } from '@/lib/dateUtils';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -85,13 +86,14 @@ function isValidDate(dateString: string): boolean {
 
 /**
  * Valida se uma data está em um intervalo razoável (±1 ano)
+ * Usa dateUtils.parseDate() para evitar bugs de timezone (invariante do MASTER_BLUEPRINT)
  */
 function isReasonableDate(dateString: string): boolean {
-  const date = new Date(dateString);
+  const date = dateUtils.parseDate(dateString);
   const now = new Date();
   const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
   const oneYearAhead = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-  
+
   return date >= oneYearAgo && date <= oneYearAhead;
 }
 

@@ -3,14 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const ALLOWED_ORIGINS = [
   'https://pedemeia.vercel.app',
+  'https://meupedemeia.vercel.app',
   'http://localhost:5173',
   'http://localhost:4173',
 ];
 
 function corsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o))
-    ? origin
-    : ALLOWED_ORIGINS[0];
+  // [B-26] Permitir Vercel Preview URLs (*.vercel.app) além dos origins fixos
+  const isAllowed = origin && (
+    ALLOWED_ORIGINS.some(o => origin.startsWith(o)) ||
+    origin.endsWith('.vercel.app')
+  );
+  const allowed = isAllowed ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

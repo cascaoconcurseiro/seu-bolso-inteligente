@@ -2,10 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ActionFeedback } from "@/components/ui/ActionFeedback";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import localforage from "localforage";
+import { queryClient } from "@/lib/queryClient";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MonthProvider } from "@/contexts/MonthContext";
@@ -60,16 +60,6 @@ function PageLoader() {
     </div>
   );
 }
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 2, // 2 minutos mantendo dados locais "frescos"
-      gcTime: 1000 * 60 * 60 * 24, // 24 horas em memória cache persistente
-      refetchOnWindowFocus: false, // Menos agressivo ao focar a aba
-    },
-  },
-});
 
 localforage.config({
   name: 'SeuBolsoInteligente',
