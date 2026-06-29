@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, CreditCard, Trash2, Archive, Download, Loader2, AlertCircle } from "lucide-react";
+import { Plus, CreditCard, Trash2, Archive, Download, Loader2, AlertCircle, Pencil } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
