@@ -1,4 +1,4 @@
-import { } from "react";
+import {} from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
   CheckCircle,
   Plane,
   FileText,
+  Undo2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
@@ -37,6 +38,7 @@ interface TransactionDetailsModalProps {
   onDelete?: () => void;
   onAdvance?: () => void;
   onSettlement?: () => void;
+  onUnconfirm?: () => void;
 }
 
 export function TransactionDetailsModal({
@@ -47,6 +49,7 @@ export function TransactionDetailsModal({
   onDelete,
   onAdvance,
   onSettlement,
+  onUnconfirm,
 }: TransactionDetailsModalProps) {
   if (!transaction) return null;
 
@@ -58,9 +61,9 @@ export function TransactionDetailsModal({
   };
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'Data indefinida';
+    if (!dateStr) return "Data indefinida";
     const date = new Date(dateStr + "T12:00:00");
-    if (!dateFns.isValid(date)) return 'Data inválida';
+    if (!dateFns.isValid(date)) return "Data inválida";
     return dateFns.format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
@@ -77,10 +80,10 @@ export function TransactionDetailsModal({
     const desc = transaction.description.toLowerCase();
     const isFatura = desc.includes("fatura") || desc.includes("cartão") || desc.includes("cartao");
     if (isFatura) return "Pagamento de Fatura";
-    
+
     const sourceCurrency = transaction.account?.currency || transaction.currency || "BRL";
     const destCurrency = transaction.destination_currency || sourceCurrency;
-    
+
     if (sourceCurrency !== destCurrency) {
       return "Transferência Internacional";
     }
@@ -91,20 +94,24 @@ export function TransactionDetailsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogDescription className="sr-only">Detalhes da transação</DialogDescription>
-        
+
         {/* Header com ícone, título e subtítulo */}
         <DialogHeader className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0",
-              isIncome ? "bg-positive/10" : isTransfer ? "bg-primary/10" : "bg-muted"
-            )}>
-              {isTransfer ? "🔄" : (transaction.category?.icon || (isIncome ? "💰" : "💸"))}
+            <div
+              className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0",
+                isIncome ? "bg-positive/10" : isTransfer ? "bg-primary/10" : "bg-muted"
+              )}
+            >
+              {isTransfer ? "🔄" : transaction.category?.icon || (isIncome ? "💰" : "💸")}
             </div>
             <div className="flex-1 min-w-0">
               <DialogTitle className="truncate text-left">{transaction.description}</DialogTitle>
               <p className="text-sm text-muted-foreground font-medium mt-0.5">
-                {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
+                {isTransfer
+                  ? getTransferTypeLabel()
+                  : transaction.category?.name || "Sem categoria"}
               </p>
             </div>
           </div>
@@ -123,23 +130,32 @@ export function TransactionDetailsModal({
                     <>
                       <span className="text-xl text-muted-foreground">➔</span>
                       <span className="font-mono text-2xl font-black text-positive">
-                        +{formatCurrency(Number(transaction.destination_amount), transaction.destination_currency || "BRL")}
+                        +
+                        {formatCurrency(
+                          Number(transaction.destination_amount),
+                          transaction.destination_currency || "BRL"
+                        )}
                       </span>
                     </>
                   )}
                 </div>
                 {transaction.exchange_rate && (
                   <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-                    Câmbio: 1 {transaction.currency || "BRL"} = {Number(transaction.exchange_rate).toFixed(4)} {transaction.destination_currency || "BRL"}
+                    Câmbio: 1 {transaction.currency || "BRL"} ={" "}
+                    {Number(transaction.exchange_rate).toFixed(4)}{" "}
+                    {transaction.destination_currency || "BRL"}
                   </p>
                 )}
               </div>
             ) : (
-              <p className={cn(
-                "font-mono text-3xl font-black tracking-tight",
-                isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
-              )}>
-                {isIncome ? "+" : isExpense ? "-" : ""}{formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
+              <p
+                className={cn(
+                  "font-mono text-3xl font-black tracking-tight",
+                  isIncome ? "text-positive" : isExpense ? "text-destructive" : "text-primary"
+                )}
+              >
+                {isIncome ? "+" : isExpense ? "-" : ""}
+                {formatCurrency(Number(transaction.amount), transaction.currency || "BRL")}
               </p>
             )}
           </div>
@@ -175,8 +191,12 @@ export function TransactionDetailsModal({
                     {isTransfer ? "Tipo" : "Categoria"}
                   </p>
                   <p className="text-[13px] font-medium flex items-center gap-1.5">
-                    <span className="text-lg">{isTransfer ? "🔄" : (transaction.category?.icon || "🏷️")}</span>
-                    {isTransfer ? getTransferTypeLabel() : (transaction.category?.name || "Sem categoria")}
+                    <span className="text-lg">
+                      {isTransfer ? "🔄" : transaction.category?.icon || "🏷️"}
+                    </span>
+                    {isTransfer
+                      ? getTransferTypeLabel()
+                      : transaction.category?.name || "Sem categoria"}
                   </p>
                 </div>
               )}
@@ -197,32 +217,46 @@ export function TransactionDetailsModal({
             {(isInstallment || isShared || transaction.is_recurring) && (
               <div className="flex flex-wrap gap-2">
                 {isInstallment && (
-                  <Badge variant="secondary" className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground">
+                  <Badge
+                    variant="secondary"
+                    className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground"
+                  >
                     <Repeat className="h-3.5 w-3.5" />
                     Parcela {transaction.current_installment}/{transaction.total_installments}
                   </Badge>
                 )}
                 {isShared && (
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className={cn(
                       "gap-2 text-[11px] px-2 py-[2px] rounded-xl",
                       isFullySettled && "bg-success/12 text-success",
                       hasPendingSplits && "bg-warning/12 text-warning",
-                      !isFullySettled && !hasPendingSplits && "bg-secondary/12 text-secondary-foreground"
+                      !isFullySettled &&
+                        !hasPendingSplits &&
+                        "bg-secondary/12 text-secondary-foreground"
                     )}
                   >
                     {isFullySettled ? (
-                      <><CheckCircle className="h-3.5 w-3.5" /> Acertado</>
+                      <>
+                        <CheckCircle className="h-3.5 w-3.5" /> Acertado
+                      </>
                     ) : hasPendingSplits ? (
-                      <><Clock className="h-3.5 w-3.5" /> Pendente</>
+                      <>
+                        <Clock className="h-3.5 w-3.5" /> Pendente
+                      </>
                     ) : (
-                      <><Users className="h-3.5 w-3.5" /> Compartilhada</>
+                      <>
+                        <Users className="h-3.5 w-3.5" /> Compartilhada
+                      </>
                     )}
                   </Badge>
                 )}
                 {transaction.is_recurring && (
-                  <Badge variant="secondary" className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground">
+                  <Badge
+                    variant="secondary"
+                    className="gap-2 text-[11px] px-2 py-[2px] rounded-xl bg-secondary/12 text-secondary-foreground"
+                  >
                     <Repeat className="h-3.5 w-3.5" />
                     Recorrente
                   </Badge>
@@ -233,7 +267,9 @@ export function TransactionDetailsModal({
             {/* Divisão */}
             {isShared && splits.length > 0 && (
               <div className="space-y-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Divisão</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Divisão
+                </p>
                 <div className="space-y-2">
                   {splits.map((split: DBTransactionSplit) => (
                     <div
@@ -248,10 +284,12 @@ export function TransactionDetailsModal({
                         )}
                         <span className="text-sm font-medium">{split.name}</span>
                       </div>
-                      <span className={cn(
-                        "font-mono text-sm font-bold",
-                        split.is_settled ? "text-positive" : "text-warning"
-                      )}>
+                      <span
+                        className={cn(
+                          "font-mono text-sm font-bold",
+                          split.is_settled ? "text-positive" : "text-warning"
+                        )}
+                      >
                         {formatCurrency(split.amount)}
                       </span>
                     </div>
@@ -267,13 +305,30 @@ export function TransactionDetailsModal({
                   <FileText className="h-3.5 w-3.5" />
                   Observações
                 </p>
-                <p className="text-sm bg-muted/50 p-3 rounded-xl border border-border/50">{transaction.notes}</p>
+                <p className="text-sm bg-muted/50 p-3 rounded-xl border border-border/50">
+                  {transaction.notes}
+                </p>
               </div>
             )}
           </div>
 
           {/* Ações */}
           <div className="space-y-2.5">
+            {transaction.status === "CONFIRMED" && onUnconfirm && (
+              <Button
+                variant="outline"
+                className="w-full gap-2 text-warning border-warning/30 hover:bg-warning/10 hover:text-warning"
+                size="default"
+                onClick={() => {
+                  onOpenChange(false);
+                  onUnconfirm();
+                }}
+              >
+                <Undo2 className="h-5 w-5" />
+                Desmarcar pagamento
+              </Button>
+            )}
+
             {onEdit && (
               <Button
                 variant="outline"

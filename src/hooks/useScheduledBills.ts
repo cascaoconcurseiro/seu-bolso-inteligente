@@ -27,11 +27,13 @@ export function useScheduledBills() {
 
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           id, description, amount, date, currency, type, status,
           category:categories(id, name, icon),
           account:accounts!account_id(id, name)
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("status", "PENDING")
         .is("deleted_at", null)
@@ -49,14 +51,19 @@ export function useConfirmScheduledBill() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, amount, paidDate }: { id: string; amount?: number; paidDate?: string }) => {
+    mutationFn: async ({
+      id,
+      amount,
+      paidDate,
+    }: {
+      id: string;
+      amount?: number;
+      paidDate?: string;
+    }) => {
       const date = paidDate ?? format(new Date(), "yyyy-MM-dd");
       const update: Record<string, unknown> = { status: "CONFIRMED", date };
       if (amount !== undefined) update.amount = amount;
-      const { error } = await supabase
-        .from("transactions")
-        .update(update)
-        .eq("id", id);
+      const { error } = await supabase.from("transactions").update(update).eq("id", id);
 
       if (error) throw error;
     },
@@ -67,6 +74,30 @@ export function useConfirmScheduledBill() {
     },
     onError: () => {
       toast.error("Erro ao confirmar");
+    },
+  });
+}
+
+// Desmarca uma transação como paga (CONFIRMED → PENDING)
+export function useUnconfirmScheduledBill() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "PENDING" })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-bills"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Pagamento desmarcado — voltou para pendente");
+    },
+    onError: () => {
+      toast.error("Erro ao desmarcar pagamento");
     },
   });
 }
@@ -95,7 +126,17 @@ export function useConfirmRecurringOccurrence() {
 
       if (fetchError || !template) throw fetchError ?? new Error("Template não encontrado");
 
-      const { id, created_at, updated_at, last_generated_date, is_recurring, recurrence_pattern, recurrence_day, status, ...fields } = template;
+      const {
+        id,
+        created_at,
+        updated_at,
+        last_generated_date,
+        is_recurring,
+        recurrence_pattern,
+        recurrence_day,
+        status,
+        ...fields
+      } = template;
 
       const { error } = await supabase.from("transactions").insert({
         ...fields,
