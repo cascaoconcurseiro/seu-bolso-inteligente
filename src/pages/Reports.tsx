@@ -44,7 +44,6 @@ import { ReportSummary } from "@/components/reports/ReportSummary";
 import { CategoryDistribution } from "@/components/reports/CategoryDistribution";
 import { MonthlyEvolution } from "@/components/reports/MonthlyEvolution";
 import { CategoryTrend } from "@/components/reports/CategoryTrend";
-import { CashFlowProjection } from "@/components/reports/CashFlowProjection";
 
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -73,7 +72,7 @@ export function Reports() {
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   const [txSearch, setTxSearch] = useState<string>("");
   const [txTypeFilter, setTxTypeFilter] = useState<string>("ALL");
-  
+
   const { user } = useAuth();
   // Buscar transações do ano atual por padrão (evita carregar todo o histórico)
   const currentYear = new Date().getFullYear();
@@ -101,7 +100,7 @@ export function Reports() {
     // Moedas das transações compartilhadas envolvidas
     sharedTransactions.forEach((tx: any) => {
       const isMeThePayer = tx.user_id === user?.id || (tx.payer_id === myMemberId && tx.payer_id != null);
-      
+
       let isMeInvolved = isMeThePayer;
       if (!isMeInvolved && tx.is_shared && tx.transaction_splits) {
         isMeInvolved = tx.transaction_splits.some((s: any) => s.member_id === myMemberId);
@@ -246,25 +245,25 @@ export function Reports() {
     return allCombinedTransactions.filter((tx: any) => {
       const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
       const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
-      
+
       const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return false;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
-      
+
       const targetYear = safeCurrentDate.getFullYear();
       const targetMonth = safeCurrentDate.getMonth();
-      
+
       const isInPeriod = viewType === 'MONTH'
         ? txYear === targetYear && txMonth === targetMonth
         : txYear === targetYear;
-        
+
       if (!isInPeriod) return false;
       const txCurr = getTransactionCurrency(tx);
       const matchesCurrency = selectedCurrency === 'ALL' || txCurr === selectedCurrency;
-      
+
       return matchesCurrency;
     });
   }, [allCombinedTransactions, safeCurrentDate, selectedCurrency, viewType, accounts]);
@@ -272,22 +271,22 @@ export function Reports() {
   const sharedPeriodTransactions = useMemo(() => {
     const targetYear = safeCurrentDate.getFullYear();
     const targetMonth = safeCurrentDate.getMonth();
-    
+
     return sharedTransactions.filter((tx: any) => {
       const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
       const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
-      
+
       const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
       if (!txDateStr) return false;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return false;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
-      
+
       const isInPeriod = viewType === 'MONTH'
         ? txYear === targetYear && txMonth === targetMonth
         : txYear === targetYear;
-        
+
       if (!isInPeriod) return false;
       const txCurr = getTransactionCurrency(tx);
       return selectedCurrency === 'ALL' || txCurr === selectedCurrency;
@@ -307,24 +306,24 @@ export function Reports() {
       .filter(t => t.type === "INCOME" && (t as any).is_refund)
       .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
     const netExpense = Math.max(0, rawExpense - refunds);
-    return { 
-      totalIncome: income, 
-      totalExpense: netExpense, 
-      balance: income - netExpense 
+    return {
+      totalIncome: income,
+      totalExpense: netExpense,
+      balance: income - netExpense
     };
   }, [periodTransactions]);
 
   const categoryData = useMemo(() => {
     const map: Record<string, { value: number; count: number }> = {};
     const expenses = periodTransactions.filter(t => t.type === "EXPENSE");
-    
+
     expenses.forEach(tx => {
       let categoryName = "Sem categoria";
-      
+
       if (tx.category && tx.category.id && tx.category.name && tx.category.name !== "null" && tx.category.name !== "undefined") {
         const catId = tx.category.id;
         const catInfo = categories.find(c => c.id === catId);
-        
+
         if (catInfo) {
           if (catInfo.parent_category_id) {
             const parentCat = categories.find(c => c.id === catInfo.parent_category_id);
@@ -364,18 +363,18 @@ export function Reports() {
     });
     const total = Object.values(map).reduce((sum, c) => sum + c.value, 0);
     return Object.entries(map)
-      .map(([category, d]) => ({ 
-        category, 
-        value: d.value, 
-        count: d.count, 
-        percent: total > 0 ? Math.round((d.value / total) * 100) : 0 
+      .map(([category, d]) => ({
+        category,
+        value: d.value,
+        count: d.count,
+        percent: total > 0 ? Math.round((d.value / total) * 100) : 0
       }))
       .sort((a, b) => b.value - a.value);
   }, [periodTransactions, categories]);
 
   const personData = useMemo(() => {
     const map: Record<string, any> = {};
-    
+
     familyMembers.forEach(m => {
       map[m.name] = { name: m.name, spent: 0, received: 0, balance: 0, count: 0 };
     });
@@ -384,7 +383,7 @@ export function Reports() {
       // 1. SPLIT TRANSACTIONS (Divididas)
       if (tx.is_shared && tx.transaction_splits) {
         const involvedMembers = new Set<string>();
-        
+
         let payerName = 'Desconhecido';
         if (tx.payer_id) {
           const payerMember = familyMembers.find(m => m.id === tx.payer_id || m.linked_user_id === tx.payer_id);
@@ -394,7 +393,7 @@ export function Reports() {
           const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
           if (creatorMember) payerName = creatorMember.name;
         }
-        
+
         if (!map[payerName]) {
           map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
         }
@@ -404,7 +403,7 @@ export function Reports() {
         tx.transaction_splits.forEach((split: any) => {
           const member = familyMembers.find(m => m.id === split.member_id || m.linked_user_id === split.member_id);
           const name = member?.name || split.name || 'Desconhecido';
-          
+
           if (!map[name]) {
             map[name] = { name, spent: 0, received: 0, balance: 0, count: 0 };
           }
@@ -416,42 +415,42 @@ export function Reports() {
           map[name].count += 1;
         });
       }
-      
+
       // 2. ATRIBUIÇÃO DIRETA (100% para outro membro)
       else if (!tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id) {
         const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
         const receiverMember = familyMembers.find(m => m.id === tx.related_member_id);
-        
+
         const payerName = creatorMember?.name || 'Desconhecido';
         const receiverName = receiverMember?.name || 'Desconhecido';
-        
+
         if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
         if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
-        
+
         map[payerName].spent = SafeFinancialCalculator.add(map[payerName].spent, Number(tx.amount));
         map[receiverName].received = SafeFinancialCalculator.add(map[receiverName].received, Number(tx.amount));
-        
+
         map[payerName].count += 1;
         if (payerName !== receiverName) {
           map[receiverName].count += 1;
         }
       }
-      
+
       // 3. ACERTOS PUROS (Settlements)
       else if (!tx.is_shared && tx.domain === 'SHARED' && (tx.description?.includes('Acerto') || tx.description?.includes('acerto') || tx.is_settled)) {
         const creatorMember = familyMembers.find(m => m.linked_user_id === tx.user_id);
         const otherMember = familyMembers.find(m => m.linked_user_id !== tx.user_id);
-        
+
         if (creatorMember && otherMember) {
           const payerName = tx.type === 'EXPENSE' ? creatorMember.name : otherMember.name;
           const receiverName = tx.type === 'EXPENSE' ? otherMember.name : creatorMember.name;
-          
+
           if (!map[payerName]) map[payerName] = { name: payerName, spent: 0, received: 0, balance: 0, count: 0 };
           if (!map[receiverName]) map[receiverName] = { name: receiverName, spent: 0, received: 0, balance: 0, count: 0 };
-          
+
           map[payerName].spent = SafeFinancialCalculator.add(map[payerName].spent, Number(tx.amount));
           map[receiverName].received = SafeFinancialCalculator.add(map[receiverName].received, Number(tx.amount));
-          
+
           map[payerName].count += 1;
           map[receiverName].count += 1;
         }
@@ -472,13 +471,13 @@ export function Reports() {
       const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
       const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
       const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
-      
+
       if (!txDateStr) return;
       const parts = txDateStr.split('-');
       if (parts.length < 2) return;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
-      
+
       const isInPeriod = viewType === 'MONTH'
         ? txYear === targetYear && txMonth === targetMonth
         : txYear === targetYear;
@@ -488,21 +487,21 @@ export function Reports() {
         (tx as any).transaction_splits.forEach((split: any) => {
           const member = familyMembers.find(m => m.id === split.member_id || m.linked_user_id === split.member_id);
           const name = member?.name || split.name || 'Desconhecido';
-          if (!map[name]) map[name] = { 
-            name, 
-            periodAmount: 0, 
-            totalAmount: 0, 
-            remainingAmount: 0, 
-            totalInstallments: 0, 
-            remainingInstallments: 0, 
-            series: new Set() 
+          if (!map[name]) map[name] = {
+            name,
+            periodAmount: 0,
+            totalAmount: 0,
+            remainingAmount: 0,
+            totalInstallments: 0,
+            remainingInstallments: 0,
+            series: new Set()
           };
-          
+
           map[name].series.add(tx.series_id!);
           const amt = Number(split.amount);
-          
+
           map[name].totalAmount = SafeFinancialCalculator.add(map[name].totalAmount, amt);
-          
+
           if (isInPeriod) {
             map[name].periodAmount = SafeFinancialCalculator.add(map[name].periodAmount, amt);
           }
@@ -519,21 +518,21 @@ export function Reports() {
       else if (!tx.is_shared && tx.domain === 'SHARED' && tx.related_member_id) {
         const member = familyMembers.find(m => m.id === tx.related_member_id);
         const name = member?.name || 'Desconhecido';
-        if (!map[name]) map[name] = { 
-          name, 
-          periodAmount: 0, 
-          totalAmount: 0, 
-          remainingAmount: 0, 
-          totalInstallments: 0, 
-          remainingInstallments: 0, 
-          series: new Set() 
+        if (!map[name]) map[name] = {
+          name,
+          periodAmount: 0,
+          totalAmount: 0,
+          remainingAmount: 0,
+          totalInstallments: 0,
+          remainingInstallments: 0,
+          series: new Set()
         };
-        
+
         map[name].series.add(tx.series_id!);
         const amt = Number(tx.amount);
-        
+
         map[name].totalAmount = SafeFinancialCalculator.add(map[name].totalAmount, amt);
-        
+
         if (isInPeriod) {
           map[name].periodAmount = SafeFinancialCalculator.add(map[name].periodAmount, amt);
         }
@@ -578,17 +577,17 @@ export function Reports() {
 
   const filteredTxList = useMemo(() => {
     return periodTransactions.filter(tx => {
-      const matchesSearch = txSearch.trim() === "" || 
+      const matchesSearch = txSearch.trim() === "" ||
         tx.description?.toLowerCase().includes(txSearch.toLowerCase()) ||
         tx.category?.name?.toLowerCase().includes(txSearch.toLowerCase());
-      
+
       const matchesType = txTypeFilter === 'ALL' || tx.type === txTypeFilter;
-      
+
       return matchesSearch && matchesType;
     });
   }, [periodTransactions, txSearch, txTypeFilter]);
 
-   
+
   const handleExport = async (format: 'csv' | 'pdf', exportViewType: 'MONTH' | 'YEAR' = viewType) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
     if (format === 'csv') exportToCSV(filteredTxList, `relatorio-${exportViewType}`);
@@ -636,7 +635,7 @@ export function Reports() {
         const creditCardIds = accounts.filter(a => a.type === 'CREDIT_CARD').map(a => a.id);
         const isCreditCard = tx.account_id && creditCardIds.includes(tx.account_id);
         const txDateStr = (isCreditCard && tx.competence_date) ? tx.competence_date : tx.date;
-        
+
         if (!txDateStr) return false;
         const parts = txDateStr.split('-');
         if (parts.length < 2) return false;
@@ -702,7 +701,7 @@ export function Reports() {
             <h1 className="font-display font-black text-3xl tracking-tighter">Relatórios</h1>
             <p className="text-muted-foreground text-sm font-medium flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {'Análise das suas finanças -'} {viewType === 'MONTH' 
+              {'Análise das suas finanças -'} {viewType === 'MONTH'
                 ? dateFns.format(safeCurrentDate, "MMMM yyyy", { locale: ptBR })
                 : dateFns.format(safeCurrentDate, "yyyy", { locale: ptBR })}
             </p>
@@ -713,8 +712,8 @@ export function Reports() {
               <button
                 className={cn(
                   "px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  viewType === 'MONTH' 
-                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
+                  viewType === 'MONTH'
+                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100"
                     : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
                 )}
                 onClick={() => setViewType('MONTH')}
@@ -724,8 +723,8 @@ export function Reports() {
               <button
                 className={cn(
                   "px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  viewType === 'YEAR' 
-                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100" 
+                  viewType === 'YEAR'
+                    ? "bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(0,0,0,0.1)] shadow-primary/30 uppercase tracking-widest scale-100"
                     : "text-muted-foreground hover:bg-white/5 dark:hover:bg-white/5 uppercase tracking-widest scale-95 opacity-80"
                 )}
                 onClick={() => setViewType('YEAR')}
@@ -743,8 +742,8 @@ export function Reports() {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="rounded-xl border-border/40 bg-card/50 hover:bg-card/80 transition-colors"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -752,12 +751,12 @@ export function Reports() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => handleExport("pdf")}
               >
                 Exportar em PDF
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => handleExport("csv")}
               >
                 Exportar em Excel (CSV)
@@ -791,7 +790,7 @@ export function Reports() {
               <TabsTrigger value="evolution" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Evolução</TabsTrigger>
               <TabsTrigger value="categories" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Categorias</TabsTrigger>
               <TabsTrigger value="trend" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Tendências</TabsTrigger>
-              <TabsTrigger value="cashflow" className="rounded-2xl text-sm font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-primary/30 transition-all duration-300 whitespace-nowrap flex-1">Projeção</TabsTrigger>
+            </TabsList>
             </TabsList>
           </div>
 
@@ -799,7 +798,7 @@ export function Reports() {
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <ReportSummary totalIncome={totalIncome} totalExpense={totalExpense} balance={balance} savingsRate={totalIncome > 0 ? ((balance / totalIncome) * 100) : 0} formatCurrency={formatCurrency} currency={displayCurrency} />
           </div>
-          
+
           {/* KPIs Financeiros Avançados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Gasto Médio Diário */}
@@ -921,23 +920,16 @@ export function Reports() {
           formatCurrency={(v) => formatCurrency(v, displayCurrency)}
         />
       </TabsContent>
-
-      <TabsContent value="cashflow" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
-        <CashFlowProjection
-          transactions={allTransactions}
-          currentBalance={accounts?.filter(a => a.type !== 'CREDIT_CARD' && a.type !== 'INVESTMENT' && a.type !== 'EMERGENCY_FUND').reduce((s, a) => s + Number(a.balance || 0), 0) ?? 0}
-        />
-      </TabsContent>
       </Tabs>
       )}
 
 
-      <TransactionModal 
-        isOpen={showTransactionModal || !!editingTransaction} 
+      <TransactionModal
+        isOpen={showTransactionModal || !!editingTransaction}
         onClose={() => {
           setShowTransactionModal(false);
           setEditingTransaction(null);
-        }} 
+        }}
         initialData={editingTransaction}
       />
     </div>

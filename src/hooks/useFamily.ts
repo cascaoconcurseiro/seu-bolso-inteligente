@@ -34,8 +34,6 @@ export interface Family {
   id: string;
   name: string;
   owner_id: string;
-  shared_closing_day?: number | null;
-  shared_due_day?: number | null;
   created_at: string;
   updated_at: string;
 }
