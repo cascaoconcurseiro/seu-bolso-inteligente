@@ -4,22 +4,42 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { CreditCardCategories } from "./CreditCardCategories";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Settings, Pencil, Trash2, ChevronLeft, ChevronRight, Wallet, Download, CreditCard, MoreHorizontal, Archive, RotateCcw, Share2, CalendarClock } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  ArrowLeft,
+  Settings,
+  Pencil,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Wallet,
+  Download,
+  CreditCard,
+  MoreHorizontal,
+  Archive,
+  RotateCcw,
+  Share2,
+  CalendarClock,
+  PencilLine,
+} from "lucide-react";
 import { InstallmentSimulator } from "./InstallmentSimulator";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { getInvoiceData } from "@/lib/invoiceUtils";
+import { AdjustClosingDateDialog } from "./AdjustClosingDateDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CreditCardDetailViewProps {
   selectedCard: any;
@@ -86,11 +106,15 @@ export function CreditCardDetailView({
   const [activeTab, setActiveTab] = React.useState("mine");
 
   const myTransactions = React.useMemo(() => {
-    return allYearTransactions.filter(t => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id);
+    return allYearTransactions.filter(
+      (t) => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id
+    );
   }, [allYearTransactions, selectedCard.id]);
 
   const dependentTransactionsForCard = React.useMemo(() => {
-    return dependentTransactions.filter(t => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id);
+    return dependentTransactions.filter(
+      (t) => t.account_id === selectedCard.id || t.destination_account_id === selectedCard.id
+    );
   }, [dependentTransactions, selectedCard.id]);
 
   const cardTransactions = React.useMemo(() => {
@@ -98,22 +122,47 @@ export function CreditCardDetailView({
     if (activeTab === "all") return [...myTransactions, ...dependentTransactionsForCard];
     if (activeTab === "mine") return myTransactions;
     // For a specific dependent:
-    return dependentTransactionsForCard.filter(t => t.user_id === activeTab);
+    return dependentTransactionsForCard.filter((t) => t.user_id === activeTab);
   }, [isOwner, sharedCards.length, activeTab, myTransactions, dependentTransactionsForCard]);
 
   // Recalculate invoice based on selected tab transactions
   const localInvoiceData = React.useMemo(() => {
-    // invoiceData originally comes from props (which is global), but we override it locally for tabs!
-    const baseData = getInvoiceData(selectedCard, cardTransactions, selectedDate);
-    // Preservar propriedades do invoiceData recebido via prop (como status) caso a gente não tenha calculado
+    const cardWithOverride = closingOverride
+      ? { ...selectedCard, closing_date_override: closingOverride }
+      : selectedCard;
+    const baseData = getInvoiceData(cardWithOverride, cardTransactions, selectedDate);
     return { ...baseData, status: invoiceData?.status || baseData.status };
-  }, [selectedCard, cardTransactions, selectedDate, invoiceData?.status]);
+  }, [selectedCard, cardTransactions, selectedDate, invoiceData?.status, closingOverride]);
 
+  // Estado para o modal de ajuste de fechamento
+  const [showAdjustClosing, setShowAdjustClosing] = React.useState(false);
+  const [closingOverride, setClosingOverride] = React.useState<string | null>(null);
 
+  const handleSaveClosingOverride = async (newDate: string) => {
+    const refDate = dateFns.startOfMonth(selectedDate);
+    const refDateStr = dateFns.format(refDate, "yyyy-MM-dd");
 
-  const handleExportCard = async (format: 'pdf'|'csv', txs: any[], periodLabel: string) => {
-    const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } = await import("@/utils/exportData");
-    if (format === 'pdf') exportDetailedCardReportToPDF(txs, selectedCard, periodLabel);
+    const { error } = await supabase.from("credit_card_closing_overrides").upsert(
+      {
+        account_id: selectedCard.id,
+        reference_date: refDateStr,
+        closing_date: newDate,
+      },
+      { onConflict: "account_id,reference_date" }
+    );
+
+    if (error) {
+      toast.error("Erro ao salvar ajuste");
+      return;
+    }
+    setClosingOverride(newDate);
+    toast.success("Data de fechamento ajustada");
+  };
+
+  const handleExportCard = async (format: "pdf" | "csv", txs: any[], periodLabel: string) => {
+    const { exportDetailedCardReportToCSV, exportDetailedCardReportToPDF } =
+      await import("@/utils/exportData");
+    if (format === "pdf") exportDetailedCardReportToPDF(txs, selectedCard, periodLabel);
     else exportDetailedCardReportToCSV(txs, selectedCard, periodLabel);
   };
 
@@ -123,12 +172,7 @@ export function CreditCardDetailView({
     <div className="space-y-6 pb-20 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onBack}
-          className="hover:bg-muted"
-        >
+        <Button variant="ghost" size="icon" onClick={onBack} className="hover:bg-muted">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-4 flex-1">
@@ -136,9 +180,7 @@ export function CreditCardDetailView({
 
           <div className="flex flex-col">
             <h1 className="font-display font-bold text-2xl tracking-tight">{selectedCard.name}</h1>
-
           </div>
-
         </div>
 
         {/* Share Button highlighted */}
@@ -146,7 +188,7 @@ export function CreditCardDetailView({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
+                <Button
                   onClick={() => setShowSharingDialog(true)}
                   className="bg-success hover:bg-success text-white font-semibold rounded-xl shadow-md flex items-center justify-center transition-all hover:scale-105 shrink-0 px-3 md:px-4"
                 >
@@ -157,7 +199,8 @@ export function CreditCardDetailView({
               <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                 <p className="font-bold text-sm">Dividindo os Gastos?</p>
                 <p className="text-sm text-muted-foreground">
-                  Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
+                  Envie um link para o seu parceiro ou familiar para que ele possa acompanhar os
+                  lançamentos da fatura e lançar os próprios gastos nesse cartão em tempo real!
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -175,9 +218,13 @@ export function CreditCardDetailView({
               <Pencil className="h-4 w-4 mr-2" />
               Editar Cartão
             </DropdownMenuItem>
-            
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => selectedCard.is_archived ? onUnarchive(selectedCard) : onArchive(selectedCard)}>
+            <DropdownMenuItem
+              onClick={() =>
+                selectedCard.is_archived ? onUnarchive(selectedCard) : onArchive(selectedCard)
+              }
+            >
               {selectedCard.is_archived ? (
                 <>
                   <RotateCcw className="h-4 w-4 mr-2" />
@@ -194,7 +241,7 @@ export function CreditCardDetailView({
             {canDelete && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setDeleteCardConfirm({ isOpen: true, card: selectedCard })}
                   className="text-destructive focus:text-destructive"
                 >
@@ -207,28 +254,24 @@ export function CreditCardDetailView({
         </DropdownMenu>
       </div>
 
-
-
       {/* Month Navigation */}
       <div className="flex items-center justify-between bg-muted/30 p-2 rounded-xl">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => changeMonth(-1)}
           className="rounded-full hover:bg-background shadow-sm transition-all"
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        
+
         <div className="text-center flex flex-col items-center">
           <div className="flex items-center gap-2">
-            <h3 className="font-display font-bold text-base capitalize">
-              {monthName}
-            </h3>
+            <h3 className="font-display font-bold text-base capitalize">{monthName}</h3>
             {!dateFns.isSameMonth(selectedDate, new Date()) && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={goToCurrentMonth}
                 className="h-6 px-2 text-sm font-bold uppercase tracking-wider bg-primary/10 text-primary hover:bg-primary/20 rounded-full"
               >
@@ -236,12 +279,14 @@ export function CreditCardDetailView({
               </Button>
             )}
           </div>
-          <p className="text-sm text-muted-foreground uppercase tracking-widest font-medium">Ciclo: {cycleRange}</p>
+          <p className="text-sm text-muted-foreground uppercase tracking-widest font-medium">
+            Ciclo: {cycleRange}
+          </p>
         </div>
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => changeMonth(1)}
           className="rounded-full hover:bg-background shadow-sm transition-all"
         >
@@ -249,13 +294,13 @@ export function CreditCardDetailView({
         </Button>
       </div>
 
-      <div 
+      <div
         className={cn(
           "p-4 md:p-6 rounded-3xl text-white transition-all relative overflow-hidden shadow-2xl mx-auto w-full max-w-2xl",
           invoiceFetching && "opacity-80"
         )}
-        style={{ 
-          background: `linear-gradient(135deg, ${bank.color} 0%, ${bank.color}80 100%)`
+        style={{
+          background: `linear-gradient(135deg, ${bank.color} 0%, ${bank.color}80 100%)`,
         }}
       >
         {/* Glow Effects */}
@@ -270,7 +315,7 @@ export function CreditCardDetailView({
             <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
           </div>
         )}
-        
+
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
@@ -282,28 +327,44 @@ export function CreditCardDetailView({
                 <p className="text-xs opacity-80 mt-0.5">{bank.name}</p>
               </div>
             </div>
-            
+
             {(() => {
-              const isPaid = localInvoiceData.status === 'PAID';
-              const isOverdue = localInvoiceData.status === 'CLOSED' && new Date() > localInvoiceData.dueDate && localInvoiceData.invoiceTotal > 0;
-              const isClosed = localInvoiceData.status === 'CLOSED';
+              const isPaid = localInvoiceData.status === "PAID";
+              const isOverdue =
+                localInvoiceData.status === "CLOSED" &&
+                new Date() > localInvoiceData.dueDate &&
+                localInvoiceData.invoiceTotal > 0;
+              const isClosed = localInvoiceData.status === "CLOSED";
               return (
-                <span className={cn(
-                  "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
-                  isPaid ? "bg-success/20 text-success border-success/50" :
-                  isOverdue ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse" : 
-                  isClosed ? "bg-warning/20 text-warning border-warning/50" :
-                  "bg-accent/20 text-accent-foreground border-accent/50"
-                )}>
-                  {isPaid ? '✅ Fatura Paga' : isOverdue ? '⚠️ Fatura Atrasada' : isClosed ? '🔴 Aguardando Pagamento' : '🔵 Fatura Aberta'}
+                <span
+                  className={cn(
+                    "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
+                    isPaid
+                      ? "bg-success/20 text-success border-success/50"
+                      : isOverdue
+                        ? "bg-destructive/20 text-destructive-foreground border-destructive/50 animate-pulse"
+                        : isClosed
+                          ? "bg-warning/20 text-warning border-warning/50"
+                          : "bg-accent/20 text-accent-foreground border-accent/50"
+                  )}
+                >
+                  {isPaid
+                    ? "✅ Fatura Paga"
+                    : isOverdue
+                      ? "⚠️ Fatura Atrasada"
+                      : isClosed
+                        ? "🔴 Aguardando Pagamento"
+                        : "🔵 Fatura Aberta"}
                 </span>
               );
             })()}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
-              <p className="text-xs opacity-80 mb-1 font-medium uppercase tracking-wider">Valor da Fatura</p>
+              <p className="text-xs opacity-80 mb-1 font-medium uppercase tracking-wider">
+                Valor da Fatura
+              </p>
               <div className="flex items-baseline gap-2">
                 <p className="font-display font-black text-2xl tracking-tighter drop-shadow-sm">
                   {formatCurrency(localInvoiceData.invoiceTotal)}
@@ -311,23 +372,35 @@ export function CreditCardDetailView({
               </div>
               {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
                 <div className="inline-block mt-1.5 bg-white/10 border border-white/20 px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wider backdrop-blur-md">
-                  + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)} a mais
+                  + {formatCurrency(Math.abs(selectedCard.balance) - localInvoiceData.invoiceTotal)}{" "}
+                  a mais
                 </div>
               )}
             </div>
 
             <div className="flex flex-col md:items-end justify-end space-y-2">
-              <div className="flex items-center gap-2 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">
-                <CalendarClock className="w-3.5 h-3.5 opacity-70" />
-                <span className="text-xs font-medium">
-                  {localInvoiceData.status === 'OPEN'
-                    ? `Fecha em ${invoiceData.daysToClose} dias`
-                    : localInvoiceData.status === 'PAID'
-                    ? `Paga em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
-                    : `Vence em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
-                  }
-                </span>
-              </div>
+              {localInvoiceData.status === "OPEN" ? (
+                <button
+                  onClick={() => setShowAdjustClosing(true)}
+                  className="flex items-center gap-2 bg-black/20 hover:bg-black/30 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto transition-colors cursor-pointer"
+                  title="Clique para ajustar a data de fechamento"
+                >
+                  <CalendarClock className="w-3.5 h-3.5 opacity-70" />
+                  <span className="text-xs font-medium">
+                    Fecha em {localInvoiceData.daysToClose} dias
+                  </span>
+                  <PencilLine className="w-3 h-3 opacity-50" />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">
+                  <CalendarClock className="w-3.5 h-3.5 opacity-70" />
+                  <span className="text-xs font-medium">
+                    {localInvoiceData.status === "PAID"
+                      ? `Paga em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`
+                      : `Vence em ${dateFns.format(localInvoiceData.dueDate, "dd MMM", { locale: ptBR })}`}
+                  </span>
+                </div>
+              )}
               {Math.abs(selectedCard.balance) > localInvoiceData.invoiceTotal + 0.01 && (
                 <p className="text-xs opacity-70 font-medium tracking-wide">
                   Total gasto acumulado: {formatCurrency(Math.abs(selectedCard.balance))}
@@ -340,17 +413,28 @@ export function CreditCardDetailView({
           {selectedCard.credit_limit && selectedCard.credit_limit > 0 && (
             <div className="mt-4 pt-3 border-t border-white/10">
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-xs opacity-80 font-medium uppercase tracking-wider">Limite Disponível</p>
+                <p className="text-xs opacity-80 font-medium uppercase tracking-wider">
+                  Limite Disponível
+                </p>
                 <p className="text-xs font-bold opacity-90">
-                  {formatCurrency(Math.max(0, selectedCard.credit_limit - Math.abs(selectedCard.balance)))}
-                  <span className="opacity-60 font-normal"> / {formatCurrency(selectedCard.credit_limit)}</span>
+                  {formatCurrency(
+                    Math.max(0, selectedCard.credit_limit - Math.abs(selectedCard.balance))
+                  )}
+                  <span className="opacity-60 font-normal">
+                    {" "}
+                    / {formatCurrency(selectedCard.credit_limit)}
+                  </span>
                 </p>
               </div>
               <div className="w-full bg-white/20 rounded-full h-1.5">
                 <div
                   className={cn(
                     "h-1.5 rounded-full transition-all duration-700",
-                    usagePercent >= 90 ? "bg-red-400" : usagePercent >= 70 ? "bg-yellow-300" : "bg-green-400"
+                    usagePercent >= 90
+                      ? "bg-red-400"
+                      : usagePercent >= 70
+                        ? "bg-yellow-300"
+                        : "bg-green-400"
                   )}
                   style={{ width: `${Math.min(100, usagePercent)}%` }}
                 />
@@ -367,16 +451,16 @@ export function CreditCardDetailView({
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-5 pt-4 border-t border-white/10">
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               className="min-h-10 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-xs sm:text-sm"
               onClick={() => setShowPayDialog(true)}
             >
               <Wallet className="h-3.5 w-3.5 shrink-0" />
               <span>Pagar Fatura</span>
             </Button>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               className="min-h-10 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm whitespace-normal text-center leading-tight text-xs sm:text-sm"
               onClick={() => setShowImportDialog(true)}
             >
@@ -386,8 +470,8 @@ export function CreditCardDetailView({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   className="min-h-10 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm w-full whitespace-normal text-center leading-tight text-xs sm:text-sm"
                 >
                   <Download className="h-3.5 w-3.5 shrink-0" />
@@ -395,26 +479,46 @@ export function CreditCardDetailView({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
-                <DropdownMenuItem onClick={() => handleExportCard('pdf', localInvoiceData.transactions, `Fatura ${monthName}`)} className="cursor-pointer">
+                <DropdownMenuItem
+                  onClick={() =>
+                    handleExportCard("pdf", localInvoiceData.transactions, `Fatura ${monthName}`)
+                  }
+                  className="cursor-pointer"
+                >
                   Exportar Fatura em PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportCard('csv', localInvoiceData.transactions, `Fatura ${monthName}`)} className="cursor-pointer">
+                <DropdownMenuItem
+                  onClick={() =>
+                    handleExportCard("csv", localInvoiceData.transactions, `Fatura ${monthName}`)
+                  }
+                  className="cursor-pointer"
+                >
                   Exportar Fatura em Excel
                 </DropdownMenuItem>
-                
+
                 {allYearTransactions.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => {
-                      const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                      handleExportCard('pdf', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
-                    }} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const cardYearTxs = allYearTransactions.filter(
+                          (t) => t.account_id === selectedCard.id
+                        );
+                        handleExportCard("pdf", cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
+                      }}
+                      className="cursor-pointer"
+                    >
                       Exportar Relatório Anual (PDF)
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      const cardYearTxs = allYearTransactions.filter(t => t.account_id === selectedCard.id);
-                      handleExportCard('csv', cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
-                    }} className="cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const cardYearTxs = allYearTransactions.filter(
+                          (t) => t.account_id === selectedCard.id
+                        );
+                        handleExportCard("csv", cardYearTxs, `Ano ${selectedDate.getFullYear()}`);
+                      }}
+                      className="cursor-pointer"
+                    >
                       Exportar Relatório Anual (Excel)
                     </DropdownMenuItem>
                   </>
@@ -425,20 +529,42 @@ export function CreditCardDetailView({
         </div>
       </div>
 
-
       {/* Dependent Tabs (Only for owner of shared card) */}
       {isOwner && sharedCards.length > 0 && (
         <div className="bg-muted/30 p-1 rounded-xl mt-6 overflow-x-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full justify-start h-auto p-1 bg-transparent border-none">
-              <TabsTrigger value="mine" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Meus Gastos</TabsTrigger>
+              <TabsTrigger
+                value="mine"
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                Meus Gastos
+              </TabsTrigger>
               {sharedCards.map((sc: any) => (
-                <TabsTrigger key={sc.user_id} value={sc.user_id} className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2">
-                  <UserAvatar name={sc.user?.full_name || 'Conv.'} avatarUrl={sc.user?.avatar_url} iconId={sc.user?.avatar_icon} colorId={sc.user?.avatar_color} size="sm" className="w-6 h-6 text-sm" />
-                  <span className="truncate max-w-[80px]">{sc.user?.full_name?.split(' ')[0] || 'Convidado'}</span>
+                <TabsTrigger
+                  key={sc.user_id}
+                  value={sc.user_id}
+                  className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm gap-2"
+                >
+                  <UserAvatar
+                    name={sc.user?.full_name || "Conv."}
+                    avatarUrl={sc.user?.avatar_url}
+                    iconId={sc.user?.avatar_icon}
+                    colorId={sc.user?.avatar_color}
+                    size="sm"
+                    className="w-6 h-6 text-sm"
+                  />
+                  <span className="truncate max-w-[80px]">
+                    {sc.user?.full_name?.split(" ")[0] || "Convidado"}
+                  </span>
                 </TabsTrigger>
               ))}
-              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">Fatura Completa</TabsTrigger>
+              <TabsTrigger
+                value="all"
+                className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+              >
+                Fatura Completa
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -457,11 +583,11 @@ export function CreditCardDetailView({
           </h2>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             {localInvoiceData.transactions.map((tx: any, index: number) => (
-              <div 
-                key={tx.id} 
+              <div
+                key={tx.id}
                 onClick={(e) => {
                   const target = e.target as HTMLElement;
-                  if (target.closest('button')) return; // ignora botões internos (dropdown de opções)
+                  if (target.closest("button")) return; // ignora botões internos (dropdown de opções)
                   handleEditTransaction(tx);
                 }}
                 className={cn(
@@ -470,17 +596,21 @@ export function CreditCardDetailView({
                 )}
               >
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform origin-center" />
-                
-                <div className={cn(
-                  "w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm border border-border/50 group-hover:scale-110 transition-transform",
-                  tx.type === "INCOME" ? "bg-positive/10" : "bg-background"
-                )}>
+
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm border border-border/50 group-hover:scale-110 transition-transform",
+                    tx.type === "INCOME" ? "bg-positive/10" : "bg-background"
+                  )}
+                >
                   {tx.category?.icon || (tx.type === "INCOME" ? "💰" : "💸")}
                 </div>
-                
+
                 <div className="flex-1 min-w-0 pt-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-sm truncate text-foreground/90 group-hover:text-foreground transition-colors">{tx.description}</p>
+                    <p className="font-semibold text-sm truncate text-foreground/90 group-hover:text-foreground transition-colors">
+                      {tx.description}
+                    </p>
                     {tx.is_installment && tx.current_installment && tx.total_installments && (
                       <span className="text-xs px-1 py-0.5 rounded-md bg-muted/80 text-muted-foreground font-bold tracking-wider">
                         {tx.current_installment}/{tx.total_installments}
@@ -490,46 +620,60 @@ export function CreditCardDetailView({
                   <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap mt-0.5">
                     <span className="truncate">{tx.category?.name || "Sem categoria"}</span>
                     <span className="opacity-50">•</span>
-                    <span>{dateFns.format(new Date(tx.date + 'T00:00:00'), "dd/MM/yyyy")}</span>
+                    <span>{dateFns.format(new Date(tx.date + "T00:00:00"), "dd/MM/yyyy")}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 shrink-0 pt-0">
                   <div className="flex flex-col items-end gap-0.5">
                     {(() => {
-                      const isCredit = tx.type === "INCOME" || (tx.type === "TRANSFER" && tx.destination_account_id === selectedCard.id);
+                      const isCredit =
+                        tx.type === "INCOME" ||
+                        (tx.type === "TRANSFER" && tx.destination_account_id === selectedCard.id);
                       return (
                         <>
-                          <span className={cn(
-                            "font-mono font-bold text-right whitespace-nowrap",
-                            isCredit ? "text-positive" : "text-foreground"
-                          )}>
-                            {isCredit ? "+" : ""}{formatCurrency(tx.amount)}
+                          <span
+                            className={cn(
+                              "font-mono font-bold text-right whitespace-nowrap",
+                              isCredit ? "text-positive" : "text-foreground"
+                            )}
+                          >
+                            {isCredit ? "+" : ""}
+                            {formatCurrency(tx.amount)}
                           </span>
-                          <span className={cn(
-                            "text-[9px] font-bold uppercase tracking-widest whitespace-nowrap opacity-70",
-                            isCredit ? "text-positive" : "text-muted-foreground"
-                          )}>
+                          <span
+                            className={cn(
+                              "text-[9px] font-bold uppercase tracking-widest whitespace-nowrap opacity-70",
+                              isCredit ? "text-positive" : "text-muted-foreground"
+                            )}
+                          >
                             {isCredit ? "Crédito" : "Débito"}
                           </span>
                         </>
                       );
                     })()}
                   </div>
-                  
+
                   <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full hover:bg-muted"
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="rounded-xl shadow-xl">
-                        <DropdownMenuItem onClick={() => handleEditTransaction(tx)} className="cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => handleEditTransaction(tx)}
+                          className="cursor-pointer"
+                        >
                           <Pencil className="h-4 w-4 mr-2" />
                           Editar Lançamento
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => setDeleteConfirm({ isOpen: true, transaction: tx })}
                           className="text-destructive focus:text-destructive cursor-pointer"
                         >
@@ -562,8 +706,8 @@ export function CreditCardDetailView({
           </h2>
           <div className="space-y-3">
             {installments.map((inst) => (
-              <div 
-                key={inst.id} 
+              <div
+                key={inst.id}
                 className="p-4 rounded-xl border border-border transition-all duration-200 hover:border-foreground/20"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -572,11 +716,11 @@ export function CreditCardDetailView({
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                    <div 
+                    <div
                       className="h-full rounded-full transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${(inst.current / inst.total) * 100}%`,
-                        backgroundColor: bank.color 
+                        backgroundColor: bank.color,
                       }}
                     />
                   </div>
@@ -606,6 +750,16 @@ export function CreditCardDetailView({
           </div>
         </div>
       </div>
+
+      <AdjustClosingDateDialog
+        open={showAdjustClosing}
+        onOpenChange={setShowAdjustClosing}
+        currentClosingDate={
+          closingOverride ? new Date(closingOverride + "T12:00:00") : localInvoiceData.closingDate
+        }
+        referenceDate={dateFns.startOfMonth(selectedDate)}
+        onSave={handleSaveClosingOverride}
+      />
     </div>
   );
 }
