@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CreateTransactionInput } from "@/hooks/useTransactions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { logger } from '@/utils/logger';
 
@@ -43,13 +43,26 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
     return accounts?.filter(acc => acc.is_active !== false) || [];
   }, [accounts]);
 
-  const parseOFXDate = (dateStr: string) => {
+  const parseOFXDate = (dateStr: string): string => {
     // OFX Date format: YYYYMMDDHHMMSS or YYYYMMDD
-    if (!dateStr || dateStr.length < 8) return format(new Date(), 'yyyy-MM-dd');
+    if (!dateStr || dateStr.length < 8) {
+      // Retorna ontem como fallback seguro em vez de hoje para evitar datas futuras
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return format(yesterday, 'yyyy-MM-dd');
+    }
     const year = dateStr.substring(0, 4);
     const month = dateStr.substring(4, 6);
     const day = dateStr.substring(6, 8);
-    return `${year}-${month}-${day}`;
+    const iso = `${year}-${month}-${day}`;
+    // Valida que a data é real antes de retornar
+    try {
+      const parsed = parseISO(iso);
+      if (isNaN(parsed.getTime())) throw new Error();
+      return iso;
+    } catch {
+      return format(new Date(), 'yyyy-MM-dd');
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +139,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
             type: tx.type,
             description: tx.description,
             date: tx.date,
-            competence_date: format(new Date(tx.date), 'yyyy-MM-01'),
+            competence_date: `${tx.date.substring(0, 7)}-01`,
             external_id: tx.external_id,
             domain: 'PERSONAL',
             is_shared: false,

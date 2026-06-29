@@ -23,6 +23,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import { Plus } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { moneyUtils } from "@/utils/money";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];
@@ -125,7 +126,7 @@ export function TripExpensesTab({
           </p>
           {isInternational && rate && (
             <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
-              ≈ {formatCurrency(totalShared * rate, baseCurrency)}
+              ≈ {formatCurrency(moneyUtils.mul(totalShared, rate), baseCurrency)}
             </p>
           )}
           <p className="text-sm text-muted-foreground mt-0.5">{sharedExpenses.length} despesas</p>
@@ -139,7 +140,7 @@ export function TripExpensesTab({
           </p>
           {isInternational && rate && (
             <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
-              ≈ {formatCurrency(mySharedPaid * rate, baseCurrency)}
+              ≈ {formatCurrency(moneyUtils.mul(mySharedPaid, rate), baseCurrency)}
             </p>
           )}
           <p className="text-sm text-muted-foreground mt-0.5">impacto no orçamento</p>
@@ -153,7 +154,7 @@ export function TripExpensesTab({
           </p>
           {isInternational && rate && (
             <p className="text-sm font-mono text-muted-foreground font-medium mt-0.5">
-              ≈ {formatCurrency(spentToDisplay * rate, baseCurrency)}
+              ≈ {formatCurrency(moneyUtils.mul(spentToDisplay, rate), baseCurrency)}
             </p>
           )}
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -389,7 +390,7 @@ export function TripExpensesTab({
                                   </p>
                                   {isInternational && rate && (
                                     <p className="font-mono text-sm text-muted-foreground font-medium mt-0.5">
-                                      ≈ {formatCurrency(amount * rate, baseCurrency)}
+                                      ≈ {formatCurrency(moneyUtils.mul(amount, rate), baseCurrency)}
                                     </p>
                                   )}
                                   <p className="text-sm text-muted-foreground mt-0.5">
@@ -408,7 +409,7 @@ export function TripExpensesTab({
                                   </p>
                                   {isInternational && rate && (
                                     <p className="font-mono text-sm text-warning/70 dark:text-warning/70 font-medium mt-0.5">
-                                      ≈ {formatCurrency(mySplitAmount * rate, baseCurrency)}
+                                      ≈ {formatCurrency(moneyUtils.mul(mySplitAmount, rate), baseCurrency)}
                                     </p>
                                   )}
                                   <p className="text-sm text-warning/70 dark:text-warning/70 mt-0.5 font-bold uppercase tracking-widest">
@@ -583,7 +584,7 @@ export function TripExpensesTab({
                                   : "text-muted-foreground"
                               )}
                             >
-                              ≈ {formatCurrency(amount * rate, baseCurrency)}
+                              ≈ {formatCurrency(moneyUtils.mul(amount, rate), baseCurrency)}
                             </p>
                           )}
                         </div>

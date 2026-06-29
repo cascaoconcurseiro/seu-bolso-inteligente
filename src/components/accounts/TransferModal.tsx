@@ -62,9 +62,9 @@ export function TransferModal({
       const numericAmount = moneyUtils.parse(amount) || 0;
       const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (numericAmount > 0 && rate > 0) {
-        const destValue = fromAccountCurrency === "BRL" 
-          ? numericAmount / rate 
-          : numericAmount * rate;
+        const destValue = fromAccountCurrency === "BRL"
+          ? moneyUtils.div(numericAmount, rate)
+          : moneyUtils.mul(numericAmount, rate);
         setDestinationAmount(destValue.toFixed(2).replace(".", ","));
       } else {
         setDestinationAmount("");

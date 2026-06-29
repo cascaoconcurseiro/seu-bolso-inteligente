@@ -201,7 +201,7 @@ export function SharedSettleDialog({
           <div className="grid gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm font-semibold">Data do {settleType === "PAY" ? "Pagamento" : "Recebimento"}</Label>
-              <Input type="date" value={settleDate} onChange={(e) => setSettleDate(e.target.value)} className="rounded-xl" />
+              <Input type="date" value={settleDate} onChange={(e) => setSettleDate(e.target.value)} className="rounded-xl" max={new Date().toISOString().split("T")[0]} />
             </div>
 
             <div className="space-y-1.5">

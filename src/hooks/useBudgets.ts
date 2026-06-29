@@ -7,6 +7,7 @@ import { useMonth } from '@/contexts/MonthContext';
 import { getMonthDateRange } from '@/utils/dateUtils';
 import * as dateFns from 'date-fns';
 import { invalidateBudgetQueries } from '@/utils/queryInvalidation';
+import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
 import { budgetToasts } from '@/utils/toastMessages';
 import { defaultQueryConfig } from '@/utils/queryConfig';
 
@@ -67,11 +68,14 @@ export const useBudgets = () => {
           const prevBudget = prevData.find((p: BudgetWithProgress) => p.budget_id === budget.budget_id);
           if (prevBudget && prevBudget.remaining_amount > 0) {
             // Cap rollover to the current month's original budget to prevent infinite accumulation
-            const rollover = Math.min(prevBudget.remaining_amount, budget.budget_amount);
-            const newBudgetAmount = budget.budget_amount + rollover;
-            const newRemaining = newBudgetAmount - budget.spent_amount;
-            const newPercentage = newBudgetAmount > 0 
-              ? Math.min(Math.round((budget.spent_amount / newBudgetAmount) * 100), 1000) 
+            const rollover = Math.min(
+              SafeFinancialCalculator.round(prevBudget.remaining_amount),
+              SafeFinancialCalculator.round(budget.budget_amount)
+            );
+            const newBudgetAmount = SafeFinancialCalculator.add(budget.budget_amount, rollover);
+            const newRemaining = SafeFinancialCalculator.subtract(newBudgetAmount, budget.spent_amount);
+            const newPercentage = newBudgetAmount > 0
+              ? Math.min(Math.round((budget.spent_amount / newBudgetAmount) * 100), 1000)
               : 0;
               
             return {
