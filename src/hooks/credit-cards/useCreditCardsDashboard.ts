@@ -73,7 +73,6 @@ export function useCreditCardsDashboard() {
   const [newBrand, setNewBrand] = useState("");
   const [newCardName, setNewCardName] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("");
-  const [newClosingDayMode, setNewClosingDayMode] = useState("FIXED_DAY");
   const [newDueDay, setNewDueDay] = useState("");
   const [newLimit, setNewLimit] = useState("");
   const [newIsInternational, setNewIsInternational] = useState(false);
@@ -143,7 +142,6 @@ export function useCreditCardsDashboard() {
   const [editCardName, setEditCardName] = useState("");
   const [editCardColor, setEditCardColor] = useState("");
   const [editClosingDay, setEditClosingDay] = useState("");
-  const [editClosingDayMode, setEditClosingDayMode] = useState("FIXED_DAY");
   const [editDueDay, setEditDueDay] = useState("");
   const [editLimit, setEditLimit] = useState("");
   const [editBankId, setEditBankId] = useState("");
@@ -261,7 +259,6 @@ export function useCreditCardsDashboard() {
       bank_id: finalBankId || null,
       credit_limit: moneyUtils.parse(newLimit) || 0,
       closing_day: parseInt(newClosingDay) || undefined,
-      closing_day_mode: newClosingDayMode,
       due_day: parseInt(newDueDay) || undefined,
       is_international: newIsInternational,
       currency: newIsInternational ? newCurrency : "BRL",
@@ -276,7 +273,6 @@ export function useCreditCardsDashboard() {
     setNewBrand("");
     setNewCardName("");
     setNewClosingDay("");
-    setNewClosingDayMode("FIXED_DAY");
     setNewDueDay("");
     setNewLimit("");
     setNewIsInternational(false);
@@ -321,7 +317,6 @@ export function useCreditCardsDashboard() {
       id: selectedCard.id,
       name: editCardName,
       closing_day: editClosingDay ? parseInt(editClosingDay) : null,
-      closing_day_mode: editClosingDayMode,
       due_day: editDueDay ? parseInt(editDueDay) : null,
       credit_limit: editLimit ? moneyUtils.parse(editLimit) : null,
       bank_color: editCardColor,
@@ -463,8 +458,6 @@ export function useCreditCardsDashboard() {
     setNewCardName,
     newClosingDay,
     setNewClosingDay,
-    newClosingDayMode,
-    setNewClosingDayMode,
     newDueDay,
     setNewDueDay,
     newLimit,
@@ -503,8 +496,6 @@ export function useCreditCardsDashboard() {
     setEditCardColor,
     editClosingDay,
     setEditClosingDay,
-    editClosingDayMode,
-    setEditClosingDayMode,
     editDueDay,
     setEditDueDay,
     editLimit,
