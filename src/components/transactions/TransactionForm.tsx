@@ -36,6 +36,7 @@ import { AmountInput } from "./form/AmountInput";
 import { BasicInfoSection } from "./form/BasicInfoSection";
 import { AccountSelector } from "./form/AccountSelector";
 import { AdvancedOptions } from "./form/AdvancedOptions";
+import { RippleEffect } from "@/components/ui/RippleEffect";
 
 import { useTransactionForm } from "./form/useTransactionForm";
 import { useUpdateRecurringSeries } from "@/hooks/transactions/useTransactionMutations";
@@ -120,7 +121,8 @@ export function TransactionForm(props: TransactionFormProps) {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-4 animate-fade-in overflow-x-hidden">
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-0 space-y-4 animate-fade-in overflow-x-hidden relative">
+      <RippleEffect status={form.rippleState} />
       <div className="grid grid-cols-3 gap-1 p-1 rounded-[10px] bg-[hsl(var(--bg-subtle))]">
         {(["EXPENSE", "INCOME", "TRANSFER"] as TabType[]).map((tab) => (
           <button

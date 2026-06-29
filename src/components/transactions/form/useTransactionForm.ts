@@ -100,6 +100,8 @@ export function useTransactionForm({
   const goalId = store.goalId;
   const saveAsPending = store.saveAsPending;
 
+  const [rippleState, setRippleState] = useState<"success" | "error" | null>(null);
+
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
   // Refs anti-loop para effects que chamam setters derivados de variáveis compostas
   const lastSetPayerIdRef = useRef<string>(store.payerId);
@@ -568,21 +570,31 @@ export function useTransactionForm({
   const performSubmit = async (transactionData: CreateTransactionInput) => {
     try {
       if (initialData && initialData.id) {
-        // Edição: fecha imediatamente (optimistic update em onMutate do useUpdateTransaction)
+        // Edição: optimistic update em onMutate do useUpdateTransaction
         haptics.success();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        if (onSuccess) onSuccess();
-        else navigate("/transacoes");
+        
+        setRippleState("success");
         updateTransaction.mutate({ ...transactionData, id: initialData.id });
+        
+        setTimeout(() => {
+          if (onSuccess) onSuccess();
+          else navigate("/transacoes");
+          setRippleState(null);
+        }, 800);
       } else {
-        // Criação: fecha o modal imediatamente (optimistic update já aplicado em onMutate)
+        // Criação: optimistic update já aplicado em onMutate
         haptics.success();
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        if (onSuccess) onSuccess();
-        else navigate("/transacoes");
-
-        // Dispara em background — onError faz rollback e mostra toast se falhar
+        
+        setRippleState("success");
         createTransaction.mutate(transactionData);
+        
+        setTimeout(() => {
+          if (onSuccess) onSuccess();
+          else navigate("/transacoes");
+          setRippleState(null);
+        }, 800);
 
         // Aprendizado de categoria também em background
         if (user && categoryId && description && activeTab !== "TRANSFER") {
@@ -596,7 +608,9 @@ export function useTransactionForm({
       }
     } catch (error: any) {
       logger.error("Erro ao salvar transação:", error);
+      setRippleState("error");
       toast.error(error.message || "Erro de conexão ou timeout. Tente novamente.");
+      setTimeout(() => setRippleState(null), 800);
     }
   };
 
@@ -766,6 +780,8 @@ export function useTransactionForm({
       user?.id
     );
     if (!validation.isValid) {
+      setRippleState("error");
+      setTimeout(() => setRippleState(null), 800);
       setValidationErrors(validation.errors);
       toast.error("Corrija os erros:", { description: validation.errors.join(" • ") });
       return;
@@ -804,8 +820,10 @@ export function useTransactionForm({
     setShowWarningModal,
     pendingSubmit,
     setPendingSubmit,
+    performSubmit,
+    handleSubmit,
+    rippleState,
 
-    predictedCategoryId,
     isPredicting,
 
     availableMembers,
