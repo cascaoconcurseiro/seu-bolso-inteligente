@@ -28,12 +28,21 @@ export function useBillsDue(daysAhead = 7) {
       const start = format(today, "yyyy-MM-dd");
       const end = format(addDays(today, daysAhead), "yyyy-MM-dd");
 
+      // Buscar IDs das contas de cartão de crédito para excluí-las
+      const { data: creditCardIds } = await supabase
+        .from("accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("type", "CREDIT_CARD");
+
+      const excludeIds = new Set((creditCardIds || []).map((a) => a.id));
+
       const { data, error } = await supabase
         .from("transactions")
         .select(`
           id, description, amount, date, currency, series_id, account_id,
           category:categories(id, name, icon),
-          account:accounts!account_id(id, name, type)
+          account:accounts!account_id(id, name)
         `)
         .eq("user_id", user.id)
         .eq("type", "EXPENSE")
@@ -45,9 +54,10 @@ export function useBillsDue(daysAhead = 7) {
         .limit(20);
 
       if (error) throw error;
-      // Excluir compras parceladas de cartão de crédito — elas fazem parte da fatura, não são contas avulsas
-      return ((data || []) as (BillDue & { account: { id: string; name: string; type: string } | null })[])
-        .filter(bill => !bill.account || bill.account.type !== 'CREDIT_CARD') as BillDue[];
+      // Excluir compras parceladas de cartão de crédito — parcelas pertencem à fatura
+      return ((data || []) as BillDue[]).filter(
+        (bill) => !bill.account_id || !excludeIds.has(bill.account_id)
+      );
     },
     enabled: !!user,
   });
