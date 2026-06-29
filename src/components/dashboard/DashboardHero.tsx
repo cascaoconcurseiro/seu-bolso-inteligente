@@ -1,10 +1,9 @@
 import { moneyUtils } from "@/utils/money";
 import { Globe, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { lazy, Suspense, useMemo, useEffect, useState } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { NumberTicker } from "@/components/ui/NumberTicker";
 
 const WealthEvolutionChart = lazy(() => import("./WealthEvolutionChart"));
 
@@ -36,15 +35,6 @@ export function DashboardHero({
   isRateLoading,
 }: DashboardHeroProps) {
   const { isPrivate } = usePrivacy();
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-
-  useEffect(() => {
-    const hasAnimated = sessionStorage.getItem("dashboard_hero_animated");
-    if (!hasAnimated) {
-      setShouldAnimate(true);
-      sessionStorage.setItem("dashboard_hero_animated", "true");
-    }
-  }, []);
 
   const savingsRate = useMemo(() => {
     if (income <= 0) return 0;
@@ -108,7 +98,7 @@ export function DashboardHero({
               <div className="min-w-0">
                 <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Patrimônio</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-foreground truncate", isPrivate && "blur-md opacity-50 select-none")}>
-                  {isPrivate ? "•••••" : <NumberTicker value={totalPatrimony} formatCurrency={formatCurrency} animateOnMount={shouldAnimate} />}
+                  {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>
             </div>
@@ -120,7 +110,7 @@ export function DashboardHero({
               <div className="min-w-0">
                 <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Entradas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-positive truncate", isPrivate && "blur-md opacity-50 select-none")}>
-                  {isPrivate ? "•••••" : <NumberTicker value={income} formatCurrency={formatCurrency} animateOnMount={shouldAnimate} />}
+                  {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
               </div>
             </div>
@@ -132,7 +122,7 @@ export function DashboardHero({
               <div className="min-w-0">
                 <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Saídas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-negative truncate", isPrivate && "blur-md opacity-50 select-none")}>
-                  {isPrivate ? "•••••" : <NumberTicker value={expenses} formatCurrency={formatCurrency} animateOnMount={shouldAnimate} />}
+                  {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
               </div>
             </div>
