@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { logger } from '@/utils/logger';
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface OFXImportModalProps {
   isOpen: boolean;
@@ -124,7 +125,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
           et.account_id === selectedAccountId &&
           et.type === tx.type &&
           et.date === tx.date &&
-          Math.abs(et.amount - tx.amount) < 0.01 &&
+          SafeFinancialCalculator.toSafeNumber(et.amount) === SafeFinancialCalculator.toSafeNumber(tx.amount) &&
           // Compara pelo FITID se já tivermos salvo
           (et.external_id === tx.external_id || et.description.toLowerCase() === tx.description.toLowerCase())
         );

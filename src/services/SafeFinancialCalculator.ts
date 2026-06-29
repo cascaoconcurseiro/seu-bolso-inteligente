@@ -149,8 +149,8 @@ export class SafeFinancialCalculator {
     const totalSafe = SafeFinancialCalculator.toSafeNumber(total);
     const splitSumSafe = SafeFinancialCalculator.toSafeNumber(splitSum);
     
-    // Allow 1 cent margin for rounding
-    return splitSumSafe <= totalSafe + 1;
+    // Splits must sum exactly to the total
+    return splitSumSafe === totalSafe;
   }
 
   /**

@@ -42,7 +42,7 @@ export const useBudgets = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      const { data: currentData, error } = await supabase.rpc('get_user_budgets_progress', {
+      const { data, error } = await supabase.rpc('get_user_budgets_progress_with_rollover', {
         p_user_id: user.id,
         p_start_date: startDate,
         p_end_date: endDate,
@@ -50,48 +50,7 @@ export const useBudgets = () => {
 
       if (error) throw error;
       
-      // Budget Rollover: Fetch previous month's progress to carry over unused amounts
-      const prevDate = dateFns.subMonths(new Date(startDate), 1);
-      const prevStartDate = dateFns.format(dateFns.startOfMonth(prevDate), 'yyyy-MM-dd');
-      const prevEndDate = dateFns.format(dateFns.endOfMonth(prevDate), 'yyyy-MM-dd');
-
-      const { data: prevData, error: prevError } = await supabase.rpc('get_user_budgets_progress', {
-        p_user_id: user.id,
-        p_start_date: prevStartDate,
-        p_end_date: prevEndDate,
-      });
-
-      let finalData = currentData as BudgetWithProgress[];
-      
-      if (!prevError && prevData) {
-        finalData = finalData.map(budget => {
-          const prevBudget = prevData.find((p: BudgetWithProgress) => p.budget_id === budget.budget_id);
-          if (prevBudget && prevBudget.remaining_amount > 0) {
-            // Cap rollover to the current month's original budget to prevent infinite accumulation
-            const rollover = Math.min(
-              SafeFinancialCalculator.round(prevBudget.remaining_amount),
-              SafeFinancialCalculator.round(budget.budget_amount)
-            );
-            const newBudgetAmount = SafeFinancialCalculator.add(budget.budget_amount, rollover);
-            const newRemaining = SafeFinancialCalculator.subtract(newBudgetAmount, budget.spent_amount);
-            const newPercentage = newBudgetAmount > 0
-              ? Math.min(Math.round((budget.spent_amount / newBudgetAmount) * 100), 1000)
-              : 0;
-              
-            return {
-              ...budget,
-              budget_amount: newBudgetAmount,
-              remaining_amount: newRemaining,
-              percentage_used: newPercentage,
-              _original_budget: budget.budget_amount,
-              _rollover: rollover
-            } as BudgetWithProgress;
-          }
-          return budget;
-        });
-      }
-
-      return finalData;
+      return data as (BudgetWithProgress & { _original_budget?: number, _rollover?: number })[];
     },
     enabled: !!user,
     ...defaultQueryConfig,
