@@ -9,13 +9,12 @@ export function RippleEffect({ status }: RippleEffectProps) {
   return (
     <AnimatePresence>
       {status && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none overflow-hidden">
           <motion.div
-            initial={{ clipPath: "circle(0% at 50% 50%)", opacity: 0.8 }}
-            animate={{ clipPath: "circle(150% at 50% 50%)", opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className={`absolute inset-0 w-full h-full ${
+            initial={{ scale: 0, opacity: 0.8 }}
+            animate={{ scale: 20, opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className={`w-20 h-20 rounded-full ${
               status === "success" ? "bg-green-500" : "bg-red-500"
             }`}
           />

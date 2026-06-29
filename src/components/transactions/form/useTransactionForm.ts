@@ -569,43 +569,34 @@ export function useTransactionForm({
 
   const performSubmit = async (transactionData: CreateTransactionInput) => {
     try {
-      if (initialData && initialData.id) {
-        // Edição: optimistic update em onMutate do useUpdateTransaction
-        haptics.success();
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        
-        setRippleState("success");
-        updateTransaction.mutate({ ...transactionData, id: initialData.id });
-        
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-          else navigate("/transacoes");
-          setRippleState(null);
-        }, 800);
-      } else {
-        // Criação: optimistic update já aplicado em onMutate
-        haptics.success();
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-        
-        setRippleState("success");
-        createTransaction.mutate(transactionData);
-        
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-          else navigate("/transacoes");
-          setRippleState(null);
-        }, 800);
+      haptics.success();
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      
+      setRippleState("success");
 
-        // Aprendizado de categoria também em background
-        if (user && categoryId && description && activeTab !== "TRANSFER") {
-          CategoryPredictionService.learnFromUser(
-            description,
-            categoryId,
-            user.id,
-            !!(predictedCategoryId && predictedCategoryId !== categoryId)
-          ).catch((error) => logger.error("Erro ao registrar aprendizado de categoria:", error));
+      // Defer mutate to allow React to paint the Ripple first, avoiding jank
+      setTimeout(() => {
+        if (initialData && initialData.id) {
+          updateTransaction.mutate({ ...transactionData, id: initialData.id });
+        } else {
+          createTransaction.mutate(transactionData);
+          
+          if (user && categoryId && description && activeTab !== "TRANSFER") {
+            CategoryPredictionService.learnFromUser(
+              description,
+              categoryId,
+              user.id,
+              !!(predictedCategoryId && predictedCategoryId !== categoryId)
+            ).catch((error) => logger.error("Erro ao registrar aprendizado:", error));
+          }
         }
-      }
+      }, 50);
+
+      setTimeout(() => {
+        if (onSuccess) onSuccess();
+        else navigate("/transacoes");
+        setRippleState(null);
+      }, 800);
     } catch (error: any) {
       logger.error("Erro ao salvar transação:", error);
       setRippleState("error");
