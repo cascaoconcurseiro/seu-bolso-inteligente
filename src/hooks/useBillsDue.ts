@@ -20,7 +20,7 @@ export function useBillsDue(daysAhead = 7) {
 
   return useQuery({
     queryKey: ["bills-due", user?.id, daysAhead],
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
     queryFn: async (): Promise<BillDue[]> => {
       if (!user) return [];
 
@@ -28,36 +28,32 @@ export function useBillsDue(daysAhead = 7) {
       const start = format(today, "yyyy-MM-dd");
       const end = format(addDays(today, daysAhead), "yyyy-MM-dd");
 
-      // Buscar IDs das contas de cartão de crédito para excluí-las
-      const { data: creditCardIds } = await supabase
-        .from("accounts")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("type", "CREDIT_CARD");
+      // Buscar contas + transações em paralelo
+      const [{ data: allAccounts }, { data: txData, error: txError }] = await Promise.all([
+        supabase.from("accounts").select("id, type").eq("user_id", user.id),
+        supabase
+          .from("transactions")
+          .select("id, description, amount, date, currency, series_id, account_id, category:categories(id, name, icon), account:accounts!account_id(id, name)")
+          .eq("user_id", user.id)
+          .eq("type", "EXPENSE")
+          .not("series_id", "is", null)
+          .gte("date", start)
+          .lte("date", end)
+          .is("deleted_at", null)
+          .order("date", { ascending: true })
+          .limit(50),
+      ]);
 
-      const excludeIds = new Set((creditCardIds || []).map((a) => a.id));
+      if (txError) throw txError;
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .select(`
-          id, description, amount, date, currency, series_id, account_id,
-          category:categories(id, name, icon),
-          account:accounts!account_id(id, name)
-        `)
-        .eq("user_id", user.id)
-        .eq("type", "EXPENSE")
-        .not("series_id", "is", null)
-        .gte("date", start)
-        .lte("date", end)
-        .is("deleted_at", null)
-        .order("date", { ascending: true })
-        .limit(20);
-
-      if (error) throw error;
-      // Excluir compras parceladas de cartão de crédito — parcelas pertencem à fatura
-      return ((data || []) as BillDue[]).filter(
-        (bill) => !bill.account_id || !excludeIds.has(bill.account_id)
+      const creditCardIds = new Set(
+        (allAccounts || []).filter((a) => a.type === "CREDIT_CARD").map((a) => a.id)
       );
+
+      // Excluir compras no cartão — pertencem à fatura, não são contas avulsas
+      return ((txData || []) as BillDue[])
+        .filter((bill) => !bill.account_id || !creditCardIds.has(bill.account_id))
+        .slice(0, 20);
     },
     enabled: !!user,
   });
