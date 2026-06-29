@@ -3,8 +3,20 @@ import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { FormField } from "@/components/ui/form-field";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Globe, Loader2, CreditCard, AlertCircle } from "lucide-react";
 import { banks, cardBrands, internationalBanks } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
@@ -34,6 +46,8 @@ interface NewCardDialogProps {
   setCardName: (v: string) => void;
   closingDay: string;
   setClosingDay: (v: string) => void;
+  closingDayMode: string;
+  setClosingDayMode: (v: string) => void;
   dueDay: string;
   setDueDay: (v: string) => void;
   limit: string;
@@ -59,6 +73,8 @@ export function NewCardDialog({
   setCardName,
   closingDay,
   setClosingDay,
+  closingDayMode,
+  setClosingDayMode,
   dueDay,
   setDueDay,
   limit,
@@ -84,7 +100,9 @@ export function NewCardDialog({
             <CreditCard className="w-5 h-5 text-primary" />
             Adicionar Novo Cartão
           </DialogTitle>
-          <DialogDescription>Cadastre um cartão para acompanhar suas faturas e lançamentos em tempo real.</DialogDescription>
+          <DialogDescription>
+            Cadastre um cartão para acompanhar suas faturas e lançamentos em tempo real.
+          </DialogDescription>
         </DialogHeader>
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-5">
           <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 transition-all mt-2">
@@ -112,7 +130,10 @@ export function NewCardDialog({
                 <SelectValue placeholder="Selecione o banco…" />
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto">
-                <SelectItem value="other" className="text-warning focus:text-warning font-medium border-b mb-1 pb-1">
+                <SelectItem
+                  value="other"
+                  className="text-warning focus:text-warning font-medium border-b mb-1 pb-1"
+                >
                   <div className="flex items-center gap-2">
                     <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
                       <CreditCard className="w-3 h-3" />
@@ -120,22 +141,24 @@ export function NewCardDialog({
                     Outro Banco (Personalizado)
                   </div>
                 </SelectItem>
-                {(isInternational ? Object.values(internationalBanks) : Object.values(banks)).map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    <div className="flex items-center gap-2">
-                      <BankIcon bankId={b.id} size="sm" />
-                      {b.name}
-                    </div>
-                  </SelectItem>
-                ))}
+                {(isInternational ? Object.values(internationalBanks) : Object.values(banks)).map(
+                  (b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      <div className="flex items-center gap-2">
+                        <BankIcon bankId={b.id} size="sm" />
+                        {b.name}
+                      </div>
+                    </SelectItem>
+                  )
+                )}
               </SelectContent>
             </Select>
             {bankId === "other" && (
               <div className="pt-2 animate-fade-in">
-                <Input 
+                <Input
                   id="card-custom-bank"
                   name="card-custom-bank"
-                  placeholder="Ex: Carrefour, C&A, Renner…" 
+                  placeholder="Ex: Carrefour, C&A, Renner…"
                   value={customBankName}
                   onChange={(e) => setCustomBankName(e.target.value)}
                   className="border-warning/30 focus-visible:ring-warning"
@@ -167,12 +190,14 @@ export function NewCardDialog({
 
           <FormField label="Bandeira" htmlFor="card-brand">
             <Select value={brand} onValueChange={setBrand}>
-              <SelectTrigger id="card-brand"><SelectValue placeholder="Selecione a bandeira…" /></SelectTrigger>
+              <SelectTrigger id="card-brand">
+                <SelectValue placeholder="Selecione a bandeira…" />
+              </SelectTrigger>
               <SelectContent>
                 {Object.values(cardBrands).map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-5 h-3 rounded flex items-center justify-center text-[8px] font-bold text-white"
                         style={{ backgroundColor: b.color }}
                       >
@@ -187,7 +212,7 @@ export function NewCardDialog({
           </FormField>
 
           <FormField label="Nome do cartão (opcional)" htmlFor="card-name">
-            <Input 
+            <Input
               id="card-name"
               name="card-name"
               placeholder="Ex: Cartão Principal…"
@@ -198,44 +223,62 @@ export function NewCardDialog({
           </FormField>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Fechamento" htmlFor="card-closing">
-              <Input type="number" inputMode="numeric" 
-                id="card-closing"
-                name="card-closing"
-                min={1} 
-                max={31} 
-                placeholder="Ex: 20…"
-                className="font-mono text-base"
-                value={closingDay}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === '') {
-                    setClosingDay('');
-                    return;
-                  }
-                  const num = parseInt(val, 10);
-                  if (!isNaN(num)) {
-                    if (num < 1) setClosingDay("1");
-                    else if (num > 31) setClosingDay("31");
-                    else setClosingDay(num.toString());
-                  }
-                }}
-                autoComplete="off"
-              />
+            <FormField label="Fechamento" htmlFor="card-closing-mode">
+              <Select value={closingDayMode} onValueChange={setClosingDayMode}>
+                <SelectTrigger id="card-closing-mode" className="font-mono text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
+                  <SelectItem value="LAST_DAY">Último dia do mês</SelectItem>
+                  <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
+                </SelectContent>
+              </Select>
+              {closingDayMode === "FIXED_DAY" && (
+                <div className="mt-2 animate-in fade-in">
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    id="card-closing"
+                    name="card-closing"
+                    min={1}
+                    max={31}
+                    placeholder="Ex: 20…"
+                    className="font-mono text-base"
+                    value={closingDay}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        setClosingDay("");
+                        return;
+                      }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        if (num < 1) setClosingDay("1");
+                        else if (num > 31) setClosingDay("31");
+                        else setClosingDay(num.toString());
+                      }
+                    }}
+                    autoComplete="off"
+                  />
+                </div>
+              )}
             </FormField>
             <FormField label="Vencimento" htmlFor="card-due">
-              <Input type="number" inputMode="numeric" 
+              <Input
+                type="number"
+                inputMode="numeric"
                 id="card-due"
                 name="card-due"
-                min={1} 
-                max={31} 
+                min={1}
+                max={31}
                 placeholder="Ex: 28…"
                 className="font-mono text-base"
                 value={dueDay}
                 onChange={(e) => {
                   const val = e.target.value;
-                  if (val === '') {
-                    setDueDay('');
+                  if (val === "") {
+                    setDueDay("");
                     return;
                   }
                   const num = parseInt(val, 10);
@@ -251,7 +294,7 @@ export function NewCardDialog({
           </div>
 
           <FormField label="Limite" htmlFor="card-limit">
-            <CurrencyInput 
+            <CurrencyInput
               id="card-limit"
               placeholder="0,00"
               value={limit}
@@ -261,14 +304,28 @@ export function NewCardDialog({
           </FormField>
 
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancelar</Button>
-            <Button className="flex-1 rounded-xl font-bold" onClick={onSubmit} disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => onOpenChange(false)}
+              disabled={isLoading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="flex-1 rounded-xl font-bold"
+              onClick={onSubmit}
+              disabled={isLoading || !bankId || (closingDayMode === 'FIXED_DAY' && !closingDay) || !dueDay || !limit}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Adicionando…
                 </>
-              ) : "Adicionar Cartão"}
+              ) : (
+                "Adicionar Cartão"
+              )}
             </Button>
           </div>
         </div>

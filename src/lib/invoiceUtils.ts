@@ -1,10 +1,12 @@
 // Utility functions for credit card invoice calculations
-import { parseDate, formatDate, getCompetenceDate, addMonthsToDate } from '@/lib/dateUtils';
+import { parseDate, formatDate, getCompetenceDate, addMonthsToDate } from "@/lib/dateUtils";
+
+export type ClosingDayMode = "FIXED_DAY" | "LAST_DAY" | "LAST_BUSINESS_DAY";
 
 export interface InvoiceData {
   invoiceTotal: number;
   transactions: any[];
-  status: 'OPEN' | 'CLOSED' | 'PAID';
+  status: "OPEN" | "CLOSED" | "PAID";
   daysToClose: number;
   closingDate: Date;
   dueDate: Date;
@@ -12,19 +14,58 @@ export interface InvoiceData {
 }
 
 /**
- * Determines which invoice month to show based on current date and closing day
- * Uses UTC-safe date operations via dateUtils
+ * Calculate the actual closing date for a given reference month,
+ * considering the closing day mode and any manual override.
  */
-export const getTargetDate = (date: Date, closingDay?: number): Date => {
-  if (!closingDay) return date;
-  
-  const currentDay = date.getDate();
-  
-  // If today is after the closing day, show next month's invoice
-  if (currentDay > closingDay) {
-    return addMonthsToDate(date, 1);
+export const getActualClosingDate = (
+  year: number,
+  month: number, // 0-indexed
+  closingDay: number,
+  mode: ClosingDayMode = "FIXED_DAY",
+  overrideDate?: string | null
+): Date => {
+  if (overrideDate) return parseDate(overrideDate);
+
+  switch (mode) {
+    case "LAST_DAY": {
+      // Last calendar day of the month
+      return new Date(year, month + 1, 0);
+    }
+    case "LAST_BUSINESS_DAY": {
+      // Last weekday (Mon-Fri) of the month
+      let d = new Date(year, month + 1, 0);
+      while (d.getDay() === 0 || d.getDay() === 6) {
+        d.setDate(d.getDate() - 1);
+      }
+      return d;
+    }
+    case "FIXED_DAY":
+    default: {
+      // Use the fixed day, clamped to the month's max days
+      const maxDay = new Date(year, month + 1, 0).getDate();
+      const day = Math.min(closingDay || 1, maxDay);
+      return new Date(year, month, day);
+    }
   }
-  
+};
+
+/**
+ * Determines which invoice month to show based on current date and actual closing date
+ */
+export const getTargetDate = (
+  date: Date,
+  closingDay?: number,
+  mode: ClosingDayMode = "FIXED_DAY"
+): Date => {
+  if (!closingDay) return date;
+
+  const actualClosing = getActualClosingDate(date.getFullYear(), date.getMonth(), closingDay, mode);
+  const currentDay = date.getDate();
+  const closingDateDay = actualClosing.getDate();
+
+  if (currentDay > closingDateDay) {
+  }
+
   return date;
 };
 
@@ -43,7 +84,13 @@ export const getTargetDate = (date: Date, closingDay?: number): Date => {
  * O startDate e closingDate são usados apenas para EXIBIÇÃO do período do ciclo.
  */
 export const getInvoiceData = (
-  account: { id: string; closing_day: number | null; due_day: number | null },
+  account: {
+    id: string;
+    closing_day: number | null;
+    due_day: number | null;
+    closing_day_mode?: string | null;
+    closing_date_override?: string | null;
+  },
   transactions: any[],
   referenceDate: Date
 ): InvoiceData => {
@@ -51,11 +98,16 @@ export const getInvoiceData = (
   const month = referenceDate.getMonth(); // 0-indexed
   const closingDay = account.closing_day || 1;
   const dueDay = account.due_day || 10;
+  const mode = (account.closing_day_mode as ClosingDayMode) || "FIXED_DAY";
 
   // ── Datas do ciclo para EXIBIÇÃO ──────────────────────────────────────────
-  // Closing date: dia de fechamento NO MÊS DE REFERÊNCIA
-  const closingDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(closingDay).padStart(2, '0')}`;
-  const closingDate = parseDate(closingDateStr);
+  const closingDate = getActualClosingDate(
+    year,
+    month,
+    closingDay,
+    mode,
+    account.closing_date_override
+  );
 
   // Start date: dia seguinte ao fechamento do mês ANTERIOR
   // Ex: fecha dia 10 → ciclo começa dia 11 do mês anterior
@@ -64,7 +116,7 @@ export const getInvoiceData = (
   startDate.setDate(startDate.getDate() + 1);
 
   // Due date: vencimento para pagamento
-  const dueDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`;
+  const dueDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dueDay).padStart(2, "0")}`;
   let dueDate = parseDate(dueDateStr);
   // Se dia de vencimento <= dia de fechamento, vencimento cai no mês seguinte
   if (dueDay <= closingDay) {
@@ -80,13 +132,13 @@ export const getInvoiceData = (
 
     // Pagamentos de fatura: TRANSFER chegando neste cartão
     // Usar date da transferência (não competence_date)
-    if (t.type === 'TRANSFER' && t.destination_account_id === account.id) {
+    if (t.type === "TRANSFER" && t.destination_account_id === account.id) {
       const payDate = parseDate(t.date);
       return payDate.getMonth() === month && payDate.getFullYear() === year;
     }
 
     // Transferências SAINDO deste cartão (self-transfer de saldo rotativo)
-    if (t.type === 'TRANSFER' && t.account_id === account.id) {
+    if (t.type === "TRANSFER" && t.account_id === account.id) {
       // Self-transfer (saldo rotativo): usar date física
       if (t.destination_account_id === account.id) {
         const txDate = parseDate(t.date);
@@ -105,20 +157,24 @@ export const getInvoiceData = (
   const invoiceTotal = filteredTransactions.reduce((acc: number, t: any) => {
     const amount = Number(t.amount);
 
-    if (t.type === 'EXPENSE') return acc + amount;
-    if (t.type === 'INCOME') return acc - amount;
+    if (t.type === "EXPENSE") return acc + amount;
+    if (t.type === "INCOME") return acc - amount;
 
     // Saldo Rotativo (Self-Transfer no mesmo cartão)
-    if (t.type === 'TRANSFER' && t.account_id === account.id && t.destination_account_id === account.id) {
-      if (t.description?.includes('Estorno Saldo Rotativo')) return acc - amount;
-      if (t.description?.includes('Saldo Rotativo Fatura Anterior')) return acc + amount;
+    if (
+      t.type === "TRANSFER" &&
+      t.account_id === account.id &&
+      t.destination_account_id === account.id
+    ) {
+      if (t.description?.includes("Estorno Saldo Rotativo")) return acc - amount;
+      if (t.description?.includes("Saldo Rotativo Fatura Anterior")) return acc + amount;
       return acc;
     }
 
     // Pagamento recebido neste cartão (abate a fatura)
-    if (t.type === 'TRANSFER' && t.destination_account_id === account.id) return acc - amount;
+    if (t.type === "TRANSFER" && t.destination_account_id === account.id) return acc - amount;
     // Transferência saindo (não deve acontecer em cartão normal)
-    if (t.type === 'TRANSFER' && t.account_id === account.id) return acc + amount;
+    if (t.type === "TRANSFER" && t.account_id === account.id) return acc + amount;
 
     return acc;
   }, 0);
@@ -132,12 +188,12 @@ export const getInvoiceData = (
   const daysToClose = Math.ceil((closingDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
 
   const payments = filteredTransactions.filter(
-    (t: any) => t.type === 'TRANSFER' && t.destination_account_id === account.id
+    (t: any) => t.type === "TRANSFER" && t.destination_account_id === account.id
   );
   const totalPaid = payments.reduce((acc: number, t: any) => acc + Number(t.amount), 0);
   const isFullyPaid = isClosed && totalPaid > 0 && totalPaid >= invoiceTotal - 0.01;
 
-  const status: 'OPEN' | 'CLOSED' | 'PAID' = isFullyPaid ? 'PAID' : isClosed ? 'CLOSED' : 'OPEN';
+  const status: "OPEN" | "CLOSED" | "PAID" = isFullyPaid ? "PAID" : isClosed ? "CLOSED" : "OPEN";
 
   return {
     invoiceTotal,
@@ -155,7 +211,7 @@ export const getInvoiceData = (
  */
 export const formatCycleRange = (startDate: Date, closingDate: Date): string => {
   const formatDay = (d: Date) => {
-    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
   return `${formatDay(startDate)} a ${formatDay(closingDate)}`;
 };
