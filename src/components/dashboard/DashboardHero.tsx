@@ -88,7 +88,7 @@ export function DashboardHero({
             predictedBalance >= 0 ? "text-foreground" : "text-destructive",
             isPrivate && "blur-md opacity-50 select-none"
           )}>
-            {isPrivate ? "R$ •••••" : <NumberTicker value={predictedBalance} formatCurrency={formatCurrency} />}
+            {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full">
