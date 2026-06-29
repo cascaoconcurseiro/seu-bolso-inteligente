@@ -1,34 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useMonth } from "@/contexts/MonthContext";
-import { getMonthDateRange } from "@/utils/dateUtils";
-import { useFamilyMembers } from "@/hooks/useFamily";
-import { moneyUtils } from "@/utils/money";
-import { usePrivacy } from "@/contexts/PrivacyContext";
-import { cn } from "@/lib/utils";
-import { Users, TrendingUp, TrendingDown, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { rpcWithRetry } from "@/utils/rpcWithRetry";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFamilyMembers } from '@/hooks/useFamily';
+import { moneyUtils } from '@/utils/money';
+import { usePrivacy } from '@/contexts/PrivacyContext';
+import { cn } from '@/lib/utils';
+import { Users, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { rpcWithRetry } from '@/utils/rpcWithRetry';
 
 export function FamilyBalancePanel() {
   const { user } = useAuth();
-  const { currentDate, startDay } = useMonth();
   const { isPrivate } = usePrivacy();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
 
-  const { startDate, endDate, monthKey } = getMonthDateRange(currentDate, startDay);
-
   const { data: sharedBalances, isLoading: balancesLoading } = useQuery({
-    queryKey: ["shared-balances", user?.id, monthKey],
+    queryKey: ['shared-balances', user?.id],
     queryFn: async () => {
       if (!user) return [];
       try {
-        const data = await rpcWithRetry("get_current_shared_debts", {
-          p_user_id: user.id,
-          p_start_date: startDate,
-          p_end_date: endDate,
-        });
+        const data = await rpcWithRetry('get_current_shared_debts', { p_user_id: user.id });
         return data as Array<{
           member_id: string;
           currency: string;
@@ -46,13 +37,14 @@ export function FamilyBalancePanel() {
   });
 
   // Só mostrar se há membros de família com linked_user_id (membros reais)
-  const linkedMembers = members.filter((m) => m.linked_user_id && m.linked_user_id !== user?.id);
+  const linkedMembers = members.filter(m => m.linked_user_id && m.linked_user_id !== user?.id);
   if (membersLoading || balancesLoading) return null;
   if (linkedMembers.length === 0) return null;
+  if (!sharedBalances || sharedBalances.length === 0) return null;
 
   // Agrupa saldos por membro
   const balanceByMember = new Map<string, { credits: number; debits: number; net: number }>();
-  sharedBalances.forEach((b) => {
+  sharedBalances.forEach(b => {
     const existing = balanceByMember.get(b.member_id);
     if (existing) {
       existing.credits += Number(b.total_credits);
@@ -68,24 +60,10 @@ export function FamilyBalancePanel() {
   });
 
   const membersWithBalance = linkedMembers
-    .map((m) => ({ member: m, balance: balanceByMember.get(m.id) }))
-    .filter((x) => x.balance && (x.balance.credits > 0 || x.balance.debits > 0));
+    .map(m => ({ member: m, balance: balanceByMember.get(m.id) }))
+    .filter(x => x.balance && (x.balance.credits > 0 || x.balance.debits > 0));
 
-  if (membersWithBalance.length === 0) {
-    return (
-      <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-primary/10">
-            <Users className="h-4 w-4 text-primary" />
-          </div>
-          <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-            Saldo com a Família
-          </h3>
-        </div>
-        <p className="text-sm text-muted-foreground text-center py-2">Nenhuma pendência este mês</p>
-      </div>
-    );
-  }
+  if (membersWithBalance.length === 0) return null;
 
   return (
     <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
@@ -122,7 +100,7 @@ export function FamilyBalancePanel() {
                 <div>
                   <p className="text-sm font-semibold leading-none">{member.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {isPositive ? "Te deve" : "Você deve"}
+                    {isPositive ? 'Te deve' : 'Você deve'}
                   </p>
                 </div>
               </div>
@@ -135,12 +113,12 @@ export function FamilyBalancePanel() {
                 )}
                 <span
                   className={cn(
-                    "text-sm font-bold",
-                    isPrivate && "blur-md opacity-50 select-none",
-                    isPositive ? "text-success" : "text-destructive"
+                    'text-sm font-bold',
+                    isPrivate && 'blur-md opacity-50 select-none',
+                    isPositive ? 'text-success' : 'text-destructive'
                   )}
                 >
-                  {isPrivate ? "•••••" : moneyUtils.format(Math.abs(balance.net), "BRL")}
+                  {isPrivate ? '•••••' : moneyUtils.format(Math.abs(balance.net), 'BRL')}
                 </span>
               </div>
             </div>
