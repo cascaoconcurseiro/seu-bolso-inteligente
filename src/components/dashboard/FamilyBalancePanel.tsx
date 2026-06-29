@@ -49,7 +49,6 @@ export function FamilyBalancePanel() {
   const linkedMembers = members.filter((m) => m.linked_user_id && m.linked_user_id !== user?.id);
   if (membersLoading || balancesLoading) return null;
   if (linkedMembers.length === 0) return null;
-  if (!sharedBalances || sharedBalances.length === 0) return null;
 
   // Agrupa saldos por membro
   const balanceByMember = new Map<string, { credits: number; debits: number; net: number }>();
@@ -72,7 +71,21 @@ export function FamilyBalancePanel() {
     .map((m) => ({ member: m, balance: balanceByMember.get(m.id) }))
     .filter((x) => x.balance && (x.balance.credits > 0 || x.balance.debits > 0));
 
-  if (membersWithBalance.length === 0) return null;
+  if (membersWithBalance.length === 0) {
+    return (
+      <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-primary/10">
+            <Users className="h-4 w-4 text-primary" />
+          </div>
+          <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+            Saldo com a Família
+          </h3>
+        </div>
+        <p className="text-sm text-muted-foreground text-center py-2">Nenhuma pendência este mês</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
