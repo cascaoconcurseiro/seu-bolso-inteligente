@@ -298,13 +298,7 @@ export function NewCardDialog({
             <Button
               className="flex-1 rounded-xl font-bold"
               onClick={onSubmit}
-              disabled={
-                isLoading ||
-                !bankId ||
-                !closingDay ||
-                !dueDay ||
-                !limit
-              }
+              disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}
             >
               {isLoading ? (
                 <>
