@@ -1,5 +1,5 @@
--- Add date filtering to get_current_shared_debts for month selector support
--- Uses competence_date (credit card cycle) or date fallback for correct monthly grouping
+-- Fix shared debts date filter: use competence_date (credit card cycle) not raw date
+-- Transactions from June on a card closing day 30 belong to July invoice
 
 CREATE OR REPLACE FUNCTION get_current_shared_debts(p_user_id UUID, p_start_date DATE DEFAULT NULL, p_end_date DATE DEFAULT NULL)
 RETURNS TABLE (
@@ -13,7 +13,6 @@ DECLARE
     v_filter_start DATE;
     v_filter_end DATE;
 BEGIN
-    -- If no dates provided, show all (backward compatible)
     v_filter_start := p_start_date;
     v_filter_end := p_end_date;
 
@@ -105,6 +104,7 @@ BEGIN
             AND t.type = 'EXPENSE'
             AND (v_filter_start IS NULL OR COALESCE(t.competence_date, t.date::date) >= v_filter_start)
             AND (v_filter_end IS NULL OR COALESCE(t.competence_date, t.date::date) <= v_filter_end)
+        GROUP BY t.user_id, t.currency
     ),
     all_credits AS (
         SELECT member_id, currency, amount FROM credits
