@@ -66,6 +66,31 @@ export function FamilyBalancePanel() {
 
   if (membersWithBalance.length === 0) return null;
 
+  // NOVO: Busca o mês da dívida mais antiga para direcionar o link "Ver tudo"
+  const { data: oldestDebtMonth } = useQuery({
+    queryKey: ['oldest-debt-month', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      try {
+        const data = await rpcWithRetry('get_shared_invoice_data', { p_user_id: user.id });
+        if (Array.isArray(data) && data.length > 0) {
+          const unsettled = data.filter((item: any) => !item.is_settled && item.competence_date);
+          if (unsettled.length > 0) {
+            unsettled.sort((a, b) => new Date(a.competence_date).getTime() - new Date(b.competence_date).getTime());
+            return unsettled[0].competence_date.substring(0, 7); // 'YYYY-MM'
+          }
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!user,
+    staleTime: 60 * 1000,
+  });
+
+  const linkTo = oldestDebtMonth ? `/compartilhados?month=${oldestDebtMonth}` : `/compartilhados`;
+
   return (
     <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -78,7 +103,7 @@ export function FamilyBalancePanel() {
           </h3>
         </div>
         <Link
-          to="/compartilhados"
+          to={linkTo}
           className="text-xs text-primary flex items-center gap-1 hover:underline"
         >
           Ver tudo <ArrowRight className="h-3 w-3" />
