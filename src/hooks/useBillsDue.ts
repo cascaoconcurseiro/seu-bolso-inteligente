@@ -33,7 +33,9 @@ export function useBillsDue(daysAhead = 7) {
         supabase.from("accounts").select("id, type").eq("user_id", user.id),
         supabase
           .from("transactions")
-          .select("id, description, amount, date, currency, series_id, account_id, category:categories(id, name, icon), account:accounts!account_id(id, name)")
+          .select(
+            "id, description, amount, date, currency, series_id, account_id, category:categories(id, name, icon), account:accounts!account_id(id, name)"
+          )
           .eq("user_id", user.id)
           .eq("type", "EXPENSE")
           .not("series_id", "is", null)
