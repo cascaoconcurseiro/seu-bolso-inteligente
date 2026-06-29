@@ -47,7 +47,7 @@ export function useTransactions(filters?: TransactionFilters) {
         .from("transactions")
         .select(`
           *,
-          account:accounts!account_id(id, name, currency, bank_id),
+          account:accounts!account_id(id, name, type, currency, bank_id),
           category:categories(id, name, icon, parent_category_id),
           transaction_splits:transaction_splits!transaction_id(*)
         `)

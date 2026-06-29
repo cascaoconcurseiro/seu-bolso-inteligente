@@ -35,7 +35,7 @@ export interface Transaction {
   creator_user_id?: string | null;
   transaction_splits?: DBTransactionSplit[];
   // Joined data
-  account?: { id: string; name: string; currency?: string; bank_id?: string | null };
+  account?: { id: string; name: string; type?: string; currency?: string; bank_id?: string | null };
   category?: { id: string; name: string; icon: string | null };
   trip?: { id: string; name: string };
 }
