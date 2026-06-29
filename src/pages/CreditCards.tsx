@@ -61,6 +61,7 @@ import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
 import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { TransactionModal } from "@/components/modals/TransactionModal";
@@ -167,8 +168,6 @@ export function CreditCards() {
     setEditCardName,
     editClosingDay,
     setEditClosingDay,
-    editClosingDayMode,
-    setEditClosingDayMode,
     editDueDay,
     setEditDueDay,
     editLimit,
@@ -295,7 +294,6 @@ export function CreditCards() {
             setEditCardName(card.name);
             setEditCardColor(card.bank_color || getBankById(card.bank_id).color || "#3b82f6");
             setEditClosingDay(card.closing_day?.toString() || "");
-            setEditClosingDayMode((card as any).closing_day_mode || "FIXED_DAY");
             setEditDueDay(card.due_day?.toString() || "");
             setEditLimit(card.credit_limit?.toString() || "");
             if (card.bank_id && card.bank_id.startsWith("custom:")) {
@@ -349,6 +347,20 @@ export function CreditCards() {
           }}
           setShowSharingDialog={setShowSharingDialog}
           dependentTransactions={dependentTransactions}
+          onAdjustClosingDate={async (newDay) => {
+            if (!selectedCard) return;
+            const { error } = await supabase
+              .from("accounts")
+              .update({ closing_day: newDay })
+              .eq("id", selectedCard.id);
+            if (!error) {
+              toast.success(`Fechamento ajustado para dia ${newDay}`);
+              refetchAccounts();
+              refetchTransactions();
+            } else {
+              toast.error("Erro ao ajustar fechamento");
+            }
+          }}
         />
 
         <ShareCardDialog
