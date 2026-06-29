@@ -46,6 +46,8 @@ interface NewCardDialogProps {
   setCardName: (v: string) => void;
   closingDay: string;
   setClosingDay: (v: string) => void;
+  closingDayMode: string;
+  setClosingDayMode: (v: string) => void;
   dueDay: string;
   setDueDay: (v: string) => void;
   limit: string;
@@ -71,6 +73,8 @@ export function NewCardDialog({
   setCardName,
   closingDay,
   setClosingDay,
+  closingDayMode,
+  setClosingDayMode,
   dueDay,
   setDueDay,
   limit,
@@ -219,32 +223,46 @@ export function NewCardDialog({
           </FormField>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label="Fechamento" htmlFor="card-closing">
-              <Input
-                type="number"
-                inputMode="numeric"
-                id="card-closing"
-                name="card-closing"
-                min={1}
-                max={31}
-                placeholder="Ex: 20…"
-                className="font-mono text-base"
-                value={closingDay}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "") {
-                    setClosingDay("");
-                    return;
-                  }
-                  const num = parseInt(val, 10);
-                  if (!isNaN(num)) {
-                    if (num < 1) setClosingDay("1");
-                    else if (num > 31) setClosingDay("31");
-                    else setClosingDay(num.toString());
-                  }
-                }}
-                autoComplete="off"
-              />
+            <FormField label="Fechamento" htmlFor="card-closing-mode">
+              <div className="flex gap-2">
+                <Select value={closingDayMode} onValueChange={setClosingDayMode}>
+                  <SelectTrigger id="card-closing-mode" className="w-[130px] shrink-0 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
+                    <SelectItem value="LAST_DAY">Último dia</SelectItem>
+                    <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
+                  </SelectContent>
+                </Select>
+                {closingDayMode === "FIXED_DAY" && (
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    id="card-closing"
+                    name="card-closing"
+                    min={1}
+                    max={31}
+                    placeholder="Ex: 20…"
+                    className="font-mono text-base flex-1"
+                    value={closingDay}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        setClosingDay("");
+                        return;
+                      }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        if (num < 1) setClosingDay("1");
+                        else if (num > 31) setClosingDay("31");
+                        else setClosingDay(num.toString());
+                      }
+                    }}
+                    autoComplete="off"
+                  />
+                )}
+              </div>
             </FormField>
             <FormField label="Vencimento" htmlFor="card-due">
               <Input
@@ -298,7 +316,13 @@ export function NewCardDialog({
             <Button
               className="flex-1 rounded-xl font-bold"
               onClick={onSubmit}
-              disabled={isLoading || !bankId || !closingDay || !dueDay || !limit}
+              disabled={
+                isLoading ||
+                !bankId ||
+                (closingDayMode === "FIXED_DAY" && !closingDay) ||
+                !dueDay ||
+                !limit
+              }
             >
               {isLoading ? (
                 <>
