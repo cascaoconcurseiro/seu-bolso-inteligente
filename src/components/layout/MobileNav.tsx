@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Home,
   ArrowLeftRight,
@@ -164,20 +165,22 @@ export function MobileNav() {
 
             if (item.isAction) {
               return (
-                <button
+                <motion.button
                   key="add-btn"
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setShowTransactionModal(true)}
-                  className="relative -top-5 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform duration-200 hover:brightness-110"
+                  className="relative -top-5 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center transition-transform duration-200 hover:brightness-110"
                 >
                   <Plus className="w-7 h-7" />
-                </button>
+                </motion.button>
               );
             }
 
             if (item.isMenu) {
               return (
-                <button
+                <motion.button
                   key="menu-btn"
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setIsSheetOpen(true)}
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl",
@@ -205,15 +208,16 @@ export function MobileNav() {
                   >
                     {item.label}
                   </span>
-                </button>
+                </motion.button>
               );
             }
 
             const active = isActive(item.path!);
 
             return (
-              <button
+              <motion.button
                 key={item.path}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => navigate(item.path!)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl",
@@ -242,7 +246,7 @@ export function MobileNav() {
                 >
                   {item.label}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
         </div>

@@ -58,7 +58,7 @@ export function BasicInfoSection({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => setDescTouched(true)}
-            className={cn("pr-10 text-base relative z-10 bg-transparent", descError && "border-destructive focus-visible:ring-destructive")}
+            className={cn("pr-10 text-base relative z-10 bg-transparent", descError && "border-destructive focus-visible:ring-destructive animate-shake")}
           />
           
           {isPredicting && (

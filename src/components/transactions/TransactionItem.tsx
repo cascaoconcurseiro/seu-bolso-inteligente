@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FastForward, Lock, CheckCircle, Clock, Users, HandCoins, Edit, Trash2 } from "lucide-react";
+import { FastForward, Lock, CheckCircle, Clock, Users, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
 import { Transaction } from "@/utils/transactionUtils";
 import { haptics } from "@/utils/haptics";
 import { usePrivacy } from "@/contexts/PrivacyContext";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 
 interface PayerInfo {
   label: string;
@@ -70,56 +71,31 @@ export function TransactionItem({
   const payerInfo = getPayerInfo(transaction);
   const isPayer = transaction.payer_id === user?.id || transaction.creator_user_id === user?.id;
   
-  // Swipe: left = delete, right = edit
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const touchStartX = useRef<number | null>(null);
-  // 'left' = delete revealed, 'right' = edit revealed, null = neutral
-  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
-
   const SWIPE_THRESHOLD = 48; // px mínimo para revelar ação
   const SWIPE_MAX = 80;       // px máximo de deslocamento
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
+  const x = useMotionValue(0);
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const diff = e.touches[0].clientX - touchStartX.current;
+  const handleDragEnd = (event: any, info: any) => {
+    const offset = info.offset.x;
 
-    if (diff < 0 && canDelete) {
-      // Swipe left → deletar
-      const newOffset = Math.max(diff, -SWIPE_MAX);
-      if (swipeOffset > -SWIPE_THRESHOLD && newOffset <= -SWIPE_THRESHOLD) haptics.light();
-      setSwipeOffset(newOffset);
+    if (offset <= -SWIPE_THRESHOLD && canDelete) {
+      haptics.medium();
       setSwipeDir('left');
-    } else if (diff > 0) {
-      // Swipe right → editar
-      const newOffset = Math.min(diff, SWIPE_MAX);
-      if (swipeOffset < SWIPE_THRESHOLD && newOffset >= SWIPE_THRESHOLD) haptics.light();
-      setSwipeOffset(newOffset);
-      setSwipeDir('right');
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchStartX.current = null;
-    if (swipeOffset <= -SWIPE_THRESHOLD && canDelete) {
-      setSwipeOffset(-SWIPE_MAX);
+      animate(x, -SWIPE_MAX, { type: "spring", bounce: 0.2, duration: 0.3 });
+    } else if (offset >= SWIPE_THRESHOLD) {
       haptics.medium();
-    } else if (swipeOffset >= SWIPE_THRESHOLD) {
-      // Swipe right confirmado → disparar edição imediatamente
-      haptics.medium();
-      setSwipeOffset(0);
       setSwipeDir(null);
+      animate(x, 0, { type: "spring", bounce: 0.2, duration: 0.3 });
       onEdit(transaction);
     } else {
-      setSwipeOffset(0);
       setSwipeDir(null);
+      animate(x, 0, { type: "spring", bounce: 0.2, duration: 0.3 });
     }
   };
 
-  const isSwiped = swipeDir === 'left' && swipeOffset <= -SWIPE_THRESHOLD;
+  const isSwiped = swipeDir === 'left';
   
   let displayType = transaction.type;
   if (transaction.is_shared && !isPayer) {
@@ -180,24 +156,24 @@ export function TransactionItem({
       </div>
 
       {/* Main Content (slides based on swipe direction) */}
-      <div
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: canDelete ? -SWIPE_MAX : 0, right: SWIPE_MAX }}
+        dragElastic={0.1}
+        style={{ x }}
+        onDragEnd={handleDragEnd}
         className={cn(
           "flex items-center justify-between py-3 px-3 md:py-4 md:px-4 bg-background cursor-pointer relative z-10",
-          settled && "opacity-60 bg-success/5 dark:bg-success/10",
-          touchStartX.current === null && "transition-transform duration-200"
+          settled && "opacity-60 bg-success/5 dark:bg-success/10"
         )}
-        style={{ transform: `translateX(${isSwiped ? -SWIPE_MAX : swipeOffset}px)` }}
         onClick={() => {
           if (swipeDir) {
-            setSwipeOffset(0);
+            animate(x, 0, { type: "spring", bounce: 0.2, duration: 0.3 });
             setSwipeDir(null);
           } else {
             onDetails(transaction);
           }
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
       <div className="flex items-start gap-2 md:gap-2 flex-1 min-w-0">
         <div className={cn(
@@ -339,7 +315,7 @@ export function TransactionItem({
           )}
         </div>
       </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

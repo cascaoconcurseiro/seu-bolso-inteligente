@@ -15,6 +15,7 @@ import { moneyUtils } from '@/utils/money';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer } from 'recharts';
+import confetti from 'canvas-confetti';
 
 interface GoalContributeDialogProps {
   isOpen: boolean;
@@ -56,7 +57,17 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
             ? `Contribuição para Meta: ${goal.name}` 
             : `Resgate da Meta: ${goal.name}`
         },
-        { onSuccess: onClose }
+        { onSuccess: () => {
+          if (type === 'add' && (goal.current_amount + value) >= goal.target_amount) {
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899']
+            });
+          }
+          onClose();
+        } }
       );
     } catch (error) {
       logger.error("Erro ao contribuir para meta:", error);

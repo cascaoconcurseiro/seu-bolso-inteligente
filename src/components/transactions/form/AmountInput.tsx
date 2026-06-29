@@ -50,7 +50,7 @@ export function AmountInput({
             'placeholder:text-[hsl(var(--text-muted))] placeholder:opacity-30',
             'transition-colors duration-200 focus-visible:outline-none',
             'caret-[hsl(var(--text-primary))]',
-            isEmpty ? 'border-destructive focus-visible:border-destructive' : 'border-[hsl(var(--border-color))] focus-visible:border-[hsl(var(--ring))]',
+            isEmpty ? 'border-destructive focus-visible:border-destructive animate-shake' : 'border-[hsl(var(--border-color))] focus-visible:border-[hsl(var(--ring))]',
             textColorClass
           )}
           autoFocus
