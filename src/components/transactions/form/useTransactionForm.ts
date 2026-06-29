@@ -295,23 +295,31 @@ export function useTransactionForm({
         setDuplicateWarning(false);
         return;
       }
+      const accountId = store.accountId;
       const hasDuplicate = allTransactions.some((tx) => {
         if (initialData && tx.id === initialData.id) return false;
         if (initialData && initialData.series_id && tx.series_id === initialData.series_id)
           return false;
         if (tx.type !== activeTab) return false;
+        if (accountId && tx.account_id !== accountId) return false;
+        
         const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
-        const descMatch =
-          tx.description.toLowerCase().includes(description.toLowerCase().trim()) ||
-          description.toLowerCase().trim().includes(tx.description.toLowerCase());
+        
+        const desc1 = tx.description.toLowerCase().trim();
+        const desc2 = description.toLowerCase().trim();
+        // More strict description match to avoid false positives (e.g. "Conta" matching "Conta de Luz")
+        const descMatch = desc1 === desc2 || 
+                          (desc1.length > 3 && desc2.length > 3 && (desc1 === desc2)); // Replaced loose includes with exact match for now to prevent annoyance
+                          
         const txDate = typeof tx.date === "string" ? parseISO(tx.date) : tx.date;
         const daysDiff = Math.abs(differenceInDays(txDate, date));
-        return amountMatch && descMatch && daysDiff <= 3;
+        
+        return amountMatch && descMatch && daysDiff <= 1;
       });
       setDuplicateWarning(hasDuplicate);
     }, 500);
     return () => clearTimeout(handler);
-  }, [amount, description, date, activeTab, allTransactions, initialData]);
+  }, [amount, description, date, activeTab, allTransactions, initialData, store.accountId]);
 
   // When a trip is selected, build a merged member list that includes trip participants
   // who have a user account (user_id != null). Guests (user_id === null) are skipped
