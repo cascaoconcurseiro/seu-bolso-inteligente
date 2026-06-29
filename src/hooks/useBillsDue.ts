@@ -33,7 +33,7 @@ export function useBillsDue(daysAhead = 7) {
         .select(`
           id, description, amount, date, currency, series_id, account_id,
           category:categories(id, name, icon),
-          account:accounts!account_id(id, name)
+          account:accounts!account_id(id, name, type)
         `)
         .eq("user_id", user.id)
         .eq("type", "EXPENSE")
@@ -45,7 +45,9 @@ export function useBillsDue(daysAhead = 7) {
         .limit(20);
 
       if (error) throw error;
-      return (data || []) as BillDue[];
+      // Excluir compras parceladas de cartão de crédito — elas fazem parte da fatura, não são contas avulsas
+      return ((data || []) as (BillDue & { account: { id: string; name: string; type: string } | null })[])
+        .filter(bill => !bill.account || bill.account.type !== 'CREDIT_CARD') as BillDue[];
     },
     enabled: !!user,
   });
