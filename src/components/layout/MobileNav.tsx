@@ -94,7 +94,7 @@ export function MobileNav() {
           </div>
 
           <div className="grid gap-2 mb-6">
-            {navigationItems.map((item) => {
+            {[...navigationItems, ...secondaryNavItems].map((item) => {
               const active = isActive(item.path);
               const Icon = item.icon;
               return (
@@ -116,34 +116,6 @@ export function MobileNav() {
                 </button>
               );
             })}
-          </div>
-
-          <div className="mb-6">
-            <p className="text-xs text-muted-foreground font-medium mb-2 px-1">Mais</p>
-            <div className="grid gap-2">
-              {secondaryNavItems.map((item) => {
-                const active = isActive(item.path);
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => {
-                      navigate(item.path);
-                      closeSheet();
-                    }}
-                    className={cn(
-                      "flex items-center gap-3 w-full p-3 rounded-xl transition-all duration-200",
-                      active
-                        ? "bg-primary/20 text-primary font-medium"
-                        : "bg-card text-foreground hover:bg-muted"
-                    )}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
           <div className="space-y-2 border-t border-border pt-4">

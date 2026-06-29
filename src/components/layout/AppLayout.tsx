@@ -29,12 +29,11 @@ import {
   EyeOff,
   Calculator,
   ChevronDown,
-  MoreHorizontal,
   Search,
   Settings,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
-import { navigationItems, secondaryNavItems } from "@/config/navigation";
+import { navigationItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -148,8 +147,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               </span>
             </Link>
 
-            {/* Desktop Navigation — 7 itens + Mais (Miller's Law) */}
-            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap">
               {navigationItems.map((item) => {
                 const isActive =
                   location.pathname === item.path ||
@@ -172,42 +171,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 );
               })}
-              {/* Submenu Mais */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150",
-                      secondaryNavItems.some((s) => location.pathname.startsWith(s.path))
-                        ? "bg-primary/20 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
-                    )}
-                  >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                    Mais
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {secondaryNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname.startsWith(item.path);
-                    return (
-                      <DropdownMenuItem key={item.path} asChild>
-                        <Link
-                          to={item.path}
-                          className={cn(
-                            "flex items-center gap-2 w-full",
-                            isActive && "text-primary font-medium"
-                          )}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
             </nav>
 
             {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}

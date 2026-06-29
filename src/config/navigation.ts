@@ -21,7 +21,7 @@ export interface NavItem {
   children?: NavItem[];
 }
 
-// 7 itens principais + submenu "Mais" (Miller's Law: máximo 7±2)
+// Todos os itens visíveis diretamente na navegação principal
 export const navigationItems: NavItem[] = [
   { path: "/", label: "Início", icon: LayoutDashboard },
   { path: "/transacoes", label: "Transações", icon: ArrowLeftRight },
@@ -30,13 +30,12 @@ export const navigationItems: NavItem[] = [
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/metas", label: "Planejar", icon: Target },
   { path: "/configuracoes", label: "Ajustes", icon: Settings },
-];
-
-// Itens que aparecem no submenu "Mais" (acessíveis mas não no nav principal)
-export const secondaryNavItems = [
   { path: "/contas", label: "Contas", icon: Wallet },
   { path: "/viagens", label: "Viagens", icon: Plane },
   { path: "/familia", label: "Família", icon: UsersRound },
   { path: "/orcamentos", label: "Orçamentos", icon: PiggyBank },
   { path: "/simuladores", label: "Simuladores", icon: Calculator },
 ];
+
+// Mantido para compatibilidade com imports existentes
+export const secondaryNavItems: typeof navigationItems = [];
