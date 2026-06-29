@@ -181,9 +181,13 @@ export function validateTransaction(
     }
   }
 
-  // Categoria é obrigatória para despesas (EXPENSE)
-  if (transaction.type === "EXPENSE" && !transaction.category_id) {
-    errors.push("A categoria é obrigatória para despesas");
+  // Categoria é obrigatória para despesas e receitas
+  if ((transaction.type === "EXPENSE" || transaction.type === "INCOME") && !transaction.category_id) {
+    errors.push(
+      transaction.type === "EXPENSE"
+        ? "A categoria é obrigatória para despesas"
+        : "A categoria é obrigatória para receitas"
+    );
   }
 
   // ==========================================
