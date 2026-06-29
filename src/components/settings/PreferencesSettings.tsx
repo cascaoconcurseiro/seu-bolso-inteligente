@@ -2,8 +2,22 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Coins, CalendarDays, TrendingDown, CreditCard, BellRing, Wallet } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Loader2,
+  Coins,
+  CalendarDays,
+  TrendingDown,
+  CreditCard,
+  BellRing,
+  Wallet,
+} from "lucide-react";
 import { UserProfile } from "@/hooks/useUserProfile";
 import { useAccounts } from "@/hooks/useAccounts";
 import { NumericFormat } from "react-number-format";
@@ -15,12 +29,15 @@ interface PreferencesSettingsProps {
   updateProfile: any;
 }
 
-export function PreferencesSettings({ profile, isLoading, updateProfile }: PreferencesSettingsProps) {
+export function PreferencesSettings({
+  profile,
+  isLoading,
+  updateProfile,
+}: PreferencesSettingsProps) {
   const { data: accounts } = useAccounts();
   const [baseCurrency, setBaseCurrency] = useState("BRL");
   const [monthStartDay, setMonthStartDay] = useState("1");
   const [monthlyBudget, setMonthlyBudget] = useState(0);
-  const [sharedExpensesBehavior, setSharedExpensesBehavior] = useState<string>("CURRENT_MONTH");
   const [sharedSyncCreditCardId, setSharedSyncCreditCardId] = useState<string>("none");
   const [globalCdiRate, setGlobalCdiRate] = useState<number>(11.15);
   const [lowBalanceThreshold, setLowBalanceThreshold] = useState<number>(0);
@@ -28,20 +45,16 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   const [defaultCreditCardId, setDefaultCreditCardId] = useState<string>("none");
   const [monthlyReportEnabled, setMonthlyReportEnabled] = useState<boolean>(true);
 
-  const creditCards = accounts?.filter(acc => acc.type === 'CREDIT_CARD') || [];
-  const checkingAccounts = accounts?.filter(acc => acc.type !== 'CREDIT_CARD') || [];
+  const creditCards = accounts?.filter((acc) => acc.type === "CREDIT_CARD") || [];
+  const checkingAccounts = accounts?.filter((acc) => acc.type !== "CREDIT_CARD") || [];
 
   useEffect(() => {
     if (profile) {
       setBaseCurrency(profile.base_currency || "BRL");
       setMonthStartDay(profile.month_start_day?.toString() || "1");
       setMonthlyBudget(profile.monthly_budget || 0);
-      setSharedExpensesBehavior(profile.shared_expenses_behavior || "CURRENT_MONTH");
-      
+
       let initialCardId = profile.shared_sync_credit_card_id || "none";
-      if (initialCardId === "none" && profile.shared_expenses_behavior === "CYCLE" && creditCards.length > 0) {
-        initialCardId = creditCards[0].id;
-      }
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
       setLowBalanceThreshold(profile.low_balance_threshold ?? 0);
@@ -57,7 +70,7 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       baseCurrency: baseCurrency,
       month_start_day: parseInt(monthStartDay, 10) || 1,
       monthly_budget: monthlyBudget,
-      shared_expenses_behavior: sharedExpensesBehavior,
+      shared_expenses_behavior: "CYCLE",
       shared_sync_credit_card_id: sharedSyncCreditCardId === "none" ? null : sharedSyncCreditCardId,
       global_cdi_rate: globalCdiRate,
       low_balance_threshold: lowBalanceThreshold || null,
@@ -73,7 +86,6 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
       baseCurrency !== (profile.base_currency || "BRL") ||
       monthStartDay !== (profile.month_start_day?.toString() || "1") ||
       monthlyBudget !== (profile.monthly_budget || 0) ||
-      sharedExpensesBehavior !== (profile.shared_expenses_behavior || "CURRENT_MONTH") ||
       sharedSyncCreditCardId !== currentCardId ||
       globalCdiRate !== (profile.global_cdi_rate ?? 11.15) ||
       lowBalanceThreshold !== (profile.low_balance_threshold ?? 0) ||
@@ -83,19 +95,24 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
         <h2 className="font-display font-semibold text-lg">Preferências Financeiras</h2>
-        <p className="text-sm text-muted-foreground">Configure as moedas, datas e limites globais da sua conta.</p>
+        <p className="text-sm text-muted-foreground">
+          Configure as moedas, datas e limites globais da sua conta.
+        </p>
       </div>
 
       <div className="space-y-6 max-w-2xl">
         <div className="space-y-4">
-
           {/* CONTA PADRÃO */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
@@ -107,11 +124,15 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 <InfoTooltip content="Pré-selecionada ao abrir nova transação de receita ou transferência." />
               </div>
               <Select value={defaultAccountId} onValueChange={setDefaultAccountId}>
-                <SelectTrigger><SelectValue placeholder="Sem padrão" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem padrão" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sem conta padrão</SelectItem>
-                  {checkingAccounts.map(acc => (
-                    <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                  {checkingAccounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -130,11 +151,15 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                   <InfoTooltip content="Pré-selecionado ao abrir nova despesa. Tem prioridade sobre a conta padrão." />
                 </div>
                 <Select value={defaultCreditCardId} onValueChange={setDefaultCreditCardId}>
-                  <SelectTrigger><SelectValue placeholder="Sem padrão" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem padrão" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sem cartão padrão</SelectItem>
-                    {creditCards.map(card => (
-                      <SelectItem key={card.id} value={card.id}>{card.name}</SelectItem>
+                    {creditCards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -214,7 +239,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 placeholder="R$ 0,00 (Desativado)"
               />
               <p className="text-xs text-muted-foreground">
-                Seu limite de gastos no mês. Se definido, mostraremos um medidor no Dashboard (deixe R$ 0,00 para desativar).
+                Seu limite de gastos no mês. Se definido, mostraremos um medidor no Dashboard (deixe
+                R$ 0,00 para desativar).
               </p>
             </div>
           </div>
@@ -242,11 +268,12 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 placeholder="Ex: 11,15 % ao ano"
               />
               <p className="text-xs text-muted-foreground">
-                Mantenha atualizado conforme as reuniões do COPOM para maior precisão nos rendimentos diários.
+                Mantenha atualizado conforme as reuniões do COPOM para maior precisão nos
+                rendimentos diários.
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="p-3 bg-primary/10 text-primary rounded-xl shrink-0">
               <BellRing className="h-5 w-5" />
@@ -268,7 +295,8 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
                 placeholder="R$ 0,00 (Desativado)"
               />
               <p className="text-xs text-muted-foreground">
-                Aviso visual no Dashboard quando seu saldo disponível ficar abaixo do limite definido.
+                Aviso visual no Dashboard quando seu saldo disponível ficar abaixo do limite
+                definido.
               </p>
             </div>
           </div>
@@ -280,65 +308,45 @@ export function PreferencesSettings({ profile, isLoading, updateProfile }: Prefe
             <div className="flex-1 space-y-3 w-full animate-in slide-in-from-bottom-2 duration-300 delay-300 fill-mode-both">
               <div className="flex items-center gap-2">
                 <Label>Ciclo de Despesas Compartilhadas</Label>
-                <InfoTooltip content="Define se os compartilhamentos feitos em dinheiro/conta caem no mês atual ou se seguem um ciclo parecido com cartão de crédito (para você cobrar a pessoa no próximo mês)." />
+                <InfoTooltip content="Despesas compartilhadas pagas em dinheiro ou conta seguem o ciclo do cartão de crédito escolhido abaixo. Os gastos acumulam para o parceiro(a) pagar no mês seguinte." />
               </div>
-              <Select value={sharedExpensesBehavior} onValueChange={(val) => {
-                setSharedExpensesBehavior(val);
-                if (val === "CYCLE" && sharedSyncCreditCardId === "none" && creditCards.length > 0) {
-                  setSharedSyncCreditCardId(creditCards[0].id);
-                }
-              }}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CURRENT_MONTH">Cobrar no Mês do Lançamento</SelectItem>
-                  <SelectItem value="CYCLE">Seguir Ciclo do Cartão de Crédito</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg border border-border/50 space-y-2 mt-3">
-                {sharedExpensesBehavior === "CURRENT_MONTH" ? (
-                  <>
-                    <p className="font-semibold text-foreground">Cobrar no Mês do Lançamento:</p>
-                    <p>Despesas pagas em dinheiro ou conta bancária serão cobradas no acerto (settlement) do <strong>exato mês</strong> em que a compra foi feita.</p>
-                  </>
+
+              <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg border border-border/50 mt-3">
+                <p className="font-semibold text-foreground">Seguir Ciclo do Cartão de Crédito:</p>
+                <p className="mt-1">
+                  Despesas pagas em dinheiro ou conta bancária funcionam igual a um cartão de
+                  crédito. Tudo que for gasto acumula para o seu parceiro(a) pagar apenas no mês
+                  seguinte.
+                </p>
+              </div>
+
+              <div className="space-y-2 p-4 bg-primary/5 border border-primary/20 rounded-xl mt-4">
+                <Label className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  Sincronizar com qual Cartão?
+                </Label>
+                {creditCards.length > 0 ? (
+                  <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
+                    <SelectTrigger className="h-10 bg-background">
+                      <SelectValue placeholder="Selecione um cartão de crédito" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {creditCards.map((card) => (
+                        <SelectItem key={card.id} value={card.id}>
+                          {card.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
-                  <>
-                    <p className="font-semibold text-foreground">Seguir Ciclo do Cartão de Crédito:</p>
-                    <p>Despesas pagas em dinheiro ou conta bancária funcionarão igual a um cartão de crédito. Sincronize com um cartão mestre e tudo que for gasto acumulará para o seu parceiro(a) pagar apenas no mês seguinte.</p>
-                  </>
+                  <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
+                    Você ainda não possui cartões de crédito. Cadastre um cartão para sincronizar o
+                    ciclo.
+                  </div>
                 )}
               </div>
-              
-              {sharedExpensesBehavior === "CYCLE" && (
-                <div className="space-y-2 animate-in fade-in zoom-in-95 duration-200 p-4 bg-primary/5 border border-primary/20 rounded-xl mt-4">
-                  <Label className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-primary" />
-                    Sincronizar com qual Cartão?
-                  </Label>
-                  {creditCards.length > 0 ? (
-                    <Select value={sharedSyncCreditCardId} onValueChange={setSharedSyncCreditCardId}>
-                      <SelectTrigger className="h-10 bg-background">
-                        <SelectValue placeholder="Selecione um cartão de crédito" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {creditCards.map(card => (
-                          <SelectItem key={card.id} value={card.id}>
-                            {card.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="text-sm text-destructive font-medium p-3 bg-destructive/10 rounded-md">
-                      Você não possui cartões de crédito cadastrados. Crie um cartão primeiro ou mude o comportamento para "Cobrar no Mês do Lançamento".
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
-
         </div>
 
         <div className="pt-4 flex justify-end">

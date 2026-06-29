@@ -9,7 +9,11 @@ ALTER TABLE public.families DROP CONSTRAINT IF EXISTS valid_shared_due_day;
 ALTER TABLE public.families DROP COLUMN IF EXISTS shared_closing_day;
 ALTER TABLE public.families DROP COLUMN IF EXISTS shared_due_day;
 
--- 3. Update set_credit_card_competence_date RPC — remove shared cycle logic,
+-- 3. Shared expenses always follow credit card cycle — update default + existing rows
+ALTER TABLE public.profiles ALTER COLUMN shared_expenses_behavior SET DEFAULT 'CYCLE';
+UPDATE public.profiles SET shared_expenses_behavior = 'CYCLE' WHERE shared_expenses_behavior IS DISTINCT FROM 'CYCLE';
+
+-- 4. Update set_credit_card_competence_date RPC — remove shared cycle logic,
 --    shared non-credit-card transactions now use month-based competence_date
 CREATE OR REPLACE FUNCTION public.set_credit_card_competence_date()
 RETURNS TRIGGER
@@ -60,7 +64,7 @@ BEGIN
 END;
 $$;
 
--- 4. Update post-split trigger — remove shared cycle logic
+-- 5. Update post-split trigger — remove shared cycle logic
 CREATE OR REPLACE FUNCTION public.update_shared_competence_after_split()
 RETURNS TRIGGER
 LANGUAGE plpgsql
