@@ -96,6 +96,10 @@ export function useCreateTransaction() {
         .eq("linked_user_id", user.id)
         .maybeSingle();
 
+      // [B-17] Duplicate check — verifica transações recentes (últimos 60s)
+      // sem .gt("created_at",...) para evitar erros 400 de formato de timestamp no PostgREST
+      const recentWindow = new Date(Date.now() - 60000).toISOString().replace(/\.\d{3}Z$/, "Z");
+
       const existingTxPromise = supabase
         .from("transactions")
         .select("id")
@@ -104,10 +108,9 @@ export function useCreateTransaction() {
         .eq("description", (input.description || "").trim())
         .eq("date", input.date)
         .eq("is_active", true)
-        .gt("created_at", new Date(Date.now() - 15000).toISOString())
+        .gte("created_at", recentWindow)
         .maybeSingle();
 
-      // [B-17] Só filtra por account_id se fornecido (evita .eq("account_id", "") para null)
       const existingTxPromise2 = input.account_id
         ? supabase
             .from("transactions")
@@ -118,7 +121,7 @@ export function useCreateTransaction() {
             .eq("date", input.date)
             .eq("account_id", input.account_id)
             .eq("is_active", true)
-            .gt("created_at", new Date(Date.now() - 15000).toISOString())
+            .gte("created_at", recentWindow)
             .maybeSingle()
         : Promise.resolve({ data: null });
 

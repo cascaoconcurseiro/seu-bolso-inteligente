@@ -40,23 +40,24 @@ export function ActionFeedback() {
   const isSuccess = type === "success";
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none">
-      {/* Background fade */}
-      <div
-        className={`absolute inset-0 transition-opacity duration-300 ${
-          isSuccess ? "bg-emerald-500/10" : "bg-red-500/10"
-        }`}
-      />
-      {/* Icon with scale animation */}
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
+      style={{
+        animation:
+          "feedbackFadeIn 0.15s ease-out forwards, feedbackFadeOut 0.3s 0.85s ease-in forwards",
+      }}
+    >
+      <div className={`absolute inset-0 ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`} />
       <div
         className={`
           flex items-center justify-center rounded-full shadow-2xl
-          animate-feedback-pop
-          ${isSuccess ? "bg-emerald-500 text-white w-28 h-28" : "bg-red-500 text-white w-28 h-28"}
+          ${isSuccess ? "bg-white text-emerald-500" : "bg-white text-red-500"}
+          w-28 h-28
         `}
         style={{
-          animation:
-            "feedbackPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, feedbackFade 0.3s 0.8s ease-out forwards",
+          animation: "feedbackPop 0.4s 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+          opacity: 0,
+          transform: "scale(0)",
         }}
       >
         {isSuccess ? (

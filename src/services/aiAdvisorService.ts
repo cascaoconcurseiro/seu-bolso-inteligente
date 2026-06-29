@@ -1,18 +1,18 @@
-import { normalizeBrazilianText } from '@/utils/formatting';
-import { logger } from '@/utils/logger';
+import { normalizeBrazilianText } from "@/utils/formatting";
+import { logger } from "@/utils/logger";
 import {
   getAutocompletePrompt,
   getFinancialAnalysisPrompt,
   getTripChecklistPrompt,
   getTripItineraryPrompt,
-} from './ai/aiPrompts';
-import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from './ai/localMappings';
-import { fetchRealPOIs } from './overpassService';
+} from "./ai/aiPrompts";
+import { LOCAL_BRAZILIAN_MAPPINGS, LocalMapping } from "./ai/localMappings";
+import { fetchRealPOIs } from "./overpassService";
 
 // In production, all Groq calls are proxied through a Supabase Edge Function
 // so the API key never reaches the client bundle.
 const GROQ_API_URL = import.meta.env.DEV
-  ? '/api/ai'
+  ? "/api/ai"
   : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/groq-proxy`;
 
 export interface FinancialReportData {
@@ -24,7 +24,7 @@ export interface FinancialReportData {
   topCategories: { category: string; value: number }[];
   largestExpense: { description: string; amount: number } | null;
   periodLabel: string;
-  viewType: 'MONTH' | 'YEAR';
+  viewType: "MONTH" | "YEAR";
 }
 
 export class AIAdvisorService {
@@ -33,28 +33,30 @@ export class AIAdvisorService {
 
     // In dev, use the local proxy (vite config) with optional direct key fallback.
     // In production, always route through the Supabase Edge Function — no client key.
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
 
     if (!isDev) {
       // Attach the anon key so the Edge Function can authenticate the caller
-      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      if (anonKey) headers['apikey'] = anonKey;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      if (anonKey) headers["apikey"] = anonKey;
 
       // Also forward the user's auth token so the function can verify identity
-      const { createClient } = await import('@supabase/supabase-js');
+      const { createClient } = await import("@supabase/supabase-js");
       const supabase = createClient(
         import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
       );
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+        headers["Authorization"] = `Bearer ${session.access_token}`;
       }
     }
 
     try {
       const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
+        method: "POST",
         headers,
         body: JSON.stringify(payload),
       });
@@ -72,15 +74,21 @@ export class AIAdvisorService {
         const devKey = import.meta.env.VITE_GROQ_API_KEY;
         if (devKey) {
           try {
-            logger.debug('[AIAdvisorService] Tentando fallback direto na Groq (dev)...');
-            const fallbackResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${devKey}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-            });
+            logger.debug("[AIAdvisorService] Tentando fallback direto na Groq (dev)...");
+            const fallbackResponse = await fetch(
+              "https://api.groq.com/openai/v1/chat/completions",
+              {
+                method: "POST",
+                headers: { Authorization: `Bearer ${devKey}`, "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              }
+            );
             if (fallbackResponse.ok) return await fallbackResponse.json();
           } catch (fallbackError) {
-            logger.error('[AIAdvisorService] Erro no fallback dev', fallbackError instanceof Error ? fallbackError : undefined);
+            logger.error(
+              "[AIAdvisorService] Erro no fallback dev",
+              fallbackError instanceof Error ? fallbackError : undefined
+            );
           }
         }
       }
@@ -95,19 +103,19 @@ export class AIAdvisorService {
     const prompt = getFinancialAnalysisPrompt(data);
 
     const result = await this.fetchGroq({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "system", content: prompt }],
       temperature: 0.5,
       max_tokens: 600,
     });
 
     if (result && result.choices && result.choices[0]) {
       return (
-        result.choices[0].message.content || 'Desculpe, não consegui formular um conselho agora.'
+        result.choices[0].message.content || "Desculpe, não consegui formular um conselho agora."
       );
     }
 
-    throw new Error('Falha ao se comunicar com a Inteligência Artificial.');
+    throw new Error("Falha ao se comunicar com a Inteligência Artificial.");
   }
 
   /**
@@ -117,34 +125,34 @@ export class AIAdvisorService {
     partialDescription: string,
     historicalDescriptions: string[],
     userCategories: { id: string; name: string }[],
-    transactionType?: 'expense' | 'income',
-    historicalPairs?: { description: string; categoryName: string }[],
+    transactionType?: "expense" | "income",
+    historicalPairs?: { description: string; categoryName: string }[]
   ): Promise<{ suggestion: string; categoryId: string | null }> {
-    const sanitizedPartial = (partialDescription || '').trim().substring(0, 80);
+    const sanitizedPartial = (partialDescription || "").trim().substring(0, 80);
     if (sanitizedPartial.length < 2) {
-      return { suggestion: '', categoryId: null };
+      return { suggestion: "", categoryId: null };
     }
 
     // --- ⚡ MOTOR HÍBRIDO DETERMINÍSTICO BRASILEIRO ---
     const normalizedInput = normalizeBrazilianText(sanitizedPartial);
 
     // 1. Identifica se a lista de categorias fornecida é de receita ou despesa
-    let targetType: 'receita' | 'despesa';
+    let targetType: "receita" | "despesa";
     if (transactionType) {
-      targetType = transactionType === 'income' ? 'receita' : 'despesa';
+      targetType = transactionType === "income" ? "receita" : "despesa";
     } else {
       const isReceitaList = userCategories.some((uc) => {
         const name = normalizeBrazilianText(uc.name);
         return (
-          name.includes('salario') ||
-          name.includes('freelance') ||
-          name.includes('investimento') ||
-          name.includes('renda') ||
-          name.includes('receita') ||
-          name.includes('transferencia recebida')
+          name.includes("salario") ||
+          name.includes("freelance") ||
+          name.includes("investimento") ||
+          name.includes("renda") ||
+          name.includes("receita") ||
+          name.includes("transferencia recebida")
         );
       });
-      targetType = isReceitaList ? 'receita' : 'despesa';
+      targetType = isReceitaList ? "receita" : "despesa";
     }
 
     // 2. Motor de busca local em 3 Fases
@@ -175,10 +183,10 @@ export class AIAdvisorService {
           const normalizedKeyword = normalizeBrazilianText(keyword);
 
           const inputContainsKeyword = new RegExp(`\\b${normalizedKeyword}\\b`).test(
-            normalizedInput,
+            normalizedInput
           );
           const keywordContainsInput = new RegExp(`\\b${normalizedInput}\\b`).test(
-            normalizedKeyword,
+            normalizedKeyword
           );
 
           if (inputContainsKeyword || keywordContainsInput) {
@@ -245,53 +253,53 @@ export class AIAdvisorService {
     const uniqueHistory = Array.from(
       new Set(
         (historicalDescriptions || [])
-          .map((d) => (d || '').trim().substring(0, 50))
-          .filter((d) => d.length >= 2 && !d.startsWith('data:') && !d.includes(';base64')),
-      ),
+          .map((d) => (d || "").trim().substring(0, 50))
+          .filter((d) => d.length >= 2 && !d.startsWith("data:") && !d.includes(";base64"))
+      )
     ).slice(0, 25); // Reduzimos para 25 itens para garantir segurança máxima de token e payload
 
     const sanitizedCategories = (userCategories || []).map((c) => ({
       id: c.id,
-      name: (c.name || '').trim().substring(0, 40),
+      name: (c.name || "").trim().substring(0, 40),
     }));
 
     const categoryList = sanitizedCategories
       .map((c) => `- Categoria: "${c.name}", ID: "${c.id}"`)
-      .join('\n');
+      .join("\n");
 
     // Exemplos de classificações já feitas pelo usuário (aprendizado pessoal)
     const userExamples = (historicalPairs || [])
       .slice(0, 20)
       .map((p) => `"${p.description}" → ${p.categoryName}`)
-      .join('\n');
+      .join("\n");
 
     const prompt = getAutocompletePrompt(
       sanitizedPartial,
       uniqueHistory,
       categoryList,
-      userExamples,
+      userExamples
     );
     const result = await this.fetchGroq({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "system", content: prompt }],
       temperature: 0.5,
       max_tokens: 300,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     if (result && result.choices && result.choices[0]) {
       try {
         const parsed = JSON.parse(result.choices[0].message.content);
         return {
-          suggestion: parsed.suggestion || '',
+          suggestion: parsed.suggestion || "",
           categoryId: parsed.categoryId || null,
         };
       } catch (e) {
-        return { suggestion: '', categoryId: null };
+        return { suggestion: "", categoryId: null };
       }
     }
 
-    return { suggestion: '', categoryId: null };
+    return { suggestion: "", categoryId: null };
   }
 
   /**
@@ -313,9 +321,9 @@ export class AIAdvisorService {
     if (!supabaseUrl || !supabaseAnonKey) return [];
 
     const response = await fetch(`${supabaseUrl}/functions/v1/get-place-suggestions`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify({ destination }),
@@ -329,7 +337,7 @@ export class AIAdvisorService {
       location: s.location,
       description: s.description,
       durationHours: s.durationHours || 2,
-      mapsUrl: s.mapsUrl || '',
+      mapsUrl: s.mapsUrl || "",
       rating: s.rating,
       placeId: s.placeId,
     }));
@@ -361,7 +369,7 @@ export class AIAdvisorService {
         }));
       }
     } catch (e) {
-      logger.warn('[AIAdvisorService] Overpass falhou, tentando Google Places', e);
+      logger.warn("[AIAdvisorService] Overpass falhou, tentando Google Places", e);
     }
 
     // 2. Fallback: Google Places via Supabase Edge Function
@@ -369,17 +377,17 @@ export class AIAdvisorService {
       const placesResult = await this.fetchPlacesSuggestions(destination);
       if (placesResult.length > 0) return placesResult;
     } catch (e) {
-      logger.warn('[AIAdvisorService] Google Places falhou, usando IA como fallback', e);
+      logger.warn("[AIAdvisorService] Google Places falhou, usando IA como fallback", e);
     }
 
     // 3. Last resort: AI-generated (may invent locations)
     const prompt = getTripItineraryPrompt(destination);
     const result = await this.fetchGroq({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "system", content: prompt }],
       temperature: 0.4,
       max_tokens: 600,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     if (result && result.choices && result.choices[0]) {
@@ -397,18 +405,18 @@ export class AIAdvisorService {
   static async suggestTripChecklist(
     destination: string,
     startDate?: string,
-    endDate?: string,
+    endDate?: string
   ): Promise<Array<{ item: string; category: string }>> {
     if (!destination) return [];
 
     const prompt = getTripChecklistPrompt(destination, startDate, endDate);
 
     const result = await this.fetchGroq({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: prompt }],
+      model: "llama-3.3-70b-versatile",
+      messages: [{ role: "system", content: prompt }],
       temperature: 0.3,
       max_tokens: 400,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     if (result && result.choices && result.choices[0]) {
