@@ -7,6 +7,7 @@ interface NumberTickerProps {
   className?: string;
   delay?: number;
   formatCurrency?: (val: number) => string;
+  animateOnMount?: boolean;
 }
 
 export function NumberTicker({
@@ -15,14 +16,19 @@ export function NumberTicker({
   className,
   delay = 0,
   formatCurrency,
+  animateOnMount = true,
 }: NumberTickerProps) {
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const motionValue = useMotionValue(direction === "down" ? value + 1000 : 0);
+  const [hasAnimated, setHasAnimated] = useState(!animateOnMount);
+  const motionValue = useMotionValue(
+    animateOnMount ? (direction === "down" ? value + 1000 : 0) : value
+  );
+  
   const displayValue = useTransform(motionValue, (latest) =>
     formatCurrency ? formatCurrency(latest) : Math.round(latest).toString()
   );
 
   useEffect(() => {
+    if (!animateOnMount) return;
     // Initial animation
     const timeout = setTimeout(() => {
       animate(motionValue, value, {
