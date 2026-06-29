@@ -224,18 +224,18 @@ export function NewCardDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Fechamento" htmlFor="card-closing-mode">
-              <Select value={closingDayMode} onValueChange={setClosingDayMode}>
-                <SelectTrigger id="card-closing-mode" className="font-mono text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
-                  <SelectItem value="LAST_DAY">Último dia do mês</SelectItem>
-                  <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
-                </SelectContent>
-              </Select>
-              {closingDayMode === "FIXED_DAY" && (
-                <div className="mt-2 animate-in fade-in">
+              <div className="flex gap-2">
+                <Select value={closingDayMode} onValueChange={setClosingDayMode}>
+                  <SelectTrigger id="card-closing-mode" className="w-[130px] shrink-0 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
+                    <SelectItem value="LAST_DAY">Último dia</SelectItem>
+                    <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
+                  </SelectContent>
+                </Select>
+                {closingDayMode === "FIXED_DAY" && (
                   <Input
                     type="number"
                     inputMode="numeric"
@@ -244,7 +244,7 @@ export function NewCardDialog({
                     min={1}
                     max={31}
                     placeholder="Ex: 20…"
-                    className="font-mono text-base"
+                    className="font-mono text-base flex-1"
                     value={closingDay}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -261,8 +261,8 @@ export function NewCardDialog({
                     }}
                     autoComplete="off"
                   />
-                </div>
-              )}
+                )}
+              </div>
             </FormField>
             <FormField label="Vencimento" htmlFor="card-due">
               <Input
@@ -316,7 +316,13 @@ export function NewCardDialog({
             <Button
               className="flex-1 rounded-xl font-bold"
               onClick={onSubmit}
-              disabled={isLoading || !bankId || (closingDayMode === 'FIXED_DAY' && !closingDay) || !dueDay || !limit}
+              disabled={
+                isLoading ||
+                !bankId ||
+                (closingDayMode === "FIXED_DAY" && !closingDay) ||
+                !dueDay ||
+                !limit
+              }
             >
               {isLoading ? (
                 <>

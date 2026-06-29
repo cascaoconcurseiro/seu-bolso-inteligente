@@ -314,7 +314,7 @@ export function TransactionDetailsModal({
 
           {/* Ações */}
           <div className="space-y-2.5">
-            {transaction.status === "CONFIRMED" && transaction.is_installment && onUnconfirm && (
+            {transaction.status === "CONFIRMED" && onUnconfirm && (
               <Button
                 variant="outline"
                 className="w-full gap-2 text-warning border-warning/30 hover:bg-warning/10 hover:text-warning"
