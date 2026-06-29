@@ -72,9 +72,10 @@ export function FamilyBalancePanel() {
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry('get_shared_invoice_data', { p_user_id: user.id });
-        if (Array.isArray(data) && data.length > 0) {
-          const unsettled = data.filter((item: any) => !item.is_settled && item.competence_date);
+        const data = await rpcWithRetry('get_shared_invoice_data', { p_user_id: user.id }) as any;
+        const txList = data?.transactions;
+        if (Array.isArray(txList) && txList.length > 0) {
+          const unsettled = txList.filter((tx: any) => tx.is_settled === false && tx.competence_date);
           if (unsettled.length > 0) {
             unsettled.sort((a, b) => new Date(a.competence_date).getTime() - new Date(b.competence_date).getTime());
             return unsettled[0].competence_date.substring(0, 7); // 'YYYY-MM'
