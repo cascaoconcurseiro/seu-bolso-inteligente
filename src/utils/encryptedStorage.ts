@@ -15,6 +15,18 @@ const ENCRYPTION_PREFIX = "🔐";
 
 let cryptoKey: CryptoKey | null = null;
 
+const SALT_KEY = "enc_storage_salt_v2";
+
+function getOrCreateSalt(): Uint8Array {
+  const stored = localStorage.getItem(SALT_KEY);
+  if (stored) {
+    return Uint8Array.from(atob(stored), (c) => c.charCodeAt(0));
+  }
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  localStorage.setItem(SALT_KEY, btoa(String.fromCharCode(...salt)));
+  return salt;
+}
+
 async function deriveKey(sessionId: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey("raw", enc.encode(sessionId), "PBKDF2", false, [
@@ -23,7 +35,7 @@ async function deriveKey(sessionId: string): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: enc.encode("seu-bolso-inteligente-salt"),
+      salt: getOrCreateSalt(),
       iterations: 100_000,
       hash: "SHA-256",
     },

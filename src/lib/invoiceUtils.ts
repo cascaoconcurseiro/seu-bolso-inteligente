@@ -64,6 +64,7 @@ export const getTargetDate = (
   const closingDateDay = actualClosing.getDate();
 
   if (currentDay > closingDateDay) {
+    return addMonthsToDate(date, 1);
   }
 
   return date;

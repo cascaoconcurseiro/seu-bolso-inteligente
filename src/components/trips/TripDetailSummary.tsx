@@ -52,7 +52,7 @@ export function TripDetailSummary({
           </p>
           {isInternational && rate && (
             <p className="text-sm text-muted-foreground font-bold flex items-center gap-1">
-              ≈ {moneyUtils.format(totalExpenses * rate, baseCurrency)}
+              ≈ {moneyUtils.format(moneyUtils.mul(totalExpenses, rate), baseCurrency)}
             </p>
           )}
         </div>
@@ -75,7 +75,7 @@ export function TripDetailSummary({
           </p>
           {isInternational && rate && (
             <p className="text-sm text-muted-foreground font-bold flex items-center gap-1 mb-1">
-              ≈ {moneyUtils.format(myTotalSpent * rate, baseCurrency)}
+              ≈ {moneyUtils.format(moneyUtils.mul(myTotalSpent, rate), baseCurrency)}
             </p>
           )}
           <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-70">
@@ -113,7 +113,7 @@ export function TripDetailSummary({
                 </p>
                 {isInternational && rate && (
                   <p className="text-sm text-muted-foreground font-bold flex items-center gap-1">
-                    ≈ {moneyUtils.format(myPersonalBudget * rate, baseCurrency)}
+                    ≈ {moneyUtils.format(moneyUtils.mul(myPersonalBudget, rate), baseCurrency)}
                   </p>
                 )}
               </div>
