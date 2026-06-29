@@ -26,7 +26,6 @@ import {
   RotateCcw,
   Share2,
   CalendarClock,
-  PencilLine,
 } from "lucide-react";
 import { InstallmentSimulator } from "./InstallmentSimulator";
 import { BankIcon } from "@/components/financial/BankIcon";
@@ -389,7 +388,7 @@ export function CreditCardDetailView({
                   <span className="text-xs font-medium">
                     Fecha em {localInvoiceData.daysToClose} dias
                   </span>
-                  <PencilLine className="w-3 h-3 opacity-50" />
+                  <Pencil className="w-3 h-3 opacity-50" />
                 </button>
               ) : (
                 <div className="flex items-center gap-2 bg-black/20 px-2.5 py-1.5 rounded-lg backdrop-blur-md border border-white/10 w-fit md:w-auto">

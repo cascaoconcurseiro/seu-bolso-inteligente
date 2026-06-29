@@ -491,47 +491,32 @@ export function CreditCards() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Fechamento</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={editClosingDayMode}
-                      onValueChange={setEditClosingDayMode}
-                      disabled={selectedCard?.user_id !== user?.id}
-                    >
-                      <SelectTrigger className="w-[130px] shrink-0 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
-                        <SelectItem value="LAST_DAY">Último dia</SelectItem>
-                        <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {editClosingDayMode === "FIXED_DAY" && (
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={31}
-                        className="font-mono text-base flex-1"
-                        value={editClosingDay}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "") {
-                            setEditClosingDay("");
-                            return;
-                          }
-                          const num = parseInt(val, 10);
-                          if (!isNaN(num)) {
-                            if (num < 1) setEditClosingDay("1");
-                            else if (num > 31) setEditClosingDay("31");
-                            else setEditClosingDay(num.toString());
-                          }
-                        }}
-                        disabled={selectedCard?.user_id !== user?.id}
-                      />
-                    )}
-                  </div>
+                  <Label className="flex justify-between items-center">
+                    Fechamento
+                    <span className="text-sm text-muted-foreground">(dia 1-31)</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={31}
+                    className="font-mono text-base"
+                    value={editClosingDay}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        setEditClosingDay("");
+                        return;
+                      }
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) {
+                        if (num < 1) setEditClosingDay("1");
+                        else if (num > 31) setEditClosingDay("31");
+                        else setEditClosingDay(num.toString());
+                      }
+                    }}
+                    disabled={selectedCard?.user_id !== user?.id}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex justify-between items-center">
@@ -594,7 +579,7 @@ export function CreditCards() {
                 onClick={handleEditCard}
                 disabled={
                   !editCardName ||
-                  (editClosingDayMode === "FIXED_DAY" && !editClosingDay) ||
+                  !editClosingDay ||
                   !editDueDay ||
                   !editLimit ||
                   !editBankId ||
