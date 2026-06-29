@@ -411,26 +411,47 @@ export function CreditCards() {
         />
 
         <Dialog open={showEditCardDialog} onOpenChange={setShowEditCardDialog}>
-          <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background overflow-hidden">
-            <DialogHeader>
-              <DialogTitle>Editar Cartão</DialogTitle>
+          <DialogContent className="w-full sm:max-w-md !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-lg !rounded-b-none sm:!rounded-b-lg p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b overflow-hidden bg-background">
+            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden">
+              <div className="w-12 h-2 bg-muted rounded-full" />
+            </div>
+            <DialogHeader className="px-5 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
+              <DialogTitle className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Pencil className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold">Editar Cartão</span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {selectedCard?.name}
+                  </span>
+                </div>
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Nome</Label>
-                <Input value={editCardName} onChange={(e) => setEditCardName(e.target.value)} />
+            <div className="px-5 py-4 space-y-4 overflow-y-auto">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Nome
+                </Label>
+                <Input
+                  value={editCardName}
+                  onChange={(e) => setEditCardName(e.target.value)}
+                  className="rounded-xl"
+                />
               </div>
 
-              <div className="space-y-2">
-                <Label>Banco Emissor</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Banco Emissor
+                </Label>
                 {editBankId === "other" && (
-                  <div className="flex items-center gap-2 mb-2 p-2 bg-warning/10 text-warning rounded-lg text-sm font-medium border border-warning/20 animate-fade-in">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>O banco será salvo com o ícone padrão.</span>
+                  <div className="flex items-center gap-2 p-2 bg-warning/10 text-warning rounded-lg text-sm border border-warning/20">
+                    <AlertCircle className="w-4 h-4 shrink-0" /> O banco será salvo com o ícone
+                    padrão.
                   </div>
                 )}
                 <Select value={editBankId} onValueChange={setEditBankId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Selecione o banco" />
                   </SelectTrigger>
                   <SelectContent>
@@ -447,31 +468,26 @@ export function CreditCards() {
                     ))}
                     <SelectItem
                       value="other"
-                      className="text-warning focus:text-warning font-medium border-t mt-1 pt-1"
+                      className="text-warning font-medium border-t mt-1 pt-1"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 bg-warning/10 rounded flex items-center justify-center">
-                          <CreditCard className="w-3 h-3" />
-                        </div>
-                        Outro Banco (Personalizado)
-                      </div>
+                      Outro Banco
                     </SelectItem>
                   </SelectContent>
                 </Select>
                 {editBankId === "other" && (
-                  <div className="pt-2 animate-fade-in">
-                    <Input
-                      placeholder="Ex: Carrefour, C&A, Renner..."
-                      value={editCustomBankName}
-                      onChange={(e) => setEditCustomBankName(e.target.value)}
-                      className="border-warning/30 focus-visible:ring-warning"
-                    />
-                  </div>
+                  <Input
+                    placeholder="Ex: Carrefour, C&A..."
+                    value={editCustomBankName}
+                    onChange={(e) => setEditCustomBankName(e.target.value)}
+                    className="rounded-xl border-warning/30 mt-1"
+                  />
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Cor do cartão</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Cor do cartão
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     "#0f172a",
@@ -490,123 +506,94 @@ export function CreditCards() {
                     <button
                       key={color}
                       type="button"
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        editCardColor === color
-                          ? "border-primary scale-110"
-                          : "border-transparent hover:scale-105"
-                      }`}
+                      className={`w-9 h-9 rounded-xl border-2 transition-all ${editCardColor === color ? "border-primary scale-110 shadow-md" : "border-transparent hover:scale-105"}`}
                       style={{ backgroundColor: color }}
                       onClick={() => setEditCardColor(color)}
                     />
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Fechamento</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={editClosingDayMode}
-                      onValueChange={setEditClosingDayMode}
-                      disabled={selectedCard?.user_id !== user?.id}
-                    >
-                      <SelectTrigger className="w-[130px] shrink-0 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FIXED_DAY">Dia fixo</SelectItem>
-                        <SelectItem value="LAST_DAY">Último dia</SelectItem>
-                        <SelectItem value="LAST_BUSINESS_DAY">Último dia útil</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {editClosingDayMode === "FIXED_DAY" && (
-                      <Input
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={31}
-                        className="font-mono text-base flex-1"
-                        value={editClosingDay}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "") {
-                            setEditClosingDay("");
-                            return;
-                          }
-                          const num = parseInt(val, 10);
-                          if (!isNaN(num)) {
-                            if (num < 1) setEditClosingDay("1");
-                            else if (num > 31) setEditClosingDay("31");
-                            else setEditClosingDay(num.toString());
-                          }
-                        }}
-                        disabled={selectedCard?.user_id !== user?.id}
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex justify-between items-center">
-                    Vencimento
-                    <span className="text-sm text-muted-foreground">(dia 1-31)</span>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Fechamento
                   </Label>
                   <Input
                     type="number"
                     inputMode="numeric"
                     min={1}
                     max={31}
-                    className="font-mono text-base"
+                    className="rounded-xl font-mono"
+                    value={editClosingDay}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "") {
+                        setEditClosingDay("");
+                        return;
+                      }
+                      const n = parseInt(v);
+                      if (!isNaN(n)) setEditClosingDay(Math.min(31, Math.max(1, n)).toString());
+                    }}
+                    disabled={selectedCard?.user_id !== user?.id}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Vencimento
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={31}
+                    className="rounded-xl font-mono"
                     value={editDueDay}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "") {
+                      const v = e.target.value;
+                      if (v === "") {
                         setEditDueDay("");
                         return;
                       }
-                      const num = parseInt(val, 10);
-                      if (!isNaN(num)) {
-                        if (num < 1) setEditDueDay("1");
-                        else if (num > 31) setEditDueDay("31");
-                        else setEditDueDay(num.toString());
-                      }
+                      const n = parseInt(v);
+                      if (!isNaN(n)) setEditDueDay(Math.min(31, Math.max(1, n)).toString());
                     }}
                     disabled={selectedCard?.user_id !== user?.id}
-                    title={
-                      selectedCard?.user_id !== user?.id
-                        ? "Apenas o dono do cartão pode alterar o ciclo"
-                        : ""
-                    }
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Limite</Label>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Limite
+                </Label>
                 <CurrencyInput
                   value={editLimit}
                   onChange={setEditLimit}
                   currency={selectedCard?.currency || "BRL"}
                 />
               </div>
+
               {selectedCard?.user_id !== user?.id && (
                 <p className="text-sm text-warning">
-                  As datas de ciclo (Fechamento e Vencimento) são gerenciadas pelo dono do cartão.
+                  As datas de ciclo são gerenciadas pelo dono do cartão.
                 </p>
               )}
             </div>
-            <DialogFooter className="border-t border-border/50 pt-3 mt-2">
+            <DialogFooter className="px-5 pb-5 pt-3 border-t border-border/40 gap-2">
               <Button
                 variant="outline"
-                className="rounded-xl"
+                className="rounded-xl flex-1"
                 onClick={() => setShowEditCardDialog(false)}
               >
                 Cancelar
               </Button>
               <Button
-                className="rounded-xl font-semibold shadow-md"
+                className="rounded-xl flex-1 font-semibold shadow-lg shadow-primary/20"
                 onClick={handleEditCard}
                 disabled={
                   !editCardName ||
-                  (editClosingDayMode === "FIXED_DAY" && !editClosingDay) ||
+                  !editClosingDay ||
                   !editDueDay ||
                   !editLimit ||
                   !editBankId ||
