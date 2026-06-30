@@ -376,12 +376,12 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const { error } = await supabase.from("transactions").delete().eq("id", item.originalTxId);
 
       if (error) throw error;
-      
+
       showActionFeedback("success");
       setTimeout(() => {
         setDeleteConfirm({ isOpen: false, item: null });
       }, 80);
-      
+
       await invalidateRelated(item.originalTxId);
       await refetch();
 

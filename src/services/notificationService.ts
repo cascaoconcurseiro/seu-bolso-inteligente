@@ -171,22 +171,20 @@ export async function createNotification(
     }
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("notifications")
     .insert({
       ...input,
       metadata: input.metadata as any,
       priority: input.priority || "NORMAL",
-    })
-    .select()
-    .single();
+    });
 
   if (error) {
     logger.error("Erro ao criar notificação", error);
     return null;
   }
 
-  return data as Notification;
+  return null;
 }
 
 /**

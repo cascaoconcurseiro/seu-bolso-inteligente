@@ -143,6 +143,9 @@ export function SharedExpensesDialogs({
         <AlertDialogContent className={`max-w-md border-border/50 ${sheetDialogCn}`}>
           <AlertDialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
             <AlertDialogTitle>Recusar Acerto</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">
+              Informe o motivo da recusa.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="px-5 sm:px-6 py-4 space-y-2">
             <Label>Motivo</Label>

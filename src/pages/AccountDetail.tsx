@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAccounts, useDeleteAccount, useUpdateAccount, useArchiveAccount, useUnarchiveAccount, useAccountDependencies } from "@/hooks/useAccounts";
+import {
+  useAccounts,
+  useDeleteAccount,
+  useUpdateAccount,
+  useArchiveAccount,
+  useUnarchiveAccount,
+  useAccountDependencies,
+} from "@/hooks/useAccounts";
 import { useAccountStatement } from "@/hooks/useAccountStatement";
 import { useDeleteTransaction } from "@/hooks/useTransactions";
 import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
@@ -23,7 +30,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 
 export function AccountDetail() {
@@ -61,12 +68,15 @@ export function AccountDetail() {
   const openingBalance = statementData?.openingBalance ?? 0;
   const closingBalance = statementData?.closingBalance ?? 0;
 
-  const groupedTransactions = transactions.reduce((groups, tx) => {
-    const date = dateFns.startOfDay(new Date(tx.date)).toISOString();
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(tx);
-    return groups;
-  }, {} as Record<string, typeof transactions>);
+  const groupedTransactions = transactions.reduce(
+    (groups, tx) => {
+      const date = dateFns.startOfDay(new Date(tx.date)).toISOString();
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(tx);
+      return groups;
+    },
+    {} as Record<string, typeof transactions>
+  );
 
   const sortedDates = Object.keys(groupedTransactions).sort(
     (a, b) => new Date(b).getTime() - new Date(a).getTime()
@@ -176,10 +186,10 @@ export function AccountDetail() {
 
   // Stats mensais calculados a partir das transações do extrato
   const monthIncome = transactions
-    .filter(tx => tx.isIncoming && !tx.isInitialBalance)
+    .filter((tx) => tx.isIncoming && !tx.isInitialBalance)
     .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
   const monthExpense = transactions
-    .filter(tx => !tx.isIncoming && !tx.isInitialBalance && tx.type !== "TRANSFER")
+    .filter((tx) => !tx.isIncoming && !tx.isInitialBalance && tx.type !== "TRANSFER")
     .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
 
   return (
@@ -210,7 +220,9 @@ export function AccountDetail() {
             </div>
             <div>
               <p className="text-xs text-success/70 font-bold uppercase tracking-wider">Entradas</p>
-              <p className="text-sm font-bold text-success">{formatCurrency(monthIncome, accountCurrency)}</p>
+              <p className="text-sm font-bold text-success">
+                {formatCurrency(monthIncome, accountCurrency)}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/8 border border-destructive/20">
@@ -218,8 +230,12 @@ export function AccountDetail() {
               <TrendingDown className="h-4 w-4 text-destructive" />
             </div>
             <div>
-              <p className="text-xs text-destructive/70 font-bold uppercase tracking-wider">Saídas</p>
-              <p className="text-sm font-bold text-destructive">{formatCurrency(monthExpense, accountCurrency)}</p>
+              <p className="text-xs text-destructive/70 font-bold uppercase tracking-wider">
+                Saídas
+              </p>
+              <p className="text-sm font-bold text-destructive">
+                {formatCurrency(monthExpense, accountCurrency)}
+              </p>
             </div>
           </div>
         </div>
