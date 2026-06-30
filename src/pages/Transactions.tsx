@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { useLocation } from "react-router-dom";
 import { Clock, CalendarClock, List } from "lucide-react";
 import { Button } from "@/components/ui/button";

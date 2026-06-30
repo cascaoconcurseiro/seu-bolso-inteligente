@@ -14,9 +14,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Calendar, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { useAnticipateInstallments } from "@/hooks/useAnticipateInstallments";
 import { cn } from "@/lib/utils";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 interface AnticipateInstallmentsDialogProps {
   isOpen: boolean;
@@ -41,10 +42,10 @@ interface FutureInstallment {
 
 /**
  * Dialog para antecipar parcelas futuras de uma série
- * 
+ *
  * Permite selecionar parcelas futuras não-acertadas e antecipar
  * a data de competência para o mês atual.
- * 
+ *
  * @example
  * ```tsx
  * <AnticipateInstallmentsDialog
@@ -63,7 +64,7 @@ export function AnticipateInstallmentsDialog({
   seriesId,
   currentInstallment,
   totalInstallments,
-  onSuccess
+  onSuccess,
 }: AnticipateInstallmentsDialogProps) {
   const [futureInstallments, setFutureInstallments] = useState<FutureInstallment[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -79,7 +80,7 @@ export function AnticipateInstallmentsDialog({
       // Definir data de competência como primeiro dia do mês atual
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      setNewCompetenceDate(dateFns.format(firstDay, 'yyyy-MM-dd'));
+      setNewCompetenceDate(dateFns.format(firstDay, "yyyy-MM-dd"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, seriesId]);
@@ -89,11 +90,13 @@ export function AnticipateInstallmentsDialog({
     try {
       // Buscar parcelas futuras (installment_number > currentInstallment)
       const { data: transactions, error: txError } = await supabase
-        .from('transactions')
-        .select('id, installment_number:current_installment, description, amount, transaction_date:date, competence_date, is_settled')
-        .eq('series_id', seriesId)
-        .gt('current_installment', currentInstallment)
-        .order('current_installment', { ascending: true });
+        .from("transactions")
+        .select(
+          "id, installment_number:current_installment, description, amount, transaction_date:date, competence_date, is_settled"
+        )
+        .eq("series_id", seriesId)
+        .gt("current_installment", currentInstallment)
+        .order("current_installment", { ascending: true });
 
       if (txError) throw txError;
 
@@ -104,38 +107,38 @@ export function AnticipateInstallmentsDialog({
       }
 
       // Buscar splits para verificar settlement status
-      const txIds = transactions.map(t => t.id);
+      const txIds = transactions.map((t) => t.id);
       const { data: splits, error: splitsError } = await supabase
-        .from('transaction_splits')
-        .select('transaction_id, is_settled, settled_by_debtor, settled_by_creditor')
-        .in('transaction_id', txIds);
+        .from("transaction_splits")
+        .select("transaction_id, is_settled, settled_by_debtor, settled_by_creditor")
+        .in("transaction_id", txIds);
 
       if (splitsError) throw splitsError;
 
       // Combinar dados e filtrar apenas não-acertadas
-      const installmentsWithStatus = transactions.map(tx => {
-        const txSplits = splits?.filter(s => s.transaction_id === tx.id) || [];
-        const hasSettledSplit = txSplits.some(s => 
-          s.is_settled || s.settled_by_debtor || s.settled_by_creditor
+      const installmentsWithStatus = transactions.map((tx) => {
+        const txSplits = splits?.filter((s) => s.transaction_id === tx.id) || [];
+        const hasSettledSplit = txSplits.some(
+          (s) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor
         );
 
         return {
           ...tx,
-          settled_by_debtor: txSplits.some(s => s.settled_by_debtor),
-          settled_by_creditor: txSplits.some(s => s.settled_by_creditor),
-          is_settled: tx.is_settled || hasSettledSplit
+          settled_by_debtor: txSplits.some((s) => s.settled_by_debtor),
+          settled_by_creditor: txSplits.some((s) => s.settled_by_creditor),
+          is_settled: tx.is_settled || hasSettledSplit,
         };
       });
 
       // Filtrar apenas não-acertadas
-      const nonSettled = installmentsWithStatus.filter(i => !i.is_settled);
+      const nonSettled = installmentsWithStatus.filter((i) => !i.is_settled);
 
       setFutureInstallments(nonSettled);
 
       // Auto-selecionar todas as parcelas não-acertadas
-      setSelectedIds(nonSettled.map(i => i.id));
+      setSelectedIds(nonSettled.map((i) => i.id));
     } catch (error) {
-      logger.error('❌ [AnticipateDialog] Erro ao buscar parcelas:', error);
+      logger.error("❌ [AnticipateDialog] Erro ao buscar parcelas:", error);
       setFutureInstallments([]);
     } finally {
       setIsLoading(false);
@@ -143,18 +146,14 @@ export function AnticipateInstallmentsDialog({
   };
 
   const handleToggleInstallment = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
-        ? prev.filter(i => i !== id)
-        : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const handleSelectAll = () => {
     if (selectedIds.length === futureInstallments.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(futureInstallments.map(i => i.id));
+      setSelectedIds(futureInstallments.map((i) => i.id));
     }
   };
 
@@ -167,27 +166,27 @@ export function AnticipateInstallmentsDialog({
       {
         seriesId,
         installmentIds: selectedIds,
-        newCompetenceDate
+        newCompetenceDate,
       },
       {
         onSuccess: () => {
           onSuccess?.();
           onClose();
-        }
+        },
       }
     );
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", { 
-      style: "currency", 
-      currency: "BRL" 
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
   const formatDate = (dateStr: string) => {
     try {
-      const date = dateFns.parse(dateStr, 'yyyy-MM-dd', new Date());
+      const date = dateFns.parse(dateStr, "yyyy-MM-dd", new Date());
       return dateFns.format(date, "MMM/yyyy", { locale: ptBR });
     } catch {
       return dateStr;
@@ -203,8 +202,8 @@ export function AnticipateInstallmentsDialog({
             Antecipar Parcelas
           </DialogTitle>
           <DialogDescription>
-            Selecione as parcelas futuras que deseja antecipar para o mês atual.
-            Apenas parcelas não-acertadas podem ser antecipadas.
+            Selecione as parcelas futuras que deseja antecipar para o mês atual. Apenas parcelas
+            não-acertadas podem ser antecipadas.
           </DialogDescription>
         </DialogHeader>
 
@@ -227,9 +226,7 @@ export function AnticipateInstallmentsDialog({
                 <Label>Nova Data de Competência</Label>
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/5 dark:bg-accent/10 border border-accent/20">
                   <Calendar className="h-4 w-4 text-accent" />
-                  <span className="font-medium text-accent">
-                    {formatDate(newCompetenceDate)}
-                  </span>
+                  <span className="font-medium text-accent">{formatDate(newCompetenceDate)}</span>
                   <ArrowRight className="h-4 w-4 text-accent ml-auto" />
                   <span className="text-sm text-muted-foreground">
                     As parcelas aparecerão neste mês
@@ -254,7 +251,7 @@ export function AnticipateInstallmentsDialog({
                 </div>
 
                 <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
-                  {futureInstallments.map(installment => (
+                  {futureInstallments.map((installment) => (
                     <label
                       key={installment.id}
                       className={cn(
@@ -266,15 +263,13 @@ export function AnticipateInstallmentsDialog({
                         checked={selectedIds.includes(installment.id)}
                         onCheckedChange={() => handleToggleInstallment(installment.id)}
                       />
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-muted-foreground">
                             {installment.installment_number}/{totalInstallments}
                           </span>
-                          <p className="text-sm font-medium truncate">
-                            {installment.description}
-                          </p>
+                          <p className="text-sm font-medium truncate">{installment.description}</p>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                           <span>Atual: {formatDate(installment.competence_date)}</span>
@@ -307,7 +302,7 @@ export function AnticipateInstallmentsDialog({
                     <span className="font-mono font-bold">
                       {formatCurrency(
                         futureInstallments
-                          .filter(i => selectedIds.includes(i.id))
+                          .filter((i) => selectedIds.includes(i.id))
                           .reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0)
                       )}
                     </span>
