@@ -5,6 +5,33 @@
 
 ---
 
+## 🏗️ Auditoria de Infraestrutura 2026-06-30 — 20 Fases
+
+**Relatório completo:** `AUDIT_REPORT_2026-06-30.md`
+**Overall Score:** 57/100 🟡
+**7 bloqueadores críticos | 14 alta prioridade | 10 backlog**
+
+### Principais Descobertas
+
+| # | Severidade | Problema |
+|:--|:--|:--|
+| 1 | 🔴 CRÍTICO | Zero CI/CD (sem GitHub Actions, sem testes no deploy) |
+| 2 | 🔴 CRÍTICO | Sentry condicional — se DSN não configurado, zero monitoramento de erros |
+| 3 | 🔴 CRÍTICO | `sourcemap: false` + Sentry Plugin comentado — stack traces ilegíveis |
+| 4 | 🔴 CRÍTICO | Sem staging environment — dev local pode apontar pra produção |
+| 5 | 🔴 CRÍTICO | `VITE_SUPABASE_ANON_KEY` inconsistente com `VITE_SUPABASE_PUBLISHABLE_KEY` |
+| 6 | 🔴 CRÍTICO | Supabase Free Tier (50 conexões, sem PgBouncer) |
+| 7 | 🔴 CRÍTICO | Restore de backup nunca testado |
+
+### PRÓXIMO PASSO (IMEDIATO)
+1. Configurar `VITE_SENTRY_DSN` na Vercel
+2. Criar `.github/workflows/ci.yml`
+3. Habilitar PgBouncer no Supabase
+4. Corrigir `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY` em `aiAdvisorService.ts:311`
+5. Adicionar `*.vercel.app/**` no Supabase Auth Redirect URLs
+
+---
+
 ## 🔒 Auditoria de Segurança 2026-06-30 — 18 fixes aplicados
 
 ### Edge Functions (5 fixes)
