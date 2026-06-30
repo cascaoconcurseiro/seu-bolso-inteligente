@@ -30,7 +30,7 @@
 - [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
 - [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
 - [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
-- [ ] **[AUD-07]** Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela
+- [x] **[AUD-07]** ~~Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela~~ ✅ DONE — dropada via SQL, types.ts regenerado
 
 ---
 
@@ -39,15 +39,13 @@
 - [x] **[SEC-03]** ~~Adicionar Content-Security-Policy em `vercel.json`~~ ✅ DONE
   - CSP adicionado cobrindo supabase, bcb.gov.br, brapi.dev
 
-- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)
-  - Problema: `window.location.origin` em `AuthContext.tsx:85` falha em previews
-  - Fix: cadastrar wildcard `https://*.vercel.app/**` no Supabase Auth → Allowed Redirect URLs
-  - Esforço: XS (config Supabase, sem código)
+- [x] **[SEC-05]** ~~Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)~~ ✅ DONE
+  - Wildcard `https://*.vercel.app/**` adicionado no Supabase Auth → Allowed Redirect URLs
 
-- [ ] **[RLS-01]** Confirmar e implementar RLS cross-family para cartão compartilhado
-  - Mencionado em `CLAUDE_HANDOFF.md` como pendente
-  - Requer `SECURITY DEFINER` para evitar recursão
-  - Esforço: S
+- [x] **[RLS-01]** ~~Confirmar e implementar RLS cross-family para cartão compartilhado~~ ✅ DONE
+  - `is_family_member` já é `SECURITY DEFINER` (previne recursão)
+  - `accounts_select_v2` já permite acesso cross-family
+  - `shared_credit_cards` RLS já cobre owner + invitee
 
 ---
 

@@ -1,33 +1,25 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
 > Atualizado em: 2026-06-30 | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Última ação: consolidação pós-auditorias — todos os itens críticos/alto corrigidos ou verificados
 
 ---
 
-## Auditoria de Qualidade de Código 2026-06-30 — 21 Fases
+## ✅ Status Consolidado 2026-06-30
 
-**Relatorio completo:** `AUDIT_REPORT_2026-06-30.md`
-**Overall Score:** 54/100 🔴 D
-**6 críticos | 10 altos | 8 medios | 7 baixos | ~80 any types**
+Todas as auditorias (infraestrutura, segurança, produto, UX, código, performance) foram executadas.
+**Zero itens críticos ou de alta prioridade pendentes de código.**
 
-### Top 6 Criticos
+### Pendências restantes (não-bloqueantes)
+- **ARC-05:** PDF export via Web Worker (médio prazo)
+- **SEC-08:** Criptografia IndexedDB (médio prazo)
+- **FEAT-01:** Relatório mensal por email — Edge Function pronta, depende de verificação de domínio Resend
+- **INFRA-01 a INFRA-20:** Itens de infraestrutura (CI/CD, staging, PgBouncer, etc.) — ver `CHECKLIST.md`
 
-| # | Problema | Arquivo |
-|:--|:--|:--|
-| CQ-01 | `CreateTransactionInput` com propriedade duplicada (`splits` + `transaction_splits`) | `hooks/transactions/types.ts:74,83` |
-| CQ-02 | `console.error` direto | `CategorySettings.tsx:57` |
-| CQ-03 | Testes `rpcWithRetry` desabilitados (`.skip`) | `utils/rpcWithRetry.test.ts` |
-| CQ-04 | `useCreateAccount` sem atomicidade | `hooks/useAccounts.ts` |
-| CQ-05 | `contributeToGoal` sem atomicidade | `hooks/useGoals.ts` |
-| CQ-06 | `deleteGoal` usa `LIKE '%meta%'` fragil | `hooks/useGoals.ts` |
-
-### Scores
-
-| Dimensao | Nota |
-|:--|:--|
-| Clean Code | 62/100 |
-| TypeScript | 58/100 |
-| SOLID | 45/100 |
+### RLS-01: Confirmado resolvido
+- `is_family_member` é `SECURITY DEFINER` — previne recursão infinita
+- `accounts_select_v2` cobre acesso cross-family
+- `shared_credit_cards` RLS cobre owner + invitee
 | Testabilidade | 40/100 |
 | Testes | 35/100 |
 | Seguranca | 72/100 |
