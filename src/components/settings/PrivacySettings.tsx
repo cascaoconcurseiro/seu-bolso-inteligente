@@ -54,7 +54,17 @@ export function PrivacySettings() {
       });
 
       const payload = { exportedAt: new Date().toISOString(), userId: user.id, data };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+
+      // [SEC] Validate payload size before creating blob (prevent memory DoS)
+      const jsonStr = JSON.stringify(payload);
+      if (jsonStr.length > 50 * 1024 * 1024) {
+        // 50 MB max
+        toast.error("Dados muito grandes para exportação. Tente exportar por período.");
+        setIsExporting(false);
+        return;
+      }
+
+      const blob = new Blob([jsonStr], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

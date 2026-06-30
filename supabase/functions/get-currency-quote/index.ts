@@ -29,30 +29,33 @@ const BCB_SERIES: Record<string, number> = {
 serve(async (req) => {
   const origin = req.headers.get("origin");
 
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders(origin) });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders(origin) });
   }
 
   try {
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response('Missing Authorization header', {
-        headers: { ...corsHeaders(origin), 'Content-Type': 'text/plain' },
+      return new Response("Missing Authorization header", {
+        headers: { ...corsHeaders(origin), "Content-Type": "text/plain" },
         status: 401,
       });
     }
 
-    const jwt = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+    const jwt = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(jwt);
 
     if (userError || !user) {
-      return new Response(`Auth error: ${userError?.message || 'User not found'}`, {
-        headers: { ...corsHeaders(origin), 'Content-Type': 'text/plain' },
+      return new Response(`Auth error: ${userError?.message || "User not found"}`, {
+        headers: { ...corsHeaders(origin), "Content-Type": "text/plain" },
         status: 401,
       });
     }
@@ -63,8 +66,8 @@ serve(async (req) => {
     if (body.indicator) {
       const seriesCode = BCB_SERIES[body.indicator as string];
       if (!seriesCode) {
-        return new Response(JSON.stringify({ error: 'Indicador desconhecido' }), {
-          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: "Indicador desconhecido" }), {
+          headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
           status: 400,
         });
       }
@@ -77,17 +80,20 @@ serve(async (req) => {
       const bcbData = await bcbRes.json();
       const entry = bcbData?.[0];
       return new Response(
-        JSON.stringify({ date: entry?.data ?? null, value: entry ? parseFloat(entry.valor.replace(',', '.')) : null }),
-        { headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          date: entry?.data ?? null,
+          value: entry ? parseFloat(entry.valor.replace(",", ".")) : null,
+        }),
+        { headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
       );
     }
 
     // --- Currency quote endpoint ---
-    const { currency, target = 'BRL' } = body;
+    const { currency, target = "BRL" } = body;
 
     if (!currency || currency === target) {
       return new Response(JSON.stringify({ rate: 1 }), {
-        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -103,7 +109,7 @@ serve(async (req) => {
       const rate = frankfurterData?.rates?.[target];
       if (rate) {
         return new Response(JSON.stringify({ rate }), {
-          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
         });
       }
     }
@@ -119,13 +125,12 @@ serve(async (req) => {
     if (!rate) throw new Error(`Par ${currency}/${target} não encontrado`);
 
     return new Response(JSON.stringify({ rate }), {
-      headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(null), "Content-Type": "application/json" },
     });
-
   } catch (error: any) {
-    console.error('Erro:', error);
+    console.error("Erro:", error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(null), "Content-Type": "application/json" },
       status: 500,
     });
   }

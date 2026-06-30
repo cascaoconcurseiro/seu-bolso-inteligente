@@ -30,16 +30,16 @@ export function ArchivedAccountsSection() {
       return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
     }
     const symbols: Record<string, string> = {
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'CAD': 'C$',
-      'AUD': 'A$',
-      'CHF': 'CHF',
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+      CHF: "CHF",
     };
     const symbol = symbols[currency] || currency;
-    return `${symbol} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol} ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -52,11 +52,7 @@ export function ArchivedAccountsSection() {
         <span className="text-sm font-medium text-muted-foreground">
           Contas Arquivadas ({archivedAccounts.length})
         </span>
-        {isExpanded ? (
-          <ChevronUp className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
-        )}
+        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </Button>
 
       {isExpanded && (
@@ -69,13 +65,11 @@ export function ArchivedAccountsSection() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <BankIcon 
-                    bankId={account.bank_id} 
-                    accountName={account.name}
-                    size="md" 
-                  />
+                  <BankIcon bankId={account.bank_id} accountName={account.name} size="md" />
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">{account.name}</p>
+                    <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                      {account.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {accountTypeLabels[account.type as keyof typeof accountTypeLabels]}
                     </p>
@@ -86,10 +80,12 @@ export function ArchivedAccountsSection() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Saldo:</span>
-                  <span className={cn(
-                    "font-mono text-sm font-semibold",
-                    Number(account.balance) >= 0 ? "text-foreground" : "text-destructive"
-                  )}>
+                  <span
+                    className={cn(
+                      "font-mono text-sm font-semibold",
+                      Number(account.balance) >= 0 ? "text-foreground" : "text-destructive"
+                    )}
+                  >
                     {formatCurrency(Number(account.balance), account.currency)}
                   </span>
                 </div>

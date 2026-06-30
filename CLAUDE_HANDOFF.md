@@ -1,7 +1,35 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
-> Atualizado em: 2026-06-28
-> Último commit: `d699d9d` | Branch: `fix/29-bugs-report` | Deploy: meupedemeia.vercel.app
+> Atualizado em: 2026-06-30
+> Último commit: pendente | Branch: `main` | Deploy: meupedemeia.vercel.app
+
+---
+
+## 🔒 Auditoria de Segurança 2026-06-30 — 18 fixes aplicados
+
+### Edge Functions (5 fixes)
+- `get-place-suggestions`: JWT auth + CORS restrito (era sem auth, CORS `*`)
+- `get-currency-quote`: CORS restrito a origins conhecidos (era `*`)
+- `sync-b3-tickers`: CORS restrito + CRON_SECRET (era `*`, sem auth)
+- `send-bill-reminders`: CRON_SECRET verification adicionada
+- `send-monthly-report`: CRON_SECRET verification adicionada
+
+### Frontend (4 fixes)
+- `aiAdvisorService.ts`: fallback dev usa Vite proxy (não expõe VITE_GROQ_API_KEY)
+- `AppLock.tsx`: reduzido a stub (SHA-256 localStorage bypassável removido)
+- `OFXImportModal.tsx`: validação de tamanho máximo 10MB
+- `PrivacySettings.tsx`: validação de payload máximo 50MB na exportação
+
+### Config (4 fixes)
+- `vercel.json`: headers X-Download-Options + X-Permitted-Cross-Domain-Policies
+- `sw.ts`: Service Worker não cacheia /auth/ e /token do Supabase
+- `groq-proxy/index.ts`: validação de payload (size limit 100KB + structure check)
+- `types.ts`: regenerado (admin_password removido)
+
+### ⚠️ Ação manual necessária
+1. Configurar `CRON_SECRET` nos env vars do Supabase Dashboard
+2. Configurar `CRON_SECRET` no pg_cron (Authorization: Bearer <secret>)
+3. Configurar wildcard `https://*.vercel.app/**` no Supabase Auth → Redirect URLs
 
 ---
 

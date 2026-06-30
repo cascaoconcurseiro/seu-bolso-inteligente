@@ -93,7 +93,7 @@ export function AccountFormModal({
   const [currency, setCurrency] = useState("USD");
   const [type, setType] = useState<string>("CHECKING");
   const [balance, setBalance] = useState("");
-  
+
   const [name, setName] = useState("");
   const [hideBalance, setHideBalance] = useState(false);
   const [yieldType, setYieldType] = useState<string>("NONE");
@@ -135,9 +135,8 @@ export function AccountFormModal({
 
   const handleSubmit = async () => {
     const isCustom = bankId === "default" || bankId === "default_international";
-    const finalBankId = isCustom && customBankName.trim() 
-      ? `custom:${customBankName.trim()}` 
-      : bankId;
+    const finalBankId =
+      isCustom && customBankName.trim() ? `custom:${customBankName.trim()}` : bankId;
 
     const yRate = yieldType !== "NONE" ? moneyUtils.parse(yieldRate) : null;
     const yType = yieldType !== "NONE" ? yieldType : null;
@@ -150,9 +149,9 @@ export function AccountFormModal({
         const bank = isInternational ? internationalBanks[finalBankId] : banks[finalBankId];
         bankName = bank ? bank.name : "";
       }
-      
-      const defaultName = bankName 
-        ? `${bankName} - ${accountTypeLabels[type] || type}` 
+
+      const defaultName = bankName
+        ? `${bankName} - ${accountTypeLabels[type] || type}`
         : accountTypeLabels[type] || type;
 
       // Usa o nome digitado pelo usuário ou o nome gerado automaticamente como fallback
@@ -203,7 +202,7 @@ export function AccountFormModal({
     const isCustom = bankId === "default" || bankId === "default_international";
     if (isCustom && !customBankName.trim()) return false;
     if (!bankId) return false;
-    
+
     if (mode === "create") {
       return true;
     }
@@ -217,10 +216,13 @@ export function AccountFormModal({
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader>
-          <DialogTitle className="text-base font-display font-bold">{mode === "create" ? "Nova conta" : "Editar conta"}</DialogTitle>
+          <DialogTitle className="text-base font-display font-bold">
+            {mode === "create" ? "Nova conta" : "Editar conta"}
+          </DialogTitle>
           {mode === "edit" && (
             <DialogDescription>
-              Edite as preferências e o nome da sua conta. Para ajustar o saldo, registre uma nova transação.
+              Edite as preferências e o nome da sua conta. Para ajustar o saldo, registre uma nova
+              transação.
             </DialogDescription>
           )}
         </DialogHeader>
@@ -258,22 +260,21 @@ export function AccountFormModal({
                         </div>
                       </SelectItem>
                     ))
-                  : Object.values(banks)
-                      .map((b) => (
-                        <SelectItem key={b.id} value={b.id}>
-                          <div className="flex items-center gap-2">
-                            <BankIcon bankId={b.id} size="sm" />
-                            {b.name}
-                          </div>
-                        </SelectItem>
-                      ))}
+                  : Object.values(banks).map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        <div className="flex items-center gap-2">
+                          <BankIcon bankId={b.id} size="sm" />
+                          {b.name}
+                        </div>
+                      </SelectItem>
+                    ))}
               </SelectContent>
             </Select>
           </FormField>
 
           {(bankId === "default" || bankId === "default_international") && (
             <FormField label="Nome da Instituição" htmlFor="account-custom-bank">
-              <Input 
+              <Input
                 id="account-custom-bank"
                 name="account-custom-bank"
                 value={customBankName}
@@ -376,7 +377,8 @@ export function AccountFormModal({
                     autoComplete="off"
                   />
                   <p className="text-sm text-muted-foreground">
-                    O rendimento será calculado sobre a taxa global de CDI definida nas Configurações.
+                    O rendimento será calculado sobre a taxa global de CDI definida nas
+                    Configurações.
                   </p>
                 </FormField>
               )}
@@ -392,10 +394,20 @@ export function AccountFormModal({
           </div>
 
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1"
+            >
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={!isFormValid() || isLoading} className="flex-1">
+            <Button
+              onClick={handleSubmit}
+              disabled={!isFormValid() || isLoading}
+              className="flex-1"
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {mode === "create" ? "Criar Conta" : "Salvar"}
             </Button>

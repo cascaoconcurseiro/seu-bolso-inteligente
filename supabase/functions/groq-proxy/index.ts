@@ -69,6 +69,24 @@ serve(async (req) => {
     });
   }
 
+  // [SEC] Validate payload structure and size (max 100KB to prevent abuse)
+  const bodyStr = JSON.stringify(body);
+  if (bodyStr.length > 100_000) {
+    return new Response("Payload too large", {
+      status: 413,
+      headers: corsHeaders(req.headers.get("origin")),
+    });
+  }
+
+  // [SEC] Basic validation: must have messages array
+  const payload = body as Record<string, unknown>;
+  if (!payload.messages || !Array.isArray(payload.messages) || payload.messages.length === 0) {
+    return new Response("Invalid payload: messages array required", {
+      status: 400,
+      headers: corsHeaders(req.headers.get("origin")),
+    });
+  }
+
   const groqRes = await fetch(GROQ_URL, {
     method: "POST",
     headers: {

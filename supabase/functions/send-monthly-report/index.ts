@@ -39,13 +39,31 @@ interface UserReport {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const MONTHS_PT = [
-  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
 const CATEGORY_COLORS = [
-  "#6366f1","#f59e0b","#10b981","#ef4444","#3b82f6",
-  "#8b5cf6","#ec4899","#14b8a6","#f97316","#64748b",
+  "#6366f1",
+  "#f59e0b",
+  "#10b981",
+  "#ef4444",
+  "#3b82f6",
+  "#8b5cf6",
+  "#ec4899",
+  "#14b8a6",
+  "#f97316",
+  "#64748b",
 ];
 
 function fmt(value: number, currency = "BRL"): string {
@@ -72,13 +90,17 @@ function deltaColor(current: number, prev: number, invertGood = false): string {
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function fetchReportData(userId: string, year: number, month: number): Promise<UserReport | null> {
-  const startDate = `${year}-${String(month).padStart(2,"0")}-01`;
+async function fetchReportData(
+  userId: string,
+  year: number,
+  month: number
+): Promise<UserReport | null> {
+  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
   const endDate = new Date(year, month, 0).toISOString().split("T")[0];
 
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevYear = month === 1 ? year - 1 : year;
-  const prevStart = `${prevYear}-${String(prevMonth).padStart(2,"0")}-01`;
+  const prevStart = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
   const prevEnd = new Date(prevYear, prevMonth, 0).toISOString().split("T")[0];
 
   // Profile
@@ -129,11 +151,13 @@ async function fetchReportData(userId: string, year: number, month: number): Pro
     .reduce((s: number, t: any) => s + Number(t.amount), 0);
 
   // Category breakdown
-  const categoryIds = [...new Set(
-    (txCurrent ?? [])
-      .filter((t: any) => t.type === "EXPENSE" && t.category_id)
-      .map((t: any) => t.category_id)
-  )];
+  const categoryIds = [
+    ...new Set(
+      (txCurrent ?? [])
+        .filter((t: any) => t.type === "EXPENSE" && t.category_id)
+        .map((t: any) => t.category_id)
+    ),
+  ];
 
   const { data: categories } = categoryIds.length
     ? await supabase.from("categories").select("id, name").in("id", categoryIds)
@@ -201,7 +225,9 @@ async function fetchReportData(userId: string, year: number, month: number): Pro
 function buildEmailHtml(r: UserReport): string {
   const balancePositive = r.balance >= 0;
 
-  const categoryRows = r.topCategories.map((c) => `
+  const categoryRows = r.topCategories
+    .map(
+      (c) => `
     <tr>
       <td style="padding: 10px 0; border-bottom: 1px solid #1e293b;">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -223,7 +249,9 @@ function buildEmailHtml(r: UserReport): string {
         </div>
       </td>
     </tr>
-  `).join("");
+  `
+    )
+    .join("");
 
   const incDelta = delta(r.income, r.prevIncome);
   const expDelta = delta(r.expense, r.prevExpense);
@@ -299,7 +327,9 @@ function buildEmailHtml(r: UserReport): string {
           <tr><td style="height:20px;"></td></tr>
 
           <!-- Top categories -->
-          ${r.topCategories.length > 0 ? `
+          ${
+            r.topCategories.length > 0
+              ? `
           <tr>
             <td style="background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:24px;">
               <p style="margin:0 0 16px; color:#f1f5f9; font-size:15px; font-weight:600;">Top categorias de gasto</p>
@@ -309,7 +339,9 @@ function buildEmailHtml(r: UserReport): string {
             </td>
           </tr>
           <tr><td style="height:20px;"></td></tr>
-          ` : ""}
+          `
+              : ""
+          }
 
           <!-- Patrimony & Goals -->
           <tr>
@@ -372,7 +404,7 @@ async function sendEmail(report: UserReport): Promise<void> {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${RESEND_API_KEY}`,
+      Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -392,6 +424,17 @@ async function sendEmail(report: UserReport): Promise<void> {
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
+  // [SEC] Verify CRON_SECRET to prevent unauthorized invocation
+  if (CRON_SECRET) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${CRON_SECRET}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
     const now = new Date();
     // Report is about the previous month
@@ -450,12 +493,12 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ ok: true, month: targetMonth, year: targetYear, results }),
-      { headers: { "Content-Type": "application/json" } },
+      { headers: { "Content-Type": "application/json" } }
     );
   } catch (e: any) {
-    return new Response(
-      JSON.stringify({ ok: false, error: e.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ ok: false, error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });

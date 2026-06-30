@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { logger } from '@/utils/logger';
+import { useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 /**
  * AppLock — DEPRECATED. Use PinWrapper (bcrypt server-side via verify_pin RPC) instead.
@@ -16,10 +16,12 @@ interface AppLockProps {
 
 export function AppLock({ children }: AppLockProps) {
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedPin = localStorage.getItem('@BolsoInteligente:pin');
+    if (typeof window !== "undefined") {
+      const savedPin = localStorage.getItem("@BolsoInteligente:pin");
       if (savedPin) {
-        logger.warn('[AppLock] PIN legado detectado. Configure o PIN em Configurações > Segurança para migrar ao sistema bcrypt.');
+        logger.warn(
+          "[AppLock] PIN legado detectado. Configure o PIN em Configurações > Segurança para migrar ao sistema bcrypt."
+        );
       }
     }
   }, []);

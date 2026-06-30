@@ -1,11 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { sheetDialogCn } from "@/lib/dialog-variants";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FileUp, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
@@ -16,11 +11,17 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { insertRecords } from "@/utils/supabaseHelpers";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateTransactionInput } from "@/hooks/useTransactions";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface OFXImportModalProps {
@@ -41,7 +42,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeAccounts = useMemo(() => {
-    return accounts?.filter(acc => acc.is_active !== false) || [];
+    return accounts?.filter((acc) => acc.is_active !== false) || [];
   }, [accounts]);
 
   const parseOFXDate = (dateStr: string): string => {
@@ -50,7 +51,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
       // Retorna ontem como fallback seguro em vez de hoje para evitar datas futuras
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      return format(yesterday, 'yyyy-MM-dd');
+      return format(yesterday, "yyyy-MM-dd");
     }
     const year = dateStr.substring(0, 4);
     const month = dateStr.substring(4, 6);
@@ -62,22 +63,30 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
       if (isNaN(parsed.getTime())) throw new Error();
       return iso;
     } catch {
-      return format(new Date(), 'yyyy-MM-dd');
+      return format(new Date(), "yyyy-MM-dd");
     }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!selectedAccountId) {
       toast.error("Por favor, selecione uma conta de destino primeiro.");
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.ofx') && !file.name.toLowerCase().endsWith('.csv')) {
+    if (!file.name.toLowerCase().endsWith(".ofx") && !file.name.toLowerCase().endsWith(".csv")) {
       toast.error("Formato inválido. Envie um arquivo .OFX ou .CSV");
+      return;
+    }
+
+    // [SEC] Validate file size — max 10MB to prevent memory DoS
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. O tamanho máximo é 10 MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
@@ -87,21 +96,21 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
       const text = await file.text();
       let importedTx: any[] = [];
 
-      if (file.name.toLowerCase().endsWith('.ofx')) {
+      if (file.name.toLowerCase().endsWith(".ofx")) {
         const xmlContent = text.substring(text.indexOf("<OFX>"));
         const parser = new XMLParser();
         const jsonObj = parser.parse(xmlContent);
-        
+
         const transactions = extractTransactionsFromOFX(jsonObj);
-        
-        importedTx = transactions.map(tx => {
+
+        importedTx = transactions.map((tx) => {
           const amt = parseFloat(tx.TRNAMT || "0");
           return {
             amount: Math.abs(amt),
             type: amt < 0 ? "EXPENSE" : "INCOME",
             description: tx.MEMO || tx.NAME || "Transação Importada",
             date: parseOFXDate(tx.DTPOSTED),
-            external_id: tx.FITID
+            external_id: tx.FITID,
           };
         });
       } else {
@@ -115,19 +124,22 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
         return;
       }
 
-      // Filtrar duplicados: compara data, valor e conta. 
+      // Filtrar duplicados: compara data, valor e conta.
       // Em um cenário mais robusto, external_id (FITID) salvaria.
       const newTransactions: any[] = [];
       let duplicateCounter = 0;
 
       for (const tx of importedTx) {
-        const isDuplicate = existingTransactions?.some(et => 
-          et.account_id === selectedAccountId &&
-          et.type === tx.type &&
-          et.date === tx.date &&
-          SafeFinancialCalculator.toSafeNumber(et.amount) === SafeFinancialCalculator.toSafeNumber(tx.amount) &&
-          // Compara pelo FITID se já tivermos salvo
-          (et.external_id === tx.external_id || et.description.toLowerCase() === tx.description.toLowerCase())
+        const isDuplicate = existingTransactions?.some(
+          (et) =>
+            et.account_id === selectedAccountId &&
+            et.type === tx.type &&
+            et.date === tx.date &&
+            SafeFinancialCalculator.toSafeNumber(et.amount) ===
+              SafeFinancialCalculator.toSafeNumber(tx.amount) &&
+            // Compara pelo FITID se já tivermos salvo
+            (et.external_id === tx.external_id ||
+              et.description.toLowerCase() === tx.description.toLowerCase())
         );
 
         if (isDuplicate) {
@@ -142,42 +154,41 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
             date: tx.date,
             competence_date: `${tx.date.substring(0, 7)}-01`,
             external_id: tx.external_id,
-            domain: 'PERSONAL',
+            domain: "PERSONAL",
             is_shared: false,
             is_installment: false,
-            is_recurring: false
+            is_recurring: false,
           });
         }
       }
 
       if (newTransactions.length > 0) {
-        await insertRecords('transactions', newTransactions);
+        await insertRecords("transactions", newTransactions);
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
         queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
       }
 
       setSuccessCount(newTransactions.length);
       setDuplicatesCount(duplicateCounter);
-      
+
       if (newTransactions.length > 0) {
         toast.success(`${newTransactions.length} transações salvas com sucesso!`);
       } else {
         toast.info(`Nenhuma transação nova. ${duplicateCounter} duplicadas ignoradas.`);
       }
-      
     } catch (error) {
       logger.error(error);
       toast.error("Erro ao ler arquivo. Verifique o formato.");
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const extractTransactionsFromOFX = (obj: any): any[] => {
     let results: any[] = [];
-    if (typeof obj !== 'object' || obj === null) return results;
-    
+    if (typeof obj !== "object" || obj === null) return results;
+
     if (obj.STMTTRN) {
       if (Array.isArray(obj.STMTTRN)) {
         results = [...results, ...obj.STMTTRN];
@@ -224,9 +235,13 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               </div>
               <div className="text-center">
                 <h3 className="font-medium text-sm text-foreground">Importação Concluída</h3>
-                <p className="text-xs text-muted-foreground">{successCount} novas transações adicionadas</p>
+                <p className="text-xs text-muted-foreground">
+                  {successCount} novas transações adicionadas
+                </p>
                 {duplicatesCount > 0 && (
-                  <p className="text-xs text-warning mt-1">{duplicatesCount} transações duplicadas ignoradas.</p>
+                  <p className="text-xs text-warning mt-1">
+                    {duplicatesCount} transações duplicadas ignoradas.
+                  </p>
                 )}
               </div>
               <Button onClick={handleClose} size="sm" className="mt-2">
@@ -254,37 +269,45 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               {!selectedAccountId && (
                 <Alert variant="warning" className="bg-warning/10 text-warning border-warning/20">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-xs">Selecione uma conta acima para liberar o botão de upload.</AlertDescription>
+                  <AlertDescription className="text-xs">
+                    Selecione uma conta acima para liberar o botão de upload.
+                  </AlertDescription>
                 </Alert>
               )}
 
-              <div 
+              <div
                 className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors
-                  ${!selectedAccountId ? 'border-border/50 bg-muted/10 opacity-50 cursor-not-allowed' : 'border-border hover:bg-muted/30 cursor-pointer'}
+                  ${!selectedAccountId ? "border-border/50 bg-muted/10 opacity-50 cursor-not-allowed" : "border-border hover:bg-muted/30 cursor-pointer"}
                 `}
                 onClick={() => selectedAccountId && fileInputRef.current?.click()}
               >
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
-                  className="hidden" 
+                  className="hidden"
                   accept=".ofx"
                   onChange={handleFileChange}
                 />
-                
+
                 {isUploading ? (
                   <>
                     <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
                     <p className="font-medium text-sm">Processando arquivo...</p>
-                    <p className="text-xs text-muted-foreground mt-1">Sincronizando com o banco...</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sincronizando com o banco...
+                    </p>
                   </>
                 ) : (
                   <>
                     <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3">
                       <FileUp className="h-5 w-5" />
                     </div>
-                    <p className="font-medium text-sm text-foreground mb-1">Clique para enviar OFX</p>
-                    <p className="text-xs text-muted-foreground">O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)</p>
+                    <p className="font-medium text-sm text-foreground mb-1">
+                      Clique para enviar OFX
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      O sistema criará os lançamentos na categoria "A Revisar" (Sem Categoria)
+                    </p>
                   </>
                 )}
               </div>

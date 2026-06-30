@@ -49,6 +49,7 @@ import { BackupManager } from "@/components/settings/BackupManager";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { HelpSettings } from "@/components/settings/HelpSettings";
 import { AutoShareRulesSettings } from "@/components/settings/AutoShareRulesSettings";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 
 export function Settings() {
   const { user, signOut } = useAuth();
@@ -88,31 +89,42 @@ export function Settings() {
   const deleteCategory = useDeleteCategory();
 
   const handleCreateCategory = async () => {
-    try { await createCategory.mutateAsync({ 
-      name: newCategoryName, 
-      type: newCategoryType, 
-      icon: newCategoryIcon,
-      parent_category_id: parentCategoryId
-    }); } catch { /* onError do hook já trata */ }
-    setShowAddCategoryDialog(false);
-    setNewCategoryName("");
-    setNewCategoryType("expense");
-    setNewCategoryIcon("📦");
-    setParentCategoryId(null);
+    showActionFeedback("success");
+    setTimeout(() => {
+      setShowAddCategoryDialog(false);
+      setNewCategoryName("");
+      setNewCategoryType("expense");
+      setNewCategoryIcon("📦");
+      setParentCategoryId(null);
+    }, 80);
+    try { 
+      createCategory.mutate({ 
+        name: newCategoryName, 
+        type: newCategoryType, 
+        icon: newCategoryIcon,
+        parent_category_id: parentCategoryId
+      }); 
+    } catch { /* onError do hook já trata */ }
   };
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword || newPassword.length < 6) return;
-    try { await updatePassword.mutateAsync({ newPassword }); } catch { /* onError do hook já trata */ }
-    setShowChangePasswordDialog(false);
-    setNewPassword("");
-    setConfirmPassword("");
+    showActionFeedback("success");
+    setTimeout(() => {
+      setShowChangePasswordDialog(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    }, 80);
+    try { updatePassword.mutate({ newPassword }); } catch { /* onError do hook já trata */ }
   };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "EXCLUIR") return;
-    await deleteAccount.mutateAsync();
-    setShowDeleteAccountDialog(false);
+    showActionFeedback("success");
+    setTimeout(() => {
+      setShowDeleteAccountDialog(false);
+    }, 80);
+    deleteAccount.mutate();
   };
 
   const getInitials = (name: string) => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);

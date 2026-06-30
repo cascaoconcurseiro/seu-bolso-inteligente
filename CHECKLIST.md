@@ -1,11 +1,26 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-30 — Pós-Auditoria Completa
+> Última atualização: 2026-06-30 — Pós-Auditoria Completa de Segurança
 
 ---
 
 ## 🔴 CRÍTICO — Fazer Agora (Bloqueadores de Segurança)
+
+- [x] **[AUD-08]** ~~Edge Function `get-place-suggestions` sem autenticação~~ ✅ DONE
+  - JWT verification via `supabase.auth.getUser()`, CORS restrito
+
+- [x] **[AUD-09]** ~~VITE_GROQ_API_KEY no bundle frontend~~ ✅ DONE
+  - Fallback dev agora usa proxy Vite em vez de chave direta
+
+- [x] **[AUD-10]** ~~AppLock legado (SHA-256 localStorage bypassável)~~ ✅ DONE
+  - Reduzido a stub. PinWrapper (bcrypt server-side) é o único sistema ativo.
+
+- [x] **[AUD-11]** ~~Edge Functions sem CRON_SECRET~~ ✅ DONE
+  - `send-bill-reminders`, `send-monthly-report`, `sync-b3-tickers` agora verificam `CRON_SECRET`
+
+- [x] **[AUD-12]** ~~CORS `*` em Edge Functions~~ ✅ DONE
+  - `get-currency-quote`, `sync-b3-tickers` com CORS restrito a origins conhecidos
 
 - [x] **[SEC-01]** ~~Remover Mock Auth de produção~~ ✅ DONE
   - `AuthContext.tsx:24` — gate com `import.meta.env.DEV`
@@ -48,6 +63,31 @@
   - Mencionado em `CLAUDE_HANDOFF.md` como pendente
   - Requer `SECURITY DEFINER` para evitar recursão
   - Esforço: S
+
+---
+
+## 🟢 PÓS-AUDITORIA 2026-06-30 — Corrigido
+
+- [x] **[AUD-08]** ~~get-place-suggestions sem JWT auth~~ ✅ DONE — JWT + CORS restrito
+- [x] **[AUD-09]** ~~VITE_GROQ_API_KEY no bundle frontend~~ ✅ DONE — fallback via Vite proxy
+- [x] **[AUD-10]** ~~AppLock SHA-256 localStorage bypassável~~ ✅ DONE — reduzido a stub
+- [x] **[AUD-11]** ~~Edge Functions sem CRON_SECRET~~ ✅ DONE — 3 funções protegidas
+- [x] **[AUD-12]** ~~CORS `*` em get-currency-quote e sync-b3-tickers~~ ✅ DONE
+- [x] **[AUD-13]** ~~Headers X-Download-Options e X-Permitted-Cross-Domain ausentes~~ ✅ DONE
+- [x] **[AUD-14]** ~~types.ts com admin_password obsoleto~~ ✅ DONE — regenerado
+- [x] **[AUD-15]** ~~OFX import sem validação de tamanho~~ ✅ DONE — max 10MB
+- [x] **[AUD-16]** ~~groq-proxy sem validação de payload~~ ✅ DONE — size limit + structure check
+- [x] **[AUD-17]** ~~Service Worker cacheando auth endpoints~~ ✅ DONE — exclui /auth/ e /token
+- [x] **[AUD-18]** ~~Export sem validação de tamanho~~ ✅ DONE — max 50MB
+
+## ⚠️ PENDENTE (pós-auditoria)
+
+- [ ] **[AUD-P1]** Configurar `CRON_SECRET` nos env vars do Supabase (Edge Functions)
+- [ ] **[AUD-P2]** Configurar `CRON_SECRET` no pg_cron (Authorization header nos requests)
+- [ ] **[AUD-P3]** Implementar rate limiting nas Edge Functions expostas
+- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs
+- [ ] **[SEC-08]** Criptografar cache IndexedDB
+- [ ] **[RLS-01]** RLS cross-family para cartão compartilhado
 
 ---
 
