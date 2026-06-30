@@ -63,13 +63,13 @@ export function AccountCard({
   const shouldHideBalance = isPrivate || account.hide_balance;
 
   return (
-    <div className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden">
-      <Link to={`/contas/${account.id}`} className="flex flex-col flex-1">
+    <div className="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background">
+      <Link to={`/contas/${account.id}`} className="flex flex-col flex-1" aria-label={`Conta: ${account.name}, saldo ${formatCurrency(account.balance)}`}>
         {/* Card Header visual mimicry */}
         <div className="p-4 md:p-5 relative overflow-hidden" style={{ backgroundColor: account.bank_color || bank.color }}>
           {/* Subtle glowing orb */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
-          
+
           <div className="flex items-center justify-between gap-3 relative z-10">
             <div className="flex items-center gap-3">
               <div className="p-1 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
@@ -95,11 +95,11 @@ export function AccountCard({
               </span>
             )}
           </div>
-          
+
           <div className="mt-4 md:mt-6 relative z-10">
             <p className="text-sm uppercase tracking-wider font-bold opacity-75" style={{ color: bank.textColor }}>Saldo Disponível</p>
             <p className={cn("font-mono text-2xl sm:text-3xl font-black tracking-tight mt-1", shouldHideBalance && "blur-md opacity-50 select-none")} style={{ color: bank.textColor }}>
-              {shouldHideBalance ? "•••••" : (isInternational 
+              {shouldHideBalance ? "•••••" : (isInternational
                 ? `${currencySymbol} ${Number(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
                 : formatCurrency(Number(account.balance)))
               }
@@ -127,8 +127,8 @@ export function AccountCard({
                   ? Math.abs(Number(tx.destination_amount))
                   : Math.abs(Number(tx.amount));
                 return (
-                  <div 
-                    key={tx.id} 
+                  <div
+                    key={tx.id}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();

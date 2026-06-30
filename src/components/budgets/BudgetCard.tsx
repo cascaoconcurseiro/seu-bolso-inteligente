@@ -29,8 +29,8 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         onEdit(budget);
       }}
       className={cn(
-        "group relative p-6 rounded-4xl border transition-all duration-500 overflow-hidden cursor-pointer",
-        isOverBudget 
+        "group relative p-6 rounded-4xl border transition-all duration-500 overflow-hidden cursor-pointer focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        isOverBudget
           ? "border-destructive/30 bg-destructive/5 shadow-lg shadow-destructive/5"
           : isWarning
             ? "border-warning/30 bg-warning/5 shadow-lg shadow-warning/5"
@@ -47,10 +47,10 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         <div className="flex items-center gap-4">
           <div className={cn(
             "w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner transition-transform group-hover:scale-110 duration-500",
-            isOverBudget 
-              ? "bg-destructive/12 text-destructive" 
-              : isWarning 
-                ? "bg-warning/10 text-warning" 
+            isOverBudget
+              ? "bg-destructive/12 text-destructive"
+              : isWarning
+                ? "bg-warning/10 text-warning"
                 : "bg-muted text-foreground"
           )}>
             {budget.category_icon || "💰"}
@@ -73,15 +73,15 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
           </div>
         </div>
         <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-          <button 
-            onClick={() => onEdit(budget)} 
+          <button
+            onClick={() => onEdit(budget)}
             className="p-2 hover:bg-muted rounded-xl transition-all hover:scale-110 active:scale-95"
             title="Editar Orçamento"
           >
             <Pencil className="h-4 w-4 text-muted-foreground" />
           </button>
-          <button 
-            onClick={() => onDelete(budget.budget_id)} 
+          <button
+            onClick={() => onDelete(budget.budget_id)}
             className="p-2 hover:bg-destructive/12 rounded-xl transition-all hover:scale-110 active:scale-95 text-destructive"
             title="Excluir Orçamento"
           >
@@ -109,20 +109,20 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
               </p>
             </div>
           </div>
-          
+
           <div className="relative w-full bg-muted/60 rounded-full h-3.5 overflow-hidden shadow-inner border border-border/40">
-            <div 
+            <div
               className={cn(
-                "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.15)]", 
+                "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.15)]",
                 isOverBudget ? "bg-gradient-to-r from-red-600 to-red-400" : isWarning ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
-              )} 
-              style={{ width: `${Math.min(percentage, 100)}%` }} 
+              )}
+              style={{ width: `${Math.min(percentage, 100)}%` }}
             />
             {/* Efeito de listras animadas para overbudget */}
             {isOverBudget && (
-              <div 
-                className="absolute top-0 left-0 h-full w-full opacity-30" 
-                style={{ 
+              <div
+                className="absolute top-0 left-0 h-full w-full opacity-30"
+                style={{
                   backgroundImage: 'linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)',
                   backgroundSize: '1rem 1rem',
                   animation: 'progress-stripes 1s linear infinite'

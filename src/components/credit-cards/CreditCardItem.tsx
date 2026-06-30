@@ -19,31 +19,46 @@ export function CreditCardItem({
   openCardDetail,
 }: CreditCardItemProps) {
   const invoice = getCardInvoice(card);
-  const isOverdue = invoice.status === 'CLOSED' && new Date() > invoice.dueDate && invoice.value > 0 && invoice.status !== 'PAID';
+  const isOverdue =
+    invoice.status === "CLOSED" &&
+    new Date() > invoice.dueDate &&
+    invoice.value > 0 &&
+    invoice.status !== "PAID";
   const bank = getBankById(card.bank_id);
-  
+
   return (
-    <div 
+    <div
       role="button"
       tabIndex={0}
       aria-label={`Cartão: ${card.name}, ${bank.name}, fatura ${formatCurrency(invoice.value || 0)}`}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCardDetail(card); } }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openCardDetail(card);
+        }
+      }}
       onClick={() => openCardDetail(card)}
-      className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-3xl p-[1.5px] w-full max-w-md mx-auto"
+      className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-3xl p-[1.5px] w-full max-w-md mx-auto focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       style={{
-        background: `linear-gradient(135deg, ${bank.color}80 0%, ${bank.color}20 100%)`
+        background: `linear-gradient(135deg, ${bank.color}80 0%, ${bank.color}20 100%)`,
       }}
     >
-      <div 
+      <div
         className="relative overflow-hidden rounded-[calc(1.5rem-1.5px)] bg-card border border-white/5 p-5 w-full flex flex-col justify-between min-h-[200px]"
         style={{
           background: `linear-gradient(135deg, ${bank.color}15 0%, transparent 100%)`,
-          backdropFilter: "blur(20px)"
+          backdropFilter: "blur(20px)",
         }}
       >
         {/* Glow Effects */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full blur-[50px] opacity-40 transition-opacity group-hover:opacity-60" style={{ backgroundColor: bank.color }} />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full blur-[50px] opacity-20 transition-opacity group-hover:opacity-40" style={{ backgroundColor: bank.color }} />
+        <div
+          className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full blur-[50px] opacity-40 transition-opacity group-hover:opacity-60"
+          style={{ backgroundColor: bank.color }}
+        />
+        <div
+          className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full blur-[50px] opacity-20 transition-opacity group-hover:opacity-40"
+          style={{ backgroundColor: bank.color }}
+        />
 
         {/* Top Section: Bank Logo and Contactless */}
         <div className="relative z-10 flex justify-between items-start">
@@ -63,7 +78,7 @@ export function CreditCardItem({
             <div className="h-full w-px bg-yellow-900/20 absolute" />
             <div className="w-6 h-4 border border-yellow-900/20 rounded-sm absolute" />
           </div>
-          
+
           <div className="text-right">
             {isOverdue ? (
               <span className="text-sm font-bold text-destructive dark:text-destructive bg-destructive/12 px-2.5 py-1 rounded-full flex items-center gap-1 animate-pulse border border-destructive/20">
@@ -71,15 +86,21 @@ export function CreditCardItem({
                 ATRASADA
               </span>
             ) : (
-              <span className={cn(
-                "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
-                invoice.status === 'PAID'
-                  ? "bg-success/10 text-success border-success/20"
-                  : invoice.status === 'CLOSED' 
-                  ? "bg-warning/10 text-warning dark:text-warning border-warning/20" 
-                  : "bg-accent/10 text-accent border-accent/20"
-              )}>
-                {invoice.status === 'PAID' ? '✓ PAGA' : invoice.status === 'CLOSED' ? 'FECHADA' : 'ABERTA'}
+              <span
+                className={cn(
+                  "text-xs font-bold px-2.5 py-1 rounded-full border shadow-sm",
+                  invoice.status === "PAID"
+                    ? "bg-success/10 text-success border-success/20"
+                    : invoice.status === "CLOSED"
+                      ? "bg-warning/10 text-warning dark:text-warning border-warning/20"
+                      : "bg-accent/10 text-accent border-accent/20"
+                )}
+              >
+                {invoice.status === "PAID"
+                  ? "✓ PAGA"
+                  : invoice.status === "CLOSED"
+                    ? "FECHADA"
+                    : "ABERTA"}
               </span>
             )}
           </div>
@@ -92,10 +113,14 @@ export function CreditCardItem({
               {card.name}
             </h3>
             <div className="flex items-center gap-2">
-              <p className={cn(
-                "font-mono font-black text-2xl tracking-tighter leading-none",
-                isOverdue ? "text-destructive dark:text-destructive drop-shadow-sm" : "text-foreground"
-              )}>
+              <p
+                className={cn(
+                  "font-mono font-black text-2xl tracking-tighter leading-none",
+                  isOverdue
+                    ? "text-destructive dark:text-destructive drop-shadow-sm"
+                    : "text-foreground"
+                )}
+              >
                 {formatCurrency(invoice.value)}
               </p>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold bg-background/40 px-1.5 py-0.5 rounded backdrop-blur-sm border border-border/50">
@@ -103,7 +128,7 @@ export function CreditCardItem({
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col items-end shrink-0">
             {/* O helper CardBrandIcon exibe a rede se existir. A prop 'brand' será pega do banco ou fallbacks. Se não houver, exibe mastercard fallback */}
             <CardBrandIcon brand={card.brand || "mastercard"} size="lg" />

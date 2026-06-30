@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Share2,
   CalendarClock,
+  AlertCircle,
 } from "lucide-react";
 import { InstallmentSimulator } from "./InstallmentSimulator";
 import { BankIcon } from "@/components/financial/BankIcon";
@@ -453,6 +454,21 @@ export function CreditCardDetailView({
           {/* Limite disponível */}
           {selectedCard.credit_limit && selectedCard.credit_limit > 0 && (
             <div className="mt-4 pt-3 border-t border-white/10">
+              {usagePercent >= 90 && (
+                <div
+                  className={cn(
+                    "flex items-center gap-2 mb-3 p-2 rounded-xl text-xs font-medium",
+                    usagePercent >= 100
+                      ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                      : "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
+                  )}
+                >
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {usagePercent >= 100
+                    ? "Limite do cartão excedido! Evite novas compras até pagar a fatura."
+                    : "Limite do cartão está quase no máximo. Considere pagar parte da fatura."}
+                </div>
+              )}
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs opacity-80 font-medium uppercase tracking-wider">
                   Limite Disponível

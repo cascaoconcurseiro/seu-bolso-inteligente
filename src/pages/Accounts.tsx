@@ -107,7 +107,10 @@ export function Accounts() {
     regularAccounts.forEach((a) => {
       const c = a.currency || "BRL";
       const existing = map.get(c) || { balance: 0, symbol: getCurrencySymbol(c) };
-      existing.balance = SafeFinancialCalculator.add(existing.balance, Number(a.balance || 0)).toNumber();
+      existing.balance = SafeFinancialCalculator.add(
+        existing.balance,
+        Number(a.balance || 0)
+      ).toNumber();
       map.set(c, existing);
     });
     return Array.from(map.entries())

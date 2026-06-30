@@ -1,6 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { Decimal } from "decimal.js";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 /**
  * SafeFinancialCalculator
@@ -20,8 +20,8 @@ export class SafeFinancialCalculator {
   static toDecimal(val: any, defaultValue: Decimal = SafeFinancialCalculator.ZERO): Decimal {
     if (val === null || val === undefined) return defaultValue;
     if (val instanceof Decimal) return val;
-    if (typeof val === 'number' && isNaN(val)) return defaultValue;
-    if (typeof val === 'string') {
+    if (typeof val === "number" && isNaN(val)) return defaultValue;
+    if (typeof val === "string") {
       const stripped = val.replace(/[^0-9.-]+/g, "");
       if (!stripped || isNaN(parseFloat(stripped))) return defaultValue;
       const parsed = moneyUtils.parse(val);
@@ -40,15 +40,15 @@ export class SafeFinancialCalculator {
    */
   static toSafeNumber(value: number | string, defaultValue: number = 0): number {
     if (value === null || value === undefined) return defaultValue;
-    if (typeof value === 'number' && isNaN(value)) return defaultValue;
-    if (typeof value === 'string') {
+    if (typeof value === "number" && isNaN(value)) return defaultValue;
+    if (typeof value === "string") {
       const stripped = value.replace(/[^0-9.-]+/g, "");
       if (!stripped || isNaN(parseFloat(stripped))) return defaultValue;
     }
-    
+
     try {
       let num: number;
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         num = moneyUtils.parse(value);
         if (isNaN(num)) return defaultValue;
       } else {
@@ -67,8 +67,7 @@ export class SafeFinancialCalculator {
    * Convert from safe integer back to decimal string
    */
   static fromSafeNumber(value: number): Decimal {
-    return SafeFinancialCalculator.toDecimal(value)
-      .dividedBy(SafeFinancialCalculator.MULTIPLIER);
+    return SafeFinancialCalculator.toDecimal(value).dividedBy(SafeFinancialCalculator.MULTIPLIER);
   }
 
   /**
@@ -93,7 +92,10 @@ export class SafeFinancialCalculator {
    * Safe multiplication — returns Decimal
    */
   static multiply(amount: number | Decimal, factor: number | Decimal): Decimal {
-    const decAmount = SafeFinancialCalculator.toDecimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+    const decAmount = SafeFinancialCalculator.toDecimal(amount).toDecimalPlaces(
+      2,
+      Decimal.ROUND_HALF_UP
+    );
     const decFactor = SafeFinancialCalculator.toDecimal(factor);
     return decAmount.times(decFactor).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
   }
@@ -103,8 +105,11 @@ export class SafeFinancialCalculator {
    */
   static divide(amount: number | Decimal, divisor: number | Decimal): Decimal {
     const decDivisor = SafeFinancialCalculator.toDecimal(divisor);
-    if (decDivisor.isZero()) throw new Error('Division by zero');
-    const decAmount = SafeFinancialCalculator.toDecimal(amount).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+    if (decDivisor.isZero()) throw new Error("Division by zero");
+    const decAmount = SafeFinancialCalculator.toDecimal(amount).toDecimalPlaces(
+      2,
+      Decimal.ROUND_HALF_UP
+    );
     return decAmount.dividedBy(decDivisor).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
   }
 
@@ -112,7 +117,10 @@ export class SafeFinancialCalculator {
    * Safe sum of array — returns Decimal
    */
   static safeSum(values: (number | Decimal)[]): Decimal {
-    const sum = values.reduce((acc, val) => acc.plus(SafeFinancialCalculator.toDecimal(val)), new Decimal(0));
+    const sum = values.reduce(
+      (acc, val) => acc.plus(SafeFinancialCalculator.toDecimal(val)),
+      new Decimal(0)
+    );
     return sum.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
   }
 
@@ -135,10 +143,10 @@ export class SafeFinancialCalculator {
   /**
    * Format as currency
    */
-  static formatCurrency(value: number | Decimal, currency: string = 'BRL'): string {
+  static formatCurrency(value: number | Decimal, currency: string = "BRL"): string {
     const num = value instanceof Decimal ? value.toNumber() : value;
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
       currency: currency,
     }).format(num);
   }
@@ -146,13 +154,16 @@ export class SafeFinancialCalculator {
   /**
    * Validate split amounts don't exceed total
    */
-  static validateSplits(total: number | Decimal, splits: Array<{ amount: number | Decimal }>): boolean {
-    const splitSum = SafeFinancialCalculator.safeSum(splits.map(s => s.amount));
+  static validateSplits(
+    total: number | Decimal,
+    splits: Array<{ amount: number | Decimal }>
+  ): boolean {
+    const splitSum = SafeFinancialCalculator.safeSum(splits.map((s) => s.amount));
     const totalSafe = SafeFinancialCalculator.toSafeNumber(
       total instanceof Decimal ? total.toNumber() : total
     );
     const splitSumSafe = SafeFinancialCalculator.toSafeNumber(splitSum.toNumber());
-    
+
     return splitSumSafe === totalSafe;
   }
 
@@ -160,7 +171,7 @@ export class SafeFinancialCalculator {
    * Calculate installment amount — returns Decimal
    */
   static calculateInstallment(total: number | Decimal, installments: number): Decimal {
-    if (installments <= 0) throw new Error('Invalid number of installments');
+    if (installments <= 0) throw new Error("Invalid number of installments");
     return SafeFinancialCalculator.divide(total, installments);
   }
 
@@ -172,21 +183,21 @@ export class SafeFinancialCalculator {
     splits: Array<{ percentage: number }>
   ): Array<{ percentage: number; amount: Decimal }> {
     const totalPercentage = splits.reduce((sum, s) => sum + s.percentage, 0);
-    
+
     if (Math.abs(totalPercentage - 100) > 0.01 && totalPercentage !== 0) {
-      logger.warn('Split percentages do not sum to 100%');
+      logger.warn("Split percentages do not sum to 100%");
     }
 
-    const result = splits.map(split => ({
+    const result = splits.map((split) => ({
       percentage: split.percentage,
       amount: SafeFinancialCalculator.percentage(total, split.percentage),
     }));
 
     // Adjust last split to ensure exact total only if percentages sum to 100%
     const isCloseTo100 = Math.abs(totalPercentage - 100) < 0.01;
-    const calculatedSum = SafeFinancialCalculator.safeSum(result.map(r => r.amount));
+    const calculatedSum = SafeFinancialCalculator.safeSum(result.map((r) => r.amount));
     const difference = SafeFinancialCalculator.subtract(total, calculatedSum);
-    
+
     if (isCloseTo100 && !difference.isZero() && result.length > 0) {
       result[result.length - 1].amount = SafeFinancialCalculator.add(
         result[result.length - 1].amount,
@@ -209,18 +220,18 @@ export class SafeFinancialCalculator {
     annualInflationRate: number
   ): Decimal {
     if (monthsToTarget <= 0) return SafeFinancialCalculator.toDecimal(targetAmount);
-    
+
     const decTarget = SafeFinancialCalculator.toDecimal(targetAmount);
     if (decTarget.isZero() || decTarget.isNegative()) return decTarget;
-    
+
     // Convert annual rate (e.g., 4.72%) to decimal (0.0472)
     const annualRateDec = SafeFinancialCalculator.toDecimal(annualInflationRate).dividedBy(100);
-    
+
     const base = annualRateDec.plus(1).toNumber();
     const monthlyRateDecimal = Math.pow(base, 1 / 12) - 1;
-    
+
     const compoundFactor = Math.pow(1 + monthlyRateDecimal, monthsToTarget);
-    
+
     return decTarget.times(compoundFactor).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
   }
 }
