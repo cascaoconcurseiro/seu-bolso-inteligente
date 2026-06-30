@@ -460,7 +460,7 @@ export function SharedExpenses() {
         <SharedInstallmentImport isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} members={members} onSuccess={() => refetch()} />
       </Suspense>
       
-      <TransactionModal isOpen={showTransactionModal} onClose={() => setShowTransactionModal(false)} />
+      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
       
       <SettlementConfirmationDialog
         isOpen={confirmReceiptDialog.isOpen}

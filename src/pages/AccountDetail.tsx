@@ -266,10 +266,10 @@ export function AccountDetail() {
       />
 
       <TransactionModal
-        isOpen={showTransactionModal}
-        onClose={() => {
-          setShowTransactionModal(false);
-          refetchStatement();
+        open={showTransactionModal}
+        onOpenChange={(open) => {
+          setShowTransactionModal(open);
+          if (!open) refetchStatement();
         }}
       />
 

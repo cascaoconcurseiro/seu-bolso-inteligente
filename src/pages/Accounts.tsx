@@ -437,8 +437,8 @@ export function Accounts() {
 
       <ArchivedAccountsSection />
       <TransactionModal
-        isOpen={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
       />
     </div>
   );

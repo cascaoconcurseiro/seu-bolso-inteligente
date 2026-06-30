@@ -584,10 +584,10 @@ export function Transactions() {
           onUnconfirm={() => detailsTransaction && handleUnconfirm(detailsTransaction)}
         />
         <TransactionModal
-          isOpen={showTransactionModal}
-          onClose={() => {
-            setShowTransactionModal(false);
-            setEditTransactionData(null);
+          open={showTransactionModal}
+          onOpenChange={(open) => {
+            setShowTransactionModal(open);
+            if (!open) setEditTransactionData(null);
           }}
           initialData={editTransactionData}
         />

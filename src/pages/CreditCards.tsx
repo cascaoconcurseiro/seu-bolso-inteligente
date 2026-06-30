@@ -409,11 +409,13 @@ export function CreditCards() {
         />
 
         <TransactionModal
-          isOpen={showTransactionModal}
-          onClose={() => {
-            setShowTransactionModal(false);
-            setEditingTransaction(null);
-            refetchTransactions();
+          open={showTransactionModal}
+          onOpenChange={(open) => {
+            setShowTransactionModal(open);
+            if (!open) {
+              setEditingTransaction(null);
+              refetchTransactions();
+            }
           }}
           initialData={editingTransaction}
         />

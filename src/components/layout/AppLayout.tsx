@@ -350,8 +350,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Global Transaction Modal */}
       <TransactionModal
-        isOpen={showTransactionModal}
-        onClose={() => setShowTransactionModal(false)}
+        open={showTransactionModal}
+        onOpenChange={setShowTransactionModal}
       />
 
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
