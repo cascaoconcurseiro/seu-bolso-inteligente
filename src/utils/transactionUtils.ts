@@ -40,20 +40,26 @@ export interface Transaction {
 }
 
 export interface DayGroup {
-  date: string;           // YYYY-MM-DD
-  label: string;          // "Hoje", "Ontem", "25 de dezembro"
+  date: string; // YYYY-MM-DD
+  label: string; // "Hoje", "Ontem", "25 de dezembro"
   transactions: Transaction[];
   totalIncome: number;
   totalExpense: number;
-  balance: number;        // totalIncome - totalExpense
-  balancesByCurrency: Record<string, {
-    totalIncome: number;
-    totalExpense: number;
-    balance: number;
-  }>;
+  balance: number; // totalIncome - totalExpense
+  balancesByCurrency: Record<
+    string,
+    {
+      totalIncome: number;
+      totalExpense: number;
+      balance: number;
+    }
+  >;
 }
 
-export function getTransactionCurrency(transaction: Pick<Transaction, "currency" | "account">): string {
+export function getTransactionCurrency(transaction: {
+  currency: string | null;
+  account?: { currency?: string | null } | null;
+}): string {
   return transaction.account?.currency || transaction.currency || "BRL";
 }
 
@@ -122,10 +128,16 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
 
       if (t.type === "INCOME") {
         totalIncome = SafeFinancialCalculator.add(totalIncome, amount);
-        balancesByCurrency[currency].totalIncome = SafeFinancialCalculator.add(balancesByCurrency[currency].totalIncome, amount);
+        balancesByCurrency[currency].totalIncome = SafeFinancialCalculator.add(
+          balancesByCurrency[currency].totalIncome,
+          amount
+        );
       } else if (t.type === "EXPENSE") {
         totalExpense = SafeFinancialCalculator.add(totalExpense, amount);
-        balancesByCurrency[currency].totalExpense = SafeFinancialCalculator.add(balancesByCurrency[currency].totalExpense, amount);
+        balancesByCurrency[currency].totalExpense = SafeFinancialCalculator.add(
+          balancesByCurrency[currency].totalExpense,
+          amount
+        );
       }
     }
 
@@ -189,9 +201,10 @@ export function calculateRunningBalance(
       // Transferência: verificar direção
       if (transaction.destination_account_id === accountId) {
         // Entrada na conta: usar destination_amount se houver
-        amt = transaction.destination_amount !== null && transaction.destination_amount !== undefined
-          ? Number(transaction.destination_amount)
-          : Number(transaction.amount);
+        amt =
+          transaction.destination_amount !== null && transaction.destination_amount !== undefined
+            ? Number(transaction.destination_amount)
+            : Number(transaction.amount);
         runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
         isIncoming = true;
       } else if (transaction.account_id === accountId) {
@@ -228,11 +241,11 @@ export function filterAccountsByTripCurrency(
   tripCurrency?: string | null
 ): { filteredAccounts: Account[]; hasCompatibleAccounts: boolean; message?: string } {
   // Excluir cartões de crédito (não são contas para transações normais)
-  const nonCreditCards = accounts.filter(a => a.type !== "CREDIT_CARD");
+  const nonCreditCards = accounts.filter((a) => a.type !== "CREDIT_CARD");
 
   if (!tripCurrency || tripCurrency === "BRL") {
     // Sem viagem ou viagem nacional: mostrar apenas contas nacionais
-    const filtered = nonCreditCards.filter(a => !a.is_international);
+    const filtered = nonCreditCards.filter((a) => !a.is_international);
     return {
       filteredAccounts: filtered,
       hasCompatibleAccounts: filtered.length > 0,
@@ -241,13 +254,14 @@ export function filterAccountsByTripCurrency(
   }
 
   // Viagem internacional: mostrar apenas contas na moeda da viagem
-  const filtered = nonCreditCards.filter(a => a.currency === tripCurrency);
+  const filtered = nonCreditCards.filter((a) => a.currency === tripCurrency);
   return {
     filteredAccounts: filtered,
     hasCompatibleAccounts: filtered.length > 0,
-    message: filtered.length === 0
-      ? `Nenhuma conta encontrada na moeda ${tripCurrency}. Crie uma conta internacional.`
-      : undefined,
+    message:
+      filtered.length === 0
+        ? `Nenhuma conta encontrada na moeda ${tripCurrency}. Crie uma conta internacional.`
+        : undefined,
   };
 }
 
@@ -266,33 +280,41 @@ export interface TransactionFilters {
   familyMembers?: Array<{ id: string; linked_user_id: string | null }>;
 }
 
-export function applyTransactionFilters<T extends {
-  id: string;
-  description: string;
-  type: string;
-  date: string;
-  category?: { id: string; name: string } | null;
-  account?: { id: string; name: string } | null;
-  account_id?: string | null;
-  destination_account_id?: string | null;
-  source_transaction_id?: string | null;
-  is_shared?: boolean;
-  creator_user_id?: string | null;
-  payer_id?: string | null;
-  currency?: string | null;
-}>(transactions: T[], filters: TransactionFilters): T[] {
+export function applyTransactionFilters<
+  T extends {
+    id: string;
+    description: string;
+    type: string;
+    date: string;
+    category?: { id: string; name: string } | null;
+    account?: { id: string; name: string } | null;
+    account_id?: string | null;
+    destination_account_id?: string | null;
+    source_transaction_id?: string | null;
+    is_shared?: boolean;
+    creator_user_id?: string | null;
+    payer_id?: string | null;
+    currency?: string | null;
+  },
+>(transactions: T[], filters: TransactionFilters): T[] {
   const periodDates = getPeriodDates(filters.selectedPeriod);
 
   return transactions.filter((t) => {
     const txCurrency = getTransactionCurrency(t);
     if (filters.selectedCurrency !== "all" && txCurrency !== filters.selectedCurrency) return false;
 
-    if (t.source_transaction_id && t.source_transaction_id !== null && filters.selectedAccount === "all")
+    if (
+      t.source_transaction_id &&
+      t.source_transaction_id !== null &&
+      filters.selectedAccount === "all"
+    )
       return false;
 
     if (t.is_shared === true) {
       const isCreator = t.creator_user_id === filters.userId;
-      const myFamilyMember = filters.familyMembers?.find((m) => m.linked_user_id === filters.userId);
+      const myFamilyMember = filters.familyMembers?.find(
+        (m) => m.linked_user_id === filters.userId
+      );
       const isPayer = myFamilyMember && t.payer_id === myFamilyMember.id;
       if (!isCreator && !isPayer) return false;
     }
@@ -307,15 +329,16 @@ export function applyTransactionFilters<T extends {
       (filters.selectedType === "INCOME" &&
         t.type === "TRANSFER" &&
         t.destination_account_id === filters.selectedAccount);
-    const matchesCategory = filters.selectedCategory === "all" || t.category?.id === filters.selectedCategory;
-    const matchesAccount = filters.selectedAccount === "all" || t.account?.id === filters.selectedAccount;
+    const matchesCategory =
+      filters.selectedCategory === "all" || t.category?.id === filters.selectedCategory;
+    const matchesAccount =
+      filters.selectedAccount === "all" || t.account?.id === filters.selectedAccount;
 
     let matchesPeriod = true;
     if (periodDates) {
       const txDate = new Date(t.date + "T12:00:00");
       matchesPeriod =
-        txDate >= periodDates.start &&
-        txDate <= new Date(periodDates.end.getTime() + 86400000 - 1);
+        txDate >= periodDates.start && txDate <= new Date(periodDates.end.getTime() + 86400000 - 1);
     }
 
     return matchesSearch && matchesType && matchesCategory && matchesAccount && matchesPeriod;

@@ -9,22 +9,21 @@
 
 ## 📊 FASE 1 — INVENTÁRIO COMPLETO
 
-| Categoria        | Qtd  | Localização                                                                                                          |
-| :--------------- | :--- | :------------------------------------------------------------------------------------------------------------------- |
-| Pages            | 22   | `src/pages/`                                                                                                         |
-| Components       | 163  | `src/components/` (ui:49, accounts:10, credit-cards:13, dashboard:12, settings:18, shared:10, transactions:21, etc.) |
-| Hooks            | 55   | `src/hooks/` (incl. subdirs transactions/, credit-cards/)                                                            |
-| Contexts         | 4    | `src/contexts/`                                                                                                      |
-| Services         | 20   | `src/services/` (incl. ai/)                                                                                          |
-| Utils/Lib        | 40   | `src/utils/` + `src/lib/`                                                                                            |
-| Types            | 7    | `src/types/` + `src/integrations/supabase/types.ts`                                                                  |
-| Store            | 1    | `src/store/useTransactionStore.ts`                                                                                   |
-| Config           | 1    | `src/config/navigation.ts`                                                                                           |
-| Styles           | 1    | `src/styles/mobile.css`                                                                                              |
-| Testes unitários | 25   | `src/**/*.test.ts`                                                                                                   |
-| Testes E2E       | 13   | `e2e/*.spec.ts`                                                                                                      |
-| Migrations       | 40+  | `supabase/migrations/`                                                                                               |
-| Edge Functions   | 4+   | `supabase/functions/`                                                                                                |
+|:--|:--|:--|
+| Pages | 22 | `src/pages/` |
+| Components | 163 | `src/components/` (ui:49, accounts:10, credit-cards:13, dashboard:12, settings:18, shared:10, transactions:21, etc.) |
+| Hooks | 55 | `src/hooks/` (incl. subdirs transactions/, credit-cards/) |
+| Contexts | 4 | `src/contexts/` |
+| Services | 20 | `src/services/` (incl. ai/) |
+| Utils/Lib | 40 | `src/utils/` + `src/lib/` |
+| Types | 7 | `src/types/` + `src/integrations/supabase/types.ts` |
+| Store | 1 | `src/store/useTransactionStore.ts` |
+| Config | 1 | `src/config/navigation.ts` |
+| Styles | 1 | `src/styles/mobile.css` |
+| Testes unitários | 25 | `src/**/*.test.ts` |
+| Testes E2E | 13 | `e2e/*.spec.ts` |
+| Migrations | 40+ | `supabase/migrations/` |
+| Edge Functions | 4+ | `supabase/functions/` |
 
 ---
 

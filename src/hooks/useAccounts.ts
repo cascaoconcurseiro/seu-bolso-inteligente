@@ -176,7 +176,7 @@ export function useAccounts(includeArchived = false) {
 
       if (sharedData && !sharedError) {
         const sharedAccounts = sharedData
-          .map((sc: any /* any */) => {
+          .map((sc: { accounts: unknown; credit_limit?: number | null }) => {
             const acc = Array.isArray(sc.accounts) ? sc.accounts[0] : sc.accounts;
             if (acc) {
               // Override do limite de crédito com o limite personalizado do convite, se existir
@@ -195,7 +195,11 @@ export function useAccounts(includeArchived = false) {
           })
           .filter(Boolean)
           // Assegurar que só adicione cartões que não estão deletados e estão ativos
-          .filter((a: any /* any */) => a.is_active === true && a.deleted !== true);
+          .filter(
+            (a) =>
+              (a as { is_active?: boolean; deleted?: boolean }).is_active === true &&
+              (a as { is_active?: boolean; deleted?: boolean }).deleted !== true
+          );
 
         allAccounts = [...allAccounts, ...sharedAccounts];
       }

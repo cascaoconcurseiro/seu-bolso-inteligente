@@ -1,9 +1,9 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useMonth } from '@/contexts/MonthContext';
-import { getMonthDateRange } from '@/utils/dateUtils';
-import { logger } from '@/utils/logger';
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMonth } from "@/contexts/MonthContext";
+import { getMonthDateRange } from "@/utils/dateUtils";
+import { logger } from "@/utils/logger";
 
 export interface DashboardTransaction {
   id: string;
@@ -16,6 +16,7 @@ export interface DashboardTransaction {
   payer_id: string | null;
   account_id: string | null;
   source_transaction_id: string | null;
+  creator_user_id?: string | null;
   category: { id: string; name: string; icon: string | null } | null;
   account: { id: string; name: string; currency: string | null } | null;
 }
@@ -26,7 +27,14 @@ export interface DashboardSummary {
   pending_income: number;
   pending_expense: number;
   balance: number;
-  totals_by_currency: { currency: string; income: number; expense: number; pending_income: number; pending_expense: number; balance: number }[];
+  totals_by_currency: {
+    currency: string;
+    income: number;
+    expense: number;
+    pending_income: number;
+    pending_expense: number;
+    balance: number;
+  }[];
   recent_transactions: DashboardTransaction[];
 }
 
@@ -41,20 +49,37 @@ export function useDashboardData() {
   const { startDate, endDate, monthKey } = getMonthDateRange(currentDate, startDay);
 
   return useQuery({
-    queryKey: ['dashboard-data', user?.id, monthKey],
+    queryKey: ["dashboard-data", user?.id, monthKey],
     staleTime: 1000 * 60 * 5, // 5 minutes cache to avoid excessive refetching
     queryFn: async (): Promise<DashboardSummary> => {
-      if (!user) return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
+      if (!user)
+        return {
+          total_income: 0,
+          total_expense: 0,
+          pending_income: 0,
+          pending_expense: 0,
+          balance: 0,
+          totals_by_currency: [],
+          recent_transactions: [],
+        };
 
-      const { data, error } = await (supabase.rpc as any)('get_dashboard_summary', {
+      const { data, error } = await (supabase.rpc as any)("get_dashboard_summary", {
         p_user_id: user.id,
         p_start_date: startDate,
         p_end_date: endDate,
       });
 
       if (error) {
-        logger.error('[useDashboardData] Erro RPC:', JSON.stringify(error, null, 2));
-        return { total_income: 0, total_expense: 0, pending_income: 0, pending_expense: 0, balance: 0, totals_by_currency: [], recent_transactions: [] };
+        logger.error("[useDashboardData] Erro RPC:", JSON.stringify(error, null, 2));
+        return {
+          total_income: 0,
+          total_expense: 0,
+          pending_income: 0,
+          pending_expense: 0,
+          balance: 0,
+          totals_by_currency: [],
+          recent_transactions: [],
+        };
       }
 
       return {
@@ -73,34 +98,41 @@ export function useDashboardData() {
   });
 }
 
+interface MonthlyEvolutionRow {
+  month_date: string;
+  total_income: number;
+  total_expense: number;
+  currency: string;
+}
+
 /**
  * Hook para evolução mensal — retorna dados dos últimos N meses via RPC.
  * Substitui o cálculo manual em Reports.tsx que iterava sobre 1000 transações.
  */
-export function useMonthlyEvolutionReport(months: number = 6, currency: string = 'BRL') {
+export function useMonthlyEvolutionReport(months: number = 6, currency: string = "BRL") {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['monthly-evolution-report', user?.id, months, currency],
+    queryKey: ["monthly-evolution-report", user?.id, months, currency],
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await (supabase.rpc as any)('get_monthly_evolution_report', {
+      const { data, error } = await supabase.rpc("get_monthly_evolution_report", {
         p_user_id: user.id,
         p_months: months,
       });
 
       if (error) {
-        logger.error('[useMonthlyEvolutionReport] Erro RPC:', error);
+        logger.error("[useMonthlyEvolutionReport] Erro RPC:", error);
         return [];
       }
 
-      // Filtrar a moeda desejada
-      const currencyData = (Array.isArray(data) ? data : []).filter(
-        (row: any) => (row.currency || 'BRL') === currency
+      const typed = data as unknown as MonthlyEvolutionRow[] | null;
+      const currencyData = (Array.isArray(typed) ? typed : []).filter(
+        (row) => (row.currency || "BRL") === currency
       );
 
-      return currencyData.map((row: any) => ({
+      return currencyData.map((row) => ({
         month_start: row.month_date,
         income: Number(row.total_income) || 0,
         expense: Number(row.total_expense) || 0,

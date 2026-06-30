@@ -33,23 +33,23 @@ export const getActualClosingDate = (
 
   switch (mode) {
     case "LAST_DAY": {
-      // Last calendar day of the month
-      return new Date(year, month + 1, 0);
+      // Last calendar day of the month (UTC to avoid timezone shifting per MASTER_BLUEPRINT §3.3)
+      return new Date(Date.UTC(year, month + 1, 0));
     }
     case "LAST_BUSINESS_DAY": {
       // Last weekday (Mon-Fri) of the month
-      let d = new Date(year, month + 1, 0);
-      while (d.getDay() === 0 || d.getDay() === 6) {
-        d.setDate(d.getDate() - 1);
+      let d = new Date(Date.UTC(year, month + 1, 0));
+      while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
+        d.setUTCDate(d.getUTCDate() - 1);
       }
       return d;
     }
     case "FIXED_DAY":
     default: {
       // Use the fixed day, clamped to the month's max days
-      const maxDay = new Date(year, month + 1, 0).getDate();
+      const maxDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
       const day = Math.min(closingDay || 1, maxDay);
-      return new Date(year, month, day);
+      return new Date(Date.UTC(year, month, day));
     }
   }
 };

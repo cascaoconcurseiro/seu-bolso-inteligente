@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from "react";
 import { CreditCard, Wallet, AlertCircle, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useDashboardData } from "@/hooks/useDashboard";
+import { useDashboardData, DashboardTransaction } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
-import { useTrips } from "@/hooks/useTrips";
+import { useTrips, Trip } from "@/hooks/useTrips";
 import { useWealthEvolution } from "@/hooks/useWealthEvolution";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
@@ -43,7 +43,7 @@ import {
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
+  const [transactionToEdit, setTransactionToEdit] = useState<DashboardTransaction | null>(null);
   const [isTripMode, setIsTripMode] = useState(false);
 
   const { user } = useAuth();
@@ -57,9 +57,10 @@ export function Dashboard() {
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(selectedCurrency, "BRL");
 
   useEffect(() => {
-    const handleOpenModal = (e: any) => {
-      if (e.detail?.transaction) {
-        setTransactionToEdit(e.detail.transaction);
+    const handleOpenModal = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.transaction) {
+        setTransactionToEdit(detail.transaction);
       } else {
         setTransactionToEdit(null);
       }
@@ -72,13 +73,12 @@ export function Dashboard() {
   const recentTransactions = useMemo(() => {
     return (dashboardData?.recent_transactions || [])
       .filter((tx) => {
-        // account.currency: DashboardTransaction has null, Transaction expects undefined — structurally equivalent at runtime
-        if (getTransactionCurrency(tx as any) !== selectedCurrency) return false;
+        if (getTransactionCurrency(tx) !== selectedCurrency) return false;
 
         if (tx.source_transaction_id) return false;
 
         if (tx.is_shared === true) {
-          const isCreator = (tx as any).creator_user_id === user?.id;
+          const isCreator = tx.creator_user_id === user?.id;
           const myFamilyMember = familyMembers.find((m) => m.linked_user_id === user?.id);
           const isPayer = myFamilyMember && tx.payer_id === myFamilyMember.id;
           if (!isCreator && !isPayer) return false;
@@ -96,7 +96,7 @@ export function Dashboard() {
     const now = new Date();
     // Prioritize currently active trips, otherwise fallback to the most recent/upcoming
     const current = trips.find(
-      (t: any) => new Date(t.start_date) <= now && new Date(t.end_date) >= now
+      (t: Trip) => new Date(t.start_date) <= now && new Date(t.end_date) >= now
     );
     return current || trips[0];
   }, [trips]);
@@ -405,7 +405,9 @@ export function Dashboard() {
         <TransactionModal
           open={showTransactionModal}
           onOpenChange={setShowTransactionModal}
-          initialData={transactionToEdit}
+          // TransactionModal usa Record<string, unknown> como tipo coringa para edição genérica;
+          // DashboardTransaction é estruturalmente compatível em runtime (todas as props são string-keyed).
+          initialData={transactionToEdit as unknown as Record<string, unknown> | undefined}
         />
       </div>
     </PullToRefresh>

@@ -104,14 +104,16 @@ export function useFamilyMembers(includeContacts = false) {
         .order("created_at");
 
       if (!includeContacts) {
-        query = query.eq("member_type", "family") as any;
+        query = query.eq("member_type", "family") as typeof query;
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
       const membersList = (data || []) as FamilyMember[];
-      const familyWithOwner = family as any;
+      const familyWithOwner = family as Family & {
+        owner?: { id: string; full_name?: string; email?: string };
+      };
 
       // Coletar todos os linked_user_ids (membros + owner)
       const linkedUserIds: string[] = membersList
@@ -373,7 +375,7 @@ export function useUpdateFamilyMember() {
           role: input.role || "admin",
           status: "active",
           sharing_scope: "all",
-        } as any;
+        } as FamilyMember;
       }
 
       const { data, error } = await supabase
@@ -523,7 +525,7 @@ export function useAddSharedContact() {
         toast.success("Contato adicionado com sucesso");
       }
     },
-    onError: (e: any) => toast.error(e.message || "Erro ao adicionar contato"),
+    onError: (e: Error) => toast.error(e.message || "Erro ao adicionar contato"),
   });
 }
 

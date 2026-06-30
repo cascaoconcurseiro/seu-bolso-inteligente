@@ -228,8 +228,9 @@ export function parseSafeDate(dateStr: string | null | undefined): Date | null {
 }
 
 /**
- * Converte uma string de data no formato YYYY-MM-DD em um objeto Date local,
+ * Converte uma string de data no formato YYYY-MM-DD em um objeto Date UTC,
  * evitando problemas de fuso horário (shifting).
+ * MASTER_BLUEPRINT §3.3: usar Date.UTC(), nunca new Date(year, month, day).
  */
 export function parseLocalDate(dateStr: string): Date {
   if (!dateStr) return new Date();
@@ -242,7 +243,7 @@ export function parseLocalDate(dateStr: string): Date {
   const year = parseInt(parts[0], 10);
   const month = parseInt(parts[1], 10) - 1;
   const day = parseInt(parts[2], 10);
-  return new Date(year, month, day);
+  return new Date(Date.UTC(year, month, day));
 }
 
 // ─── Funções migradas de lib/dateUtils (unificação DRY) ─────────────────

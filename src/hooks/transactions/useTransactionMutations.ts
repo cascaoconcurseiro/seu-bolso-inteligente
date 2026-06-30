@@ -71,7 +71,7 @@ export function useUpdateTransaction() {
       const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
 
       if (user) {
-        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: Transaction[]) => {
           if (!Array.isArray(old)) return old;
           return old.map((tx) => (tx.id === updateData.id ? { ...tx, ...updateData } : tx));
         });
@@ -114,7 +114,11 @@ export function useUpdateTransaction() {
       }
 
       // We update splits separately since they are in another table.
-      const { splits, transaction_splits, ...restUpdateData } = updateData as any;
+      const { splits, transaction_splits, ...restUpdateData } =
+        updateData as Partial<Transaction> & {
+          splits?: TransactionSplitData[];
+          transaction_splits?: TransactionSplitData[];
+        };
       const actualSplits = transaction_splits || splits;
 
       const { data, error } = await supabase
@@ -139,7 +143,7 @@ export function useUpdateTransaction() {
         // Auto-completar splits se a soma for menor que 100% (Critério #6: O próprio criador assume o restante)
         if (finalSplits.length > 0) {
           const totalPercentage = SafeFinancialCalculator.safeSum(
-            finalSplits.map((s: any) => s.percentage)
+            finalSplits.map((s: TransactionSplitData) => s.percentage)
           );
           if (totalPercentage < 100) {
             const remainingPercentage = SafeFinancialCalculator.subtract(100, totalPercentage);
@@ -169,7 +173,7 @@ export function useUpdateTransaction() {
 
         // Inserir os novos
         if (finalSplits.length > 0) {
-          const memberIds = finalSplits.map((s: any) => s.member_id);
+          const memberIds = finalSplits.map((s: TransactionSplitData) => s.member_id);
           const { data: membersData } = await supabase
             .from("family_members")
             .select("id, name, linked_user_id")
@@ -190,7 +194,7 @@ export function useUpdateTransaction() {
           });
 
           let allocatedSum = 0;
-          const splitsToInsert = finalSplits.map((split: any, index: number) => {
+          const splitsToInsert = finalSplits.map((split: TransactionSplitData, index: number) => {
             const isUserId = !memberNames[split.member_id] && userIdToName[split.member_id];
             const actualMemberId = isUserId ? userIdToMemberId[split.member_id] : split.member_id;
             const actualUserId = isUserId ? split.member_id : memberUserIds[split.member_id];
@@ -244,9 +248,9 @@ export function useUpdateTransaction() {
       invalidateTripQueries(queryClient);
       showActionFeedback("success");
     },
-    onError: (error, _variables, context: any) => {
+    onError: (error, _variables, context: { previousTransactions?: [QueryKey, unknown][] }) => {
       if (context?.previousTransactions) {
-        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
+        context.previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
@@ -265,7 +269,7 @@ export function useDeleteTransaction() {
       const previousTransactions = queryClient.getQueriesData({ queryKey: ["transactions"] });
 
       if (user) {
-        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: any) => {
+        queryClient.setQueriesData({ queryKey: ["transactions"] }, (old: Transaction[]) => {
           if (!Array.isArray(old)) return old;
           return old.filter((tx) => tx.id !== id);
         });
@@ -385,9 +389,9 @@ export function useDeleteTransaction() {
         );
       }
     },
-    onError: (error, _variables, context: any) => {
+    onError: (error, _variables, context: { previousTransactions?: [QueryKey, unknown][] }) => {
       if (context?.previousTransactions) {
-        context.previousTransactions.forEach(([queryKey, data]: [any, any]) => {
+        context.previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
@@ -443,7 +447,8 @@ export function useDeleteInstallmentSeries() {
       // CORREÇÃO: Usar RPC com retry para maior resiliência (Critério Alto #7)
       const data = await rpcWithRetry("delete_installment_series", { p_series_id: seriesId });
 
-      const deletedCount = (data as any)?.[0]?.deleted_count || 0;
+      const deletedCount =
+        (data as unknown as { deleted_count: number }[])?.[0]?.deleted_count || 0;
 
       if (deletedCount === 0) {
         throw new Error(

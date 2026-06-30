@@ -54,13 +54,15 @@ export function useMarkNotificationAsRead() {
     onMutate: async (notificationId: string) => {
       await queryClient.cancelQueries({ queryKey: ["notifications", user?.id] });
       const previous = queryClient.getQueryData<Notification[]>(["notifications", user?.id]);
-      queryClient.setQueryData<Notification[]>(["notifications", user?.id], (old) =>
-        old?.map((n) => n.id === notificationId ? { ...n, is_read: true } : n) ?? []
+      queryClient.setQueryData<Notification[]>(
+        ["notifications", user?.id],
+        (old) => old?.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n)) ?? []
       );
       return { previous };
     },
     onError: (_err, _id, context) => {
-      if (context?.previous) queryClient.setQueryData(["notifications", user?.id], context.previous);
+      if (context?.previous)
+        queryClient.setQueryData(["notifications", user?.id], context.previous);
       logger.error("Erro ao marcar notificação como lida:", _err);
     },
     onSettled: () => {
@@ -88,13 +90,15 @@ export function useMarkAllAsRead() {
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["notifications", user?.id] });
       const previous = queryClient.getQueryData<Notification[]>(["notifications", user?.id]);
-      queryClient.setQueryData<Notification[]>(["notifications", user?.id], (old) =>
-        old?.map((n) => ({ ...n, is_read: true })) ?? []
+      queryClient.setQueryData<Notification[]>(
+        ["notifications", user?.id],
+        (old) => old?.map((n) => ({ ...n, is_read: true })) ?? []
       );
       return { previous };
     },
     onError: (_err, _v, context) => {
-      if (context?.previous) queryClient.setQueryData(["notifications", user?.id], context.previous);
+      if (context?.previous)
+        queryClient.setQueryData(["notifications", user?.id], context.previous);
       toast.error("Erro ao marcar notificações como lidas");
       logger.error("Erro ao marcar notificações como lidas", _err);
     },
@@ -126,13 +130,15 @@ export function useDismissNotification() {
     onMutate: async (notificationId: string) => {
       await queryClient.cancelQueries({ queryKey: ["notifications", user?.id] });
       const previous = queryClient.getQueryData<Notification[]>(["notifications", user?.id]);
-      queryClient.setQueryData<Notification[]>(["notifications", user?.id], (old) =>
-        old?.filter((n) => n.id !== notificationId) ?? []
+      queryClient.setQueryData<Notification[]>(
+        ["notifications", user?.id],
+        (old) => old?.filter((n) => n.id !== notificationId) ?? []
       );
       return { previous };
     },
     onError: (_err, _id, context) => {
-      if (context?.previous) queryClient.setQueryData(["notifications", user?.id], context.previous);
+      if (context?.previous)
+        queryClient.setQueryData(["notifications", user?.id], context.previous);
       logger.error("Erro ao dispensar notificação:", _err);
     },
     onSettled: () => {
@@ -183,7 +189,8 @@ export function useDismissAll() {
       return { previous };
     },
     onError: (_err, _v, context) => {
-      if (context?.previous) queryClient.setQueryData(["notifications", user?.id], context.previous);
+      if (context?.previous)
+        queryClient.setQueryData(["notifications", user?.id], context.previous);
       toast.error("Erro ao remover notificações");
       logger.error("Erro ao remover notificações", _err);
     },
@@ -245,7 +252,7 @@ export function useNotificationPreferences() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updates: any) => {
+    mutationFn: async (updates: Record<string, unknown>) => {
       if (!user) throw new Error("User not authenticated");
 
       const { data, error } = await (supabase.from("notification_preferences" as any) as any)
