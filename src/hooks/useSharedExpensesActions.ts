@@ -373,14 +373,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
+      const { error } = await supabase.from("transactions").delete().eq("id", item.originalTxId);
+
+      if (error) throw error;
+      
       showActionFeedback("success");
       setTimeout(() => {
         setDeleteConfirm({ isOpen: false, item: null });
       }, 80);
-
-      const { error } = await supabase.from("transactions").delete().eq("id", item.originalTxId);
-
-      if (error) throw error;
+      
       await invalidateRelated(item.originalTxId);
       await refetch();
 
@@ -397,6 +398,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
     } catch (error) {
       logger.error("Erro ao excluir transação", error);
+      showActionFeedback("error");
       toast.error("Erro ao excluir transação");
     }
   };

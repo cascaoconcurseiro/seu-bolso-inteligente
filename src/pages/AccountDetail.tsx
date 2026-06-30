@@ -116,38 +116,45 @@ export function AccountDetail() {
   };
 
   const handleUnarchive = async () => {
-    showActionFeedback("success");
     try {
-      unarchiveAccount.mutate(id || "");
+      await unarchiveAccount.mutateAsync(id || "");
+      showActionFeedback("success");
     } catch (error) {
+      showActionFeedback("error");
       toast.error("Erro ao desarquivar a conta.");
     }
   };
 
   const handleSaveEditAccountForm = async (data: any) => {
     if (!account) return;
-    showActionFeedback("success");
-    setTimeout(() => setShowEditDialog(false), 80);
-    updateAccount.mutate({
-      id: account.id,
-      name: data.name,
-      hide_balance: data.hide_balance,
-      yield_type: data.yield_type,
-      yield_rate: data.yield_rate,
-    });
+    try {
+      await updateAccount.mutateAsync({
+        id: account.id,
+        name: data.name,
+        hide_balance: data.hide_balance,
+        yield_type: data.yield_type,
+        yield_rate: data.yield_rate,
+      });
+      showActionFeedback("success");
+      setTimeout(() => setShowEditDialog(false), 80);
+    } catch (error) {
+      showActionFeedback("error");
+      toast.error("Erro ao atualizar conta.");
+    }
   };
 
   const handleDeleteTransaction = async (cascadeType: "NONE" | "NEXT" | "ALL") => {
     const tx = deleteConfirm.transaction;
     if (!tx) return;
-    showActionFeedback("success");
-    setTimeout(() => {
-      setDeleteConfirm({ isOpen: false, transaction: null });
-    }, 80);
     try {
-      deleteTransaction.mutate({ id: tx.id, cascadeType });
+      await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
+      showActionFeedback("success");
+      setTimeout(() => {
+        setDeleteConfirm({ isOpen: false, transaction: null });
+      }, 80);
       refetchStatement();
     } catch (error) {
+      showActionFeedback("error");
       toast.error("Erro ao excluir transação");
     }
   };
