@@ -1,69 +1,73 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-30 — Pós-Auditoria de Qualidade de Código (21 fases)
+> Última atualização: 2026-06-30 — Pós-Auditoria Completa
 
 ---
 
-## 🔴 CRÍTICO — Código (Auditoria 21 Fases 2026-06-30)
+## 🔴 CRÍTICO — Fazer Agora (Bloqueadores de Segurança)
 
-- [ ] **[CQ-01]** `CreateTransactionInput` propriedade duplicada (`splits` + `transaction_splits`) — `hooks/transactions/types.ts:74,83`
-- [ ] **[CQ-02]** `console.error` direto em `CategorySettings.tsx:57` — usar `logger.error`
-- [ ] **[CQ-03]** Testes `rpcWithRetry` totalmente desabilitados (`.skip`) — 2 arquivos
-- [ ] **[CQ-04]** `useCreateAccount` sem atomicidade — criar RPC `create_account_with_balance`
-- [ ] **[CQ-05]** `contributeToGoal` sem atomicidade — criar RPC `contribute_to_goal`
-- [ ] **[CQ-06]** `deleteGoal` usa `LIKE '%meta%'` para cascata — adicionar `goal_id` FK
+- [x] **[SEC-01]** ~~Remover Mock Auth de produção~~ ✅ DONE
+  - `AuthContext.tsx:24` — gate com `import.meta.env.DEV`
 
-## 🟠 ALTA PRIORIDADE — Código
+- [x] **[SEC-02]** ~~PIN: mover verificação para RPC com bcrypt~~ ✅ DONE
+  - Migration: `pgcrypto` + `app_pin_hash` column + `verify_pin` / `set_pin` / `clear_pin` RPCs
+  - Frontend: `PinWrapper.tsx` — RPC call + lockout 5 tentativas / 60s
+  - Frontend: `SecuritySettings.tsx` — `set_pin` / `clear_pin` RPCs
 
-- [ ] **[CQ-07]** Unificar 3 definições de `Transaction` (types.ts + validationService + settlementValidation)
-- [ ] **[CQ-08]** Quebrar `useSharedExpensesActions` (40 props) em 4 hooks menores
-- [ ] **[CQ-09]** Extrair `recalculateSplits` de `useUpdateTransaction` (120 linhas)
-- [ ] **[CQ-10]** Decompor `CreditCards.tsx` (720 linhas)
-- [ ] **[CQ-11]** Decompor `AdminResetPanel.tsx` (800+ linhas, `CONFIRM_WORD` morta)
-- [ ] **[CQ-12]** Extrair `applyTransactionFilters` (lógica duplicada em Transactions.tsx)
-- [ ] **[CQ-13]** Extrair month names para constante (duplicado 3x)
-- [ ] **[CQ-14]** `Promise.all` → `Promise.allSettled` em `queryInvalidation.ts`
-- [ ] **[CQ-15]** Corrigir `useEffect` dep instável em `useSharedFinances`
-- [ ] **[CQ-16]** Corrigir timezone em `utils/dateUtils.ts` e `lib/invoiceUtils.ts`
+- [x] **[ARC-01]** ~~Transações compartilhadas: atomicidade via RPC~~ ✅ DONE
+  - Migration: `create_transaction_with_splits(p_transaction, p_splits)` RPC
+  - Frontend: `useCreateTransaction.ts` — usa RPC atômica quando há splits
 
-## 🟡 MÉDIA PRIORIDADE — Código
+- [x] **[ARC-02]** ~~Parcelamentos: atomicidade via RPC~~ ✅ DONE
+  - Migration: `create_installment_series(p_transactions)` RPC com splits embutidos
+  - Frontend: `useCreateTransaction.ts` — usa RPC atômica para todos os parcelamentos
 
-- [ ] **[CQ-17]** Remover ~80 `any` do código de produção (28 arquivos)
-- [ ] **[CQ-18]** Separar `CreateTransactionInput` em inputs tipados (ISP)
-- [ ] **[CQ-19]** `status: string` → `'CONFIRMED' | 'PENDING' | 'CANCELLED'`
-- [ ] **[CQ-20]** `recurrence_day?: number` → branded type 1-31
-- [ ] **[CQ-21]** Corrigir atomicidade em `createAsset`
-- [ ] **[CQ-22]** Unificar formatação BRL com `moneyUtils.format()`
-- [ ] **[CQ-23]** Criar constante `DEFAULT_CURRENCY`
+- [x] **[AUD-02]** ~~types.ts desatualizado (+4 tabelas, +2 colunas ausentes)~~ ✅ DONE
+  - `error_logs`, `goal_milestones`, `push_subscriptions`, `settlement_reversals`, `member_type`, `app_pin_hash`
 
-## 🔵 BAIXA PRIORIDADE — Código
+- [x] **[AUD-03]** ~~error_reports duplicado com error_logs~~ ✅ DONE — droppado (vazio)
+- [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
+- [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
+- [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
+- [ ] **[AUD-07]** Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela
 
-- [ ] **[CQ-24]** Unificar `useDeleteNotification`/`useDismissNotification`
-- [ ] **[CQ-25]** Remover API dupla de `TransactionModal`
-- [ ] **[CQ-26]** Corrigir toast duplicado em `useCreateTrip`
-- [ ] **[CQ-27]** Mover `localStorage.setItem` de `queryFn` para `onSuccess`
-- [ ] **[CQ-28]** `batchRpcWithRetry`: `Promise.all` → `Promise.allSettled`
+---
 
-## 🧪 TESTES
+## 🟠 ALTA PRIORIDADE — Esta Semana
 
-- [ ] **[TST-01]** Reescrever 7 testes fake (useTransactions, useSettlement, settlementValidation, invoiceUtils, rpcWithRetry ×2, money.spec)
-- [ ] **[TST-02]** Adicionar testes de comportamento nos 3 snapshot-only
-- [ ] **[TST-03]** Criar testes para mutations (useTransactionMutations, useAccounts)
-- [ ] **[TST-04]** Expandir E2E: 1 fluxo CRUD completo por página
+- [x] **[SEC-03]** ~~Adicionar Content-Security-Policy em `vercel.json`~~ ✅ DONE
+  - CSP adicionado cobrindo supabase, bcb.gov.br, brapi.dev
 
-## ✅ INFRA — Concluído (Auditoria Anterior)
+- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)
+  - Problema: `window.location.origin` em `AuthContext.tsx:85` falha em previews
+  - Fix: cadastrar wildcard `https://*.vercel.app/**` no Supabase Auth → Allowed Redirect URLs
+  - Esforço: XS (config Supabase, sem código)
 
-- [x] **[INFRA-01..07]** Sentry, CI/CD, env vars — configurados
-- [x] **[INFRA-14]** `console.error` → `logger.error` em CategorySettings
-- [x] **[AUD-08..18]** Segurança: JWT, CORS, CSP, rate limits, CRON_SECRET
+- [ ] **[RLS-01]** Confirmar e implementar RLS cross-family para cartão compartilhado
+  - Mencionado em `CLAUDE_HANDOFF.md` como pendente
+  - Requer `SECURITY DEFINER` para evitar recursão
+  - Esforço: S
 
-## ⚠️ INFRA — Pendente
+---
 
-- [ ] **[INFRA-04]** Criar projeto Supabase de staging
-- [ ] **[INFRA-05]** Adicionar `https://*.vercel.app/**` no Supabase Auth Redirect URLs
-- [ ] **[INFRA-08]** Configurar PgBouncer
-- [ ] **[INFRA-20]** Criptografia de IndexedDB
+## 🟡 BACKLOG TÉCNICO — Próximas Sprints
+
+- [x] **[ARC-03]** ~~AbortController em rpcWithRetry~~ ✅ DONE
+  - `rpcWithRetry.ts` — substituído `Promise.race` por `AbortController` + `.abortSignal()`
+  - Requests verdadeiramente cancelados no timeout, sem conexões zumbi
+
+- [x] **[ARC-04]** ~~Global search server-side~~ ✅ DONE
+  - Migration: `search_transactions(p_query, p_limit)` RPC com ILIKE
+  - `GlobalSearch.tsx` — cache-first + fallback server com debounce 400ms
+
+- [ ] **[ARC-05]** PDF export via Web Worker
+  - Problema: jsPDF bloqueia main thread → UI freeze em relatórios grandes
+  - Esforço: M (requer testes de UI)
+
+- [x] **[SEC-06]** ~~CHECK constraints no PostgreSQL~~ ✅ DONE
+  - `amount > 0`, `competence_date = first of month`, `description not empty`
+  - Installment numbers válidos, split percentage 0-100, goals target > 0
 
 - [x] **[SEC-07]** ~~service_role em sync-b3-tickers~~ ✅ ACEITÁVEL
   - Cron job escreve em tabela pública de referência (sem dados de usuário)
@@ -135,103 +139,3 @@
 - [x] **[B-20]** error_logs: RLS restrito (is_admin + próprio usuário)
 - [x] **[B-29]** Duplicado de B-15
 - [x] **[B-30]** Duplicado de B-18
-
----
-
-## 🔍 AUDITORIA DE PRODUTO 2026-06-30 — Achados (20 fases)
-
-### 🔴 CRÍTICO — Produto
-
-- [ ] **[PROD-01]** Relatório mensal por email não funciona — domínio Resend não verificado
-  - `send-monthly-report` Edge Function funcional, mas emails retornam 403
-  - Fix: verificar domínio ou usar `onboarding@resend.dev` como fallback
-  - Esforço: XS (config)
-
-- [ ] **[PROD-02]** SafeFinancialCalculator retorna `number` em vez de `Decimal`
-  - Métodos `add()`, `subtract()` perdem precisão decimal
-  - Refatorar para retornar `Decimal` — quebra compatibilidade com callers
-  - Esforço: M
-
-- [ ] **[PROD-03]** Sem sincronização bancária automática (Open Banking)
-  - Principal gap competitivo vs YNAB, Mobills, Nubank, Inter
-  - Usuário precisa digitar tudo manualmente
-  - Esforço: L
-
-### 🟠 ALTA — Produto
-
-- [ ] **[PROD-04]** PDF export bloqueia UI main thread (jsPDF)
-  - ARC-05: migrar para Web Worker
-  - Esforço: M
-
-- [ ] **[PROD-05]** Limite do cartão de crédito não validado
-  - Usuário pode gastar além do limite sem alerta
-  - Esforço: S
-
-- [ ] **[PROD-06]** Sem alertas de orçamento estourado
-  - Orçamento sem notificação perde função principal de controle
-  - Adicionar push + destaque visual em 80% e 100%
-  - Esforço: S
-
-- [ ] **[PROD-07]** Sem projeção de fluxo de caixa futuro
-  - Dashboard mostra apenas passado/presente
-  - Criar projeção baseada em transações agendadas + médias
-  - Esforço: M
-
-- [ ] **[PROD-08]** Transferência entre contas sem atomicidade
-  - Duas operações separadas — risco em caso de falha parcial
-  - Criar RPC atômica `transfer_between_accounts`
-  - Esforço: S
-
-### 🟡 MÉDIA — Produto
-
-- [ ] **[PROD-09]** Centralizar formatação de moeda — remover `formatCurrency` locais
-  - Múltiplas implementações inconsistentes. Padronizar `moneyUtils.format()`
-  - Esforço: XS
-
-- [ ] **[PROD-10]** Acessibilidade: `aria-label` em cards interativos (GoalCard, AccountCard)
-  - Esforço: XS
-
-- [ ] **[PROD-11]** Acessibilidade: alternativas textuais para gráficos Recharts
-  - Esforço: S
-
-- [ ] **[PROD-12]** `useCreateTransaction` com 600+ linhas — quebrar em hooks menores
-  - Extrair: `useTransactionValidation`, `useTransactionSplits`, `useAutoShare`
-  - Esforço: M
-
-- [ ] **[PROD-13]** Comparação "mês atual vs mês anterior" no Dashboard
-  - Métrica básica de saúde financeira ausente
-  - Esforço: S
-
-- [ ] **[PROD-14]** Tooltip "Ctrl+K para buscar" visível no header
-  - Busca global não é descoberta naturalmente
-  - Esforço: XS
-
-### 🔵 BAIXA — Produto
-
-- [ ] **[PROD-15]** Simuladores apenas 2 tipos (Renda Fixa + IPCA)
-  - Adicionar: juros compostos, aposentadoria, comparação de investimentos
-  - Esforço: M
-
-- [ ] **[PROD-16]** Onboarding não guia criação de conta bancária
-  - Usuário novo precisa descobrir sozinho o próximo passo
-  - Esforço: S
-
-- [ ] **[PROD-17]** Terminologia confusa: "Compartilhado" vs "Compartilhar", "Próximas" vs "Agendadas"
-  - Esforço: XS
-
-- [ ] **[PROD-18]** Sem consolidação multi-moeda automática no Dashboard
-  - Usuário precisa selecionar moeda manualmente
-  - Esforço: M
-
-### ✅ PROD — Constatado como correto na auditoria
-
-- [x] **[PROD-OK-01]** SSOT de saldo via trigger PostgreSQL — robusto
-- [x] **[PROD-OK-02]** Soft delete em todas tabelas financeiras — sem perda de dados
-- [x] **[PROD-OK-03]** RPCs atômicas para splits, parcelamentos, liquidações
-- [x] **[PROD-OK-04]** Audit trail imutável em settlement_reversals
-- [x] **[PROD-OK-05]** CHECK constraints financeiras (amount > 0, competence_date = first)
-- [x] **[PROD-OK-06]** PIN com bcrypt via RPC — segurança superior
-- [x] **[PROD-OK-07]** RLS ativo em todas as tabelas
-- [x] **[PROD-OK-08]** Gastos compartilhados com liquidação atômica — diferencial real
-- [x] **[PROD-OK-09]** Viagens multi-moeda com guest — único no mercado
-- [x] **[PROD-OK-10]** IRPF integrado com B3 — valor real para investidores

@@ -250,3 +250,97 @@ export function filterAccountsByTripCurrency(
       : undefined,
   };
 }
+
+/**
+ * Filtro de transações reutilizável aplicando search, tipo, categoria, conta, período e moeda.
+ * Extraído de Transactions.tsx para eliminar duplicação entre filteredTransactions e filteredAnnualTransactions.
+ */
+export interface TransactionFilters {
+  searchQuery: string;
+  selectedType: string;
+  selectedCategory: string;
+  selectedAccount: string;
+  selectedPeriod: string;
+  selectedCurrency: string;
+  userId?: string;
+  familyMembers?: Array<{ id: string; linked_user_id: string | null }>;
+}
+
+export function applyTransactionFilters<T extends {
+  id: string;
+  description: string;
+  type: string;
+  date: string;
+  category?: { id: string; name: string } | null;
+  account?: { id: string; name: string } | null;
+  account_id?: string | null;
+  destination_account_id?: string | null;
+  source_transaction_id?: string | null;
+  is_shared?: boolean;
+  creator_user_id?: string | null;
+  payer_id?: string | null;
+  currency?: string | null;
+}>(transactions: T[], filters: TransactionFilters): T[] {
+  const periodDates = getPeriodDates(filters.selectedPeriod);
+
+  return transactions.filter((t) => {
+    const txCurrency = getTransactionCurrency(t);
+    if (filters.selectedCurrency !== "all" && txCurrency !== filters.selectedCurrency) return false;
+
+    if (t.source_transaction_id && t.source_transaction_id !== null && filters.selectedAccount === "all")
+      return false;
+
+    if (t.is_shared === true) {
+      const isCreator = t.creator_user_id === filters.userId;
+      const myFamilyMember = filters.familyMembers?.find((m) => m.linked_user_id === filters.userId);
+      const isPayer = myFamilyMember && t.payer_id === myFamilyMember.id;
+      if (!isCreator && !isPayer) return false;
+    }
+
+    const matchesSearch = t.description.toLowerCase().includes(filters.searchQuery.toLowerCase());
+    const matchesType =
+      filters.selectedType === "all" ||
+      t.type === filters.selectedType ||
+      (filters.selectedType === "EXPENSE" &&
+        t.type === "TRANSFER" &&
+        (filters.selectedAccount === "all" || t.account_id === filters.selectedAccount)) ||
+      (filters.selectedType === "INCOME" &&
+        t.type === "TRANSFER" &&
+        t.destination_account_id === filters.selectedAccount);
+    const matchesCategory = filters.selectedCategory === "all" || t.category?.id === filters.selectedCategory;
+    const matchesAccount = filters.selectedAccount === "all" || t.account?.id === filters.selectedAccount;
+
+    let matchesPeriod = true;
+    if (periodDates) {
+      const txDate = new Date(t.date + "T12:00:00");
+      matchesPeriod =
+        txDate >= periodDates.start &&
+        txDate <= new Date(periodDates.end.getTime() + 86400000 - 1);
+    }
+
+    return matchesSearch && matchesType && matchesCategory && matchesAccount && matchesPeriod;
+  });
+}
+
+function getPeriodDates(period: string) {
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  switch (period) {
+    case "today":
+      return { start: today, end: today };
+    case "week": {
+      const weekStart = new Date(today);
+      weekStart.setUTCDate(today.getUTCDate() - 7);
+      return { start: weekStart, end: today };
+    }
+    case "month":
+      return { start: new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)), end: today };
+    case "lastMonth":
+      return {
+        start: new Date(Date.UTC(now.getFullYear(), now.getMonth() - 1, 1)),
+        end: new Date(Date.UTC(now.getFullYear(), now.getMonth(), 0)),
+      };
+    default:
+      return null;
+  }
+}

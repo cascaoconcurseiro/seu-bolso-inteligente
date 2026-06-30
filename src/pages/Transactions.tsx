@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getTransactionCurrency, groupTransactionsByDay } from "@/utils/transactionUtils";
+import { getTransactionCurrency, groupTransactionsByDay, applyTransactionFilters } from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -118,113 +118,24 @@ export function Transactions() {
     };
   }, [transactions]);
 
-  const getPeriodDates = (period: string) => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    switch (period) {
-      case "today":
-        return { start: today, end: today };
-      case "week": {
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - 7);
-        return { start: weekStart, end: today };
-      }
-      case "month":
-        return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
-      case "lastMonth":
-        return {
-          start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-          end: new Date(now.getFullYear(), now.getMonth(), 0),
-        };
-      default:
-        return null;
-    }
-  };
-
-  const filteredTransactions = useMemo(() => {
-    const periodDates = getPeriodDates(selectedPeriod);
-    return (transactions || []).filter((t) => {
-      const txCurrency = getTransactionCurrency(t);
-      if (selectedCurrency !== "all" && txCurrency !== selectedCurrency) return false;
-
-      if (t.source_transaction_id && t.source_transaction_id !== null && selectedAccount === "all")
-        return false;
-      if (t.is_shared === true) {
-        const isCreator = t.creator_user_id === user?.id;
-        const myFamilyMember = familyMembers.find((m) => m.linked_user_id === user?.id);
-        const isPayer = myFamilyMember && t.payer_id === myFamilyMember.id;
-        if (!isCreator && !isPayer) return false;
-      }
-      const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType =
-        selectedType === "all" ||
-        t.type === selectedType ||
-        (selectedType === "EXPENSE" &&
-          t.type === "TRANSFER" &&
-          (selectedAccount === "all" || t.account_id === selectedAccount)) ||
-        (selectedType === "INCOME" &&
-          t.type === "TRANSFER" &&
-          t.destination_account_id === selectedAccount);
-      const matchesCategory = selectedCategory === "all" || t.category?.id === selectedCategory;
-      const matchesAccount = selectedAccount === "all" || t.account?.id === selectedAccount;
-      let matchesPeriod = true;
-      if (periodDates) {
-        const txDate = new Date(t.date + "T12:00:00");
-        matchesPeriod =
-          txDate >= periodDates.start &&
-          txDate <= new Date(periodDates.end.getTime() + 86400000 - 1);
-      }
-      return matchesSearch && matchesType && matchesCategory && matchesAccount && matchesPeriod;
-    });
-  }, [
-    transactions,
+  const filterParams = useMemo(() => ({
     searchQuery,
     selectedType,
     selectedCategory,
     selectedAccount,
     selectedPeriod,
     selectedCurrency,
-    user,
+    userId: user?.id,
     familyMembers,
-  ]);
+  }), [searchQuery, selectedType, selectedCategory, selectedAccount, selectedPeriod, selectedCurrency, user?.id, familyMembers]);
+
+  const filteredTransactions = useMemo(() => {
+    return applyTransactionFilters(transactions || [], filterParams);
+  }, [transactions, filterParams]);
 
   const filteredAnnualTransactions = useMemo(() => {
-    return (annualTransactions || []).filter((t) => {
-      const txCurrency = getTransactionCurrency(t);
-      if (selectedCurrency !== "all" && txCurrency !== selectedCurrency) return false;
-
-      if (t.source_transaction_id && t.source_transaction_id !== null && selectedAccount === "all")
-        return false;
-      if (t.is_shared === true) {
-        const isCreator = t.creator_user_id === user?.id;
-        const myFamilyMember = familyMembers.find((m) => m.linked_user_id === user?.id);
-        const isPayer = myFamilyMember && t.payer_id === myFamilyMember.id;
-        if (!isCreator && !isPayer) return false;
-      }
-      const matchesSearch = t.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType =
-        selectedType === "all" ||
-        t.type === selectedType ||
-        (selectedType === "EXPENSE" &&
-          t.type === "TRANSFER" &&
-          (selectedAccount === "all" || t.account_id === selectedAccount)) ||
-        (selectedType === "INCOME" &&
-          t.type === "TRANSFER" &&
-          t.destination_account_id === selectedAccount);
-      const matchesCategory = selectedCategory === "all" || t.category?.id === selectedCategory;
-      const matchesAccount = selectedAccount === "all" || t.account?.id === selectedAccount;
-      return matchesSearch && matchesType && matchesCategory && matchesAccount;
-    });
-  }, [
-    annualTransactions,
-    searchQuery,
-    selectedType,
-    selectedCategory,
-    selectedAccount,
-    selectedCurrency,
-    user,
-    familyMembers,
-  ]);
+    return applyTransactionFilters(annualTransactions || [], { ...filterParams, selectedPeriod: "all" });
+  }, [annualTransactions, filterParams]);
 
   const isSearchingHistory = searchQuery.trim().length > 0;
   const displayTransactions = isSearchingHistory
