@@ -283,81 +283,25 @@ export function useCreateAccount() {
     mutationFn: async (input: CreateAccountInput) => {
       if (!user) throw new Error("User not authenticated");
 
-      // Criar conta com saldo zero (o saldo será calculado pelo trigger após criar a transação)
-      const { data, error } = await supabase
-        .from("accounts")
-        .insert({
-          user_id: user.id,
-          name: input.name,
-          type: input.type,
-          balance: 0, // Sempre começa com zero, trigger calcula
-          initial_balance: 0, // Definido como 0 para evitar duplicação, já que criamos a transação histórica abaixo
-          bank_id: input.bank_id || null,
-          bank_color: input.bank_color || null,
-          currency: input.currency || "BRL",
-          is_international: input.is_international || false,
-          closing_day: input.closing_day || null,
-          due_day: input.due_day || null,
-          credit_limit: input.credit_limit || null,
-          yield_rate: input.yield_rate || null,
-          yield_type: input.yield_type || null,
-          hide_balance: input.hide_balance || false,
-        })
-        .select()
-        .single();
+      // Usar RPC atômica (CRIT-04): conta + transação de saldo inicial em uma operação
+      const result = await callRPCWithRetry('create_account_with_balance', {
+        p_name: input.name,
+        p_type: input.type,
+        p_initial_balance: input.balance && input.type !== 'CREDIT_CARD' ? input.balance : 0,
+        p_bank_id: input.bank_id || null,
+        p_bank_color: input.bank_color || null,
+        p_currency: input.currency || 'BRL',
+        p_is_international: input.is_international || false,
+        p_closing_day: input.closing_day || null,
+        p_due_day: input.due_day || null,
+        p_credit_limit: input.credit_limit || null,
+        p_yield_rate: input.yield_rate || null,
+        p_yield_type: input.yield_type || null,
+        p_hide_balance: input.hide_balance || false,
+      });
 
-      if (error) throw error;
-
-      // Se tem saldo inicial e não é cartão de crédito, criar transação de saldo inicial
-      // O trigger vai atualizar o saldo da conta automaticamente
-      if (input.balance && input.balance > 0 && input.type !== "CREDIT_CARD") {
-        // Buscar categoria "Saldo Inicial"
-        const { data: categoryData } = await supabase
-          .from("categories")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("name", "Saldo Inicial")
-          .eq("type", "income")
-          .single();
-
-        const today = new Date();
-        const dateStr = today.toISOString().split("T")[0];
-        const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
-
-        const { error: txError } = await supabase.from("transactions").insert({
-          user_id: user.id,
-          creator_user_id: user.id,
-          account_id: data.id,
-          type: "INCOME",
-          amount: input.balance,
-          description: "Saldo inicial",
-          category_id: categoryData?.id || null, // Usar categoria se encontrada
-          date: dateStr,
-          competence_date: competenceStr,
-          domain: "PERSONAL",
-          is_shared: false,
-          is_installment: false,
-          is_recurring: false,
-          currency: input.currency || "BRL", // Usar a moeda da conta
-        });
-
-        if (txError) {
-          logger.error("Erro ao criar transação de saldo inicial", txError);
-          throw new Error("Erro ao criar saldo inicial: " + txError.message);
-        }
-      }
-
-      // Buscar conta atualizada (com saldo calculado pelo trigger)
-      const { data: updatedAccount, error: fetchError } = await supabase
-        .from("accounts")
-        .select(
-          "id,name,type,currency,bank_id,bank_logo,bank_color,balance,initial_balance,is_active,is_archived,closing_day,due_day,credit_limit,is_international,hide_balance,created_at,updated_at,user_id"
-        )
-        .eq("id", data.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-      return updatedAccount;
+      return result as Account;
+    },
     },
     onSuccess: async () => {
       await invalidateAccountQueries(queryClient);

@@ -10,22 +10,22 @@ interface TransactionModalProps {
   initialData?: Record<string, unknown>;
 }
 
-export function TransactionModal({ 
-  open, 
+export function TransactionModal({
+  open,
   onOpenChange,
   initialData
 }: TransactionModalProps) {
   const { transactionContext } = useTransactionModal();
-  
+
   const handleOpenChange = (value: boolean) => {
     onOpenChange?.(value);
   };
-  
+
   const handleSuccess = () => {
     haptics.success();
     handleOpenChange(false);
   };
-  
+
   return (
     <Dialog open={open ?? false} onOpenChange={handleOpenChange}>
       <DialogContent
@@ -44,7 +44,7 @@ export function TransactionModal({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-5">
-          <TransactionForm 
+          <TransactionForm
             context={transactionContext}
             onSuccess={handleSuccess}
             onCancel={actualClose}

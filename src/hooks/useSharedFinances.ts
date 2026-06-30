@@ -10,22 +10,22 @@ import { Database } from '@/types/database';
 import { logger } from '@/utils/logger';
 import { rpcWithRetry } from '@/utils/rpcWithRetry';
 import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
-import { 
-  generateInvoices, 
-  InvoiceItem 
+import {
+  generateInvoices,
+  InvoiceItem
 } from '@/utils/sharedFinanceCalculations';
 
 type DBTransaction = Database['public']['Tables']['transactions']['Row'] & {
   category?: { id: string; name: string; icon: string | null; color: string | null } | null;
   transaction_splits?: DBSplit[];
   payer?: { id: string; name: string; user_id: string | null; linked_user_id: string | null } | null;
-  currency?: string; 
-  competence_date?: string | null; 
+  currency?: string;
+  competence_date?: string | null;
 };
 
 type DBSplit = Database['public']['Tables']['transaction_splits']['Row'] & {
-  settled_by_debtor: boolean; 
-  settled_by_creditor: boolean; 
+  settled_by_debtor: boolean;
+  settled_by_creditor: boolean;
 };
 type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id' | 'name'>;
 
@@ -138,7 +138,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const invoices = useMemo(() => {
     const transactions = (transactionsWithSplits as { transactions: DBTransaction[] }).transactions || [];
     const accounts = (transactionsWithSplits as { accounts: DBAccount[] }).accounts || [];
-    
+
     return generateInvoices(
       transactions,
       accounts,
@@ -152,10 +152,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
   const getFilteredInvoice = (memberId: string): InvoiceItem[] => {
     const allItems = invoices[memberId] || [];
-    
+
     // Buscar configuração de escopo do membro
     const member = members.find(m => m.id === memberId);
-    
+
     // Aplicar filtro de escopo
     let scopeFilteredItems = allItems;
     if (member && member.sharing_scope !== 'all') {
@@ -164,7 +164,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           case 'trips_only':
             // Apenas transações de viagens
             return !!item.tripId;
-          
+
           case 'date_range': {
             // Apenas transações no período
             if (!member.scope_start_date && !member.scope_end_date) return true;
@@ -177,11 +177,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             if (endDate && itemDate > endDate) return false;
             return true;
           }
-          
+
           case 'specific_trip':
             // Apenas transações de uma viagem específica
             return item.tripId === member.scope_trip_id;
-          
+
           default:
             return true;
         }
@@ -196,8 +196,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           return !!i.tripId; // Mostrar TODOS os itens de viagem
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      
+
+
       return filtered;
     } else if (activeTab === 'HISTORY') {
       // HISTORY: Mostrar apenas itens TOTALMENTE ACERTADOS filtrados pelo mês atual
@@ -212,10 +212,10 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           const [year, month] = i.date.split('-').map(Number);
           const itemMonth = month - 1;
           const itemYear = year;
-          
+
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
-          
+
           return itemMonth === currentMonth && itemYear === currentYear;
         })
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -225,13 +225,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         .filter(i => {
           // Não mostrar itens de viagens
           if (i.tripId) return false;
-          
+
           // Não mostrar itens totalmente acertados (devem ir para o histórico)
           if (i.isSettled) return false;
 
           // NOVO: Não mostrar se EU já fiz minha parte (já foi para o histórico/aguardando outro)
           if (i.isPaid) return false;
-          
+
           // CORREÇÃO CRÍTICA: Usar competence_date ao invés de date para filtrar parcelas
           // Isso garante que cada parcela apareça apenas no seu mês de competência
           const dateToUse = i.date; // Usar date pois é o que vem no InvoiceItem
@@ -239,7 +239,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
           // Parse date as YYYY-MM-DD to avoid timezone issues
           const [year, month] = dateToUse.split('-').map(Number);
-          
+
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
 
@@ -249,13 +249,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           if (isInstallment) {
             return (month - 1) === currentMonth && year === currentYear;
           }
-          
+
           // Despesas fixas/recorrentes/comuns também devem ser exibidas ESTRITAMENTE no seu mês
           return (month - 1) === currentMonth && year === currentYear;
         })
         .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-      
-      
+
+
       return filtered;
     }
   };
@@ -289,7 +289,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   // Utilizando a NOVA RPC do Banco de Dados para aliviar o cálculo do Frontend
   const getSummary = () => {
     const summaryByCurrency: Record<string, { totalCredits: number; totalDebits: number; net: number }> = {};
-    
+
     // Se a RPC retornou com sucesso os saldos mastigados do DB, usamos isso!
     if (sharedBalances && sharedBalances.length > 0) {
       sharedBalances.forEach(balance => {
@@ -297,18 +297,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         if (!summaryByCurrency[curr]) {
           summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
         }
-        
+
         summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, Number(balance.total_credits));
         summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalDebits, Number(balance.total_debits));
         summaryByCurrency[curr].net = SafeFinancialCalculator.add(summaryByCurrency[curr].net, Number(balance.net_balance));
       });
-      
+
       return {
         byCurrency: summaryByCurrency,
         hasMultipleCurrencies: Object.keys(summaryByCurrency).length > 1,
       };
     }
-    
+
     // Fallback de segurança: calcula via Frontend caso a RPC falhe ou ainda não tenha sido injetada
     Object.values(invoices).forEach(items => {
       items.forEach(item => {
@@ -316,7 +316,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         if (!summaryByCurrency[curr]) {
           summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
         }
-        
+
         if (!item.isPaid) {
           if (item.type === 'CREDIT') {
             summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, item.amount);
@@ -326,7 +326,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         }
       });
     });
-    
+
     // Calcular net para cada moeda individualmente
     Object.keys(summaryByCurrency).forEach(curr => {
       summaryByCurrency[curr].net = SafeFinancialCalculator.subtract(
@@ -341,12 +341,12 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     };
   };
 
-  return { 
-    invoices, 
-    getFilteredInvoice, 
-    getTotals, 
+  return {
+    invoices,
+    getFilteredInvoice,
+    getTotals,
     getSummary,
-    members, 
+    members,
     transactions: transactionsWithSplits?.transactions || [],
     isLoading,
     refetch: refetchAll // Usar refetchAll para invalidar todas as queries

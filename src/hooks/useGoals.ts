@@ -116,8 +116,7 @@ export const useGoals = () => {
     },
   });
 
-  // Adicionar contribuição à meta
-  // AUDITORIA: Agora cria transação financeira para rastrear o aporte no fluxo de caixa
+  // Adicionar contribuição à meta (CRIT-05: RPC atômica)
   const contributeToGoal = useMutation({
     mutationFn: async ({
       id,
@@ -127,97 +126,26 @@ export const useGoals = () => {
     }: {
       id: string;
       amount: number;
-      accountId?: string; // Conta de onde o dinheiro sai (opcional)
+      accountId?: string;
       description?: string;
     }) => {
-      if (amount === 0) throw new Error('O valor deve ser diferente de zero');
+      const result = await callRPCWithRetry('contribute_to_goal', {
+        p_goal_id: id,
+        p_amount: amount,
+        p_account_id: accountId || null,
+        p_description: description || null,
+      });
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
-      // Buscar meta atual
+      // Re-fetch goal to get full updated data
       const { data: goal, error: fetchError } = await supabase
         .from('goals')
-        .select('current_amount, target_amount, name, linked_account_id')
+        .select('*')
         .eq('id', id)
         .single();
 
       if (fetchError) throw fetchError;
-
-      const currentAmount = Number(goal.current_amount || 0);
-
-      // VALIDAÇÃO FINANCEIRA: Bloquear resgates que gerariam saldo negativo
-      if (amount < 0 && Math.abs(amount) > currentAmount) {
-        throw new Error(
-          `Resgate de R$ ${Math.abs(amount).toFixed(2)} excede o saldo disponível na meta ` +
-          `(R$ ${currentAmount.toFixed(2)}). Você não pode resgatar mais do que o valor acumulado.`
-        );
-      }
-
-      const newAmount = currentAmount + amount;
-      const isCompleted = newAmount >= Number(goal.target_amount);
-
-      // Determinar conta de débito
-      const debitAccountId = accountId || goal.linked_account_id;
-
-      // Criar transação financeira para rastrear o aporte no fluxo de caixa
-      if (debitAccountId) {
-        const today = new Date();
-        const dateStr = today.toISOString().split('T')[0];
-        const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
-
-        // Buscar categoria "Metas e Investimentos" ou criar uma genérica
-        const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('user_id', user.id)
-          .ilike('name', '%meta%')
-          .limit(1)
-          .maybeSingle();
-
-        // Buscar moeda da conta
-        const { data: accountData } = await supabase
-          .from('accounts')
-          .select('currency')
-          .eq('id', debitAccountId)
-          .single();
-
-        const { error: txError } = await supabase.from('transactions').insert({
-          user_id: user.id,
-          creator_user_id: user.id,
-          account_id: debitAccountId,
-          type: amount > 0 ? 'EXPENSE' : 'INCOME',
-          amount: Math.abs(amount),
-          description: description || (amount > 0 ? `Aporte: ${goal.name}` : `Resgate: ${goal.name}`),
-          category_id: categoryData?.id || null,
-          date: dateStr,
-          competence_date: competenceStr,
-          domain: 'PERSONAL',
-          is_shared: false,
-          is_installment: false,
-          is_recurring: false,
-          currency: accountData?.currency || 'BRL',
-          notes: amount > 0 
-            ? `Contribuição para a meta "${goal.name}"` 
-            : `Resgate da meta "${goal.name}" para a conta`,
-        });
-
-        if (txError) {
-          throw new Error(`Erro ao registrar aporte no extrato: ${txError.message}`);
-        }
-      }
-
-      // Atualizar o valor acumulado da meta
-      const { data, error } = await supabase
-        .from('goals')
-        .update({
-          current_amount: newAmount,
-          status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS',
-          completed_at: isCompleted ? new Date().toISOString() : null,
-        })
-        .eq('id', id)
-        .select()
-        .single();
+      return goal;
+    },
 
       if (error) throw error;
       return data;
@@ -260,23 +188,13 @@ export const useGoals = () => {
       toast({ title: 'Erro ao excluir meta', description: error.message, variant: 'destructive' });
     },
     mutationFn: async (id: string) => {
-      // 1. Fetch the goal to know its name
-      const { data: goal, error: fetchError } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // CRIT-06: Deleção por goal_id FK (substitui LIKE '%meta%' frágil)
+      await supabase
+        .from('transactions')
+        .delete()
+        .eq('goal_id', id);
 
-      // 2. Delete auto-generated transactions (Efeito Cascata)
-      if (!fetchError && goal) {
-        await supabase
-          .from('transactions')
-          .delete()
-          .like('notes', `%meta "${goal.name}"%`)
-          .eq('user_id', goal.user_id);
-      }
-
-      // 3. Soft delete the goal
+      // Soft delete the goal
       const { error } = await supabase
         .from('goals')
         .update({ deleted: true })

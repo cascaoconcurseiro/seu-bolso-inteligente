@@ -50,10 +50,10 @@ print("PHASE 1: INVENTORY")
 print("=" * 60)
 
 tables = run_query("""
-    SELECT table_name, 
+    SELECT table_name,
            (SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name=t.table_name) as cols,
            (SELECT count(*) FROM information_schema.table_constraints WHERE table_schema='public' AND table_name=t.table_name AND constraint_type='FOREIGN KEY') as fks
-    FROM information_schema.tables t 
+    FROM information_schema.tables t
     WHERE table_schema='public' AND table_type='BASE TABLE'
     ORDER BY table_name
 """)
@@ -94,7 +94,7 @@ for v in views: print(f"  {v['table_name']}")
 
 enums = run_query("""
     SELECT t.typname, array_agg(e.enumlabel ORDER BY e.enumsortorder) as vals
-    FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid  
+    FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid
     JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
     WHERE n.nspname = 'public'
     GROUP BY t.typname ORDER BY t.typname
@@ -103,7 +103,7 @@ print(f"\nEnums: {len(enums)}")
 for e in enums: print(f"  {e['typname']}: {e['vals']}")
 
 funcs = run_query("""
-    SELECT routine_name FROM information_schema.routines 
+    SELECT routine_name FROM information_schema.routines
     WHERE routine_schema='public' AND routine_type='FUNCTION'
     ORDER BY routine_name
 """)
@@ -122,7 +122,7 @@ print("PHASE 2: REFERENTIAL INTEGRITY")
 print("=" * 60)
 
 fk_checks = [
-    ("transactions.account_id -> accounts", 
+    ("transactions.account_id -> accounts",
      "SELECT count(*) as n FROM transactions t LEFT JOIN accounts a ON t.account_id = a.id WHERE t.account_id IS NOT NULL AND a.id IS NULL AND t.deleted_at IS NULL"),
     ("transactions.category_id -> categories",
      "SELECT count(*) as n FROM transactions t LEFT JOIN categories c ON t.category_id = c.id WHERE t.category_id IS NOT NULL AND c.id IS NULL AND t.deleted_at IS NULL"),
@@ -178,7 +178,7 @@ dup_checks = [
      """SELECT count(*) as groups FROM (
             SELECT user_id, account_id, amount, date, description, count(*) as cnt
             FROM transactions WHERE deleted_at IS NULL
-            GROUP BY user_id, account_id, amount, date, description 
+            GROUP BY user_id, account_id, amount, date, description
             HAVING count(*) > 1
         ) sub"""),
     ("Accounts (same name, user)",
@@ -299,7 +299,7 @@ for b in bal_check:
 # 6.2 Income/Expense totals
 print("\n  6.2 Income/Expense Reconciliation:")
 rec = run_query("""
-    SELECT 
+    SELECT
         COALESCE(SUM(amount) FILTER (WHERE type = 'INCOME'), 0) as income,
         COALESCE(SUM(amount) FILTER (WHERE type = 'EXPENSE'), 0) as expense,
         COALESCE(SUM(amount), 0) as total
@@ -331,7 +331,7 @@ budget_check = run_query("""
     SELECT b.id, b.category_id, b.amount as budget, COALESCE(b.spent, 0) as stored_spent,
            COALESCE(SUM(t.amount), 0) as actual_spent
     FROM budgets b
-    LEFT JOIN transactions t ON t.category_id = b.category_id AND t.user_id = b.user_id 
+    LEFT JOIN transactions t ON t.category_id = b.category_id AND t.user_id = b.user_id
         AND t.type = 'EXPENSE' AND t.deleted_at IS NULL
         AND t.competence_date = date_trunc('month', CURRENT_DATE)::date
     WHERE b.period = 'MONTHLY'
@@ -385,7 +385,7 @@ for t in totals:
 # Global reconciliation
 print("\n  Global Reconciliation:")
 gt = run_query("""
-    SELECT 
+    SELECT
         (SELECT COALESCE(SUM(balance), 0) FROM accounts WHERE deleted_at IS NULL) as sum_balances,
         (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE deleted_at IS NULL) as sum_transactions,
         (SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type='INCOME' AND deleted_at IS NULL) as total_income,
@@ -472,11 +472,16 @@ print("\n" + "=" * 60)
 print("PHASE 16: DATA QUALITY")
 print("=" * 60)
 
-# financial_ledger status
-fl = run_query("SELECT count(*) as n FROM financial_ledger")
-print(f"  financial_ledger rows: {fl[0]['n']}")
-if int(fl[0]['n']) > 0:
-    all_issues.append({"check": "financial_ledger has data but table is dead (no frontend usage)", "rows": fl[0]['n'], "severity": "ALTO"})
+# financial_ledger status (may have been dropped)
+fl = run_query("SELECT count(*) as n FROM information_schema.tables WHERE table_schema='public' AND table_name='financial_ledger'")
+has_fl = fl and int(fl[0].get('n', 0)) > 0
+if has_fl:
+    fl_rows = run_query("SELECT count(*) as n FROM financial_ledger")
+    if fl_rows:
+        print(f"  financial_ledger rows: {fl_rows[0]['n']}")
+        all_issues.append({"check": "financial_ledger has data but table is dead (no frontend usage)", "rows": fl_rows[0]['n'], "severity": "ALTO"})
+else:
+    print("  financial_ledger: DROPPED (not found)")
 
 # Tables not in types.ts (from audit report: error_logs, goal_milestones, push_subscriptions, settlement_reversals, pin_attempts, etc.)
 print("\n  Tables in DB but possibly missing from types.ts:")

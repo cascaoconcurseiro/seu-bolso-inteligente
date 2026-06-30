@@ -63,21 +63,21 @@ export function getTransactionCurrency(transaction: Pick<Transaction, "currency"
  */
 export function getDateLabel(dateStr: string): string {
   if (!dateStr) return "Data indefinida";
-  
+
   const date = dateFns.parseISO(dateStr);
-  
+
   if (!dateFns.isValid(date)) {
     return "Data inválida";
   }
-  
+
   if (dateFns.isToday(date)) {
     return "Hoje";
   }
-  
+
   if (dateFns.isYesterday(date)) {
     return "Ontem";
   }
-  
+
   // Formato: "25 de dezembro"
   return dateFns.format(date, "d 'de' MMMM", { locale: ptBR });
 }
@@ -89,30 +89,30 @@ export function getDateLabel(dateStr: string): string {
 export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] {
   // Agrupar por data (incluindo transferências para exibir pagamentos de fatura)
   const groupsMap = new Map<string, Transaction[]>();
-  
+
   for (const transaction of transactions) {
     const dateKey = transaction.date.split("T")[0]; // YYYY-MM-DD
-    
+
     if (!groupsMap.has(dateKey)) {
       groupsMap.set(dateKey, []);
     }
     groupsMap.get(dateKey)!.push(transaction);
   }
-  
+
   // Converter para array de DayGroup
   const groups: DayGroup[] = [];
-  
+
   for (const [date, dayTransactions] of groupsMap) {
     // Ordenar transações dentro do dia por created_at (mais recente primeiro)
     const sortedTransactions = [...dayTransactions].sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-    
+
     // Calcular totais por moeda para não misturar BRL, EUR, USD etc.
     let totalIncome = 0;
     let totalExpense = 0;
     const balancesByCurrency: DayGroup["balancesByCurrency"] = {};
-    
+
     for (const t of sortedTransactions) {
       const amount = Number(t.amount);
       const currency = getTransactionCurrency(t);
@@ -132,7 +132,7 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
     Object.values(balancesByCurrency).forEach((totals) => {
       totals.balance = SafeFinancialCalculator.subtract(totals.totalIncome, totals.totalExpense);
     });
-    
+
     groups.push({
       date,
       label: getDateLabel(date),
@@ -143,10 +143,10 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
       balancesByCurrency,
     });
   }
-  
+
   // Ordenar grupos por data (mais recente primeiro)
   groups.sort((a, b) => b.date.localeCompare(a.date));
-  
+
   return groups;
 }
 
@@ -171,14 +171,14 @@ export function calculateRunningBalance(
     if (dateCompare !== 0) return dateCompare;
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
-  
+
   let runningBalance = initialBalance;
   const entries: StatementEntry[] = [];
-  
+
   for (const transaction of sorted) {
     let isIncoming = false;
     let amt = Number(transaction.amount);
-    
+
     if (transaction.type === "INCOME") {
       runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
       isIncoming = true;
@@ -200,14 +200,14 @@ export function calculateRunningBalance(
         isIncoming = false;
       }
     }
-    
+
     entries.push({
       transaction,
       runningBalance,
       isIncoming,
     });
   }
-  
+
   // Inverter para mostrar mais recente primeiro
   return entries.reverse();
 }
@@ -229,7 +229,7 @@ export function filterAccountsByTripCurrency(
 ): { filteredAccounts: Account[]; hasCompatibleAccounts: boolean; message?: string } {
   // Excluir cartões de crédito (não são contas para transações normais)
   const nonCreditCards = accounts.filter(a => a.type !== "CREDIT_CARD");
-  
+
   if (!tripCurrency || tripCurrency === "BRL") {
     // Sem viagem ou viagem nacional: mostrar apenas contas nacionais
     const filtered = nonCreditCards.filter(a => !a.is_international);
@@ -239,13 +239,13 @@ export function filterAccountsByTripCurrency(
       message: filtered.length === 0 ? "Nenhuma conta nacional encontrada." : undefined,
     };
   }
-  
+
   // Viagem internacional: mostrar apenas contas na moeda da viagem
   const filtered = nonCreditCards.filter(a => a.currency === tripCurrency);
   return {
     filteredAccounts: filtered,
     hasCompatibleAccounts: filtered.length > 0,
-    message: filtered.length === 0 
+    message: filtered.length === 0
       ? `Nenhuma conta encontrada na moeda ${tripCurrency}. Crie uma conta internacional.`
       : undefined,
   };

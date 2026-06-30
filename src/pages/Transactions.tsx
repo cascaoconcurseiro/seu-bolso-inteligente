@@ -190,7 +190,7 @@ export function Transactions() {
 
     showActionFeedback("success");
     haptics.heavy();
-    
+
     setTimeout(() => {
       setDeleteConfirm({ isOpen: false, transaction: null });
       setDetailsTransaction(null);

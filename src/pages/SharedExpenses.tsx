@@ -59,7 +59,7 @@ export function SharedExpenses() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { currentDate } = useMonth();
-  
+
   const state = useSharedExpensesState();
   const {
     selectedItems, setSelectedItems,
@@ -95,7 +95,7 @@ export function SharedExpenses() {
     refetch,
     transactions,
   } = useSharedFinances({ currentDate, activeTab });
-  
+
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
   const { data: profile } = useUserProfile();
   const { data: accounts = [] } = useAccounts();
@@ -459,9 +459,9 @@ export function SharedExpenses() {
       <Suspense fallback={null}>
         <SharedInstallmentImport isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} members={members} onSuccess={() => refetch()} />
       </Suspense>
-      
+
       <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
-      
+
       <SettlementConfirmationDialog
         isOpen={confirmReceiptDialog.isOpen}
         onOpenChange={(o) => setConfirmReceiptDialog({ ...confirmReceiptDialog, isOpen: o })}
