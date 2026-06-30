@@ -3826,11 +3826,11 @@ export type Database = {
         Returns: Json
       }
       create_installment_series: {
-        Args: { p_transactions: Json }
+        Args: { p_transactions: Json; p_user_id?: string }
         Returns: Json
       }
       create_transaction_with_splits: {
-        Args: { p_splits?: Json; p_transaction: Json }
+        Args: { p_splits?: Json; p_transaction: Json; p_user_id?: string }
         Returns: Json
       }
       delete_installment_series: {

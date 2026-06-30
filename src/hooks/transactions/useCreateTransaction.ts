@@ -352,6 +352,7 @@ export function useCreateTransaction() {
 
         const { data: rpcData, error } = await supabase.rpc("create_installment_series", {
           p_transactions: transactionsForRpc,
+          p_user_id: user.id,
         });
 
         if (error) {
@@ -521,6 +522,7 @@ export function useCreateTransaction() {
           {
             p_transaction: txPayload,
             p_splits: splitsPayload,
+            p_user_id: user.id,
           }
         );
 
