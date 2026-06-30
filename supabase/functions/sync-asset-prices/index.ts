@@ -1,89 +1,98 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.6";
 
 // Restrict CORS to the known app origins; the function also validates JWT so
 // a wildcard origin would still require auth, but defense-in-depth is better.
 const ALLOWED_ORIGINS = [
-  'https://pedemeia.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:4173',
+  "https://pedemeia.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:4173",
 ];
 
 function corsHeaders(origin: string | null) {
-  const allowed = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o))
-    ? origin
-    : ALLOWED_ORIGINS[0];
+  const allowed =
+    origin && ALLOWED_ORIGINS.some((o) => origin.startsWith(o)) ? origin : ALLOWED_ORIGINS[0];
   return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Vary': 'Origin',
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    Vary: "Origin",
   };
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders(req.headers.get("origin")) });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders(req.headers.get("origin")) });
   }
 
   try {
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response('Missing Authorization header', {
-        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
+      return new Response("Missing Authorization header", {
+        headers: { ...corsHeaders(req.headers.get("origin")), "Content-Type": "text/plain" },
         status: 401,
       });
     }
 
-    const jwt = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(jwt);
+    const jwt = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(jwt);
 
     if (userError || !user) {
-      return new Response(`Auth error: ${userError?.message || 'User not found'}`, {
-        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
+      return new Response(`Auth error: ${userError?.message || "User not found"}`, {
+        headers: { ...corsHeaders(req.headers.get("origin")), "Content-Type": "text/plain" },
         status: 401,
       });
     }
 
     // Fetch ALL assets for this user
     const { data: assets, error: fetchError } = await supabaseAdmin
-      .from('assets')
-      .select('id, ticker, type, quantity, purchase_price, purchase_date, notes')
-      .eq('user_id', user.id);
+      .from("assets")
+      .select("id, ticker, type, quantity, purchase_price, purchase_date, notes")
+      .eq("user_id", user.id);
 
     if (fetchError) throw fetchError;
     if (!assets || assets.length === 0) {
-      return new Response(JSON.stringify({ updated: 0, message: 'Nenhum ativo encontrado' }), {
-        headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ updated: 0, message: "Nenhum ativo encontrado" }), {
+        headers: { ...corsHeaders(req.headers.get("origin")), "Content-Type": "application/json" },
       });
     }
 
-    const token = Deno.env.get('BRAPI_TOKEN');
-    if (!token) throw new Error('Secret BRAPI_TOKEN não configurado no Supabase.');
+    const token = Deno.env.get("BRAPI_TOKEN");
+    if (!token) throw new Error("Secret BRAPI_TOKEN não configurado no Supabase.");
 
     let updatedCount = 0;
 
     // --- 1. STOCKs / FIIs / ETFs ---
-    const stockAssets = assets.filter(a => a.ticker && a.type !== 'CRYPTO' && a.type !== 'BOND');
-    const stockTickers = Array.from(new Set(stockAssets.map(a => a.ticker!.trim().toUpperCase())));
-    
+    const stockAssets = assets.filter((a) => a.ticker && a.type !== "CRYPTO" && a.type !== "BOND");
+    const stockTickers = Array.from(
+      new Set(stockAssets.map((a) => a.ticker!.trim().toUpperCase()))
+    );
+
     if (stockTickers.length > 0) {
       for (const ticker of stockTickers) {
         try {
           const response = await fetch(`https://brapi.dev/api/quote/${ticker}?token=${token}`);
           if (response.ok) {
             const data = await response.json();
-            for (const result of (data.results || [])) {
+            for (const result of data.results || []) {
               const symbol = result.symbol.toUpperCase();
               const price = result.regularMarketPrice;
               if (price) {
-                const matchingIds = stockAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
+                const matchingIds = stockAssets
+                  .filter((a) => a.ticker?.trim().toUpperCase() === symbol)
+                  .map((a) => a.id);
                 if (matchingIds.length > 0) {
-                  const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
+                  const { error } = await supabaseAdmin
+                    .from("assets")
+                    .update({ current_price: price })
+                    .in("id", matchingIds);
                   if (!error) updatedCount += matchingIds.length;
                 }
               }
@@ -96,9 +105,11 @@ serve(async (req) => {
     }
 
     // --- 2. CRYPTO ---
-    const cryptoAssets = assets.filter(a => a.ticker && a.type === 'CRYPTO');
-    const cryptoTickers = Array.from(new Set(cryptoAssets.map(a => a.ticker!.trim().toUpperCase())));
-    
+    const cryptoAssets = assets.filter((a) => a.ticker && a.type === "CRYPTO");
+    const cryptoTickers = Array.from(
+      new Set(cryptoAssets.map((a) => a.ticker!.trim().toUpperCase()))
+    );
+
     if (cryptoTickers.length > 0) {
       // Usar a API pública da Binance (Gratuita, sem limite chato)
       for (const symbol of cryptoTickers) {
@@ -119,23 +130,31 @@ serve(async (req) => {
               let usdBrl: number | null = null;
               // Primary: Binance USDT/BRL
               try {
-                const fxRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
+                const fxRes = await fetch(
+                  "https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL"
+                );
                 if (fxRes.ok) {
                   const fxData = await fxRes.json();
                   const parsed = parseFloat(fxData.price);
                   if (parsed > 1) usdBrl = parsed;
                 }
-              } catch {/* try next source */}
+              } catch {
+                /* try next source */
+              }
               // Fallback: AwesomeAPI (dados do Banco Central do Brasil)
               if (!usdBrl) {
                 try {
-                  const bcbRes = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+                  const bcbRes = await fetch(
+                    "https://economia.awesomeapi.com.br/json/last/USD-BRL"
+                  );
                   if (bcbRes.ok) {
                     const bcbData = await bcbRes.json();
-                    const parsed = parseFloat(bcbData['USDBRL']?.bid ?? '0');
+                    const parsed = parseFloat(bcbData["USDBRL"]?.bid ?? "0");
                     if (parsed > 1) usdBrl = parsed;
                   }
-                } catch {/* give up */}
+                } catch {
+                  /* give up */
+                }
               }
               // Skip asset rather than save corrupted data
               if (!usdBrl) {
@@ -150,9 +169,14 @@ serve(async (req) => {
         }
 
         if (price) {
-          const matchingIds = cryptoAssets.filter(a => a.ticker?.trim().toUpperCase() === symbol).map(a => a.id);
+          const matchingIds = cryptoAssets
+            .filter((a) => a.ticker?.trim().toUpperCase() === symbol)
+            .map((a) => a.id);
           if (matchingIds.length > 0) {
-            const { error } = await supabaseAdmin.from('assets').update({ current_price: price }).in('id', matchingIds);
+            const { error } = await supabaseAdmin
+              .from("assets")
+              .update({ current_price: price })
+              .in("id", matchingIds);
             if (!error) updatedCount += matchingIds.length;
           }
         }
@@ -160,38 +184,43 @@ serve(async (req) => {
     }
 
     // --- 3. BONDS (Renda Fixa CDI) ---
-    const bondAssets = assets.filter(a => a.type === 'BOND' && a.notes?.includes('% CDI'));
+    const bondAssets = assets.filter((a) => a.type === "BOND" && a.notes?.includes("% CDI"));
     if (bondAssets.length > 0) {
       // Fetch prime rate
-      const response = await fetch(`https://brapi.dev/api/v2/prime-rate?country=brazil&token=${token}`);
+      const response = await fetch(
+        `https://brapi.dev/api/v2/prime-rate?country=brazil&token=${token}`
+      );
       if (response.ok) {
         const data = await response.json();
-        const primeRates = data['prime-rate'] || [];
-        const cdiData = primeRates.find((r: any) => r.name === 'CDI');
-        
+        const primeRates = data["prime-rate"] || [];
+        const cdiData = primeRates.find((r: any) => r.name === "CDI");
+
         if (cdiData) {
           const cdiAnnualValue = parseFloat(cdiData.value); // e.g. "10.4"
-          
+
           for (const bond of bondAssets) {
             // parse % CDI from notes, e.g. "CDI: 110%"
             const cdiMatch = bond.notes?.match(/(\d+(?:\.\d+)?)%\s*CDI/i);
             if (cdiMatch && bond.purchase_date && bond.purchase_price) {
               const percentCdi = parseFloat(cdiMatch[1]) / 100; // 1.10
-              
+
               // Calculate days since purchase
               const purchaseDate = new Date(bond.purchase_date);
               const today = new Date();
               const diffTime = Math.abs(today.getTime() - purchaseDate.getTime());
               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              
+
               if (diffDays > 0) {
                 // Approximate compound interest calculation for daily CDI
-                const cdiDaily = Math.pow(1 + (cdiAnnualValue / 100), 1 / 252) - 1;
+                const cdiDaily = Math.pow(1 + cdiAnnualValue / 100, 1 / 252) - 1;
                 const bondDailyYield = cdiDaily * percentCdi;
                 const businessDays = diffDays * (252 / 365); // rough approximation of business days
                 const newPrice = bond.purchase_price * Math.pow(1 + bondDailyYield, businessDays);
-                
-                const { error } = await supabaseAdmin.from('assets').update({ current_price: newPrice }).eq('id', bond.id);
+
+                const { error } = await supabaseAdmin
+                  .from("assets")
+                  .update({ current_price: newPrice })
+                  .eq("id", bond.id);
                 if (!error) updatedCount++;
               }
             }
@@ -201,13 +230,12 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ updated: updatedCount }), {
-      headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(req.headers.get("origin")), "Content-Type": "application/json" },
     });
-
   } catch (error: any) {
-    console.error('Erro na sincronização:', error);
+    console.error("Erro na sincronização:", error);
     return new Response(`Error: ${error.message}`, {
-      headers: { ...corsHeaders(req.headers.get("origin")), 'Content-Type': 'text/plain' },
+      headers: { ...corsHeaders(req.headers.get("origin")), "Content-Type": "text/plain" },
       status: 500,
     });
   }

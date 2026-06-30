@@ -41,12 +41,12 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
-      // Uncomment once you have configured Sentry
-      // sentryVitePlugin({
-      //   org: "seu-bolso",
-      //   project: "javascript-react",
-      //   authToken: process.env.SENTRY_AUTH_TOKEN,
-      // }),
+      sentryVitePlugin({
+        org: process.env.SENTRY_ORG || "seu-bolso",
+        project: process.env.SENTRY_PROJECT || "javascript-react",
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        telemetry: false,
+      }),
       VitePWA({
         registerType: "autoUpdate",
         injectRegister: "auto",
@@ -86,7 +86,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       minify: "esbuild",
-      sourcemap: false,
+      sourcemap: true,
       chunkSizeWarningLimit: 950,
       rollupOptions: {
         output: {

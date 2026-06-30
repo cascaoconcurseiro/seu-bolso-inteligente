@@ -308,7 +308,7 @@ export class AIAdvisorService {
     }>
   > {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
     if (!supabaseUrl || !supabaseAnonKey) return [];
 
     const response = await fetch(`${supabaseUrl}/functions/v1/get-place-suggestions`, {

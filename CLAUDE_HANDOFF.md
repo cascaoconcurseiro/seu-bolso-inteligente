@@ -37,26 +37,32 @@
 
 **Relatório completo:** `AUDIT_REPORT_2026-06-30.md`
 **Overall Score:** 57/100 🟡
-**7 bloqueadores críticos | 14 alta prioridade | 10 backlog**
+**8 de 20 itens corrigidos nesta sessão**
 
-### Principais Descobertas
+### Fixes aplicados ✅
+- `vite.config.ts`: Sentry Plugin descomentado + `sourcemap: true`
+- `aiAdvisorService.ts:311`: `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `test/setup.ts:12`: idem
+- `CategorySettings.tsx:57`: `console.error` → `logger.error`
+- `.env.example`: adicionado `VITE_VAPID_PUBLIC_KEY`
+- `.github/workflows/ci.yml`: criado (lint + type-check + test + build + audit)
+- `.github/dependabot.yml`: criado (npm + GitHub Actions, weekly)
+- `supabase/functions/health-check/`: criado (verifica DB + Auth)
+- 4 Edge Functions: supabase-js `v2.39.3` → `v2.45.6`
 
-| #    | Severidade | Problema                                                                   |
-| :--- | :--------- | :------------------------------------------------------------------------- |
-| 1    | 🔴 CRÍTICO  | Zero CI/CD (sem GitHub Actions, sem testes no deploy)                      |
-| 2    | 🔴 CRÍTICO  | Sentry condicional — se DSN não configurado, zero monitoramento de erros   |
-| 3    | 🔴 CRÍTICO  | `sourcemap: false` + Sentry Plugin comentado — stack traces ilegíveis      |
-| 4    | 🔴 CRÍTICO  | Sem staging environment — dev local pode apontar pra produção              |
-| 5    | 🔴 CRÍTICO  | `VITE_SUPABASE_ANON_KEY` inconsistente com `VITE_SUPABASE_PUBLISHABLE_KEY` |
-| 6    | 🔴 CRÍTICO  | Supabase Free Tier (50 conexões, sem PgBouncer)                            |
-| 7    | 🔴 CRÍTICO  | Restore de backup nunca testado                                            |
+### ⚠️ Pendente (config dashboard — não código)
+- `VITE_SENTRY_DSN` na Vercel (INFRA-01)
+- PgBouncer no Supabase Dashboard (INFRA-08)
+- Sentry alerts (INFRA-09)
+- Uptime Monitor externo no health-check (INFRA-12)
+- `*.vercel.app/**` no Supabase Auth Redirect (INFRA-05)
+- Projeto Supabase de staging (INFRA-04)
+- Deploy da Edge Function `health-check`
 
-### PRÓXIMO PASSO (IMEDIATO)
-1. Configurar `VITE_SENTRY_DSN` na Vercel
-2. Criar `.github/workflows/ci.yml`
-3. Habilitar PgBouncer no Supabase
-4. Corrigir `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY` em `aiAdvisorService.ts:311`
-5. Adicionar `*.vercel.app/**` no Supabase Auth Redirect URLs
+### PRÓXIMO PASSO
+1. Configurar `VITE_SENTRY_DSN` e `SENTRY_AUTH_TOKEN` na Vercel
+2. Deployar `health-check`: `npx supabase functions deploy health-check`
+3. Configurar PgBouncer no Supabase Dashboard → Database → Connection Pooling
 
 ---
 

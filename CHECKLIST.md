@@ -8,29 +8,36 @@
 ## 🔴 INFRA — Bloqueadores de Infraestrutura (Auditoria 20 Fases)
 
 - [ ] **[INFRA-01]** Configurar `VITE_SENTRY_DSN` na Vercel (zero monitoramento de erros sem isso)
-- [ ] **[INFRA-02]** Habilitar Sentry Vite Plugin + `sourcemap: true` (stack traces ilegíveis sem sourcemaps)
-- [ ] **[INFRA-03]** Criar `.github/workflows/ci.yml` (lint + type-check + test + build)
+- [x] **[INFRA-02]** ~~Habilitar Sentry Vite Plugin + `sourcemap: true`~~ ✅ DONE
+  - `vite.config.ts`: plugin descomentado, `sourcemap: true`
+- [x] **[INFRA-03]** ~~Criar `.github/workflows/ci.yml`~~ ✅ DONE
+  - Lint + type-check + test + build + security audit
 - [ ] **[INFRA-04]** Criar projeto Supabase de staging (dev local pode apontar para produção)
 - [ ] **[INFRA-05]** Adicionar `https://*.vercel.app/**` no Supabase Auth Redirect URLs
-- [ ] **[INFRA-06]** Corrigir `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY` (nome inconsistente)
-- [ ] **[INFRA-07]** Adicionar `VITE_VAPID_PUBLIC_KEY` ao `.env.example`
+- [x] **[INFRA-06]** ~~Corrigir `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY`~~ ✅ DONE
+  - `aiAdvisorService.ts:311` e `test/setup.ts:12` corrigidos
+- [x] **[INFRA-07]** ~~Adicionar `VITE_VAPID_PUBLIC_KEY` ao `.env.example`~~ ✅ DONE
 
 ## 🟠 INFRA — Alta Prioridade
 
 - [ ] **[INFRA-08]** Configurar PgBouncer (50 conexões Free Tier → teto duro)
 - [ ] **[INFRA-09]** Configurar alertas no Sentry (error rate spike, new issue)
-- [ ] **[INFRA-10]** Configurar Dependabot (`.github/dependabot.yml`)
-- [ ] **[INFRA-11]** Criar health check endpoint (`/api/health` Edge Function)
+- [x] **[INFRA-10]** ~~Configurar Dependabot~~ ✅ DONE
+  - `.github/dependabot.yml`: npm + GitHub Actions, weekly
+- [x] **[INFRA-11]** ~~Criar health check endpoint~~ ✅ DONE
+  - `supabase/functions/health-check/index.ts`: verifica DB + Auth
 - [ ] **[INFRA-12]** Configurar Uptime Monitor externo (Betterstack/Checkly Free)
 - [ ] **[INFRA-13]** Testar restore de backup do Supabase
-- [ ] **[INFRA-14]** Corrigir `console.error` direto em `CategorySettings.tsx:57`
+- [x] **[INFRA-14]** ~~Corrigir `console.error` em `CategorySettings.tsx:57`~~ ✅ DONE
+  - Substituído por `logger.error()`
 
 ## 🟡 INFRA — Backlog
 
 - [ ] **[INFRA-15]** Disaster Recovery Plan (RTO, RPO, procedimentos)
 - [ ] **[INFRA-16]** Self-host Google Fonts (privacidade + performance)
 - [ ] **[INFRA-17]** Configurar cron para `send-monthly-report-job`, `sync-b3-tickers`, `sync-asset-prices`
-- [ ] **[INFRA-18]** Padronizar versões supabase-js nas Edge Functions
+- [x] **[INFRA-18]** ~~Padronizar versões supabase-js nas Edge Functions~~ ✅ DONE
+  - 4 funções esm.sh: `v2.39.3` → `v2.45.6`
 - [ ] **[INFRA-19]** Teste de carga (k6/Artillery: 100, 1K, 10K usuários)
 - [ ] **[INFRA-20]** Criptografia de IndexedDB (SEC-08)
 
