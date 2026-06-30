@@ -303,9 +303,9 @@ export function useTransactionForm({
           return false;
         if (tx.type !== activeTab) return false;
         if (accountId && tx.account_id !== accountId) return false;
-        
+
         const amountMatch = Math.abs(tx.amount - numericAmount) < 0.01;
-        
+
         const desc1 = tx.description.toLowerCase().trim();
         const desc2 = description.toLowerCase().trim();
         const descMatch = desc1 === desc2;
@@ -322,7 +322,6 @@ export function useTransactionForm({
         const dateMatch = txDateStr?.slice(0, 10) === formDateStr?.slice(0, 10);
 
         return amountMatch && descMatch && withinWindow && dateMatch;
-
       });
       setDuplicateWarning(hasDuplicate);
     }, 500);
@@ -588,19 +587,10 @@ export function useTransactionForm({
       haptics.success();
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
 
-      // Fire feedback immediately — before server responds (optimistic, like Nubank)
-      showActionFeedback("success");
-
-      // Close the modal slightly after the animation starts so it feels seamless
-      setTimeout(() => {
-        if (onSuccess) onSuccess();
-        else navigate("/transacoes");
-      }, 80);
-
       if (initialData && initialData.id) {
-        updateTransaction.mutate({ ...transactionData, id: initialData.id });
+        await updateTransaction.mutateAsync({ ...transactionData, id: initialData.id });
       } else {
-        createTransaction.mutate(transactionData);
+        await createTransaction.mutateAsync(transactionData);
 
         if (user && categoryId && description && activeTab !== "TRANSFER") {
           CategoryPredictionService.learnFromUser(
@@ -611,6 +601,14 @@ export function useTransactionForm({
           ).catch((error) => logger.error("Erro ao registrar aprendizado:", error));
         }
       }
+
+      // Only show success and navigate AFTER server confirms
+      showActionFeedback("success");
+
+      setTimeout(() => {
+        if (onSuccess) onSuccess();
+        else navigate("/transacoes");
+      }, 80);
 
       setTimeout(() => setRippleState(null), 300);
     } catch (error: any) {

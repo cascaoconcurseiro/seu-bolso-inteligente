@@ -107,7 +107,7 @@ export function useCreateTransaction() {
         .eq("amount", input.amount)
         .eq("description", (input.description || "").trim())
         .eq("date", input.date)
-        .eq("is_active", true)
+        .is("deleted_at", null)
         .gte("created_at", recentWindow)
         .maybeSingle();
 
@@ -120,7 +120,7 @@ export function useCreateTransaction() {
             .eq("description", (input.description || "").trim())
             .eq("date", input.date)
             .eq("account_id", input.account_id)
-            .eq("is_active", true)
+            .is("deleted_at", null)
             .gte("created_at", recentWindow)
             .maybeSingle()
         : Promise.resolve({ data: null });
@@ -516,17 +516,56 @@ export function useCreateTransaction() {
           };
         });
 
-        const { data: rpcResult, error } = await supabase.rpc("create_transaction_with_splits", {
-          p_transaction: txPayload,
-          p_splits: splitsPayload,
-        });
+        const { data: rpcResult, error: rpcError } = await supabase.rpc(
+          "create_transaction_with_splits",
+          {
+            p_transaction: txPayload,
+            p_splits: splitsPayload,
+          }
+        );
 
-        if (error) {
-          logger.error("Erro ao criar transação+splits (RPC atômica):", error);
-          throw error;
+        if (rpcError) {
+          logger.error(
+            "Erro ao criar transação+splits (RPC atômica), tentando fallback direto:",
+            rpcError
+          );
+
+          // Fallback: insert transaction + splits diretamente
+          const { data: fallbackTx, error: fallbackTxError } = await supabase
+            .from("transactions")
+            .insert({ user_id: user.id, creator_user_id: user.id, ...txPayload })
+            .select()
+            .single();
+
+          if (fallbackTxError) {
+            logger.error("Fallback transaction insert também falhou:", fallbackTxError);
+            throw fallbackTxError;
+          }
+
+          // Insert splits
+          if (splitsPayload.length > 0) {
+            const splitsToInsert = splitsPayload.map((s: Record<string, unknown>) => ({
+              ...s,
+              transaction_id: fallbackTx.id,
+            }));
+            const { error: splitsError } = await supabase
+              .from("transaction_splits")
+              .insert(splitsToInsert);
+
+            if (splitsError) {
+              logger.error(
+                "Fallback splits insert falhou, tentando deletar transaction órfã:",
+                splitsError
+              );
+              await supabase.from("transactions").delete().eq("id", fallbackTx.id);
+              throw splitsError;
+            }
+          }
+
+          data = fallbackTx;
+        } else {
+          data = rpcResult;
         }
-
-        data = rpcResult;
       } else {
         const { data: inserted, error } = await supabase
           .from("transactions")

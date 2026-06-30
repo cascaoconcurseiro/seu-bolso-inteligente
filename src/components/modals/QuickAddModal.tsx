@@ -1,30 +1,31 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { sheetDialogCn } from '@/lib/dialog-variants';
+import { useState, useEffect, useMemo, useRef } from "react";
+import { sheetDialogCn } from "@/lib/dialog-variants";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "../ui/currency-input";
+import { AmountInput } from "../ui/amount-input";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '../ui/currency-input';
-import { AmountInput } from '../ui/amount-input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAccounts } from '@/hooks/useAccounts';
-import { useCategoriesHierarchical } from '@/hooks/useCategories';
-import { useUserProfile } from '@/hooks/useUserProfile';
-import { useCreateTransaction } from '@/hooks/useTransactions';
-import { format } from 'date-fns';
-import { Loader2, Sparkles, Plane } from 'lucide-react';
-import { toast } from 'sonner';
-import { showActionFeedback } from '@/components/ui/ActionFeedback';
-import { useAIPrediction } from '@/hooks/useAIPrediction';
-import { useTrips } from '@/hooks/useTrips';
-import { Switch } from '@/components/ui/switch';
-import { moneyUtils } from '@/utils/money';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAccounts } from "@/hooks/useAccounts";
+import { useCategoriesHierarchical } from "@/hooks/useCategories";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useCreateTransaction } from "@/hooks/useTransactions";
+import { format } from "date-fns";
+import { Loader2, Sparkles, Plane } from "lucide-react";
+import { toast } from "sonner";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
+import { useAIPrediction } from "@/hooks/useAIPrediction";
+import { useTrips } from "@/hooks/useTrips";
+import { Switch } from "@/components/ui/switch";
+import { moneyUtils } from "@/utils/money";
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const dropdownCategories = useMemo(() => {
     if (!categories) return [];
-    
+
     const ALLOWED_EXPENSE_PARENTS = [
       "Supermercado",
       "Restaurantes e Lanches",
@@ -58,66 +59,71 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
       "Família e Pets",
       "Financeiro",
       "Impostos",
-      "Outros"
+      "Outros",
     ];
 
-    const expenseCats = categories.filter(c => {
-      if (c.type !== 'expense') return false;
+    const expenseCats = categories.filter((c) => {
+      if (c.type !== "expense") return false;
       // Se for categoria principal, validar se está na lista permitida
       if (!c.parent_category_id) {
         return ALLOWED_EXPENSE_PARENTS.includes(c.name);
       }
       // Se for subcategoria, o pai dela deve estar na lista permitida
-      const parent = categories.find(p => p.id === c.parent_category_id);
+      const parent = categories.find((p) => p.id === c.parent_category_id);
       return parent ? ALLOWED_EXPENSE_PARENTS.includes(parent.name) : false;
     });
-    
+
     if (!useSubcategories) {
-      return expenseCats.filter(c => !c.parent_category_id);
+      return expenseCats.filter((c) => !c.parent_category_id);
     }
-    
+
     const result: any[] = [];
-    const parents = expenseCats.filter(c => !c.parent_category_id);
-    
-    parents.forEach(parent => {
+    const parents = expenseCats.filter((c) => !c.parent_category_id);
+
+    parents.forEach((parent) => {
       result.push(parent);
-      const children = expenseCats.filter(c => c.parent_category_id === parent.id);
-      children.forEach(child => {
+      const children = expenseCats.filter((c) => c.parent_category_id === parent.id);
+      children.forEach((child) => {
         result.push({
           ...child,
-          displayName: `— ${child.name}`
+          displayName: `— ${child.name}`,
         });
       });
     });
-    
+
     return result;
   }, [categories, useSubcategories]);
 
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [accountId, setAccountId] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [accountId, setAccountId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [hasUserSelectedCategoryManually, setHasUserSelectedCategoryManually] = useState(false);
   const lastAppliedCategoryIdRef = useRef<string | null>(null);
   const [isInstallment, setIsInstallment] = useState(false);
   const [totalInstallments, setTotalInstallments] = useState(1);
-  
-  const activeTrips = useMemo(() => trips?.filter(t => t.status === 'ACTIVE' || t.status === 'PLANNING') || [], [trips]);
+
+  const activeTrips = useMemo(
+    () => trips?.filter((t) => t.status === "ACTIVE" || t.status === "PLANNING") || [],
+    [trips]
+  );
   const [isTripMode, setIsTripMode] = useState(false);
-  const [selectedTripId, setSelectedTripId] = useState<string>('');
+  const [selectedTripId, setSelectedTripId] = useState<string>("");
 
   useEffect(() => {
     if (isTripMode && activeTrips.length > 0 && !selectedTripId) {
-      const sorted = [...activeTrips].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+      const sorted = [...activeTrips].sort(
+        (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
       setSelectedTripId(sorted[0].id);
     }
   }, [isTripMode, activeTrips, selectedTripId]);
 
-  const selectedTrip = activeTrips.find(t => t.id === selectedTripId);
-  const currentCurrency = isTripMode && selectedTrip ? selectedTrip.currency : 'BRL';
-  const selectedCard = accounts?.find(a => a.id === accountId);
-  const isCreditCard = selectedCard?.type === 'CREDIT_CARD';
+  const selectedTrip = activeTrips.find((t) => t.id === selectedTripId);
+  const currentCurrency = isTripMode && selectedTrip ? selectedTrip.currency : "BRL";
+  const selectedCard = accounts?.find((a) => a.id === accountId);
+  const isCreditCard = selectedCard?.type === "CREDIT_CARD";
 
   useEffect(() => {
     if (!isCreditCard) {
@@ -126,11 +132,15 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
     }
   }, [accountId, isCreditCard]);
 
-  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(description, 'expense', isOpen);
+  const { suggestion, predictedCategoryId, isPredicting } = useAIPrediction(
+    description,
+    "expense",
+    isOpen
+  );
 
   // Resetar a escolha manual se o usuário limpar a descrição para nova digitação
   useEffect(() => {
-    if (description.trim() === '') {
+    if (description.trim() === "") {
       setHasUserSelectedCategoryManually(false);
       lastAppliedCategoryIdRef.current = null;
     }
@@ -139,10 +149,10 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   // AI Auto-categoria inteligente e blindada contra race conditions
   useEffect(() => {
     if (predictedCategoryId) {
-      // Se a categoria atual na tela foi colocada pela IA (igual a lastAppliedCategoryIdRef.current) 
+      // Se a categoria atual na tela foi colocada pela IA (igual a lastAppliedCategoryIdRef.current)
       // ou se o usuário ainda não alterou manualmente, podemos atualizar livremente!
       const isCurrentCategoryFromAI = categoryId === lastAppliedCategoryIdRef.current;
-      
+
       if (!hasUserSelectedCategoryManually || isCurrentCategoryFromAI) {
         setCategoryId(predictedCategoryId);
         lastAppliedCategoryIdRef.current = predictedCategoryId;
@@ -166,46 +176,35 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
       showActionFeedback("error");
       toast.error(msg);
     };
-    
-    const numericAmount = moneyUtils.parse(amount.replace(',', '.'));
-    
+
+    const numericAmount = moneyUtils.parse(amount.replace(",", "."));
+
     if (!numericAmount || numericAmount <= 0) {
-      handleError('Informe um valor válido.');
+      handleError("Informe um valor válido.");
       return;
     }
     if (!description.trim()) {
-      handleError('A descrição é obrigatória.');
+      handleError("A descrição é obrigatória.");
       return;
     }
     if (!accountId) {
-      handleError('A conta é obrigatória.');
+      handleError("A conta é obrigatória.");
       return;
     }
     if (!categoryId) {
-      handleError('A categoria é obrigatória.');
+      handleError("A categoria é obrigatória.");
       return;
     }
 
     try {
-      showActionFeedback("success");
-      
-      setTimeout(() => {
-        setAmount('');
-        setDescription('');
-        setDate(format(new Date(), 'yyyy-MM-dd'));
-        setAccountId('');
-        setCategoryId('');
-        onClose();
-      }, 80);
-
-      createTransaction.mutate({
+      await createTransaction.mutateAsync({
         amount: numericAmount,
         description: description.trim(),
         date,
-        type: 'EXPENSE',
+        type: "EXPENSE",
         account_id: accountId,
         category_id: categoryId,
-        domain: 'PERSONAL',
+        domain: "PERSONAL",
         is_shared: false,
         payer_id: undefined,
         trip_id: isTripMode && selectedTripId ? selectedTripId : undefined,
@@ -213,17 +212,28 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         is_installment: isInstallment && totalInstallments > 1,
         total_installments: isInstallment && totalInstallments > 1 ? totalInstallments : undefined,
       });
+
+      showActionFeedback("success");
+
+      setTimeout(() => {
+        setAmount("");
+        setDescription("");
+        setDate(format(new Date(), "yyyy-MM-dd"));
+        setAccountId("");
+        setCategoryId("");
+        onClose();
+      }, 80);
     } catch (error) {
-      // Error handled by mutation
+      showActionFeedback("error");
     }
   };
 
   const filteredAccounts = useMemo(() => {
     if (!accounts) return [];
     return accounts.filter((acc) => {
-      if (acc.type === 'CREDIT_CARD') return false;
+      if (acc.type === "CREDIT_CARD") return false;
       if (isTripMode && selectedTrip) {
-        if (selectedTrip.currency === 'BRL') return !acc.is_international;
+        if (selectedTrip.currency === "BRL") return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
       }
       return !acc.is_international;
@@ -233,9 +243,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   const filteredCreditCards = useMemo(() => {
     if (!accounts) return [];
     return accounts.filter((acc) => {
-      if (acc.type !== 'CREDIT_CARD') return false;
+      if (acc.type !== "CREDIT_CARD") return false;
       if (isTripMode && selectedTrip) {
-        if (selectedTrip.currency === 'BRL') return !acc.is_international;
+        if (selectedTrip.currency === "BRL") return !acc.is_international;
         return acc.is_international && acc.currency === selectedTrip.currency;
       }
       return !acc.is_international;
@@ -245,9 +255,9 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
   useEffect(() => {
     if (accountId) {
       const allFiltered = [...filteredAccounts, ...filteredCreditCards];
-      const isAccountValid = allFiltered.some(acc => acc.id === accountId);
+      const isAccountValid = allFiltered.some((acc) => acc.id === accountId);
       if (!isAccountValid) {
-        setAccountId('');
+        setAccountId("");
       }
     }
   }, [filteredAccounts, filteredCreditCards, accountId]);
@@ -258,16 +268,21 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         <DialogHeader>
           <DialogTitle>Adição Rápida (Despesa)</DialogTitle>
         </DialogHeader>
-        
+
         {accountsLoading || categoriesLoading ? (
-          <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {activeTrips.length > 0 && (
               <div className="space-y-3 mb-4">
                 <div className="flex items-center justify-between p-3 border rounded-xl bg-slate-50 dark:bg-slate-900/50">
                   <div className="space-y-2">
-                  <Label className="flex items-center gap-2 cursor-pointer" onClick={() => setIsTripMode(!isTripMode)}>
+                    <Label
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => setIsTripMode(!isTripMode)}
+                    >
                       <Plane className="h-4 w-4 text-accent" />
                       Despesa de Viagem
                     </Label>
@@ -275,20 +290,21 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                       Vincular a uma viagem ativa ou futura
                     </p>
                   </div>
-                  <Switch 
-                    checked={isTripMode} 
-                    onCheckedChange={setIsTripMode} 
-                  />
+                  <Switch checked={isTripMode} onCheckedChange={setIsTripMode} />
                 </div>
-                
+
                 {isTripMode && activeTrips.length > 1 && (
                   <div className="space-y-2 animate-fade-in pl-2">
                     <Label className="text-xs">Qual Viagem?</Label>
                     <Select value={selectedTripId} onValueChange={setSelectedTripId}>
-                      <SelectTrigger><SelectValue placeholder="Selecione a viagem" /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a viagem" />
+                      </SelectTrigger>
                       <SelectContent>
-                        {activeTrips.map(trip => (
-                          <SelectItem key={trip.id} value={trip.id}>{trip.name}</SelectItem>
+                        {activeTrips.map((trip) => (
+                          <SelectItem key={trip.id} value={trip.id}>
+                            {trip.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -297,29 +313,29 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               </div>
             )}
 
-            <AmountInput 
+            <AmountInput
               label={`Valor`}
-              value={amount} 
-              onChange={setAmount} 
+              value={amount}
+              onChange={setAmount}
               currency={currentCurrency}
               currencySymbol={moneyUtils.getSymbol(currentCurrency)}
               size="md"
-              textColorClass={'text-destructive'}
+              textColorClass={"text-destructive"}
               autoFocus
             />
             <div className="space-y-2">
               <Label>Descrição</Label>
               <div className="relative">
-                <Input 
+                <Input
                   id="transaction-description"
                   name="transaction-description"
-                  placeholder="Ex: Padaria, Uber…" 
-                  value={description} 
-                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Ex: Padaria, Uber…"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="pr-12 bg-transparent relative z-10"
                   required
                 />
-                
+
                 {isPredicting && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -327,76 +343,90 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Data</Label>
-                <Input 
+                <Input
                   id="transaction-date"
                   name="transaction-date"
-                  type="date" 
-                  value={date} 
-                  onChange={e => setDate(e.target.value)}
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Conta</Label>
                 <Select value={accountId} onValueChange={setAccountId} required>
-                  <SelectTrigger><SelectValue placeholder="Conta" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Conta" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {filteredAccounts.map(acc => (
-                      <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                    {filteredAccounts.map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </SelectItem>
                     ))}
-                    {filteredCreditCards.map(acc => (
-                      <SelectItem key={acc.id} value={acc.id}>{acc.name} (Cartão)</SelectItem>
+                    {filteredCreditCards.map((acc) => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name} (Cartão)
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-          </div>
-          
-          {isCreditCard && (
-            <div className="p-3 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
-              <Label className="font-medium text-xs">Parcelas (Cartão de Crédito)</Label>
-              <Select
-                value={totalInstallments.toString()}
-                onValueChange={(v) => {
-                  const val = parseInt(v);
-                  setTotalInstallments(val);
-                  setIsInstallment(val > 1);
-                }}
-              >
-                <SelectTrigger className="rounded-xl">
-                  <SelectValue placeholder="Selecione o parcelamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">
-                    1x de {moneyUtils.getSymbol(currentCurrency)} {(moneyUtils.parse(amount.replace(',', '.')) || 0).toFixed(2).replace('.', ',')} (À vista)
-                  </SelectItem>
-                  {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
-                    <SelectItem key={n} value={n.toString()}>
-                      {n}x de {moneyUtils.getSymbol(currentCurrency)}{' '}
-                      {((moneyUtils.parse(amount.replace(',', '.')) || 0) / n).toFixed(2).replace('.', ',')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
-          )}
-          
-          <div className="space-y-2">
+
+            {isCreditCard && (
+              <div className="p-3 rounded-xl border border-border bg-card space-y-3 animate-slide-in">
+                <Label className="font-medium text-xs">Parcelas (Cartão de Crédito)</Label>
+                <Select
+                  value={totalInstallments.toString()}
+                  onValueChange={(v) => {
+                    const val = parseInt(v);
+                    setTotalInstallments(val);
+                    setIsInstallment(val > 1);
+                  }}
+                >
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Selecione o parcelamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">
+                      1x de {moneyUtils.getSymbol(currentCurrency)}{" "}
+                      {(moneyUtils.parse(amount.replace(",", ".")) || 0)
+                        .toFixed(2)
+                        .replace(".", ",")}{" "}
+                      (À vista)
+                    </SelectItem>
+                    {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>
+                        {n}x de {moneyUtils.getSymbol(currentCurrency)}{" "}
+                        {((moneyUtils.parse(amount.replace(",", ".")) || 0) / n)
+                          .toFixed(2)
+                          .replace(".", ",")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                Categoria 
+                Categoria
                 {predictedCategoryId === categoryId && categoryId && (
                   <Sparkles className="h-4 w-4 text-accent" title="Categoria sugerida pela IA" />
                 )}
               </Label>
               <Select value={categoryId} onValueChange={handleCategoryChange} required>
-                <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione…" />
+                </SelectTrigger>
                 <SelectContent>
-                  {dropdownCategories.map(category => (
+                  {dropdownCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.icon} {category.displayName || category.name}
                     </SelectItem>
@@ -404,9 +434,13 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <Button type="submit" className="w-full mt-3" disabled={createTransaction.isPending}>
-              {createTransaction.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Salvar Despesa'}
+              {createTransaction.isPending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Salvar Despesa"
+              )}
             </Button>
           </form>
         )}
