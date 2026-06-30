@@ -55,7 +55,7 @@ DECLARE
 BEGIN
   -- Guard: Only process if recurring and not already a mirror
   IF NEW.is_recurring = true AND NEW.source_transaction_id IS NULL THEN
-    
+
     -- Guard against recursion: if this was just created by the trigger itself, skip
     -- The last_generated_date is set after trigger creates the copy
     IF NEW.last_generated_date IS NOT NULL AND NEW.last_generated_date >= CURRENT_DATE THEN
@@ -116,7 +116,7 @@ ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'search_transactions' 
+    SELECT 1 FROM pg_proc WHERE proname = 'search_transactions'
     AND pronamespace = 'public'::regnamespace
   ) THEN
     CREATE FUNCTION search_transactions(

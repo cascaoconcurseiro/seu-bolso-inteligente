@@ -13,9 +13,9 @@ BEGIN
   -- 1. Transaction is recurring
   -- 2. Not a mirror (has no source_transaction_id)
   -- 3. Not already generated (last_generated_date is NULL)
-  IF NEW.is_recurring = true 
-     AND NEW.source_transaction_id IS NULL 
-     AND NEW.last_generated_date IS NULL 
+  IF NEW.is_recurring = true
+     AND NEW.source_transaction_id IS NULL
+     AND NEW.last_generated_date IS NULL
   THEN
     v_next_date := NEW.date + INTERVAL '1 month';
     v_next_competence := NEW.competence_date + INTERVAL '1 month';
