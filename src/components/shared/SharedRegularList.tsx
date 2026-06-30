@@ -1,5 +1,5 @@
 import { SharedExpenseCard } from "@/components/shared/SharedExpenseCard";
-import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { Database } from "@/types/database";
 
 type FamilyMember = Database["public"]["Tables"]["family_members"]["Row"] & {
@@ -37,32 +37,32 @@ export function SharedRegularList({
   onDelete,
   onConfirmReceipt,
   onRejectSettlement,
-  onAnticipate
+  onAnticipate,
 }: SharedRegularListProps) {
-  const filteredMembers = members.filter(m => m.linked_user_id !== user?.id);
+  const filteredMembers = members.filter((m) => m.linked_user_id !== user?.id);
 
   return (
     <>
-      {filteredMembers.map(m => {
-        const items = getFilteredInvoice(m.id); 
+      {filteredMembers.map((m) => {
+        const items = getFilteredInvoice(m.id);
         if (items.length === 0) return null;
-        
+
         return (
-          <SharedExpenseCard 
-            key={m.id} 
-            member={m} 
-            items={items} 
-            netAmount={getTotals(items)['BRL']?.net || 0} 
-            currency="BRL" 
-            isHistory={activeTab === "HISTORY"} 
-            currentUserId={user?.id} 
-            formatCurrency={formatCurrency} 
-            onSettle={onSettle} 
-            onUndo={onUndo} 
-            onDelete={onDelete} 
-            onConfirmReceipt={onConfirmReceipt} 
-            onRejectSettlement={onRejectSettlement} 
-            onAnticipate={onAnticipate} 
+          <SharedExpenseCard
+            key={m.id}
+            member={m}
+            items={items}
+            netAmount={getTotals(items)["BRL"]?.net || 0}
+            currency="BRL"
+            isHistory={activeTab === "HISTORY"}
+            currentUserId={user?.id}
+            formatCurrency={formatCurrency}
+            onSettle={onSettle}
+            onUndo={onUndo}
+            onDelete={onDelete}
+            onConfirmReceipt={onConfirmReceipt}
+            onRejectSettlement={onRejectSettlement}
+            onAnticipate={onAnticipate}
           />
         );
       })}

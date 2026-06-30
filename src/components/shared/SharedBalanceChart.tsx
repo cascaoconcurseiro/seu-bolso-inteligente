@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { logger } from "@/utils/logger";
 
@@ -38,16 +38,16 @@ export function SharedBalanceChart({
   currentDate,
   isGeneralReport = false,
   monthlyData = [],
-  currency = "BRL"
+  currency = "BRL",
 }: SharedBalanceChartProps) {
   const chartData = useMemo(() => {
     if (isGeneralReport && monthlyData && monthlyData.length > 0) {
-      logger.debug('[SharedBalanceChart] Usando monthlyData para relatório geral');
-      return monthlyData.map(item => ({
+      logger.debug("[SharedBalanceChart] Usando monthlyData para relatório geral");
+      return monthlyData.map((item) => ({
         month: item.month,
         credits: item.income,
         debits: item.expense,
-        net: SafeFinancialCalculator.subtract(item.income, item.expense)
+        net: SafeFinancialCalculator.subtract(item.income, item.expense),
       }));
     }
 
@@ -68,18 +68,15 @@ export function SharedBalanceChart({
           if (!item.date) return;
 
           // Parse date as YYYY-MM-DD to avoid timezone issues
-          const datePart = item.date.split('T')[0];
-          const [year, month] = datePart.split('-').map(Number);
-          
+          const datePart = item.date.split("T")[0];
+          const [year, month] = datePart.split("-").map(Number);
+
           if (isNaN(year) || isNaN(month)) return;
 
           const itemMonth = month - 1; // JavaScript months are 0-indexed
           const itemYear = year;
-          
-          if (
-            itemMonth === monthDate.getMonth() &&
-            itemYear === monthDate.getFullYear()
-          ) {
+
+          if (itemMonth === monthDate.getMonth() && itemYear === monthDate.getFullYear()) {
             // Incluir todos os itens, não apenas isPaid === false
             if (item.type === "CREDIT") {
               credits = SafeFinancialCalculator.add(credits, item.amount);
@@ -102,9 +99,13 @@ export function SharedBalanceChart({
   }, [invoices, isGeneralReport, monthlyData, currentDate]);
 
   const safeChartData = chartData || [];
-  const currentMonthData = safeChartData.length > 0 ? safeChartData[safeChartData.length - 1] : null;
-  const previousMonthData = safeChartData.length > 1 ? safeChartData[safeChartData.length - 2] : null;
-  const trend = currentMonthData ? SafeFinancialCalculator.subtract(currentMonthData.net, previousMonthData?.net || 0) : 0;
+  const currentMonthData =
+    safeChartData.length > 0 ? safeChartData[safeChartData.length - 1] : null;
+  const previousMonthData =
+    safeChartData.length > 1 ? safeChartData[safeChartData.length - 2] : null;
+  const trend = currentMonthData
+    ? SafeFinancialCalculator.subtract(currentMonthData.net, previousMonthData?.net || 0)
+    : 0;
 
   const formatCurrency = (value: number) => {
     if (currency && currency !== "BRL") {
@@ -130,24 +131,18 @@ export function SharedBalanceChart({
           <div className="space-y-2 text-sm">
             {isGeneralReport ? (
               <>
-                <p className="text-positive">
-                  Receitas: {formatCurrency(data.credits)}
-                </p>
-                <p className="text-negative">
-                  Despesas: {formatCurrency(data.debits)}
-                </p>
+                <p className="text-positive">Receitas: {formatCurrency(data.credits)}</p>
+                <p className="text-negative">Despesas: {formatCurrency(data.debits)}</p>
               </>
             ) : (
               <>
-                <p className="text-positive">
-                  A receber: {formatCurrency(data.credits)}
-                </p>
-                <p className="text-negative">
-                  A pagar: {formatCurrency(data.debits)}
-                </p>
+                <p className="text-positive">A receber: {formatCurrency(data.credits)}</p>
+                <p className="text-negative">A pagar: {formatCurrency(data.debits)}</p>
               </>
             )}
-            <p className={data.net >= 0 ? "text-positive font-medium" : "text-negative font-medium"}>
+            <p
+              className={data.net >= 0 ? "text-positive font-medium" : "text-negative font-medium"}
+            >
               Saldo: {formatCurrency(data.net)}
             </p>
           </div>
@@ -166,8 +161,14 @@ export function SharedBalanceChart({
             Evolução do Saldo
           </CardTitle>
           {trend !== 0 && (
-            <div className={`flex items-center gap-1 text-sm ${trend > 0 ? "text-positive" : "text-negative"}`}>
-              {trend > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            <div
+              className={`flex items-center gap-1 text-sm ${trend > 0 ? "text-positive" : "text-negative"}`}
+            >
+              {trend > 0 ? (
+                <TrendingUp className="h-4 w-4" />
+              ) : (
+                <TrendingDown className="h-4 w-4" />
+              )}
               <span>{formatCurrency(Math.abs(trend))}</span>
             </div>
           )}

@@ -1,11 +1,25 @@
-import { Plane, Clock, CheckCircle2, MoreHorizontal, Undo2, Calendar, Trash2, CheckCircle } from "lucide-react";
+import {
+  Plane,
+  Clock,
+  CheckCircle2,
+  MoreHorizontal,
+  Undo2,
+  Calendar,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
-import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 
 interface SharedTripCardProps {
   trip: any;
@@ -14,7 +28,12 @@ interface SharedTripCardProps {
   getTotals: (items: InvoiceItem[]) => any;
   formatCurrency: (value: number, currency: string) => string;
   user: any;
-  onSettle: (memberId: string, type: "PAY" | "RECEIVE", amount: number, specificItem?: InvoiceItem) => void;
+  onSettle: (
+    memberId: string,
+    type: "PAY" | "RECEIVE",
+    amount: number,
+    specificItem?: InvoiceItem
+  ) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onDeleteSeries: (item: InvoiceItem) => void;
@@ -37,30 +56,30 @@ export function SharedTripCard({
   onAnticipate,
 }: SharedTripCardProps) {
   const tripItems: InvoiceItem[] = [];
-  members.forEach(member => {
-    const memberItems = getFilteredInvoice(member.id).filter(i => i.tripId === trip.id);
+  members.forEach((member) => {
+    const memberItems = getFilteredInvoice(member.id).filter((i) => i.tripId === trip.id);
     tripItems.push(...memberItems);
   });
 
   if (tripItems.length === 0) return null;
 
   const totals = getTotals(tripItems);
-  const tripCurrency = trip.currency || 'BRL';
+  const tripCurrency = trip.currency || "BRL";
   const net = totals[tripCurrency]?.net || 0;
 
   const itemsByMember: Record<string, InvoiceItem[]> = {};
-  tripItems.forEach(item => {
+  tripItems.forEach((item) => {
     if (!itemsByMember[item.memberId]) {
       itemsByMember[item.memberId] = [];
     }
     itemsByMember[item.memberId].push(item);
   });
 
-  const pendingCount = tripItems.filter(i => !i.isPaid).length;
+  const pendingCount = tripItems.filter((i) => !i.isPaid).length;
 
-  const itemsWaitingMe = tripItems.filter(item => {
+  const itemsWaitingMe = tripItems.filter((item) => {
     if (item.isPaid) return false;
-    const isCredit = item.type === 'CREDIT';
+    const isCredit = item.type === "CREDIT";
     return !isCredit && item.settledByDebtor && !item.settledByCreditor;
   });
 
@@ -94,13 +113,19 @@ export function SharedTripCard({
 
           <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-accent/20">
             <div className="text-left sm:text-right">
-              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">Saldo da Viagem</p>
-              <p className={cn(
-                "font-mono font-bold text-2xl leading-none tracking-tight",
-                net === 0 ? "text-muted-foreground" :
-                  net < 0 ? "text-destructive dark:text-destructive" :
-                    "text-success dark:text-success"
-              )}>
+              <p className="text-sm text-muted-foreground uppercase tracking-wider mb-0.5 font-medium">
+                Saldo da Viagem
+              </p>
+              <p
+                className={cn(
+                  "font-mono font-bold text-2xl leading-none tracking-tight",
+                  net === 0
+                    ? "text-muted-foreground"
+                    : net < 0
+                      ? "text-destructive dark:text-destructive"
+                      : "text-success dark:text-success"
+                )}
+              >
                 {net === 0 ? "Em dia" : formatCurrency(Math.abs(net), tripCurrency)}
               </p>
             </div>
@@ -121,11 +146,27 @@ export function SharedTripCard({
               <p className="text-sm text-warning dark:text-warning/90 mt-0.5 leading-relaxed">
                 {itemsWaitingMe.length === 1 ? (
                   <>
-                    Um participante marcou a transação de acerto <strong>"{itemsWaitingMe[0].description}"</strong> de <strong>{formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}</strong> como paga. Confirme o recebimento e escolha em qual conta deseja creditar.
+                    Um participante marcou a transação de acerto{" "}
+                    <strong>"{itemsWaitingMe[0].description}"</strong> de{" "}
+                    <strong>
+                      {formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}
+                    </strong>{" "}
+                    como paga. Confirme o recebimento e escolha em qual conta deseja creditar.
                   </>
                 ) : (
                   <>
-                    Há <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0), tripCurrency)}</strong>) marcados como pagos. Confirme para atualizar seu saldo e escolher as contas de recebimento.
+                    Há <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de{" "}
+                    <strong>
+                      {formatCurrency(
+                        itemsWaitingMe.reduce(
+                          (sum, i) => SafeFinancialCalculator.add(sum, i.amount),
+                          0
+                        ),
+                        tripCurrency
+                      )}
+                    </strong>
+                    ) marcados como pagos. Confirme para atualizar seu saldo e escolher as contas de
+                    recebimento.
                   </>
                 )}
               </p>
@@ -140,7 +181,9 @@ export function SharedTripCard({
                 onClick={() => onConfirmReceipt(item)}
               >
                 <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                {itemsWaitingMe.length === 1 ? "Confirmar e Escolher Conta" : `Confirmar R$ ${item.amount.toFixed(2).replace('.', ',')}`}
+                {itemsWaitingMe.length === 1
+                  ? "Confirmar e Escolher Conta"
+                  : `Confirmar R$ ${item.amount.toFixed(2).replace(".", ",")}`}
               </Button>
             ))}
           </div>
@@ -149,7 +192,7 @@ export function SharedTripCard({
 
       <div className="border-t border-border">
         {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
-          const member = members.find(m => m.id === memberId);
+          const member = members.find((m) => m.id === memberId);
           if (!member) return null;
 
           const memberTotals = getTotals(memberItems);
@@ -159,27 +202,29 @@ export function SharedTripCard({
             <div key={memberId} className="border-b border-border last:border-0">
               <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <UserAvatar
-                    name={member.name}
-                    avatarUrl={member.avatar_url}
-                    size="sm"
-                  />
+                  <UserAvatar name={member.name} avatarUrl={member.avatar_url} size="sm" />
                   <span className="font-medium">{member.name}</span>
                 </div>
-                <span className={cn(
-                  "font-mono font-semibold",
-                  memberNet === 0 ? "text-muted-foreground" :
-                    memberNet < 0 ? "text-destructive" : "text-success"
-                )}>
+                <span
+                  className={cn(
+                    "font-mono font-semibold",
+                    memberNet === 0
+                      ? "text-muted-foreground"
+                      : memberNet < 0
+                        ? "text-destructive"
+                        : "text-success"
+                  )}
+                >
                   {formatCurrency(Math.abs(memberNet), tripCurrency)}
                 </span>
               </div>
 
               <div className="divide-y divide-border">
-                {memberItems.map(item => {
-                  const isCredit = item.type === 'CREDIT';
+                {memberItems.map((item) => {
+                  const isCredit = item.type === "CREDIT";
                   const isWaitingMe = !isCredit && item.settledByDebtor && !item.settledByCreditor;
-                  const isWaitingOther = isCredit && item.settledByDebtor && !item.settledByCreditor;
+                  const isWaitingOther =
+                    isCredit && item.settledByDebtor && !item.settledByCreditor;
                   return (
                     <div
                       key={item.id}
@@ -195,20 +240,24 @@ export function SharedTripCard({
                           ) : isWaitingMe || isWaitingOther ? (
                             <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
-                            <div className={cn(
-                              "h-5 w-5 rounded-full border-2",
-                              isCredit ? "border-success" : "border-destructive"
-                            )} />
+                            <div
+                              className={cn(
+                                "h-5 w-5 rounded-full border-2",
+                                isCredit ? "border-success" : "border-destructive"
+                              )}
+                            />
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="flex-1 min-w-0">
-                              <p className={cn(
-                                "text-sm font-medium truncate",
-                                item.isPaid && "text-muted-foreground line-through"
-                              )}>
+                              <p
+                                className={cn(
+                                  "text-sm font-medium truncate",
+                                  item.isPaid && "text-muted-foreground line-through"
+                                )}
+                              >
                                 {item.description}
                               </p>
                               {item.creatorName && (
@@ -217,22 +266,28 @@ export function SharedTripCard({
                                 </span>
                               )}
                             </div>
-                            <span className={cn(
-                              "font-mono text-sm font-bold shrink-0 whitespace-nowrap",
-                              item.isPaid ? "text-muted-foreground" :
-                                isCredit ? "text-success dark:text-success" :
-                                  "text-destructive dark:text-destructive"
-                            )}>
+                            <span
+                              className={cn(
+                                "font-mono text-sm font-bold shrink-0 whitespace-nowrap",
+                                item.isPaid
+                                  ? "text-muted-foreground"
+                                  : isCredit
+                                    ? "text-success dark:text-success"
+                                    : "text-destructive dark:text-destructive"
+                              )}
+                            >
                               {formatCurrency(item.amount, item.currency)}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                            {item.category && (
-                              <span className="truncate">{item.category}</span>
-                            )}
+                            {item.category && <span className="truncate">{item.category}</span>}
                             <span className="whitespace-nowrap">
-                              {(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yy") : '-'; })()}
+                              {(() => {
+                                if (!item.date) return "-";
+                                const dt = new Date(item.date + "T12:00:00");
+                                return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yy") : "-";
+                              })()}
                             </span>
                           </div>
 
@@ -249,18 +304,20 @@ export function SharedTripCard({
                               variant="outline"
                               className={cn(
                                 "text-[11px] font-bold border-0",
-                                item.isPaid ? "bg-muted text-muted-foreground" :
-                                  isCredit ? "bg-success/12 text-success" :
-                                    "bg-destructive/12 text-destructive"
+                                item.isPaid
+                                  ? "bg-muted text-muted-foreground"
+                                  : isCredit
+                                    ? "bg-success/12 text-success"
+                                    : "bg-destructive/12 text-destructive"
                               )}
                             >
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
                             </Badge>
 
                             {isWaitingMe && (
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
+                              <Button
+                                size="sm"
+                                variant="outline"
                                 className="h-8 text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
                                 onClick={() => onConfirmReceipt(item)}
                               >
@@ -270,12 +327,20 @@ export function SharedTripCard({
                             )}
 
                             {isWaitingOther && (
-                              <Badge variant="outline" className="text-[11px] bg-warning/8 text-warning border-warning/20">
+                              <Badge
+                                variant="outline"
+                                className="text-[11px] bg-warning/8 text-warning border-warning/20"
+                              >
                                 Aguardando
                               </Badge>
                             )}
 
-                            {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
+                            {(item.isPaid ||
+                              item.creatorUserId === user?.id ||
+                              (item.totalInstallments &&
+                                item.totalInstallments > 1 &&
+                                !item.isPaid &&
+                                item.canAnticipate)) && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto">
@@ -284,22 +349,24 @@ export function SharedTripCard({
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   {item.isPaid && (
-                                    <DropdownMenuItem
-                                      onClick={() => onUndo(item)}
-                                    >
+                                    <DropdownMenuItem onClick={() => onUndo(item)}>
                                       <Undo2 className="h-4 w-4 mr-2" />
                                       Desfazer acerto
                                     </DropdownMenuItem>
                                   )}
-                                  {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
-                                    <DropdownMenuItem
-                                      onClick={() => onAnticipate(item)}
-                                      className="text-accent focus:text-accent"
-                                    >
-                                      <Calendar className="h-4 w-4 mr-2" />
-                                      Antecipar Parcelas
-                                    </DropdownMenuItem>
-                                  )}
+                                  {!item.isPaid &&
+                                    item.totalInstallments &&
+                                    item.totalInstallments > 1 &&
+                                    item.seriesId &&
+                                    item.canAnticipate && (
+                                      <DropdownMenuItem
+                                        onClick={() => onAnticipate(item)}
+                                        className="text-accent focus:text-accent"
+                                      >
+                                        <Calendar className="h-4 w-4 mr-2" />
+                                        Antecipar Parcelas
+                                      </DropdownMenuItem>
+                                    )}
                                   {item.creatorUserId === user?.id && (
                                     <>
                                       {item.totalInstallments && item.totalInstallments > 1 ? (
@@ -335,19 +402,23 @@ export function SharedTripCard({
                           ) : isWaitingMe || isWaitingOther ? (
                             <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
-                            <div className={cn(
-                              "h-5 w-5 rounded-full border-2",
-                              isCredit ? "border-success" : "border-destructive"
-                            )} />
+                            <div
+                              className={cn(
+                                "h-5 w-5 rounded-full border-2",
+                                isCredit ? "border-success" : "border-destructive"
+                              )}
+                            />
                           )}
                         </div>
 
                         <div className="col-span-5">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className={cn(
-                              "font-medium",
-                              item.isPaid && "text-muted-foreground line-through"
-                            )}>
+                            <p
+                              className={cn(
+                                "font-medium",
+                                item.isPaid && "text-muted-foreground line-through"
+                              )}
+                            >
                               {item.description}
                             </p>
                             {item.creatorName && (
@@ -362,16 +433,24 @@ export function SharedTripCard({
                         </div>
 
                         <div className="col-span-2 text-muted-foreground">
-                          {(() => { if (!item.date) return '-'; const dt = new Date(item.date + 'T12:00:00'); return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : '-'; })()}
+                          {(() => {
+                            if (!item.date) return "-";
+                            const dt = new Date(item.date + "T12:00:00");
+                            return dateFns.isValid(dt) ? dateFns.format(dt, "dd/MM/yyyy") : "-";
+                          })()}
                         </div>
 
                         <div className="col-span-2 text-right">
-                          <span className={cn(
-                            "font-mono text-sm font-medium",
-                            item.isPaid ? "text-muted-foreground" :
-                            isCredit ? "text-success dark:text-success" :
-                              "text-destructive dark:text-destructive"
-                          )}>
+                          <span
+                            className={cn(
+                              "font-mono text-sm font-medium",
+                              item.isPaid
+                                ? "text-muted-foreground"
+                                : isCredit
+                                  ? "text-success dark:text-success"
+                                  : "text-destructive dark:text-destructive"
+                            )}
+                          >
                             {formatCurrency(item.amount, item.currency)}
                           </span>
                         </div>
@@ -390,18 +469,20 @@ export function SharedTripCard({
                             variant="outline"
                             className={cn(
                               "text-[11px] font-bold border-0",
-                              item.isPaid ? "bg-muted text-muted-foreground" :
-                                isCredit ? "bg-success/12 text-success" :
-                                  "bg-destructive/12 text-destructive"
+                              item.isPaid
+                                ? "bg-muted text-muted-foreground"
+                                : isCredit
+                                  ? "bg-success/12 text-success"
+                                  : "bg-destructive/12 text-destructive"
                             )}
                           >
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
                           {isWaitingMe && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="h-8 text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
                               onClick={() => onConfirmReceipt(item)}
                             >
@@ -411,24 +492,34 @@ export function SharedTripCard({
                           )}
 
                           {isWaitingOther && (
-                            <Badge variant="outline" className="text-[11px] bg-warning/8 text-warning border-warning/20">
+                            <Badge
+                              variant="outline"
+                              className="text-[11px] bg-warning/8 text-warning border-warning/20"
+                            >
                               Aguardando
                             </Badge>
                           )}
 
                           {!item.isSettled && !isWaitingMe && !isWaitingOther && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="h-8 text-sm bg-success/8 border-success/20 text-success hover:bg-success/12 font-bold"
-                              onClick={() => onSettle(memberId, isCredit ? "RECEIVE" : "PAY", item.amount, item)}
+                              onClick={() =>
+                                onSettle(memberId, isCredit ? "RECEIVE" : "PAY", item.amount, item)
+                              }
                             >
                               <Wallet className="h-3 w-3 mr-1" />
                               Acertar
                             </Button>
                           )}
 
-                          {(item.isPaid || item.creatorUserId === user?.id || (item.totalInstallments && item.totalInstallments > 1 && !item.isPaid && item.canAnticipate)) && (
+                          {(item.isPaid ||
+                            item.creatorUserId === user?.id ||
+                            (item.totalInstallments &&
+                              item.totalInstallments > 1 &&
+                              !item.isPaid &&
+                              item.canAnticipate)) && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -437,22 +528,24 @@ export function SharedTripCard({
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 {item.isPaid && (
-                                  <DropdownMenuItem
-                                    onClick={() => onUndo(item)}
-                                  >
+                                  <DropdownMenuItem onClick={() => onUndo(item)}>
                                     <Undo2 className="h-4 w-4 mr-2" />
                                     Desfazer acerto
                                   </DropdownMenuItem>
                                 )}
-                                {!item.isPaid && item.totalInstallments && item.totalInstallments > 1 && item.seriesId && item.canAnticipate && (
-                                  <DropdownMenuItem
-                                    onClick={() => onAnticipate(item)}
-                                    className="text-accent focus:text-accent"
-                                  >
-                                    <Calendar className="h-4 w-4 mr-2" />
-                                    Antecipar Parcelas
-                                  </DropdownMenuItem>
-                                )}
+                                {!item.isPaid &&
+                                  item.totalInstallments &&
+                                  item.totalInstallments > 1 &&
+                                  item.seriesId &&
+                                  item.canAnticipate && (
+                                    <DropdownMenuItem
+                                      onClick={() => onAnticipate(item)}
+                                      className="text-accent focus:text-accent"
+                                    >
+                                      <Calendar className="h-4 w-4 mr-2" />
+                                      Antecipar Parcelas
+                                    </DropdownMenuItem>
+                                  )}
                                 {item.creatorUserId === user?.id && (
                                   <>
                                     {item.totalInstallments && item.totalInstallments > 1 ? (
@@ -484,7 +577,7 @@ export function SharedTripCard({
                 })}
               </div>
 
-              {memberNet !== 0 && memberItems.filter(i => !i.isPaid).length > 0 && (
+              {memberNet !== 0 && memberItems.filter((i) => !i.isPaid).length > 0 && (
                 <div className="px-4 py-3 bg-muted/20">
                   <Button
                     variant={memberNet < 0 ? "destructive" : "default"}
@@ -493,11 +586,9 @@ export function SharedTripCard({
                       "h-12 sm:h-10 w-full",
                       memberNet > 0 && "bg-success hover:bg-success/92"
                     )}
-                    onClick={() => onSettle(
-                      memberId,
-                      memberNet < 0 ? "PAY" : "RECEIVE",
-                      Math.abs(memberNet)
-                    )}
+                    onClick={() =>
+                      onSettle(memberId, memberNet < 0 ? "PAY" : "RECEIVE", Math.abs(memberNet))
+                    }
                   >
                     <span>{memberNet < 0 ? "Pagar" : "Receber"}</span>
                   </Button>

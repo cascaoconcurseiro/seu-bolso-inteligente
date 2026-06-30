@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
-import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { User } from "@supabase/supabase-js";
 import {
@@ -139,7 +139,9 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const uniqueTripIdsCheck = [...new Set(itemsToSettle.map((i) => i.tripId ?? null))];
       const domainsInBatch = new Set(itemsToSettle.map((i) => (i.tripId ? "TRAVEL" : "PERSONAL")));
       if (domainsInBatch.size > 1 || uniqueTripIdsCheck.filter(Boolean).length > 1) {
-        toast.error("Não é possível acertar itens de viagens diferentes em uma única operação. Selecione apenas itens da mesma origem.");
+        toast.error(
+          "Não é possível acertar itens de viagens diferentes em uma única operação. Selecione apenas itens da mesma origem."
+        );
         setIsSettling(false);
         return;
       }

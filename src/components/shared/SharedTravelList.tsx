@@ -1,5 +1,5 @@
 import { SharedTripCard } from "@/components/shared/SharedTripCard";
-import { InvoiceItem } from "@/hooks/useSharedFinances";
+import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { Database } from "@/types/database";
 
 type Trip = Database["public"]["Tables"]["trips"]["Row"];
@@ -18,7 +18,13 @@ interface SharedTravelListProps {
   getFilteredInvoice: (memberId: string) => InvoiceItem[];
   getTotals: (items: InvoiceItem[]) => Record<string, any>;
   formatCurrency: (val: number, cur?: string) => string;
-  onSettle: (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem: InvoiceItem | undefined, tripId: string) => void;
+  onSettle: (
+    id: string,
+    type: "PAY" | "RECEIVE",
+    amt: number,
+    specificItem: InvoiceItem | undefined,
+    tripId: string
+  ) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onDeleteSeries: (item: InvoiceItem) => void;
@@ -38,29 +44,29 @@ export function SharedTravelList({
   onDelete,
   onDeleteSeries,
   onConfirmReceipt,
-  onAnticipate
+  onAnticipate,
 }: SharedTravelListProps) {
-  const filteredTrips = trips.filter(t => 
-    members.some(m => getFilteredInvoice(m.id).some(i => i.tripId === t.id))
+  const filteredTrips = trips.filter((t) =>
+    members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))
   );
 
   return (
     <>
-      {filteredTrips.map(t => (
-        <SharedTripCard 
-          key={t.id} 
-          trip={t} 
-          members={members} 
-          getFilteredInvoice={getFilteredInvoice} 
-          getTotals={getTotals} 
-          formatCurrency={formatCurrency} 
-          user={user} 
-          onSettle={(id, type, amt, specificItem) => onSettle(id, type, amt, specificItem, t.id)} 
-          onUndo={onUndo} 
-          onDelete={onDelete} 
-          onDeleteSeries={onDeleteSeries} 
-          onConfirmReceipt={onConfirmReceipt} 
-          onAnticipate={onAnticipate} 
+      {filteredTrips.map((t) => (
+        <SharedTripCard
+          key={t.id}
+          trip={t}
+          members={members}
+          getFilteredInvoice={getFilteredInvoice}
+          getTotals={getTotals}
+          formatCurrency={formatCurrency}
+          user={user}
+          onSettle={(id, type, amt, specificItem) => onSettle(id, type, amt, specificItem, t.id)}
+          onUndo={onUndo}
+          onDelete={onDelete}
+          onDeleteSeries={onDeleteSeries}
+          onConfirmReceipt={onConfirmReceipt}
+          onAnticipate={onAnticipate}
         />
       ))}
     </>
