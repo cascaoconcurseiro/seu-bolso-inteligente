@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { parseDateUTC as parseDate } from "@/utils/dateUtils";
@@ -10,7 +11,7 @@ interface DashboardRecentActivityProps {
   formatCurrencyWithSymbol: (value: number, currency: string) => string;
 }
 
-export function DashboardRecentActivity({
+export const DashboardRecentActivity = memo(function DashboardRecentActivity({
   recentTransactions,
   formatCurrencyWithSymbol
 }: DashboardRecentActivityProps) {
@@ -110,7 +111,7 @@ export function DashboardRecentActivity({
                       {isPrivate ? "➔ •••••" : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
                     </p>
                   )}
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/50 flex items-center justify-end gap-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/50 flex items-center justify-end gap-1">
                     {isIncome ? <ArrowDownLeft className="h-2 w-2" /> : isTransfer ? <RefreshCw className="h-2 w-2" /> : <ArrowUpRight className="h-2 w-2" />}
                     {isIncome ? "Entrada" : isTransfer ? "Transfer" : "Saída"}
                   </p>

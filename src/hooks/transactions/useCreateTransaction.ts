@@ -297,7 +297,7 @@ export function useCreateTransaction() {
         }
 
         const transactionsForRpc = [];
-        let allocatedAmount = 0;
+        let allocatedAmount = SafeFinancialCalculator.ZERO;
 
         for (let i = 0; i < installmentsToCreate; i++) {
           const currentInstNum = startingInstallment + i;
@@ -317,7 +317,7 @@ export function useCreateTransaction() {
           let embeddedSplits: Record<string, unknown>[] = [];
           if (finalSplits && finalSplits.length > 0) {
             const splitResults = calculateTransactionSplits(
-              currentAmount,
+              currentAmount.toNumber(),
               finalSplits,
               myFamilyMemberId || user.id
             );
@@ -337,7 +337,7 @@ export function useCreateTransaction() {
 
           transactionsForRpc.push({
             ...transactionData,
-            amount: currentAmount,
+            amount: currentAmount.toNumber(),
             date: formattedDate,
             competence_date: competenceDate,
             description: `${input.description} (${currentInstNum}/${input.total_installments})`,

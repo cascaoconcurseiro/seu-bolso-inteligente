@@ -19,6 +19,10 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Orçamento: ${budget.category_name || 'Global'}, ${percentage.toFixed(0)}% utilizado`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(budget); } }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
         if (target.closest('button')) return;
