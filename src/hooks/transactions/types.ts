@@ -1,5 +1,9 @@
 export type TransactionType = "EXPENSE" | "INCOME" | "TRANSFER" | "WITHDRAWAL" | "DEPOSIT";
 export type TransactionDomain = "PERSONAL" | "SHARED" | "TRAVEL";
+export type TransactionStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
+
+/** Dia da recorrência (1-31) */
+export type RecurrenceDay = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31;
 
 export interface Transaction {
   id: string;
@@ -24,7 +28,7 @@ export interface Transaction {
   is_recurring: boolean;
   recurrence_pattern: string | null;
   source_transaction_id: string | null;
-  status: string; // 'CONFIRMED' | 'PENDING' | 'CANCELLED'
+  status: TransactionStatus;
   external_id: string | null;
   notes: string | null;
   exchange_rate: number | null;
@@ -88,11 +92,10 @@ export interface CreateTransactionInput {
   is_refund?: boolean;
   is_recurring?: boolean;
   frequency?: string;
-  recurrence_day?: number;
-  status?: string;
+  recurrence_day?: RecurrenceDay;
+  status?: TransactionStatus;
   enable_notification?: boolean;
   notification_date?: string;
-  transaction_splits?: TransactionSplit[];
 }
 
 export interface TransactionFilters {

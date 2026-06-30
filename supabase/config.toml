@@ -1,5 +1,8 @@
 project_id = "vrrcagukyfnlhxuvnssp"
 
+[auth]
+additional_redirect_urls = ["https://*.vercel.app/**"]
+
 [functions.sync-asset-prices]
 enabled = true
 verify_jwt = true

@@ -7,18 +7,18 @@ import { defaultQueryConfig } from "@/utils/queryConfig";
 
 export function useFinancialSummary(month: Date) {
   const { user } = useAuth();
-  
-  const startDate = dateFns.format(dateFns.startOfMonth(month), 'yyyy-MM-dd');
-  const endDate = dateFns.format(dateFns.endOfMonth(month), 'yyyy-MM-dd');
+
+  const startDate = dateFns.format(dateFns.startOfMonth(month), "yyyy-MM-dd");
+  const endDate = dateFns.format(dateFns.endOfMonth(month), "yyyy-MM-dd");
 
   return useQuery({
     queryKey: ["financial-summary", user?.id, startDate, endDate],
     queryFn: async () => {
       try {
-        const data = await callRPCWithRetry('get_monthly_financial_summary', {
+        const data = await callRPCWithRetry("get_monthly_financial_summary", {
           p_user_id: user!.id,
           p_start_date: startDate,
-          p_end_date: endDate
+          p_end_date: endDate,
         });
 
         interface FinancialSummaryRpc {
@@ -32,7 +32,7 @@ export function useFinancialSummary(month: Date) {
           balance: summary?.total_balance || 0,
           income: summary?.total_income || 0,
           expenses: summary?.total_expenses || 0,
-          savings: summary?.net_savings || 0
+          savings: summary?.net_savings || 0,
         };
       } catch (error) {
         logger.error("Erro ao buscar resumo financeiro:", error);

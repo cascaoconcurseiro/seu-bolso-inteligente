@@ -211,4 +211,4 @@ export const DashboardHero = memo(function DashboardHero({
       )}
     </div>
   );
-}
+});

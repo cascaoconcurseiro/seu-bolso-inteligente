@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { moneyUtils } from "@/utils/money";
@@ -7,7 +8,7 @@ interface DashboardLowBalanceAlertProps {
   threshold: number;
 }
 
-export function DashboardLowBalanceAlert({ currentBalance, threshold }: DashboardLowBalanceAlertProps) {
+export const DashboardLowBalanceAlert = memo(function DashboardLowBalanceAlert({ currentBalance, threshold }: DashboardLowBalanceAlertProps) {
   if (!threshold || threshold <= 0 || currentBalance >= threshold) return null;
 
   return (
@@ -23,4 +24,4 @@ export function DashboardLowBalanceAlert({ currentBalance, threshold }: Dashboar
       </div>
     </Link>
   );
-}
+});

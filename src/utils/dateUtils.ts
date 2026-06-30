@@ -1,17 +1,17 @@
 /**
  * Utilitários de Data e Hora
- * 
+ *
  * Todas as funções usam o horário de Brasília (America/Sao_Paulo)
  */
 
 // Timezone de Brasília
-const BRAZIL_TIMEZONE = 'America/Sao_Paulo';
+const BRAZIL_TIMEZONE = "America/Sao_Paulo";
 
 /**
  * Obtém a data e hora atual no horário de Brasília
  */
 export function getBrazilDate(): Date {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: BRAZIL_TIMEZONE }));
+  return new Date(new Date().toLocaleString("en-US", { timeZone: BRAZIL_TIMEZONE }));
 }
 
 /**
@@ -20,7 +20,7 @@ export function getBrazilDate(): Date {
  */
 export function getBrazilDateString(): string {
   const date = getBrazilDate();
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 }
 
 /**
@@ -38,11 +38,11 @@ export function getBrazilTime(): { hour: number; minute: number; second: number 
 /**
  * Obtém o período do dia no horário de Brasília
  */
-export function getBrazilPeriodOfDay(): 'morning' | 'afternoon' | 'evening' {
+export function getBrazilPeriodOfDay(): "morning" | "afternoon" | "evening" {
   const { hour } = getBrazilTime();
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 18) return 'afternoon';
-  return 'evening';
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  return "evening";
 }
 
 /**
@@ -56,18 +56,18 @@ export function getBrazilDayOfWeek(): number {
 /**
  * Formata uma data para o padrão brasileiro
  */
-export function formatBrazilDate(date: Date | string, format: 'short' | 'long' = 'short'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  
-  if (format === 'short') {
-    return d.toLocaleDateString('pt-BR');
+export function formatBrazilDate(date: Date | string, format: "short" | "long" = "short"): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  if (format === "short") {
+    return d.toLocaleDateString("pt-BR");
   }
-  
-  return d.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+
+  return d.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }
 
@@ -75,14 +75,14 @@ export function formatBrazilDate(date: Date | string, format: 'short' | 'long' =
  * Formata uma data e hora para o padrão brasileiro
  */
 export function formatBrazilDateTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  
-  return d.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  return d.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -90,25 +90,29 @@ export function formatBrazilDateTime(date: Date | string): string {
  * Verifica se uma data é hoje (no horário de Brasília)
  */
 export function isToday(date: Date | string): boolean {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   const today = getBrazilDate();
-  
-  return d.getDate() === today.getDate() &&
-         d.getMonth() === today.getMonth() &&
-         d.getFullYear() === today.getFullYear();
+
+  return (
+    d.getDate() === today.getDate() &&
+    d.getMonth() === today.getMonth() &&
+    d.getFullYear() === today.getFullYear()
+  );
 }
 
 /**
  * Verifica se uma data é ontem (no horário de Brasília)
  */
 export function isYesterday(date: Date | string): boolean {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   const yesterday = new Date(getBrazilDate());
   yesterday.setDate(yesterday.getDate() - 1);
-  
-  return d.getDate() === yesterday.getDate() &&
-         d.getMonth() === yesterday.getMonth() &&
-         d.getFullYear() === yesterday.getFullYear();
+
+  return (
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear()
+  );
 }
 
 /**
@@ -131,26 +135,29 @@ export function getEndOfMonth(): Date {
  * Obtém o range de datas de um mês específico formatado como YYYY-MM-DD
  * Útil para queries que precisam de startDate e endDate
  */
-export function getMonthDateRange(date: Date = getBrazilDate(), startDay: number = 1): {
+export function getMonthDateRange(
+  date: Date = getBrazilDate(),
+  startDay: number = 1
+): {
   startDate: string;
   endDate: string;
   monthKey: string;
 } {
   const year = date.getFullYear();
   let month = date.getMonth();
-  
+
   if (date.getDate() < startDay) {
     month = month - 1;
   }
-  
+
   const startDate = new Date(year, month, startDay);
   const endDate = new Date(year, month + 1, startDay - 1);
   const normalizedStart = new Date(year, month, 1);
-  
+
   return {
     startDate: formatDateISO(startDate),
     endDate: formatDateISO(endDate),
-    monthKey: `${normalizedStart.getFullYear()}-${String(normalizedStart.getMonth() + 1).padStart(2, '0')}`,
+    monthKey: `${normalizedStart.getFullYear()}-${String(normalizedStart.getMonth() + 1).padStart(2, "0")}`,
   };
 }
 
@@ -159,15 +166,14 @@ export function getMonthDateRange(date: Date = getBrazilDate(), startDay: number
  */
 export function formatDateISO(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
 /**
  * Alias para formatDateISO para compatibilidade
  */
-
 
 /**
  * Obtém o range de datas do mês atual
@@ -217,7 +223,7 @@ export function getTodayKey(): string {
  */
 export function parseSafeDate(dateStr: string | null | undefined): Date | null {
   if (!dateStr) return null;
-  const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T12:00:00');
+  const d = new Date(dateStr.includes("T") ? dateStr : dateStr + "T12:00:00");
   return isNaN(d.getTime()) ? null : d;
 }
 
@@ -227,12 +233,12 @@ export function parseSafeDate(dateStr: string | null | undefined): Date | null {
  */
 export function parseLocalDate(dateStr: string): Date {
   if (!dateStr) return new Date();
-  if (dateStr.includes('T') || dateStr.includes('Z')) {
+  if (dateStr.includes("T") || dateStr.includes("Z")) {
     return new Date(dateStr);
   }
-  const parts = dateStr.split('-');
+  const parts = dateStr.split("-");
   if (parts.length !== 3) return new Date(dateStr);
-  
+
   const year = parseInt(parts[0], 10);
   const month = parseInt(parts[1], 10) - 1;
   const day = parseInt(parts[2], 10);
@@ -241,8 +247,8 @@ export function parseLocalDate(dateStr: string): Date {
 
 // ─── Funções migradas de lib/dateUtils (unificação DRY) ─────────────────
 
-import { parseISO, addMonths as dfAddMonths } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
+import { parseISO, addMonths as dfAddMonths } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 /**
  * Parse ISO string (YYYY-MM-DD) usando date-fns.
@@ -260,14 +266,14 @@ export function parseDateUTC(dateString: string): Date {
  * Formata uma data para YYYY-MM-DD em UTC.
  */
 export function formatDateUTC(date: Date): string {
-  return formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
+  return formatInTimeZone(date, "UTC", "yyyy-MM-dd");
 }
 
 /**
  * Obtém competence_date (YYYY-MM-01) em UTC.
  */
 export function getCompetenceDateUTC(date: Date): string {
-  const yyyyMM = formatInTimeZone(date, 'UTC', 'yyyy-MM');
+  const yyyyMM = formatInTimeZone(date, "UTC", "yyyy-MM");
   return `${yyyyMM}-01`;
 }
 

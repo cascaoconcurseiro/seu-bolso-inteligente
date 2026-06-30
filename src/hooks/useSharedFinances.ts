@@ -111,7 +111,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         },
         () => {
           logger.info('Realtime: Mudança detectada em splits, atualizando...');
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated', user?.id] });
         }
       )
       .subscribe();
@@ -119,7 +119,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, refetch]);
+  }, [user?.id, queryClient]);
 
   // Mapear dados do RPC para os estados existentes
   const transactionsWithSplits = useMemo(() => ({
@@ -354,4 +354,4 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 };
 
 
-// Hook para confirmar ressarcimento de um split usando RPC seguro
+// Hook para confirmar ressarcimento de um split usando RPC seguro

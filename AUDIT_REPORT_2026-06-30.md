@@ -9,38 +9,38 @@
 
 ## 📊 FASE 1 — INVENTÁRIO COMPLETO
 
-| Categoria | Qtd | Localização |
-|:--|:--|:--|
-| Pages | 22 | `src/pages/` |
-| Components | 163 | `src/components/` (ui:49, accounts:10, credit-cards:13, dashboard:12, settings:18, shared:10, transactions:21, etc.) |
-| Hooks | 55 | `src/hooks/` (incl. subdirs transactions/, credit-cards/) |
-| Contexts | 4 | `src/contexts/` |
-| Services | 20 | `src/services/` (incl. ai/) |
-| Utils/Lib | 40 | `src/utils/` + `src/lib/` |
-| Types | 7 | `src/types/` + `src/integrations/supabase/types.ts` |
-| Store | 1 | `src/store/useTransactionStore.ts` |
-| Config | 1 | `src/config/navigation.ts` |
-| Styles | 1 | `src/styles/mobile.css` |
-| Testes unitários | 25 | `src/**/*.test.ts` |
-| Testes E2E | 13 | `e2e/*.spec.ts` |
-| Migrations | 40+ | `supabase/migrations/` |
-| Edge Functions | 4+ | `supabase/functions/` |
+| Categoria        | Qtd  | Localização                                                                                                          |
+| :--------------- | :--- | :------------------------------------------------------------------------------------------------------------------- |
+| Pages            | 22   | `src/pages/`                                                                                                         |
+| Components       | 163  | `src/components/` (ui:49, accounts:10, credit-cards:13, dashboard:12, settings:18, shared:10, transactions:21, etc.) |
+| Hooks            | 55   | `src/hooks/` (incl. subdirs transactions/, credit-cards/)                                                            |
+| Contexts         | 4    | `src/contexts/`                                                                                                      |
+| Services         | 20   | `src/services/` (incl. ai/)                                                                                          |
+| Utils/Lib        | 40   | `src/utils/` + `src/lib/`                                                                                            |
+| Types            | 7    | `src/types/` + `src/integrations/supabase/types.ts`                                                                  |
+| Store            | 1    | `src/store/useTransactionStore.ts`                                                                                   |
+| Config           | 1    | `src/config/navigation.ts`                                                                                           |
+| Styles           | 1    | `src/styles/mobile.css`                                                                                              |
+| Testes unitários | 25   | `src/**/*.test.ts`                                                                                                   |
+| Testes E2E       | 13   | `e2e/*.spec.ts`                                                                                                      |
+| Migrations       | 40+  | `supabase/migrations/`                                                                                               |
+| Edge Functions   | 4+   | `supabase/functions/`                                                                                                |
 
 ---
 
 ## 🏆 FASE 20 — SCORES FINAIS
 
-| Dimensão | Nota | Justificativa |
-|:--|:--|:--|
-| **Clean Code** | **62/100** | Funções longas (useUpdateTransaction 120ln, handleSettle 180ln), god hooks (40 props), duplicação de lógica de filtros, DRY violado em month names, `.replace(".", ",")` espalhado |
-| **TypeScript** | **58/100** | ~80 `any` no código de produção, `CreateTransactionInput` com propriedade duplicada, `status: string` em vez de union, 3 definições de `Transaction`, `recurrence_day: number` sem restrição |
-| **SOLID** | **45/100** | SRP massivamente violado (god functions), DIP ausente (todos services acoplados a supabase diretamente), OCP violado em 6 switch statements, ISP violado (Transaction 35+ campos) |
-| **Testabilidade** | **40/100** | Apenas 2 serviços testáveis sem mock de supabase. Hooks impossíveis de testar isoladamente. Zero testes de integração hook+component |
-| **Testes** | **35/100** | 7/38 testes fake/broken/skipped. E2E apenas smoke tests (1 assert por página). Zero cobertura de mutations. `rpcWithRetry` sem testes ativos |
-| **Segurança** | **72/100** | PIN migrado para bcrypt ✅, CSP implementado ✅, RLS em todas tabelas ✅. Pendente: IndexedDB sem criptografia, OAuth redirect em preview URLs |
-| **Performance** | **68/100** | Boa arquitetura de cache (staleTime 2min, gcTime 24h) ✅, lazy loading ✅. Pendente: N+1 em `createNotification`, PDF export bloqueia main thread, queries sequenciais |
-| **Manutenibilidade** | **55/100** | Documentação excelente (MASTER_BLUEPRINT, CHECKLIST, HANDOFF) ✅. God components e hooks gigantes ❌ |
-| **⭐ QUALIDADE GERAL** | **54/100** | **D** — Projeto funcional e bem documentado, mas acumulou dívida técnica significativa em tipagem, testes e decomposição |
+| Dimensão              | Nota       | Justificativa                                                                                                                                                                                |
+| :-------------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Clean Code**        | **62/100** | Funções longas (useUpdateTransaction 120ln, handleSettle 180ln), god hooks (40 props), duplicação de lógica de filtros, DRY violado em month names, `.replace(".", ",")` espalhado           |
+| **TypeScript**        | **58/100** | ~80 `any` no código de produção, `CreateTransactionInput` com propriedade duplicada, `status: string` em vez de union, 3 definições de `Transaction`, `recurrence_day: number` sem restrição |
+| **SOLID**             | **45/100** | SRP massivamente violado (god functions), DIP ausente (todos services acoplados a supabase diretamente), OCP violado em 6 switch statements, ISP violado (Transaction 35+ campos)            |
+| **Testabilidade**     | **40/100** | Apenas 2 serviços testáveis sem mock de supabase. Hooks impossíveis de testar isoladamente. Zero testes de integração hook+component                                                         |
+| **Testes**            | **35/100** | 7/38 testes fake/broken/skipped. E2E apenas smoke tests (1 assert por página). Zero cobertura de mutations. `rpcWithRetry` sem testes ativos                                                 |
+| **Segurança**         | **72/100** | PIN migrado para bcrypt ✅, CSP implementado ✅, RLS em todas tabelas ✅. Pendente: IndexedDB sem criptografia, OAuth redirect em preview URLs                                                  |
+| **Performance**       | **68/100** | Boa arquitetura de cache (staleTime 2min, gcTime 24h) ✅, lazy loading ✅. Pendente: N+1 em `createNotification`, PDF export bloqueia main thread, queries sequenciais                         |
+| **Manutenibilidade**  | **55/100** | Documentação excelente (MASTER_BLUEPRINT, CHECKLIST, HANDOFF) ✅. God components e hooks gigantes ❌                                                                                           |
+| **⭐ QUALIDADE GERAL** | **54/100** | **D** — Projeto funcional e bem documentado, mas acumulou dívida técnica significativa em tipagem, testes e decomposição                                                                     |
 
 ---
 
@@ -172,30 +172,30 @@
 
 ## 🟡 PROBLEMAS DE MÉDIA PRIORIDADE — Próximas Sprints
 
-| # | Arquivo | Problema | Complexidade |
-|:--|:--|:--|:--|
-| MED-01 | 28 arquivos | ~80 `any` em código de produção (15 em `useReportsData.ts`, 8 em `useTransactionMutations.ts`, 8 em `useSharedExpensesActions.ts`, 6 em `useFamily.ts`) | L |
-| MED-02 | `hooks/transactions/types.ts` | ISP: `Transaction` 35+ campos, `CreateTransactionInput` 26 campos todos opcionais | M |
-| MED-03 | `hooks/transactions/types.ts:25` | `status: string` em vez de `'CONFIRMED' \| 'PENDING' \| 'CANCELLED'` | XS |
-| MED-04 | `hooks/transactions/types.ts:84` | `recurrence_day?: number` sem restrição de 1-31 | XS |
-| MED-05 | `hooks/useAssets.ts` | `createAsset` não reverte asset se transação falhar | S |
-| MED-06 | 4 arquivos | `.replace(".", ",")` espalhado para BRL em vez de `moneyUtils.format()` | S |
-| MED-07 | ~30 locais | `"BRL"` magic string — deveria ser `DEFAULT_CURRENCY` | XS |
-| MED-08 | `hooks/useNotifications.ts` | `useDeleteNotification` e `useDismissNotification` são idênticos | XS |
+| #      | Arquivo                          | Problema                                                                                                                                                | Complexidade |
+| :----- | :------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ | :----------- |
+| MED-01 | 28 arquivos                      | ~80 `any` em código de produção (15 em `useReportsData.ts`, 8 em `useTransactionMutations.ts`, 8 em `useSharedExpensesActions.ts`, 6 em `useFamily.ts`) | L            |
+| MED-02 | `hooks/transactions/types.ts`    | ISP: `Transaction` 35+ campos, `CreateTransactionInput` 26 campos todos opcionais                                                                       | M            |
+| MED-03 | `hooks/transactions/types.ts:25` | `status: string` em vez de `'CONFIRMED' \| 'PENDING' \| 'CANCELLED'`                                                                                    | XS           |
+| MED-04 | `hooks/transactions/types.ts:84` | `recurrence_day?: number` sem restrição de 1-31                                                                                                         | XS           |
+| MED-05 | `hooks/useAssets.ts`             | `createAsset` não reverte asset se transação falhar                                                                                                     | S            |
+| MED-06 | 4 arquivos                       | `.replace(".", ",")` espalhado para BRL em vez de `moneyUtils.format()`                                                                                 | S            |
+| MED-07 | ~30 locais                       | `"BRL"` magic string — deveria ser `DEFAULT_CURRENCY`                                                                                                   | XS           |
+| MED-08 | `hooks/useNotifications.ts`      | `useDeleteNotification` e `useDismissNotification` são idênticos                                                                                        | XS           |
 
 ---
 
 ## 🔵 PROBLEMAS DE BAIXA PRIORIDADE — Backlog
 
-| # | Arquivo | Problema | Complexidade |
-|:--|:--|:--|:--|
-| LOW-01 | `components/modals/TransactionModal.tsx` | API dupla conflitante (`isOpen`/`onClose` + `open`/`onOpenChange`) | XS |
-| LOW-02 | `hooks/useTrips.ts` | `useCreateTrip` mostra toast duplicado (mutationFn + onSuccess) | XS |
-| LOW-03 | `hooks/useUserProfile.ts` | `localStorage.setItem` dentro de `queryFn` — side effect em query | XS |
-| LOW-04 | `utils/rpcWithRetry.ts` | `batchRpcWithRetry` usa `Promise.all` — perde resultados parciais | XS |
-| LOW-05 | `hooks/useAccounts.ts` | `useCreditCardInvoice` catch retorna fallback silencioso sem log | XS |
-| LOW-06 | `services/recurrenceService.ts` | `last_generated_date` atualizado dentro do loop — N updates separados | XS |
-| LOW-07 | `pages/Dashboard.tsx` | `transactionToEdit` state existe mas nunca usado (delega a modal via window event) | XS |
+| #      | Arquivo                                  | Problema                                                                           | Complexidade |
+| :----- | :--------------------------------------- | :--------------------------------------------------------------------------------- | :----------- |
+| LOW-01 | `components/modals/TransactionModal.tsx` | API dupla conflitante (`isOpen`/`onClose` + `open`/`onOpenChange`)                 | XS           |
+| LOW-02 | `hooks/useTrips.ts`                      | `useCreateTrip` mostra toast duplicado (mutationFn + onSuccess)                    | XS           |
+| LOW-03 | `hooks/useUserProfile.ts`                | `localStorage.setItem` dentro de `queryFn` — side effect em query                  | XS           |
+| LOW-04 | `utils/rpcWithRetry.ts`                  | `batchRpcWithRetry` usa `Promise.all` — perde resultados parciais                  | XS           |
+| LOW-05 | `hooks/useAccounts.ts`                   | `useCreditCardInvoice` catch retorna fallback silencioso sem log                   | XS           |
+| LOW-06 | `services/recurrenceService.ts`          | `last_generated_date` atualizado dentro do loop — N updates separados              | XS           |
+| LOW-07 | `pages/Dashboard.tsx`                    | `transactionToEdit` state existe mas nunca usado (delega a modal via window event) | XS           |
 
 ---
 
@@ -203,30 +203,30 @@
 
 ### Testes que REALMENTE testam comportamento: 10/38 ✅
 
-| Arquivo | Qualidade |
-|:--|:--|
-| `SafeFinancialCalculator.test.ts` | ⭐⭐⭐⭐⭐ Excelente — property-based + unit |
-| `SafeFinancialCalculator.property.test.ts` | ⭐⭐⭐⭐ Bom — mas duplicado do acima |
-| `sharedFinancesCalculations.test.ts` | ⭐⭐⭐⭐ Bom — puro, sem mocks |
-| `categoryPrediction.test.ts` | ⭐⭐⭐⭐ Bom — testa fuzzy matching |
-| `validateMemberId.test.ts` | ⭐⭐⭐⭐ Bom — mocks corretos |
-| `dateUtils.test.ts` (lib) | ⭐⭐⭐⭐ Bom — cobre leap years, UTC |
-| `dateUtils.test.ts` (utils) | ⭐⭐⭐⭐ Bom — `vi.setSystemTime` |
-| `moneyUtils.spec.ts` | ⭐⭐⭐ Bom — cobertura parcial |
-| `logger.test.ts` | ⭐⭐⭐ Bom — verifica exports |
-| `UpcomingTransactions.logic.test.ts` | ⭐⭐⭐ Bom — lógica pura |
+| Arquivo                                    | Qualidade                               |
+| :----------------------------------------- | :-------------------------------------- |
+| `SafeFinancialCalculator.test.ts`          | ⭐⭐⭐⭐⭐ Excelente — property-based + unit |
+| `SafeFinancialCalculator.property.test.ts` | ⭐⭐⭐⭐ Bom — mas duplicado do acima       |
+| `sharedFinancesCalculations.test.ts`       | ⭐⭐⭐⭐ Bom — puro, sem mocks              |
+| `categoryPrediction.test.ts`               | ⭐⭐⭐⭐ Bom — testa fuzzy matching         |
+| `validateMemberId.test.ts`                 | ⭐⭐⭐⭐ Bom — mocks corretos               |
+| `dateUtils.test.ts` (lib)                  | ⭐⭐⭐⭐ Bom — cobre leap years, UTC        |
+| `dateUtils.test.ts` (utils)                | ⭐⭐⭐⭐ Bom — `vi.setSystemTime`           |
+| `moneyUtils.spec.ts`                       | ⭐⭐⭐ Bom — cobertura parcial             |
+| `logger.test.ts`                           | ⭐⭐⭐ Bom — verifica exports              |
+| `UpcomingTransactions.logic.test.ts`       | ⭐⭐⭐ Bom — lógica pura                   |
 
 ### Testes FAKE (mock-only, não testam código real): 7/38 ❌
 
-| Arquivo | Problema |
-|:--|:--|
-| `useTransactions.test.ts` | Testa chains de mock, nunca importa `useTransactions` |
-| `useSettlement.test.ts` | Asserts em objetos literais, zero funções chamadas |
-| `settlementValidation.test.ts` | Referencia `SafeFinancialCalculator` sem importar |
-| `invoiceUtils.test.ts` | Reimplementa aritmética, mal usa `invoiceUtils` |
-| `rpcWithRetry.test.ts` | **Tudo com `.skip`** — mocks quebrados |
-| `rpcWithRetry.integration.test.ts` | **Tudo com `.skip`** — mocks quebrados |
-| `money.spec.ts` | Testa `Decimal.js`, não o projeto |
+| Arquivo                            | Problema                                              |
+| :--------------------------------- | :---------------------------------------------------- |
+| `useTransactions.test.ts`          | Testa chains de mock, nunca importa `useTransactions` |
+| `useSettlement.test.ts`            | Asserts em objetos literais, zero funções chamadas    |
+| `settlementValidation.test.ts`     | Referencia `SafeFinancialCalculator` sem importar     |
+| `invoiceUtils.test.ts`             | Reimplementa aritmética, mal usa `invoiceUtils`       |
+| `rpcWithRetry.test.ts`             | **Tudo com `.skip`** — mocks quebrados                |
+| `rpcWithRetry.integration.test.ts` | **Tudo com `.skip`** — mocks quebrados                |
+| `money.spec.ts`                    | Testa `Decimal.js`, não o projeto                     |
 
 ### Testes snapshot-only com children mockados: 3/38 ⚠️
 
@@ -244,25 +244,25 @@ Cada spec tem 1 `test()` que verifica se um elemento existe na página. Nenhum t
 
 ### Single Responsibility (SRP) — 6 violações graves
 
-| Arquivo | Função/Método | Responsabilidades |
-|:--|:--|:--|
-| `validationService.ts` | `validateTransaction()` | 5: Zod structural + business rules + cross-entity + splits + domain rules |
-| `exportService.ts` | `exportTransactions()` | 4: formato if/else + HTML Excel inline + totais + DOM download |
-| `recurrenceService.ts` | `generatePendingRecurringTransactions()` | 6: fetch templates + fetch accounts + calc competence + generate txs + batch insert + update dates |
-| `AuthContext.tsx` | `signOut()` | 7: Supabase signOut + setState + localStorage + queryClient + localforage + caches + redirect |
-| `useAccounts.ts` | `useAccounts()` | 3: data fetch + merge own/shared + UI helpers (`getAccountDisplayName`, `getAccountIcon`) |
-| `CreditCards.tsx` | Page component | 8: data display + edit dialog + invoice payment + installment list + archived section + summary + share dialog + import |
+| Arquivo                | Função/Método                            | Responsabilidades                                                                                                       |
+| :--------------------- | :--------------------------------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `validationService.ts` | `validateTransaction()`                  | 5: Zod structural + business rules + cross-entity + splits + domain rules                                               |
+| `exportService.ts`     | `exportTransactions()`                   | 4: formato if/else + HTML Excel inline + totais + DOM download                                                          |
+| `recurrenceService.ts` | `generatePendingRecurringTransactions()` | 6: fetch templates + fetch accounts + calc competence + generate txs + batch insert + update dates                      |
+| `AuthContext.tsx`      | `signOut()`                              | 7: Supabase signOut + setState + localStorage + queryClient + localforage + caches + redirect                           |
+| `useAccounts.ts`       | `useAccounts()`                          | 3: data fetch + merge own/shared + UI helpers (`getAccountDisplayName`, `getAccountIcon`)                               |
+| `CreditCards.tsx`      | Page component                           | 8: data display + edit dialog + invoice payment + installment list + archived section + summary + share dialog + import |
 
 ### Open/Closed (OCP) — 6 switch/if-else chains
 
-| Arquivo | Função | Alternativa |
-|:--|:--|:--|
-| `recurrenceService.ts` | `calculateNextOccurrence()` | Strategy map: `Record<string, (date, day?) => Date>` |
-| `exportService.ts` | `exportTransactions()` | Registry de exporters por formato |
-| `categoryPredictionService.ts` | `predictCategory()` | Chain of Responsibility com array ordenável |
-| `useAccounts.ts` | `getAccountDisplayName()` | Map: `Record<AccountType, {local, international}>` |
-| `useAccounts.ts` | `getAccountIcon()` | Mesmo padrão de map |
-| `money.ts` | `getSymbol()` | `Intl.NumberFormat` nativo |
+| Arquivo                        | Função                      | Alternativa                                          |
+| :----------------------------- | :-------------------------- | :--------------------------------------------------- |
+| `recurrenceService.ts`         | `calculateNextOccurrence()` | Strategy map: `Record<string, (date, day?) => Date>` |
+| `exportService.ts`             | `exportTransactions()`      | Registry de exporters por formato                    |
+| `categoryPredictionService.ts` | `predictCategory()`         | Chain of Responsibility com array ordenável          |
+| `useAccounts.ts`               | `getAccountDisplayName()`   | Map: `Record<AccountType, {local, international}>`   |
+| `useAccounts.ts`               | `getAccountIcon()`          | Mesmo padrão de map                                  |
+| `money.ts`                     | `getSymbol()`               | `Intl.NumberFormat` nativo                           |
 
 ### Interface Segregation (ISP) — 2 interfaces gordas
 
@@ -279,11 +279,11 @@ Nenhum serviço depende de abstrações. Todos importam `supabase` diretamente. 
 
 ### Vulnerabilidades npm
 
-| Pacote | Severidade | Descrição | Fix |
-|:--|:--|:--|:--|
-| `vite` | **HIGH** | SSRF no dev server | `vite@^8.1.1` (major) |
-| `esbuild` | MODERATE | Dev server permite requests cross-origin | Via vite update |
-| `uuid` (via exceljs) | MODERATE | Buffer bounds check ausente | `exceljs` downgrade ou fork |
+| Pacote               | Severidade | Descrição                                | Fix                         |
+| :------------------- | :--------- | :--------------------------------------- | :-------------------------- |
+| `vite`               | **HIGH**   | SSRF no dev server                       | `vite@^8.1.1` (major)       |
+| `esbuild`            | MODERATE   | Dev server permite requests cross-origin | Via vite update             |
+| `uuid` (via exceljs) | MODERATE   | Buffer bounds check ausente              | `exceljs` downgrade ou fork |
 
 ### Dependências questionáveis
 
@@ -297,10 +297,10 @@ Nenhum serviço depende de abstrações. Todos importam `supabase` diretamente. 
 
 ### TODOs reais (não confundir com palavra "todo" em português)
 
-| Arquivo | Linha | Conteúdo |
-|:--|:--|:--|
-| `rpcWithRetry.test.ts` | 28 | `TODO: reescrever mocks para refletir API atual (rpc() retorna builder com .abortSignal())` |
-| `rpcWithRetry.integration.test.ts` | 24 | `TODO: reescrever mocks para refletir API atual` |
+| Arquivo                            | Linha | Conteúdo                                                                                    |
+| :--------------------------------- | :---- | :------------------------------------------------------------------------------------------ |
+| `rpcWithRetry.test.ts`             | 28    | `TODO: reescrever mocks para refletir API atual (rpc() retorna builder com .abortSignal())` |
+| `rpcWithRetry.integration.test.ts` | 24    | `TODO: reescrever mocks para refletir API atual`                                            |
 
 ### Qualidade dos comentários: BOA ✅
 
@@ -314,55 +314,55 @@ Nenhum serviço depende de abstrações. Todos importam `supabase` diretamente. 
 
 ## 🔢 FASE 10 — COMPLEXIDADE: TOP 8 ARQUIVOS
 
-| Arquivo | Linhas | Estados | Complexidade Estimada |
-|:--|:--|:--|:--|
-| `AdminResetPanel.tsx` | 800+ | 0 (delegado) | **Alta** — múltiplos tabs inline |
-| `CreditCards.tsx` | 720 | 0 (delegado) | **Alta** — 8+ responsabilidades |
-| `TransactionForm.tsx` | 560 | 2 | **Média-Alta** |
-| `Transactions.tsx` | 530 | 13 | **Média** — filtros duplicados |
-| `useSharedExpensesActions.ts` | 480 | 0 | **Muito Alta** — handleSettle: 180ln |
-| `SharedExpenseCard.tsx` | 460 | 1 | **Média-Alta** |
-| `useTransactionMutations.ts` | 520 | 0 | **Alta** — useUpdateTransaction: 120ln |
-| `Trips.tsx` | 500 | 18 | **Alta** — 18 useState |
+| Arquivo                       | Linhas | Estados      | Complexidade Estimada                  |
+| :---------------------------- | :----- | :----------- | :------------------------------------- |
+| `AdminResetPanel.tsx`         | 800+   | 0 (delegado) | **Alta** — múltiplos tabs inline       |
+| `CreditCards.tsx`             | 720    | 0 (delegado) | **Alta** — 8+ responsabilidades        |
+| `TransactionForm.tsx`         | 560    | 2            | **Média-Alta**                         |
+| `Transactions.tsx`            | 530    | 13           | **Média** — filtros duplicados         |
+| `useSharedExpensesActions.ts` | 480    | 0            | **Muito Alta** — handleSettle: 180ln   |
+| `SharedExpenseCard.tsx`       | 460    | 1            | **Média-Alta**                         |
+| `useTransactionMutations.ts`  | 520    | 0            | **Alta** — useUpdateTransaction: 120ln |
+| `Trips.tsx`                   | 500    | 18           | **Alta** — 18 useState                 |
 
 ---
 
 ## 🧩 FASE 11 — DUPLICAÇÃO: SUMÁRIO
 
-| O que | Onde | Severidade |
-|:--|:--|:--|
-| `filteredTransactions` vs `filteredAnnualTransactions` | `Transactions.tsx` | Alta |
-| Array de meses (`['Jan',...,'Dez']`) | 3 arquivos | Média |
-| `Transaction` interface | 3 arquivos (35, Zod, 8 campos) | Alta |
-| `TransactionType` / `TabType` | `types/transactions.ts` + `hooks/transactions/types.ts` | Média |
-| `Account` interface | `validationService.ts` + `useAccounts.ts` | Média |
-| `.replace(".", ",")` BRL formatting | 4 arquivos | Média |
-| `SafeFinancialCalculator.test.ts` + `.property.test.ts` | 2 arquivos com ~70% overlap | Baixa |
-| `useDeleteNotification` = `useDismissNotification` | `useNotifications.ts` | Baixa |
+| O que                                                   | Onde                                                    | Severidade |
+| :------------------------------------------------------ | :------------------------------------------------------ | :--------- |
+| `filteredTransactions` vs `filteredAnnualTransactions`  | `Transactions.tsx`                                      | Alta       |
+| Array de meses (`['Jan',...,'Dez']`)                    | 3 arquivos                                              | Média      |
+| `Transaction` interface                                 | 3 arquivos (35, Zod, 8 campos)                          | Alta       |
+| `TransactionType` / `TabType`                           | `types/transactions.ts` + `hooks/transactions/types.ts` | Média      |
+| `Account` interface                                     | `validationService.ts` + `useAccounts.ts`               | Média      |
+| `.replace(".", ",")` BRL formatting                     | 4 arquivos                                              | Média      |
+| `SafeFinancialCalculator.test.ts` + `.property.test.ts` | 2 arquivos com ~70% overlap                             | Baixa      |
+| `useDeleteNotification` = `useDismissNotification`      | `useNotifications.ts`                                   | Baixa      |
 
 ---
 
 ## 🛡️ FASE 12 — TRATAMENTO DE ERROS
 
-| Arquivo | Problema |
-|:--|:--|
-| Vários hooks/pages | Padrão `/* onError do hook já trata */` — catch vazio que engole erros silenciosamente |
-| `CategorySettings.tsx:57` | `console.error` direto, fora do logger |
-| `useCreditCardInvoice` | Fallback silencioso, sem log |
-| `validationService.ts:isValidDate` | `new Date(year, month, 0)` timezone-dependent |
-| `exportService.ts:safeFormatDate` | Hack manual de timezone (`getTimezoneOffset * 60000`) |
+| Arquivo                            | Problema                                                                               |
+| :--------------------------------- | :------------------------------------------------------------------------------------- |
+| Vários hooks/pages                 | Padrão `/* onError do hook já trata */` — catch vazio que engole erros silenciosamente |
+| `CategorySettings.tsx:57`          | `console.error` direto, fora do logger                                                 |
+| `useCreditCardInvoice`             | Fallback silencioso, sem log                                                           |
+| `validationService.ts:isValidDate` | `new Date(year, month, 0)` timezone-dependent                                          |
+| `exportService.ts:safeFormatDate`  | Hack manual de timezone (`getTimezoneOffset * 60000`)                                  |
 
 ---
 
 ## 📋 FASE 19 — MANUTENIBILIDADE
 
-| Pergunta | Resposta |
-|:--|:--|
-| Tempo para novo dev entender o projeto | **2-3 semanas** — MASTER_BLUEPRINT excelente, mas god hooks atrapalham |
-| Tempo para feature simples | **2-4h** — boas abstrações de query/mutation |
-| Tempo para localizar bug | **30min-2h** — logging bom, mas testes fracos não previnem regressão |
-| Maior risco de manutenção | `useSharedExpensesActions.ts` — 40 props, 180ln, qualquer mudança = alto risco |
-| Segundo maior risco | `useTransactionMutations.ts` — 120ln em uma função, split logic complexa |
+| Pergunta                               | Resposta                                                                       |
+| :------------------------------------- | :----------------------------------------------------------------------------- |
+| Tempo para novo dev entender o projeto | **2-3 semanas** — MASTER_BLUEPRINT excelente, mas god hooks atrapalham         |
+| Tempo para feature simples             | **2-4h** — boas abstrações de query/mutation                                   |
+| Tempo para localizar bug               | **30min-2h** — logging bom, mas testes fracos não previnem regressão           |
+| Maior risco de manutenção              | `useSharedExpensesActions.ts` — 40 props, 180ln, qualquer mudança = alto risco |
+| Segundo maior risco                    | `useTransactionMutations.ts` — 120ln em uma função, split logic complexa       |
 
 ---
 
@@ -410,25 +410,25 @@ Nenhum serviço depende de abstrações. Todos importam `supabase` diretamente. 
 
 ## 📊 ESTATÍSTICAS FINAIS
 
-| Métrica | Valor |
-|:--|:--|
-| Total de problemas | **93** |
-| Críticos | 6 |
-| Alta prioridade | 10 |
-| Média prioridade | 8 |
-| Baixa prioridade | 7 |
-| Ocorrências de `any` | ~80 em 28 arquivos |
-| Testes quebrados/fake | 7 |
-| Testes sem cobertura real | 10 |
-| Vulnerabilidades npm | 3 (1 HIGH) |
-| Duplicação de lógica | 4 casos críticos |
-| Violações de atomicidade | 4 casos |
-| God components/hooks | 5 casos |
-| Violações SRP | 6 casos |
-| Violações OCP | 6 casos |
-| Violações ISP | 2 casos |
-| Violação DIP | Sistêmica (todos services) |
-| Cobertura E2E real | ~5% (apenas smoke tests) |
+| Métrica                   | Valor                      |
+| :------------------------ | :------------------------- |
+| Total de problemas        | **93**                     |
+| Críticos                  | 6                          |
+| Alta prioridade           | 10                         |
+| Média prioridade          | 8                          |
+| Baixa prioridade          | 7                          |
+| Ocorrências de `any`      | ~80 em 28 arquivos         |
+| Testes quebrados/fake     | 7                          |
+| Testes sem cobertura real | 10                         |
+| Vulnerabilidades npm      | 3 (1 HIGH)                 |
+| Duplicação de lógica      | 4 casos críticos           |
+| Violações de atomicidade  | 4 casos                    |
+| God components/hooks      | 5 casos                    |
+| Violações SRP             | 6 casos                    |
+| Violações OCP             | 6 casos                    |
+| Violações ISP             | 2 casos                    |
+| Violação DIP              | Sistêmica (todos services) |
+| Cobertura E2E real        | ~5% (apenas smoke tests)   |
 
 ---
 

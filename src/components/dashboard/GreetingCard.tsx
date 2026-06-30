@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ function getGreeting(): string {
   return "Boa noite";
 }
 
-export function GreetingCard({ className }: GreetingCardProps) {
+export const GreetingCard = memo(function GreetingCard({ className }: GreetingCardProps) {
   const { user } = useAuth();
   const { data: profile } = useUserProfile();
   const [isVisible, setIsVisible] = useState(false);
@@ -54,4 +54,4 @@ export function GreetingCard({ className }: GreetingCardProps) {
       </div>
     </div>
   );
-}
+});

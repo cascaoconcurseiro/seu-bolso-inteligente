@@ -107,44 +107,6 @@ export function useMarkAllAsRead() {
   });
 }
 
-export function useDeleteNotification() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (notificationId: string) => {
-      const { error } = await supabase
-        .from("notifications")
-        .update({
-          is_dismissed: true,
-          dismissed_at: new Date().toISOString(),
-        })
-        .eq("id", notificationId);
-
-      if (error) throw error;
-    },
-    onMutate: async (notificationId: string) => {
-      await queryClient.cancelQueries({ queryKey: ["notifications", user?.id] });
-      const previous = queryClient.getQueryData<Notification[]>(["notifications", user?.id]);
-      queryClient.setQueryData<Notification[]>(["notifications", user?.id], (old) =>
-        old?.filter((n) => n.id !== notificationId) ?? []
-      );
-      return { previous };
-    },
-    onError: (_err, _id, context) => {
-      if (context?.previous) queryClient.setQueryData(["notifications", user?.id], context.previous);
-      toast.error("Erro ao remover notificação");
-      logger.error("Erro ao remover notificação", _err);
-    },
-    onSuccess: () => {
-      toast.success("Notificação removida");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    },
-  });
-}
-
 export function useDismissNotification() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -177,6 +139,22 @@ export function useDismissNotification() {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
+}
+
+/** @deprecated Use `useDismissNotification` instead */
+export function useDeleteNotification() {
+  const dismiss = useDismissNotification();
+  return {
+    ...dismiss,
+    mutate: (id: string) => {
+      toast.success("Notificação removida");
+      dismiss.mutate(id);
+    },
+    mutateAsync: async (id: string) => {
+      toast.success("Notificação removida");
+      return dismiss.mutateAsync(id);
+    },
+  };
 }
 
 export function useDismissAll() {

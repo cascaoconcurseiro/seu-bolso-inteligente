@@ -1,12 +1,15 @@
 """
 AUDITORIA COMPLETA — Seu Bolso Inteligente
 Fases 1-20: Integridade, Consistência, Precisão, Cálculos Financeiros
-Executa via: npx supabase db query --linked
 """
-import subprocess, json, sys, os
+import subprocess, json, sys, os, tempfile
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_EVEN
 from collections import defaultdict
+
+# Fix Windows encoding
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 PROJECT_DIR = r"c:\Users\Wesley\Bolso inteligente\seu-bolso-inteligente"
 
@@ -25,9 +28,12 @@ def run_query(sql: str) -> list[dict]:
             capture_output=True, text=True, cwd=PROJECT_DIR, timeout=60, shell=True
         )
     finally:
-        os.unlink(tmp.name)
-    # Skip the "Initialising login role..." line if present
-    lines = result.stdout.strip().split('\n')
+        try:
+            os.unlink(tmp.name)
+        except:
+            pass
+    stdout = result.stdout or ""
+    lines = stdout.strip().split('\n')
     json_start = 0
     for i, line in enumerate(lines):
         if line.strip().startswith('{'):
@@ -37,9 +43,11 @@ def run_query(sql: str) -> list[dict]:
         data = json.loads('\n'.join(lines[json_start:]))
         return data.get("rows", [])
     except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-        print(f"Raw output: {result.stdout[:500]}")
-        print(f"Stderr: {result.stderr[:500]}")
+        print(f"  [WARN] JSON parse: {e} | SQL start: {sql[:80]}...")
+        print(f"  Raw: {stdout[:200]}")
+        stderr = (result.stderr or "")[:200]
+        if stderr:
+            print(f"  Stderr: {stderr}")
         return []
 
 def run_query_safe(sql: str) -> list[dict]:

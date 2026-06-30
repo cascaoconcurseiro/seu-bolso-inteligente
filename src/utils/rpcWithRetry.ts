@@ -180,15 +180,21 @@ export async function batchRpcWithRetry<T = unknown>(
 ): Promise<T[]> {
   logger.debug(`[RPC] Iniciando batch de ${calls.length} chamadas RPC`);
 
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     calls.map(({ functionName, params }) =>
-      rpcWithRetry<T>(functionName, params, options).catch(error => {
-        logger.error(`[RPC] Erro em batch call ${functionName}`, { error });
-        throw error;
-      })
+      rpcWithRetry<T>(functionName, params, options)
     )
   );
 
-  logger.debug(`[RPC] Batch concluído com sucesso`);
-  return results;
+  const succeeded: T[] = [];
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      succeeded.push(result.value);
+    } else {
+      logger.error(`[RPC] Erro em batch call`, result.reason);
+    }
+  }
+
+  logger.debug(`[RPC] Batch concluído: ${succeeded.length}/${calls.length} sucesso`);
+  return succeeded;
 }

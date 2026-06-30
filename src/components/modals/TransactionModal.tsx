@@ -5,35 +5,29 @@ import { useTransactionModal } from '@/contexts/TransactionModalContext';
 import { haptics } from '@/utils/haptics';
 
 interface TransactionModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  initialData?: any;
+  initialData?: Record<string, unknown>;
 }
 
 export function TransactionModal({ 
-  isOpen, 
-  onClose, 
   open, 
   onOpenChange,
   initialData
 }: TransactionModalProps) {
   const { transactionContext } = useTransactionModal();
   
-  const actualOpen = open !== undefined ? open : isOpen;
-  const actualClose = () => {
-    if (onClose) onClose();
-    if (onOpenChange) onOpenChange(false);
+  const handleOpenChange = (value: boolean) => {
+    onOpenChange?.(value);
   };
   
   const handleSuccess = () => {
     haptics.success();
-    actualClose();
+    handleOpenChange(false);
   };
   
   return (
-    <Dialog open={actualOpen} onOpenChange={actualClose}>
+    <Dialog open={open ?? false} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-3xl !rounded-b-none sm:!rounded-3xl transition-transform duration-500 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-2xl"
         onOpenAutoFocus={(e) => e.preventDefault()}

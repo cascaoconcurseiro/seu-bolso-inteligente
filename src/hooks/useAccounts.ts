@@ -8,7 +8,14 @@ import { logger } from "@/utils/logger";
 import { callRPCWithRetry } from "@/utils/supabaseHelpers";
 import { Database } from "@/integrations/supabase/types";
 
-export type AccountType = "CHECKING" | "SAVINGS" | "CREDIT_CARD" | "INVESTMENT" | "CASH" | "EMERGENCY_FUND" | "GLOBAL_ACCOUNT";
+export type AccountType =
+  | "CHECKING"
+  | "SAVINGS"
+  | "CREDIT_CARD"
+  | "INVESTMENT"
+  | "CASH"
+  | "EMERGENCY_FUND"
+  | "GLOBAL_ACCOUNT";
 
 /**
  * Retorna o nome de exibição da conta baseado no tipo e se é internacional.
@@ -17,24 +24,39 @@ export type AccountType = "CHECKING" | "SAVINGS" | "CREDIT_CARD" | "INVESTMENT" 
 export function getAccountDisplayName(type: AccountType, isInternational: boolean | null): string {
   if (isInternational) {
     switch (type) {
-      case 'CHECKING': return 'Conta Internacional';
-      case 'GLOBAL_ACCOUNT': return 'Conta Global';
-      case 'SAVINGS': return 'Poupança Internacional';
-      case 'CREDIT_CARD': return 'Cartão Internacional';
-      case 'INVESTMENT': return 'Investimento Internacional';
-      case 'CASH': return 'Dinheiro Estrangeiro';
-      default: return 'Conta Internacional';
+      case "CHECKING":
+        return "Conta Internacional";
+      case "GLOBAL_ACCOUNT":
+        return "Conta Global";
+      case "SAVINGS":
+        return "Poupança Internacional";
+      case "CREDIT_CARD":
+        return "Cartão Internacional";
+      case "INVESTMENT":
+        return "Investimento Internacional";
+      case "CASH":
+        return "Dinheiro Estrangeiro";
+      default:
+        return "Conta Internacional";
     }
   }
   switch (type) {
-    case 'CHECKING': return 'Conta Corrente';
-    case 'GLOBAL_ACCOUNT': return 'Conta Global';
-    case 'SAVINGS': return 'Poupança';
-    case 'CREDIT_CARD': return 'Cartão de Crédito';
-    case 'INVESTMENT': return 'Investimento';
-    case 'CASH': return 'Dinheiro';
-    case 'EMERGENCY_FUND': return 'Reserva de Emergência';
-    default: return type;
+    case "CHECKING":
+      return "Conta Corrente";
+    case "GLOBAL_ACCOUNT":
+      return "Conta Global";
+    case "SAVINGS":
+      return "Poupança";
+    case "CREDIT_CARD":
+      return "Cartão de Crédito";
+    case "INVESTMENT":
+      return "Investimento";
+    case "CASH":
+      return "Dinheiro";
+    case "EMERGENCY_FUND":
+      return "Reserva de Emergência";
+    default:
+      return type;
   }
 }
 
@@ -42,16 +64,24 @@ export function getAccountDisplayName(type: AccountType, isInternational: boolea
  * Retorna o ícone da conta baseado no tipo e internacionalidade.
  */
 export function getAccountIcon(type: AccountType, isInternational: boolean | null): string {
-  if (isInternational) return '🌍';
+  if (isInternational) return "🌍";
   switch (type) {
-    case 'CHECKING': return '🏦';
-    case 'GLOBAL_ACCOUNT': return '🌍';
-    case 'SAVINGS': return '💰';
-    case 'CREDIT_CARD': return '💳';
-    case 'INVESTMENT': return '📈';
-    case 'CASH': return '💵';
-    case 'EMERGENCY_FUND': return '🛡️';
-    default: return '🏦';
+    case "CHECKING":
+      return "🏦";
+    case "GLOBAL_ACCOUNT":
+      return "🌍";
+    case "SAVINGS":
+      return "💰";
+    case "CREDIT_CARD":
+      return "💳";
+    case "INVESTMENT":
+      return "📈";
+    case "CASH":
+      return "💵";
+    case "EMERGENCY_FUND":
+      return "🛡️";
+    default:
+      return "🏦";
   }
 }
 
@@ -94,8 +124,8 @@ export interface CreateAccountInput {
 }
 
 // Type for credit card invoice transactions
-type InvoiceTransaction = Database['public']['Tables']['transactions']['Row'] & {
-  category?: Database['public']['Tables']['categories']['Row'] | null;
+type InvoiceTransaction = Database["public"]["Tables"]["transactions"]["Row"] & {
+  category?: Database["public"]["Tables"]["categories"]["Row"] | null;
 };
 
 export interface CreditCardInvoiceResponse {
@@ -119,10 +149,12 @@ export function useAccounts(includeArchived = false) {
     queryKey: ["accounts", user?.id, includeArchived],
     queryFn: async () => {
       if (!user) return [];
-      
+
       const query = supabase
         .from("accounts")
-        .select("*")
+        .select(
+          "id,name,type,currency,bank_id,bank_logo,bank_color,balance,initial_balance,is_active,is_archived,closing_day,due_day,credit_limit,is_international,hide_balance,created_at,updated_at,user_id,closing_day_mode,yield_rate,yield_type"
+        )
         .eq("user_id", user.id)
         .eq("is_active", true);
 
@@ -141,7 +173,7 @@ export function useAccounts(includeArchived = false) {
         .eq("status", "ACCEPTED");
 
       let allAccounts = [...(ownAccounts || [])];
-      
+
       if (sharedData && !sharedError) {
         const sharedAccounts = sharedData
           .map((sc: any /* any */) => {
@@ -153,7 +185,7 @@ export function useAccounts(includeArchived = false) {
               }
               // Marca como compartilhado (útil para a UI saber se o usuário não é o dono original)
               acc.is_shared_with_me = true;
-              
+
               // Zera o balance global da conta para que os gastos do dono original
               // não apareçam como dívidas para o convidado (data leak).
               // O saldo do convidado deve ser calculado apenas pelos seus próprios lançamentos.
@@ -164,12 +196,14 @@ export function useAccounts(includeArchived = false) {
           .filter(Boolean)
           // Assegurar que só adicione cartões que não estão deletados e estão ativos
           .filter((a: any /* any */) => a.is_active === true && a.deleted !== true);
-        
+
         allAccounts = [...allAccounts, ...sharedAccounts];
       }
 
       if (!includeArchived) {
-        allAccounts = allAccounts.filter(a => a.is_archived === false || a.is_archived === null || a.is_archived === undefined);
+        allAccounts = allAccounts.filter(
+          (a) => a.is_archived === false || a.is_archived === null || a.is_archived === undefined
+        );
       }
 
       // Ordenar por nome
@@ -183,14 +217,18 @@ export function useAccounts(includeArchived = false) {
   });
 }
 
-export function useCreditCardInvoice(accountId: string | null, monthStart: string, monthEnd: string) {
+export function useCreditCardInvoice(
+  accountId: string | null,
+  monthStart: string,
+  monthEnd: string
+) {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: ["credit-card-invoice", accountId, monthStart, monthEnd],
     queryFn: async () => {
       try {
-        const data = await callRPCWithRetry('get_credit_card_invoice', {
+        const data = await callRPCWithRetry("get_credit_card_invoice", {
           p_account_id: accountId,
           p_user_id: user?.id,
           p_month_start: monthStart,
@@ -209,7 +247,6 @@ export function useCreditCardInvoice(accountId: string | null, monthStart: strin
     placeholderData: (previousData) => previousData,
   });
 }
-
 
 export function useCreditCardClosingOverride(accountId: string | null, referenceDate: string) {
   const { user } = useAuth();
@@ -248,7 +285,7 @@ export function useCreateAccount() {
 
       // Criar conta com saldo zero (o saldo será calculado pelo trigger após criar a transação)
       const { data, error } = await supabase
-        .from('accounts')
+        .from("accounts")
         .insert({
           user_id: user.id,
           name: input.name,
@@ -257,7 +294,7 @@ export function useCreateAccount() {
           initial_balance: 0, // Definido como 0 para evitar duplicação, já que criamos a transação histórica abaixo
           bank_id: input.bank_id || null,
           bank_color: input.bank_color || null,
-          currency: input.currency || 'BRL',
+          currency: input.currency || "BRL",
           is_international: input.is_international || false,
           closing_day: input.closing_day || null,
           due_day: input.due_day || null,
@@ -270,53 +307,55 @@ export function useCreateAccount() {
         .single();
 
       if (error) throw error;
-      
+
       // Se tem saldo inicial e não é cartão de crédito, criar transação de saldo inicial
       // O trigger vai atualizar o saldo da conta automaticamente
-      if (input.balance && input.balance > 0 && input.type !== 'CREDIT_CARD') {
+      if (input.balance && input.balance > 0 && input.type !== "CREDIT_CARD") {
         // Buscar categoria "Saldo Inicial"
         const { data: categoryData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('name', 'Saldo Inicial')
-          .eq('type', 'income')
+          .from("categories")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("name", "Saldo Inicial")
+          .eq("type", "income")
           .single();
-        
+
         const today = new Date();
-        const dateStr = today.toISOString().split('T')[0];
-        const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
-        
-        const { error: txError } = await supabase.from('transactions').insert({
+        const dateStr = today.toISOString().split("T")[0];
+        const competenceStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+
+        const { error: txError } = await supabase.from("transactions").insert({
           user_id: user.id,
           creator_user_id: user.id,
           account_id: data.id,
-          type: 'INCOME',
+          type: "INCOME",
           amount: input.balance,
-          description: 'Saldo inicial',
+          description: "Saldo inicial",
           category_id: categoryData?.id || null, // Usar categoria se encontrada
           date: dateStr,
           competence_date: competenceStr,
-          domain: 'PERSONAL',
+          domain: "PERSONAL",
           is_shared: false,
           is_installment: false,
           is_recurring: false,
-          currency: input.currency || 'BRL', // Usar a moeda da conta
+          currency: input.currency || "BRL", // Usar a moeda da conta
         });
-        
+
         if (txError) {
-          logger.error('Erro ao criar transação de saldo inicial', txError);
-          throw new Error('Erro ao criar saldo inicial: ' + txError.message);
+          logger.error("Erro ao criar transação de saldo inicial", txError);
+          throw new Error("Erro ao criar saldo inicial: " + txError.message);
         }
       }
-      
+
       // Buscar conta atualizada (com saldo calculado pelo trigger)
       const { data: updatedAccount, error: fetchError } = await supabase
-        .from('accounts')
-        .select('*')
-        .eq('id', data.id)
+        .from("accounts")
+        .select(
+          "id,name,type,currency,bank_id,bank_logo,bank_color,balance,initial_balance,is_active,is_archived,closing_day,due_day,credit_limit,is_international,hide_balance,created_at,updated_at,user_id"
+        )
+        .eq("id", data.id)
         .single();
-      
+
       if (fetchError) throw fetchError;
       return updatedAccount;
     },
@@ -325,7 +364,7 @@ export function useCreateAccount() {
       accountToasts.created();
     },
     onError: (error) => {
-      accountToasts.error('criar', error);
+      accountToasts.error("criar", error);
     },
   });
 }
@@ -338,14 +377,15 @@ export function useUpdateAccount() {
     onMutate: async ({ id, ...input }: Partial<Account> & { id: string }) => {
       await queryClient.cancelQueries({ queryKey: ["accounts"] });
       const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
-      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
-        old?.map((a) => a.id === id ? { ...a, ...input } : a) ?? []
+      queryClient.setQueriesData<Account[]>(
+        { queryKey: ["accounts"] },
+        (old) => old?.map((a) => (a.id === id ? { ...a, ...input } : a)) ?? []
       );
       return { previousData };
     },
     onError: (_err, _vars, context) => {
       context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      accountToasts.error('atualizar', _err as Error);
+      accountToasts.error("atualizar", _err as Error);
     },
     mutationFn: async ({ id, ...input }: Partial<Account> & { id: string }) => {
       // Se está atualizando o saldo, criar transação de ajuste
@@ -365,32 +405,32 @@ export function useUpdateAccount() {
 
         // Se há diferença, criar transação de ajuste
         if (Math.abs(difference) > 0.001) {
-          const txType = difference > 0 ? 'INCOME' : 'EXPENSE';
-          const catType = difference > 0 ? 'income' : 'expense';
+          const txType = difference > 0 ? "INCOME" : "EXPENSE";
+          const catType = difference > 0 ? "income" : "expense";
 
           // Buscar categoria "Ajuste de Saldo" correspondente ao tipo de transação e usuário
           const { data: categoryData } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('name', 'Ajuste de Saldo')
-            .eq('type', catType)
+            .from("categories")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("name", "Ajuste de Saldo")
+            .eq("type", catType)
             .maybeSingle();
 
-          const { error: txError } = await supabase.from('transactions').insert({
+          const { error: txError } = await supabase.from("transactions").insert({
             user_id: user.id,
             account_id: id,
             type: txType,
             amount: Math.abs(difference),
             description: `Ajuste de saldo - ${currentAccount.name}`,
             category_id: categoryData?.id || null,
-            date: new Date().toISOString().split('T')[0],
-            competence_date: new Date().toISOString().split('T')[0],
-            domain: 'PERSONAL',
+            date: new Date().toISOString().split("T")[0],
+            competence_date: new Date().toISOString().split("T")[0],
+            domain: "PERSONAL",
             is_shared: false,
             is_installment: false,
             is_recurring: false,
-            sync_status: 'SYNCED',
+            sync_status: "SYNCED",
             is_settled: true,
           });
 
@@ -420,7 +460,9 @@ export function useUpdateAccount() {
       // Se só atualizou o saldo (via transação), buscar conta atualizada
       const { data, error } = await supabase
         .from("accounts")
-        .select("*")
+        .select(
+          "id,name,type,currency,bank_id,bank_logo,bank_color,balance,initial_balance,is_active,is_archived,closing_day,due_day,credit_limit,is_international,hide_balance,created_at,updated_at,user_id"
+        )
         .eq("id", id)
         .single();
 
@@ -437,14 +479,15 @@ export function useUpdateAccount() {
   });
 }
 
-
 export function useAccountDependencies(accountId: string | undefined) {
   return useQuery({
     queryKey: ["account_dependencies", accountId],
     queryFn: async () => {
       if (!accountId) return null;
       try {
-        const deps = await callRPCWithRetry('check_account_dependencies', { p_account_id: accountId }) as AccountDependenciesResponse;
+        const deps = (await callRPCWithRetry("check_account_dependencies", {
+          p_account_id: accountId,
+        })) as AccountDependenciesResponse;
         return deps;
       } catch (e) {
         logger.warn("Failed to fetch account dependencies:", e);
@@ -462,8 +505,9 @@ export function useDeleteAccount() {
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["accounts"] });
       const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
-      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
-        old?.filter((a) => a.id !== id) ?? []
+      queryClient.setQueriesData<Account[]>(
+        { queryKey: ["accounts"] },
+        (old) => old?.filter((a) => a.id !== id) ?? []
       );
       return { previousData };
     },
@@ -473,25 +517,30 @@ export function useDeleteAccount() {
     mutationFn: async (id: string) => {
       // AUDITORIA 2026-05-10: Verificar dependências antes de excluir
       try {
-        const deps = await callRPCWithRetry('check_account_dependencies', { p_account_id: id }) as AccountDependenciesResponse;
+        const deps = (await callRPCWithRetry("check_account_dependencies", {
+          p_account_id: id,
+        })) as AccountDependenciesResponse;
 
         if (deps && !deps.can_delete) {
           const msgs: string[] = [];
-          if (deps.total_transactions > 0) msgs.push(`${deps.total_transactions} transação(ões) vinculada(s)`);
-          if (deps.future_installments > 0) msgs.push(`${deps.future_installments} parcela(s) futura(s)`);
-          if (deps.open_shared_expenses > 0) msgs.push(`${deps.open_shared_expenses} despesa(s) compartilhada(s) em aberto`);
+          if (deps.total_transactions > 0)
+            msgs.push(`${deps.total_transactions} transação(ões) vinculada(s)`);
+          if (deps.future_installments > 0)
+            msgs.push(`${deps.future_installments} parcela(s) futura(s)`);
+          if (deps.open_shared_expenses > 0)
+            msgs.push(`${deps.open_shared_expenses} despesa(s) compartilhada(s) em aberto`);
           if (deps.linked_goals > 0) msgs.push(`${deps.linked_goals} meta(s) vinculada(s)`);
           throw new Error(
-            `Não é possível excluir esta conta. Ela possui: ${msgs.join(', ')}. ` +
-            'Por favor, utilize a opção de Arquivar para preservar o histórico.'
+            `Não é possível excluir esta conta. Ela possui: ${msgs.join(", ")}. ` +
+              "Por favor, utilize a opção de Arquivar para preservar o histórico."
           );
         }
       } catch (error: unknown) {
         // Se o erro for o que acabamos de lançar (com as dependências), re-lançar
         const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage?.includes('Não é possível excluir')) throw error;
-        
-        logger.warn('check_account_dependencies falhou ou não existe', { message: errorMessage });
+        if (errorMessage?.includes("Não é possível excluir")) throw error;
+
+        logger.warn("check_account_dependencies falhou ou não existe", { message: errorMessage });
       }
 
       // Soft delete — histórico é preservado
@@ -511,7 +560,6 @@ export function useDeleteAccount() {
   });
 }
 
-
 export function useArchiveAccount() {
   const queryClient = useQueryClient();
 
@@ -519,20 +567,18 @@ export function useArchiveAccount() {
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["accounts"] });
       const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["accounts"] });
-      queryClient.setQueriesData<Account[]>({ queryKey: ["accounts"] }, (old) =>
-        old?.filter((a) => a.id !== id) ?? []
+      queryClient.setQueriesData<Account[]>(
+        { queryKey: ["accounts"] },
+        (old) => old?.filter((a) => a.id !== id) ?? []
       );
       return { previousData };
     },
     onError: (_err, _id, context) => {
       context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      accountToasts.error('arquivar', _err as Error);
+      accountToasts.error("arquivar", _err as Error);
     },
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("accounts")
-        .update({ is_archived: true })
-        .eq("id", id);
+      const { error } = await supabase.from("accounts").update({ is_archived: true }).eq("id", id);
 
       if (error) throw error;
     },
@@ -552,21 +598,21 @@ export function useUnarchiveAccount() {
   return useMutation({
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["archived-accounts"] });
-      const previousData = queryClient.getQueriesData<Account[]>({ queryKey: ["archived-accounts"] });
-      queryClient.setQueriesData<Account[]>({ queryKey: ["archived-accounts"] }, (old) =>
-        old?.filter((a) => a.id !== id) ?? []
+      const previousData = queryClient.getQueriesData<Account[]>({
+        queryKey: ["archived-accounts"],
+      });
+      queryClient.setQueriesData<Account[]>(
+        { queryKey: ["archived-accounts"] },
+        (old) => old?.filter((a) => a.id !== id) ?? []
       );
       return { previousData };
     },
     onError: (_err, _id, context) => {
       context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      accountToasts.error('desarquivar', _err as Error);
+      accountToasts.error("desarquivar", _err as Error);
     },
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("accounts")
-        .update({ is_archived: false })
-        .eq("id", id);
+      const { error } = await supabase.from("accounts").update({ is_archived: false }).eq("id", id);
 
       if (error) throw error;
     },
@@ -587,10 +633,12 @@ export function useArchivedAccounts() {
     queryKey: ["archived-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
+
       const { data, error } = await supabase
         .from("accounts")
-        .select("*")
+        .select(
+          "id,name,type,currency,bank_id,bank_logo,bank_color,balance,is_archived,created_at,user_id"
+        )
         .eq("user_id", user.id)
         .eq("is_archived", true)
         .order("name");

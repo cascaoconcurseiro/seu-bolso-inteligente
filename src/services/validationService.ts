@@ -182,7 +182,10 @@ export function validateTransaction(
   }
 
   // Categoria é obrigatória para despesas e receitas
-  if ((transaction.type === "EXPENSE" || transaction.type === "INCOME") && !transaction.category_id) {
+  if (
+    (transaction.type === "EXPENSE" || transaction.type === "INCOME") &&
+    !transaction.category_id
+  ) {
     errors.push(
       transaction.type === "EXPENSE"
         ? "A categoria é obrigatória para despesas"

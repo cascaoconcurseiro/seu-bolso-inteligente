@@ -98,7 +98,7 @@ export function useAccountingDRE() {
 
   const classifyCategory = (catName: string): DRELineType => {
     const name = catName.toLowerCase();
-    
+
     if (name.includes('invest') || name.includes('dividend') || name.includes('rendimento') || name.includes('juros')) {
       return 'FINANCIAL_INC';
     }
@@ -117,19 +117,19 @@ export function useAccountingDRE() {
   const periodTransactions = useMemo(() => {
     return allTransactions.filter(tx => {
       let txDateStr = tx.date;
-      
+
       if (dateCriterion === 'DUE_DATE' && tx.type === 'EXPENSE' && tx.account_id) {
         const acc = accounts.find(a => a.id === tx.account_id);
         if (acc && acc.type === 'CREDIT_CARD') {
           const compDate = tx.competence_date ? dateFns.parseISO(tx.competence_date) : dateFns.parseISO(tx.date);
           const dueDay = acc.due_day || 10;
           const closingDay = acc.closing_day || 1;
-          
+
           let dueMonthDate = compDate;
           if (dueDay <= closingDay) {
             dueMonthDate = dateFns.addMonths(compDate, 1);
           }
-          
+
           txDateStr = dateFns.format(dueMonthDate, 'yyyy-MM-dd');
         }
       }
@@ -139,20 +139,20 @@ export function useAccountingDRE() {
       if (parts.length < 2) return false;
       const txYear = parseInt(parts[0], 10);
       const txMonth = parseInt(parts[1], 10) - 1;
-      
+
       const isTimeMatch = viewType === 'MONTH'
         ? txYear === selectedYear && txMonth === selectedMonth
         : txYear === selectedYear;
-        
+
       if (!isTimeMatch) return false;
-      
+
       let cur = 'BRL';
       if (tx.currency) cur = tx.currency;
       else if (tx.account_id) {
         const acc = accounts.find(a => a.id === tx.account_id);
         if (acc && acc.currency) cur = acc.currency;
       }
-      
+
       return cur === selectedCurrency;
     });
   }, [allTransactions, selectedYear, selectedMonth, viewType, dateCriterion, accounts, selectedCurrency]);
@@ -170,7 +170,7 @@ export function useAccountingDRE() {
     periodTransactions.forEach(tx => {
       const amount = Number(tx.amount || 0);
       let catName = "Sem categoria";
-      
+
       if (tx.category) {
         const catInfo = categories.find(c => c.id === tx.category_id);
         if (catInfo) {
@@ -204,7 +204,7 @@ export function useAccountingDRE() {
         let target: DRELineType = 'VARIABLE_EXP';
         if (classification === 'FIXED_EXP') target = 'FIXED_EXP';
         else if (classification === 'FINANCIAL_EXP') target = 'FINANCIAL_EXP';
-        
+
         map[target].total = SafeFinancialCalculator.add(map[target].total, finalAmount);
         map[target].subcategories[catName] = SafeFinancialCalculator.add(map[target].subcategories[catName] || 0, finalAmount);
       }
@@ -230,7 +230,7 @@ export function useAccountingDRE() {
     const checkingChecking = accounts
       .filter(a => (a.type === 'CHECKING' || a.type === 'CASH') && (a.currency || 'BRL') === selectedCurrency)
       .reduce((sum, a) => SafeFinancialCalculator.add(sum, Number(a.balance || 0)), 0);
-      
+
     const checkingSavings = accounts
       .filter(a => a.type === 'SAVINGS' && (a.currency || 'BRL') === selectedCurrency)
       .reduce((sum, a) => SafeFinancialCalculator.add(sum, Number(a.balance || 0)), 0);

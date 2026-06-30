@@ -123,4 +123,4 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
       )}
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { rpcWithRetry } from '@/utils/rpcWithRetry';
 
 
-export function FamilyBalancePanel() {
+export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
   const { user } = useAuth();
   const { isPrivate } = usePrivacy();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
@@ -84,7 +85,7 @@ export function FamilyBalancePanel() {
             }
             return tx.is_settled === false;
           });
-          
+
           if (unsettled.length > 0) {
             unsettled.sort((a, b) => {
               const dateA = a.competence_date || a.date;
@@ -181,4 +182,4 @@ export function FamilyBalancePanel() {
       </div>
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AlertCircle, CalendarClock, CheckCircle2 } from "lucide-react";
@@ -15,13 +16,13 @@ function dueDateLabel(dateStr: string) {
   return { label: format(d, "EEE, dd MMM", { locale: ptBR }), urgent: false };
 }
 
-export function DashboardBillsDue() {
+export const DashboardBillsDue = memo(function DashboardBillsDue() {
   const { data: bills = [], isLoading } = useBillsDue(7);
   const updateTransaction = useUpdateTransaction();
 
   if (isLoading || bills.length === 0) return null;
 
-  const handleMarkPaid = (bill: typeof bills[0]) => {
+  const handleMarkPaid = (bill: (typeof bills)[0]) => {
     const today = formatDate(new Date(), "yyyy-MM-dd");
     updateTransaction.mutate({ id: bill.id, date: today });
   };
@@ -34,7 +35,10 @@ export function DashboardBillsDue() {
         </div>
         <div>
           <h3 className="font-bold text-sm">A pagar esta semana</h3>
-          <p className="text-xs text-muted-foreground">{bills.length} conta{bills.length !== 1 ? 's' : ''} vence{bills.length === 1 ? '' : 'm'} nos próximos 7 dias</p>
+          <p className="text-xs text-muted-foreground">
+            {bills.length} conta{bills.length !== 1 ? "s" : ""} vence{bills.length === 1 ? "" : "m"}{" "}
+            nos próximos 7 dias
+          </p>
         </div>
       </div>
 
@@ -42,11 +46,19 @@ export function DashboardBillsDue() {
         {bills.map((bill) => {
           const { label, urgent } = dueDateLabel(bill.date);
           return (
-            <div key={bill.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
+            <div
+              key={bill.id}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors"
+            >
               <span className="text-xl shrink-0">{bill.category?.icon || "📋"}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate">{bill.description}</p>
-                <p className={cn("text-xs font-medium", urgent ? "text-warning" : "text-muted-foreground")}>
+                <p
+                  className={cn(
+                    "text-xs font-medium",
+                    urgent ? "text-warning" : "text-muted-foreground"
+                  )}
+                >
                   {urgent && <AlertCircle className="w-3 h-3 inline mr-0.5 -mt-0.5" />}
                   {label} · {bill.account?.name || "Conta"}
                 </p>
@@ -72,4 +84,4 @@ export function DashboardBillsDue() {
       </div>
     </div>
   );
-}
+});

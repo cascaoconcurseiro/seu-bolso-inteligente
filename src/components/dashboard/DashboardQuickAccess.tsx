@@ -62,4 +62,4 @@ export const DashboardQuickAccess = memo(function DashboardQuickAccess() {
       </div>
     </div>
   );
-}
+});

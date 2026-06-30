@@ -6,6 +6,7 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { memo } from "react";
 import { logger } from "@/utils/logger";
 
 interface DashboardInvoicesProps {
@@ -13,7 +14,7 @@ interface DashboardInvoicesProps {
   formatCurrency: (value: number) => string;
 }
 
-export function DashboardInvoices({
+export const DashboardInvoices = memo(function DashboardInvoices({
   creditCardsWithBalance,
   formatCurrency,
 }: DashboardInvoicesProps) {
@@ -188,4 +189,4 @@ export function DashboardInvoices({
       </div>
     </div>
   );
-}
+});

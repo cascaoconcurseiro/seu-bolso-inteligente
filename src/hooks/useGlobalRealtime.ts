@@ -11,10 +11,22 @@ import { logger } from "@/utils/logger";
  * em vez de invalidar 50+ queries como antes.
  */
 const TABLE_TO_QUERY_KEYS: Record<string, string[]> = {
-  transactions: ["transactions", "dashboard-data", "financial-summary", "monthly-projection",
-    "wealth-evolution", "monthly-evolution-report", "expenses-by-category"],
+  transactions: [
+    "transactions",
+    "dashboard-data",
+    "financial-summary",
+    "monthly-projection",
+    "wealth-evolution",
+    "monthly-evolution-report",
+    "expenses-by-category",
+  ],
   accounts: ["accounts", "account-statement", "dashboard-data"],
-  transaction_splits: ["transactions", "shared-transactions-with-splits", "shared-balances", "shared-transactions-consolidated"],
+  transaction_splits: [
+    "transactions",
+    "shared-transactions-with-splits",
+    "shared-balances",
+    "shared-transactions-consolidated",
+  ],
   budgets: ["budgets", "budgets-progress"],
   goals: ["goals", "goal-history", "goal-milestones"],
   goal_milestones: ["goal-milestones"],
@@ -63,27 +75,23 @@ export function useGlobalRealtime() {
       const channelName = `db-changes-${table}-${user.id}`;
       const channel = supabase
         .channel(channelName)
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table, filter },
-          () => {
-            // Debounce: agrupa eventos da mesma tabela em 800ms
-            const existing = debounceTimers.get(table);
-            if (existing) clearTimeout(existing);
+        .on("postgres_changes", { event: "*", schema: "public", table, filter }, () => {
+          // Debounce: agrupa eventos da mesma tabela em 800ms
+          const existing = debounceTimers.get(table);
+          if (existing) clearTimeout(existing);
 
-            debounceTimers.set(
-              table,
-              setTimeout(() => {
-                if (cancelled) return;
-                const keys = TABLE_TO_QUERY_KEYS[table];
-                if (keys) {
-                  invalidateTableQueries(queryClient, keys);
-                }
-                debounceTimers.delete(table);
-              }, 800)
-            );
-          }
-        )
+          debounceTimers.set(
+            table,
+            setTimeout(() => {
+              if (cancelled) return;
+              const keys = TABLE_TO_QUERY_KEYS[table];
+              if (keys) {
+                invalidateTableQueries(queryClient, keys);
+              }
+              debounceTimers.delete(table);
+            }, 800)
+          );
+        })
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
             logger.debug(`Realtime conectado: ${channelName}`);

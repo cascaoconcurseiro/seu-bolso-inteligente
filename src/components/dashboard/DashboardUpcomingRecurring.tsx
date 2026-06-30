@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { Link } from "react-router-dom";
 import { Repeat2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ function daysLabel(daysUntil: number) {
   return dateFns.format(dateFns.addDays(dateFns.startOfDay(new Date()), daysUntil), "dd/MM");
 }
 
-export function DashboardUpcomingRecurring() {
+export const DashboardUpcomingRecurring = memo(function DashboardUpcomingRecurring() {
   const { user } = useAuth();
   const { isPrivate } = usePrivacy();
 
@@ -132,4 +132,4 @@ export function DashboardUpcomingRecurring() {
       </div>
     </div>
   );
-}
+});

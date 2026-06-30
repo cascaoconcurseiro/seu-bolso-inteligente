@@ -10,7 +10,7 @@ import { QueryClient } from "@tanstack/react-query";
  * Use after mutations that affect transactions, accounts, or budgets
  */
 export const invalidateFinancialQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["transactions"] }),
     queryClient.invalidateQueries({ queryKey: ["accounts"] }),
     queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
@@ -47,7 +47,7 @@ export const invalidateFinancialQueries = (queryClient: QueryClient) => {
  * Use after mutations that affect shared transactions or splits
  */
 export const invalidateSharedQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] }),
     queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] }),
     queryClient.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] }),
@@ -61,7 +61,7 @@ export const invalidateSharedQueries = (queryClient: QueryClient) => {
  * Use after mutations that affect trips or trip transactions
  */
 export const invalidateTripQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["trips"] }),
     queryClient.invalidateQueries({ queryKey: ["trip-members"] }),
     queryClient.invalidateQueries({ queryKey: ["trip-participants"] }),
@@ -80,7 +80,7 @@ export const invalidateTripQueries = (queryClient: QueryClient) => {
  * Use after mutations that affect family members or invitations
  */
 export const invalidateFamilyQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["family"] }),
     queryClient.invalidateQueries({ queryKey: ["family-members"] }),
     queryClient.invalidateQueries({ queryKey: ["family-invitations"] }),
@@ -93,7 +93,7 @@ export const invalidateFamilyQueries = (queryClient: QueryClient) => {
  * Use after mutations that affect categories
  */
 export const invalidateCategoryQueries = (queryClient: QueryClient) => {
-  return Promise.all([queryClient.invalidateQueries({ queryKey: ["categories"] })]);
+  return Promise.allSettled([queryClient.invalidateQueries({ queryKey: ["categories"] })]);
 };
 
 /**
@@ -102,7 +102,7 @@ export const invalidateCategoryQueries = (queryClient: QueryClient) => {
  * WARNING: This is expensive, use sparingly
  */
 export const invalidateAllFinancialData = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     invalidateFinancialQueries(queryClient),
     invalidateSharedQueries(queryClient),
     invalidateTripQueries(queryClient),
@@ -116,7 +116,7 @@ export const invalidateAllFinancialData = (queryClient: QueryClient) => {
  * Use after creating, updating, or deleting a transaction
  */
 export const invalidateTransactionQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["transactions"] }),
     queryClient.invalidateQueries({ queryKey: ["accounts"] }),
     queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
@@ -132,7 +132,7 @@ export const invalidateTransactionQueries = (queryClient: QueryClient) => {
  * Use after creating, updating, or deleting an account
  */
 export const invalidateAccountQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["accounts"] }),
     queryClient.invalidateQueries({ queryKey: ["account-statement"] }),
     queryClient.invalidateQueries({ queryKey: ["transactions"] }),
@@ -145,7 +145,7 @@ export const invalidateAccountQueries = (queryClient: QueryClient) => {
  * Use after creating, updating, or deleting a budget
  */
 export const invalidateBudgetQueries = (queryClient: QueryClient) => {
-  return Promise.all([
+  return Promise.allSettled([
     queryClient.invalidateQueries({ queryKey: ["budgets"] }),
     queryClient.invalidateQueries({ queryKey: ["budgets-progress"] }),
   ]);
