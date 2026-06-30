@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ export function SharedExpenses() {
     rejectDialog, setRejectDialog
   } = state;
 
-  const [activeTab, setActiveTab] = state.useState<SharedTab>(
+  const [activeTab, setActiveTab] = useState<SharedTab>(
     (searchParams.get("tab") as SharedTab) || "REGULAR"
   );
 

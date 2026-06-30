@@ -58,11 +58,17 @@ export class ErrorBoundary extends Component<Props, State> {
         try {
             const { error, errorInfo } = this.state;
             const { error: dbError } = await supabase.from('error_logs').insert({
-                error_name: error?.name || 'Error',
-                error_message: error?.message || 'Erro desconhecido',
-                component_stack: error?.stack || errorInfo?.componentStack || '',
-                user_message: window.location.href,
-                user_id: (await supabase.auth.getUser()).data.user?.id
+                error_type: error?.name || 'Error',
+                message: error?.message || 'Erro desconhecido',
+                stack: (error?.stack || errorInfo?.componentStack || '').slice(0, 2000),
+                url: window.location.href,
+                user_agent: navigator.userAgent.slice(0, 300),
+                app_version: import.meta.env.VITE_APP_VERSION || 'unknown',
+                extra: {
+                    component_stack: errorInfo?.componentStack || null,
+                    source: 'ErrorBoundary',
+                },
+                user_id: (await supabase.auth.getUser()).data.user?.id ?? null
             });
             if (dbError) throw dbError;
             this.setState({ isReported: true });
