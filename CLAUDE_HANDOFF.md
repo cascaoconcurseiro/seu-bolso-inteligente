@@ -1,42 +1,43 @@
-# CLAUDE_HANDOFF.md — Pé de Meia
+# CLAUDE_HANDOFF.md — Seu Bolso Inteligente
 
 > Atualizado em: 2026-06-30 | Branch: `main` | Deploy: meupedemeia.vercel.app
-> Última ação: consolidação pós-auditorias — todos os itens críticos/alto corrigidos ou verificados
+> Última ação: Auditoria completa 20 fases — NOTA 76.0/100
 
 ---
 
-## ✅ Status Consolidado 2026-06-30
+## RESUMO
 
-Todas as auditorias (infraestrutura, segurança, produto, UX, código, performance) foram executadas.
-**Zero itens críticos ou de alta prioridade pendentes de código.**
+Auditoria de dados completa executada diretamente no banco de producao.
+**4 CRITICOS encontrados (saldos divergentes), 0 orfaos FK, 100% RLS, 100% NUMERIC.**
 
-### Pendências restantes (não-bloqueantes)
-- **ARC-05:** PDF export via Web Worker (médio prazo)
-- **SEC-08:** Criptografia IndexedDB (médio prazo)
-- **FEAT-01:** Relatório mensal por email — Edge Function pronta, depende de verificação de domínio Resend
-- **INFRA-01 a INFRA-20:** Itens de infraestrutura (CI/CD, staging, PgBouncer, etc.) — ver `CHECKLIST.md`
+| Area | Nota |
+|------|------|
+| Integridade Referencial | 95/100 |
+| Consistencia | 72/100 |
+| Precisao Financeira | 55/100 |
+| Confiabilidade | 78/100 |
+| Qualidade dos Dados | 80/100 |
 
-### RLS-01: Confirmado resolvido
-- `is_family_member` é `SECURITY DEFINER` — previne recursão infinita
-- `accounts_select_v2` cobre acesso cross-family
-- `shared_credit_cards` RLS cobre owner + invitee
-| Testabilidade | 40/100 |
-| Testes | 35/100 |
-| Seguranca | 72/100 |
-| Performance | 68/100 |
-| Manutenibilidade | 55/100 |
+### PROXIMO PASSO (CRITICO)
+1. **BAL-01:** Corrigir 4 contas com saldo divergente — investigar `trigger_sync_account_balance`
+   - Visa Platinium: diff=-60.060,00
+   - Nubank CC: diff=-35.324,68
+   - Azul infinite: diff=-7.761,48
+   - Carrefour: diff=-500,00
+   - Rodar: `SELECT recalculate_account_balance(<id>)` para cada conta
 
-### Proximo Passo Imediato
-1. CRIT-01: Remover `transaction_splits` duplicado
-2. CRIT-02: `console.error` → `logger.error`
-3. CRIT-03: Reescrever mocks e reativar testes `rpcWithRetry`
+### Pendências restantes (nao-bloqueantes)
+- IDX-01: 2 indices FK faltantes (admin_users, settlement_reversals)
+- DUP-01: 2 grupos de contas duplicadas
+- TYP-01: Regenerar types.ts (6 tabelas ausentes)
+- FUT-01: Auditar 11 transacoes com data futura
+- ARC-05: PDF export via Web Worker
+- SEC-08: Criptografia IndexedDB
+- FEAT-01: Relatorio mensal por email
 
-### Roadmap: Ver `AUDIT_REPORT_2026-06-30.md` e `CHECKLIST.md`
-
----
-
-## Auditorias Anteriores
-- UX/UI: `UX_AUDIT_REPORT_2026-06-30.md` (61/100)
-- Infraestrutura: ver CHECKLIST.md (8/20 fixes aplicados)
+### Relatorios
+- Auditoria 20 fases: `AUDIT_REPORT_COMPLETE.md`
+- Auditoria anterior: `AUDIT_REPORT_2026-06-30.md`
+- UX/UI: `UX_AUDIT_REPORT_2026-06-30.md`
 - Seguranca: 18 fixes aplicados
 - Produto: `AUDIT_REPORT_PRODUTO_2026-06-30.md` (7.3/10)

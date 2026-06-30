@@ -1,84 +1,68 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-30 — Pós-Auditoria Completa
+> Última atualização: 2026-06-30 — Pós-Auditoria 20 Fases (NOTA: 76.0/100)
 
 ---
 
-## 🔴 CRÍTICO — Fazer Agora (Bloqueadores de Segurança)
+## 🔴 CRÍTICO — Fazer Agora
 
-- [x] **[SEC-01]** ~~Remover Mock Auth de produção~~ ✅ DONE
-  - `AuthContext.tsx:24` — gate com `import.meta.env.DEV`
-
-- [x] **[SEC-02]** ~~PIN: mover verificação para RPC com bcrypt~~ ✅ DONE
-  - Migration: `pgcrypto` + `app_pin_hash` column + `verify_pin` / `set_pin` / `clear_pin` RPCs
-  - Frontend: `PinWrapper.tsx` — RPC call + lockout 5 tentativas / 60s
-  - Frontend: `SecuritySettings.tsx` — `set_pin` / `clear_pin` RPCs
-
-- [x] **[ARC-01]** ~~Transações compartilhadas: atomicidade via RPC~~ ✅ DONE
-  - Migration: `create_transaction_with_splits(p_transaction, p_splits)` RPC
-  - Frontend: `useCreateTransaction.ts` — usa RPC atômica quando há splits
-
-- [x] **[ARC-02]** ~~Parcelamentos: atomicidade via RPC~~ ✅ DONE
-  - Migration: `create_installment_series(p_transactions)` RPC com splits embutidos
-  - Frontend: `useCreateTransaction.ts` — usa RPC atômica para todos os parcelamentos
-
-- [x] **[AUD-02]** ~~types.ts desatualizado (+4 tabelas, +2 colunas ausentes)~~ ✅ DONE
-  - `error_logs`, `goal_milestones`, `push_subscriptions`, `settlement_reversals`, `member_type`, `app_pin_hash`
-
-- [x] **[AUD-03]** ~~error_reports duplicado com error_logs~~ ✅ DONE — droppado (vazio)
-- [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
-- [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
-- [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
-- [x] **[AUD-07]** ~~Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela~~ ✅ DONE — dropada via SQL, types.ts regenerado
+- [ ] **[BAL-01]** Corrigir 4 contas com saldo divergente (saldo != soma transações)
+  - Visa Platinium: diff=-60.060,00 | Nubank CC: diff=-35.324,68 | Azul infinite: diff=-7.761,48 | Carrefour: diff=-500,00
+  - Investigar `trigger_sync_account_balance` — verificar filtro `deleted_at IS NULL`
+  - Rodar `SELECT recalculate_account_balance(<id>)` para cada conta
+  - Ver `AUDIT_REPORT_COMPLETE.md` Fase 6.1
 
 ---
 
 ## 🟠 ALTA PRIORIDADE — Esta Semana
 
-- [x] **[SEC-03]** ~~Adicionar Content-Security-Policy em `vercel.json`~~ ✅ DONE
-  - CSP adicionado cobrindo supabase, bcb.gov.br, brapi.dev
+- [ ] **[IDX-01]** Criar índices FK faltantes (2)
+  - `admin_users(granted_by)`, `settlement_reversals(payment_transaction_id)`
 
-- [x] **[SEC-05]** ~~Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)~~ ✅ DONE
-  - Wildcard `https://*.vercel.app/**` adicionado no Supabase Auth → Allowed Redirect URLs
-
-- [x] **[RLS-01]** ~~Confirmar e implementar RLS cross-family para cartão compartilhado~~ ✅ DONE
-  - `is_family_member` já é `SECURITY DEFINER` (previne recursão)
-  - `accounts_select_v2` já permite acesso cross-family
-  - `shared_credit_cards` RLS já cobre owner + invitee
-
----
-
-## 🟡 BACKLOG TÉCNICO — Próximas Sprints
-
-- [x] **[ARC-03]** ~~AbortController em rpcWithRetry~~ ✅ DONE
-  - `rpcWithRetry.ts` — substituído `Promise.race` por `AbortController` + `.abortSignal()`
-  - Requests verdadeiramente cancelados no timeout, sem conexões zumbi
-
-- [x] **[ARC-04]** ~~Global search server-side~~ ✅ DONE
-  - Migration: `search_transactions(p_query, p_limit)` RPC com ILIKE
-  - `GlobalSearch.tsx` — cache-first + fallback server com debounce 400ms
+- [ ] **[DUP-01]** Resolver 2 grupos de contas duplicadas (mesmo nome + user)
+  - Soft-delete duplicada, migrar transações para ativa
 
 - [ ] **[ARC-05]** PDF export via Web Worker
   - Problema: jsPDF bloqueia main thread → UI freeze em relatórios grandes
   - Esforço: M (requer testes de UI)
 
-- [x] **[SEC-06]** ~~CHECK constraints no PostgreSQL~~ ✅ DONE
-  - `amount > 0`, `competence_date = first of month`, `description not empty`
-  - Installment numbers válidos, split percentage 0-100, goals target > 0
-
-- [x] **[SEC-07]** ~~service_role em sync-b3-tickers~~ ✅ ACEITÁVEL
-  - Cron job escreve em tabela pública de referência (sem dados de usuário)
-  - Uso de service_role é justificado; sem mudança necessária
-
 - [ ] **[SEC-08]** Criptografar cache IndexedDB
   - Dados financeiros em IndexedDB sem criptografia em dispositivos compartilhados
   - Esforço: M
 
+---
+
+## 🟡 BACKLOG TÉCNICO — Próximas Sprints
+
+- [ ] **[TYP-01]** Regenerar types.ts (6 tabelas ausentes: credit_card_closing_overrides, error_logs, pin_attempts, transaction_auto_share_rules, shared_credit_cards, admin_users)
+  - Rodar: `supabase gen types typescript > src/integrations/supabase/types.ts`
+
+- [ ] **[FUT-01]** Auditar 11 transações com data futura (>30 dias)
+  - Verificar se são parcelamentos válidos ou erro de competence_date
+
 - [ ] **[FEAT-01]** Relatório mensal por email
-  - Mencionado em `CLAUDE_HANDOFF.md` como pendente
   - Via Edge Function + Resend/SendGrid
   - Esforço: M
+
+- [ ] **[CLEAN-01]** Avaliar remoção de colunas mortas
+  - `transactions.reconciled`, `reconciled_at`, `reconciled_by`
+  - `accounts.deleted` (boolean, redundante com is_active)
+  - `profiles.app_pin` (plaintext residual, já migrado para app_pin_hash)
+
+- [ ] **[CONC-01]** Teste de concorrência real (pgbench em staging)
+  - Simular 2 usuários liquidando o mesmo split
+  - Simular transferência simultânea
+
+---
+
+## ✅ CONCLUÍDO
+
+- [x] **[CRIT-04]** ~~create_account_with_balance RPC atômica~~ ✅ DONE (2026-06-30)
+- [x] **[CRIT-05]** ~~contribute_to_goal RPC atômica~~ ✅ DONE (2026-06-30)
+- [x] **[CRIT-06]** ~~goal_id FK em transactions~~ ✅ DONE (2026-06-30)
+- [x] **[AUD-07]** ~~financial_ledger dropado~~ ✅ DONE
+- [x] **[AUD-08]** Auditoria 20 fases concluída → `AUDIT_REPORT_COMPLETE.md` ✅ DONE (2026-06-30)
 
 ---
 
