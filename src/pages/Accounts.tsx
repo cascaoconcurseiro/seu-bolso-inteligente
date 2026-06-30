@@ -436,10 +436,7 @@ export function Accounts() {
       />
 
       <ArchivedAccountsSection />
-      <TransactionModal
-        open={showTransactionModal}
-        onOpenChange={setShowTransactionModal}
-      />
+      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
     </div>
   );
 }
