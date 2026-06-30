@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { CreditCard, Users, Wallet, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,7 +10,7 @@ interface ShortcutProps {
   colorName: "indigo" | "emerald" | "blue" | "orange";
 }
 
-export function DashboardQuickAccess() {
+export const DashboardQuickAccess = memo(function DashboardQuickAccess() {
   const shortcuts: ShortcutProps[] = [
     {
       to: "/contas",
@@ -42,7 +43,7 @@ export function DashboardQuickAccess() {
       <div className="flex justify-center sm:justify-between items-start gap-3 sm:gap-2 px-2 sm:px-4">
         {shortcuts.map((shortcut, index) => {
           const Icon = shortcut.icon;
-          
+
           return (
             <Link
               key={index}

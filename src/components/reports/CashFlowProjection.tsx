@@ -74,7 +74,7 @@ export function CashFlowProjection({ transactions, currentBalance }: CashFlowPro
                 {m.label}
               </p>
               {m.isCurrentMonth && (
-                <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
                   Este mês
                 </span>
               )}

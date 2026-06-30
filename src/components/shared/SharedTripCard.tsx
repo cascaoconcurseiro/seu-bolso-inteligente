@@ -261,7 +261,7 @@ export function SharedTripCard({
                                 {item.description}
                               </p>
                               {item.creatorName && (
-                                <span className="text-[9px] bg-accent/15 text-accent px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
+                                <span className="text-[11px] bg-accent/15 text-accent px-1 py-0.5 rounded uppercase tracking-wider font-medium inline-block mt-1">
                                   💳 {item.creatorName}
                                 </span>
                               )}
@@ -295,7 +295,7 @@ export function SharedTripCard({
                             {item.isPaid && (
                               <Badge
                                 variant="outline"
-                                className="text-[11px] font-bold bg-success/12 text-success border-0"
+                                className="text-xs font-bold bg-success/12 text-success border-0"
                               >
                                 PAGO
                               </Badge>
@@ -303,7 +303,7 @@ export function SharedTripCard({
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[11px] font-bold border-0",
+                                "text-xs font-bold border-0",
                                 item.isPaid
                                   ? "bg-muted text-muted-foreground"
                                   : isCredit

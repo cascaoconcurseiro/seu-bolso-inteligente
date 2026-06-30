@@ -26,7 +26,7 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
     if (active && payload && payload.length) {
       return (
         <div className="rounded-xl border border-border/50 bg-card/95 px-3 py-1.5 text-sm font-bold text-foreground shadow-xl backdrop-blur-md">
-          <p className="text-muted-foreground text-[9px] uppercase tracking-wider mb-0.5">
+          <p className="text-muted-foreground text-[11px] uppercase tracking-wider mb-0.5">
             {payload[0].payload.month_label}
           </p>
           <p className="font-display">
@@ -39,17 +39,17 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
   };
 
   return (
-    <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart transition-all duration-300 hover:border-border/60">
+    <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart transition-all duration-300 hover:border-border/60" role="img" aria-label={`Gráfico de evolução patrimonial dos últimos 6 meses. Tendência ${isPositiveTrend ? 'positiva' : 'negativa'}.`}>
       <div className="absolute top-2.5 left-3.5 z-10 flex items-center gap-2 pointer-events-none">
         <span className={cn(
           "w-1.5 h-2 rounded-full animate-pulse",
           isPositiveTrend ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
         )} />
-        <p className="text-[8px] sm:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+        <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
           Evolução (6 Meses)
         </p>
       </div>
-      
+
       <div className="w-full h-full pt-3">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={wealthHistory} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>

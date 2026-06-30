@@ -14,11 +14,11 @@ interface BankIconProps {
 export function BankIcon({ bankId, bankName, accountName, size = "md", className }: BankIconProps) {
   const bank = bankId ? getBankById(bankId) : bankName ? getBankByName(bankName) : null;
   const [hasError, setHasError] = useState(false);
-  
+
   if (!bank) return null;
 
   const sizeClasses = {
-    xs: "w-5 h-5 text-[9px]",
+    xs: "w-5 h-5 text-[11px]",
     sm: "w-8 h-8 text-xs",
     md: "w-12 h-12 text-sm",
     lg: "w-16 h-16 text-base",
@@ -42,7 +42,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
 
   if (logoUrl) {
     return (
-      <div 
+      <div
         className={cn(
           "rounded-xl flex items-center justify-center shrink-0 bg-white border border-zinc-200/60 dark:border-zinc-800 shadow-sm overflow-hidden p-1.5",
           sizeClasses[size],
@@ -66,9 +66,9 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
         sizeClasses[size],
         className
       )}
-      style={{ 
-        backgroundColor: bank.color, 
-        color: bank.textColor 
+      style={{
+        backgroundColor: bank.color,
+        color: bank.textColor
       }}
     >
       {displayText}
@@ -84,7 +84,7 @@ interface CardBrandIconProps {
 
 export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconProps) {
   const brandConfig = getCardBrand(brand);
-  
+
   if (!brandConfig) return null;
 
   const sizeClasses = {
@@ -124,9 +124,9 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
         sizeClasses[size],
         className
       )}
-      style={{ 
-        backgroundColor: brandConfig.color, 
-        color: "#FFFFFF" 
+      style={{
+        backgroundColor: brandConfig.color,
+        color: "#FFFFFF"
       }}
     >
       {brandConfig.icon}

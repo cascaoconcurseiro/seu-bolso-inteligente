@@ -1,153 +1,69 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-30 — Pós-Auditoria de Produto (20 fases) + Infraestrutura
+> Última atualização: 2026-06-30 — Pós-Auditoria de Qualidade de Código (21 fases)
 
 ---
 
-## 🔴 INFRA — Bloqueadores de Infraestrutura (Auditoria 20 Fases)
+## 🔴 CRÍTICO — Código (Auditoria 21 Fases 2026-06-30)
 
-- [ ] **[INFRA-01]** Configurar `VITE_SENTRY_DSN` na Vercel (zero monitoramento de erros sem isso)
-- [x] **[INFRA-02]** ~~Habilitar Sentry Vite Plugin + `sourcemap: true`~~ ✅ DONE
-  - `vite.config.ts`: plugin descomentado, `sourcemap: true`
-- [x] **[INFRA-03]** ~~Criar `.github/workflows/ci.yml`~~ ✅ DONE
-  - Lint + type-check + test + build + security audit
-- [ ] **[INFRA-04]** Criar projeto Supabase de staging (dev local pode apontar para produção)
+- [ ] **[CQ-01]** `CreateTransactionInput` propriedade duplicada (`splits` + `transaction_splits`) — `hooks/transactions/types.ts:74,83`
+- [ ] **[CQ-02]** `console.error` direto em `CategorySettings.tsx:57` — usar `logger.error`
+- [ ] **[CQ-03]** Testes `rpcWithRetry` totalmente desabilitados (`.skip`) — 2 arquivos
+- [ ] **[CQ-04]** `useCreateAccount` sem atomicidade — criar RPC `create_account_with_balance`
+- [ ] **[CQ-05]** `contributeToGoal` sem atomicidade — criar RPC `contribute_to_goal`
+- [ ] **[CQ-06]** `deleteGoal` usa `LIKE '%meta%'` para cascata — adicionar `goal_id` FK
+
+## 🟠 ALTA PRIORIDADE — Código
+
+- [ ] **[CQ-07]** Unificar 3 definições de `Transaction` (types.ts + validationService + settlementValidation)
+- [ ] **[CQ-08]** Quebrar `useSharedExpensesActions` (40 props) em 4 hooks menores
+- [ ] **[CQ-09]** Extrair `recalculateSplits` de `useUpdateTransaction` (120 linhas)
+- [ ] **[CQ-10]** Decompor `CreditCards.tsx` (720 linhas)
+- [ ] **[CQ-11]** Decompor `AdminResetPanel.tsx` (800+ linhas, `CONFIRM_WORD` morta)
+- [ ] **[CQ-12]** Extrair `applyTransactionFilters` (lógica duplicada em Transactions.tsx)
+- [ ] **[CQ-13]** Extrair month names para constante (duplicado 3x)
+- [ ] **[CQ-14]** `Promise.all` → `Promise.allSettled` em `queryInvalidation.ts`
+- [ ] **[CQ-15]** Corrigir `useEffect` dep instável em `useSharedFinances`
+- [ ] **[CQ-16]** Corrigir timezone em `utils/dateUtils.ts` e `lib/invoiceUtils.ts`
+
+## 🟡 MÉDIA PRIORIDADE — Código
+
+- [ ] **[CQ-17]** Remover ~80 `any` do código de produção (28 arquivos)
+- [ ] **[CQ-18]** Separar `CreateTransactionInput` em inputs tipados (ISP)
+- [ ] **[CQ-19]** `status: string` → `'CONFIRMED' | 'PENDING' | 'CANCELLED'`
+- [ ] **[CQ-20]** `recurrence_day?: number` → branded type 1-31
+- [ ] **[CQ-21]** Corrigir atomicidade em `createAsset`
+- [ ] **[CQ-22]** Unificar formatação BRL com `moneyUtils.format()`
+- [ ] **[CQ-23]** Criar constante `DEFAULT_CURRENCY`
+
+## 🔵 BAIXA PRIORIDADE — Código
+
+- [ ] **[CQ-24]** Unificar `useDeleteNotification`/`useDismissNotification`
+- [ ] **[CQ-25]** Remover API dupla de `TransactionModal`
+- [ ] **[CQ-26]** Corrigir toast duplicado em `useCreateTrip`
+- [ ] **[CQ-27]** Mover `localStorage.setItem` de `queryFn` para `onSuccess`
+- [ ] **[CQ-28]** `batchRpcWithRetry`: `Promise.all` → `Promise.allSettled`
+
+## 🧪 TESTES
+
+- [ ] **[TST-01]** Reescrever 7 testes fake (useTransactions, useSettlement, settlementValidation, invoiceUtils, rpcWithRetry ×2, money.spec)
+- [ ] **[TST-02]** Adicionar testes de comportamento nos 3 snapshot-only
+- [ ] **[TST-03]** Criar testes para mutations (useTransactionMutations, useAccounts)
+- [ ] **[TST-04]** Expandir E2E: 1 fluxo CRUD completo por página
+
+## ✅ INFRA — Concluído (Auditoria Anterior)
+
+- [x] **[INFRA-01..07]** Sentry, CI/CD, env vars — configurados
+- [x] **[INFRA-14]** `console.error` → `logger.error` em CategorySettings
+- [x] **[AUD-08..18]** Segurança: JWT, CORS, CSP, rate limits, CRON_SECRET
+
+## ⚠️ INFRA — Pendente
+
+- [ ] **[INFRA-04]** Criar projeto Supabase de staging
 - [ ] **[INFRA-05]** Adicionar `https://*.vercel.app/**` no Supabase Auth Redirect URLs
-- [x] **[INFRA-06]** ~~Corrigir `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY`~~ ✅ DONE
-  - `aiAdvisorService.ts:311` e `test/setup.ts:12` corrigidos
-- [x] **[INFRA-07]** ~~Adicionar `VITE_VAPID_PUBLIC_KEY` ao `.env.example`~~ ✅ DONE
-
-## 🟠 INFRA — Alta Prioridade
-
-- [ ] **[INFRA-08]** Configurar PgBouncer (50 conexões Free Tier → teto duro)
-- [ ] **[INFRA-09]** Configurar alertas no Sentry (error rate spike, new issue)
-- [x] **[INFRA-10]** ~~Configurar Dependabot~~ ✅ DONE
-  - `.github/dependabot.yml`: npm + GitHub Actions, weekly
-- [x] **[INFRA-11]** ~~Criar health check endpoint~~ ✅ DONE
-  - `supabase/functions/health-check/index.ts`: verifica DB + Auth
-- [ ] **[INFRA-12]** Configurar Uptime Monitor externo (Betterstack/Checkly Free)
-- [ ] **[INFRA-13]** Testar restore de backup do Supabase
-- [x] **[INFRA-14]** ~~Corrigir `console.error` em `CategorySettings.tsx:57`~~ ✅ DONE
-  - Substituído por `logger.error()`
-
-## 🟡 INFRA — Backlog
-
-- [ ] **[INFRA-15]** Disaster Recovery Plan (RTO, RPO, procedimentos)
-- [ ] **[INFRA-16]** Self-host Google Fonts (privacidade + performance)
-- [ ] **[INFRA-17]** Configurar cron para `send-monthly-report-job`, `sync-b3-tickers`, `sync-asset-prices`
-- [x] **[INFRA-18]** ~~Padronizar versões supabase-js nas Edge Functions~~ ✅ DONE
-  - 4 funções esm.sh: `v2.39.3` → `v2.45.6`
-- [ ] **[INFRA-19]** Teste de carga (k6/Artillery: 100, 1K, 10K usuários)
-- [ ] **[INFRA-20]** Criptografia de IndexedDB (SEC-08)
-
----
-
-## 🔴 CRÍTICO — Fazer Agora (Bloqueadores de Segurança)
-
-- [x] **[AUD-08]** ~~Edge Function `get-place-suggestions` sem autenticação~~ ✅ DONE
-  - JWT verification via `supabase.auth.getUser()`, CORS restrito
-
-- [x] **[AUD-09]** ~~VITE_GROQ_API_KEY no bundle frontend~~ ✅ DONE
-  - Fallback dev agora usa proxy Vite em vez de chave direta
-
-- [x] **[AUD-10]** ~~AppLock legado (SHA-256 localStorage bypassável)~~ ✅ DONE
-  - Reduzido a stub. PinWrapper (bcrypt server-side) é o único sistema ativo.
-
-- [x] **[AUD-11]** ~~Edge Functions sem CRON_SECRET~~ ✅ DONE
-  - `send-bill-reminders`, `send-monthly-report`, `sync-b3-tickers` agora verificam `CRON_SECRET`
-
-- [x] **[AUD-12]** ~~CORS `*` em Edge Functions~~ ✅ DONE
-  - `get-currency-quote`, `sync-b3-tickers` com CORS restrito a origins conhecidos
-
-- [x] **[SEC-01]** ~~Remover Mock Auth de produção~~ ✅ DONE
-  - `AuthContext.tsx:24` — gate com `import.meta.env.DEV`
-
-- [x] **[SEC-02]** ~~PIN: mover verificação para RPC com bcrypt~~ ✅ DONE
-  - Migration: `pgcrypto` + `app_pin_hash` column + `verify_pin` / `set_pin` / `clear_pin` RPCs
-  - Frontend: `PinWrapper.tsx` — RPC call + lockout 5 tentativas / 60s
-  - Frontend: `SecuritySettings.tsx` — `set_pin` / `clear_pin` RPCs
-
-- [x] **[ARC-01]** ~~Transações compartilhadas: atomicidade via RPC~~ ✅ DONE
-  - Migration: `create_transaction_with_splits(p_transaction, p_splits)` RPC
-  - Frontend: `useCreateTransaction.ts` — usa RPC atômica quando há splits
-
-- [x] **[ARC-02]** ~~Parcelamentos: atomicidade via RPC~~ ✅ DONE
-  - Migration: `create_installment_series(p_transactions)` RPC com splits embutidos
-  - Frontend: `useCreateTransaction.ts` — usa RPC atômica para todos os parcelamentos
-
-- [x] **[AUD-02]** ~~types.ts desatualizado (+4 tabelas, +2 colunas ausentes)~~ ✅ DONE
-  - `error_logs`, `goal_milestones`, `push_subscriptions`, `settlement_reversals`, `member_type`, `app_pin_hash`
-
-- [x] **[AUD-03]** ~~error_reports duplicado com error_logs~~ ✅ DONE — droppado (vazio)
-- [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
-- [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
-- [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
-- [x] **[AUD-07]** ~~Investigar `financial_ledger` (252 rows)~~ ✅ INVESTIGADO — Tabela legítima com FKs, NÃO dropar
-
----
-
-## 🟠 ALTA PRIORIDADE — Esta Semana
-
-- [x] **[SEC-03]** ~~Adicionar Content-Security-Policy em `vercel.json`~~ ✅ DONE
-  - CSP adicionado cobrindo supabase, bcb.gov.br, brapi.dev
-
-- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs (config Supabase, sem código)
-  - Problema: `window.location.origin` em `AuthContext.tsx:85` falha em previews
-  - Fix: cadastrar wildcard `https://*.vercel.app/**` no Supabase Auth → Allowed Redirect URLs
-  - Esforço: XS (config Supabase, sem código)
-
-- [ ] **[RLS-01]** Confirmar e implementar RLS cross-family para cartão compartilhado
-  - Mencionado em `CLAUDE_HANDOFF.md` como pendente
-  - Requer `SECURITY DEFINER` para evitar recursão
-  - Esforço: S
-
----
-
-## 🟢 PÓS-AUDITORIA 2026-06-30 — Corrigido
-
-- [x] **[AUD-08]** ~~get-place-suggestions sem JWT auth~~ ✅ DONE — JWT + CORS restrito
-- [x] **[AUD-09]** ~~VITE_GROQ_API_KEY no bundle frontend~~ ✅ DONE — fallback via Vite proxy
-- [x] **[AUD-10]** ~~AppLock SHA-256 localStorage bypassável~~ ✅ DONE — reduzido a stub
-- [x] **[AUD-11]** ~~Edge Functions sem CRON_SECRET~~ ✅ DONE — 3 funções protegidas
-- [x] **[AUD-12]** ~~CORS `*` em get-currency-quote e sync-b3-tickers~~ ✅ DONE
-- [x] **[AUD-13]** ~~Headers X-Download-Options e X-Permitted-Cross-Domain ausentes~~ ✅ DONE
-- [x] **[AUD-14]** ~~types.ts com admin_password obsoleto~~ ✅ DONE — regenerado
-- [x] **[AUD-15]** ~~OFX import sem validação de tamanho~~ ✅ DONE — max 10MB
-- [x] **[AUD-16]** ~~groq-proxy sem validação de payload~~ ✅ DONE — size limit + structure check
-- [x] **[AUD-17]** ~~Service Worker cacheando auth endpoints~~ ✅ DONE — exclui /auth/ e /token
-- [x] **[AUD-18]** ~~Export sem validação de tamanho~~ ✅ DONE — max 50MB
-
-## ⚠️ PENDENTE (pós-auditoria)
-
-- [x] **[AUD-P1]** ~~Configurar `CRON_SECRET` nos env vars do Supabase~~ ✅ DONE
-- [x] **[AUD-P2]** ~~Configurar `CRON_SECRET` no pg_cron~~ ✅ DONE — jobs 3,4 atualizados; 6,7 desabilitados
-- [x] **[AUD-P4]** ~~Deploy Edge Functions com verify_jwt corrigido~~ ✅ DONE — 7 funções deployed
-- [ ] **[AUD-P3]** Implementar rate limiting nas Edge Functions expostas
-- [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs
-  - ⚠️ Ação manual: Supabase Dashboard → Authentication → URL Configuration → `https://*.vercel.app/**`
-- [ ] **[SEC-08]** Criptografar cache IndexedDB
-- [ ] **[RLS-01]** RLS cross-family para cartão compartilhado
-
----
-
-## 🟡 BACKLOG TÉCNICO — Próximas Sprints
-
-- [x] **[ARC-03]** ~~AbortController em rpcWithRetry~~ ✅ DONE
-  - `rpcWithRetry.ts` — substituído `Promise.race` por `AbortController` + `.abortSignal()`
-  - Requests verdadeiramente cancelados no timeout, sem conexões zumbi
-
-- [x] **[ARC-04]** ~~Global search server-side~~ ✅ DONE
-  - Migration: `search_transactions(p_query, p_limit)` RPC com ILIKE
-  - `GlobalSearch.tsx` — cache-first + fallback server com debounce 400ms
-
-- [ ] **[ARC-05]** PDF export via Web Worker
-  - Problema: jsPDF bloqueia main thread → UI freeze em relatórios grandes
-  - Esforço: M (requer testes de UI)
-
-- [x] **[SEC-06]** ~~CHECK constraints no PostgreSQL~~ ✅ DONE
-  - `amount > 0`, `competence_date = first of month`, `description not empty`
-  - Installment numbers válidos, split percentage 0-100, goals target > 0
+- [ ] **[INFRA-08]** Configurar PgBouncer
+- [ ] **[INFRA-20]** Criptografia de IndexedDB
 
 - [x] **[SEC-07]** ~~service_role em sync-b3-tickers~~ ✅ ACEITÁVEL
   - Cron job escreve em tabela pública de referência (sem dados de usuário)

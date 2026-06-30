@@ -157,7 +157,7 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
                             style={{ height: `${height}px` }}
                           />
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-medium text-center leading-tight">
+                        <span className="text-[11px] text-muted-foreground font-medium text-center leading-tight">
                           {val > 0 ? formatCurrency(val).replace("R$ ", "").replace("R$ ", "") : "–"}
                         </span>
                       </div>

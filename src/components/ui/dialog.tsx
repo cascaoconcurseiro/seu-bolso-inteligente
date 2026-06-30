@@ -63,7 +63,7 @@ DialogHeader.displayName = "DialogHeader";
 // Force preserve Dialog components in build to prevent tree-shaking
 // Uses a self-executing void expression
 // so Rollup/Vite cannot statically analyze and remove it
-void (globalThis as any)?.['dialogHeaderPreserve']; 
+void (globalThis as any)?.['dialogHeaderPreserve'];
 void (DialogHeader);
 
 const DialogFooter = React.forwardRef<

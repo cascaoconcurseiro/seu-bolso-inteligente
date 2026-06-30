@@ -684,7 +684,7 @@ export function CreditCardDetailView({
                           </span>
                           <span
                             className={cn(
-                              "text-[9px] font-bold uppercase tracking-widest whitespace-nowrap opacity-70",
+                              "text-[11px] font-bold uppercase tracking-wider whitespace-nowrap opacity-70",
                               isCredit ? "text-positive" : "text-muted-foreground"
                             )}
                           >

@@ -23,8 +23,8 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
         <h2 className="text-sm uppercase tracking-[0.2em] text-muted-foreground font-bold">
           Atividade recente
         </h2>
-        <Link 
-          to="/transacoes" 
+        <Link
+          to="/transacoes"
           className="text-sm uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
         >
           Ver todas
@@ -46,19 +46,19 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
             } catch (error) {
               txDate = new Date();
             }
-            
+
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
-            
+
             const txMidnight = new Date(txDate);
             txMidnight.setHours(0, 0, 0, 0);
 
             let dateLabel = txDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
             if (txMidnight.getTime() === today.getTime()) dateLabel = "Hoje";
             else if (txMidnight.getTime() === yesterday.getTime()) dateLabel = "Ontem";
-            
+
             const isIncome = tx.type === "INCOME";
             const isTransfer = tx.type === "TRANSFER";
 
@@ -74,8 +74,8 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                   {/* Category Icon Circle */}
                   <div className={cn(
                     "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
-                    isIncome ? "bg-success/12 text-success" : 
-                    isTransfer ? "bg-accent/10 text-accent" : 
+                    isIncome ? "bg-success/12 text-success" :
+                    isTransfer ? "bg-accent/10 text-accent" :
                     "bg-muted text-muted-foreground"
                   )}>
                     {tx.category?.icon || (isIncome ? "💰" : isTransfer ? "⇄" : "💸")}

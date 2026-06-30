@@ -1,7 +1,7 @@
 import { moneyUtils } from "@/utils/money";
 import { Globe, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, memo } from "react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
@@ -21,7 +21,7 @@ interface DashboardHeroProps {
   isRateLoading?: boolean;
 }
 
-export function DashboardHero({
+export const DashboardHero = memo(function DashboardHero({
   balance,
   totalPatrimony = 0,
   income,
@@ -59,7 +59,7 @@ export function DashboardHero({
                <div className="p-1.5 rounded-lg bg-primary/10">
                   <TrendingUp className="h-4 w-4 text-primary" />
                </div>
-               <p className="text-[11px] text-muted-foreground/70 uppercase tracking-[0.25em] font-semibold flex items-center gap-1">
+               <p className="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1">
                  Saldo das Contas ({currency})
                  <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
                </p>
@@ -81,9 +81,9 @@ export function DashboardHero({
               </div>
             )}
           </div>
-          
+
           <h1 className={cn(
-            "font-display font-black text-5xl sm:text-6xl md:text-7xl tracking-tighter transition-all duration-500 animate-fade-in-up",
+            "font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up",
             predictedBalance >= 0 ? "text-foreground" : "text-destructive",
             isPrivate && "blur-md opacity-50 select-none"
           )}>
@@ -96,7 +96,7 @@ export function DashboardHero({
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Patrimônio</p>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Patrimônio</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-foreground truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
@@ -108,7 +108,7 @@ export function DashboardHero({
                 <TrendingUp className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Entradas</p>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Entradas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-positive truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
@@ -120,7 +120,7 @@ export function DashboardHero({
                 <TrendingDown className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Saídas</p>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Saídas</p>
                 <p className={cn("text-xs sm:text-sm font-bold text-negative truncate", isPrivate && "blur-md opacity-50 select-none")}>
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
@@ -143,7 +143,7 @@ export function DashboardHero({
                   <Target className="h-3 w-3" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest truncate">Poupança</p>
+                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Poupança</p>
                   <p className={cn("text-sm font-bold truncate", savingsRate >= 0 ? "text-positive" : "text-warning")}>
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>
@@ -161,9 +161,9 @@ export function DashboardHero({
               <div className="w-full h-full bg-muted/50 rounded-lg mt-2"></div>
             </div>
           }>
-            <WealthEvolutionChart 
-              wealthHistory={wealthHistory} 
-              formatCurrency={formatCurrency} 
+            <WealthEvolutionChart
+              wealthHistory={wealthHistory}
+              formatCurrency={formatCurrency}
             />
           </Suspense>
         )}
@@ -197,11 +197,11 @@ export function DashboardHero({
             </div>
           </div>
           <div className="h-3 w-full bg-muted/50 rounded-full overflow-hidden">
-            <div 
+            <div
               className={cn(
                 "h-full rounded-full transition-all duration-1000 ease-out",
-                expenses > monthlyBudget ? "bg-destructive" : 
-                expenses > monthlyBudget * 0.8 ? "bg-warning" : 
+                expenses > monthlyBudget ? "bg-destructive" :
+                expenses > monthlyBudget * 0.8 ? "bg-warning" :
                 "bg-success"
               )}
               style={{ width: `${Math.min((expenses / monthlyBudget) * 100, 100)}%` }}
@@ -212,4 +212,3 @@ export function DashboardHero({
     </div>
   );
 }
-

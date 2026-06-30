@@ -202,7 +202,7 @@ export function AccountDetail() {
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <div>
-              <p className="text-[11px] text-success/70 font-bold uppercase tracking-wider">Entradas</p>
+              <p className="text-xs text-success/70 font-bold uppercase tracking-wider">Entradas</p>
               <p className="text-sm font-bold text-success">{formatCurrency(monthIncome, accountCurrency)}</p>
             </div>
           </div>
@@ -211,7 +211,7 @@ export function AccountDetail() {
               <TrendingDown className="h-4 w-4 text-destructive" />
             </div>
             <div>
-              <p className="text-[11px] text-destructive/70 font-bold uppercase tracking-wider">Saídas</p>
+              <p className="text-xs text-destructive/70 font-bold uppercase tracking-wider">Saídas</p>
               <p className="text-sm font-bold text-destructive">{formatCurrency(monthExpense, accountCurrency)}</p>
             </div>
           </div>

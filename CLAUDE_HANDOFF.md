@@ -1,259 +1,50 @@
 # CLAUDE_HANDOFF.md — Pé de Meia
 
-> Atualizado em: 2026-06-30
-> Último commit: pendente | Branch: `main` | Deploy: meupedemeia.vercel.app
+> Atualizado em: 2026-06-30 | Branch: `main` | Deploy: meupedemeia.vercel.app
 
 ---
 
-## � Auditoria de UX/UI 2026-06-30 — 20 Fases
+## Auditoria de Qualidade de Código 2026-06-30 — 21 Fases
 
-**Relatório completo:** `UX_AUDIT_REPORT_2026-06-30.md`
-**Overall Score:** 61/100 🟡
-**9 críticos | 14 altos | 18 médios | 10 baixos**
+**Relatorio completo:** `AUDIT_REPORT_2026-06-30.md`
+**Overall Score:** 54/100 🔴 D
+**6 críticos | 10 altos | 8 medios | 7 baixos | ~80 any types**
 
-### Principais Descobertas
+### Top 6 Criticos
 
-| #    | Severidade | Problema                                            |
-| :--- | :--------- | :-------------------------------------------------- |
-| C1   | 🔴 CRÍTICO  | Dashboard com 13 seções (sobrecarga cognitiva)      |
-| C2   | 🔴 CRÍTICO  | Fontes 10-11px em labels/badges (ilegível)          |
-| C3   | 🔴 CRÍTICO  | 11 itens de navegação (viola Miller's Law)          |
-| C4   | 🔴 CRÍTICO  | Sem skip-to-content (WCAG 2.4.1)                    |
-| C5   | 🔴 CRÍTICO  | Contraste insuficiente em labels muted (WCAG 1.4.3) |
-| C6   | 🔴 CRÍTICO  | Sem prefers-reduced-motion (WCAG 2.3.3)             |
-| C7   | 🔴 CRÍTICO  | PIN plaintext (já documentado)                      |
-| C8   | 🔴 CRÍTICO  | Sem documentação do Design System                   |
-| C9   | 🔴 CRÍTICO  | Gráficos sem alternativa textual (WCAG 1.1.1)       |
+| # | Problema | Arquivo |
+|:--|:--|:--|
+| CQ-01 | `CreateTransactionInput` com propriedade duplicada (`splits` + `transaction_splits`) | `hooks/transactions/types.ts:74,83` |
+| CQ-02 | `console.error` direto | `CategorySettings.tsx:57` |
+| CQ-03 | Testes `rpcWithRetry` desabilitados (`.skip`) | `utils/rpcWithRetry.test.ts` |
+| CQ-04 | `useCreateAccount` sem atomicidade | `hooks/useAccounts.ts` |
+| CQ-05 | `contributeToGoal` sem atomicidade | `hooks/useGoals.ts` |
+| CQ-06 | `deleteGoal` usa `LIKE '%meta%'` fragil | `hooks/useGoals.ts` |
 
-### PRÓXIMO PASSO (IMEDIATO — Quick Wins)
-1. Aumentar fonte 10-11px → 12px (C2, C5)
-2. Adicionar skip-to-content link (C4)
-3. Adicionar `@media (prefers-reduced-motion)` no index.css (C6)
-4. `aria-label` nos botões icon-only (A11)
+### Scores
 
----
+| Dimensao | Nota |
+|:--|:--|
+| Clean Code | 62/100 |
+| TypeScript | 58/100 |
+| SOLID | 45/100 |
+| Testabilidade | 40/100 |
+| Testes | 35/100 |
+| Seguranca | 72/100 |
+| Performance | 68/100 |
+| Manutenibilidade | 55/100 |
 
-## �🏗️ Auditoria de Infraestrutura 2026-06-30 — 20 Fases
+### Proximo Passo Imediato
+1. CRIT-01: Remover `transaction_splits` duplicado
+2. CRIT-02: `console.error` → `logger.error`
+3. CRIT-03: Reescrever mocks e reativar testes `rpcWithRetry`
 
-**Relatório completo:** `AUDIT_REPORT_2026-06-30.md`
-**Overall Score:** 57/100 🟡
-**8 de 20 itens corrigidos nesta sessão**
-
-### Fixes aplicados ✅
-- `vite.config.ts`: Sentry Plugin descomentado + `sourcemap: true`
-- `aiAdvisorService.ts:311`: `VITE_SUPABASE_ANON_KEY` → `VITE_SUPABASE_PUBLISHABLE_KEY`
-- `test/setup.ts:12`: idem
-- `CategorySettings.tsx:57`: `console.error` → `logger.error`
-- `.env.example`: adicionado `VITE_VAPID_PUBLIC_KEY`
-- `.github/workflows/ci.yml`: criado (lint + type-check + test + build + audit)
-- `.github/dependabot.yml`: criado (npm + GitHub Actions, weekly)
-- `supabase/functions/health-check/`: criado (verifica DB + Auth)
-- 4 Edge Functions: supabase-js `v2.39.3` → `v2.45.6`
-
-### ⚠️ Pendente (config dashboard — não código)
-- `VITE_SENTRY_DSN` na Vercel (INFRA-01)
-- PgBouncer no Supabase Dashboard (INFRA-08)
-- Sentry alerts (INFRA-09)
-- Uptime Monitor externo no health-check (INFRA-12)
-- `*.vercel.app/**` no Supabase Auth Redirect (INFRA-05)
-- Projeto Supabase de staging (INFRA-04)
-- Deploy da Edge Function `health-check`
-
-### PRÓXIMO PASSO
-1. Configurar `VITE_SENTRY_DSN` e `SENTRY_AUTH_TOKEN` na Vercel
-2. Deployar `health-check`: `npx supabase functions deploy health-check`
-3. Configurar PgBouncer no Supabase Dashboard → Database → Connection Pooling
+### Roadmap: Ver `AUDIT_REPORT_2026-06-30.md` e `CHECKLIST.md`
 
 ---
 
-## 🔒 Auditoria de Segurança 2026-06-30 — 18 fixes aplicados
-
-### Edge Functions (5 fixes)
-- `get-place-suggestions`: JWT auth + CORS restrito (era sem auth, CORS `*`)
-- `get-currency-quote`: CORS restrito a origins conhecidos (era `*`)
-- `sync-b3-tickers`: CORS restrito + CRON_SECRET (era `*`, sem auth)
-- `send-bill-reminders`: CRON_SECRET verification adicionada
-- `send-monthly-report`: CRON_SECRET verification adicionada
-
-### Frontend (4 fixes)
-- `aiAdvisorService.ts`: fallback dev usa Vite proxy (não expõe VITE_GROQ_API_KEY)
-- `AppLock.tsx`: reduzido a stub (SHA-256 localStorage bypassável removido)
-- `OFXImportModal.tsx`: validação de tamanho máximo 10MB
-- `PrivacySettings.tsx`: validação de payload máximo 50MB na exportação
-
-### Config (4 fixes)
-- `vercel.json`: headers X-Download-Options + X-Permitted-Cross-Domain-Policies
-- `sw.ts`: Service Worker não cacheia /auth/ e /token do Supabase
-- `groq-proxy/index.ts`: validação de payload (size limit 100KB + structure check)
-- `types.ts`: regenerado (admin_password removido)
-
-### ⚠️ Ação manual necessária (1 item)
-1. Supabase Dashboard → Authentication → URL Configuration → adicionar `https://*.vercel.app/**` nas Redirect URLs
-
-### ✅ Ações automatizadas concluídas
-- CRON_SECRET gerado e configurado nos Edge Functions secrets
-- pg_cron jobs 3,4 atualizados com CRON_SECRET header; jobs 6,7 desabilitados (duplicados)
-- 7 Edge Functions deployed com verify_jwt corrigido no config.toml
-- financial_ledger investigado: tabela legítima com FKs, NÃO dropar
-
----
-## 📦 Auditoria de Produto 2026-06-30 — 20 Fases
-
-**Relatório completo:** `AUDIT_REPORT_PRODUTO_2026-06-30.md`
-**Overall Product Score:** 7.3/10
-**4 críticos | 5 altos | 5 médios | 4 baixos**
-
-### Principais Descobertas de Produto
-
-| #    | Severidade | Problema                                                         |
-| :--- | :--------- | :--------------------------------------------------------------- |
-| P1   | 🔴 CRÍTICO  | Sem sincronização bancária automática (Open Banking) — maior gap |
-| P2   | 🔴 CRÍTICO  | SafeFinancialCalculator perde precisão decimal (.add/.subtract)  |
-| P3   | 🔴 CRÍTICO  | Relatório mensal email não funciona (domínio Resend)             |
-| P4   | 🔴 CRÍTICO  | Sem projeção de fluxo de caixa futuro                            |
-| P5   | 🟠 ALTO     | Sem alertas de orçamento estourado                               |
-| P6   | 🟠 ALTO     | Limite do cartão não validado (sem alerta de estouro)            |
-| P7   | 🟠 ALTO     | Transferência entre contas sem atomicidade                       |
-| P8   | 🟠 ALTO     | PDF export bloqueia UI (main thread)                             |
-
-### Diferenciais confirmados (forças do produto)
-- Gastos compartilhados com liquidação atômica + audit trail — **único no mercado**
-- Viagens multi-moeda com participantes guest — **único no mercado**
-- IRPF integrado com B3
-- PIN com bcrypt via RPC
-
-### PRÓXIMO PASSO (IMEDIATO — Quick Wins)
-1. Verificar domínio Resend para liberar emails (P3)
-2. Centralizar formatação de moeda (remover `formatCurrency` locais)
-3. Adicionar `aria-label` em cards interativos
-4. Tooltip "Ctrl+K para buscar" visível no header
-5. Drop tabela `financial_ledger` (AUD-07)
-
----
-## Regras obrigatórias
-- **SEMPRE** fazer `git push origin main` após cada commit
-- **SEMPRE** atualizar este arquivo ao final de cada sessão ou ao aproximar do limite de contexto
-- Zero erros TypeScript antes de commitar: `npx tsc --noEmit`
-- Commits em português com mensagens detalhadas
-
----
-
-## Stack
-- React + Vite + TypeScript + Supabase + TanStack Query + Zustand + Tailwind + shadcn/ui
-- Deploy: Vercel (`meupedemeia.vercel.app`), branch `main`
-- Supabase project ID: `vrrcagukyfnlhxuvnssp`
-- Toasts: `sonner` | Moeda: `moneyUtils.format(value, currency)` | Datas: `date-fns` + `ptBR`
-- Mutations sempre invalidam queries | soft delete com `deleted_at`
-- Mobile modals: Drawer bottom-sheet (não Dialog)
-
----
-
-## Histórico de features implementadas ✅
-
-- Participante de viagem sem conta (guest)
-- Modo Casal (visão consolidada de saldo/receita/despesa)
-- **Busca Global** — dialog cmdk, Ctrl+K, busca em transações/contas/metas
-- **SwipeableRow** — componente genérico reutilizável, aplicado em Metas
-- **Marcos de progresso (Milestones)** — tabela goal_milestones, linha do tempo visual no GoalCard
-- **Notificações push** — tabela push_subscriptions, Edge Function `send-bill-reminders` com VAPID/AES-128-GCM, toggle em Configurações
-- **Fix `usagePercent`** — CreditCardDetailView.tsx, variável estava no interface mas fora do destructuring
-- **Contatos de Despesa vs Família (cenário Jhonatan)** — coluna `member_type` em family_members, `useFamilyMembers()` filtra por padrão, seção "Contatos de Despesa" na página Família
-- **Service Worker customizado** (`src/sw.ts`) — injectManifest com workbox, handlers de `push` e `notificationclick`
-- **Índices de performance** — `idx_transactions_notifications`, `idx_push_subscriptions_user_id`, `idx_goal_milestones_goal_pct`, `idx_family_members_type_family`
-- **VAPID keys configuradas** — geradas e configuradas nos secrets da Edge Function + env var da Vercel + `.env` local
-- **Cron `send-bill-reminders-daily`** — pg_cron job #3, roda todo dia às 11:00 UTC (08:00 Brasília)
-- **Export PDF de meta** — botão FileDown no GoalCard, gera PDF com jsPDF (barra de progresso visual, valores, prazo, descrição)
-- **Gráfico de evolução da meta** — AreaChart no GoalContributeDialog via `useGoalHistory` hook, visível com ≥2 aportes
-- **SwipeableRow em Contas** — swipe left = arquivar, swipe right = editar (modal reutiliza AccountFormModal mode="edit")
-- **fix audit_changes()** — trigger corrigido para usar `to_jsonb(NEW)->>'deleted_at'` (suporta tabelas sem coluna deleted_at)
-- **Remove Modo Casal** — removido do Dashboard (estado, memo, imports, botão)
-- **fix FamilyBalancePanel** — link `/compartilhado` corrigido para `/compartilhados`
-- **Adicionar contato direto** — hook `useAddSharedContact` + formulário inline na seção Contatos de Despesa da página Família
-- **Push: alertas de metas** — Edge Function `send-bill-reminders` v3 agora notifica metas com prazo em 7 dias além das contas a pagar
-- **Fix dashboard `recent_transactions`** — migration `20260625165722`: filtra por `t.date` (não `competence_date`), ordena `t.date DESC, t.created_at DESC`, respeita filtro de payer/membro familiar. Totais mantêm lógica de competência/vencimento.
-
----
-
-## 🐛 Bug Hunt 2026-06-28 — Auditoria completa
-
-### Auditoria com 9 skills — 29 bugs encontrados, 25 corrigidos
-
-**Branch:** `fix/29-bugs-report` (PR pendente de criação manual → `main`)
-**Backup:** `backup/bug-hunt-20260628` (snapshot pré-fixes)
-
-### Migrations novas (aplicar via `supabase db push`)
-| Migration                                    | O que faz                                                                                   |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `20260628000002_fix_critical_rpc_bugs.sql`   | settle_split: remove double-count, FOR UPDATE, ownership, p_amount validation, p_date param |
-| `20260628000003_fix_unsettle_and_fks.sql`    | unsettle_split: soft delete, FK RESTRICT em settlement_reversals, validação multi-conta     |
-| `20260628000004_fix_admin_password.sql`      | Remove senha '909496', usa is_admin()                                                       |
-| `20260628000005_fix_recalculate_balance.sql` | = ANY(ARRAY(...)) em vez de LIMIT 1                                                         |
-| `20260628000006_fix_error_logs_rls.sql`      | RLS restrito (admin + próprio usuário)                                                      |
-
-### Arquivos editados
-| Arquivo                                          | Mudança                                                |
-| ------------------------------------------------ | ------------------------------------------------------ |
-| `src/lib/queryClient.ts`                         | NOVO — instância compartilhada do QueryClient          |
-| `src/App.tsx`                                    | Usa queryClient de @/lib/queryClient                   |
-| `src/contexts/AuthContext.tsx`                   | queryClient.clear() no signOut                         |
-| `src/hooks/transactions/useCreateTransaction.ts` | inFlightRef cleanup, duplicidade 15s + account_id null |
-| `src/services/validationService.ts`              | isReasonableDate usa dateUtils.parseDate()             |
-| `src/components/settings/PrivacySettings.tsx`    | .limit(500) anti N+1                                   |
-| `src/sw.ts`                                      | cache maxAge 7d → 1h                                   |
-| `vercel.json`                                    | CSP sem 'unsafe-eval'                                  |
-| `supabase/functions/groq-proxy/index.ts`         | CORS *.vercel.app                                      |
-
-### PRÓXIMO PASSO
-1. Criar PR: `fix/29-bugs-report` → `main` manualmente
-2. Revisar migrations antes de `supabase db push`
-3. Rodar `npx tsc --noEmit` para verificar TypeScript
-4. Após merge, testar fluxo de settlement no ambiente de preview
-
-### Sem pendências de código
-Backlog zerado. Fixes aplicados e documentados.
-
-### Sem pendências de código conhecidas
-Backlog zerado. Ideias para próximas sessões:
-- RLS cross-family cartão compartilhado (requer função `SECURITY DEFINER` para evitar recursão infinita em `accounts`)
-- Relatório mensal automático por email (Edge Function + Resend/SendGrid)
-
----
-
-## Arquivos-chave
-
-| Arquivo                                           | Relevância                                                           |
-| ------------------------------------------------- | -------------------------------------------------------------------- |
-| `src/sw.ts`                                       | Service Worker customizado (push + precache + NetworkFirst Supabase) |
-| `src/components/search/GlobalSearch.tsx`          | Dialog de busca global (Ctrl+K)                                      |
-| `src/components/ui/SwipeableRow.tsx`              | Componente genérico de swipe                                         |
-| `src/components/goals/GoalMilestonesPanel.tsx`    | Marcos de progresso                                                  |
-| `src/components/goals/GoalCard.tsx`               | Toggle de milestones                                                 |
-| `src/hooks/useGoalMilestones.ts`                  | CRUD de milestones                                                   |
-| `src/hooks/usePushNotifications.ts`               | Registro/remoção de push subscription                                |
-| `src/hooks/useFamilyConsolidated.ts`              | Visão consolidada do casal                                           |
-| `src/hooks/useTripMembers.ts`                     | guest_name, display_name, useAddGuestTripMember                      |
-| `src/components/layout/AppLayout.tsx`             | Botão busca + atalho Ctrl+K + GlobalSearch                           |
-| `src/components/settings/PreferencesSettings.tsx` | Toggle notificações push                                             |
-| `src/pages/GoalsAndInvestments.tsx`               | SwipeableRow em metas                                                |
-| `src/pages/Dashboard.tsx`                         | Toggle Modo Casal, FamilyBalancePanel                                |
-| `src/hooks/useFamily.ts`                          | member_type, useSharedContacts, useConvert*                          |
-| `src/pages/Family.tsx`                            | Seção "Contatos de Despesa"                                          |
-
----
-
-## Banco de dados — mudanças recentes
-
-| Migration                | O que fez                                                           |
-| ------------------------ | ------------------------------------------------------------------- |
-| `member_type_column`     | Coluna `member_type TEXT DEFAULT 'family'` em family_members        |
-| `performance_indexes`    | 4 índices novos (notifications, push_sub, milestones, family_type)  |
-| `shared_credit_card_rls` | Políticas SELECT em accounts e transactions para convidados aceitos |
-
----
-
-## Convenções do projeto
-- Toasts: `sonner` (`toast.success`, `toast.error`)
-- Formatação de moeda: `moneyUtils.format(value, currency)` de `@/utils/money`
-- Datas: `format(date, 'dd/MM/yyyy', { locale: ptBR })`
-- TanStack Query: sempre `queryClient.invalidateQueries` no `onSuccess`
-- Soft delete: `.update({ deleted_at: new Date().toISOString() })`
+## Auditorias Anteriores
+- UX/UI: `UX_AUDIT_REPORT_2026-06-30.md` (61/100)
+- Infraestrutura: ver CHECKLIST.md (8/20 fixes aplicados)
+- Seguranca: 18 fixes aplicados
+- Produto: `AUDIT_REPORT_PRODUTO_2026-06-30.md` (7.3/10)

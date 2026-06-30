@@ -1,6 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { Link } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CreditCard, TrendingUp, Wallet, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -131,7 +131,10 @@ export function Dashboard() {
         ).toNumber();
 
         if (acc.type !== "INVESTMENT" && acc.type !== "EMERGENCY_FUND") {
-          current.balance = SafeFinancialCalculator.add(current.balance, Number(acc.balance || 0)).toNumber();
+          current.balance = SafeFinancialCalculator.add(
+            current.balance,
+            Number(acc.balance || 0)
+          ).toNumber();
         }
 
         map.set(c, current);
@@ -149,8 +152,14 @@ export function Dashboard() {
         pending_income: 0,
         pending_expense: 0,
       };
-      current.income = SafeFinancialCalculator.add(current.income, Number(t.income || 0)).toNumber();
-      current.expense = SafeFinancialCalculator.add(current.expense, Number(t.expense || 0)).toNumber();
+      current.income = SafeFinancialCalculator.add(
+        current.income,
+        Number(t.income || 0)
+      ).toNumber();
+      current.expense = SafeFinancialCalculator.add(
+        current.expense,
+        Number(t.expense || 0)
+      ).toNumber();
       current.pending_income = SafeFinancialCalculator.add(
         current.pending_income,
         Number(t.pending_income || 0)
@@ -291,9 +300,6 @@ export function Dashboard() {
           pendingExpense={displayData.pending_expense}
           currency={displayData.currency}
         />
-        <PendingInvitationsAlert />
-        <PendingTripInvitationsAlert />
-        <PendingSharedCardInvitationsAlert />
 
         <div className="space-y-4">
           <DashboardHero
@@ -347,6 +353,11 @@ export function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* Alertas de convites — após o saldo, informação principal */}
+        <PendingInvitationsAlert />
+        <PendingTripInvitationsAlert />
+        <PendingSharedCardInvitationsAlert />
 
         {isTripMode && activeTrip ? (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500 mb-2">

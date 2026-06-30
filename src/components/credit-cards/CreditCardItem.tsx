@@ -24,6 +24,10 @@ export function CreditCardItem({
   
   return (
     <div 
+      role="button"
+      tabIndex={0}
+      aria-label={`Cartão: ${card.name}, ${bank.name}, fatura ${formatCurrency(invoice.value || 0)}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCardDetail(card); } }}
       onClick={() => openCardDetail(card)}
       className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl rounded-3xl p-[1.5px] w-full max-w-md mx-auto"
       style={{
@@ -94,7 +98,7 @@ export function CreditCardItem({
               )}>
                 {formatCurrency(invoice.value)}
               </p>
-              <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold bg-background/40 px-1.5 py-0.5 rounded backdrop-blur-sm border border-border/50">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-bold bg-background/40 px-1.5 py-0.5 rounded backdrop-blur-sm border border-border/50">
                 Vence {dateFns.format(invoice.dueDate, "dd/MM", { locale: ptBR })}
               </p>
             </div>

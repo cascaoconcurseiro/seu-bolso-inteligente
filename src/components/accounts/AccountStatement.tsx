@@ -128,12 +128,12 @@ export function AccountStatement({
                             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                               <p className="font-medium truncate text-sm sm:text-base">{description}</p>
                               {isInitialBalance && (
-                                <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
+                                <span className="text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Abertura
                                 </span>
                               )}
                               {tx.is_shared && !isInitialBalance && (
-                                <span className="text-[9px] bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
+                                <span className="text-[11px] bg-accent/15 text-accent px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Compartilhado
                                 </span>
                               )}

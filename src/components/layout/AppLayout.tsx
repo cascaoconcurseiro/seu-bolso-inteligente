@@ -155,7 +155,10 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap" aria-label="Navegação principal">
+            <nav
+              className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap"
+              aria-label="Navegação principal"
+            >
               {navigationItems.map((item) => {
                 const isActive =
                   location.pathname === item.path ||
@@ -226,11 +229,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowSearch(true)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground relative"
                   aria-label="Buscar (Ctrl+K)"
                   title="Buscar (Ctrl+K)"
                 >
                   <Search className="h-4 w-4" />
+                  <span className="absolute -bottom-0.5 right-0 text-[9px] font-mono text-muted-foreground/60 hidden md:inline">
+                    Ctrl+K
+                  </span>
                 </Button>
                 <NotificationButton />
 

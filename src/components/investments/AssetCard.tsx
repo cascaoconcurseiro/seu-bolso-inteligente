@@ -14,12 +14,12 @@ interface AssetCardProps {
   formatAssetValue: (value: number, currency: string) => string;
 }
 
-export function AssetCard({ 
-  asset, 
-  index, 
-  onEdit, 
-  onDelete, 
-  onShowHistory, 
+export function AssetCard({
+  asset,
+  index,
+  onEdit,
+  onDelete,
+  onShowHistory,
   onTransact,
   formatAssetValue
 }: AssetCardProps) {
@@ -31,7 +31,7 @@ export function AssetCard({
   const hasCurrentPrice = asset.current_price && asset.current_price > 0;
 
   return (
-    <div 
+    <div
       className={cn(
         "bg-card border border-border p-6 rounded-2xl relative overflow-hidden group hover-lift card-animated animate-stagger",
         `stagger-${(index % 5) + 1}`
@@ -118,13 +118,13 @@ export function AssetCard({
             )}
           </div>
           {((asset as any).broker_name || (asset as any).broker_id) && (
-            <span className="text-[9px] opacity-60">
+            <span className="text-[11px] opacity-60">
               {(asset as any).broker_name || getBrokerById((asset as any).broker_id)?.shortName}
             </span>
           )}
         </div>
         <div className="flex gap-2 items-center">
-          <Button 
+          <Button
             variant="ghost"
             size="icon"
             onClick={() => onShowHistory(asset)}
@@ -133,7 +133,7 @@ export function AssetCard({
           >
             <Clock className="w-4 h-4" />
           </Button>
-          <Button 
+          <Button
             variant="secondary"
             size="sm"
             onClick={() => onTransact(asset)}
