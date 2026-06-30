@@ -31,8 +31,8 @@ export function CashFlowProjection({ transactions, currentBalance }: CashFlowPro
       !tx.deleted_at && new Date(tx.date) >= past3Start && new Date(tx.date) < startOfMonth(now)
     );
 
-    const avgIncome = past.filter(tx => tx.type === "INCOME").reduce((s, tx) => s + Math.abs(tx.amount), 0) / 3;
-    const avgExpense = past.filter(tx => tx.type === "EXPENSE").reduce((s, tx) => s + Math.abs(tx.amount), 0) / 3;
+    const avgIncome = past.filter(tx => tx.type === "INCOME").reduce((s, tx) => SafeFinancialCalculator.add(s, Math.abs(tx.amount)), 0) / 3;
+    const avgExpense = past.filter(tx => tx.type === "EXPENSE").reduce((s, tx) => SafeFinancialCalculator.add(s, Math.abs(tx.amount)), 0) / 3;
 
     let runningBalance = currentBalance;
 
@@ -42,8 +42,8 @@ export function CashFlowProjection({ transactions, currentBalance }: CashFlowPro
         const d = new Date(tx.date);
         return d >= m.start && d <= m.end;
       });
-      const recIncome = monthRecurring.filter(tx => tx.type === "INCOME").reduce((s, tx) => s + Math.abs(tx.amount), 0);
-      const recExpense = monthRecurring.filter(tx => tx.type === "EXPENSE").reduce((s, tx) => s + Math.abs(tx.amount), 0);
+      const recIncome = monthRecurring.filter(tx => tx.type === "INCOME").reduce((s, tx) => SafeFinancialCalculator.add(s, Math.abs(tx.amount)), 0);
+      const recExpense = monthRecurring.filter(tx => tx.type === "EXPENSE").reduce((s, tx) => SafeFinancialCalculator.add(s, Math.abs(tx.amount)), 0);
 
       const isCurrentMonth = isThisMonth(m.date);
       const income = isCurrentMonth ? recIncome : Math.max(recIncome, avgIncome);

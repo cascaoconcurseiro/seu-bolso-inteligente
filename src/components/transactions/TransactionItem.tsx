@@ -137,8 +137,16 @@ export function TransactionItem({
     transaction.destination_currency && 
     (transaction.account?.currency || transaction.currency || 'BRL') !== transaction.destination_currency;
 
+  const isOptimistic = (transaction as any).is_optimistic;
+
   return (
-    <div className="relative overflow-hidden group/item border-b last:border-0 border-border/50">
+    <motion.div 
+      layout="position"
+      initial={isOptimistic ? { opacity: 0, scale: 0.95, y: -10 } : false}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25 }}
+      className="relative overflow-hidden group/item border-b last:border-0 border-border/50"
+    >
       {/* Background Edit Button (revealed on swipe RIGHT) */}
       <div
         className="absolute left-0 top-0 bottom-0 w-20 bg-primary flex items-center justify-center text-white cursor-pointer"
@@ -316,6 +324,6 @@ export function TransactionItem({
         </div>
       </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

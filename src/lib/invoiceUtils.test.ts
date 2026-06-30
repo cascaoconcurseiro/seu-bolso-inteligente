@@ -149,7 +149,7 @@ describe('invoiceUtils', () => {
   describe('Casos Extremos', () => {
     it('deve lidar com fatura vazia', () => {
       const items: any[] = [];
-      const total = items.reduce((sum, item) => sum + item.amount, 0);
+      const total = items.reduce((sum, item) => SafeFinancialCalculator.add(sum, item.amount), 0);
       expect(total).toBe(0);
     });
 

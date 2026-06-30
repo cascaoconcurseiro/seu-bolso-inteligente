@@ -48,7 +48,7 @@ export function SettlementConfirmationDialog({
     }
   }, [isOpen, initialItems]);
 
-  const total = currentItems.reduce((sum, item) => sum + item.amount, 0);
+  const total = currentItems.reduce((sum, item) => SafeFinancialCalculator.add(sum, item.amount), 0);
   const currency = currentItems[0]?.currency || "BRL";
   
   // NOVO: Detectar se a ação é de pagamento (Débito) ou recebimento (Crédito)

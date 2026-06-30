@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Flag, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface GoalMilestonesPanelProps {
   goal: Goal;
@@ -18,6 +28,7 @@ export function GoalMilestonesPanel({ goal }: GoalMilestonesPanelProps) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [pct, setPct] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const currentPct = goal.target_amount > 0
     ? Math.min(100, ((goal.current_amount ?? 0) / goal.target_amount) * 100)
@@ -110,7 +121,7 @@ export function GoalMilestonesPanel({ goal }: GoalMilestonesPanelProps) {
                     variant="ghost"
                     size="icon"
                     className="h-5 w-5 opacity-0 group-hover/m:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => deleteMilestone.mutate({ id: m.id, goalId: goal.id })}
+                    onClick={() => setConfirmDeleteId(m.id)}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -123,5 +134,28 @@ export function GoalMilestonesPanel({ goal }: GoalMilestonesPanelProps) {
         <p className="text-xs text-muted-foreground pl-1">Nenhum marco. Adicione % de progresso para celebrar conquistas.</p>
       ) : null}
     </div>
+
+    <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir marco?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta ação não pode ser desfeita. O marco será removido permanentemente da meta.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => {
+              if (confirmDeleteId) deleteMilestone.mutate({ id: confirmDeleteId, goalId: goal.id });
+              setConfirmDeleteId(null);
+            }}
+          >
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

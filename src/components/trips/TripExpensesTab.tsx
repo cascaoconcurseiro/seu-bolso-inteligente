@@ -75,7 +75,7 @@ export function TripExpensesTab({
   const myShareOfShared = myBalance?.owes || 0;
 
   // Totais
-  const totalShared = sharedExpenses.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalShared = sharedExpenses.reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
   const totalPersonalOnly = personalExpenses.reduce(
     (sum, t) => sum + (t.type === "INCOME" ? -Number(t.amount) : Number(t.amount)),
     0
@@ -84,7 +84,7 @@ export function TripExpensesTab({
   const spentToDisplay = myTotalSpent !== undefined ? myTotalSpent : totalPersonal;
   const mySharedPaid = sharedExpenses
     .filter((t) => t.creator_user_id === user?.id || t.user_id === user?.id)
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   const getParticipantName = (userId: string) => {
     if (userId === user?.id) return "Você";

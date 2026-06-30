@@ -458,20 +458,20 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
             <Card className="p-4 border-success/20 bg-success/5">
               <span className="text-sm text-muted-foreground block font-semibold">Volume de Compras no Ano</span>
               <span className="text-base font-display font-black text-success mt-1 block">
-                R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.compras, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {Object.values(monthlyResumo).reduce((s, m) => SafeFinancialCalculator.add(s, m.compras), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>
 
             <Card className="p-4 border-accent/20 bg-accent/5">
               <span className="text-sm text-muted-foreground block font-semibold">Volume de Vendas no Ano</span>
               <span className="text-base font-display font-black text-accent mt-1 block">
-                R$ {Object.values(monthlyResumo).reduce((s, m) => s + m.vendas, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {Object.values(monthlyResumo).reduce((s, m) => SafeFinancialCalculator.add(s, m.vendas), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </span>
             </Card>
 
             {/* Balanço Geral */}
             {(() => {
-              const totalPnL = Object.values(monthlyResumo).reduce((s, m) => s + m.lucroEstimado, 0);
+              const totalPnL = Object.values(monthlyResumo).reduce((s, m) => SafeFinancialCalculator.add(s, m.lucroEstimado), 0);
               const isProfit = totalPnL >= 0;
               return (
                 <Card className={`p-4 border-${isProfit ? 'success' : 'destructive'}/20 bg-${isProfit ? 'success' : 'destructive'}/5`}>

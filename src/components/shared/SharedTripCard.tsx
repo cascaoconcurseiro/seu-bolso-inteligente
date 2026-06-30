@@ -125,7 +125,7 @@ export function SharedTripCard({
                   </>
                 ) : (
                   <>
-                    Há <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => sum + i.amount, 0), tripCurrency)}</strong>) marcados como pagos. Confirme para atualizar seu saldo e escolher as contas de recebimento.
+                    Há <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0), tripCurrency)}</strong>) marcados como pagos. Confirme para atualizar seu saldo e escolher as contas de recebimento.
                   </>
                 )}
               </p>

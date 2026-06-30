@@ -211,6 +211,33 @@ export function useCreditCardInvoice(accountId: string | null, monthStart: strin
 }
 
 
+export function useCreditCardClosingOverride(accountId: string | null, referenceDate: string) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["credit-card-closing-override", accountId, referenceDate],
+    queryFn: async () => {
+      try {
+        if (!accountId) return null;
+        const { data, error } = await supabase
+          .from("credit_card_closing_overrides")
+          .select("closing_date")
+          .eq("account_id", accountId)
+          .eq("reference_date", referenceDate)
+          .maybeSingle();
+
+        if (error) throw error;
+        return data?.closing_date || null;
+      } catch (error) {
+        logger.error("Erro ao buscar override de fechamento", error);
+        return null;
+      }
+    },
+    enabled: !!user && !!accountId && !!referenceDate,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export function useCreateAccount() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

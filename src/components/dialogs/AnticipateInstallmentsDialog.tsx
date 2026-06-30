@@ -308,7 +308,7 @@ export function AnticipateInstallmentsDialog({
                       {formatCurrency(
                         futureInstallments
                           .filter(i => selectedIds.includes(i.id))
-                          .reduce((sum, i) => sum + i.amount, 0)
+                          .reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0)
                       )}
                     </span>
                   </div>

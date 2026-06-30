@@ -234,10 +234,10 @@ export function Transactions() {
   );
   const totalIncome = filteredTransactions
     .filter((t) => t.type === "INCOME")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
   const totalExpense = filteredTransactions
     .filter((t) => t.type === "EXPENSE")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   const currencySummaries = useMemo(() => {
     if (selectedCurrency !== "all") return null;

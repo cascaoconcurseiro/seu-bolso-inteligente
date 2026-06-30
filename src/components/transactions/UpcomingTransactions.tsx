@@ -279,11 +279,11 @@ export function UpcomingTransactions() {
   );
 
   const monthlyExpenses = useMemo(
-    () => allItems.filter((i) => i.type === "EXPENSE").reduce((s, i) => s + i.amount, 0),
+    () => allItems.filter((i) => i.type === "EXPENSE").reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
     [allItems]
   );
   const monthlyIncome = useMemo(
-    () => allItems.filter((i) => i.type === "INCOME").reduce((s, i) => s + i.amount, 0),
+    () => allItems.filter((i) => i.type === "INCOME").reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
     [allItems]
   );
 

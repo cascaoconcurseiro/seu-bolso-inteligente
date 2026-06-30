@@ -56,7 +56,7 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
       }
     });
     
-    const total = Object.values(map).reduce((sum, c) => sum + c.value, 0);
+    const total = Object.values(map).reduce((sum, c) => SafeFinancialCalculator.add(sum, c.value), 0);
     
     return Object.entries(map)
       .map(([category, d]) => ({ 

@@ -64,7 +64,7 @@ interface CreditCardDetailViewProps {
   onArchive: (card: any) => void;
   onUnarchive: (card: any) => void;
   setShowSharingDialog: (v: boolean) => void;
-  onAdjustClosingDate?: (newDay: number) => void;
+  onAdjustClosingDate?: (newDay: number, referenceDate: Date) => void;
 }
 
 export function CreditCardDetailView({
@@ -111,7 +111,7 @@ export function CreditCardDetailView({
   const handleSaveClosing = () => {
     const d = parseInt(tempClosingDay, 10);
     if (d >= 1 && d <= 31 && onAdjustClosingDate) {
-      onAdjustClosingDate(d);
+      onAdjustClosingDate(d, selectedDate);
     }
     setEditingClosingDay(false);
   };

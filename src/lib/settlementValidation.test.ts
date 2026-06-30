@@ -167,7 +167,7 @@ describe('Settlement Validation', () => {
         { amount: 200 },
         { amount: 300 },
       ];
-      const total = splits.reduce((sum, split) => sum + split.amount, 0);
+      const total = splits.reduce((sum, split) => SafeFinancialCalculator.add(sum, split.amount), 0);
       
       expect(total).toBeGreaterThan(0);
     });

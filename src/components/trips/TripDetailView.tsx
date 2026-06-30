@@ -69,7 +69,7 @@ export function TripDetailView({
       t.type === "EXPENSE" &&
       (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id)
   );
-  const totalExpenses = relevantTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
+  const totalExpenses = relevantTransactions.reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // IMPACTO REAL NO ORÇAMENTO (Accrual Basis - Regime de Competência):
   // 1. Gastos individuais (só meus)
@@ -80,7 +80,7 @@ export function TripDetailView({
         !t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // 2. Minha parte nos gastos compartilhados (mesmo que eu não tenha pago)
   const myShareOfShared = tripTransactions

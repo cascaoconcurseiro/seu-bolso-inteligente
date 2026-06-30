@@ -73,7 +73,7 @@ export function TripSummaryTab({
         !t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id),
     )
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // Saldo do participante atual (do RPC — fonte única da verdade)
   const myBalance = balances.find((b) => b.participantId === user?.id);
@@ -96,12 +96,12 @@ export function TripSummaryTab({
         t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id),
     )
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // (c) Total de despesas compartilhadas do grupo (para exibição geral)
   const totalSharedExpenses = tripTransactions
     .filter((t) => t.type === 'EXPENSE' && t.is_shared)
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // Busca cotação em tempo real se não for BRL
   const { data: realTimeRate } = useQuery({
@@ -632,7 +632,7 @@ export function TripSummaryTab({
                                     t.is_shared &&
                                     t.user_id === participant.user_id,
                                 )
-                                .reduce((sum, t) => sum + Number(t.amount), 0),
+                                .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0),
                               currency,
                             )}
                           </span>

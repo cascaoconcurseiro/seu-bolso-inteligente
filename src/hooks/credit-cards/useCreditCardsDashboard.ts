@@ -11,6 +11,7 @@ import {
   useUnarchiveAccount,
   useCreditCardInvoice,
   useAccountDependencies,
+  useCreditCardClosingOverride,
 } from "@/hooks/useAccounts";
 import { useDependentTransactions } from "@/hooks/transactions/useDependentTransactions";
 import {
@@ -191,9 +192,18 @@ export function useCreditCardsDashboard() {
     }
   }, [searchParams, accounts, selectedCard, setSearchParams]);
 
+  const { data: closingOverride } = useCreditCardClosingOverride(
+    selectedCard?.id || null,
+    dateFns.format(dateFns.startOfMonth(selectedDate), "yyyy-MM-dd")
+  );
+
   const invoiceData = useMemo(() => {
     if (!selectedCard) return null;
-    const baseData = getInvoiceData(selectedCard, transactions, selectedDate);
+    const baseData = getInvoiceData(
+      { ...selectedCard, closing_date_override: closingOverride },
+      transactions,
+      selectedDate
+    );
     if (invoiceDataRPC) {
       return {
         ...baseData,
@@ -202,7 +212,7 @@ export function useCreditCardsDashboard() {
       };
     }
     return baseData;
-  }, [selectedCard, invoiceDataRPC, transactions, selectedDate]);
+  }, [selectedCard, invoiceDataRPC, transactions, selectedDate, closingOverride]);
 
   const getCardInvoice = useCallback(
     (card: CreditCardAccount) => {
@@ -523,6 +533,7 @@ export function useCreditCardsDashboard() {
     totalDebt,
     nextDueDate,
     exportTransactions,
+    closingOverride,
 
     refetchAccounts,
     refetchTransactions,

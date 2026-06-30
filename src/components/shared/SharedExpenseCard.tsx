@@ -198,7 +198,7 @@ export function SharedExpenseCard({
                   )
                 ) : (
                   <>
-                    <strong>{member.name.split(' ')[0]}</strong> marcou <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => sum + i.amount, 0), currency)}</strong>). Confirme e escolha a conta associada para atualizar seus saldos.
+                    <strong>{member.name.split(' ')[0]}</strong> marcou <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de <strong>{formatCurrency(itemsWaitingMe.reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0), currency)}</strong>). Confirme e escolha a conta associada para atualizar seus saldos.
                   </>
                 )}
               </p>

@@ -60,7 +60,7 @@ describe('useSharedFinances - Shared Finances Calculations', () => {
       ];
 
       const result = SafeFinancialCalculator.distributeSplits(total, splits);
-      const sum = result.reduce((acc, r) => acc + r.amount, 0);
+      const sum = result.reduce((acc, r) => SafeFinancialCalculator.add(acc, r.amount), 0);
 
       expect(sum).toBe(100);
     });
@@ -242,7 +242,7 @@ describe('useSharedFinances - Shared Finances Calculations', () => {
       ];
 
       const result = SafeFinancialCalculator.distributeSplits(total, splits);
-      const sum = result.reduce((acc, r) => acc + r.amount, 0);
+      const sum = result.reduce((acc, r) => SafeFinancialCalculator.add(acc, r.amount), 0);
 
       expect(sum).toBeLessThanOrEqual(total + 0.01);
     });

@@ -307,14 +307,21 @@ export function useTransactionForm({
         
         const desc1 = tx.description.toLowerCase().trim();
         const desc2 = description.toLowerCase().trim();
-        // More strict description match to avoid false positives (e.g. "Conta" matching "Conta de Luz")
-        const descMatch = desc1 === desc2 || 
-                          (desc1.length > 3 && desc2.length > 3 && (desc1 === desc2)); // Replaced loose includes with exact match for now to prevent annoyance
-                          
-        const txDate = typeof tx.date === "string" ? parseISO(tx.date) : tx.date;
-        const daysDiff = Math.abs(differenceInDays(txDate, date));
-        
-        return amountMatch && descMatch && daysDiff <= 1;
+        const descMatch = desc1 === desc2;
+
+        // Only consider transactions that have a real creation timestamp
+        if (!tx.created_at) return false;
+        const msSinceCreation = new Date().getTime() - new Date(tx.created_at).getTime();
+        // Must have been created in the past and within the last 30 minutes
+        const withinWindow = msSinceCreation >= 0 && msSinceCreation <= 30 * 60 * 1000;
+
+        // The selected date in the form must match the existing tx date (same calendar day)
+        const txDateStr = typeof tx.date === "string" ? tx.date : tx.date?.toString?.();
+        const formDateStr = typeof date === "string" ? date : date?.toISOString?.()?.slice(0, 10);
+        const dateMatch = txDateStr?.slice(0, 10) === formDateStr?.slice(0, 10);
+
+        return amountMatch && descMatch && withinWindow && dateMatch;
+
       });
       setDuplicateWarning(hasDuplicate);
     }, 500);
@@ -579,36 +586,36 @@ export function useTransactionForm({
     try {
       haptics.success();
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-      
-      setRippleState("success");
 
-      // Defer mutate to allow React to paint the Ripple first, avoiding jank
-      setTimeout(() => {
-        if (initialData && initialData.id) {
-          updateTransaction.mutate({ ...transactionData, id: initialData.id });
-        } else {
-          createTransaction.mutate(transactionData);
-          
-          if (user && categoryId && description && activeTab !== "TRANSFER") {
-            CategoryPredictionService.learnFromUser(
-              description,
-              categoryId,
-              user.id,
-              !!(predictedCategoryId && predictedCategoryId !== categoryId)
-            ).catch((error) => logger.error("Erro ao registrar aprendizado:", error));
-          }
-        }
-      }, 50);
+      // Fire feedback immediately — before server responds (optimistic, like Nubank)
+      showActionFeedback("success");
 
+      // Close the modal slightly after the animation starts so it feels seamless
       setTimeout(() => {
         if (onSuccess) onSuccess();
         else navigate("/transacoes");
-        setRippleState(null);
-      }, 800);
+      }, 80);
+
+      if (initialData && initialData.id) {
+        updateTransaction.mutate({ ...transactionData, id: initialData.id });
+      } else {
+        createTransaction.mutate(transactionData);
+
+        if (user && categoryId && description && activeTab !== "TRANSFER") {
+          CategoryPredictionService.learnFromUser(
+            description,
+            categoryId,
+            user.id,
+            !!(predictedCategoryId && predictedCategoryId !== categoryId)
+          ).catch((error) => logger.error("Erro ao registrar aprendizado:", error));
+        }
+      }
+
+      setTimeout(() => setRippleState(null), 300);
     } catch (error: any) {
       logger.error("Erro ao salvar transação:", error);
       setRippleState("error");
-      toast.error(error.message || "Erro de conexão ou timeout. Tente novamente.");
+      showActionFeedback("error");
       setTimeout(() => setRippleState(null), 800);
     }
   };
@@ -842,8 +849,6 @@ export function useTransactionForm({
 
     handleDestAmountChange,
     getCurrencySymbol,
-    handleSubmit,
-    performSubmit,
     goals,
   };
 }

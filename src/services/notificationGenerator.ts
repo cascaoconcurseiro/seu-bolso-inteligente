@@ -775,8 +775,8 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
 
     const expenses = txs
       .filter((t) => t.type === "EXPENSE")
-      .reduce((s, t) => s + Number(t.amount), 0);
-    const income = txs.filter((t) => t.type === "INCOME").reduce((s, t) => s + Number(t.amount), 0);
+      .reduce((s, t) => SafeFinancialCalculator.add(s, Number(t.amount)), 0);
+    const income = txs.filter((t) => t.type === "INCOME").reduce((s, t) => SafeFinancialCalculator.add(s, Number(t.amount)), 0);
     const balance = income - expenses;
     const sign = balance >= 0 ? "+" : "";
 

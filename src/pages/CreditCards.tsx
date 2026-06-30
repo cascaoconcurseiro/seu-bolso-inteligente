@@ -197,6 +197,7 @@ export function CreditCards() {
     totalDebt,
     nextDueDate,
     exportTransactions,
+    closingOverride,
 
     refetchAccounts,
     refetchTransactions,
@@ -288,7 +289,7 @@ export function CreditCards() {
     return (
       <>
         <CreditCardDetailView
-          selectedCard={selectedCard}
+          selectedCard={{ ...selectedCard, closing_date_override: closingOverride }}
           goBack={handleGoBack}
           openEditCardDialog={(card) => {
             setEditCardName(card.name);
@@ -347,18 +348,26 @@ export function CreditCards() {
           }}
           setShowSharingDialog={setShowSharingDialog}
           dependentTransactions={dependentTransactions}
-          onAdjustClosingDate={async (newDay) => {
+          onAdjustClosingDate={async (newDay, referenceDate) => {
             if (!selectedCard) return;
+            const refStart = dateFns.startOfMonth(referenceDate);
+            // Evitar dias inválidos (ex: 31 de abril vira 30)
+            const safeClosingDate = dateFns.setDate(refStart, Math.min(newDay, dateFns.getDaysInMonth(refStart)));
+            
             const { error } = await supabase
-              .from("accounts")
-              .update({ closing_day: newDay })
-              .eq("id", selectedCard.id);
+              .from("credit_card_closing_overrides")
+              .upsert({
+                account_id: selectedCard.id,
+                reference_date: dateFns.format(refStart, "yyyy-MM-dd"),
+                closing_date: dateFns.format(safeClosingDate, "yyyy-MM-dd")
+              }, { onConflict: "account_id, reference_date" });
+              
             if (!error) {
-              toast.success(`Fechamento ajustado para dia ${newDay}`);
+              toast.success(`Fechamento da fatura atual ajustado para dia ${newDay}`);
               refetchAccounts();
               refetchTransactions();
             } else {
-              toast.error("Erro ao ajustar fechamento");
+              toast.error("Erro ao ajustar fechamento da fatura");
             }
           }}
         />

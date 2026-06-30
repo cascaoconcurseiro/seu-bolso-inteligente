@@ -134,10 +134,10 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     }
   };
 
-  const totalEstimated = shoppingList.reduce((sum, item) => sum + item.estimatedCost, 0);
+  const totalEstimated = shoppingList.reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost), 0);
   const totalPurchased = shoppingList
     .filter((item) => item.purchased)
-    .reduce((sum, item) => sum + item.estimatedCost, 0);
+    .reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost), 0);
   const purchasedCount = shoppingList.filter((item) => item.purchased).length;
 
   return (

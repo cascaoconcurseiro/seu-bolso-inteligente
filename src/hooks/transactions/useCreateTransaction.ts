@@ -580,18 +580,14 @@ export function useCreateTransaction() {
       return data as Transaction;
     },
     onSuccess: async (_data, variables) => {
-      showActionFeedback("success");
-
       if (user?.id) {
         if (variables?.type === "TRANSFER" && variables?.destination_account_id) {
-          // Fire and forget
           dismissRelatedNotifications(
             user.id,
             variables.destination_account_id,
             "credit_card"
           ).catch((e) => logger.error("Erro dismiss", e));
         }
-        // Fire and forget
         generateAllNotifications(user.id).catch((e) =>
           logger.error("Erro ao gerar notificações pós-transação", e)
         );
@@ -602,7 +598,6 @@ export function useCreateTransaction() {
       _newTx,
       context: { previousTransactions: [unknown, unknown][] } | undefined
     ) => {
-      // Rollback da cache em caso de erro
       if (context?.previousTransactions) {
         context.previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(
@@ -611,7 +606,7 @@ export function useCreateTransaction() {
           );
         });
       }
-      showActionFeedback("error");
+      // Error feedback is handled by performSubmit catch block
     },
     onSettled: () => {
       inFlightRef.current = false;

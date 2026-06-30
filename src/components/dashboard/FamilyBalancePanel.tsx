@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Users, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { rpcWithRetry } from '@/utils/rpcWithRetry';
-import { NumberTicker } from '@/components/ui/NumberTicker';
+
 
 export function FamilyBalancePanel() {
   const { user } = useAuth();
@@ -152,12 +152,7 @@ export function FamilyBalancePanel() {
                     isPositive ? 'text-success' : 'text-destructive'
                   )}
                 >
-                  {isPrivate ? '•••••' : (
-                    <NumberTicker 
-                      value={Math.abs(balance.net)} 
-                      formatCurrency={(val) => moneyUtils.format(val, 'BRL')}
-                    />
-                  )}
+                  {isPrivate ? '•••••' : moneyUtils.format(Math.abs(balance.net), 'BRL')}
                 </span>
               </div>
             </div>

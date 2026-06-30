@@ -11,6 +11,16 @@ import { useFamilyMembers } from "@/hooks/useFamily";
 import { useCategories } from "@/hooks/useCategories";
 import { cn } from "@/lib/utils";
 import { NumericFormat } from "react-number-format";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function AutoShareRulesSettings() {
   const { data: rules = [], isLoading } = useAutoShareRules();
@@ -26,6 +36,7 @@ export function AutoShareRulesSettings() {
   const [triggerValue, setTriggerValue] = useState("");
   const [memberId, setMemberId] = useState("");
   const [splitRatio, setSplitRatio] = useState(50);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const activeMembers = members.filter(m => m.linked_user_id !== undefined || m.name);
 
@@ -98,7 +109,7 @@ export function AutoShareRulesSettings() {
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8 text-destructive hover:bg-destructive/10 shrink-0"
-                onClick={() => deleteRule.mutate(rule.id)}
+                onClick={() => setConfirmDeleteId(rule.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -198,6 +209,29 @@ export function AutoShareRulesSettings() {
           Nova Regra de Auto-Compartilhamento
         </Button>
       )}
+
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir regra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A regra de compartilhamento automático será removida permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDeleteId) deleteRule.mutate(confirmDeleteId);
+                setConfirmDeleteId(null);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

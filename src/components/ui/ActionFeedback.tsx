@@ -20,7 +20,8 @@ export function showActionFeedback(type: "success" | "error") {
   useFeedbackStore.getState().show(type);
 }
 
-const DURATION = 1200;
+// Total visible duration: 900ms (fade-in 120ms + hold ~600ms + fade-out 180ms)
+const DURATION = 900;
 
 export function ActionFeedback() {
   const { type, hide } = useFeedbackStore();
@@ -43,28 +44,45 @@ export function ActionFeedback() {
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
       style={{
-        animation:
-          "feedbackFadeIn 0.15s ease-out forwards, feedbackFadeOut 0.3s 0.85s ease-in forwards",
+        animation: "feedbackFadeIn 0.12s ease-out forwards, feedbackFadeOut 0.22s 0.68s ease-in forwards",
       }}
     >
-      <div className={`absolute inset-0 ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`} />
+      {/* Full-screen color wash */}
+      <div
+        className={`absolute inset-0 ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`}
+        style={{ opacity: 0.92 }}
+      />
+
+      {/* Centered icon pill */}
       <div
         className={`
-          flex items-center justify-center rounded-full shadow-2xl
-          ${isSuccess ? "bg-white text-emerald-500" : "bg-white text-red-500"}
-          w-28 h-28
+          relative flex flex-col items-center justify-center gap-3
         `}
         style={{
-          animation: "feedbackPop 0.4s 0.05s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+          animation: "feedbackPop 0.35s 0.04s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
           opacity: 0,
-          transform: "scale(0)",
+          transform: "scale(0.6)",
         }}
       >
-        {isSuccess ? (
-          <Check className="w-14 h-14" strokeWidth={3} />
-        ) : (
-          <X className="w-14 h-14" strokeWidth={3} />
-        )}
+        <div
+          className={`
+            flex items-center justify-center rounded-full
+            ${isSuccess ? "bg-white text-emerald-500" : "bg-white text-red-500"}
+            w-24 h-24 shadow-2xl
+          `}
+        >
+          {isSuccess ? (
+            <Check className="w-12 h-12" strokeWidth={2.5} />
+          ) : (
+            <X className="w-12 h-12" strokeWidth={2.5} />
+          )}
+        </div>
+        <p
+          className="text-white font-semibold text-base tracking-wide"
+          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.2)" }}
+        >
+          {isSuccess ? "Salvo!" : "Erro ao salvar"}
+        </p>
       </div>
     </div>
   );
