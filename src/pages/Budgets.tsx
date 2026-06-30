@@ -1,5 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { useState, useMemo } from "react";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,12 +72,13 @@ export function Budgets() {
     };
     
     try {
+      showActionFeedback("success");
       if (editingBudget) { 
-        await updateBudget({ id: editingBudget.id, ...data }); 
-        setEditingBudget(null); 
+        setTimeout(() => setEditingBudget(null), 80);
+        updateBudget({ id: editingBudget.id, ...data }); 
       } else { 
-        await createBudget(data); 
-        setShowNewBudgetDialog(false); 
+        setTimeout(() => setShowNewBudgetDialog(false), 80);
+        createBudget(data); 
       }
       resetForm();
       if (document.activeElement instanceof HTMLElement) {
@@ -218,7 +220,10 @@ export function Budgets() {
                   setCurrency(budget.currency); 
                 } 
               }} 
-              onDelete={deleteBudget} 
+              onDelete={(id) => {
+                showActionFeedback("error");
+                deleteBudget(id);
+              }} 
             />
           ))}
         </div>

@@ -39,8 +39,8 @@
     --card-foreground: var(--text-primary);
     --popover: var(--bg-surface);
     --popover-foreground: var(--text-primary);
-    --primary: var(--text-primary);
-    --primary-foreground: var(--bg-surface);
+    --primary: 263 72% 52%; /* = --accent — cor da marca */
+    --primary-foreground: 0 0% 100%;
     --secondary: var(--bg-subtle);
     --secondary-foreground: var(--text-primary);
     --muted: var(--bg-subtle);
@@ -86,8 +86,8 @@
     --card-foreground: var(--text-primary);
     --popover: var(--bg-surface);
     --popover-foreground: var(--text-primary);
-    --primary: var(--text-primary);
-    --primary-foreground: var(--bg-page);
+    --primary: 263 72% 62%; /* = --accent dark — cor da marca */
+    --primary-foreground: 0 0% 100%;
     --secondary: var(--bg-subtle);
     --secondary-foreground: var(--text-primary);
     --muted: var(--bg-subtle);
@@ -203,7 +203,7 @@
   }
 
   .form-section-label {
-    @apply text-[10px] font-bold text-muted-foreground uppercase tracking-widest;
+    @apply text-xs font-semibold text-muted-foreground uppercase tracking-wider;
   }
 
   /* Grid 2 colunas compacto para campos relacionados */
@@ -289,6 +289,18 @@
 }
 
 /* ===== ANIMAÇÕES ===== */
+
+/* Respeita preferência de redução de movimento do sistema (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Fade in básico */
 @keyframes fadeIn {

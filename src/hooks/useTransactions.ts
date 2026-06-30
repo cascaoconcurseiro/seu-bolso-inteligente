@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { getMonthDateRange } from "@/utils/dateUtils";
-import { dateUtils } from "@/lib/dateUtils";
+import { dateUtils } from "@/utils/dateUtils";
 import {
   invalidateFinancialQueries,
   invalidateSharedQueries,

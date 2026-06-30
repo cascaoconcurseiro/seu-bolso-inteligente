@@ -19,7 +19,7 @@ import { formatExportMoney } from "@/utils/exportCurrency";
 import { toast } from "sonner";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { logger } from '@/utils/logger';
-import { useAccountingExport } from "./useAccountingExport";
+import { useAccountingExport } from "@/hooks/useAccountingExport";
 
 type DRELineType = 'OPERATIONAL_INC' | 'FINANCIAL_INC' | 'DEDUCTION' | 'VARIABLE_EXP' | 'FIXED_EXP' | 'FINANCIAL_EXP';
 

@@ -9,7 +9,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Download, Printer, Eye, EyeOff, Scale, BadgePercent, Activity } from "lucide-react";
 
-import { useAccountingDRE } from './useAccountingDRE';
+import { useAccountingDRE } from '@/hooks/useAccountingDRE';
 
 export function AccountingDRE() {
   const {

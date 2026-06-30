@@ -17,13 +17,14 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent/8 text-foreground",
         link: "text-accent underline-offset-4 hover:underline active:scale-100",
-        // Destrutivo: texto danger, sem borda, sem bg
-        destructive: "text-destructive hover:bg-destructive/8 border-0 bg-transparent",
+        // Destrutivo: fundo semi-transparente danger + texto danger
+        destructive: "text-destructive hover:bg-destructive/10 border border-transparent bg-destructive/8",
       },
       size: {
         default: "h-10 px-4",
         sm: "h-8 px-3 text-xs",
         lg: "h-12 px-6",
+        xl: "h-14 px-8 text-base",
         icon: "h-10 w-10 tap-target",
       },
     },

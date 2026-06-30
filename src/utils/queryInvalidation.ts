@@ -150,3 +150,14 @@ export const invalidateBudgetQueries = (queryClient: QueryClient) => {
     queryClient.invalidateQueries({ queryKey: ["budgets-progress"] }),
   ]);
 };
+
+/**
+ * Invalidate queries from a list of query keys (used by Realtime narrow channels).
+ * Each key is invalidated independently — no Promise.all para evitar
+ * bloquear o event loop com dezenas de refetches simultâneos.
+ */
+export const invalidateTableQueries = (queryClient: QueryClient, keys: string[]) => {
+  for (const key of keys) {
+    queryClient.invalidateQueries({ queryKey: [key] });
+  }
+};

@@ -1,5 +1,5 @@
 // Utility functions for credit card invoice calculations
-import { parseDate, formatDate, getCompetenceDate, addMonthsToDate } from "@/lib/dateUtils";
+import { parseDateUTC as parseDate, formatDateUTC as formatDate, getCompetenceDateUTC as getCompetenceDate, addMonthsToDate } from "@/utils/dateUtils";
 
 export type ClosingDayMode = "FIXED_DAY" | "LAST_DAY" | "LAST_BUSINESS_DAY";
 

@@ -1,11 +1,12 @@
 import { AlertTriangle, Globe, Pencil, Trash2, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from "@/utils/money";
+import type { BudgetProgress } from "@/types/database";
 
 interface BudgetCardProps {
-  budget: any;
+  budget: BudgetProgress;
   formatCurrency: (value: number, curr: string) => string;
-  onEdit: (budget: any) => void;
+  onEdit: (budget: BudgetProgress) => void;
   onDelete: (id: string) => void;
 }
 

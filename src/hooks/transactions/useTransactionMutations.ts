@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { dateUtils } from "@/lib/dateUtils";
+import { dateUtils } from "@/utils/dateUtils";
 import {
   invalidateFinancialQueries,
   invalidateSharedQueries,

@@ -21,7 +21,13 @@ export function useFinancialSummary(month: Date) {
           p_end_date: endDate
         });
 
-        const summary = (Array.isArray(data) ? data[0] : data) as any;
+        interface FinancialSummaryRpc {
+          total_balance: number;
+          total_income: number;
+          total_expenses: number;
+          net_savings: number;
+        }
+        const summary = (Array.isArray(data) ? data[0] : data) as FinancialSummaryRpc | null;
         return {
           balance: summary?.total_balance || 0,
           income: summary?.total_income || 0,

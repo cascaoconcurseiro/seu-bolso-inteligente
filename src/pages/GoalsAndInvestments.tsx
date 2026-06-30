@@ -23,6 +23,7 @@ import { InvestmentIRPanel } from '@/components/investments/InvestmentIRPanel';
 import { useSyncAssetPrices } from '@/hooks/useSyncAssetPrices';
 import { RefreshCw } from 'lucide-react';
 import { EmptyState } from "@/components/ui/empty-state";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 
 export function GoalsAndInvestments() {
   const [activeTab, setActiveTab] = useState<'GOALS' | 'INVESTMENTS' | 'IRPF'>('GOALS');
@@ -73,9 +74,12 @@ export function GoalsAndInvestments() {
 
   const confirmDelete = () => {
     if (!itemToDelete) return;
+    showActionFeedback("error");
+    setTimeout(() => {
+      setItemToDelete(null);
+    }, 80);
     if (itemToDelete.type === 'goal') deleteGoal(itemToDelete.id);
     else deleteAsset(itemToDelete.id);
-    setItemToDelete(null);
   };
 
   // Portfolio calculations

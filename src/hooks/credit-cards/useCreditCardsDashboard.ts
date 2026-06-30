@@ -24,7 +24,8 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
 import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
-import { toast } from "sonner";
+import { getInvoiceData as getInvoiceDataNew } from "@/utils/credit-cards/invoiceData";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { getBankById } from "@/lib/banks";
 import { moneyUtils } from "@/utils/money";
@@ -308,12 +309,14 @@ export function useCreditCardsDashboard() {
 
   const handleDeleteTransaction = async (cascadeType: CascadeDeleteType) => {
     if (!deleteConfirm.transaction) return;
-    await deleteTransaction.mutateAsync({
+    showActionFeedback("success");
+    setTimeout(() => {
+      setDeleteConfirm({ isOpen: false, transaction: null });
+    }, 80);
+    deleteTransaction.mutate({
       id: deleteConfirm.transaction.id,
       cascadeType,
     });
-    toast.success("Transação(ões) excluída(s)!");
-    setDeleteConfirm({ isOpen: false, transaction: null });
     refetchTransactions();
   };
 
@@ -323,7 +326,12 @@ export function useCreditCardsDashboard() {
     const finalBankId =
       isCustom && editCustomBankName.trim() ? `custom:${editCustomBankName.trim()}` : editBankId;
 
-    await updateAccount.mutateAsync({
+    showActionFeedback("success");
+    setTimeout(() => {
+      setShowEditCardDialog(false);
+    }, 80);
+    
+    updateAccount.mutate({
       id: selectedCard.id,
       name: editCardName,
       closing_day: editClosingDay ? parseInt(editClosingDay) : null,
@@ -332,8 +340,6 @@ export function useCreditCardsDashboard() {
       bank_color: editCardColor,
       bank_id: finalBankId || null,
     });
-    toast.success("Cartão atualizado!");
-    setShowEditCardDialog(false);
     refetchAccounts();
   };
 

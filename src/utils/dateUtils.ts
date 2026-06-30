@@ -239,3 +239,51 @@ export function parseLocalDate(dateStr: string): Date {
   return new Date(year, month, day);
 }
 
+// ─── Funções migradas de lib/dateUtils (unificação DRY) ─────────────────
+
+import { parseISO, addMonths as dfAddMonths } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+
+/**
+ * Parse ISO string (YYYY-MM-DD) usando date-fns.
+ * Usa UTC para evitar problemas de timezone.
+ */
+export function parseDateUTC(dateString: string): Date {
+  const date = parseISO(dateString);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date format: ${dateString}. Expected YYYY-MM-DD`);
+  }
+  return date;
+}
+
+/**
+ * Formata uma data para YYYY-MM-DD em UTC.
+ */
+export function formatDateUTC(date: Date): string {
+  return formatInTimeZone(date, 'UTC', 'yyyy-MM-dd');
+}
+
+/**
+ * Obtém competence_date (YYYY-MM-01) em UTC.
+ */
+export function getCompetenceDateUTC(date: Date): string {
+  const yyyyMM = formatInTimeZone(date, 'UTC', 'yyyy-MM');
+  return `${yyyyMM}-01`;
+}
+
+/**
+ * Adiciona meses usando date-fns (lida com bordas de mês corretamente).
+ */
+export function addMonthsToDate(date: Date, months: number): Date {
+  return dfAddMonths(date, months);
+}
+
+/**
+ * Namespace para compatibilidade com código que usava `import { dateUtils } from "@/lib/dateUtils"`.
+ */
+export const dateUtils = {
+  parseDate: parseDateUTC,
+  formatDate: formatDateUTC,
+  getCompetenceDate: getCompetenceDateUTC,
+  addMonthsToDate,
+};

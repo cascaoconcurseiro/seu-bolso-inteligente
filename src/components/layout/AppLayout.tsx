@@ -30,10 +30,10 @@ import {
   Calculator,
   ChevronDown,
   Search,
-  Settings,
+  Grid3X3,
 } from "lucide-react";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
-import { navigationItems } from "@/config/navigation";
+import { navigationItems, secondaryNavItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -136,10 +136,17 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col w-full bg-background">
       <VersionGuard />
+      {/* Skip-to-content — WCAG 2.4.1 */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-accent focus:text-accent-foreground focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Pular para o conteúdo principal
+      </a>
       {/* TopBar */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-full px-4 md:px-6 lg:px-8">
-          <div className="flex h-11 md:h-12 items-center justify-between gap-2">
+          <div className="flex h-12 items-center justify-between gap-2">
             {/* Logo Wordmark */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-1 lg:mr-6 min-w-max">
               <span className="font-display font-bold text-sm md:text-base tracking-tight whitespace-nowrap block">
@@ -148,7 +155,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap">
+            <nav className="hidden md:flex items-center gap-0 flex-1 justify-center flex-wrap" aria-label="Navegação principal">
               {navigationItems.map((item) => {
                 const isActive =
                   location.pathname === item.path ||
@@ -171,6 +178,45 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </Link>
                 );
               })}
+              {secondaryNavItems.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 whitespace-nowrap",
+                        "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
+                      )}
+                      aria-label="Mais itens de navegação"
+                    >
+                      <Grid3X3 className="h-3.5 w-3.5 flex-shrink-0" />
+                      Mais
+                      <ChevronDown className="h-3 w-3 opacity-50" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {secondaryNavItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive =
+                        location.pathname === item.path ||
+                        (item.path !== "/" && location.pathname.startsWith(item.path));
+                      return (
+                        <DropdownMenuItem key={item.path} asChild>
+                          <Link
+                            to={item.path}
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer",
+                              isActive && "text-primary font-medium"
+                            )}
+                          >
+                            <Icon className="h-4 w-4" />
+                            {item.label}
+                          </Link>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </nav>
 
             {/* Right Section — isolado para não derrubar o header inteiro em caso de erro */}
@@ -284,7 +330,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 pb-32 md:pb-8">
+      <main id="main-content" className="flex-1 pb-32 md:pb-8" tabIndex={-1}>
         <div
           key={location.pathname}
           className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 animate-fade-in"

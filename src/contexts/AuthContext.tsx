@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import localforage from "localforage";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/config/queryClient";
 
 interface AuthContextType {
   user: User | null;

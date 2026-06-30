@@ -128,10 +128,10 @@ export function Dashboard() {
         current.total_patrimony = SafeFinancialCalculator.add(
           current.total_patrimony,
           Number(acc.balance || 0)
-        );
+        ).toNumber();
 
         if (acc.type !== "INVESTMENT" && acc.type !== "EMERGENCY_FUND") {
-          current.balance = SafeFinancialCalculator.add(current.balance, Number(acc.balance || 0));
+          current.balance = SafeFinancialCalculator.add(current.balance, Number(acc.balance || 0)).toNumber();
         }
 
         map.set(c, current);
@@ -149,16 +149,16 @@ export function Dashboard() {
         pending_income: 0,
         pending_expense: 0,
       };
-      current.income = SafeFinancialCalculator.add(current.income, Number(t.income || 0));
-      current.expense = SafeFinancialCalculator.add(current.expense, Number(t.expense || 0));
+      current.income = SafeFinancialCalculator.add(current.income, Number(t.income || 0)).toNumber();
+      current.expense = SafeFinancialCalculator.add(current.expense, Number(t.expense || 0)).toNumber();
       current.pending_income = SafeFinancialCalculator.add(
         current.pending_income,
         Number(t.pending_income || 0)
-      );
+      ).toNumber();
       current.pending_expense = SafeFinancialCalculator.add(
         current.pending_expense,
         Number(t.pending_expense || 0)
-      );
+      ).toNumber();
       map.set(c, current);
     });
 

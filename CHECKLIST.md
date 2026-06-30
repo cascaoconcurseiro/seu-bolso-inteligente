@@ -83,7 +83,7 @@
 - [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
 - [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
 - [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
-- [ ] **[AUD-07]** Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela
+- [x] **[AUD-07]** ~~Investigar `financial_ledger` (252 rows)~~ ✅ INVESTIGADO — Tabela legítima com FKs, NÃO dropar
 
 ---
 
@@ -120,10 +120,12 @@
 
 ## ⚠️ PENDENTE (pós-auditoria)
 
-- [ ] **[AUD-P1]** Configurar `CRON_SECRET` nos env vars do Supabase (Edge Functions)
-- [ ] **[AUD-P2]** Configurar `CRON_SECRET` no pg_cron (Authorization header nos requests)
+- [x] **[AUD-P1]** ~~Configurar `CRON_SECRET` nos env vars do Supabase~~ ✅ DONE
+- [x] **[AUD-P2]** ~~Configurar `CRON_SECRET` no pg_cron~~ ✅ DONE — jobs 3,4 atualizados; 6,7 desabilitados
+- [x] **[AUD-P4]** ~~Deploy Edge Functions com verify_jwt corrigido~~ ✅ DONE — 7 funções deployed
 - [ ] **[AUD-P3]** Implementar rate limiting nas Edge Functions expostas
 - [ ] **[SEC-05]** Fixar OAuth redirect em Vercel Preview URLs
+  - ⚠️ Ação manual: Supabase Dashboard → Authentication → URL Configuration → `https://*.vercel.app/**`
 - [ ] **[SEC-08]** Criptografar cache IndexedDB
 - [ ] **[RLS-01]** RLS cross-family para cartão compartilhado
 

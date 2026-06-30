@@ -35,7 +35,7 @@ export function FormField({
           className={cn(
             plainLabel
               ? "text-sm font-medium text-foreground"
-              : "text-[11px] font-semibold text-muted-foreground uppercase tracking-wider"
+              : "text-xs font-semibold text-muted-foreground uppercase tracking-wider"
           )}
         >
           {label}

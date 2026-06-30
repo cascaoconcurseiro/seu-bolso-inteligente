@@ -73,7 +73,7 @@ import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 // A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";
 
-import { useAdminActions } from './useAdminActions';
+import { useAdminActions } from '@/hooks/useAdminActions';
 
 export function AdminResetPanel() {
   const recalculateBalances = useRecalculateBalances();

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { parseDate } from "@/lib/dateUtils";
+import { parseDateUTC as parseDate } from "@/utils/dateUtils";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, Activity } from "lucide-react";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { EmptyState } from "@/components/ui/empty-state";

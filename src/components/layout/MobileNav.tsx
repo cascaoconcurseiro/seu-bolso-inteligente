@@ -5,7 +5,7 @@ import {
   Home,
   ArrowLeftRight,
   Plus,
-  Menu,
+  Grid3X3,
   X,
   BarChart2,
   Settings,
@@ -54,7 +54,7 @@ export function MobileNav() {
     { label: "Extrato", icon: ArrowLeftRight, path: "/transacoes" },
     { label: "Add", icon: Plus, isAction: true },
     { label: "Relatórios", icon: BarChart2, path: "/relatorios" },
-    { label: "Menu", icon: Menu, isMenu: true },
+    { label: "Mais", icon: Grid3X3, isMenu: true },
   ];
 
   const sheetItems = navigationItems;
@@ -85,7 +85,7 @@ export function MobileNav() {
 
         <div className="px-6 pb-6 overflow-y-auto no-scrollbar flex-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold text-base">Menu Principal</h2>
+            <h2 className="font-display font-semibold text-base">Explorar</h2>
             <button
               onClick={closeSheet}
               className="p-2 bg-muted/50 rounded-full text-muted-foreground hover:text-foreground"

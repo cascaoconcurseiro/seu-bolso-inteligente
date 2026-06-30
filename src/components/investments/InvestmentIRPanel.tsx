@@ -38,7 +38,7 @@ interface InvestmentIRPanelProps {
   assets: Asset[];
 }
 
-import { useInvestmentIR } from './useInvestmentIR';
+import { useInvestmentIR } from '@/hooks/useInvestmentIR';
 
 export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
   const {

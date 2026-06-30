@@ -6,7 +6,7 @@
 
 import { z } from "zod";
 import { SafeFinancialCalculator } from "./SafeFinancialCalculator";
-import { dateUtils } from "@/lib/dateUtils";
+import { dateUtils } from "@/utils/dateUtils";
 
 export interface ValidationResult {
   isValid: boolean;

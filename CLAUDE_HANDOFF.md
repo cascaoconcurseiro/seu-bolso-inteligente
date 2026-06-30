@@ -87,10 +87,14 @@
 - `groq-proxy/index.ts`: validação de payload (size limit 100KB + structure check)
 - `types.ts`: regenerado (admin_password removido)
 
-### ⚠️ Ação manual necessária
-1. Configurar `CRON_SECRET` nos env vars do Supabase Dashboard
-2. Configurar `CRON_SECRET` no pg_cron (Authorization: Bearer <secret>)
-3. Configurar wildcard `https://*.vercel.app/**` no Supabase Auth → Redirect URLs
+### ⚠️ Ação manual necessária (1 item)
+1. Supabase Dashboard → Authentication → URL Configuration → adicionar `https://*.vercel.app/**` nas Redirect URLs
+
+### ✅ Ações automatizadas concluídas
+- CRON_SECRET gerado e configurado nos Edge Functions secrets
+- pg_cron jobs 3,4 atualizados com CRON_SECRET header; jobs 6,7 desabilitados (duplicados)
+- 7 Edge Functions deployed com verify_jwt corrigido no config.toml
+- financial_ledger investigado: tabela legítima com FKs, NÃO dropar
 
 ---
 ## 📦 Auditoria de Produto 2026-06-30 — 20 Fases

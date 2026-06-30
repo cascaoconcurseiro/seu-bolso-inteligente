@@ -37,7 +37,7 @@ export function FormSection({ icon, title, children, className, plain = false }:
               {icon}
             </span>
           )}
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             {title}
           </span>
         </div>

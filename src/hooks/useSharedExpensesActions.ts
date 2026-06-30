@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ERROR_MESSAGES, SettlementErrorCode } from "@/services/settlementValidation";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { User } from "@supabase/supabase-js";
@@ -320,7 +321,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
-      setUndoConfirm({ isOpen: false, item: null });
+      showActionFeedback("success");
+      setTimeout(() => {
+        setUndoConfirm({ isOpen: false, item: null });
+      }, 80);
 
       if (item.originalTxId) {
         await invalidateRelated(item.originalTxId);
@@ -369,11 +373,14 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         return;
       }
 
+      showActionFeedback("success");
+      setTimeout(() => {
+        setDeleteConfirm({ isOpen: false, item: null });
+      }, 80);
+
       const { error } = await supabase.from("transactions").delete().eq("id", item.originalTxId);
 
       if (error) throw error;
-
-      setDeleteConfirm({ isOpen: false, item: null });
       await invalidateRelated(item.originalTxId);
       await refetch();
 
@@ -388,8 +395,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           priority: "NORMAL",
         });
       }
-
-      toast.success("Transação excluída com sucesso!");
     } catch (error) {
       logger.error("Erro ao excluir transação", error);
       toast.error("Erro ao excluir transação");
@@ -424,7 +429,10 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       const deletedCount = data?.[0]?.deleted_count || 0;
       if (deletedCount === 0) throw new Error("Nenhuma parcela foi excluída.");
 
-      setDeleteSeriesConfirm({ isOpen: false, item: null });
+      showActionFeedback("success");
+      setTimeout(() => {
+        setDeleteSeriesConfirm({ isOpen: false, item: null });
+      }, 80);
       if (item.originalTxId) await invalidateRelated(item.originalTxId);
       await refetch();
 
@@ -439,8 +447,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           priority: "NORMAL",
         });
       }
-
-      toast.success(`${deletedCount} parcelas excluídas com sucesso!`);
     } catch (error) {
       logger.error("Erro ao excluir série", error);
       toast.error("Erro ao excluir série");
