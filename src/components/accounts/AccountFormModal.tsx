@@ -37,6 +37,7 @@ interface AccountFormModalProps {
 const accountTypeLabels: Record<string, string> = {
   CHECKING: "Conta Corrente",
   SAVINGS: "Poupança",
+  CREDIT_CARD: "Cartão de Crédito",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
   EMERGENCY_FUND: "Reserva de Emergência",

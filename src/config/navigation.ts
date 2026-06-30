@@ -34,5 +34,5 @@ export const navigationItems: NavItem[] = [
   { path: "/simuladores", label: "Simuladores", icon: Calculator },
 ];
 
-// Mantido para compatibilidade com imports existentes
-export const secondaryNavItems: typeof navigationItems = [];
+// Itens secundários (menu overflow, ajustes, etc.)
+export const secondaryNavItems: NavItem[] = [];

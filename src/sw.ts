@@ -22,9 +22,15 @@ cleanupOutdatedCaches();
 // SPA fallback
 registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
 
-// Cache Supabase API (NetworkFirst)
+// Cache Supabase API (NetworkFirst) — exclui endpoints de autenticação
 registerRoute(
-  ({ url }) => url.hostname.includes("supabase.co"),
+  ({ url }) => {
+    if (!url.hostname.includes("supabase.co")) return false;
+    // [SEC] Nunca cachear tokens/auth endpoints
+    const path = url.pathname;
+    if (path.includes("/auth/") || path.includes("/token")) return false;
+    return true;
+  },
   new NetworkFirst({
     cacheName: "supabase-api-cache",
     plugins: [

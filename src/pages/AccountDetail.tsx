@@ -19,6 +19,8 @@ import { AccountBalanceCard } from "@/components/accounts/AccountBalanceCard";
 import { AccountStatement } from "@/components/accounts/AccountStatement";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";
 import { logger } from '@/utils/logger';
@@ -89,29 +91,34 @@ export function AccountDetail() {
 
   const handleConfirmDelete = async () => {
     if (!account) return;
-    try {
-      await deleteAccount.mutateAsync(id!);
+    showActionFeedback("success");
+    setTimeout(() => {
       navigate("/contas");
+    }, 80);
+    try {
+      deleteAccount.mutate(id!);
     } catch (error) {
       logger.error("Erro ao excluir conta:", error);
     }
   };
 
   const handleConfirmArchive = async () => {
-    try {
-      await archiveAccount.mutateAsync(id || "");
-      toast.success("Conta arquivada com sucesso!");
+    showActionFeedback("success");
+    setTimeout(() => {
       setShowArchiveConfirmModal(false);
       navigate("/");
+    }, 80);
+    try {
+      archiveAccount.mutate(id || "");
     } catch (error) {
       toast.error("Erro ao arquivar a conta.");
     }
   };
 
   const handleUnarchive = async () => {
+    showActionFeedback("success");
     try {
-      await unarchiveAccount.mutateAsync(id || "");
-      toast.success("Conta desarquivada com sucesso!");
+      unarchiveAccount.mutate(id || "");
     } catch (error) {
       toast.error("Erro ao desarquivar a conta.");
     }
@@ -119,23 +126,26 @@ export function AccountDetail() {
 
   const handleSaveEditAccountForm = async (data: any) => {
     if (!account) return;
-    await updateAccount.mutateAsync({
+    showActionFeedback("success");
+    setTimeout(() => setShowEditDialog(false), 80);
+    updateAccount.mutate({
       id: account.id,
       name: data.name,
       hide_balance: data.hide_balance,
       yield_type: data.yield_type,
       yield_rate: data.yield_rate,
     });
-    setShowEditDialog(false);
   };
 
   const handleDeleteTransaction = async (cascadeType: "NONE" | "NEXT" | "ALL") => {
     const tx = deleteConfirm.transaction;
     if (!tx) return;
-    try {
-      await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
-      toast.success("Transação excluída com sucesso!");
+    showActionFeedback("success");
+    setTimeout(() => {
       setDeleteConfirm({ isOpen: false, transaction: null });
+    }, 80);
+    try {
+      deleteTransaction.mutate({ id: tx.id, cascadeType });
       refetchStatement();
     } catch (error) {
       toast.error("Erro ao excluir transação");

@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  "https://pedemeia.vercel.app",
+  "https://meupedemeia.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
+
+function corsHeaders(origin: string | null) {
+  const isAllowed =
+    origin && (ALLOWED_ORIGINS.some((o) => origin.startsWith(o)) || origin.endsWith(".vercel.app"));
+  const allowed = isAllowed ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    Vary: "Origin",
+  };
+}
 
 // BCB SGS series codes
 const BCB_SERIES: Record<string, number> = {
@@ -14,8 +27,10 @@ const BCB_SERIES: Record<string, number> = {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders(origin) });
   }
 
   try {
@@ -27,7 +42,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response('Missing Authorization header', {
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'text/plain' },
         status: 401,
       });
     }
@@ -37,7 +52,7 @@ serve(async (req) => {
 
     if (userError || !user) {
       return new Response(`Auth error: ${userError?.message || 'User not found'}`, {
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'text/plain' },
         status: 401,
       });
     }
@@ -49,7 +64,7 @@ serve(async (req) => {
       const seriesCode = BCB_SERIES[body.indicator as string];
       if (!seriesCode) {
         return new Response(JSON.stringify({ error: 'Indicador desconhecido' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
           status: 400,
         });
       }
@@ -63,7 +78,7 @@ serve(async (req) => {
       const entry = bcbData?.[0];
       return new Response(
         JSON.stringify({ date: entry?.data ?? null, value: entry ? parseFloat(entry.valor.replace(',', '.')) : null }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' } }
       );
     }
 
@@ -72,7 +87,7 @@ serve(async (req) => {
 
     if (!currency || currency === target) {
       return new Response(JSON.stringify({ rate: 1 }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
       });
     }
 
@@ -88,7 +103,7 @@ serve(async (req) => {
       const rate = frankfurterData?.rates?.[target];
       if (rate) {
         return new Response(JSON.stringify({ rate }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
         });
       }
     }
@@ -104,13 +119,13 @@ serve(async (req) => {
     if (!rate) throw new Error(`Par ${currency}/${target} não encontrado`);
 
     return new Response(JSON.stringify({ rate }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
     console.error('Erro:', error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
       status: 500,
     });
   }

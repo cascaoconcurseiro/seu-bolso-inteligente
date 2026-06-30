@@ -76,7 +76,8 @@ export function FamilyBalancePanel() {
         const txList = data?.transactions;
         if (Array.isArray(txList) && txList.length > 0) {
           const unsettled = txList.filter((tx: any) => {
-            if (!tx.competence_date) return false;
+            const txDate = tx.competence_date || tx.date;
+            if (!txDate) return false;
             // Check splits for unsettled debts
             if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
                return tx.transaction_splits.some((s: any) => !s.is_settled && !s.settled_by_creditor);
@@ -85,16 +86,26 @@ export function FamilyBalancePanel() {
           });
           
           if (unsettled.length > 0) {
-            unsettled.sort((a, b) => new Date(b.competence_date).getTime() - new Date(a.competence_date).getTime());
-            return unsettled[0].competence_date.substring(0, 7); // 'YYYY-MM'
+            unsettled.sort((a, b) => {
+              const dateA = a.competence_date || a.date;
+              const dateB = b.competence_date || b.date;
+              return new Date(dateB).getTime() - new Date(dateA).getTime();
+            });
+            const selectedDate = unsettled[0].competence_date || unsettled[0].date;
+            return selectedDate.substring(0, 7); // 'YYYY-MM'
           }
 
           // Fallback: se não encontrar transações não liquidadas (por algum motivo),
           // pega o mês da transação compartilhada mais recente.
-          const validTx = txList.filter((tx: any) => tx.competence_date);
+          const validTx = txList.filter((tx: any) => tx.competence_date || tx.date);
           if (validTx.length > 0) {
-            validTx.sort((a, b) => new Date(b.competence_date).getTime() - new Date(a.competence_date).getTime());
-            return validTx[0].competence_date.substring(0, 7); // 'YYYY-MM'
+            validTx.sort((a, b) => {
+              const dateA = a.competence_date || a.date;
+              const dateB = b.competence_date || b.date;
+              return new Date(dateB).getTime() - new Date(dateA).getTime();
+            });
+            const selectedDate = validTx[0].competence_date || validTx[0].date;
+            return selectedDate.substring(0, 7); // 'YYYY-MM'
           }
         }
         return null;

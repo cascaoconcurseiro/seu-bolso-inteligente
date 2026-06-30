@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { Button } from "@/components/ui/button";
 import { ArchivedAccountsSection } from "@/components/accounts/ArchivedAccountsSection";
 import {
@@ -32,6 +33,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 const accountTypeLabels: Record<string, string> = {
   CHECKING: "Conta Corrente",
   SAVINGS: "Poupança",
+  CREDIT_CARD: "Cartão de Crédito",
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
   EMERGENCY_FUND: "Reserva de Emergência",
@@ -185,9 +187,10 @@ export function Accounts() {
       .slice(0, 3);
 
   const handleCreateSubmit = async (data: any) => {
+    showActionFeedback("success");
+    setTimeout(() => setShowAddDialog(false), 80);
     try {
-      await createAccount.mutateAsync(data);
-      setShowAddDialog(false);
+      createAccount.mutate(data);
     } catch {
       /* onError do hook já mostra toast */
     }
@@ -195,11 +198,12 @@ export function Accounts() {
 
   const handleEditSubmit = async (data: any) => {
     if (!editAccount) return;
+    showActionFeedback("success");
+    setTimeout(() => setEditAccount(null), 80);
     try {
-      await updateAccount.mutateAsync({ id: editAccount.id, ...data });
-      setEditAccount(null);
+      updateAccount.mutate({ id: editAccount.id, ...data });
     } catch {
-      /* onError do hook já mostra toast */
+      /* erro tratado no hook */
     }
   };
 

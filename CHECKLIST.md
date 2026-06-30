@@ -1,7 +1,7 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-28
+> Última atualização: 2026-06-30 — Pós-Auditoria Completa
 
 ---
 
@@ -22,6 +22,15 @@
 - [x] **[ARC-02]** ~~Parcelamentos: atomicidade via RPC~~ ✅ DONE
   - Migration: `create_installment_series(p_transactions)` RPC com splits embutidos
   - Frontend: `useCreateTransaction.ts` — usa RPC atômica para todos os parcelamentos
+
+- [x] **[AUD-02]** ~~types.ts desatualizado (+4 tabelas, +2 colunas ausentes)~~ ✅ DONE
+  - `error_logs`, `goal_milestones`, `push_subscriptions`, `settlement_reversals`, `member_type`, `app_pin_hash`
+
+- [x] **[AUD-03]** ~~error_reports duplicado com error_logs~~ ✅ DONE — droppado (vazio)
+- [x] **[AUD-04]** ~~View active_family_members sem member_type~~ ✅ DONE — view recriada
+- [x] **[AUD-05]** ~~accountTypeLabels sem CREDIT_CARD e GLOBAL_ACCOUNT~~ ✅ DONE — 3 arquivos corrigidos
+- [x] **[AUD-06]** ~~RLS ausente em goal_milestones e push_subscriptions~~ ✅ DONE — policies criadas
+- [ ] **[AUD-07]** Investigar `financial_ledger` (252 rows) — migrar dados e dropar tabela
 
 ---
 

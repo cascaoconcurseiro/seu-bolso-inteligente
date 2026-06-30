@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 
 function ok(msg: string) {
-  showActionFeedback("success");
   toast.success(msg);
 }
 

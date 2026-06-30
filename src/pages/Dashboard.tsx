@@ -1,6 +1,6 @@
 import { moneyUtils } from "@/utils/money";
 import { Link } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { CreditCard, TrendingUp, Wallet, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -29,14 +29,7 @@ import { DashboardUpcomingRecurring } from "@/components/dashboard/DashboardUpco
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
 import { useFamilyMembers } from "@/hooks/useFamily";
-import { useTransactions } from "@/hooks/useTransactions";
 import { getTransactionCurrency } from "@/utils/transactionUtils";
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plane } from "lucide-react";
-import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
-import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { logger } from '@/utils/logger';
 
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
@@ -47,7 +40,6 @@ export function Dashboard() {
   const { user } = useAuth();
   const { currentDate } = useMonth();
   const { data: dashboardData, isLoading: txLoading, isError: txError } = useDashboardData();
-  const { data: dashboardRecentTransactions = [], isLoading: recentLoading } = useTransactions({ limit: 100 });
   const { data: familyMembers = [] } = useFamilyMembers();
   const { data: accounts, isLoading: accountsLoading, isError: accountsError } = useAccounts();
   const { data: trips } = useTrips();
@@ -56,16 +48,6 @@ export function Dashboard() {
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(selectedCurrency, "BRL");
 
 
-
-  useEffect(() => {
-    // Sincroniza fechamento de faturas automaticamente
-    import("@/integrations/supabase/client").then(({ supabase }) => {
-      // Chamada direta sem verificação de tipo para RPC não tipada
-      (supabase.rpc as any)("process_credit_card_invoices").then(({ error }: any) => {
-        if (error) logger.error("Falha ao sincronizar faturas:", error);
-      });
-    });
-  }, []);
 
   useEffect(() => {
     const handleOpenModal = (e: any) => {
@@ -81,14 +63,14 @@ export function Dashboard() {
   }, []);
 
   const recentTransactions = useMemo(() => {
-    return dashboardRecentTransactions
+    return (dashboardData?.recent_transactions || [])
       .filter((tx) => {
         if (getTransactionCurrency(tx) !== selectedCurrency) return false;
 
         if (tx.source_transaction_id) return false;
 
         if (tx.is_shared === true) {
-          const isCreator = tx.creator_user_id === user?.id;
+          const isCreator = (tx as any).creator_user_id === user?.id;
           const myFamilyMember = familyMembers.find((m) => m.linked_user_id === user?.id);
           const isPayer = myFamilyMember && tx.payer_id === myFamilyMember.id;
           if (!isCreator && !isPayer) return false;
@@ -97,9 +79,9 @@ export function Dashboard() {
         return true;
       })
       .slice(0, 5);
-  }, [dashboardRecentTransactions, familyMembers, selectedCurrency, user?.id]);
+  }, [dashboardData?.recent_transactions, familyMembers, selectedCurrency, user?.id]);
   const hasError = txError || accountsError;
-  const isLoading = (txLoading || accountsLoading || recentLoading) && !hasError;
+  const isLoading = (txLoading || accountsLoading) && !hasError;
 
   const activeTrip = useMemo(() => {
     if (!trips || trips.length === 0) return null;

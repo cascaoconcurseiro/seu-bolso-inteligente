@@ -65,27 +65,22 @@ export class AIAdvisorService {
     } catch (error) {
       logger.warn(`[AIAdvisorService] Erro ao chamar ${GROQ_API_URL}`, error);
 
-      // Dev-only: fallback direto à API da Groq com a chave local (nunca em produção)
+      // Dev-only: fallback via Vite proxy (the proxy reads VITE_GROQ_API_KEY server-side).
+      // In production, the edge function handles everything; no client key is ever used.
       if (isDev) {
-        const devKey = import.meta.env.VITE_GROQ_API_KEY;
-        if (devKey) {
-          try {
-            logger.debug("[AIAdvisorService] Tentando fallback direto na Groq (dev)...");
-            const fallbackResponse = await fetch(
-              "https://api.groq.com/openai/v1/chat/completions",
-              {
-                method: "POST",
-                headers: { Authorization: `Bearer ${devKey}`, "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-              }
-            );
-            if (fallbackResponse.ok) return await fallbackResponse.json();
-          } catch (fallbackError) {
-            logger.error(
-              "[AIAdvisorService] Erro no fallback dev",
-              fallbackError instanceof Error ? fallbackError : undefined
-            );
-          }
+        try {
+          logger.debug("[AIAdvisorService] Tentando fallback via proxy local (dev)...");
+          const fallbackResponse = await fetch("/api/ai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (fallbackResponse.ok) return await fallbackResponse.json();
+        } catch (fallbackError) {
+          logger.error(
+            "[AIAdvisorService] Erro no fallback dev",
+            fallbackError instanceof Error ? fallbackError : undefined
+          );
         }
       }
       return null;

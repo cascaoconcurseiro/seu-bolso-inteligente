@@ -1,15 +1,43 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.6';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const ALLOWED_ORIGINS = [
+  'https://pedemeia.vercel.app',
+  'https://meupedemeia.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
+function corsHeaders(origin: string | null) {
+  const isAllowed =
+    origin && (ALLOWED_ORIGINS.some((o) => origin.startsWith(o)) || origin.endsWith(".vercel.app"));
+  const allowed = isAllowed ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin',
+  };
+}
+
+const CRON_SECRET = Deno.env.get("CRON_SECRET");
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(origin) });
+  }
+
+  // [SEC] Verify CRON_SECRET to prevent unauthorized invocation
+  if (CRON_SECRET) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || authHeader !== `Bearer ${CRON_SECRET}`) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
+      });
+    }
   }
 
   try {
@@ -83,7 +111,7 @@ serve(async (req) => {
         updated: totalUpserted
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
         status: 200,
       },
     );
@@ -93,7 +121,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders(null), 'Content-Type': 'application/json' },
         status: 500,
       },
     );

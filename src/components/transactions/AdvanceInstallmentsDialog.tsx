@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useFutureInstallments, useAdvanceInstallments } from "@/hooks/useInstallments";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 
 interface AdvanceInstallmentsDialogProps {
   open: boolean;
@@ -64,9 +65,13 @@ export function AdvanceInstallmentsDialog({
   const handleAdvance = async () => {
     if (selectedIds.length === 0) return;
     
-    await advanceInstallments.mutateAsync(selectedIds);
-    setSelectedIds([]);
-    onOpenChange(false);
+    showActionFeedback("success");
+    setTimeout(() => {
+      setSelectedIds([]);
+      onOpenChange(false);
+    }, 80);
+
+    advanceInstallments.mutate(selectedIds);
   };
 
   const totalToAdvance = futureInstallments

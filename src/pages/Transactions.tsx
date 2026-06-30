@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { PullToRefresh } from "@/components/ui/PullToRefresh";
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { useLocation } from "react-router-dom";
 import { Clock, CalendarClock, List } from "lucide-react";
@@ -270,21 +271,26 @@ export function Transactions() {
     const tx = deleteConfirm.transaction;
 
     if (tx.is_shared && isFullySettled(tx)) {
+      showActionFeedback("error");
       toast.error("Transação acertada não pode ser excluída");
       setDeleteConfirm({ isOpen: false, transaction: null });
       return;
     }
 
+    showActionFeedback("success");
+    haptics.heavy();
+    
+    setTimeout(() => {
+      setDeleteConfirm({ isOpen: false, transaction: null });
+      setDetailsTransaction(null);
+    }, 80);
+
     try {
-      await deleteTransaction.mutateAsync({ id: tx.id, cascadeType });
+      deleteTransaction.mutate({ id: tx.id, cascadeType });
+      if (tx.is_shared) invalidateRelated(tx.id);
     } catch {
       /* onError do hook já trata */
     }
-    if (tx.is_shared) await invalidateRelated(tx.id);
-
-    haptics.heavy();
-    setDeleteConfirm({ isOpen: false, transaction: null });
-    setDetailsTransaction(null);
   };
 
   const handleAdvance = (transaction: Transaction) => {
@@ -295,8 +301,11 @@ export function Transactions() {
   };
 
   const handleUnconfirm = (transaction: Transaction) => {
+    showActionFeedback("success");
+    setTimeout(() => {
+      setDetailsTransaction(null);
+    }, 80);
     unconfirmTransaction.mutate({ id: transaction.id });
-    setDetailsTransaction(null);
   };
 
   const getCreatorName = (transaction: Transaction) => {

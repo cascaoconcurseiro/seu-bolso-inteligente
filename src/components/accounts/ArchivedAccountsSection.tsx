@@ -13,6 +13,7 @@ const accountTypeLabels = {
   INVESTMENT: "Investimento",
   CASH: "Dinheiro",
   EMERGENCY_FUND: "Reserva de Emergência",
+  GLOBAL_ACCOUNT: "Conta Global",
 };
 
 export function ArchivedAccountsSection() {

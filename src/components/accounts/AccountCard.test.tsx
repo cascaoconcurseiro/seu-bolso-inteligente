@@ -42,7 +42,7 @@ const defaultProps = {
   ],
   formatCurrency: (v: number) => `R$ ${v.toFixed(2)}`,
   getCurrencySymbol: () => "R$",
-  accountTypeLabels: { CHECKING: "Conta Corrente", SAVINGS: "Poupança" },
+  accountTypeLabels: { CHECKING: "Conta Corrente", SAVINGS: "Poupança", CREDIT_CARD: "Cartão de Crédito", GLOBAL_ACCOUNT: "Conta Global" },
 };
 
 describe("AccountCard", () => {
