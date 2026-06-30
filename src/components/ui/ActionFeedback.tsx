@@ -47,10 +47,15 @@ export function ActionFeedback() {
         animation: "feedbackFadeIn 0.12s ease-out forwards, feedbackFadeOut 0.22s 0.68s ease-in forwards",
       }}
     >
-      {/* Full-screen color wash */}
+      {/* Full-screen color wash wave */}
       <div
-        className={`absolute inset-0 ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`}
-        style={{ opacity: 0.92 }}
+        className={`absolute top-1/2 left-1/2 rounded-full ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`}
+        style={{
+          width: "250vmax",
+          height: "250vmax",
+          opacity: 0.95,
+          animation: "feedbackWave 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        }}
       />
 
       {/* Centered icon pill */}

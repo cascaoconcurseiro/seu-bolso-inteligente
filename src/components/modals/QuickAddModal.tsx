@@ -20,6 +20,7 @@ import { useCreateTransaction } from '@/hooks/useTransactions';
 import { format } from 'date-fns';
 import { Loader2, Sparkles, Plane } from 'lucide-react';
 import { toast } from 'sonner';
+import { showActionFeedback } from '@/components/ui/ActionFeedback';
 import { useAIPrediction } from '@/hooks/useAIPrediction';
 import { useTrips } from '@/hooks/useTrips';
 import { Switch } from '@/components/ui/switch';
@@ -160,28 +161,44 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const handleError = (msg: string) => {
+      showActionFeedback("error");
+      toast.error(msg);
+    };
     
     const numericAmount = moneyUtils.parse(amount.replace(',', '.'));
     
     if (!numericAmount || numericAmount <= 0) {
-      toast.error('Informe um valor válido.');
+      handleError('Informe um valor válido.');
       return;
     }
     if (!description.trim()) {
-      toast.error('A descrição é obrigatória.');
+      handleError('A descrição é obrigatória.');
       return;
     }
     if (!accountId) {
-      toast.error('A conta é obrigatória.');
+      handleError('A conta é obrigatória.');
       return;
     }
     if (!categoryId) {
-      toast.error('A categoria é obrigatória.');
+      handleError('A categoria é obrigatória.');
       return;
     }
 
     try {
-      await createTransaction.mutateAsync({
+      showActionFeedback("success");
+      
+      setTimeout(() => {
+        setAmount('');
+        setDescription('');
+        setDate(format(new Date(), 'yyyy-MM-dd'));
+        setAccountId('');
+        setCategoryId('');
+        onClose();
+      }, 80);
+
+      createTransaction.mutate({
         amount: numericAmount,
         description: description.trim(),
         date,
@@ -196,14 +213,6 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
         is_installment: isInstallment && totalInstallments > 1,
         total_installments: isInstallment && totalInstallments > 1 ? totalInstallments : undefined,
       });
-      
-      // Reset and close
-      setAmount('');
-      setDescription('');
-      setDate(format(new Date(), 'yyyy-MM-dd'));
-      setAccountId('');
-      setCategoryId('');
-      onClose();
     } catch (error) {
       // Error handled by mutation
     }

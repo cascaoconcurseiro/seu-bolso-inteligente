@@ -99,7 +99,11 @@ interface CreditCardAccount {
   is_international?: boolean;
 }
 
+import { useQueryClient } from "@tanstack/react-query";
+
 export function CreditCards() {
+  const queryClient = useQueryClient();
+
   const {
     view,
     setView,
@@ -364,6 +368,8 @@ export function CreditCards() {
               
             if (!error) {
               toast.success(`Fechamento da fatura atual ajustado para dia ${newDay}`);
+              queryClient.invalidateQueries({ queryKey: ["credit-card-closing-override"] });
+              queryClient.invalidateQueries({ queryKey: ["credit-card-invoice"] });
               refetchAccounts();
               refetchTransactions();
             } else {

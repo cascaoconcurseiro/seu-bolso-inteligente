@@ -4,6 +4,7 @@
  */
 
 import { toast } from 'sonner';
+import { showActionFeedback } from '@/components/ui/ActionFeedback';
 import { logger } from './logger';
 
 export interface AppError {
@@ -42,6 +43,7 @@ export const handleMutationError = (
 ): void => {
   const message = `Erro ao ${action} ${entity}`;
   logger.error(message, { error });
+  showActionFeedback("error");
   toast.error(`${message}: ${(error as Error)?.message || 'Erro desconhecido'}`);
 };
 
@@ -77,6 +79,7 @@ export const handleSupabaseError = (
  */
 export const handleValidationError = (message: string): never => {
   logger.warn('Erro de validação', { message });
+  showActionFeedback("error");
   toast.error(message);
   throw new Error(message);
 };
@@ -87,6 +90,7 @@ export const handleValidationError = (message: string): never => {
  */
 export const handleNetworkError = (error: unknown): never => {
   logger.error('Erro de rede', { error });
+  showActionFeedback("error");
   toast.error('Erro de conexão. Verifique sua internet e tente novamente.');
   throw error;
 };
@@ -100,6 +104,7 @@ export const safeErrorHandler = (
   fallbackMessage: string = 'Ocorreu um erro inesperado'
 ): void => {
   logger.error('Erro não tratado', { error });
+  showActionFeedback("error");
   
   if (error instanceof Error) {
     toast.error(error.message);
@@ -118,6 +123,7 @@ export const withErrorHandling = <T>(
 ): Promise<T> => {
   return fn().catch((error) => {
     logger.error(errorMessage, { error });
+    showActionFeedback("error");
     toast.error(`${errorMessage}: ${error.message}`);
     throw error;
   });

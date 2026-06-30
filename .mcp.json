@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "supabase": "https://mcp.supabase.com/mcp"
+  }
+}

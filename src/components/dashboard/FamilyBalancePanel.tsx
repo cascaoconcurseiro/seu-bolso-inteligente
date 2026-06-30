@@ -66,9 +66,9 @@ export function FamilyBalancePanel() {
 
   if (membersWithBalance.length === 0) return null;
 
-  // NOVO: Busca o mês da dívida mais antiga para direcionar o link "Ver tudo"
-  const { data: oldestDebtMonth } = useQuery({
-    queryKey: ['oldest-debt-month', user?.id],
+  // NOVO: Busca o mês com a transação mais recente para direcionar o link "Ver tudo"
+  const { data: targetDebtMonth } = useQuery({
+    queryKey: ['target-debt-month', user?.id],
     queryFn: async () => {
       if (!user) return null;
       try {
@@ -83,9 +83,18 @@ export function FamilyBalancePanel() {
             }
             return tx.is_settled === false;
           });
+          
           if (unsettled.length > 0) {
-            unsettled.sort((a, b) => new Date(a.competence_date).getTime() - new Date(b.competence_date).getTime());
+            unsettled.sort((a, b) => new Date(b.competence_date).getTime() - new Date(a.competence_date).getTime());
             return unsettled[0].competence_date.substring(0, 7); // 'YYYY-MM'
+          }
+
+          // Fallback: se não encontrar transações não liquidadas (por algum motivo),
+          // pega o mês da transação compartilhada mais recente.
+          const validTx = txList.filter((tx: any) => tx.competence_date);
+          if (validTx.length > 0) {
+            validTx.sort((a, b) => new Date(b.competence_date).getTime() - new Date(a.competence_date).getTime());
+            return validTx[0].competence_date.substring(0, 7); // 'YYYY-MM'
           }
         }
         return null;
@@ -97,7 +106,7 @@ export function FamilyBalancePanel() {
     staleTime: 60 * 1000,
   });
 
-  const linkTo = oldestDebtMonth ? `/compartilhados?month=${oldestDebtMonth}` : `/compartilhados`;
+  const linkTo = targetDebtMonth ? `/compartilhados?month=${targetDebtMonth}` : `/compartilhados`;
 
   return (
     <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">

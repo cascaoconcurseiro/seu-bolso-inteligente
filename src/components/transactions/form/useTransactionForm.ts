@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { moneyUtils } from "@/utils/money";
 
 interface TransactionFormProps {
@@ -622,6 +623,15 @@ export function useTransactionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const handleError = (msg: string, opts?: any) => {
+      showActionFeedback("error");
+      if (opts) {
+        toast.error(msg, opts);
+      } else {
+        toast.error(msg);
+      }
+    };
     setValidationErrors([]);
     setValidationWarnings([]);
     const numericAmount = moneyUtils.parse(amount) || 0;
@@ -636,30 +646,30 @@ export function useTransactionForm({
     const isShared = transactionSplits.length > 0 || (activeTab === "EXPENSE" && isPaidByOther);
 
     if (isShared && !isPaidByOther && transactionSplits.length === 0) {
-      toast.error("Selecione pelo menos um membro para dividir a despesa");
+      handleError("Selecione pelo menos um membro para dividir a despesa");
       setShowSplitModal(true);
       return;
     }
     if (numericAmount <= 0) {
-      toast.error("O valor da transação deve ser maior que zero");
+      handleError("O valor da transação deve ser maior que zero");
       return;
     }
     if (!description.trim()) {
-      toast.error("A descrição é obrigatória");
+      handleError("A descrição é obrigatória");
       return;
     }
     if (activeTab === "EXPENSE" && !categoryId) {
-      toast.error("A categoria é obrigatória para despesas");
+      handleError("A categoria é obrigatória para despesas");
       return;
     }
     if (!accountId && !isPaidByOther) {
-      toast.error("A conta de origem é obrigatória");
+      handleError("A conta de origem é obrigatória");
       return;
     }
     if (activeTab === "TRANSFER") {
       if (transferType === "goal") {
         if (!goalId) {
-          toast.error("Selecione uma meta de destino");
+          handleError("Selecione uma meta de destino");
           return;
         }
         setPendingSubmit(true);
@@ -683,7 +693,7 @@ export function useTransactionForm({
         return;
       }
       if (!destinationAccountId) {
-        toast.error("A conta de destino é obrigatória");
+        handleError("A conta de destino é obrigatória");
         return;
       }
     }
@@ -691,7 +701,7 @@ export function useTransactionForm({
     if (tripId && selectedTrip && selectedAccount) {
       if (selectedAccount.currency !== selectedTrip.currency) {
         if (!destinationAmount || moneyUtils.parse(destinationAmount) <= 0) {
-          toast.error(
+          handleError(
             `Para gastos multi-moeda, informe o valor real na moeda da viagem (${selectedTrip.currency}).`
           );
           return;
@@ -709,7 +719,7 @@ export function useTransactionForm({
     })();
 
     if (isShared && !resolvedPayerId) {
-      toast.error(
+      handleError(
         "Não foi possível identificar seu perfil de membro na família. Verifique suas configurações."
       );
       return;
@@ -789,7 +799,7 @@ export function useTransactionForm({
       setRippleState("error");
       setTimeout(() => setRippleState(null), 800);
       setValidationErrors(validation.errors);
-      toast.error("Corrija os erros:", { description: validation.errors.join(" • ") });
+      handleError("Corrija os erros:", { description: validation.errors.join(" • ") });
       return;
     }
     if (validation.warnings.length > 0) {

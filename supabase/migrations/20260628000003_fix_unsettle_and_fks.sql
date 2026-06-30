@@ -276,7 +276,6 @@ BEGIN
   UPDATE transactions
   SET
     deleted_at = NOW(),
-    is_active = false,
     updated_at = NOW()
   WHERE id = ANY(v_payment_tx_ids);
 

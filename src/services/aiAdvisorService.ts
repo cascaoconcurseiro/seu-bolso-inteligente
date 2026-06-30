@@ -41,11 +41,7 @@ export class AIAdvisorService {
       if (anonKey) headers["apikey"] = anonKey;
 
       // Also forward the user's auth token so the function can verify identity
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-      );
+      const { supabase } = await import("@/integrations/supabase/client");
       const {
         data: { session },
       } = await supabase.auth.getSession();
