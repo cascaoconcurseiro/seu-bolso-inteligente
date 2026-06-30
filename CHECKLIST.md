@@ -1,7 +1,7 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: 2026-06-30 — Pós-Auditoria de Infraestrutura (20 fases)
+> Última atualização: 2026-06-30 — Pós-Auditoria de Produto (20 fases) + Infraestrutura
 
 ---
 
@@ -210,3 +210,103 @@
 - [x] **[B-20]** error_logs: RLS restrito (is_admin + próprio usuário)
 - [x] **[B-29]** Duplicado de B-15
 - [x] **[B-30]** Duplicado de B-18
+
+---
+
+## 🔍 AUDITORIA DE PRODUTO 2026-06-30 — Achados (20 fases)
+
+### 🔴 CRÍTICO — Produto
+
+- [ ] **[PROD-01]** Relatório mensal por email não funciona — domínio Resend não verificado
+  - `send-monthly-report` Edge Function funcional, mas emails retornam 403
+  - Fix: verificar domínio ou usar `onboarding@resend.dev` como fallback
+  - Esforço: XS (config)
+
+- [ ] **[PROD-02]** SafeFinancialCalculator retorna `number` em vez de `Decimal`
+  - Métodos `add()`, `subtract()` perdem precisão decimal
+  - Refatorar para retornar `Decimal` — quebra compatibilidade com callers
+  - Esforço: M
+
+- [ ] **[PROD-03]** Sem sincronização bancária automática (Open Banking)
+  - Principal gap competitivo vs YNAB, Mobills, Nubank, Inter
+  - Usuário precisa digitar tudo manualmente
+  - Esforço: L
+
+### 🟠 ALTA — Produto
+
+- [ ] **[PROD-04]** PDF export bloqueia UI main thread (jsPDF)
+  - ARC-05: migrar para Web Worker
+  - Esforço: M
+
+- [ ] **[PROD-05]** Limite do cartão de crédito não validado
+  - Usuário pode gastar além do limite sem alerta
+  - Esforço: S
+
+- [ ] **[PROD-06]** Sem alertas de orçamento estourado
+  - Orçamento sem notificação perde função principal de controle
+  - Adicionar push + destaque visual em 80% e 100%
+  - Esforço: S
+
+- [ ] **[PROD-07]** Sem projeção de fluxo de caixa futuro
+  - Dashboard mostra apenas passado/presente
+  - Criar projeção baseada em transações agendadas + médias
+  - Esforço: M
+
+- [ ] **[PROD-08]** Transferência entre contas sem atomicidade
+  - Duas operações separadas — risco em caso de falha parcial
+  - Criar RPC atômica `transfer_between_accounts`
+  - Esforço: S
+
+### 🟡 MÉDIA — Produto
+
+- [ ] **[PROD-09]** Centralizar formatação de moeda — remover `formatCurrency` locais
+  - Múltiplas implementações inconsistentes. Padronizar `moneyUtils.format()`
+  - Esforço: XS
+
+- [ ] **[PROD-10]** Acessibilidade: `aria-label` em cards interativos (GoalCard, AccountCard)
+  - Esforço: XS
+
+- [ ] **[PROD-11]** Acessibilidade: alternativas textuais para gráficos Recharts
+  - Esforço: S
+
+- [ ] **[PROD-12]** `useCreateTransaction` com 600+ linhas — quebrar em hooks menores
+  - Extrair: `useTransactionValidation`, `useTransactionSplits`, `useAutoShare`
+  - Esforço: M
+
+- [ ] **[PROD-13]** Comparação "mês atual vs mês anterior" no Dashboard
+  - Métrica básica de saúde financeira ausente
+  - Esforço: S
+
+- [ ] **[PROD-14]** Tooltip "Ctrl+K para buscar" visível no header
+  - Busca global não é descoberta naturalmente
+  - Esforço: XS
+
+### 🔵 BAIXA — Produto
+
+- [ ] **[PROD-15]** Simuladores apenas 2 tipos (Renda Fixa + IPCA)
+  - Adicionar: juros compostos, aposentadoria, comparação de investimentos
+  - Esforço: M
+
+- [ ] **[PROD-16]** Onboarding não guia criação de conta bancária
+  - Usuário novo precisa descobrir sozinho o próximo passo
+  - Esforço: S
+
+- [ ] **[PROD-17]** Terminologia confusa: "Compartilhado" vs "Compartilhar", "Próximas" vs "Agendadas"
+  - Esforço: XS
+
+- [ ] **[PROD-18]** Sem consolidação multi-moeda automática no Dashboard
+  - Usuário precisa selecionar moeda manualmente
+  - Esforço: M
+
+### ✅ PROD — Constatado como correto na auditoria
+
+- [x] **[PROD-OK-01]** SSOT de saldo via trigger PostgreSQL — robusto
+- [x] **[PROD-OK-02]** Soft delete em todas tabelas financeiras — sem perda de dados
+- [x] **[PROD-OK-03]** RPCs atômicas para splits, parcelamentos, liquidações
+- [x] **[PROD-OK-04]** Audit trail imutável em settlement_reversals
+- [x] **[PROD-OK-05]** CHECK constraints financeiras (amount > 0, competence_date = first)
+- [x] **[PROD-OK-06]** PIN com bcrypt via RPC — segurança superior
+- [x] **[PROD-OK-07]** RLS ativo em todas as tabelas
+- [x] **[PROD-OK-08]** Gastos compartilhados com liquidação atômica — diferencial real
+- [x] **[PROD-OK-09]** Viagens multi-moeda com guest — único no mercado
+- [x] **[PROD-OK-10]** IRPF integrado com B3 — valor real para investidores

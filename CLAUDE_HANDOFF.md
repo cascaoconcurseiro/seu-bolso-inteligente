@@ -5,7 +5,35 @@
 
 ---
 
-## 🏗️ Auditoria de Infraestrutura 2026-06-30 — 20 Fases
+## � Auditoria de UX/UI 2026-06-30 — 20 Fases
+
+**Relatório completo:** `UX_AUDIT_REPORT_2026-06-30.md`
+**Overall Score:** 61/100 🟡
+**9 críticos | 14 altos | 18 médios | 10 baixos**
+
+### Principais Descobertas
+
+| #    | Severidade | Problema                                            |
+| :--- | :--------- | :-------------------------------------------------- |
+| C1   | 🔴 CRÍTICO  | Dashboard com 13 seções (sobrecarga cognitiva)      |
+| C2   | 🔴 CRÍTICO  | Fontes 10-11px em labels/badges (ilegível)          |
+| C3   | 🔴 CRÍTICO  | 11 itens de navegação (viola Miller's Law)          |
+| C4   | 🔴 CRÍTICO  | Sem skip-to-content (WCAG 2.4.1)                    |
+| C5   | 🔴 CRÍTICO  | Contraste insuficiente em labels muted (WCAG 1.4.3) |
+| C6   | 🔴 CRÍTICO  | Sem prefers-reduced-motion (WCAG 2.3.3)             |
+| C7   | 🔴 CRÍTICO  | PIN plaintext (já documentado)                      |
+| C8   | 🔴 CRÍTICO  | Sem documentação do Design System                   |
+| C9   | 🔴 CRÍTICO  | Gráficos sem alternativa textual (WCAG 1.1.1)       |
+
+### PRÓXIMO PASSO (IMEDIATO — Quick Wins)
+1. Aumentar fonte 10-11px → 12px (C2, C5)
+2. Adicionar skip-to-content link (C4)
+3. Adicionar `@media (prefers-reduced-motion)` no index.css (C6)
+4. `aria-label` nos botões icon-only (A11)
+
+---
+
+## �🏗️ Auditoria de Infraestrutura 2026-06-30 — 20 Fases
 
 **Relatório completo:** `AUDIT_REPORT_2026-06-30.md`
 **Overall Score:** 57/100 🟡
@@ -13,15 +41,15 @@
 
 ### Principais Descobertas
 
-| # | Severidade | Problema |
-|:--|:--|:--|
-| 1 | 🔴 CRÍTICO | Zero CI/CD (sem GitHub Actions, sem testes no deploy) |
-| 2 | 🔴 CRÍTICO | Sentry condicional — se DSN não configurado, zero monitoramento de erros |
-| 3 | 🔴 CRÍTICO | `sourcemap: false` + Sentry Plugin comentado — stack traces ilegíveis |
-| 4 | 🔴 CRÍTICO | Sem staging environment — dev local pode apontar pra produção |
-| 5 | 🔴 CRÍTICO | `VITE_SUPABASE_ANON_KEY` inconsistente com `VITE_SUPABASE_PUBLISHABLE_KEY` |
-| 6 | 🔴 CRÍTICO | Supabase Free Tier (50 conexões, sem PgBouncer) |
-| 7 | 🔴 CRÍTICO | Restore de backup nunca testado |
+| #    | Severidade | Problema                                                                   |
+| :--- | :--------- | :------------------------------------------------------------------------- |
+| 1    | 🔴 CRÍTICO  | Zero CI/CD (sem GitHub Actions, sem testes no deploy)                      |
+| 2    | 🔴 CRÍTICO  | Sentry condicional — se DSN não configurado, zero monitoramento de erros   |
+| 3    | 🔴 CRÍTICO  | `sourcemap: false` + Sentry Plugin comentado — stack traces ilegíveis      |
+| 4    | 🔴 CRÍTICO  | Sem staging environment — dev local pode apontar pra produção              |
+| 5    | 🔴 CRÍTICO  | `VITE_SUPABASE_ANON_KEY` inconsistente com `VITE_SUPABASE_PUBLISHABLE_KEY` |
+| 6    | 🔴 CRÍTICO  | Supabase Free Tier (50 conexões, sem PgBouncer)                            |
+| 7    | 🔴 CRÍTICO  | Restore de backup nunca testado                                            |
 
 ### PRÓXIMO PASSO (IMEDIATO)
 1. Configurar `VITE_SENTRY_DSN` na Vercel
@@ -59,7 +87,39 @@
 3. Configurar wildcard `https://*.vercel.app/**` no Supabase Auth → Redirect URLs
 
 ---
+## 📦 Auditoria de Produto 2026-06-30 — 20 Fases
 
+**Relatório completo:** `AUDIT_REPORT_PRODUTO_2026-06-30.md`
+**Overall Product Score:** 7.3/10
+**4 críticos | 5 altos | 5 médios | 4 baixos**
+
+### Principais Descobertas de Produto
+
+| #    | Severidade | Problema                                                         |
+| :--- | :--------- | :--------------------------------------------------------------- |
+| P1   | 🔴 CRÍTICO  | Sem sincronização bancária automática (Open Banking) — maior gap |
+| P2   | 🔴 CRÍTICO  | SafeFinancialCalculator perde precisão decimal (.add/.subtract)  |
+| P3   | 🔴 CRÍTICO  | Relatório mensal email não funciona (domínio Resend)             |
+| P4   | 🔴 CRÍTICO  | Sem projeção de fluxo de caixa futuro                            |
+| P5   | 🟠 ALTO     | Sem alertas de orçamento estourado                               |
+| P6   | 🟠 ALTO     | Limite do cartão não validado (sem alerta de estouro)            |
+| P7   | 🟠 ALTO     | Transferência entre contas sem atomicidade                       |
+| P8   | 🟠 ALTO     | PDF export bloqueia UI (main thread)                             |
+
+### Diferenciais confirmados (forças do produto)
+- Gastos compartilhados com liquidação atômica + audit trail — **único no mercado**
+- Viagens multi-moeda com participantes guest — **único no mercado**
+- IRPF integrado com B3
+- PIN com bcrypt via RPC
+
+### PRÓXIMO PASSO (IMEDIATO — Quick Wins)
+1. Verificar domínio Resend para liberar emails (P3)
+2. Centralizar formatação de moeda (remover `formatCurrency` locais)
+3. Adicionar `aria-label` em cards interativos
+4. Tooltip "Ctrl+K para buscar" visível no header
+5. Drop tabela `financial_ledger` (AUD-07)
+
+---
 ## Regras obrigatórias
 - **SEMPRE** fazer `git push origin main` após cada commit
 - **SEMPRE** atualizar este arquivo ao final de cada sessão ou ao aproximar do limite de contexto
