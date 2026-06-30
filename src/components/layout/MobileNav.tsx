@@ -158,7 +158,7 @@ export function MobileNav() {
       </div>
 
       {/* Barra de Navegação Inferior */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border safe-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-bottom transform-gpu">
         <div className="flex items-center justify-between h-16 max-w-md mx-auto px-2">
           {navItems.map((item) => {
             const Icon = item.icon;

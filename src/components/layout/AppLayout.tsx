@@ -144,7 +144,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         Pular para o conteúdo principal
       </a>
       {/* TopBar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background transform-gpu">
         <div className="w-full px-4 md:px-6 lg:px-8">
           <div className="flex h-12 items-center justify-between gap-2">
             {/* Logo Wordmark */}
@@ -337,10 +337,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main Content */}
       <main id="main-content" className="flex-1 pb-32 md:pb-8" tabIndex={-1}>
-        <div
-          key={location.pathname}
-          className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5 animate-fade-in"
-        >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-5">
           <OnboardingGuard>{children}</OnboardingGuard>
         </div>
       </main>
@@ -349,10 +346,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <MobileNav />
 
       {/* Global Transaction Modal */}
-      <TransactionModal
-        open={showTransactionModal}
-        onOpenChange={setShowTransactionModal}
-      />
+      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
 
       <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
     </div>
