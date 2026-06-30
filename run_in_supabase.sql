@@ -78,7 +78,7 @@ BEGIN
   
   SELECT COUNT(*) INTO v_linked_goals 
   FROM public.goals 
-  WHERE account_id = p_account_id;
+  WHERE linked_account_id = p_account_id;
   
   v_can_delete := (v_transaction_count = 0 AND v_linked_goals = 0);
   
