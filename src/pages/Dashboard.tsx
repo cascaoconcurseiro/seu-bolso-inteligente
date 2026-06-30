@@ -1,7 +1,7 @@
 import { moneyUtils } from "@/utils/money";
 import { Link } from "react-router-dom";
-import { useState, useMemo } from "react";
-import { CreditCard, TrendingUp, Wallet, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { CreditCard, Wallet, AlertCircle, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDashboardData } from "@/hooks/useDashboard";
@@ -28,8 +28,17 @@ import { DashboardBillsDue } from "@/components/dashboard/DashboardBillsDue";
 import { DashboardUpcomingRecurring } from "@/components/dashboard/DashboardUpcomingRecurring";
 import { DashboardLowBalanceAlert } from "@/components/dashboard/DashboardLowBalanceAlert";
 import { FamilyBalancePanel } from "@/components/dashboard/FamilyBalancePanel";
+import { TripDashboardView } from "@/components/dashboard/TripDashboardView";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { getTransactionCurrency } from "@/utils/transactionUtils";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function Dashboard() {
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
@@ -63,7 +72,8 @@ export function Dashboard() {
   const recentTransactions = useMemo(() => {
     return (dashboardData?.recent_transactions || [])
       .filter((tx) => {
-        if (getTransactionCurrency(tx) !== selectedCurrency) return false;
+        // account.currency: DashboardTransaction has null, Transaction expects undefined — structurally equivalent at runtime
+        if (getTransactionCurrency(tx as any) !== selectedCurrency) return false;
 
         if (tx.source_transaction_id) return false;
 
@@ -128,10 +138,13 @@ export function Dashboard() {
         current.total_patrimony = SafeFinancialCalculator.add(
           current.total_patrimony,
           Number(acc.balance || 0)
-        );
+        ).toNumber();
 
         if (acc.type !== "INVESTMENT" && acc.type !== "EMERGENCY_FUND") {
-          current.balance = SafeFinancialCalculator.add(current.balance, Number(acc.balance || 0));
+          current.balance = SafeFinancialCalculator.add(
+            current.balance,
+            Number(acc.balance || 0)
+          ).toNumber();
         }
 
         map.set(c, current);
@@ -149,16 +162,22 @@ export function Dashboard() {
         pending_income: 0,
         pending_expense: 0,
       };
-      current.income = SafeFinancialCalculator.add(current.income, Number(t.income || 0));
-      current.expense = SafeFinancialCalculator.add(current.expense, Number(t.expense || 0));
+      current.income = SafeFinancialCalculator.add(
+        current.income,
+        Number(t.income || 0)
+      ).toNumber();
+      current.expense = SafeFinancialCalculator.add(
+        current.expense,
+        Number(t.expense || 0)
+      ).toNumber();
       current.pending_income = SafeFinancialCalculator.add(
         current.pending_income,
         Number(t.pending_income || 0)
-      );
+      ).toNumber();
       current.pending_expense = SafeFinancialCalculator.add(
         current.pending_expense,
         Number(t.pending_expense || 0)
-      );
+      ).toNumber();
       map.set(c, current);
     });
 

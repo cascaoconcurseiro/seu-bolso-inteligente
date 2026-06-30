@@ -284,13 +284,13 @@ export function useCreateAccount() {
       if (!user) throw new Error("User not authenticated");
 
       // Usar RPC atômica (CRIT-04): conta + transação de saldo inicial em uma operação
-      const result = await callRPCWithRetry('create_account_with_balance', {
+      const result = await callRPCWithRetry("create_account_with_balance", {
         p_name: input.name,
         p_type: input.type,
-        p_initial_balance: input.balance && input.type !== 'CREDIT_CARD' ? input.balance : 0,
+        p_initial_balance: input.balance && input.type !== "CREDIT_CARD" ? input.balance : 0,
         p_bank_id: input.bank_id || null,
         p_bank_color: input.bank_color || null,
-        p_currency: input.currency || 'BRL',
+        p_currency: input.currency || "BRL",
         p_is_international: input.is_international || false,
         p_closing_day: input.closing_day || null,
         p_due_day: input.due_day || null,
@@ -301,7 +301,6 @@ export function useCreateAccount() {
       });
 
       return result as Account;
-    },
     },
     onSuccess: async () => {
       await invalidateAccountQueries(queryClient);

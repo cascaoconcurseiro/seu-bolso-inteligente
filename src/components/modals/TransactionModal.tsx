@@ -1,8 +1,13 @@
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { TransactionForm } from '@/components/transactions/TransactionForm';
-import { useTransactionModal } from '@/contexts/TransactionModalContext';
-import { haptics } from '@/utils/haptics';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { TransactionForm } from "@/components/transactions/TransactionForm";
+import { useTransactionModal } from "@/contexts/TransactionModalContext";
+import { haptics } from "@/utils/haptics";
 
 interface TransactionModalProps {
   open?: boolean;
@@ -10,11 +15,7 @@ interface TransactionModalProps {
   initialData?: Record<string, unknown>;
 }
 
-export function TransactionModal({
-  open,
-  onOpenChange,
-  initialData
-}: TransactionModalProps) {
+export function TransactionModal({ open, onOpenChange, initialData }: TransactionModalProps) {
   const { transactionContext } = useTransactionModal();
 
   const handleOpenChange = (value: boolean) => {
@@ -36,9 +37,7 @@ export function TransactionModal({
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader>
-          <DialogTitle>
-            {initialData ? "Editar Transação" : "Nova Transação"}
-          </DialogTitle>
+          <DialogTitle>{initialData ? "Editar Transação" : "Nova Transação"}</DialogTitle>
           <DialogDescription className="sr-only">
             Formulário para criar ou editar uma transação.
           </DialogDescription>
@@ -47,7 +46,7 @@ export function TransactionModal({
           <TransactionForm
             context={transactionContext}
             onSuccess={handleSuccess}
-            onCancel={actualClose}
+            onCancel={() => handleOpenChange(false)}
             initialData={initialData}
           />
         </div>
