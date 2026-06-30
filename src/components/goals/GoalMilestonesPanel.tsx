@@ -44,6 +44,7 @@ export function GoalMilestonesPanel({ goal }: GoalMilestonesPanelProps) {
   };
 
   return (
+    <>
     <div className="mt-3 space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -157,5 +158,6 @@ export function GoalMilestonesPanel({ goal }: GoalMilestonesPanelProps) {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   );
 }
