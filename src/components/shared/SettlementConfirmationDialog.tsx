@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { useAccounts } from "@/hooks/useAccounts";
 import { toast } from "sonner";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 import * as dateFns from "date-fns";
 import {
