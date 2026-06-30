@@ -38,35 +38,6 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
     refetchOnWindowFocus: false,
   });
 
-  // Só mostrar se há membros de família com linked_user_id (membros reais)
-  const linkedMembers = members.filter(m => m.linked_user_id && m.linked_user_id !== user?.id);
-  if (membersLoading || balancesLoading) return null;
-  if (linkedMembers.length === 0) return null;
-  if (!sharedBalances || sharedBalances.length === 0) return null;
-
-  // Agrupa saldos por membro
-  const balanceByMember = new Map<string, { credits: number; debits: number; net: number }>();
-  sharedBalances.forEach(b => {
-    const existing = balanceByMember.get(b.member_id);
-    if (existing) {
-      existing.credits += Number(b.total_credits);
-      existing.debits += Number(b.total_debits);
-      existing.net += Number(b.net_balance);
-    } else {
-      balanceByMember.set(b.member_id, {
-        credits: Number(b.total_credits),
-        debits: Number(b.total_debits),
-        net: Number(b.net_balance),
-      });
-    }
-  });
-
-  const membersWithBalance = linkedMembers
-    .map(m => ({ member: m, balance: balanceByMember.get(m.id) }))
-    .filter(x => x.balance && (x.balance.credits > 0 || x.balance.debits > 0));
-
-  if (membersWithBalance.length === 0) return null;
-
   // NOVO: Busca o mês com a transação mais recente para direcionar o link "Ver tudo"
   const { data: targetDebtMonth } = useQuery({
     queryKey: ['target-debt-month', user?.id],
@@ -117,6 +88,35 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
     enabled: !!user,
     staleTime: 60 * 1000,
   });
+
+  // Só mostrar se há membros de família com linked_user_id (membros reais)
+  const linkedMembers = members.filter(m => m.linked_user_id && m.linked_user_id !== user?.id);
+  if (membersLoading || balancesLoading) return null;
+  if (linkedMembers.length === 0) return null;
+  if (!sharedBalances || sharedBalances.length === 0) return null;
+
+  // Agrupa saldos por membro
+  const balanceByMember = new Map<string, { credits: number; debits: number; net: number }>();
+  sharedBalances.forEach(b => {
+    const existing = balanceByMember.get(b.member_id);
+    if (existing) {
+      existing.credits += Number(b.total_credits);
+      existing.debits += Number(b.total_debits);
+      existing.net += Number(b.net_balance);
+    } else {
+      balanceByMember.set(b.member_id, {
+        credits: Number(b.total_credits),
+        debits: Number(b.total_debits),
+        net: Number(b.net_balance),
+      });
+    }
+  });
+
+  const membersWithBalance = linkedMembers
+    .map(m => ({ member: m, balance: balanceByMember.get(m.id) }))
+    .filter(x => x.balance && (x.balance.credits > 0 || x.balance.debits > 0));
+
+  if (membersWithBalance.length === 0) return null;
 
   const linkTo = targetDebtMonth ? `/compartilhados?month=${targetDebtMonth}` : `/compartilhados`;
 
