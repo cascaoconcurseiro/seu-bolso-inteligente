@@ -68,13 +68,11 @@ DECLARE
 BEGIN
   SELECT COUNT(*) INTO v_transaction_count 
   FROM public.transactions 
-  WHERE account_id = p_account_id
-    AND is_active = true;
+  WHERE account_id = p_account_id;
   
   SELECT COUNT(*) INTO v_future_installments 
   FROM public.transactions 
   WHERE account_id = p_account_id 
-    AND is_active = true
     AND date > CURRENT_DATE 
     AND (series_id IS NOT NULL OR is_recurring = TRUE);
   

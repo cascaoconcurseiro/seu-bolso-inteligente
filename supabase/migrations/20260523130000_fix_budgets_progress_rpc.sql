@@ -33,7 +33,6 @@ BEGIN
         LEFT JOIN categories c ON c.id = b.category_id
         WHERE b.user_id = p_user_id
           AND (b.deleted IS NULL OR b.deleted = false)
-          AND b.is_active = true
     ),
     budgets_with_calc AS (
         SELECT
