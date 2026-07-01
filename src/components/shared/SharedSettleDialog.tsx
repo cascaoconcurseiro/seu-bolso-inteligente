@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Wallet, Globe, ArrowRight, Loader2, Info } from "lucide-react";
+import { Wallet, Globe, ArrowRight, Loader2, Info, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
@@ -58,6 +59,8 @@ export function SharedSettleDialog({
   isSettling,
   settlingMode,
 }: SharedSettleDialogProps) {
+  const [isItemsExpanded, setIsItemsExpanded] = useState(false);
+
   if (!selectedMember) return null;
 
   const member = members.find(m => m.id === selectedMember);
@@ -166,14 +169,23 @@ export function SharedSettleDialog({
           {pendingMemberItems.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <Label className="text-sm font-semibold">Itens para acertar</Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-semibold cursor-pointer select-none" onClick={() => setIsItemsExpanded(!isItemsExpanded)}>
+                    Itens para acertar ({pendingMemberItems.length})
+                  </Label>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsItemsExpanded(!isItemsExpanded)}>
+                    {isItemsExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                  </Button>
+                </div>
                 {settlingMode !== "SINGLE" && (
                   <Button variant="ghost" size="sm" onClick={onSelectAll} className="text-xs h-7 px-2 text-primary shrink-0">
                     {selectedItems.length === pendingMemberItems.length ? "Desmarcar todos" : "Selecionar todos"}
                   </Button>
                 )}
               </div>
-              <div className="border border-border/60 rounded-2xl divide-y divide-border/40 overflow-hidden">
+              
+              {isItemsExpanded && (
+                <div className="border border-border/60 rounded-2xl divide-y divide-border/40 overflow-hidden">
                 {pendingMemberItems.filter(i => settlingMode === "SINGLE" ? selectedItems.includes(i.id) : true).map(item => {
                   const itemTrip = item.tripId ? trips.find(t => t.id === item.tripId) : null;
                   const itemCurrency = itemTrip?.currency || "BRL";
@@ -195,6 +207,7 @@ export function SharedSettleDialog({
                   );
                 })}
               </div>
+              )}
             </div>
           )}
 
