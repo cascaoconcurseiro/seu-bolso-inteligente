@@ -37,6 +37,10 @@
 - [x] **[RLS-02]** `families` — política "Users can view their families" recriada com `is_family_member_v2`
 - [x] **[RLS-03]** Verificação completa: **todas as 35 tabelas** têm RLS enabled ✅
 - [x] **[SEC-01]** `search_path` seguro em todas as funções SECURITY DEFINER recriadas
+- [x] **[TYP-01]** types.ts regenerado (07/07/2026) — `financial_ledger`, `accounts.deleted` removidos
+- [x] **[DEPR-01]** `accounts.deleted` column dropada (redundante com `deleted_at` e `is_active`)
+- [x] **[TRIG-01]** `error_logs` trigger corrigido: `trg_error_logs_updated_at` com `update_updated_at_column`
+- [x] **[OVERLOAD-01]** `get_admin_error_logs(text)` overload removido
 
 ---
 
@@ -91,16 +95,16 @@
 
 ## 📊 MÉTRICAS DO BANCO (01/07/2026)
 
-| Métrica | Valor |
-|---------|-------|
-| Tabelas | 35 (todas com RLS ✅) |
-| Políticas RLS | ~100+ |
-| Funções | ~85 (0 órfãs ✅) |
-| Triggers | ~52 em 18 tabelas |
-| Índices | ~110+ |
-| Cron jobs | 4 ativos (daily_yields, send-bill-reminders, send-monthly-report, monthly-audit-log-cleanup) |
-| Tabelas sem migration | 19 (SQL Editor) |
-| Migrations total | 214 |
+| Métrica               | Valor                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| Tabelas               | 35 (todas com RLS ✅)                                                                         |
+| Políticas RLS         | ~100+                                                                                        |
+| Funções               | ~85 (0 órfãs ✅)                                                                              |
+| Triggers              | ~52 em 18 tabelas                                                                            |
+| Índices               | ~110+                                                                                        |
+| Cron jobs             | 4 ativos (daily_yields, send-bill-reminders, send-monthly-report, monthly-audit-log-cleanup) |
+| Tabelas sem migration | 19 (SQL Editor)                                                                              |
+| Migrations total      | 214                                                                                          |
   - `profiles.app_pin` (plaintext residual, já migrado para app_pin_hash)
 
 - [ ] **[CONC-01]** Teste de concorrência real (pgbench em staging)
