@@ -4,7 +4,7 @@
 
 -- 1. Refactor undo_settlement to ONLY undo the calling user's transaction
 CREATE OR REPLACE FUNCTION public.undo_settlement(p_split_id UUID, p_user_id UUID)
-RETURNS BOOLEAN
+RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -72,7 +72,7 @@ BEGIN
         WHERE id = p_split_id;
     END IF;
 
-    RETURN TRUE;
+    RETURN jsonb_build_object('success', true);
 END;
 $$;
 
