@@ -578,7 +578,7 @@ export async function createSettlementRequestNotification(
   debtorName: string,
   amount: number,
   currency: string,
-  splitId: string,
+  splitIds: string[],
   isCompensated?: boolean
 ): Promise<void> {
   const formatCurrency = (v: number) =>
@@ -594,9 +594,9 @@ export async function createSettlementRequestNotification(
     title: "Confirmação de Pagamento",
     message: message,
     icon: "💰",
-    action_url: `/compartilhados?confirmSettlement=${splitId}`,
+    action_url: `/compartilhados?confirmSettlement=${splitIds.join(",")}`,
     action_label: "Confirmar",
-    related_id: splitId,
+    related_id: splitIds[0],
     related_type: "transaction_split",
     priority: "HIGH",
   });

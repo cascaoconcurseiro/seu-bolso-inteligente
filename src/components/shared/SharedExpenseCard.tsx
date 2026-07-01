@@ -64,8 +64,8 @@ export function SharedExpenseCard({
   const iOwe = netAmount < 0;
   const theyOweMe = netAmount > 0;
 
-  const pendingCount = items.filter((i) => !i.isSettled).length;
-  const paidCount = items.filter((i) => i.isSettled).length;
+  const pendingCount = items.filter((i) => !i.isPaid).length;
+  const paidCount = items.filter((i) => i.isPaid).length;
 
 
 
@@ -224,38 +224,17 @@ export function SharedExpenseCard({
                 {group.items.map((item) => {
                   const isCredit = item.type === "CREDIT";
 
-                  // NOVO: Status de Confirmação Bilateral (Corrigido para detectar todos os casos de pendência)
-                  const isWaitingMe =
-                    !item.isSettled &&
-                    ((isCredit && item.settledByDebtor && !item.settledByCreditor) ||
-                      (!isCredit && !item.settledByDebtor && item.settledByCreditor));
-                  const isWaitingOther =
-                    (isCredit && item.settledByCreditor && !item.settledByDebtor) ||
-                    (!isCredit && item.settledByDebtor && !item.settledByCreditor);
-
                   return (
                     <div
                       key={item.id}
                       className={cn(
                         "px-4 py-3 grid grid-cols-[auto_1fr] md:grid-cols-12 gap-y-2 gap-x-3 items-center hover:bg-muted/20 transition-colors",
-                        item.isSettled && "opacity-60 bg-success/5"
+                        item.isPaid && "opacity-60 bg-success/5"
                       )}
                     >
                       <div className="md:col-span-1 shrink-0 flex items-center justify-center self-start md:self-auto pt-1 md:pt-0">
-                        {item.isSettled ? (
+                        {item.isPaid ? (
                           <CheckCircle2 className="h-5 w-5 text-success" />
-                        ) : isWaitingMe ? (
-                          <div className="relative">
-                            <Clock className="h-5 w-5 text-warning animate-pulse" />
-                            <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning/40"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
-                            </span>
-                          </div>
-                        ) : isWaitingOther ? (
-                          <span title="Aguardando confirmação do outro">
-                            <Clock className="h-5 w-5 text-accent/70" />
-                          </span>
                         ) : (
                           <div
                             className={cn(
@@ -271,7 +250,7 @@ export function SharedExpenseCard({
                           <p
                             className={cn(
                               "text-sm font-medium truncate",
-                              item.isSettled && "line-through text-muted-foreground"
+                              item.isPaid && "line-through text-muted-foreground"
                             )}
                           >
                             {item.description}
@@ -350,28 +329,7 @@ export function SharedExpenseCard({
                       </div>
 
                       <div className="col-span-2 md:col-span-2 flex justify-end gap-2 mt-2 md:mt-0">
-                        {isWaitingMe && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-10 md:h-8 flex-1 md:flex-none text-sm md:text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
-                            onClick={() => onConfirmReceipt(item)}
-                          >
-                            <CheckCircle className="h-4 w-4 md:h-3 md:w-3 mr-1.5" />
-                            Confirmar
-                          </Button>
-                        )}
-
-                        {isWaitingOther && (
-                          <Badge
-                            variant="outline"
-                            className="text-[11px] bg-warning/8 text-warning border-warning/20"
-                          >
-                            Aguardando
-                          </Badge>
-                        )}
-
-                        {!item.isSettled && !isWaitingMe && !isWaitingOther && !isHistory && (
+                        {!item.isPaid && !isHistory && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -396,17 +354,9 @@ export function SharedExpenseCard({
                             sideOffset={8}
                             className="z-[100] min-w-[150px]"
                           >
-                            {(item.isPaid || isHistory || item.isSettled) && (
+                            {(item.isPaid || isHistory) && (
                               <DropdownMenuItem onClick={() => onUndo(item)}>
                                 <Undo2 className="h-4 w-4 mr-2" /> Desfazer
-                              </DropdownMenuItem>
-                            )}
-                            {isWaitingMe && (
-                              <DropdownMenuItem
-                                onClick={() => onRejectSettlement(item)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" /> Recusar
                               </DropdownMenuItem>
                             )}
                             {onAnticipate &&

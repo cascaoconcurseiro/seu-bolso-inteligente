@@ -417,7 +417,7 @@ export function useTransactionForm({
     // If it's family
     const payerMemberId = payerId === "me" ? myMemberRecord?.id : payerId;
     return membersList.filter((m) => m.id !== payerMemberId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
 
   // A limpeza automática de splits (setSplits([])) quando o payerId mudava

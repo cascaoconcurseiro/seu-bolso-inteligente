@@ -38,7 +38,7 @@ export const getActualClosingDate = (
     }
     case "LAST_BUSINESS_DAY": {
       // Last weekday (Mon-Fri) of the month
-      let d = new Date(Date.UTC(year, month + 1, 0));
+      const d = new Date(Date.UTC(year, month + 1, 0));
       while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
         d.setUTCDate(d.getUTCDate() - 1);
       }

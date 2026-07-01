@@ -344,6 +344,9 @@ export function useDeleteTransaction() {
         // Padrão (NONE) ou transação sem série
         deleteQuery = deleteQuery.eq("id", id);
       }
+      
+      // Defesa em profundidade: garantir que só o dono pode deletar
+      deleteQuery = deleteQuery.eq("user_id", user.id);
 
       const { error } = await deleteQuery;
 
@@ -519,7 +522,8 @@ export function useAnticipateInstallments() {
             date: formattedDate,
             competence_date: competenceDate,
           })
-          .eq("id", t.id);
+          .eq("id", t.id)
+          .eq("user_id", user.id);
       });
 
       await Promise.all(updates);

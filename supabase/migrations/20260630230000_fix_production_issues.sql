@@ -113,34 +113,25 @@ ALTER TABLE notifications ADD CONSTRAINT notifications_type_check
 -- These wrapper functions map frontend-expected names to actual DB function names
 
 -- search_transactions wrapper (already exists but check signature)
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'search_transactions'
-    AND pronamespace = 'public'::regnamespace
-  ) THEN
-    CREATE FUNCTION search_transactions(
-      p_user_id UUID,
-      p_search_term TEXT DEFAULT '',
-      p_limit INT DEFAULT 50,
-      p_offset INT DEFAULT 0
-    ) RETURNS TABLE (
-      id UUID, user_id UUID, amount NUMERIC, description TEXT, date DATE,
-      type TEXT, domain TEXT, account_id UUID, category_id UUID, created_at TIMESTAMPTZ
-    ) LANGUAGE sql STABLE AS $$
-      SELECT id, user_id, amount, description, date, type::TEXT, domain::TEXT,
-             account_id, category_id, created_at
-      FROM transactions
-      WHERE user_id = p_user_id
-        AND deleted_at IS NULL
-        AND (p_search_term = '' OR description ILIKE '%' || p_search_term || '%')
-      ORDER BY date DESC
-      LIMIT p_limit OFFSET p_offset;
-    $$;
-    GRANT EXECUTE ON FUNCTION search_transactions TO authenticated;
-  END IF;
-END;
+CREATE OR REPLACE FUNCTION search_transactions(
+  p_user_id UUID,
+  p_search_term TEXT DEFAULT '',
+  p_limit INT DEFAULT 50,
+  p_offset INT DEFAULT 0
+) RETURNS TABLE (
+  id UUID, user_id UUID, amount NUMERIC, description TEXT, date DATE,
+  type TEXT, domain TEXT, account_id UUID, category_id UUID, created_at TIMESTAMPTZ
+) LANGUAGE sql STABLE AS $$
+  SELECT id, user_id, amount, description, date, type::TEXT, domain::TEXT,
+         account_id, category_id, created_at
+  FROM transactions
+  WHERE user_id = p_user_id
+    AND deleted_at IS NULL
+    AND (p_search_term = '' OR description ILIKE '%' || p_search_term || '%')
+  ORDER BY date DESC
+  LIMIT p_limit OFFSET p_offset;
 $$;
+GRANT EXECUTE ON FUNCTION search_transactions(UUID, TEXT, INT, INT) TO authenticated;
 
 -- ============================================================================
 -- GRANTS

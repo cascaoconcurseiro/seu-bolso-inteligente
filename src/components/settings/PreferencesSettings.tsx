@@ -54,7 +54,7 @@ export function PreferencesSettings({
       setMonthStartDay(profile.month_start_day?.toString() || "1");
       setMonthlyBudget(profile.monthly_budget || 0);
 
-      let initialCardId = profile.shared_sync_credit_card_id || "none";
+      const initialCardId = profile.shared_sync_credit_card_id || "none";
       setSharedSyncCreditCardId(initialCardId);
       setGlobalCdiRate(profile.global_cdi_rate ?? 11.15);
       setLowBalanceThreshold(profile.low_balance_threshold ?? 0);
@@ -62,7 +62,7 @@ export function PreferencesSettings({
       setDefaultCreditCardId(profile.default_credit_card_id ?? "none");
       setMonthlyReportEnabled(profile.monthly_report_enabled ?? true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [profile]);
 
   const handleSave = async () => {

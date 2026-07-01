@@ -115,7 +115,7 @@ export function useTrip(id: string | null) {
     queryFn: async () => {
       if (!id) return null;
 
-      const { data, error } = await supabase.from("trips").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("trips").select("*").eq("id", id).maybeSingle();
 
       if (error) throw error;
       return data as unknown as Trip;

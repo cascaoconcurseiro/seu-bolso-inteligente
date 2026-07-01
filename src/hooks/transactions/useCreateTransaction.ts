@@ -266,10 +266,10 @@ export function useCreateTransaction() {
         const baseDate = dateUtils.parseDate(input.date);
 
         // Resolve member data before building transactions (needed for embedded splits)
-        let memberNames: Record<string, string> = {};
-        let memberUserIds: Record<string, string> = {};
-        let userIdToMemberId: Record<string, string> = {};
-        let userIdToName: Record<string, string> = {};
+        const memberNames: Record<string, string> = {};
+        const memberUserIds: Record<string, string> = {};
+        const userIdToMemberId: Record<string, string> = {};
+        const userIdToName: Record<string, string> = {};
 
         if (finalSplits && finalSplits.length > 0) {
           const memberIds = finalSplits.map((s) => s.member_id);

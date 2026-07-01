@@ -394,7 +394,7 @@ export function SharedTripCard({
 
 
 
-                          {!item.isSettled && (
+                          {!item.isPaid && (
                             <Button
                               size="sm"
                               variant="outline"

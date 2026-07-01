@@ -49,6 +49,7 @@ export function useScheduledBills() {
 
 export function useConfirmScheduledBill() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -60,10 +61,16 @@ export function useConfirmScheduledBill() {
       amount?: number;
       paidDate?: string;
     }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
       const date = paidDate ?? format(new Date(), "yyyy-MM-dd");
       const update: Record<string, unknown> = { status: "CONFIRMED", date };
       if (amount !== undefined) update.amount = amount;
-      const { error } = await supabase.from("transactions").update(update).eq("id", id);
+      const { error } = await supabase
+        .from("transactions")
+        .update(update)
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },
@@ -81,13 +88,17 @@ export function useConfirmScheduledBill() {
 // Desmarca uma transação como paga (CONFIRMED → PENDING)
 export function useUnconfirmScheduledBill() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id }: { id: string }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { error } = await supabase
         .from("transactions")
         .update({ status: "PENDING" })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },
@@ -106,6 +117,7 @@ export function useUnconfirmScheduledBill() {
 // sem alterar o template original (is_recurring permanece intacto)
 export function useConfirmRecurringOccurrence() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -117,11 +129,14 @@ export function useConfirmRecurringOccurrence() {
       amount: number;
       date: string;
     }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
       // Busca o template para copiar os campos
       const { data: template, error: fetchError } = await supabase
         .from("transactions")
         .select("*")
         .eq("id", templateId)
+        .eq("user_id", user.id)
         .single();
 
       if (fetchError || !template) throw fetchError ?? new Error("Template não encontrado");
@@ -147,6 +162,7 @@ export function useConfirmRecurringOccurrence() {
         recurrence_pattern: null,
         recurrence_day: null,
         series_id: templateId, // vincula ao template original
+        user_id: user.id, // garante o dono da nova
       });
 
       if (error) throw error;
@@ -164,13 +180,17 @@ export function useConfirmRecurringOccurrence() {
 
 export function useCancelScheduledBill() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { error } = await supabase
         .from("transactions")
         .update({ status: "CANCELLED", deleted_at: new Date().toISOString() })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
     },
