@@ -138,9 +138,17 @@ export function Transactions() {
   }, [annualTransactions, filterParams]);
 
   const isSearchingHistory = searchQuery.trim().length > 0;
-  const displayTransactions = isSearchingHistory
-    ? filteredAnnualTransactions
-    : filteredTransactions;
+  const displayTransactions = useMemo(() => {
+    const base = isSearchingHistory
+      ? filteredAnnualTransactions
+      : filteredTransactions;
+    // Na aba "Lançadas", excluir transações com data futura (vão para "Próximas")
+    if (activeTab === "lancadas") {
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+      return base.filter((t) => t.date <= today);
+    }
+    return base;
+  }, [isSearchingHistory, filteredAnnualTransactions, filteredTransactions, activeTab]);
   const dayGroups = useMemo(
     () => groupTransactionsByDay(displayTransactions),
     [displayTransactions]
