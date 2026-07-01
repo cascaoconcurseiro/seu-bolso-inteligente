@@ -435,7 +435,7 @@ export function useCreditCardsDashboard() {
         });
       }
 
-      showActionFeedback("Pagamento processado!", "success");
+      showActionFeedback("success");
       setShowPayDialog(false);
       refetchAccounts();
       refetchTransactions();
