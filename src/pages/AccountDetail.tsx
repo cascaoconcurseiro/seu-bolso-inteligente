@@ -189,7 +189,7 @@ export function AccountDetail() {
     .filter((tx) => tx.isIncoming && !tx.isInitialBalance)
     .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
   const monthExpense = transactions
-    .filter((tx) => !tx.isIncoming && !tx.isInitialBalance && tx.type !== "TRANSFER")
+    .filter((tx) => !tx.isIncoming && !tx.isInitialBalance)
     .reduce((sum, tx) => sum + Math.abs(Number(tx.amount)), 0);
 
   return (

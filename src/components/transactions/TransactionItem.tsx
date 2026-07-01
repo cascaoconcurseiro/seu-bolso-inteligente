@@ -56,6 +56,7 @@ interface TransactionItemProps {
 export function TransactionItem({
   transaction,
   user,
+  familyMembers,
   formatCurrency,
   onDetails,
   onSettlement,

@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, MoreHorizontal, Trash2, Landmark, ArrowUpDown } from "lucide-react";
+import { TrendingUp, TrendingDown, MoreHorizontal, Trash2, Landmark } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,8 +37,7 @@ export function AccountStatement({
 }: AccountStatementProps) {
   const { isPrivate } = usePrivacy();
 
-  const fmt = (v: number) =>
-    isPrivate ? "•••••" : formatCurrency(v, accountCurrency);
+  const fmt = (v: number) => (isPrivate ? "•••••" : formatCurrency(v, accountCurrency));
 
   return (
     <div className="space-y-4">
@@ -54,11 +53,13 @@ export function AccountStatement({
               <p className="text-sm text-muted-foreground">Acumulado de meses anteriores</p>
             </div>
           </div>
-          <p className={cn(
-            "font-mono font-bold text-base",
-            openingBalance >= 0 ? "text-foreground" : "text-negative",
-            isPrivate && "blur-md opacity-50 select-none"
-          )}>
+          <p
+            className={cn(
+              "font-mono font-bold text-base",
+              openingBalance >= 0 ? "text-foreground" : "text-negative",
+              isPrivate && "blur-md opacity-50 select-none"
+            )}
+          >
             {fmt(openingBalance)}
           </p>
         </div>
@@ -88,11 +89,9 @@ export function AccountStatement({
                     const isInitialBalance = tx.isInitialBalance;
 
                     let description = tx.description;
-                    if (tx.type === "TRANSFER") {
-                      description = tx.isIncoming
-                        ? `Transferência recebida — ${tx.description}`
-                        : `Transferência enviada — ${tx.description}`;
-                    }
+                    // No extrato bancário, transferências são Débito (saída) ou Crédito (entrada)
+                    const isTransferOut = tx.type === "TRANSFER" && !tx.isIncoming;
+                    const isTransferIn = tx.type === "TRANSFER" && tx.isIncoming;
 
                     return (
                       <div
@@ -104,20 +103,26 @@ export function AccountStatement({
                         )}
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                            isInitialBalance
-                              ? "bg-primary/10"
-                              : tx.type === "TRANSFER"
-                              ? "bg-accent/10"
-                              : isIncome
-                              ? "bg-positive/10"
-                              : "bg-negative/10"
-                          )}>
+                          <div
+                            className={cn(
+                              "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                              isInitialBalance
+                                ? "bg-primary/10"
+                                : isTransferOut
+                                  ? "bg-negative/10"
+                                  : isTransferIn
+                                    ? "bg-positive/10"
+                                    : isIncome
+                                      ? "bg-positive/10"
+                                      : "bg-negative/10"
+                            )}
+                          >
                             {isInitialBalance ? (
                               <Landmark className="h-5 w-5 text-primary" />
-                            ) : tx.type === "TRANSFER" ? (
-                              <ArrowUpDown className="h-5 w-5 text-accent" />
+                            ) : isTransferOut ? (
+                              <TrendingDown className="h-5 w-5 text-negative" />
+                            ) : isTransferIn ? (
+                              <TrendingUp className="h-5 w-5 text-positive" />
                             ) : isIncome ? (
                               <TrendingUp className="h-5 w-5 text-positive" />
                             ) : (
@@ -126,7 +131,9 @@ export function AccountStatement({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                              <p className="font-medium truncate text-sm sm:text-base">{description}</p>
+                              <p className="font-medium truncate text-sm sm:text-base">
+                                {description}
+                              </p>
                               {isInitialBalance && (
                                 <span className="text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase tracking-wider font-bold shrink-0">
                                   Abertura
@@ -146,36 +153,44 @@ export function AccountStatement({
                                   <span>{tx.category.name}</span>
                                 </>
                               )}
-                              {tx.is_installment && tx.current_installment && tx.total_installments && (
-                                <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium text-sm">
-                                  {tx.current_installment}/{tx.total_installments}
-                                </span>
-                              )}
+                              {tx.is_installment &&
+                                tx.current_installment &&
+                                tx.total_installments && (
+                                  <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium text-sm">
+                                    {tx.current_installment}/{tx.total_installments}
+                                  </span>
+                                )}
                             </p>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0 ml-3 flex items-center gap-1 sm:gap-2">
                           <div>
-                            <p className={cn(
-                              "font-mono text-base sm:text-lg font-bold",
-                              isInitialBalance
-                                ? "text-primary"
-                                : tx.type === "TRANSFER"
-                                ? "text-accent"
-                                : isIncome
-                                ? "text-positive"
-                                : "text-negative",
-                              isPrivate && "blur-md opacity-50 select-none"
-                            )}>
+                            <p
+                              className={cn(
+                                "font-mono text-base sm:text-lg font-bold",
+                                isInitialBalance
+                                  ? "text-primary"
+                                  : isTransferOut
+                                    ? "text-negative"
+                                    : isTransferIn
+                                      ? "text-positive"
+                                      : isIncome
+                                        ? "text-positive"
+                                        : "text-negative",
+                                isPrivate && "blur-md opacity-50 select-none"
+                              )}
+                            >
                               {isPrivate
                                 ? "•••••"
                                 : `${isIncome ? "+" : "-"}${formatCurrency(Math.abs(Number(tx.amount)), tx.currency || accountCurrency)}`}
                             </p>
-                            <p className={cn(
-                              "text-xs text-muted-foreground font-mono",
-                              isPrivate && "blur-md opacity-50 select-none"
-                            )}>
+                            <p
+                              className={cn(
+                                "text-xs text-muted-foreground font-mono",
+                                isPrivate && "blur-md opacity-50 select-none"
+                              )}
+                            >
                               Saldo: {fmt(tx.runningBalance)}
                             </p>
                           </div>
@@ -218,11 +233,13 @@ export function AccountStatement({
               <p className="text-sm text-muted-foreground">Abertura do próximo mês</p>
             </div>
           </div>
-          <p className={cn(
-            "font-mono font-bold text-lg",
-            closingBalance >= 0 ? "text-positive" : "text-negative",
-            isPrivate && "blur-md opacity-50 select-none"
-          )}>
+          <p
+            className={cn(
+              "font-mono font-bold text-lg",
+              closingBalance >= 0 ? "text-positive" : "text-negative",
+              isPrivate && "blur-md opacity-50 select-none"
+            )}
+          >
             {fmt(closingBalance)}
           </p>
         </div>
