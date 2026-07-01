@@ -254,14 +254,14 @@ export function Transactions() {
   const hasPendingSplits = (transaction: Transaction) =>
     !!(
       transaction.is_shared &&
-      (transaction.transaction_splits?.some((s: any) => !s.is_settled) || false)
+      (transaction.transaction_splits?.some((s: any) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor) || false)
     );
   const isFullySettled = (transaction: Transaction) =>
     !!(
       transaction.is_shared &&
       transaction.transaction_splits &&
       transaction.transaction_splits.length > 0 &&
-      transaction.transaction_splits.every((s: any) => s.is_settled)
+      transaction.transaction_splits.every((s: any) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
     );
 
   if (isLoading)

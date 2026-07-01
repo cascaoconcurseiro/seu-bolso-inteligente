@@ -73,8 +73,8 @@ export function TransactionDetailsModal({
   const isShared = transaction.is_shared;
   const isInstallment = transaction.is_installment;
   const splits = transaction.transaction_splits || [];
-  const hasPendingSplits = splits.some((s: DBTransactionSplit) => !s.is_settled);
-  const isFullySettled = splits.length > 0 && splits.every((s: DBTransactionSplit) => s.is_settled);
+  const hasPendingSplits = splits.some((s: DBTransactionSplit) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor);
+  const isFullySettled = splits.length > 0 && splits.every((s: DBTransactionSplit) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor);
 
   const getTransferTypeLabel = () => {
     const desc = transaction.description.toLowerCase();
