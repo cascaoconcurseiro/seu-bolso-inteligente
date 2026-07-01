@@ -205,6 +205,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           p_account_id: settleAccountId,
           p_user_id: user.id,
           p_is_payment: false,
+          p_amount: amount,
         });
 
         if (error) throw error;
@@ -218,6 +219,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
           p_account_id: settleAccountId,
           p_user_id: user.id,
           p_is_payment: true,
+          p_amount: amount,
         });
 
         if (error) throw error;
