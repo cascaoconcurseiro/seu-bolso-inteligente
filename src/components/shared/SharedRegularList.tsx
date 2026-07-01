@@ -20,8 +20,6 @@ interface SharedRegularListProps {
   onSettle: (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
-  onConfirmReceipt: (item: InvoiceItem) => void;
-  onRejectSettlement: (item: InvoiceItem) => void;
   onAnticipate: (item: InvoiceItem) => void;
 }
 
@@ -35,8 +33,6 @@ export function SharedRegularList({
   onSettle,
   onUndo,
   onDelete,
-  onConfirmReceipt,
-  onRejectSettlement,
   onAnticipate,
 }: SharedRegularListProps) {
   const filteredMembers = members.filter((m) => m.linked_user_id !== user?.id);
@@ -60,8 +56,6 @@ export function SharedRegularList({
             onSettle={onSettle}
             onUndo={onUndo}
             onDelete={onDelete}
-            onConfirmReceipt={onConfirmReceipt}
-            onRejectSettlement={onRejectSettlement}
             onAnticipate={onAnticipate}
           />
         );

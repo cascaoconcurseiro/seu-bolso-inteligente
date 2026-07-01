@@ -37,7 +37,6 @@ interface SharedTripCardProps {
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onDeleteSeries: (item: InvoiceItem) => void;
-  onConfirmReceipt: (item: InvoiceItem) => void;
   onAnticipate: (item: InvoiceItem) => void;
 }
 
@@ -52,7 +51,6 @@ export function SharedTripCard({
   onUndo,
   onDelete,
   onDeleteSeries,
-  onConfirmReceipt,
   onAnticipate,
 }: SharedTripCardProps) {
   const tripItems: InvoiceItem[] = [];
@@ -77,11 +75,7 @@ export function SharedTripCard({
 
   const pendingCount = tripItems.filter((i) => !i.isPaid).length;
 
-  const itemsWaitingMe = tripItems.filter((item) => {
-    if (item.isPaid) return false;
-    const isCredit = item.type === "CREDIT";
-    return !isCredit && item.settledByDebtor && !item.settledByCreditor;
-  });
+
 
   return (
     <div
@@ -133,62 +127,7 @@ export function SharedTripCard({
         </div>
       </div>
 
-      {itemsWaitingMe.length > 0 && (
-        <div className="bg-warning/8 border-t border-b border-warning/20 p-4 space-y-3 animate-in fade-in duration-300">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-warning/12 rounded-xl text-warning shrink-0">
-              <Clock className="h-5 w-5 animate-pulse" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-warning">
-                Aguardando sua confirmação nesta viagem
-              </p>
-              <p className="text-sm text-warning dark:text-warning/90 mt-0.5 leading-relaxed">
-                {itemsWaitingMe.length === 1 ? (
-                  <>
-                    Um participante marcou a transação de acerto{" "}
-                    <strong>"{itemsWaitingMe[0].description}"</strong> de{" "}
-                    <strong>
-                      {formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}
-                    </strong>{" "}
-                    como paga. Confirme o recebimento e escolha em qual conta deseja creditar.
-                  </>
-                ) : (
-                  <>
-                    Há <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de{" "}
-                    <strong>
-                      {formatCurrency(
-                        itemsWaitingMe.reduce(
-                          (sum, i) => SafeFinancialCalculator.add(sum, i.amount),
-                          0
-                        ),
-                        tripCurrency
-                      )}
-                    </strong>
-                    ) marcados como pagos. Confirme para atualizar seu saldo e escolher as contas de
-                    recebimento.
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {itemsWaitingMe.map((item) => (
-              <Button
-                key={item.id}
-                size="sm"
-                className="bg-warning hover:bg-warning/92 text-white font-semibold text-sm rounded-xl shadow-md shadow-warning/10 active:scale-95 transition-all"
-                onClick={() => onConfirmReceipt(item)}
-              >
-                <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                {itemsWaitingMe.length === 1
-                  ? "Confirmar e Escolher Conta"
-                  : `Confirmar R$ ${item.amount.toFixed(2).replace(".", ",")}`}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       <div className="border-t border-border">
         {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
@@ -222,9 +161,6 @@ export function SharedTripCard({
               <div className="divide-y divide-border">
                 {memberItems.map((item) => {
                   const isCredit = item.type === "CREDIT";
-                  const isWaitingMe = !isCredit && item.settledByDebtor && !item.settledByCreditor;
-                  const isWaitingOther =
-                    isCredit && item.settledByDebtor && !item.settledByCreditor;
                   return (
                     <div
                       key={item.id}
@@ -237,8 +173,6 @@ export function SharedTripCard({
                         <div className="shrink-0 pt-0.5">
                           {item.isPaid ? (
                             <CheckCircle2 className="h-5 w-5 text-success" />
-                          ) : isWaitingMe || isWaitingOther ? (
-                            <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
                             <div
                               className={cn(
@@ -314,26 +248,7 @@ export function SharedTripCard({
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
                             </Badge>
 
-                            {isWaitingMe && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
-                                onClick={() => onConfirmReceipt(item)}
-                              >
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Confirmar
-                              </Button>
-                            )}
 
-                            {isWaitingOther && (
-                              <Badge
-                                variant="outline"
-                                className="text-[11px] bg-warning/8 text-warning border-warning/20"
-                              >
-                                Aguardando
-                              </Badge>
-                            )}
 
                             {(item.isPaid ||
                               item.creatorUserId === user?.id ||
@@ -399,8 +314,6 @@ export function SharedTripCard({
                         <div className="col-span-1">
                           {item.isPaid ? (
                             <CheckCircle2 className="h-5 w-5 text-success" />
-                          ) : isWaitingMe || isWaitingOther ? (
-                            <Clock className="h-5 w-5 text-warning animate-pulse" />
                           ) : (
                             <div
                               className={cn(
@@ -479,28 +392,9 @@ export function SharedTripCard({
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
 
-                          {isWaitingMe && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-sm bg-warning/8 border-warning/20 text-warning hover:bg-warning/12 font-bold"
-                              onClick={() => onConfirmReceipt(item)}
-                            >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Confirmar
-                            </Button>
-                          )}
 
-                          {isWaitingOther && (
-                            <Badge
-                              variant="outline"
-                              className="text-[11px] bg-warning/8 text-warning border-warning/20"
-                            >
-                              Aguardando
-                            </Badge>
-                          )}
 
-                          {!item.isSettled && !isWaitingMe && !isWaitingOther && (
+                          {!item.isSettled && (
                             <Button
                               size="sm"
                               variant="outline"

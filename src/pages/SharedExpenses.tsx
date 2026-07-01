@@ -32,8 +32,6 @@ import { SharedRegularList } from "@/components/shared/SharedRegularList";
 import { SharedTravelList } from "@/components/shared/SharedTravelList";
 import { SharedSummarySection } from "@/components/shared/SharedSummarySection";
 import { SharedSettleDialog } from "@/components/shared/SharedSettleDialog";
-import { SettlementConfirmationDialog } from "@/components/shared/SettlementConfirmationDialog";
-
 import { useSharedExpensesState } from "./shared-expenses/useSharedExpensesState";
 import { useSharedExpensesTotals } from "./shared-expenses/useSharedExpensesTotals";
 import { SharedExpensesDialogs } from "./shared-expenses/SharedExpensesDialogs";
@@ -72,15 +70,12 @@ export function SharedExpenses() {
     settleType, setSettleType,
     isSettling, setIsSettling,
     settlingMode, setSettlingMode,
-    confirmReceiptDialog, setConfirmReceiptDialog,
-    confirmPaymentDialog, setConfirmPaymentDialog,
     undoConfirm, setUndoConfirm,
     deleteConfirm, setDeleteConfirm,
     deleteSeriesConfirm, setDeleteSeriesConfirm,
     undoAllConfirm, setUndoAllConfirm,
     isUndoingAll, setIsUndoingAll,
-    anticipateDialog, setAnticipateDialog,
-    rejectDialog, setRejectDialog
+    anticipateDialog, setAnticipateDialog
   } = state;
 
   const [activeTab, setActiveTab] = useState<SharedTab>(
@@ -122,10 +117,6 @@ export function SharedExpenses() {
     handleDeleteTransaction,
     handleDeleteSeries,
     handleUndoAll,
-    handleConfirmReceipt,
-    handleRejectSettlement,
-    handleConfirmPayment,
-    handleRejectDebtorSettlement,
   } = useSharedExpensesActions({
     queryClient,
     selectedMember,
@@ -223,44 +214,6 @@ export function SharedExpenses() {
     setShowSettleDialog(true);
   };
 
-  useEffect(() => {
-    const tabParam = searchParams.get("tab") as SharedTab;
-    if (tabParam && ["REGULAR", "TRAVEL", "HISTORY"].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-
-    const splitIdsParam = searchParams.get("confirmSettlement");
-    if (splitIdsParam && invoices && !sharedLoading) {
-      const splitIds = splitIdsParam.split(",");
-      const allItems = Object.values(invoices).flat();
-
-      const itemsToConfirm = allItems.filter(
-        (i) => splitIds.includes(i.splitId || "") && !i.isPaid
-      );
-
-      if (itemsToConfirm.length > 0) {
-        setConfirmReceiptDialog({ isOpen: true, items: itemsToConfirm });
-        navigate({ search: "" }, { replace: true });
-      }
-    }
-  }, [searchParams, invoices, sharedLoading, navigate]);
-
-  useEffect(() => {
-    const splitIdsParam = searchParams.get("confirmPaymentSplit");
-    if (splitIdsParam && invoices && !sharedLoading) {
-      const splitIds = splitIdsParam.split(",");
-      const allItems = Object.values(invoices).flat();
-
-      const itemsToConfirm = allItems.filter(
-        (i) => splitIds.includes(i.splitId || "") && !i.isPaid
-      );
-
-      if (itemsToConfirm.length > 0) {
-        setConfirmPaymentDialog({ isOpen: true, items: itemsToConfirm });
-        navigate({ search: "" }, { replace: true });
-      }
-    }
-  }, [searchParams, invoices, sharedLoading, navigate]);
 
   const hasData = members.length > 0 && Object.keys(invoices).length > 0;
   const isInitialLoading = (membersLoading || sharedLoading) && !hasData;
@@ -368,8 +321,6 @@ export function SharedExpenses() {
                   onSettle={handleSettleClick}
                   onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
                   onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
-                  onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })}
-                  onRejectSettlement={(i) => setRejectDialog({ isOpen: true, item: i, reason: "" })}
                   onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
                 />
               ) : (
@@ -379,7 +330,6 @@ export function SharedExpenses() {
                   onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
                   onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
                   onDeleteSeries={(i) => setDeleteSeriesConfirm({ isOpen: true, item: i })}
-                  onConfirmReceipt={(i) => setConfirmReceiptDialog({ isOpen: true, items: [i] })}
                   onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
                 />
               )}
@@ -446,14 +396,11 @@ export function SharedExpenses() {
         deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
         deleteSeriesConfirm={deleteSeriesConfirm} setDeleteSeriesConfirm={setDeleteSeriesConfirm}
         undoAllConfirm={undoAllConfirm} setUndoAllConfirm={setUndoAllConfirm}
-        rejectDialog={rejectDialog} setRejectDialog={setRejectDialog}
         isUndoingAll={isUndoingAll}
         handleUndoSettlement={handleUndoSettlement}
         handleDeleteTransaction={handleDeleteTransaction}
         handleDeleteSeries={handleDeleteSeries}
         handleUndoAll={handleUndoAll}
-        handleRejectSettlement={handleRejectSettlement}
-        handleRejectDebtorSettlement={handleRejectDebtorSettlement}
       />
 
       <Suspense fallback={null}>
@@ -462,20 +409,7 @@ export function SharedExpenses() {
 
       <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
 
-      <SettlementConfirmationDialog
-        isOpen={confirmReceiptDialog.isOpen}
-        onOpenChange={(o) => setConfirmReceiptDialog({ ...confirmReceiptDialog, isOpen: o })}
-        items={confirmReceiptDialog.items}
-        isSettling={isSettling}
-        onConfirm={handleConfirmReceipt}
-      />
-      <SettlementConfirmationDialog
-        isOpen={confirmPaymentDialog.isOpen}
-        onOpenChange={(o) => setConfirmPaymentDialog({ ...confirmPaymentDialog, isOpen: o })}
-        items={confirmPaymentDialog.items}
-        isSettling={isSettling}
-        onConfirm={handleConfirmPayment}
-      />
+
       <Suspense fallback={null}>
         {anticipateDialog.seriesId && (
           <AnticipateInstallmentsDialog

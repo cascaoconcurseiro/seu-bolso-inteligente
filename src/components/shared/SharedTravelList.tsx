@@ -28,7 +28,6 @@ interface SharedTravelListProps {
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
   onDeleteSeries: (item: InvoiceItem) => void;
-  onConfirmReceipt: (item: InvoiceItem) => void;
   onAnticipate: (item: InvoiceItem) => void;
 }
 
@@ -43,7 +42,6 @@ export function SharedTravelList({
   onUndo,
   onDelete,
   onDeleteSeries,
-  onConfirmReceipt,
   onAnticipate,
 }: SharedTravelListProps) {
   const filteredTrips = trips.filter((t) =>
@@ -65,7 +63,6 @@ export function SharedTravelList({
           onUndo={onUndo}
           onDelete={onDelete}
           onDeleteSeries={onDeleteSeries}
-          onConfirmReceipt={onConfirmReceipt}
           onAnticipate={onAnticipate}
         />
       ))}

@@ -40,8 +40,7 @@ interface SharedExpenseCardProps {
   ) => void;
   onUndo: (item: InvoiceItem) => void;
   onDelete: (item: InvoiceItem) => void;
-  onConfirmReceipt: (item: InvoiceItem) => void;
-  onRejectSettlement: (item: InvoiceItem) => void;
+
   onAnticipate?: (item: InvoiceItem) => void;
   formatCurrency: (value: number, currency: string) => string;
   currentUserId?: string;
@@ -56,8 +55,7 @@ export function SharedExpenseCard({
   onSettle,
   onUndo,
   onDelete,
-  onConfirmReceipt,
-  onRejectSettlement,
+
   onAnticipate,
   formatCurrency,
   currentUserId,
@@ -69,14 +67,7 @@ export function SharedExpenseCard({
   const pendingCount = items.filter((i) => !i.isSettled).length;
   const paidCount = items.filter((i) => i.isSettled).length;
 
-  const itemsWaitingMe = items.filter((item) => {
-    if (item.isSettled) return false;
-    const isCredit = item.type === "CREDIT";
-    return (
-      (isCredit && item.settledByDebtor && !item.settledByCreditor) ||
-      (!isCredit && !item.settledByDebtor && item.settledByCreditor)
-    );
-  });
+
 
   // Group items by trip
   const groups: Record<string, { tripName?: string; items: InvoiceItem[] }> = {};
@@ -204,81 +195,7 @@ export function SharedExpenseCard({
         </div>
       </div>
 
-      {itemsWaitingMe.length > 0 && (
-        <div className="bg-warning/8 border-t border-b border-warning/20 p-4 space-y-3 animate-in fade-in duration-300">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-warning/12 rounded-xl text-warning shrink-0">
-              <Clock className="h-5 w-5 animate-pulse" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-warning">Aguardando sua confirmação</p>
-              <p className="text-sm text-warning/90 mt-0.5 leading-relaxed">
-                {itemsWaitingMe.length === 1 ? (
-                  itemsWaitingMe[0].type === "CREDIT" ? (
-                    <>
-                      <strong>{member.name.split(" ")[0]}</strong> marcou que pagou o valor de{" "}
-                      <strong>
-                        {formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}
-                      </strong>{" "}
-                      (Acerto de Contas). Confirme se você recebeu esse valor e escolha em qual
-                      conta deseja creditar.
-                    </>
-                  ) : (
-                    <>
-                      <strong>{member.name.split(" ")[0]}</strong> informou que recebeu o seu
-                      pagamento de{" "}
-                      <strong>
-                        {formatCurrency(itemsWaitingMe[0].amount, itemsWaitingMe[0].currency)}
-                      </strong>
-                      . Escolha de qual conta o valor saiu para finalizar o acerto.
-                    </>
-                  )
-                ) : (
-                  <>
-                    <strong>{member.name.split(" ")[0]}</strong> marcou{" "}
-                    <strong>{itemsWaitingMe.length} acertos pendentes</strong> (total de{" "}
-                    <strong>
-                      {formatCurrency(
-                        itemsWaitingMe.reduce(
-                          (sum, i) => SafeFinancialCalculator.add(sum, i.amount),
-                          0
-                        ),
-                        currency
-                      )}
-                    </strong>
-                    ). Confirme e escolha a conta associada para atualizar seus saldos.
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {itemsWaitingMe.map((item) => (
-              <Button
-                key={item.id}
-                size="sm"
-                className="bg-warning hover:bg-warning/92 text-white font-bold text-sm rounded-xl shadow-md shadow-warning/20 active:scale-95 transition-all h-10 px-4"
-                onClick={() => onConfirmReceipt(item)}
-              >
-                <CheckCircle className="h-4 w-4 mr-1.5" />
-                {itemsWaitingMe.length === 1
-                  ? "Confirmar Acerto"
-                  : `Confirmar R$ ${item.amount.toFixed(2).replace(".", ",")}`}
-              </Button>
-            ))}
-            {onRejectSettlement && itemsWaitingMe.length === 1 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-warning hover:bg-warning/8 text-sm rounded-xl font-semibold transition-all"
-                onClick={() => onRejectSettlement(itemsWaitingMe[0])}
-              >
-                Recusar Acerto
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Accordion Toggle Button */}
       {items.length > 0 && (

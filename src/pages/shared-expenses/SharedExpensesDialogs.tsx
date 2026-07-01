@@ -22,16 +22,11 @@ interface SharedExpensesDialogsProps {
   setDeleteSeriesConfirm: (val: { isOpen: boolean; item: InvoiceItem | null }) => void;
   undoAllConfirm: boolean;
   setUndoAllConfirm: (val: boolean) => void;
-  rejectDialog: { isOpen: boolean; item: InvoiceItem | null; reason: string };
-  setRejectDialog: (val: { isOpen: boolean; item: InvoiceItem | null; reason: string }) => void;
   isUndoingAll: boolean;
-  
   handleUndoSettlement: () => void;
   handleDeleteTransaction: () => void;
   handleDeleteSeries: () => void;
   handleUndoAll: () => void;
-  handleRejectSettlement: (item: InvoiceItem, reason: string) => void;
-  handleRejectDebtorSettlement: (items: InvoiceItem[], reason: string) => void;
 }
 
 export function SharedExpensesDialogs({
@@ -43,15 +38,11 @@ export function SharedExpensesDialogs({
   setDeleteSeriesConfirm,
   undoAllConfirm,
   setUndoAllConfirm,
-  rejectDialog,
-  setRejectDialog,
   isUndoingAll,
   handleUndoSettlement,
   handleDeleteTransaction,
   handleDeleteSeries,
   handleUndoAll,
-  handleRejectSettlement,
-  handleRejectDebtorSettlement,
 }: SharedExpensesDialogsProps) {
   return (
     <>
@@ -131,44 +122,6 @@ export function SharedExpensesDialogs({
               disabled={isUndoingAll}
             >
               {isUndoingAll ? "..." : "Confirmar"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={rejectDialog.isOpen}
-        onOpenChange={(o) => setRejectDialog({ ...rejectDialog, isOpen: o })}
-      >
-        <AlertDialogContent className={`max-w-md border-border/50 ${sheetDialogCn}`}>
-          <AlertDialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
-            <AlertDialogTitle>Recusar Acerto</AlertDialogTitle>
-            <AlertDialogDescription className="sr-only">
-              Informe o motivo da recusa.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="px-5 sm:px-6 py-4 space-y-2">
-            <Label>Motivo</Label>
-            <Input
-              value={rejectDialog.reason}
-              onChange={(e) => setRejectDialog({ ...rejectDialog, reason: e.target.value })}
-            />
-          </div>
-          <AlertDialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
-            <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-              onClick={() => {
-                if (rejectDialog.item) {
-                  if (rejectDialog.item.settledByCreditor && !rejectDialog.item.settledByDebtor) {
-                    handleRejectDebtorSettlement([rejectDialog.item], rejectDialog.reason);
-                  } else {
-                    handleRejectSettlement(rejectDialog.item, rejectDialog.reason);
-                  }
-                }
-              }}
-            >
-              Recusar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
