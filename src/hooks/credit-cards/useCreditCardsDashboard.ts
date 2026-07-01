@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMonth } from "@/contexts/MonthContext";
 import {
   useAccounts,
@@ -51,6 +52,7 @@ export interface CreditCardAccount {
 export function useCreditCardsDashboard() {
   const { user } = useAuth();
   const { currentDate, startDay } = useMonth();
+  const queryClient = useQueryClient();
   const [view, setView] = useState<CardView>("list");
   const [selectedCard, setSelectedCard] = useState<CreditCardAccount | null>(null);
   const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
@@ -439,6 +441,7 @@ export function useCreditCardsDashboard() {
       setShowPayDialog(false);
       refetchAccounts();
       refetchTransactions();
+      queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       return true;
     } catch (err: any) {
       const msg = err?.message || "Erro desconhecido";
