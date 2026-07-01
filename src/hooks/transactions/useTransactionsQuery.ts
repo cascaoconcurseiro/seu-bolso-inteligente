@@ -49,9 +49,7 @@ export function useTransactions(filters?: TransactionFilters) {
           *,
           account:accounts!account_id(id, name, type, currency, bank_id),
           category:categories(id, name, icon, parent_category_id),
-          transaction_splits:transaction_splits!transaction_id(*),
-          settled_as_debtor:transaction_splits!transaction_splits_debtor_settlement_tx_id_fkey(*, parent:transactions!transaction_splits_transaction_id_fkey(description, date)),
-          settled_as_creditor:transaction_splits!transaction_splits_creditor_settlement_tx_id_fkey(*, parent:transactions!transaction_splits_transaction_id_fkey(description, date))
+          transaction_splits:transaction_splits!transaction_id(*)
         `)
         .is("deleted_at", null)
         .neq("status", "PENDING"); // Contas agendadas só aparecem na aba Próximas
