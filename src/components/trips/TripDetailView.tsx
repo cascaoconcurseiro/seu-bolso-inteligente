@@ -10,6 +10,7 @@ import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface TripDetailViewProps {
   trip: any;
@@ -69,7 +70,10 @@ export function TripDetailView({
       t.type === "EXPENSE" &&
       (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id)
   );
-  const totalExpenses = relevantTransactions.reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+  const totalExpenses = relevantTransactions.reduce(
+    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+    0
+  );
 
   // IMPACTO REAL NO ORÇAMENTO (Accrual Basis - Regime de Competência):
   // 1. Gastos individuais (só meus)
