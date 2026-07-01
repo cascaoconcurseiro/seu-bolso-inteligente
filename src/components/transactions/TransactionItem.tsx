@@ -128,20 +128,12 @@ export function TransactionItem({
     selectedAccount !== "all" &&
     transaction.destination_account_id === selectedAccount;
 
-  // Encontrar o split do usuário atual para transações compartilhadas
-  const myMemberId = familyMembers?.find((m) => m.linked_user_id === user?.id)?.id;
-  const mySplit = transaction.transaction_splits?.find(
-    (s) => s.user_id === user?.id || s.member_id === myMemberId
-  );
-
   const displayAmount =
     isIncomingTransfer &&
     transaction.destination_amount !== null &&
     transaction.destination_amount !== undefined
       ? Number(transaction.destination_amount)
-      : transaction.is_shared && mySplit
-        ? Number(mySplit.amount)
-        : Number(transaction.amount);
+      : Number(transaction.amount);
 
   const displayCurrency =
     isIncomingTransfer && transaction.destination_currency
