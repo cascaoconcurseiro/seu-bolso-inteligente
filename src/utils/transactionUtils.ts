@@ -34,6 +34,8 @@ export interface Transaction {
   updated_at: string;
   creator_user_id?: string | null;
   transaction_splits?: DBTransactionSplit[];
+  settled_as_debtor?: any[];
+  settled_as_creditor?: any[];
   // Joined data
   account?: { id: string; name: string; currency?: string; bank_id?: string | null };
   category?: { id: string; name: string; icon: string | null };

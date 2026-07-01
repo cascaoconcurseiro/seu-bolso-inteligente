@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FastForward, Lock, CheckCircle, Clock, Users, Edit, Trash2 } from "lucide-react";
+import { FastForward, Lock, CheckCircle, Clock, Users, Edit, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
 import { Transaction } from "@/utils/transactionUtils";
@@ -138,6 +138,13 @@ export function TransactionItem({
     (transaction.account?.currency || transaction.currency || 'BRL') !== transaction.destination_currency;
 
   const isOptimistic = (transaction as any).is_optimistic;
+
+  const settledItems = [
+    ...(transaction.settled_as_debtor || []),
+    ...(transaction.settled_as_creditor || [])
+  ];
+  const hasSettledItems = settledItems.length > 0;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <motion.div 
@@ -286,6 +293,20 @@ export function TransactionItem({
               : (displayType === "INCOME" ? "Crédito" : "Débito")}
           </span>
         </div>
+        
+        {hasSettledItems && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 mt-1 text-muted-foreground self-start hidden md:flex"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+          >
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        )}
         <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex" onClick={(e) => e.stopPropagation()}>
 
           {canDelete && (
@@ -323,7 +344,41 @@ export function TransactionItem({
           )}
         </div>
       </div>
+      </div>
       </motion.div>
+      
+      {hasSettledItems && (
+        <>
+          <div 
+            className="md:hidden flex items-center justify-center py-2 bg-background border-t border-border/50 cursor-pointer text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
+          >
+            <span className="text-xs font-medium mr-1">{isExpanded ? 'Recolher acertos' : 'Ver acertos'}</span>
+            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </div>
+          
+          <motion.div
+            initial={false}
+            animate={{ height: isExpanded ? "auto" : 0, opacity: isExpanded ? 1 : 0 }}
+            className="overflow-hidden bg-muted/30"
+          >
+            <div className="p-3 pl-12 text-sm border-t border-border/50">
+              <p className="font-medium text-xs text-muted-foreground mb-2 uppercase tracking-wider">Itens compensados:</p>
+              <div className="space-y-2">
+                {settledItems.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <span className="truncate pr-2">{item.parent?.description || 'Transação deletada'}</span>
+                    <span className="font-mono text-muted-foreground text-xs">{formatCurrency(item.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
     </motion.div>
   );
 }
