@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  FastForward,
-  Lock,
-  CheckCircle,
-  Clock,
-  Users,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { FastForward, Lock, CheckCircle, Clock, Users, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SharedTransactionBadge } from "@/components/shared/SharedTransactionBadge";
 import { Transaction } from "@/utils/transactionUtils";
@@ -363,7 +355,7 @@ export function TransactionItem({
           </div>
 
           <div
-            className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex"
+            className="items-center gap-1 opacity-0 group-hover/item:opacity-100 md:transition-opacity hidden md:flex"
             onClick={(e) => e.stopPropagation()}
           >
             {canDelete && (
