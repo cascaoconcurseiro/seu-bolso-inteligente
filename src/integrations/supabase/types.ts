@@ -39,6 +39,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_reconciliations: {
+        Row: {
+          account_id: string
+          calculated_balance: number
+          created_at: string
+          difference: number | null
+          id: string
+          notes: string | null
+          reconciled_at: string | null
+          statement_balance: number
+          statement_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          calculated_balance: number
+          created_at?: string
+          difference?: number | null
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          statement_balance: number
+          statement_date: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          calculated_balance?: number
+          created_at?: string
+          difference?: number | null
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          statement_balance?: number
+          statement_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_reconciliations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounts: {
         Row: {
           balance: number
@@ -381,6 +431,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      balance_changes: {
+        Row: {
+          account_id: string
+          changed_at: string
+          delta: number | null
+          id: string
+          new_balance: number
+          old_balance: number
+          transaction_id: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          account_id: string
+          changed_at?: string
+          delta?: number | null
+          id?: string
+          new_balance: number
+          old_balance: number
+          transaction_id?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          account_id?: string
+          changed_at?: string
+          delta?: number | null
+          id?: string
+          new_balance?: number
+          old_balance?: number
+          transaction_id?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_changes_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       budgets: {
         Row: {
@@ -3883,6 +3974,10 @@ export type Database = {
         Args: { p_invitation_id: string; p_status: string }
         Returns: Json
       }
+      get_account_balance_at_date: {
+        Args: { p_account_id: string; p_date?: string }
+        Returns: number
+      }
       get_actual_closing_date: {
         Args: { p_closing_day: number; p_mode: string; p_year_month: string }
         Returns: string
@@ -4293,8 +4388,6 @@ export type Database = {
         Args: { p_transaction_id: string }
         Returns: undefined
       }
-      run_audit_check: { Args: never; Returns: Json }
-      run_get_schema: { Args: never; Returns: Json }
       search_transactions: {
         Args: { p_limit?: number; p_query: string }
         Returns: {

@@ -69,23 +69,24 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
 
       // ── 1. Saldo de ABERTURA do mês (via DB — Single Source of Truth) ─────
       // Usa a mesma função que as triggers usam: get_account_balance_at_date
-      const { data: openingData } = await supabase
-        .rpc("get_account_balance_at_date", {
-          p_account_id: accountId,
-          p_date: monthStart,
-        });
+      const { data: openingData } = await supabase.rpc("get_account_balance_at_date", {
+        p_account_id: accountId,
+        p_date: monthStart,
+      });
 
       const openingBalance = Number(openingData ?? 0);
 
       // ── 2. Transações DO mês selecionado ────────────────────────────────────
       const { data: monthRaw, error: txError } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           account:accounts!transactions_account_id_fkey(id, name, currency),
           category:categories(name, icon),
           transaction_splits:transaction_splits!transaction_splits_transaction_id_fkey(*)
-        `)
+        `
+        )
         .or(`account_id.eq.${accountId},destination_account_id.eq.${accountId}`)
         .gte(dateField, monthStart)
         .lte(dateField, monthEnd)
@@ -129,9 +130,10 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             isIncoming = true;
-            amt = t.destination_amount != null && t.destination_amount !== undefined
-              ? Number(t.destination_amount)
-              : Number(t.amount);
+            amt =
+              t.destination_amount != null && t.destination_amount !== undefined
+                ? Number(t.destination_amount)
+                : Number(t.amount);
             curr = t.destination_currency || t.currency;
             displayAmount = amt;
             runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
