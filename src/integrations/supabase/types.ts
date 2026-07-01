@@ -1844,9 +1844,6 @@ export type Database = {
           notes: string | null
           notification_date: string | null
           payer_id: string | null
-          reconciled: boolean | null
-          reconciled_at: string | null
-          reconciled_by: string | null
           recurrence_day: number | null
           recurrence_pattern: string | null
           refund_of_transaction_id: string | null
@@ -1898,9 +1895,6 @@ export type Database = {
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
-          reconciled?: boolean | null
-          reconciled_at?: string | null
-          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -1952,9 +1946,6 @@ export type Database = {
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
-          reconciled?: boolean | null
-          reconciled_at?: string | null
-          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -2034,20 +2025,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "family_members"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_reconciled_by_fkey"
-            columns: ["reconciled_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_reconciled_by_fkey"
-            columns: ["reconciled_by"]
-            isOneToOne: false
-            referencedRelation: "user_net_worth"
-            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "transactions_refund_of_transaction_id_fkey"
@@ -3428,9 +3405,6 @@ export type Database = {
           notes: string | null
           notification_date: string | null
           payer_id: string | null
-          reconciled: boolean | null
-          reconciled_at: string | null
-          reconciled_by: string | null
           recurrence_day: number | null
           recurrence_pattern: string | null
           refund_of_transaction_id: string | null
@@ -3481,9 +3455,6 @@ export type Database = {
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
-          reconciled?: boolean | null
-          reconciled_at?: string | null
-          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -3534,9 +3505,6 @@ export type Database = {
           notes?: string | null
           notification_date?: string | null
           payer_id?: string | null
-          reconciled?: boolean | null
-          reconciled_at?: string | null
-          reconciled_by?: string | null
           recurrence_day?: number | null
           recurrence_pattern?: string | null
           refund_of_transaction_id?: string | null
@@ -3603,20 +3571,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "family_members"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_reconciled_by_fkey"
-            columns: ["reconciled_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transactions_reconciled_by_fkey"
-            columns: ["reconciled_by"]
-            isOneToOne: false
-            referencedRelation: "user_net_worth"
-            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "transactions_refund_of_transaction_id_fkey"
@@ -4215,9 +4169,6 @@ export type Database = {
           notes: string | null
           notification_date: string | null
           payer_id: string | null
-          reconciled: boolean | null
-          reconciled_at: string | null
-          reconciled_by: string | null
           recurrence_day: number | null
           recurrence_pattern: string | null
           refund_of_transaction_id: string | null
@@ -4343,6 +4294,7 @@ export type Database = {
         Returns: undefined
       }
       run_audit_check: { Args: never; Returns: Json }
+      run_get_schema: { Args: never; Returns: Json }
       search_transactions: {
         Args: { p_limit?: number; p_query: string }
         Returns: {
