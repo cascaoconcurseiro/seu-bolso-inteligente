@@ -336,14 +336,6 @@ export function applyTransactionFilters<
     const matchesAccount =
       filters.selectedAccount === "all" || t.account?.id === filters.selectedAccount;
 
-    // Exclui despesas de cartão de crédito quando não está filtrando por conta específica
-    if (
-      filters.selectedAccount === "all" &&
-      t.account?.type === "CREDIT_CARD" &&
-      t.type === "EXPENSE"
-    )
-      return false;
-
     let matchesPeriod = true;
     if (periodDates) {
       const txDate = new Date(t.date + "T12:00:00");
