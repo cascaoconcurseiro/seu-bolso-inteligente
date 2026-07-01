@@ -167,11 +167,16 @@ export function TransactionItem({
 
   const isOptimistic = (transaction as any).is_optimistic;
 
+  // Transações de acerto (criadas por request_settlement) não devem mostrar "Itens compensados"
+  const isSettlementTransaction =
+    transaction.description?.startsWith("Recebimento de despesa compartilhada") ||
+    transaction.description?.startsWith("Pagamento de despesa compartilhada");
+
   const settledItems = [
     ...(transaction.settled_as_debtor || []),
     ...(transaction.settled_as_creditor || []),
   ];
-  const hasSettledItems = settledItems.length > 0;
+  const hasSettledItems = settledItems.length > 0 && !isSettlementTransaction;
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
