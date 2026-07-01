@@ -1,123 +1,67 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-01 — Pós-Auditoria Completa de Banco** ⭐
+> Última atualização: **2026-07-01 — Pós-Auditoria Completa** ✅
 
 ---
 
-## ✅ CONCLUÍDO — Auditoria 01/07/2026 (4 migrations)
+## ✅ CONCLUÍDO — Auditoria 01/07/2026 (7 migrations)
 
 ### 🔴 CRÍTICO — Corrigido
 - [x] **[BAL-01]** `update_account_balance_on_insert()` recriada + trigger `trg_update_balance_insert`
 - [x] **[BAL-02]** `update_account_balance_on_delete()` recriada + trigger `trg_update_balance_delete`
 - [x] **[BAL-03]** Todos os saldos recalculados via `recalculate_account_balance()`
 - [x] **[BAL-04]** `trigger_sync_account_balance` removido (double-counting com BAL-01)
-- [x] **[BAL-05]** `financial_ledger` dropada com CASCADE (migration anterior falhou silenciosamente)
+- [x] **[BAL-05]** `financial_ledger` dropada com CASCADE
 
 ### 🟠 IMPORTANTE — Corrigido
 - [x] **[CLEAN-01]** `calculate_account_balance()` no-param órfã dropada
-- [x] **[CLEAN-02]** `is_family_member` → consolidado em `is_family_member_v2` (5 políticas RLS atualizadas)
-- [x] **[CLEAN-03]** `trigger_set_updated_at` → migrado para `update_updated_at_column` (2 triggers)
-- [x] **[CLEAN-04]** `handle_updated_at` já dropada pela auditoria anterior
-- [x] **[CLEAN-05]** `fn_trg_family_invitation_notification` dropada ✓
-- [x] **[CLEAN-06]** `validate_competence_date` dropada ✓
-- [x] **[CLEAN-07]** `create_mirrored_transaction_for_split` dropada ✓
-- [x] **[CLEAN-08]** `update_mirrored_transactions_on_transaction_update` dropada ✓
-- [x] **[CLEAN-09]** `cleanup_old_audit_logs()` (no-param) dropada ✓
-- [x] **[CRON-01]** Cron job `monthly-audit-log-cleanup` (já existia, mantido)
-- [x] **[CRON-02]** Cron job `weekly_audit_log_cleanup` removido (redundante)
-
-### 🟡 PENDENTES ANTIGOS — Corrigidos
-- [x] **[IDX-01]** Índices FK faltantes criados: `trip_exchange_purchases`, `credit_card_closing_overrides`, `notification_preferences`, `asset_transactions`
-- [x] **[IDX-02]** Índice `budgets.user_id` (já existia no remote)
-- [x] **[IDX-03]** Índice `trip_checklist.trip_id` (já existia no remote)
-- [x] **[IDX-04]** Índices órfãos do `financial_ledger` removidos (4)
-- [x] **[IDX-05]** Índice duplicado `idx_family_members_status_active` removido
-- [x] **[RLS-01]** `settlement_reversals` agora tem políticas RLS (SELECT, INSERT, ALL)
-- [x] **[RLS-02]** `families` — política "Users can view their families" recriada com `is_family_member_v2`
-- [x] **[RLS-03]** Verificação completa: **todas as 35 tabelas** têm RLS enabled ✅
-- [x] **[SEC-01]** `search_path` seguro em todas as funções SECURITY DEFINER recriadas
-- [x] **[TYP-01]** types.ts regenerado (07/07/2026) — `financial_ledger`, `accounts.deleted` removidos
-- [x] **[DEPR-01]** `accounts.deleted` column dropada (redundante com `deleted_at` e `is_active`)
-- [x] **[TRIG-01]** `error_logs` trigger corrigido: `trg_error_logs_updated_at` com `update_updated_at_column`
-- [x] **[OVERLOAD-01]** `get_admin_error_logs(text)` overload removido
+- [x] **[CLEAN-02]** `is_family_member` → consolidado em `is_family_member_v2` (5 políticas RLS)
+- [x] **[CLEAN-03]** `trigger_set_updated_at` → migrado para `update_updated_at_column`
+- [x] **[CLEAN-04]** `reconciled_*` columns (3) dropadas + view transactions_ssot recriada
+- [x] **[CLEAN-05]** `accounts.deleted` column dropada
+- [x] **[CLEAN-06]** 6 funções órfãs dropadas (auditoria anterior)
+- [x] **[CLEAN-07]** `cleanup_old_audit_logs()` dropada
+- [x] **[CLEAN-08]** `handle_updated_at` dropada
+- [x] **[IDX-01]** 4 índices novos + 4 órfãos do financial_ledger removidos + 1 duplicado
+- [x] **[RLS-01]** `settlement_reversals` agora com RLS (SELECT, INSERT, ALL)
+- [x] **[RLS-02]** 5 políticas RLS atualadas para `is_family_member_v2`
+- [x] **[RLS-03]** 35 tabelas verificadas — todas com RLS ✅
+- [x] **[TRIG-01]** `error_logs` trigger corrigido (`update_updated_at_column`)
+- [x] **[TYP-01]** types.ts regenerado (x2, pós-drop de colunas)
+- [x] **[CRON-01]** Cron jobs consolidados: 4 ativos, 1 redundante removido
+- [x] **[OVERLOAD-01]** `get_admin_error_logs(text)` removido
 
 ---
 
 ## 🔴 CRÍTICO — Fazer Agora
 
-- [ ] **[BAL-06]** Verificar 4 contas com saldo divergente reportadas na auditoria anterior
-  - Visa Platinium: diff=-60.060,00 | Nubank CC: diff=-35.324,68 | Azul infinite: diff=-7.761,48 | Carrefour: diff=-500,00
-  - A correção do BAL-01/02/03 pode ter resolvido — revalidar
+- [ ] **[BAL-06]** Revalidar 4 contas com saldo divergente (auditoria anterior)
+  - Visa Platinium: diff=-60.060 | Nubank CC: diff=-35.324 | Azul infinite: diff=-7.761 | Carrefour: diff=-500
+  - Migration 20260702000000 já recalculou todos os saldos — provavelmente resolvido
+  - **Ação:** rodar `SELECT recalculate_account_balance(id)` para cada conta e comparar
 
 ---
 
 ## 🟠 ALTA PRIORIDADE — Esta Semana
 
-- [ ] **[DUP-01]** Resolver 2 grupos de contas duplicadas (mesmo nome + user)
-  - Soft-delete duplicada, migrar transações para ativa
-
-- [ ] **[ARC-05]** PDF export via Web Worker
-  - Problema: jsPDF bloqueia main thread → UI freeze em relatórios grandes
-  - Esforço: M (requer testes de UI)
-
-- [ ] **[SEC-08]** Criptografar cache IndexedDB
-  - Dados financeiros em IndexedDB sem criptografia em dispositivos compartilhados
-  - Esforço: M
+- [ ] **[BASELINE]** Criar migration baseline (19 tabelas SQL Editor sem CREATE TABLE)
+  - Bloqueio: requer Docker (`supabase db dump`)
+  - Schema definitions capturados via RPC em schema_full.json (referência)
+- [ ] **[ERROR_LOG]** Atualizar migration `20260527135500` com schema real do `error_logs`
+  - Já documentado como comment na migration `20260701235900`
+- [ ] **[DUP-01]** Resolver 2 grupos de contas duplicadas
 
 ---
 
 ## 🟡 BACKLOG TÉCNICO
 
-- [ ] **[BASELINE]** Criar migration baseline com schema das 19 tabelas criadas via SQL Editor
-  - Tabelas: accounts, transactions, profiles, categories, budgets, families, family_members, family_invitations, trips, trip_members, trip_invitations, trip_checklist, trip_itinerary, trip_exchange_purchases, notifications, notification_preferences, asset_transactions, transaction_auto_share_rules, transaction_splits
-  - Rodar: `supabase db dump --schema public` (requer Docker) e extrair CREATE TABLE
-
-- [ ] **[ERROR_LOG]** Sincronizar migration `20260527135500` com schema real do `error_logs`
-  - Migration diz: error_name, error_message, component_stack, user_message
-  - Remote real: error_type, message, stack, url, file, line, col, user_agent, app_version, extra
-  - O remote está correto (matching frontend types.ts)
-
-- [ ] **[TYP-01]** Regenerar types.ts
-  - Rodar: `npx supabase gen types typescript > src/integrations/supabase/types.ts`
-
+- [ ] **[ARC-05]** PDF export via Web Worker (frontend)
+- [ ] **[SEC-08]** Criptografar cache IndexedDB (frontend)
 - [ ] **[FUT-01]** Auditar 11 transações com data futura (>30 dias)
-  - Verificar se são parcelamentos válidos ou erro de competence_date
-
-- [ ] **[FEAT-01]** Relatório mensal por email
-  - Via Edge Function + Resend/SendGrid
-
-- [ ] **[CLEAN-10]** Avaliar remoção de colunas mortas
-  - `transactions.reconciled`, `reconciled_at`, `reconciled_by`
-  - `accounts.deleted` (boolean, redundante com is_active)
-
----
-
-## 📊 MÉTRICAS DO BANCO (01/07/2026)
-
-| Métrica               | Valor                                                                                        |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| Tabelas               | 35 (todas com RLS ✅)                                                                         |
-| Políticas RLS         | ~100+                                                                                        |
-| Funções               | ~85 (0 órfãs ✅)                                                                              |
-| Triggers              | ~52 em 18 tabelas                                                                            |
-| Índices               | ~110+                                                                                        |
-| Cron jobs             | 4 ativos (daily_yields, send-bill-reminders, send-monthly-report, monthly-audit-log-cleanup) |
-| Tabelas sem migration | 19 (SQL Editor)                                                                              |
-| Migrations total      | 214                                                                                          |
-  - `profiles.app_pin` (plaintext residual, já migrado para app_pin_hash)
-
+- [ ] **[FEAT-01]** Relatório mensal por email (Edge Function + Resend)
 - [ ] **[CONC-01]** Teste de concorrência real (pgbench em staging)
-  - Simular 2 usuários liquidando o mesmo split
-  - Simular transferência simultânea
-
----
-
-## ✅ CONCLUÍDO
-
-- [x] **[CRIT-04]** ~~create_account_with_balance RPC atômica~~ ✅ DONE (2026-06-30)
-- [x] **[CRIT-05]** ~~contribute_to_goal RPC atômica~~ ✅ DONE (2026-06-30)
-- [x] **[CRIT-06]** ~~goal_id FK em transactions~~ ✅ DONE (2026-06-30)
+- [ ] **[PROF-01]** Remover `profiles.app_pin` (plaintext residual, já migrado para `app_pin_hash`)
 - [x] **[AUD-07]** ~~financial_ledger dropado~~ ✅ DONE
 - [x] **[AUD-08]** Auditoria 20 fases concluída → `AUDIT_REPORT_COMPLETE.md` ✅ DONE (2026-06-30)
 
