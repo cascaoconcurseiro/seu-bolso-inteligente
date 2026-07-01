@@ -50,7 +50,7 @@ export function useDashboardData() {
 
   return useQuery({
     queryKey: ["dashboard-data", user?.id, monthKey],
-    staleTime: 1000 * 60 * 5, // 5 minutes cache to avoid excessive refetching
+    staleTime: 1000 * 30, // 30s — dados financeiros devem ser sempre frescos
     queryFn: async (): Promise<DashboardSummary> => {
       if (!user)
         return {

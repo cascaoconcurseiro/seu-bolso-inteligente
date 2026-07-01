@@ -182,8 +182,8 @@ export function Dashboard() {
     });
 
     return Array.from(map.values()).sort((a) => (a.currency === "BRL" ? -1 : 1));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accounts, currentDate]);
+  }, [accounts, currentDate, dashboardData]);
+
 
   const brlData = currenciesData.find((c) => c.currency === "BRL") || {
     currency: "BRL",
