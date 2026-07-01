@@ -30,6 +30,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getBankById } from "@/lib/banks";
 import { moneyUtils } from "@/utils/money";
 import { CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
+import { toast } from "sonner";
 
 export type CardView = "list" | "detail";
 
@@ -330,7 +331,7 @@ export function useCreditCardsDashboard() {
     setTimeout(() => {
       setShowEditCardDialog(false);
     }, 80);
-    
+
     updateAccount.mutate({
       id: selectedCard.id,
       name: editCardName,
@@ -384,62 +385,66 @@ export function useCreditCardsDashboard() {
     }
   };
 
-  const handlePayInvoice = async (fromId: string, amt: number, rate?: number) => {
-    if (!selectedCard || !invoiceData) return;
+  const handlePayInvoice = async (fromId: string, amt: number, rate?: number): Promise<boolean> => {
+    if (!selectedCard || !invoiceData) return false;
     const debit = rate ? amt * rate : amt;
     const competenceFormatted = dateFns.format(selectedDate, "MMMM/yyyy", { locale: ptBR });
     const capitalizedCompetence =
       competenceFormatted.charAt(0).toUpperCase() + competenceFormatted.slice(1);
 
-    await createTransaction.mutateAsync({
-      amount: debit,
-      description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
-      date: formatDateISO(new Date()),
-      competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
-      type: "TRANSFER",
-      account_id: fromId,
-      destination_account_id: selectedCard.id,
-      domain: "PERSONAL",
-      currency: rate ? "BRL" : selectedCard.currency || "BRL",
-    });
-
-    // Rotative Logic (Partial Payment)
-    const remaining = invoiceData.invoiceTotal - amt;
-    if (remaining > 0.01) {
-      const nextMonth = dateFns.addMonths(selectedDate, 1);
-      const nextMonthFmt = dateFns.format(nextMonth, "MMMM/yyyy", { locale: ptBR });
-
-      // 1. Estorno no mês atual para anular o impacto duplicado
+    try {
       await createTransaction.mutateAsync({
-        amount: remaining,
-        description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
+        amount: debit,
+        description: `Pagamento Fatura ${selectedCard.name} - ${capitalizedCompetence}`,
         date: formatDateISO(new Date()),
         competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
         type: "TRANSFER",
-        account_id: selectedCard.id,
+        account_id: fromId,
         destination_account_id: selectedCard.id,
         domain: "PERSONAL",
-        currency: selectedCard.currency || "BRL",
+        currency: rate ? "BRL" : selectedCard.currency || "BRL",
       });
 
-      // 2. Cobrança do saldo rotativo no mês seguinte
-      await createTransaction.mutateAsync({
-        amount: remaining,
-        description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
-        date: formatDateISO(new Date()),
-        competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
-        type: "TRANSFER",
-        account_id: selectedCard.id,
-        destination_account_id: selectedCard.id,
-        domain: "PERSONAL",
-        currency: selectedCard.currency || "BRL",
-      });
+      // Rotative Logic (Partial Payment)
+      const remaining = invoiceData.invoiceTotal - amt;
+      if (remaining > 0.01) {
+        const nextMonth = dateFns.addMonths(selectedDate, 1);
+
+        await createTransaction.mutateAsync({
+          amount: remaining,
+          description: `Estorno Saldo Rotativo Fatura ${capitalizedCompetence}`,
+          date: formatDateISO(new Date()),
+          competence_date: dateFns.format(selectedDate, "yyyy-MM-01"),
+          type: "TRANSFER",
+          account_id: selectedCard.id,
+          destination_account_id: selectedCard.id,
+          domain: "PERSONAL",
+          currency: selectedCard.currency || "BRL",
+        });
+
+        await createTransaction.mutateAsync({
+          amount: remaining,
+          description: `Saldo Rotativo Fatura Anterior (${capitalizedCompetence})`,
+          date: formatDateISO(new Date()),
+          competence_date: dateFns.format(nextMonth, "yyyy-MM-01"),
+          type: "TRANSFER",
+          account_id: selectedCard.id,
+          destination_account_id: selectedCard.id,
+          domain: "PERSONAL",
+          currency: selectedCard.currency || "BRL",
+        });
+      }
+
+      showActionFeedback("Pagamento processado!", "success");
+      setShowPayDialog(false);
+      refetchAccounts();
+      refetchTransactions();
+      return true;
+    } catch (err: any) {
+      const msg = err?.message || "Erro desconhecido";
+      toast.error(`Erro ao processar pagamento: ${msg}`);
+      return false;
     }
-
-    toast.success("Pagamento processado!");
-    setShowPayDialog(false);
-    refetchAccounts();
-    refetchTransactions();
   };
 
   return {

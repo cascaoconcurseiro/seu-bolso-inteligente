@@ -8,7 +8,10 @@ interface DashboardLowBalanceAlertProps {
   threshold: number;
 }
 
-export const DashboardLowBalanceAlert = memo(function DashboardLowBalanceAlert({ currentBalance, threshold }: DashboardLowBalanceAlertProps) {
+export const DashboardLowBalanceAlert = memo(function DashboardLowBalanceAlert({
+  currentBalance,
+  threshold,
+}: DashboardLowBalanceAlertProps) {
   if (!threshold || threshold <= 0 || currentBalance >= threshold) return null;
 
   return (
@@ -18,7 +21,8 @@ export const DashboardLowBalanceAlert = memo(function DashboardLowBalanceAlert({
         <div className="min-w-0">
           <p className="text-sm font-bold leading-tight">Saldo baixo detectado</p>
           <p className="text-xs opacity-80 mt-0.5">
-            Seu saldo disponível ({moneyUtils.format(currentBalance, "BRL")}) está abaixo do limite configurado de {moneyUtils.format(threshold, "BRL")}.
+            Seu saldo disponível ({moneyUtils.format(currentBalance, "BRL")}) está abaixo do limite
+            configurado de {moneyUtils.format(threshold, "BRL")}.
           </p>
         </div>
       </div>

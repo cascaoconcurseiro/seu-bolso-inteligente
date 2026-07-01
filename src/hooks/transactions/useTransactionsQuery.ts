@@ -58,7 +58,13 @@ export function useTransactions(filters?: TransactionFilters) {
 
       // Filtro OR: transações minhas (onde sou o pagador ou payer_id é nulo e a conta é minha)
       if (memberId) {
-        query = query.or(`and(user_id.eq."${user.id}",payer_id.is.null),payer_id.eq."${memberId}"`);
+        // Excluir transações espelho (source_transaction_id IS NOT NULL) do extrato pessoal:
+        // são cópias geradas automaticamente para o outro membro numa despesa compartilhada
+        // e aparecem na página Despesas Compartilhadas, não aqui.
+        query = query.or(
+          `and(user_id.eq."${user.id}",payer_id.is.null,source_transaction_id.is.null),` +
+          `payer_id.eq."${memberId}"`
+        );
       } else {
         query = query.eq("user_id", user.id).is("payer_id", null);
       }

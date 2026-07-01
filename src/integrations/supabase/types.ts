@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       accounts: {
@@ -25,7 +50,6 @@ export type Database = {
           created_at: string
           credit_limit: number | null
           currency: string
-          deleted: boolean | null
           deleted_at: string | null
           deleted_by: string | null
           due_day: number | null
@@ -52,7 +76,6 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           currency?: string
-          deleted?: boolean | null
           deleted_at?: string | null
           deleted_by?: string | null
           due_day?: number | null
@@ -79,7 +102,6 @@ export type Database = {
           created_at?: string
           credit_limit?: number | null
           currency?: string
-          deleted?: boolean | null
           deleted_at?: string | null
           deleted_by?: string | null
           due_day?: number | null
@@ -1809,6 +1831,7 @@ export type Database = {
           enable_notification: boolean | null
           exchange_rate: number | null
           frequency: string | null
+          goal_id: string | null
           id: string
           import_hash: string | null
           is_installment: boolean
@@ -1862,6 +1885,7 @@ export type Database = {
           enable_notification?: boolean | null
           exchange_rate?: number | null
           frequency?: string | null
+          goal_id?: string | null
           id?: string
           import_hash?: string | null
           is_installment?: boolean
@@ -1915,6 +1939,7 @@ export type Database = {
           enable_notification?: boolean | null
           exchange_rate?: number | null
           frequency?: string | null
+          goal_id?: string | null
           id?: string
           import_hash?: string | null
           is_installment?: boolean
@@ -1987,6 +2012,13 @@ export type Database = {
             columns: ["destination_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
             referencedColumns: ["id"]
           },
           {
@@ -3792,7 +3824,6 @@ export type Database = {
         Args: { p_days_to_keep: number }
         Returns: number
       }
-      cleanup_old_audit_logs: { Args: never; Returns: number }
       cleanup_old_pending_operations: { Args: never; Returns: number }
       clear_pin: { Args: never; Returns: boolean }
       confirm_settlement: {
@@ -3812,6 +3843,33 @@ export type Database = {
           p_date: string
           p_exchange_rate?: number
           p_split_ids: string[]
+        }
+        Returns: Json
+      }
+      contribute_to_goal: {
+        Args: {
+          p_account_id?: string
+          p_amount: number
+          p_description?: string
+          p_goal_id: string
+        }
+        Returns: Json
+      }
+      create_account_with_balance: {
+        Args: {
+          p_bank_color?: string
+          p_bank_id?: string
+          p_closing_day?: number
+          p_credit_limit?: number
+          p_currency?: string
+          p_due_day?: number
+          p_hide_balance?: boolean
+          p_initial_balance?: number
+          p_is_international?: boolean
+          p_name: string
+          p_type: string
+          p_yield_rate?: number
+          p_yield_type?: string
         }
         Returns: Json
       }
@@ -4144,6 +4202,7 @@ export type Database = {
           enable_notification: boolean | null
           exchange_rate: number | null
           frequency: string | null
+          goal_id: string | null
           id: string
           import_hash: string | null
           is_installment: boolean
@@ -4191,16 +4250,8 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
-      is_family_member: {
-        Args: { fam_id: string; usr_id: string }
-        Returns: boolean
-      }
       is_family_member_v2: {
         Args: { p_family_id: string; p_user_id: string }
-        Returns: boolean
-      }
-      is_member_of_family: {
-        Args: { fam_id: string; usr_id: string }
         Returns: boolean
       }
       is_trip_member: {
@@ -4251,12 +4302,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      reject_settlement_request:
-        | { Args: { p_reason?: string; p_split_id: string }; Returns: Json }
-        | {
-            Args: { p_reason?: string; p_split_id: string; p_user_id: string }
-            Returns: Json
-          }
+      reject_settlement_request: {
+        Args: { p_reason?: string; p_split_id: string }
+        Returns: Json
+      }
       remove_family_member: {
         Args: { p_member_id: string; p_reason?: string; p_removed_by?: string }
         Returns: undefined
@@ -4268,33 +4317,23 @@ export type Database = {
       request_settlement: {
         Args: {
           p_account_id: string
+          p_amount?: number
           p_is_payment: boolean
           p_split_ids: string[]
           p_user_id: string
         }
         Returns: Json
       }
-      request_settlement_confirmation:
-        | {
-            Args: {
-              p_amount: number
-              p_creditor_id: string
-              p_currency: string
-              p_debtor_id: string
-              p_split_ids: string[]
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_amount: number
-              p_creditor_id: string
-              p_currency?: string
-              p_debtor_id: string
-              p_split_ids: string[]
-            }
-            Returns: undefined
-          }
+      request_settlement_confirmation: {
+        Args: {
+          p_amount: number
+          p_creditor_id: string
+          p_currency?: string
+          p_debtor_id: string
+          p_split_ids: string[]
+        }
+        Returns: undefined
+      }
       resolve_error_report: {
         Args: { p_report_id: string }
         Returns: undefined
@@ -4303,6 +4342,7 @@ export type Database = {
         Args: { p_transaction_id: string }
         Returns: undefined
       }
+      run_audit_check: { Args: never; Returns: Json }
       search_transactions: {
         Args: { p_limit?: number; p_query: string }
         Returns: {
@@ -4331,19 +4371,10 @@ export type Database = {
         }
         Returns: number
       }
-      settle_multiple_splits:
-        | {
-            Args: { p_account_id: string; p_split_ids: string[] }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_account_id: string
-              p_split_ids: string[]
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      settle_multiple_splits: {
+        Args: { p_account_id: string; p_split_ids: string[]; p_user_id: string }
+        Returns: Json
+      }
       settle_partial_balance: {
         Args: {
           p_amount: number
@@ -4358,25 +4389,15 @@ export type Database = {
           splits_settled: number
         }[]
       }
-      settle_split:
-        | {
-            Args: {
-              p_account_id: string
-              p_amount: number
-              p_date?: string
-              p_split_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_account_id: string
-              p_amount: number
-              p_split_id: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      settle_split: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_split_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_account: {
@@ -4597,6 +4618,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       account_type: [

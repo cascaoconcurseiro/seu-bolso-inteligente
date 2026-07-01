@@ -144,7 +144,12 @@ export function CreditCardDetailView({
     // invoiceData originally comes from props (which is global), but we override it locally for tabs!
     const baseData = getInvoiceData(selectedCard, cardTransactions, selectedDate);
     // Preservar propriedades do invoiceData recebido via prop (como status) caso a gente não tenha calculado
-    return { ...baseData, status: invoiceData?.status || baseData.status };
+    // Priorizar o status calculado localmente (dados mais frescos das transações locais).
+    // Só cede ao status do prop se o local ainda está "OPEN" — evita que um status
+    // stale ("CLOSED") do prop sobrescreva um "PAID" recém-calculado localmente.
+    const resolvedStatus =
+      baseData.status !== "OPEN" ? baseData.status : invoiceData?.status || baseData.status;
+    return { ...baseData, status: resolvedStatus };
   }, [selectedCard, cardTransactions, selectedDate, invoiceData?.status]);
 
   const handleExportCard = async (format: "pdf" | "csv", txs: any[], periodLabel: string) => {
@@ -508,14 +513,16 @@ export function CreditCardDetailView({
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-5 pt-4 border-t border-white/10">
-            <Button
-              variant="secondary"
-              className="min-h-10 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-xs sm:text-sm"
-              onClick={() => setShowPayDialog(true)}
-            >
-              <Wallet className="h-3.5 w-3.5 shrink-0" />
-              <span>Pagar Fatura</span>
-            </Button>
+            {localInvoiceData.status !== "PAID" && (
+              <Button
+                variant="secondary"
+                className="min-h-10 h-auto py-2 bg-white text-black hover:bg-white/90 border-0 font-bold shadow-lg hover:scale-105 transition-transform col-span-2 md:col-span-1 whitespace-normal text-center leading-tight text-xs sm:text-sm"
+                onClick={() => setShowPayDialog(true)}
+              >
+                <Wallet className="h-3.5 w-3.5 shrink-0" />
+                <span>Pagar Fatura</span>
+              </Button>
+            )}
             <Button
               variant="secondary"
               className="min-h-10 h-auto py-2 bg-black/20 hover:bg-black/30 backdrop-blur-md text-white border border-white/10 shadow-sm whitespace-normal text-center leading-tight text-xs sm:text-sm"

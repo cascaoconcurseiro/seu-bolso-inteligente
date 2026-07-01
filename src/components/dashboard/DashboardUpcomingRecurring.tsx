@@ -69,7 +69,11 @@ export const DashboardUpcomingRecurring = memo(function DashboardUpcomingRecurri
         );
         let safety = 0;
         while (dateFns.isBefore(dateFns.startOfDay(nextDate), today) && safety < 1000) {
-          nextDate = calculateNextOccurrence(nextDate, tx.recurrence_pattern!, (tx as any).recurrence_day ?? null);
+          nextDate = calculateNextOccurrence(
+            nextDate,
+            tx.recurrence_pattern!,
+            (tx as any).recurrence_day ?? null
+          );
           safety++;
         }
 

@@ -137,9 +137,9 @@ export const getInvoiceData = (
     if (t.account_id !== account.id && t.destination_account_id !== account.id) return false;
 
     // Pagamentos de fatura: TRANSFER chegando neste cartão
-    // Usar date da transferência (não competence_date)
+    // Usar competence_date do pagamento (mês da fatura que está sendo paga)
     if (t.type === "TRANSFER" && t.destination_account_id === account.id) {
-      const payDate = parseDate(t.date);
+      const payDate = parseDate(t.competence_date || t.date);
       return payDate.getMonth() === month && payDate.getFullYear() === year;
     }
 

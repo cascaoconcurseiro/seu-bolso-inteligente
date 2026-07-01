@@ -37,7 +37,7 @@ export interface Transaction {
   settled_as_debtor?: any[];
   settled_as_creditor?: any[];
   // Joined data
-  account?: { id: string; name: string; currency?: string; bank_id?: string | null };
+  account?: { id: string; name: string; currency?: string; type?: string; bank_id?: string | null };
   category?: { id: string; name: string; icon: string | null };
 }
 
@@ -289,7 +289,7 @@ export function applyTransactionFilters<
     type: string;
     date: string;
     category?: { id: string; name: string } | null;
-    account?: { id: string; name: string } | null;
+    account?: { id: string; name: string; type?: string } | null;
     account_id?: string | null;
     destination_account_id?: string | null;
     source_transaction_id?: string | null;
@@ -335,6 +335,14 @@ export function applyTransactionFilters<
       filters.selectedCategory === "all" || t.category?.id === filters.selectedCategory;
     const matchesAccount =
       filters.selectedAccount === "all" || t.account?.id === filters.selectedAccount;
+
+    // Exclui despesas de cartão de crédito quando não está filtrando por conta específica
+    if (
+      filters.selectedAccount === "all" &&
+      t.account?.type === "CREDIT_CARD" &&
+      t.type === "EXPENSE"
+    )
+      return false;
 
     let matchesPeriod = true;
     if (periodDates) {
