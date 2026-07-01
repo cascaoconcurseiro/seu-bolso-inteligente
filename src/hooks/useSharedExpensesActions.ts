@@ -5,9 +5,7 @@ import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { User } from "@supabase/supabase-js";
-import {
-  createNotification,
-} from "@/services/notificationService";
+import { createNotification } from "@/services/notificationService";
 
 import { FamilyMember } from "@/hooks/useFamily";
 import { moneyUtils } from "@/utils/money";
@@ -235,6 +233,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       if (itemsToSettle[0]?.originalTxId) {
         await invalidateRelated(itemsToSettle[0].originalTxId);
       }
+      // Força invalidação do saldo compartilhado (dashboard FamilyBalancePanel)
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
       refetch(); // Sem await para não travar a UI
     } catch (error) {
       logger.error("Settlement error", error);
@@ -243,6 +243,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         queryClient.setQueryData(["shared-transactions-consolidated"], previousState);
       }
       queryClient?.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] });
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
       toast.error("Erro ao realizar acerto");
     } finally {
       setIsSettling(false);
@@ -279,6 +280,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         await invalidateRelated(item.originalTxId);
       }
       await refetch();
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
 
       // Identificar o outro usuário corretamente: memberId é family_members.id,
       // user?.id é auth.users.id — comparar via linked_user_id
@@ -333,6 +335,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       await invalidateRelated(item.originalTxId);
       await refetch();
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
 
       const otherUserId = members.find((m) => m.id === item.memberId)?.linked_user_id;
       if (otherUserId && otherUserId !== user?.id) {
@@ -386,6 +389,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }, 80);
       if (item.originalTxId) await invalidateRelated(item.originalTxId);
       await refetch();
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
 
       const otherUserId = members.find((m) => m.id === item.memberId)?.linked_user_id;
       if (otherUserId && otherUserId !== user?.id) {
@@ -444,6 +448,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       setUndoAllConfirm(false);
       await refetch();
+      queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
       toast.success(`${successCount} acerto(s) desfeito(s) com sucesso!`);
     } catch (error) {
       logger.error("Erro ao desfazer todos os acertos", error);

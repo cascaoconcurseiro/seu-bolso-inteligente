@@ -1,40 +1,48 @@
 import { moneyUtils } from "@/utils/money";
-import { useMemo, useEffect } from 'react';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useFamilyMembers, useFamily } from './useFamily';
-import { useUserProfile } from './useUserProfile';
-import { toast } from 'sonner';
-import { Database } from '@/types/database';
-import { logger } from '@/utils/logger';
-import { rpcWithRetry } from '@/utils/rpcWithRetry';
-import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
-import {
-  generateInvoices,
-  InvoiceItem
-} from '@/utils/sharedFinanceCalculations';
+import { useMemo, useEffect } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFamilyMembers, useFamily } from "./useFamily";
+import { useUserProfile } from "./useUserProfile";
+import { toast } from "sonner";
+import { Database } from "@/types/database";
+import { logger } from "@/utils/logger";
+import { rpcWithRetry } from "@/utils/rpcWithRetry";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import { generateInvoices, InvoiceItem } from "@/utils/sharedFinanceCalculations";
 
-type DBTransaction = Database['public']['Tables']['transactions']['Row'] & {
+type DBTransaction = Database["public"]["Tables"]["transactions"]["Row"] & {
   category?: { id: string; name: string; icon: string | null; color: string | null } | null;
   transaction_splits?: DBSplit[];
-  payer?: { id: string; name: string; user_id: string | null; linked_user_id: string | null } | null;
+  payer?: {
+    id: string;
+    name: string;
+    user_id: string | null;
+    linked_user_id: string | null;
+  } | null;
   currency?: string;
   competence_date?: string | null;
 };
 
-type DBSplit = Database['public']['Tables']['transaction_splits']['Row'] & {
+type DBSplit = Database["public"]["Tables"]["transaction_splits"]["Row"] & {
   settled_by_debtor: boolean;
   settled_by_creditor: boolean;
 };
-type DBAccount = Pick<Database['public']['Tables']['accounts']['Row'], 'id' | 'type' | 'closing_day' | 'due_day' | 'user_id' | 'name'>;
+type DBAccount = Pick<
+  Database["public"]["Tables"]["accounts"]["Row"],
+  "id" | "type" | "closing_day" | "due_day" | "user_id" | "name"
+>;
 
 interface UseSharedFinancesProps {
   currentDate?: Date;
-  activeTab: 'REGULAR' | 'TRAVEL' | 'HISTORY';
+  activeTab: "REGULAR" | "TRAVEL" | "HISTORY";
 }
 
-export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSharedFinancesProps) => {
+export const useSharedFinances = ({
+  currentDate = new Date(),
+  activeTab,
+}: UseSharedFinancesProps) => {
   const { user } = useAuth();
   const { data: members = [] } = useFamilyMembers(true);
   const { data: family } = useFamily();
@@ -44,20 +52,20 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   // Invalida a query consolidada (única fonte de dados)
   const refetchAll = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] }),
-      queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+      queryClient.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] }),
+      queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+      queryClient.invalidateQueries({ queryKey: ["accounts"] }),
     ]);
   };
 
   // NOVO: Fetch de saldos consolidados via RPC nativo (Performance DBA)
   const { data: sharedBalances, isLoading: isBalancesLoading } = useQuery({
-    queryKey: ['shared-balances', user?.id],
+    queryKey: ["shared-balances", user?.id],
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry('get_current_shared_debts', {
-          p_user_id: user.id
+        const data = await rpcWithRetry("get_current_shared_debts", {
+          p_user_id: user.id,
         });
         return data as Array<{
           member_id: string;
@@ -67,27 +75,31 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           net_balance: number;
         }>;
       } catch (error) {
-        logger.error('Erro ao buscar saldos via RPC', error);
+        logger.error("Erro ao buscar saldos via RPC", error);
         return null;
       }
     },
     enabled: !!user,
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   // NOVO: Fetch consolidado via RPC para popular a lista de transações
-  const { data: sharedData, isLoading, refetch } = useQuery({
-    queryKey: ['shared-transactions-consolidated', user?.id],
+  const {
+    data: sharedData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["shared-transactions-consolidated", user?.id],
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry('get_shared_invoice_data', {
-          p_user_id: user.id
+        const data = await rpcWithRetry("get_shared_invoice_data", {
+          p_user_id: user.id,
         });
         return data;
       } catch (error) {
-        logger.error('Erro ao buscar dados consolidados de finanças compartilhadas', error);
+        logger.error("Erro ao buscar dados consolidados de finanças compartilhadas", error);
         throw error;
       }
     },
@@ -101,17 +113,19 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     if (!user?.id) return;
 
     const channel = supabase
-      .channel('shared_splits_changes')
+      .channel("shared_splits_changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'transaction_splits'
+          event: "*",
+          schema: "public",
+          table: "transaction_splits",
         },
         () => {
-          logger.info('Realtime: Mudança detectada em splits, atualizando...');
-          queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated', user?.id] });
+          logger.info("Realtime: Mudança detectada em splits, atualizando...");
+          queryClient.invalidateQueries({
+            queryKey: ["shared-transactions-consolidated", user?.id],
+          });
         }
       )
       .subscribe();
@@ -122,21 +136,26 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   }, [user?.id, queryClient]);
 
   // Mapear dados do RPC para os estados existentes
-  const transactionsWithSplits = useMemo(() => ({
-    transactions: sharedData?.transactions || [],
-    accounts: sharedData?.accounts || []
-  }), [sharedData]);
+  const transactionsWithSplits = useMemo(
+    () => ({
+      transactions: sharedData?.transactions || [],
+      accounts: sharedData?.accounts || [],
+    }),
+    [sharedData]
+  );
 
   // Transações pagas por outros vêm da RPC consolidada (sem consulta extra)
   const paidByOthersTransactions = useMemo(() => {
     const txList: DBTransaction[] = sharedData?.transactions || [];
     return txList.filter(
-      (t: DBTransaction) => t.user_id === user?.id && t.payer_id != null && t.source_transaction_id == null
+      (t: DBTransaction) =>
+        t.user_id === user?.id && t.payer_id != null && t.source_transaction_id == null
     );
   }, [sharedData, user?.id]);
 
   const invoices = useMemo(() => {
-    const transactions = (transactionsWithSplits as { transactions: DBTransaction[] }).transactions || [];
+    const transactions =
+      (transactionsWithSplits as { transactions: DBTransaction[] }).transactions || [];
     const accounts = (transactionsWithSplits as { accounts: DBAccount[] }).accounts || [];
 
     return generateInvoices(
@@ -154,18 +173,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     const allItems = invoices[memberId] || [];
 
     // Buscar configuração de escopo do membro
-    const member = members.find(m => m.id === memberId);
+    const member = members.find((m) => m.id === memberId);
 
     // Aplicar filtro de escopo
     let scopeFilteredItems = allItems;
-    if (member && member.sharing_scope !== 'all') {
-      scopeFilteredItems = allItems.filter(item => {
+    if (member && member.sharing_scope !== "all") {
+      scopeFilteredItems = allItems.filter((item) => {
         switch (member.sharing_scope) {
-          case 'trips_only':
+          case "trips_only":
             // Apenas transações de viagens
             return !!item.tripId;
 
-          case 'date_range': {
+          case "date_range": {
             // Apenas transações no período
             if (!member.scope_start_date && !member.scope_end_date) return true;
             if (!item.date) return false;
@@ -178,7 +197,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
             return true;
           }
 
-          case 'specific_trip':
+          case "specific_trip":
             // Apenas transações de uma viagem específica
             return item.tripId === member.scope_trip_id;
 
@@ -188,7 +207,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
       });
     }
 
-    if (activeTab === 'TRAVEL') {
+    if (activeTab === "TRAVEL") {
       // TRAVEL: Mostrar TODOS os itens de viagens (sem filtro de mês)
       // As viagens são agrupadas por trip, então não faz sentido filtrar por mês
       const filtered = scopeFilteredItems
@@ -197,19 +216,18 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
         })
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-
       return filtered;
-    } else if (activeTab === 'HISTORY') {
+    } else if (activeTab === "HISTORY") {
       // HISTORY: Mostrar apenas itens TOTALMENTE ACERTADOS filtrados pelo mês atual
       return scopeFilteredItems
-        .filter(i => {
+        .filter((i) => {
           // NOVO: Vai para o histórico se estiver TOTALMENTE acertado
           // OU se EU já fiz minha parte (isPaid reflete a minha ação baseada no meu papel)
           if (!i.isSettled && !i.isPaid) return false;
 
           // Filtrar pelo mês selecionado
           if (!i.date) return false;
-          const [year, month] = i.date.split('-').map(Number);
+          const [year, month] = i.date.split("-").map(Number);
           const itemMonth = month - 1;
           const itemYear = year;
 
@@ -218,11 +236,11 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
 
           return itemMonth === currentMonth && itemYear === currentYear;
         })
-        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     } else {
       // REGULAR: Mostrar apenas itens NÃO TOTALMENTE ACERTADOS não relacionados a viagens, filtrados pelo mês atual
       const filtered = scopeFilteredItems
-        .filter(i => {
+        .filter((i) => {
           // Não mostrar itens de viagens
           if (i.tripId) return false;
 
@@ -238,7 +256,7 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           if (!dateToUse) return false;
 
           // Parse date as YYYY-MM-DD to avoid timezone issues
-          const [year, month] = dateToUse.split('-').map(Number);
+          const [year, month] = dateToUse.split("-").map(Number);
 
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
@@ -247,14 +265,13 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
           // Parcelas são exibidas estritamente no seu mês de vencimento correspondente, sem acúmulo
           const isInstallment = i.totalInstallments && i.totalInstallments > 1;
           if (isInstallment) {
-            return (month - 1) === currentMonth && year === currentYear;
+            return month - 1 === currentMonth && year === currentYear;
           }
 
           // Despesas fixas/recorrentes/comuns também devem ser exibidas ESTRITAMENTE no seu mês
-          return (month - 1) === currentMonth && year === currentYear;
+          return month - 1 === currentMonth && year === currentYear;
         })
-        .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
+        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
       return filtered;
     }
@@ -263,23 +280,32 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   const getTotals = (items: InvoiceItem[]) => {
     const totalsByCurrency: Record<string, { credits: number; debits: number; net: number }> = {};
 
-    items.forEach(i => {
-      const curr = i.currency || 'BRL';
+    items.forEach((i) => {
+      const curr = i.currency || "BRL";
       if (!totalsByCurrency[curr]) {
         totalsByCurrency[curr] = { credits: 0, debits: 0, net: 0 };
       }
 
       if (!i.isPaid) {
-        if (i.type === 'CREDIT') {
-          totalsByCurrency[curr].credits = SafeFinancialCalculator.add(totalsByCurrency[curr].credits, i.amount);
+        if (i.type === "CREDIT") {
+          totalsByCurrency[curr].credits = SafeFinancialCalculator.add(
+            totalsByCurrency[curr].credits,
+            i.amount
+          );
         } else {
-          totalsByCurrency[curr].debits = SafeFinancialCalculator.add(totalsByCurrency[curr].debits, i.amount);
+          totalsByCurrency[curr].debits = SafeFinancialCalculator.add(
+            totalsByCurrency[curr].debits,
+            i.amount
+          );
         }
       }
     });
 
-    Object.keys(totalsByCurrency).forEach(curr => {
-      totalsByCurrency[curr].net = SafeFinancialCalculator.subtract(totalsByCurrency[curr].credits, totalsByCurrency[curr].debits);
+    Object.keys(totalsByCurrency).forEach((curr) => {
+      totalsByCurrency[curr].net = SafeFinancialCalculator.subtract(
+        totalsByCurrency[curr].credits,
+        totalsByCurrency[curr].debits
+      );
     });
 
     return totalsByCurrency;
@@ -288,19 +314,31 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
   // Calculate global summary - SEPARADO POR MOEDA (NUNCA SOMAR MOEDAS DIFERENTES!)
   // Utilizando a NOVA RPC do Banco de Dados para aliviar o cálculo do Frontend
   const getSummary = () => {
-    const summaryByCurrency: Record<string, { totalCredits: number; totalDebits: number; net: number }> = {};
+    const summaryByCurrency: Record<
+      string,
+      { totalCredits: number; totalDebits: number; net: number }
+    > = {};
 
     // Se a RPC retornou com sucesso os saldos mastigados do DB, usamos isso!
     if (sharedBalances && sharedBalances.length > 0) {
-      sharedBalances.forEach(balance => {
-        const curr = balance.currency || 'BRL';
+      sharedBalances.forEach((balance) => {
+        const curr = balance.currency || "BRL";
         if (!summaryByCurrency[curr]) {
           summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
         }
 
-        summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, Number(balance.total_credits));
-        summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalDebits, Number(balance.total_debits));
-        summaryByCurrency[curr].net = SafeFinancialCalculator.add(summaryByCurrency[curr].net, Number(balance.net_balance));
+        summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(
+          summaryByCurrency[curr].totalCredits,
+          Number(balance.total_credits)
+        );
+        summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(
+          summaryByCurrency[curr].totalDebits,
+          Number(balance.total_debits)
+        );
+        summaryByCurrency[curr].net = SafeFinancialCalculator.add(
+          summaryByCurrency[curr].net,
+          Number(balance.net_balance)
+        );
       });
 
       return {
@@ -310,25 +348,31 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     }
 
     // Fallback de segurança: calcula via Frontend caso a RPC falhe ou ainda não tenha sido injetada
-    Object.values(invoices).forEach(items => {
-      items.forEach(item => {
-        const curr = item.currency || 'BRL';
+    Object.values(invoices).forEach((items) => {
+      items.forEach((item) => {
+        const curr = item.currency || "BRL";
         if (!summaryByCurrency[curr]) {
           summaryByCurrency[curr] = { totalCredits: 0, totalDebits: 0, net: 0 };
         }
 
         if (!item.isPaid) {
-          if (item.type === 'CREDIT') {
-            summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalCredits, item.amount);
+          if (item.type === "CREDIT") {
+            summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(
+              summaryByCurrency[curr].totalCredits,
+              item.amount
+            );
           } else {
-            summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(summaryByCurrency[curr].totalDebits, item.amount);
+            summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(
+              summaryByCurrency[curr].totalDebits,
+              item.amount
+            );
           }
         }
       });
     });
 
     // Calcular net para cada moeda individualmente
-    Object.keys(summaryByCurrency).forEach(curr => {
+    Object.keys(summaryByCurrency).forEach((curr) => {
       summaryByCurrency[curr].net = SafeFinancialCalculator.subtract(
         summaryByCurrency[curr].totalCredits,
         summaryByCurrency[curr].totalDebits
@@ -349,9 +393,8 @@ export const useSharedFinances = ({ currentDate = new Date(), activeTab }: UseSh
     members,
     transactions: transactionsWithSplits?.transactions || [],
     isLoading,
-    refetch: refetchAll // Usar refetchAll para invalidar todas as queries
+    refetch: refetchAll, // Usar refetchAll para invalidar todas as queries
   };
 };
-
 
 // Hook para confirmar ressarcimento de um split usando RPC seguro

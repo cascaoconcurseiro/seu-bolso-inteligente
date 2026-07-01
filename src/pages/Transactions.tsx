@@ -30,7 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getTransactionCurrency, groupTransactionsByDay, applyTransactionFilters } from "@/utils/transactionUtils";
+import {
+  getTransactionCurrency,
+  groupTransactionsByDay,
+  applyTransactionFilters,
+} from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -118,30 +122,43 @@ export function Transactions() {
     };
   }, [transactions]);
 
-  const filterParams = useMemo(() => ({
-    searchQuery,
-    selectedType,
-    selectedCategory,
-    selectedAccount,
-    selectedPeriod,
-    selectedCurrency,
-    userId: user?.id,
-    familyMembers,
-  }), [searchQuery, selectedType, selectedCategory, selectedAccount, selectedPeriod, selectedCurrency, user?.id, familyMembers]);
+  const filterParams = useMemo(
+    () => ({
+      searchQuery,
+      selectedType,
+      selectedCategory,
+      selectedAccount,
+      selectedPeriod,
+      selectedCurrency,
+      userId: user?.id,
+      familyMembers,
+    }),
+    [
+      searchQuery,
+      selectedType,
+      selectedCategory,
+      selectedAccount,
+      selectedPeriod,
+      selectedCurrency,
+      user?.id,
+      familyMembers,
+    ]
+  );
 
   const filteredTransactions = useMemo(() => {
     return applyTransactionFilters(transactions || [], filterParams);
   }, [transactions, filterParams]);
 
   const filteredAnnualTransactions = useMemo(() => {
-    return applyTransactionFilters(annualTransactions || [], { ...filterParams, selectedPeriod: "all" });
+    return applyTransactionFilters(annualTransactions || [], {
+      ...filterParams,
+      selectedPeriod: "all",
+    });
   }, [annualTransactions, filterParams]);
 
   const isSearchingHistory = searchQuery.trim().length > 0;
   const displayTransactions = useMemo(() => {
-    const base = isSearchingHistory
-      ? filteredAnnualTransactions
-      : filteredTransactions;
+    const base = isSearchingHistory ? filteredAnnualTransactions : filteredTransactions;
     // Na aba "Lançadas", excluir transações com data futura (vão para "Próximas")
     if (activeTab === "lancadas") {
       const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
@@ -262,14 +279,19 @@ export function Transactions() {
   const hasPendingSplits = (transaction: Transaction) =>
     !!(
       transaction.is_shared &&
-      (transaction.transaction_splits?.some((s: any) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor) || false)
+      (transaction.transaction_splits?.some(
+        (s: any) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor
+      ) ||
+        false)
     );
   const isFullySettled = (transaction: Transaction) =>
     !!(
       transaction.is_shared &&
       transaction.transaction_splits &&
       transaction.transaction_splits.length > 0 &&
-      transaction.transaction_splits.every((s: any) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
+      transaction.transaction_splits.every(
+        (s: any) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor
+      )
     );
 
   if (isLoading)

@@ -37,12 +37,14 @@ export function useTransactions(filters?: TransactionFilters) {
 
       let query = supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           account:accounts!account_id(id, name, type, currency, bank_id),
           category:categories(id, name, icon, parent_category_id),
           transaction_splits:transaction_splits!transaction_id(*)
-        `)
+        `
+        )
         .is("deleted_at", null)
         .neq("status", "PENDING");
 

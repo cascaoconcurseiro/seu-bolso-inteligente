@@ -18,7 +18,9 @@ export default function ResetPassword() {
   useEffect(() => {
     // Verificar se estamos em uma sessão de recuperação
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast.error("Sessão expirada ou inválida. Solicite um novo link.");
         navigate("/auth");
@@ -29,7 +31,7 @@ export default function ResetPassword() {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password.length < 6) {
       toast.error("A senha deve ter pelo menos 6 caracteres.");
       return;
@@ -44,7 +46,7 @@ export default function ResetPassword() {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       });
 
       if (error) {
@@ -70,8 +72,12 @@ export default function ResetPassword() {
             <CheckCircle2 className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-display font-bold">Senha Atualizada!</h1>
-          <p className="text-muted-foreground">Sua senha foi alterada com sucesso. Você será redirecionado para o login em instantes.</p>
-          <Button onClick={() => navigate("/auth")} className="w-full">Ir para Login</Button>
+          <p className="text-muted-foreground">
+            Sua senha foi alterada com sucesso. Você será redirecionado para o login em instantes.
+          </p>
+          <Button onClick={() => navigate("/auth")} className="w-full">
+            Ir para Login
+          </Button>
         </div>
       </div>
     );
@@ -135,12 +141,7 @@ export default function ResetPassword() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full h-12"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" size="lg" className="w-full h-12" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Redefinir Senha"}
             </Button>
           </form>

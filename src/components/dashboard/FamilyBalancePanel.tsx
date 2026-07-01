@@ -33,8 +33,8 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
       }
     },
     enabled: !!user,
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 15 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   // Só mostrar se há membros de família com linked_user_id (membros reais)

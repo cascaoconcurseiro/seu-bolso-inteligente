@@ -198,6 +198,10 @@ GRANT EXECUTE ON FUNCTION create_installment_series(JSONB, UUID) TO service_role
 
 -- ─── 4. Update frontend types reference ──────────────────────────────────────
 -- Note: The frontend MUST pass p_user_id when calling these RPCs.
+
+-- ─── 5. Reload PostgREST schema cache ───────────────────────────────────────
+-- Required after changing function signatures, otherwise PostgREST returns 404
+NOTIFY pgrst, 'reload schema';
 -- Updated signatures:
 --   create_transaction_with_splits(p_transaction, p_splits, p_user_id)
 --   create_installment_series(p_transactions, p_user_id)

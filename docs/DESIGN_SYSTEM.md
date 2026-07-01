@@ -548,28 +548,28 @@ STEP 4: Concluir
 ## 10. Padrões de Design
 
 ### Validação
-| Padrão | Onde |
-|--------|------|
-| Zod schema | TransactionForm |
+| Padrão              | Onde                      |
+| ------------------- | ------------------------- |
+| Zod schema          | TransactionForm           |
 | Inline (amount > 0) | QuickAddModal, Withdrawal |
-| % até 100% | SplitModal |
-| Server-side RPC | PinWrapper |
+| % até 100%          | SplitModal                |
+| Server-side RPC     | PinWrapper                |
 
 ### Navegação
-| Padrão | Onde |
-|--------|------|
-| Wizard multi-step | PayInvoiceDialog, Onboarding |
-| Single-step modal | Maioria |
-| Tabs | ImportBillsDialog, AddParticipantDialog |
-| Inline (na página) | Budgets, Settings |
+| Padrão             | Onde                                    |
+| ------------------ | --------------------------------------- |
+| Wizard multi-step  | PayInvoiceDialog, Onboarding            |
+| Single-step modal  | Maioria                                 |
+| Tabs               | ImportBillsDialog, AddParticipantDialog |
+| Inline (na página) | Budgets, Settings                       |
 
 ### Feedback
-| Padrão | Onde |
-|--------|------|
-| Toast sonner | Todos (erro/sucesso) |
-| Loading spinner | Botões de submit |
-| Confete 🎉 | GoalContributeDialog (100%) |
-| ActionFeedback (animação tela cheia) | Transações, settlement |
+| Padrão                               | Onde                        |
+| ------------------------------------ | --------------------------- |
+| Toast sonner                         | Todos (erro/sucesso)        |
+| Loading spinner                      | Botões de submit            |
+| Confete 🎉                            | GoalContributeDialog (100%) |
+| ActionFeedback (animação tela cheia) | Transações, settlement      |
 
 ### Oportunidades de melhoria
 - ⚠️ **Sem confirmação pré-submit** — PayInvoiceDialog, TransferModal, WithdrawalModal executam direto
