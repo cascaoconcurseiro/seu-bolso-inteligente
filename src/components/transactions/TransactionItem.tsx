@@ -344,9 +344,7 @@ export function TransactionItem({
           )}
         </div>
       </div>
-      </div>
       </motion.div>
-      
       {hasSettledItems && (
         <>
           <div 

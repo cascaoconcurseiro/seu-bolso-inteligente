@@ -68,6 +68,9 @@ export interface InvoiceItem {
   seriesId?: string | null;
   creatorUserId?: string;
   creatorName?: string;
+  creatorAvatarUrl?: string | null;
+  creatorAvatarColor?: string | null;
+  creatorAvatarIcon?: string | null;
   isSettled: boolean;
   settledByDebtor: boolean;
   settledByCreditor: boolean;
@@ -229,6 +232,9 @@ export const generateInvoices = (
           seriesId: tx.series_id,
           creatorUserId: tx.user_id,
           creatorName: creatorName,
+          creatorAvatarUrl: creator?.avatar_url,
+          creatorAvatarColor: creator?.avatar_color,
+          creatorAvatarIcon: creator?.avatar_icon,
           isSettled: split.is_settled === true,
           settledByDebtor: split.settled_by_debtor || false,
           settledByCreditor: split.settled_by_creditor || false,
@@ -283,6 +289,9 @@ export const generateInvoices = (
               seriesId: tx.series_id,
               creatorUserId: tx.user_id,
               creatorName: creatorMember.name,
+              creatorAvatarUrl: creatorMember.avatar_url,
+              creatorAvatarColor: creatorMember.avatar_color,
+              creatorAvatarIcon: creatorMember.avatar_icon,
               isSettled: mySplit.is_settled === true,
               settledByDebtor: mySplit.settled_by_debtor || false,
               settledByCreditor: mySplit.settled_by_creditor || false,
