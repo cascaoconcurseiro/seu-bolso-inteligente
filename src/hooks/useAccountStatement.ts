@@ -58,7 +58,7 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         return { transactions: [], openingBalance: 0, closingBalance: 0 };
       }
 
-      // Buscar tipo da conta
+      // Buscar tipo da conta e saldo atual (Single Source of Truth)
       const { data: accountData } = await supabase
         .from("accounts")
         .select("balance, type")
@@ -67,32 +67,15 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
 
       const dateField = accountData?.type === "CREDIT_CARD" ? "competence_date" : "date";
 
-      // ── 1. Saldo de ABERTURA do mês ──────────────────────────────────────────
-      // Soma de TODAS as transações anteriores ao início do mês selecionado.
-      // Isso garante carry-over correto de todos os meses anteriores.
-      const { data: prevRaw } = await supabase
-        .from("transactions")
-        .select("type, amount, destination_account_id, account_id, destination_amount")
-        .or(`account_id.eq.${accountId},destination_account_id.eq.${accountId}`)
-        .lt(dateField, monthStart)
-        .is("deleted_at", null);
+      // ── 1. Saldo de ABERTURA do mês (via DB — Single Source of Truth) ─────
+      // Usa a mesma função que as triggers usam: get_account_balance_at_date
+      const { data: openingData } = await supabase
+        .rpc("get_account_balance_at_date", {
+          p_account_id: accountId,
+          p_date: monthStart,
+        });
 
-      let openingBalance = 0;
-      for (const t of prevRaw || []) {
-        const txType = String(t.type).toUpperCase();
-        if (txType === "INCOME") {
-          openingBalance = SafeFinancialCalculator.add(openingBalance, Number(t.amount));
-        } else if (txType === "EXPENSE") {
-          openingBalance = SafeFinancialCalculator.subtract(openingBalance, Number(t.amount));
-        } else if (txType === "TRANSFER") {
-          if (t.destination_account_id === accountId) {
-            const amt = t.destination_amount != null ? Number(t.destination_amount) : Number(t.amount);
-            openingBalance = SafeFinancialCalculator.add(openingBalance, amt);
-          } else if (t.account_id === accountId) {
-            openingBalance = SafeFinancialCalculator.subtract(openingBalance, Number(t.amount));
-          }
-        }
-      }
+      const openingBalance = Number(openingData ?? 0);
 
       // ── 2. Transações DO mês selecionado ────────────────────────────────────
       const { data: monthRaw, error: txError } = await supabase
@@ -171,7 +154,8 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         };
       });
 
-      const closingBalance = runningBalance;
+      // ── 3. Saldo de FECHAMENTO (vem do DB — Single Source of Truth) ──────
+      const closingBalance = accountData?.balance ?? runningBalance;
 
       // Retornar na ordem mais recente primeiro (padrão extrato bancário)
       return {
