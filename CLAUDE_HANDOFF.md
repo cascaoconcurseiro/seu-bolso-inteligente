@@ -1,7 +1,7 @@
 # CLAUDE_HANDOFF.md — Seu Bolso Inteligente
 
-> Atualizado em: 2026-07-01 (tarde) | Branch: `main` | Deploy: meupedemeia.vercel.app
-> Última ação: Fase 1 SSOT concluída e verificada + achado extra corrigido (saldo divergente real na conta Nubank)
+> Atualizado em: 2026-07-02 | Branch: `main` (pós-merge de `claude/database-verification-checklist-en590c`) | Deploy: meupedemeia.vercel.app
+> Última ação: merge das DUAS sessões paralelas na main — reorganização SSOT/RLS (sessão A, 01/07) + fix de exclusão de transações e hardening (sessão B, 02/07). Push pra main dispara o deploy que corrige o erro 403 ao excluir.
 
 ## Sobre permissão de banco (decisão do usuário)
 Usuário optou por NÃO editar `.claude/settings.json`. Fluxo combinado: antes de qualquer operação destrutiva (DROP/DELETE em massa/ALTER que muda comportamento), nomear a operação especificamente na conversa antes de rodar. Leituras e DML reversível (teste pontual) podem seguir sem re-perguntar a cada chamada, desde que eu explique o que vou fazer.
@@ -53,39 +53,41 @@ O CHECKLIST anterior marcava `financial_ledger` como dropada (BAL-05) e o saldo 
 
 ---
 
+# SESSÃO B (02/07) — Fix exclusão de transações + hardening
+
 ## RESUMO
 
-Auditoria de dados completa executada diretamente no banco de producao.
-**4 CRITICOS encontrados (saldos divergentes), 0 orfaos FK, 100% RLS, 100% NUMERIC.**
+Bug "excluir transação não funciona" tinha DUAS causas, ambas corrigidas:
 
-| Area | Nota |
-|------|------|
-| Integridade Referencial | 95/100 |
-| Consistencia | 72/100 |
-| Precisao Financeira | 55/100 |
-| Confiabilidade | 78/100 |
-| Qualidade dos Dados | 80/100 |
+1. **No-op silencioso no frontend:** `useDeleteTransaction` fazia `UPDATE ... .eq("user_id", user.id)`.
+   Para transações de outro membro da família (ou espelhos), 0 linhas eram afetadas
+   sem erro — toast de sucesso, mas a transação voltava no refetch.
+   → Substituído pela RPC `soft_delete_transaction` (validação server-side + erro explícito).
+2. **RPCs SECURITY DEFINER vazando soft-deletadas (bypass de RLS):**
+   `get_shared_invoice_data`, `get_monthly_financial_summary`,
+   `get_shared_expense_summary_by_person`, `get_wealth_evolution`
+   → todas agora filtram `deleted_at IS NULL` no servidor.
 
-### PROXIMO PASSO (CRITICO)
-1. **BAL-01:** Corrigir 4 contas com saldo divergente — investigar `trigger_sync_account_balance`
-   - Visa Platinium: diff=-60.060,00
-   - Nubank CC: diff=-35.324,68
-   - Azul infinite: diff=-7.761,48
-   - Carrefour: diff=-500,00
-   - Rodar: `SELECT recalculate_account_balance(<id>)` para cada conta
+## Estado do banco (produção vrrcagukyfnlhxuvnssp)
 
-### Pendências restantes (nao-bloqueantes)
-- IDX-01: 2 indices FK faltantes (admin_users, settlement_reversals)
-- DUP-01: 2 grupos de contas duplicadas
-- TYP-01: Regenerar types.ts (6 tabelas ausentes)
-- FUT-01: Auditar 11 transacoes com data futura
-- ARC-05: PDF export via Web Worker
-- SEC-08: Criptografia IndexedDB
-- FEAT-01: Relatorio mensal por email
+- Saldos: 3 contas críticas revalidadas — armazenado == recalculado ✅
+- Duplicatas: 2 removidas (0 transações cada); contas "Nubank" eram de usuários diferentes (não duplicatas)
+- `profiles.app_pin` plaintext: dropada (só `app_pin_hash` bcrypt)
+- Transações futuras: parcelas legítimas, nada a corrigir
+- Hardening: search_path fixo em todas as funções; `anon` sem EXECUTE em nenhuma
+  SECURITY DEFINER; funções de trigger não-chamáveis via REST
+- Advisors de segurança pós-fix: restam apenas configs de dashboard (MFA,
+  leaked password protection) + pg_trgm em public (baixo valor mover)
 
-### Relatorios
+## Pendências (não-bloqueantes)
+
+- BASELINE: migration baseline das 19 tabelas criadas via SQL Editor (requer Docker)
+- ERROR_LOG: alinhar migration antiga com schema real
+- PERF-ADV: consolidar políticas RLS permissivas múltiplas (5 combos) — fazer com calma
+- AUTH-ADV: habilitar MFA extra + leaked password protection no dashboard Supabase
+- Testes: 45 falhas pré-existentes neste branch (já corrigidas na main — sincronizar)
+
+## Relatórios
+
 - Auditoria 20 fases: `AUDIT_REPORT_COMPLETE.md`
-- Auditoria anterior: `AUDIT_REPORT_2026-06-30.md`
-- UX/UI: `UX_AUDIT_REPORT_2026-06-30.md`
-- Seguranca: 18 fixes aplicados
-- Produto: `AUDIT_REPORT_PRODUTO_2026-06-30.md` (7.3/10)
+- Kanban: `CHECKLIST.md` (seção 02/07/2026)

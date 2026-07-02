@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       account_reconciliations: {
@@ -1390,7 +1365,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          app_pin: string | null
           app_pin_hash: string | null
           avatar_color: string | null
           avatar_icon: string | null
@@ -1417,7 +1391,6 @@ export type Database = {
           use_subcategories: boolean | null
         }
         Insert: {
-          app_pin?: string | null
           app_pin_hash?: string | null
           avatar_color?: string | null
           avatar_icon?: string | null
@@ -1444,7 +1417,6 @@ export type Database = {
           use_subcategories?: boolean | null
         }
         Update: {
-          app_pin?: string | null
           app_pin_hash?: string | null
           avatar_color?: string | null
           avatar_icon?: string | null
@@ -1924,6 +1896,7 @@ export type Database = {
           frequency: string | null
           goal_id: string | null
           id: string
+          idempotency_key: string | null
           import_hash: string | null
           is_installment: boolean
           is_recurring: boolean
@@ -1975,6 +1948,7 @@ export type Database = {
           frequency?: string | null
           goal_id?: string | null
           id?: string
+          idempotency_key?: string | null
           import_hash?: string | null
           is_installment?: boolean
           is_recurring?: boolean
@@ -2026,6 +2000,7 @@ export type Database = {
           frequency?: string | null
           goal_id?: string | null
           id?: string
+          idempotency_key?: string | null
           import_hash?: string | null
           is_installment?: boolean
           is_recurring?: boolean
@@ -3806,10 +3781,6 @@ export type Database = {
         Args: { p_default_account_id: string; p_user_id: string }
         Returns: number
       }
-      calculate_account_balance: {
-        Args: { p_account_id: string }
-        Returns: number
-      }
       calculate_balance_between_users: {
         Args: { p_currency?: string; p_user1_id: string; p_user2_id: string }
         Returns: {
@@ -3870,6 +3841,7 @@ export type Database = {
         Returns: number
       }
       cleanup_old_pending_operations: { Args: never; Returns: number }
+      clear_error_logs: { Args: never; Returns: undefined }
       clear_pin: { Args: never; Returns: boolean }
       confirm_settlement: {
         Args: {
@@ -3974,6 +3946,7 @@ export type Database = {
         Args: { p_invitation_id: string; p_status: string }
         Returns: Json
       }
+      generate_pending_recurring_transactions: { Args: never; Returns: number }
       get_account_balance_at_date: {
         Args: { p_account_id: string; p_date?: string }
         Returns: number
@@ -4253,6 +4226,7 @@ export type Database = {
           frequency: string | null
           goal_id: string | null
           id: string
+          idempotency_key: string | null
           import_hash: string | null
           is_installment: boolean
           is_recurring: boolean
@@ -4334,15 +4308,6 @@ export type Database = {
       recalculate_account_balance: {
         Args: { p_account_id: string }
         Returns: number
-      }
-      recalculate_all_account_balances: {
-        Args: never
-        Returns: {
-          account_id: string
-          account_name: string
-          new_balance: number
-          old_balance: number
-        }[]
       }
       recalculate_all_balances: {
         Args: { p_user_id: string }
@@ -4449,10 +4414,12 @@ export type Database = {
         Args: { p_account_id: string }
         Returns: undefined
       }
-      soft_delete_transaction: {
-        Args: { p_transaction_id: string }
-        Returns: undefined
-      }
+      soft_delete_transaction:
+        | { Args: { p_transaction_id: string }; Returns: undefined }
+        | {
+            Args: { p_cascade?: string; p_transaction_id: string }
+            Returns: number
+          }
       submit_error_report: {
         Args: {
           p_context: string
@@ -4517,6 +4484,15 @@ export type Database = {
         Returns: boolean
       }
       verify_pin: { Args: { p_pin: string }; Returns: boolean }
+      withdraw_from_account: {
+        Args: {
+          p_account_id: string
+          p_amount: number
+          p_date: string
+          p_description: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       account_type:
@@ -4663,9 +4639,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       account_type: [
