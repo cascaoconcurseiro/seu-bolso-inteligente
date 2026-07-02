@@ -1,7 +1,29 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-01 — Pós-Auditoria Completa** ✅
+> Última atualização: **2026-07-02 — Fix exclusão de transações + hardening** ✅
+
+---
+
+## ✅ CONCLUÍDO — Sessão 02/07/2026 (5 migrations)
+
+### 🔴 Bug de exclusão de transações — RESOLVIDO
+- [x] **[DEL-01]** RPC `soft_delete_transaction` criada — validação server-side (permissão dono/criador/admin-editor, liquidação, acertos em splits, cascata NONE/NEXT/ALL, espelhos) e **erro explícito se 0 linhas** (antes: UPDATE com `.eq(user_id)` falhava em silêncio e a transação "voltava")
+- [x] **[DEL-02]** 4 RPCs SECURITY DEFINER vazavam transações soft-deletadas (bypassavam RLS): `get_shared_invoice_data`, `get_monthly_financial_summary`, `get_shared_expense_summary_by_person`, `get_wealth_evolution` — filtro `deleted_at IS NULL` server-side
+- [x] **[DEL-03]** Frontend `useDeleteTransaction` migrado para a RPC
+
+### 🟠 Verificações e limpeza
+- [x] **[BAL-06]** 3 contas revalidadas (Visa Platinium, Carrefour, Azul infinite): saldo armazenado = recalculado ✅ ("Nubank CC" não existe mais — eram contas de usuários diferentes, não duplicatas)
+- [x] **[DUP-01]** 2 duplicatas reais soft-deletadas (Wise - Conta Global e Minha Carteira, ambas 0 transações/saldo 0)
+- [x] **[PROF-01]** `profiles.app_pin` (plaintext) dropada; `set_pin`/`clear_pin` atualizadas
+- [x] **[FUT-01]** 11 transações futuras auditadas: são parcelas legítimas (Hotel 12x, AirBNB 5x) — nada a corrigir
+- [x] **[SEC-ADV]** Hardening por advisors: search_path fixado em todas as funções próprias, EXECUTE revogado de `anon`/`public` em todas as SECURITY DEFINER (28 expostas), triggers não-chamáveis via REST
+- [x] **[TYP-02]** types.ts regenerado (soft_delete_transaction + app_pin removida)
+
+### 📋 Advisors restantes (não-bloqueantes, decisão consciente de adiar)
+- [ ] **[PERF-ADV]** 5 combos de políticas RLS permissivas múltiplas (transactions UPDATE, error_logs SELECT, shared_credit_cards SELECT/UPDATE, transaction_splits SELECT, trip_invitations UPDATE) — consolidar exige cuidado, semântica de permissão em uso
+- [ ] **[AUTH-ADV]** Habilitar leaked password protection + mais opções de MFA (config no dashboard Supabase, não é SQL)
+- [ ] **[EXT-ADV]** pg_trgm no schema public (mover é arriscado, baixo valor)
 
 ---
 
@@ -34,15 +56,6 @@
 
 ---
 
-## 🔴 CRÍTICO — Fazer Agora
-
-- [ ] **[BAL-06]** Revalidar 4 contas com saldo divergente (auditoria anterior)
-  - Visa Platinium: diff=-60.060 | Nubank CC: diff=-35.324 | Azul infinite: diff=-7.761 | Carrefour: diff=-500
-  - Migration 20260702000000 já recalculou todos os saldos — provavelmente resolvido
-  - **Ação:** rodar `SELECT recalculate_account_balance(id)` para cada conta e comparar
-
----
-
 ## 🟠 ALTA PRIORIDADE — Esta Semana
 
 - [ ] **[BASELINE]** Criar migration baseline (19 tabelas SQL Editor sem CREATE TABLE)
@@ -50,7 +63,6 @@
   - Schema definitions capturados via RPC em schema_full.json (referência)
 - [ ] **[ERROR_LOG]** Atualizar migration `20260527135500` com schema real do `error_logs`
   - Já documentado como comment na migration `20260701235900`
-- [ ] **[DUP-01]** Resolver 2 grupos de contas duplicadas
 
 ---
 
@@ -58,10 +70,8 @@
 
 - [ ] **[ARC-05]** PDF export via Web Worker (frontend)
 - [ ] **[SEC-08]** Criptografar cache IndexedDB (frontend)
-- [ ] **[FUT-01]** Auditar 11 transações com data futura (>30 dias)
 - [ ] **[FEAT-01]** Relatório mensal por email (Edge Function + Resend)
 - [ ] **[CONC-01]** Teste de concorrência real (pgbench em staging)
-- [ ] **[PROF-01]** Remover `profiles.app_pin` (plaintext residual, já migrado para `app_pin_hash`)
 - [x] **[AUD-07]** ~~financial_ledger dropado~~ ✅ DONE
 - [x] **[AUD-08]** Auditoria 20 fases concluída → `AUDIT_REPORT_COMPLETE.md` ✅ DONE (2026-06-30)
 

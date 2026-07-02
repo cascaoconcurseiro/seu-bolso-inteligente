@@ -283,34 +283,12 @@ export function useDeleteTransaction() {
       id: string;
       cascadeType?: "ALL" | "NEXT" | "NONE";
     }) => {
-      // 1. Buscar a transação antes de deletar
+      // 1. Buscar dados para notificação antes de deletar
       const { data: existingTx } = await supabase
         .from("transactions")
-        .select(
-          "is_shared, domain, description, user_id, is_settled, series_id, current_installment"
-        )
+        .select("is_shared, domain, description, user_id")
         .eq("id", id)
         .maybeSingle();
-
-      if (existingTx && existingTx.is_settled) {
-        throw new Error(
-          "Esta transação já foi liquidada/acertada. Desfaça o acerto antes de excluí-la."
-        );
-      }
-
-      // Verificar splits com acertos parciais
-      const { data: existingSplits } = await supabase
-        .from("transaction_splits")
-        .select("id, is_settled, settled_by_debtor, settled_by_creditor")
-        .eq("transaction_id", id);
-
-      if (
-        existingSplits?.some((s) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor)
-      ) {
-        throw new Error(
-          "Esta transação possui acertos parciais. Desfaça os acertos antes de excluí-la."
-        );
-      }
 
       // 2. Se for compartilhada, buscar splits antes de deletar
       let otherUserIds: string[] = [];
@@ -327,28 +305,13 @@ export function useDeleteTransaction() {
         }
       }
 
-      // 3. Deletar a transação (com lógica de cascata)
-      let deleteQuery = supabase
-        .from("transactions")
-        .update({ deleted_at: new Date().toISOString() });
-
-      if (cascadeType === "ALL" && existingTx?.series_id) {
-        deleteQuery = deleteQuery.eq("series_id", existingTx.series_id);
-      } else if (cascadeType === "NEXT" && existingTx?.series_id) {
-        // Para NEXT, precisamos deletar onde series_id bate E current_installment >= tx.current_installment
-        // Como o Supabase delete() com múltiplos filtros funciona com AND, podemos fazer:
-        deleteQuery = deleteQuery
-          .eq("series_id", existingTx.series_id)
-          .gte("current_installment", existingTx.current_installment || 1);
-      } else {
-        // Padrão (NONE) ou transação sem série
-        deleteQuery = deleteQuery.eq("id", id);
-      }
-      
-      // Defesa em profundidade: garantir que só o dono pode deletar
-      deleteQuery = deleteQuery.eq("user_id", user.id);
-
-      const { error } = await deleteQuery;
+      // 3. Excluir via RPC com validação server-side (permissão, liquidação,
+      // cascata e espelhos). Lança erro explícito se nada for excluído —
+      // o UPDATE direto anterior falhava silenciosamente com 0 linhas.
+      const { error } = await supabase.rpc("soft_delete_transaction", {
+        p_transaction_id: id,
+        p_cascade: cascadeType,
+      });
 
       if (error) throw error;
 
