@@ -36,7 +36,7 @@
 ## 3. INVARIÁVEIS ABSOLUTAS (nunca violar)
 
 ### 3.1 Financeiro
-- **SSOT de Saldo:** o saldo de conta é SEMPRE calculado via trigger PostgreSQL (soma de transações). Nunca atualize `accounts.balance` diretamente.
+- **SSOT de Saldo:** o saldo de conta é SEMPRE calculado via trigger PostgreSQL (soma de transações), com cobertura em INSERT, UPDATE e DELETE de `transactions` (o gap de UPDATE foi fechado em 2026-07-01, migration `20260702084014` — antes disso, editar uma transação não recalculava o saldo). Nunca atualize `accounts.balance` diretamente. Função oficial única: `recalculate_account_balance(p_account_id)` — qualquer outra função de "saldo de conta" é órfã/depreciada.
 - **Decimal.js:** toda operação matemática financeira usa `Decimal.js` ou inteiros em centavos. Nunca `0.1 + 0.2`.
 - **competence_date:** sempre `YYYY-MM-01` (primeiro do mês). Nunca a data real da transação para agrupamento contábil.
 - **Soft Delete:** nunca delete dados financeiros. Use `deleted_at = NOW()` + `is_active = false`.

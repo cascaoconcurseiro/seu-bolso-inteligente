@@ -34,8 +34,62 @@
 
 ---
 
+## ✅ CONCLUÍDO — Fase 1 SSOT (2026-07-01, migration `20260702084014`)
+
+- [x] **[SSOT-01]** Trigger `trg_update_balance_update` criado (AFTER UPDATE em `transactions`, com WHEN só nos campos que afetam saldo: amount/type/account_id/destination_account_id/deleted_at/date/payer_id). Chama `recalculate_account_balance()` para account_id e destination_account_id, antigo e novo. Editar transação agora recalcula saldo. Verificado ao vivo: trigger existe.
+- [x] **[SSOT-02]** `financial_ledger` dropada de vez (tabela + trigger `trg_create_ledger_on_transaction` + função `create_ledger_entries_for_transaction`), na mesma transação de migration pra não quebrar insert de transação compartilhada no meio do caminho. Verificado ao vivo: tabela e trigger não existem mais.
+- [x] **[SSOT-03 parcial]** Das 14 funções de "balance", só 3 eram realmente órfãs (sem trigger, sem RPC do frontend, sem cron job): `calculate_account_balance`, `recalculate_all_account_balances`, `sync_account_balance` — dropadas. Verificado ao vivo: as 3 não existem mais.
+  - As outras 11 são legítimas e ficam: `recalculate_account_balance` (dono do saldo de conta), `calculate_single_account_balance`+`recalculate_all_balances` (usado pelo botão "recalcular" do admin), `get_account_balance_at_date` (extrato), `create_account_with_balance` (criar conta), `get_trip_participant_balances` (viagens), `calculate_balance_between_users`/`calculate_member_balance`/`settle_balance_between_users`/`settle_partial_balance` (saldo entre pessoas em despesa compartilhada — conceito diferente de saldo de conta, não mexer)
+  - Migration local criada em `supabase/migrations/20260702084014_fix_ssot_balance_update_trigger_and_ledger_cleanup.sql` (estava só no remoto, sem arquivo local)
+  - ⚠️ Teste funcional end-to-end (criar/editar/deletar transação de teste e conferir saldo) ainda **não foi feito** — bloqueado pelo classificador de permissão do Claude Code no meio da sessão
+
+## ✅ CONCLUÍDO — Verificação Fase 1 + achado extra (2026-07-01)
+
+- [x] **[SSOT-04]** Teste funcional end-to-end: inseri transação de teste (R$0,01) em conta real, saldo mudou corretamente; deletei, saldo voltou certinho. Trigger de UPDATE/INSERT/DELETE confirmados funcionando em conjunto.
+- [x] **[BAL-06]** Resolvido — comparação saldo armazenado vs soma real das transações rodada em TODAS as contas ativas: só "Nubank - Conta Corrente" estava divergente (armazenado -2.136,65 vs real -4.056,12, diferença de R$1.919,48 — travado desde antes da Fase 1 por causa do bug do SSOT-01). Corrigido como efeito colateral do teste funcional. Todas as outras contas batem.
+
 ## 🔴 CRÍTICO — Fazer Agora
 
+
+## ✅ CONCLUÍDO — Fase 2 parcial (2026-07-01)
+
+- [x] **[SEC-09]** `active_family_members` e `transactions_ssot` alteradas para `security_invoker=true` (migration `fix_security_definer_views_ssot_and_family`). Verificado: RLS de `transactions`/`family_members` já cobre compartilhamento familiar e de viagem — sem regressão de visibilidade.
+- [x] **[SEC-10]** `admin_users` sem policy — verificado como intencional: `is_admin()` e `get_admin_users_detailed()` são `SECURITY DEFINER` de propriedade do `postgres` (dono da tabela, bypassa RLS); acesso direto via API continua corretamente bloqueado. Nenhuma mudança necessária.
+- [x] **[SEC-13]** Token dos cron jobs rotacionado (gerado com `openssl rand -hex 32`), setado como `CRON_SECRET` nas Edge Functions via `supabase secrets set` (CLI), e gravado no Supabase Vault. `cron.job` de `send-bill-reminders-daily`/`send-monthly-report-monthly` agora busca do Vault em runtime — zero segredo em texto plano ou em migration versionada (aplicado via SQL direto, não `apply_migration`, de propósito).
+
+## ✅ CONCLUÍDO — Fase 3a (2026-07-01)
+
+- [x] **[PERF-05]** Índices criados para as 2 FKs sem cobertura: `admin_users.granted_by`, `settlement_reversals.payment_transaction_id`
+- [x] **[PERF-04]** 5 índices/constraint duplicados removidos (confirmados idênticos antes): `family_members_type_idx`, `goal_milestones_goal_id_idx`, `idx_trip_exchange_trip_id`, `idx_trip_exchange_user_id`, constraint `trip_members_trip_id_user_id_key`
+- [x] **[PERF-02]** 31 policies RLS reescritas de `auth.uid()` para `(select auth.uid())` (initplan) — gerado programaticamente a partir da lista exata do advisor, verificado zero duplicação de wrap. Advisor confirma: 0 `auth_rls_initplan` restante.
+
+## ✅ CONCLUÍDO — Fase 3c (2026-07-01)
+
+- [x] **[PERF-01]** 110 → 26 policies duplicadas resolvidas: 11 policies redundantes (duplicata exata ou subconjunto provado) removidas + `settlement_reversals` reestruturada (immutable policy dividida em UPDATE/DELETE só, sem sobrepor SELECT/INSERT). Verificado com RLS simulada (SET LOCAL request.jwt.claims): conta e transações continuam visíveis pro dono, settlement_reversals com exatamente 1 policy por comando.
+  - 26 restantes são atores genuinamente diferentes (dono vs convidado, membro vs família) — **deixados de propósito**: `shared_credit_cards`, `transaction_splits` (usa função `check_split_access()` não auditada ainda), `transactions UPDATE`, `trip_invitations UPDATE`. Juntar errado vaza ou bloqueia acesso; ganho é só performance marginal.
+
+## 🟢 Avaliado e descartado — não fazer
+
+- **[PERF-03]** 71 índices "não usados": 24 são de PK/constraint única (nunca dropar, isso destrói integridade, não é otimização) + 47 são índices de performance com 0 scans. Numa app pessoal de baixo tráfego, 0 scans não prova "nunca necessário" (pode ser relatório mensal, cron raro). Custo de manter é desprezível; risco de dropar um índice que sustenta uma query rara é real. **Decisão: não mexer.** Revisitar só se algum dia houver telemetria de uso real de produção.
+
+## ✅ RESOLVIDO — [BUG-01] Erro ao excluir transação (2026-07-02, por OUTRA sessão)
+
+- [x] **[BUG-01]** Resolvido na sessão do branch `claude/database-verification-checklist-en590c` via RPC `soft_delete_transaction` (SECURITY DEFINER com validação server-side) + frontend migrado + 4 RPCs que vazavam soft-deletadas corrigidas. Verificado ao vivo por esta sessão: RPC existe em produção, sem conflito com as migrations desta sessão (policies com `deleted_at IS NULL` intactas).
+  - Contexto desta sessão (histórico): as 2 policies de UPDATE foram revertidas pro `WITH CHECK` original antes do fix da outra sessão — estado consistente, a RPC bypassa RLS então a restrição `source_transaction_id IS NULL` não bloqueia mais exclusão.
+  - Investigação via `session_replication_role` **cancelada** — obsoleta.
+  - ⚠️ Nota: edição direta (`useUpdateTransaction`, `.update()` na linha ~126) ainda passa por RLS com `source_transaction_id IS NULL` — transações vinculadas (parcela/espelho) seguem não-editáveis diretamente. Aparenta ser design intencional (espelhos não devem ser editados); se algum dia "editar parcela" der erro de RLS, este é o lugar.
+
+## ✅ CONCLUÍDO — Fase 5 (2026-07-01)
+
+- [x] **[SEC-14]** `accounts_select_v2` e `transactions_unified_select` não filtravam `deleted_at IS NULL` — contas/transações soft-deletadas ficavam visíveis via RLS pro dono e pra família/viagem. Corrigido com `AND deleted_at IS NULL` nas duas policies. Confirmado que `is_archived` (contas arquivadas) é campo separado de `deleted_at` (lixeira) — arquivadas continuam 100% visíveis. Testado com transação de teste soft-deletada: sumiu da visão do dono; contas ativas: 12 visíveis via RLS (inclui família) vs 8 próprias, nada foi escondido indevidamente.
+
+## ✅ CONCLUÍDO — Fase 4 (2026-07-01)
+
+- [x] **[PROC-02]** 15 scripts soltos removidos da raiz do repo (`fix_budgets_progress_table.sql`, `run_in_supabase.sql`, `db_dump.sql` vazio, `audit_complete.py`, `audit_complete_clean.py`, `audit_schema.py`, `audit_v2.py`, `check_rpc.cjs`/`check_rpc2.cjs`/`check_rpc3.cjs`/`check_rpc4.cjs`, `check_schema.cjs`, `extract_export.py`, `refactor.py`, `update_duplicate.py`, `_tmp.cjs`). Confirmado antes: nenhum referenciado em `package.json`/CI, e as 2 mudanças de schema que os `.sql` continham já estão aplicadas em produção (`get_user_budgets_progress` foi substituída por versão mais nova, `b3_tickers_cache` e `transactions.asset_id` já existem). Recuperável via git se precisar.
+- [ ] **[SEC-09]** `active_family_members` e `transactions_ssot` são views `SECURITY DEFINER` (advisor ERROR)
+  - **Ação:** trocar para `security_invoker = true` salvo justificativa documentada
+- [ ] **[SEC-10]** `admin_users` tem RLS habilitado mas 0 policies (advisor INFO `rls_enabled_no_policy`) — bloqueia acesso via API inclusive para admins; confirmar se isso é intencional (acesso só via service_role)
+- [ ] **[PERF-02]** 110 policies RLS permissivas duplicadas + 31 sem `(select auth.uid())` no initplan + 71 índices não usados + 5 duplicados + 3 FKs sem índice (via `get_advisors`)
 - [ ] **[BAL-06]** Revalidar 4 contas com saldo divergente (auditoria anterior)
   - Visa Platinium: diff=-60.060 | Nubank CC: diff=-35.324 | Azul infinite: diff=-7.761 | Carrefour: diff=-500
   - Migration 20260702000000 já recalculou todos os saldos — provavelmente resolvido
