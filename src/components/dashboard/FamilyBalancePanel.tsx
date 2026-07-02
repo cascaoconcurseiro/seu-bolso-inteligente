@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFamilyMembers } from "@/hooks/useFamily";
@@ -17,26 +17,12 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
   const { currentDate } = useMonth();
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(true);
 
-  // Calcula range do mês corrente para filtrar apenas dívidas do mês
-  const monthRange = useMemo(() => {
-    const start = dateFns.startOfMonth(currentDate);
-    const end = dateFns.endOfMonth(currentDate);
-    return {
-      start: dateFns.format(start, "yyyy-MM-dd"),
-      end: dateFns.format(end, "yyyy-MM-dd"),
-    };
-  }, [currentDate]);
-
   const { data: sharedBalances, isLoading: balancesLoading } = useQuery({
-    queryKey: ["shared-balances", user?.id, monthRange.start, monthRange.end],
+    queryKey: ["shared-balances", user?.id],
     queryFn: async () => {
       if (!user) return [];
       try {
-        const data = await rpcWithRetry("get_current_shared_debts", {
-          p_user_id: user.id,
-          p_start_date: monthRange.start,
-          p_end_date: monthRange.end,
-        });
+        const data = await rpcWithRetry("get_current_shared_debts", { p_user_id: user.id });
         return data as Array<{
           member_id: string;
           currency: string;
