@@ -202,7 +202,7 @@ export function SharedInstallmentImport({
       }
 
       await createTransaction.mutateAsync({
-        amount: totalAmount, 
+        amount: totalAmount,
         description: description.trim(),
         date: dateFns.format(baseDate, 'yyyy-MM-dd'),
         type: 'EXPENSE',
@@ -211,6 +211,7 @@ export function SharedInstallmentImport({
         is_shared: true,
         is_installment: true,
         total_installments: totalInstallmentsNum,
+        payer_id: assigneeId,
         splits: splits,
       });
 
