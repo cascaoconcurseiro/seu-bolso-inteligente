@@ -1,6 +1,5 @@
 import { memo, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useMonth } from "@/contexts/MonthContext";
@@ -83,60 +82,9 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
 
   if (membersWithBalance.length === 0) return null;
 
-  // NOVO: Busca o mês com a transação mais recente para direcionar o link "Ver tudo"
-  const { data: targetDebtMonth } = useQuery({
-    queryKey: ["target-debt-month", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      try {
-        const data = (await rpcWithRetry("get_shared_invoice_data", { p_user_id: user.id })) as any;
-        const txList = data?.transactions;
-        if (Array.isArray(txList) && txList.length > 0) {
-          const unsettled = txList.filter((tx: any) => {
-            const txDate = tx.competence_date || tx.date;
-            if (!txDate) return false;
-            // Check splits for unsettled debts
-            if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
-              return tx.transaction_splits.some(
-                (s: any) => !s.is_settled && !s.settled_by_creditor
-              );
-            }
-            return tx.is_settled === false;
-          });
-
-          if (unsettled.length > 0) {
-            unsettled.sort((a, b) => {
-              const dateA = a.competence_date || a.date;
-              const dateB = b.competence_date || b.date;
-              return new Date(dateB).getTime() - new Date(dateA).getTime();
-            });
-            const selectedDate = unsettled[0].competence_date || unsettled[0].date;
-            return selectedDate.substring(0, 7); // 'YYYY-MM'
-          }
-
-          // Fallback: se não encontrar transações não liquidadas (por algum motivo),
-          // pega o mês da transação compartilhada mais recente.
-          const validTx = txList.filter((tx: any) => tx.competence_date || tx.date);
-          if (validTx.length > 0) {
-            validTx.sort((a, b) => {
-              const dateA = a.competence_date || a.date;
-              const dateB = b.competence_date || b.date;
-              return new Date(dateB).getTime() - new Date(dateA).getTime();
-            });
-            const selectedDate = validTx[0].competence_date || validTx[0].date;
-            return selectedDate.substring(0, 7); // 'YYYY-MM'
-          }
-        }
-        return null;
-      } catch {
-        return null;
-      }
-    },
-    enabled: !!user,
-    staleTime: 60 * 1000,
-  });
-
-  const linkTo = targetDebtMonth ? `/compartilhados?month=${targetDebtMonth}` : `/compartilhados`;
+  // Link "Ver tudo" aponta para o mês selecionado no seletor
+  const selectedMonth = dateFns.format(currentDate, "yyyy-MM");
+  const linkTo = `/compartilhados?month=${selectedMonth}`;
 
   return (
     <div className="p-4 rounded-2xl border border-border bg-card space-y-3 animate-fade-in">
