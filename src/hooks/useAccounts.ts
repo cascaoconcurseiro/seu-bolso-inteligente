@@ -1,7 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { invalidateAccountQueries, invalidateSharedQueries, invalidateFinancialQueries } from "@/utils/queryInvalidation";
+import {
+  invalidateAccountQueries,
+  invalidateSharedQueries,
+  invalidateFinancialQueries,
+} from "@/utils/queryInvalidation";
 import { accountToasts } from "@/utils/toastMessages";
 import { defaultQueryConfig } from "@/utils/queryConfig";
 import { logger } from "@/utils/logger";
@@ -440,23 +444,29 @@ export function useUpdateAccount() {
               const day = d.getDate();
               const year = d.getFullYear();
               const month = d.getMonth(); // 0-based
-              
+
               let compMonth = month;
               let compYear = year;
               if (day >= closingDay) {
                 compMonth = month + 1;
-                if (compMonth > 11) { compMonth = 0; compYear++; }
+                if (compMonth > 11) {
+                  compMonth = 0;
+                  compYear++;
+                }
               }
-              
+
               const newComp = `${compYear}-${String(compMonth + 1).padStart(2, "0")}-01`;
               if (tx.competence_date !== newComp) {
                 updates.push({ id: tx.id, competence_date: newComp });
               }
             }
-            
+
             if (updates.length) {
               for (const u of updates) {
-                await supabase.from("transactions").update({ competence_date: u.competence_date }).eq("id", u.id);
+                await supabase
+                  .from("transactions")
+                  .update({ competence_date: u.competence_date })
+                  .eq("id", u.id);
               }
               invalidateSharedQueries(queryClient);
               invalidateFinancialQueries(queryClient);

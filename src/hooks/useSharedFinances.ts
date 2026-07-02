@@ -135,23 +135,23 @@ export const useSharedFinances = ({
     };
   }, [user?.id, queryClient]);
 
-  // Mapear dados do RPC para os estados existentes
+  // Mapear dados do RPC para os estados existentes, filtrando soft-deletados
   const transactionsWithSplits = useMemo(
     () => ({
-      transactions: sharedData?.transactions || [],
+      transactions: (sharedData?.transactions || []).filter((tx: any) => !tx.deleted_at),
       accounts: sharedData?.accounts || [],
     }),
     [sharedData]
   );
 
-  // Transações pagas por outros vêm da RPC consolidada (sem consulta extra)
+  // Transações pagas por outros - usar a lista já filtrada
   const paidByOthersTransactions = useMemo(() => {
-    const txList: DBTransaction[] = sharedData?.transactions || [];
+    const txList: DBTransaction[] = transactionsWithSplits.transactions;
     return txList.filter(
       (t: DBTransaction) =>
         t.user_id === user?.id && t.payer_id != null && t.source_transaction_id == null
     );
-  }, [sharedData, user?.id]);
+  }, [transactionsWithSplits, user?.id]);
 
   const invoices = useMemo(() => {
     const transactions =
