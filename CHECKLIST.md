@@ -1,7 +1,15 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-02 — Fix exclusão de transações + hardening** ✅
+> Última atualização: **2026-07-02 — Merge das 2 sessões + fix safeupdate na RPC de exclusão** ✅
+
+---
+
+## ✅ CONCLUÍDO — Pós-merge 02/07/2026
+
+- [x] **[MERGE-01]** Branch `claude/database-verification-checklist-en590c` mergeado na `main` e deployado — o fix de exclusão só existia no branch, e o deploy parte da main (por isso o erro 403 persistia pro usuário)
+- [x] **[DEL-04]** RPC `soft_delete_transaction` tinha `DELETE FROM _sdt_targets;` sem WHERE — rejeitado pelo `pg-safeupdate` do Supabase (erro 400 "DELETE requires a WHERE clause" em runtime real). Corrigido com `TRUNCATE` (migration `20260702190451`). Testado ao vivo sob role authenticated: RPC retorna 1, transação soft-deletada.
+- [x] **[OVERLOAD-02]** Versão antiga sobrecarregada `soft_delete_transaction(uuid)` (sem validação, retorno void) dropada — 1 nome, 1 conceito, sem risco de ambiguidade no PostgREST
 
 ---
 
