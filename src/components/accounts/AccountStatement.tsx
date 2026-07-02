@@ -88,7 +88,7 @@ export function AccountStatement({
                     const txDate = new Date(tx.date);
                     const isInitialBalance = tx.isInitialBalance;
 
-                    let description = tx.description;
+                    const description = tx.description;
                     // No extrato bancário, transferências são Débito (saída) ou Crédito (entrada)
                     const isTransferOut = tx.type === "TRANSFER" && !tx.isIncoming;
                     const isTransferIn = tx.type === "TRANSFER" && tx.isIncoming;
