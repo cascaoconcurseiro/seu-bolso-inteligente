@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { invalidateAccountQueries } from "@/utils/queryInvalidation";
+import { invalidateAccountQueries, invalidateSharedQueries, invalidateFinancialQueries } from "@/utils/queryInvalidation";
 import { accountToasts } from "@/utils/toastMessages";
 import { defaultQueryConfig } from "@/utils/queryConfig";
 import { logger } from "@/utils/logger";
@@ -416,9 +416,54 @@ export function useUpdateAccount() {
       if (error) throw error;
       return data as Account;
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await invalidateAccountQueries(queryClient);
       accountToasts.updated();
+
+      // Se mudou o closing_day, recalcular competence_date das transações da conta
+      if (variables.closing_day !== undefined && user) {
+        const closingDay = variables.closing_day;
+        if (closingDay) {
+          // Buscar transações da conta que têm competence_date
+          const { data: txs } = await supabase
+            .from("transactions")
+            .select("id, date, competence_date")
+            .eq("account_id", variables.id)
+            .eq("user_id", user.id)
+            .is("deleted_at", null)
+            .not("date", "is", null);
+
+          if (txs?.length) {
+            const updates: { id: string; competence_date: string }[] = [];
+            for (const tx of txs) {
+              const d = new Date(tx.date + "T12:00:00");
+              const day = d.getDate();
+              const year = d.getFullYear();
+              const month = d.getMonth(); // 0-based
+              
+              let compMonth = month;
+              let compYear = year;
+              if (day >= closingDay) {
+                compMonth = month + 1;
+                if (compMonth > 11) { compMonth = 0; compYear++; }
+              }
+              
+              const newComp = `${compYear}-${String(compMonth + 1).padStart(2, "0")}-01`;
+              if (tx.competence_date !== newComp) {
+                updates.push({ id: tx.id, competence_date: newComp });
+              }
+            }
+            
+            if (updates.length) {
+              for (const u of updates) {
+                await supabase.from("transactions").update({ competence_date: u.competence_date }).eq("id", u.id);
+              }
+              invalidateSharedQueries(queryClient);
+              invalidateFinancialQueries(queryClient);
+            }
+          }
+        }
+      }
     },
     onSettled: async () => {
       await invalidateAccountQueries(queryClient);
