@@ -1,7 +1,37 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-02 — Merge das 2 sessões + fix safeupdate na RPC de exclusão** ✅
+> Última atualização: **2026-07-03 — Smoke test de integração + 6 bug fixes** ✅
+
+---
+
+## ✅ CONCLUÍDO — Sessão 03/07/2026 (3 migrations)
+
+### 🔴 Bugs de produção corrigidos
+- [x] **[RPC-01]** PostgREST 404 em todas as RPCs — 52 SECURITY DEFINER functions precisavam de `GRANT EXECUTE TO anon` para schema cache
+- [x] **[RPC-02]** `create_installment_series` falhava com 42P01 — trigger órfã `trg_create_ledger_on_split` referenciava `financial_ledger` (dropada na Fase 1). Trigger + 3 funções órfãs removidas
+- [x] **[SMOKE-01]** `create_account_with_balance` — TEXT→DATE incompatível com `search_path=''`
+- [x] **[SMOKE-02]** `search_transactions` — return type `text` vs enum `transaction_type`
+- [x] **[SMOKE-03]** `recalculate_all_balances` — coluna `deleted` inexistente (é `deleted_at`)
+- [x] **[SMOKE-04]** `submit_error_report` — tabela `error_reports` inexistente (é `error_logs`)
+- [x] **[SMOKE-05]** `set_pin` / `verify_pin` — `gen_salt()`/`crypt()` sem `extensions.` prefix
+- [x] **[SMOKE-06]** `soft_delete_account` — transações deletadas após conta (trigger bloqueava)
+
+### 🟢 Frontend
+- [x] **[UI-01]** Trip split: SplitModal em vez de QuickSplit quando viagem selecionada
+- [x] **[UI-02]** `tripFilteredMembers` filtra apenas participantes da viagem no SplitModal
+- [x] **[DATA-01]** competence_date corrigida para transação "Cabelo" (jun, não jul)
+
+### 🧪 Smoke test de integração (38 cenários)
+- [x] Contas: criar, saldo inicial, soft delete, check dependencies, recalculate
+- [x] Transações: criar, editar, soft delete (NONE/ALL), restore
+- [x] Parcelas: create_installment_series (simples e compartilhada)
+- [x] Compartilhadas: create_transaction_with_splits, família, splits
+- [x] Transferências: transfer, withdraw
+- [x] Cartão crédito: competence_date antes/depois closing day
+- [x] Dashboard RPCs: 8 relatórios testados
+- [x] Viagens, metas, PIN, error report, search
+- [x] **Resultado: 38/38 PASS**
 
 ---
 
