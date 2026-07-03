@@ -149,7 +149,10 @@ export const useSharedFinances = ({
     const txList: DBTransaction[] = transactionsWithSplits.transactions;
     return txList.filter(
       (t: DBTransaction) =>
-        t.user_id === user?.id && t.payer_id != null && t.source_transaction_id == null
+        t.user_id === user?.id &&
+        t.payer_id != null &&
+        t.source_transaction_id == null &&
+        !(t.is_shared && t.transaction_splits && t.transaction_splits.length > 0)
     );
   }, [transactionsWithSplits, user?.id]);
 

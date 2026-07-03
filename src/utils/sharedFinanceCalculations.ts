@@ -183,7 +183,8 @@ export const generateInvoices = (
 
     const isMeTheRealCreditor =
       (tx.user_id === userId && !tx.payer_id) ||
-      (tx.payer_id === myMemberId && tx.payer_id != null);
+      (tx.payer_id === myMemberId && tx.payer_id != null) ||
+      (tx.user_id === userId && tx.is_shared && splits.length > 0);
 
     if (isMeTheRealCreditor) {
       splits.forEach((split) => {
