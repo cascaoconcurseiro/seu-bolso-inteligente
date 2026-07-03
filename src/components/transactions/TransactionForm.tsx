@@ -520,7 +520,7 @@ export function TransactionForm(props: TransactionFormProps) {
         setPayerId={form.setPayerId}
         splits={form.splits}
         setSplits={form.setSplits}
-        familyMembers={form.effectiveFamilyMembers}
+        familyMembers={form.tripId ? form.tripFilteredMembers : form.effectiveFamilyMembers}
         activeAmount={moneyUtils.parse(form.amount) || 0}
         onNavigateToFamily={() => form.navigate("/familia")}
         isInstallment={form.isInstallment}

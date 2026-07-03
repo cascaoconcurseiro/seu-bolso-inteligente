@@ -420,6 +420,15 @@ export function useTransactionForm({
      
   }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
 
+  const tripFilteredMembers = useMemo(() => {
+    if (!tripId || !tripMembers || tripMembers.length === 0) return effectiveFamilyMembers;
+    const tripAllIds = new Set([
+      ...tripMembers.map((tm) => tm.user_id).filter(Boolean),
+      ...tripMembers.filter((tm) => !tm.user_id).map((tm) => tm.id),
+    ] as string[]);
+    return effectiveFamilyMembers.filter((m) => tripAllIds.has(m.linked_user_id as string));
+  }, [tripId, tripMembers, effectiveFamilyMembers]);
+
   // A limpeza automática de splits (setSplits([])) quando o payerId mudava
   // foi removida pois apagava os splits recém-carregados na edição. O UX no modal
   // lida bem com a manutenção dos splits caso o usuário troque "Eu Paguei" / "Outro Pagou".
@@ -841,6 +850,7 @@ export function useTransactionForm({
     isPredicting,
 
     availableMembers,
+    tripFilteredMembers,
     creditCards,
     transferAccounts,
     isCreditCard,

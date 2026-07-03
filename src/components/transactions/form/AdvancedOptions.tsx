@@ -66,7 +66,7 @@ export function AdvancedOptions({
   const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification || quickSplitPeople > 0);
 
   const handleDividirClick = () => {
-    if (availableMembers.length > 0) {
+    if (tripId || availableMembers.length > 0) {
       setShowSplitModal(true);
     } else {
       setQuickSplitPeople(prev => prev > 0 ? 0 : 2);
