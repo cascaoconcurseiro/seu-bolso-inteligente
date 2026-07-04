@@ -28,6 +28,7 @@ import { toast } from "sonner";
 
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { moneyUtils } from "@/utils/money";
+import type { Transaction } from "@/hooks/transactions/types";
 
 interface TransactionFormProps {
   onSuccess?: () => void;
@@ -818,6 +819,8 @@ export function useTransactionForm({
   };
 
   return {
+    // Aviso de orçamento (UI no TransactionForm; cálculo ainda não implementado)
+    budgetWarning: undefined as { exceeded: boolean; message: string } | undefined,
     navigate,
     setShowTransactionModal,
     user,

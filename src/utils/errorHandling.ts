@@ -60,7 +60,11 @@ export const handleSupabaseError = (error: unknown, context: string): never => {
   const code = String(err.code || err.error_code || "");
   const userMessage = errorMessages[code] || err.message || "Erro desconhecido";
 
-  throw new Error(userMessage as string);
+  // Preserva o código Postgres/PostgREST para os chamadores poderem tratar
+  // casos específicos (ex.: 23505 = duplicata no import OFX)
+  const wrapped = new Error(userMessage as string) as Error & { code?: string };
+  wrapped.code = code as string | undefined;
+  throw wrapped;
 };
 
 /**

@@ -15,7 +15,7 @@ async function getJsPDF() {
     _jsPDF = pdfModule.default;
     _autoTable = tableModule.default || (tableModule as any);
   }
-  return { jsPDF: _jsPDF, autoTable: _autoTable };
+  return { jsPDF: _jsPDF!, autoTable: _autoTable! };
 }
 
 export interface CalculatorExportData {

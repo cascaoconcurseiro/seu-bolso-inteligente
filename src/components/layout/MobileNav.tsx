@@ -94,7 +94,7 @@ export function MobileNav() {
   const navItems = [
     { label: "Início", icon: Home, path: "/" },
     { label: "Extrato", icon: ArrowLeftRight, path: "/transacoes" },
-    { label: "Add", icon: Plus, isAction: true },
+    { label: "Nova", icon: Plus, isAction: true },
     { label: "Relatórios", icon: BarChart2, path: "/relatorios" },
     { label: "Mais", icon: Grid3X3, isMenu: true },
   ];
@@ -213,7 +213,7 @@ export function MobileNav() {
       </div>
 
       {/* Barra de Navegação Inferior */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-bottom transform-gpu">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/60 safe-bottom transform-gpu">
         <div className="flex items-center justify-between h-16 max-w-md mx-auto px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -225,9 +225,12 @@ export function MobileNav() {
                   whileTap={tapAnimation}
                   aria-label="Nova transação"
                   onClick={() => setShowTransactionModal(true)}
-                  className="relative -top-5 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center transition-transform duration-200 hover:brightness-110"
+                  className="flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl text-primary"
                 >
-                  <Plus className="w-7 h-7" aria-hidden="true" />
+                  <div className="flex items-center justify-center rounded-xl w-7 h-7 bg-primary/15">
+                    <Plus className="w-5 h-5" aria-hidden="true" />
+                  </div>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </motion.button>
               );
             }
@@ -312,7 +315,7 @@ export function MobileNav() {
           })}
         </div>
         {/* Safe area for notch devices */}
-        <div className="h-safe-bottom bg-background/95" />
+        <div className="h-safe-bottom" />
       </nav>
     </>
   );

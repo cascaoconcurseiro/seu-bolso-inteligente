@@ -11,7 +11,7 @@
 
 ## ⚠️ Pré-requisito: bug em produção
 
-- [ ] **Mergear o PR #57** — produção (meupedemeia.vercel.app) está crashando
+- [x] **Mergear o PR #57** (mergeado em 04/07) — produção (meupedemeia.vercel.app) está crashando
       com `ReferenceError: SafeFinancialCalculator is not defined` na página de
       viagens (import ausente em TripSummaryTab/TripExpensesTab/TripShopping).
       A correção já está na branch `claude/team-project-evaluation-wsk16l`,
@@ -24,47 +24,47 @@
 
 ## Fase 1 — PWA iOS: alto impacto
 
-- [ ] **Splash screens** (`apple-touch-startup-image`): gerar com
+- [x] **Splash screens** (24 geradas via scripts/generate-splash.js, light+dark) (`apple-touch-startup-image`): gerar com
       `pwa-asset-generator`, uma por resolução de device + variantes dark.
       Elimina o flash branco ao abrir da tela de início (maior denunciante de
       "não é nativo").
-- [ ] **Status bar translúcida**: trocar
+- [x] **Status bar translúcida** (+ safe-top no header): trocar
       `apple-mobile-web-app-status-bar-style` de `default` para
       `black-translucent` no index.html. As safe areas já existentes cuidam do
       conteúdo sob a Dynamic Island.
-- [ ] **theme-color por tema**: dois meta tags com
+- [x] **theme-color por tema**: dois meta tags com
       `media="(prefers-color-scheme: light/dark)"` para a barra acompanhar o
       dark mode.
-- [ ] **Banner de instalação iOS**: detectar Safari fora de standalone
+- [x] **Banner de instalação iOS** (IOSInstallPrompt, dispensa de 30 dias): detectar Safari fora de standalone
       (`!matchMedia('(display-mode: standalone)').matches` + userAgent iOS) e
       mostrar card "Compartilhar → Adicionar à Tela de Início". iOS não tem
       `beforeinstallprompt`.
-- [ ] **Gesto de voltar (edge-swipe)**: drag da borda esquerda → pop da tela
+- [x] **Gesto de voltar (edge-swipe)** (EdgeSwipeBack, rotas de detalhe): drag da borda esquerda → pop da tela
       (Framer Motion) nas telas de detalhe (conta, cartão, viagem). PWA
       standalone não tem o swipe-back do Safari.
 
 ## Fase 2 — PWA iOS: refinamento
 
-- [ ] **Tipografia do sistema no corpo**: `-apple-system, system-ui` para body
+- [x] **Tipografia do sistema no corpo** (font-sans → -apple-system/system-ui; Inter fallback): `-apple-system, system-ui` para body
       (SF Pro no iPhone). Manter Space Grotesk em headings e JetBrains Mono nos
       valores. Corpo ~17px, captions 11–13px.
-- [ ] **Tap feedback**: `-webkit-tap-highlight-color: transparent` +
+- [x] **Tap feedback** (tap-highlight transparent, touch-action manipulation, user-select none em botões/links): `-webkit-tap-highlight-color: transparent` +
       `touch-action: manipulation` global; `user-select: none` no chrome da UI
       (haptics via `navigator.vibrate` NÃO existem no iOS — compensar com
       micro-feedback visual; o `whileTap scale` já existe).
-- [ ] **Overscroll**: `overscroll-behavior-y: none` no body; rubber-band só nas
+- [x] **Overscroll** (overscroll-behavior-y none no body): `overscroll-behavior-y: none` no body; rubber-band só nas
       listas internas (não conflitar com PullToRefresh).
-- [ ] **Ícone**: conferir que `apple-touch-icon` é 180×180 **sem transparência**
+- [x] **Ícone**: apple-touch-icon.png 180px sem alpha gerado (o icon-192 tinha transparência) — conferir que `apple-touch-icon` é 180×180 **sem transparência**
       (alpha vira fundo preto no iOS).
 
 ## Fase 3 — HIG no app inteiro: navegação e estrutura
 
-- [ ] **Remover o FAB central** da tab bar (padrão Material/Android). Mover
+- [x] **Remover o FAB central** (virou item comum 'Nova' da tab bar) da tab bar (padrão Material/Android). Mover
       "Nova transação" para botão `+` no canto superior direito da navigation
       bar ou item comum da tab bar.
 - [ ] **Large Titles colapsáveis** nas telas principais (Início, Extrato,
       Relatórios): título 34pt que encolhe para o centro da barra ao rolar.
-- [ ] **Barras translúcidas**: header e tab bar com `backdrop-blur` + fundo
+- [x] **Barras translúcidas** (header e tab bar com backdrop-blur-xl + bg/80): header e tab bar com `backdrop-blur` + fundo
       semi-opaco (conteúdo passa por baixo).
 - [ ] **Back button padrão iOS**: chevron `‹` + título da tela anterior.
 
@@ -81,7 +81,7 @@
       form como sobrecarregado.
 - [ ] **Action Sheets para ações destrutivas** ("Excluir transação" sobe de
       baixo com botão vermelho) em vez de dialog centralizado no mobile.
-- [ ] **Long-press com menu contextual** nas linhas de transação
+- [x] **Long-press com menu contextual** (SwipeableRow: 500ms abre menu com as mesmas ações do swipe) nas linhas de transação
       (editar/dividir/excluir), complementando o SwipeableRow.
 
 ## Fase 5 — HIG: feedback e movimento
@@ -109,14 +109,25 @@
 
 ## Backlog herdado da avaliação de equipe (pendências não-HIG)
 
-- [ ] ~560 → 261 erros de tipo restantes (81 vars locais não usadas + mismatches
-      estruturais antigos, sem impacto de runtime)
+- [x] Erros de tipo: 738 → ~155 (04/07). Unused locals/params agora são
+      responsabilidade do ESLint (noUnusedLocals off no tsc); restam apenas
+      mismatches estruturais antigos, sem impacto de runtime
 - [ ] Paginação cursor-based nas listagens + substituir `SELECT *`
 - [ ] Migration base consolidada (dump do schema como migration zero)
-- [ ] Deduplicação OFX server-side (unique constraint em
-      `(user_id, account_id, external_id)`)
+- [x] Deduplicação OFX server-side — migration
+      `20260704010000_ofx_dedup_unique_external_id.sql` (índice único parcial +
+      soft-delete de duplicatas antigas) + import tolera 23505 linha a linha.
+      ✅ APLICADA em produção via MCP (04/07). Descoberta no processo: a
+      coluna external_id NÃO EXISTIA em produção (drift schema/código — o
+      import OFX estava quebrado); a migration também cria a coluna
 - [ ] Onboarding interativo passo-a-passo
-- [ ] Resumo semanal (WEEKLY_SUMMARY já modelado, falta cron/edge function)
-- [ ] Playwright no CI + coverage threshold
-- [ ] Reduzir chunk page-shared (574 KB)
-- [ ] Atualizar ~60 dependências desatualizadas
+- [x] Resumo semanal — JÁ IMPLEMENTADO em notificationGenerator
+      (generateWeeklySummaryNotification, roda quando weekly_summary_enabled);
+      item estava desatualizado
+- [x] Playwright no CI (job e2e chromium; requer VITE_SUPABASE_URL/ANON_KEY
+      como vars/secrets do repo) + coverage threshold baseline (55/43/41/52)
+- [ ] Reduzir chunk page-shared (574 KB) — tentado via manualChunks em
+      04/07: gera chunks circulares (imports cruzados pages<->components).
+      Pré-requisito: desacoplar imports de src/pages/* dentro de components/
+- [~] Dependências: @supabase/supabase-js 2.110 e @sentry/react 10.63
+      atualizados (04/07); restante fica com o Dependabot semanal

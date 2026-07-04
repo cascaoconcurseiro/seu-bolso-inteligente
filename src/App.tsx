@@ -15,6 +15,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppLayout } from "@/components/layout";
 import { PinWrapper } from "@/components/auth/PinWrapper";
 import { ThemeProvider } from "@/components/ui/theme-provider";
+import { IOSInstallPrompt } from "@/components/pwa/IOSInstallPrompt";
+import { EdgeSwipeBack } from "@/components/pwa/EdgeSwipeBack";
 import { lazy, Suspense } from "react";
 
 import { Auth } from "./pages/Auth";
@@ -99,6 +101,8 @@ const App = () => (
                   <ActionFeedback />
 
                   <BrowserRouter>
+                    <IOSInstallPrompt />
+                    <EdgeSwipeBack />
                     <Routes>
                       {/* Public Routes */}
                       <Route path="/auth" element={<Auth />} />

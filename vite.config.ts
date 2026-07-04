@@ -80,6 +80,8 @@ export default defineConfig(({ mode }) => {
         injectManifestConfig: {
           maximumFileSizeToCacheInBytes: 2097152, // 2MB
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+          // Splash screens iOS são buscadas pelo SO no launch — não precachear
+          globIgnores: ["splash/**"],
         },
       }),
     ].filter(Boolean),
@@ -152,6 +154,10 @@ export default defineConfig(({ mode }) => {
             if (id.includes("node_modules/lucide-react")) {
               return "vendor-icons";
             }
+            // NOTA (04/07/2026): tentativa de extrair components/{transactions,
+            // shared,trips} em feature-chunks gerou chunks circulares (imports
+            // cruzados pages<->components, risco de TDZ em runtime). Reduzir o
+            // page-shared (574 KB) exige antes desacoplar esses imports.
             // Pages (lazy chunks por rota)
             if (id.includes("/src/pages/Reports")) return "page-reports";
             if (id.includes("/src/pages/SharedExpenses")) return "page-shared";

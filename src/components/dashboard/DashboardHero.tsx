@@ -229,10 +229,10 @@ export const DashboardHero = memo(function DashboardHero({
               <p
                 className={cn(
                   "text-xs font-bold",
-                  expenses > monthlyBudget ? "text-destructive" : "text-success"
+                  expenses > (monthlyBudget ?? 0) ? "text-destructive" : "text-success"
                 )}
               >
-                {((expenses / monthlyBudget) * 100).toFixed(1)}% utilizado
+                {((expenses / (monthlyBudget ?? 0)) * 100).toFixed(1)}% utilizado
               </p>
             </div>
           </div>
@@ -240,13 +240,13 @@ export const DashboardHero = memo(function DashboardHero({
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-1000 ease-out",
-                expenses > monthlyBudget
+                expenses > (monthlyBudget ?? 0)
                   ? "bg-destructive"
-                  : expenses > monthlyBudget * 0.8
+                  : expenses > (monthlyBudget ?? 0) * 0.8
                     ? "bg-warning"
                     : "bg-success"
               )}
-              style={{ width: `${Math.min((expenses / monthlyBudget) * 100, 100)}%` }}
+              style={{ width: `${Math.min((expenses / (monthlyBudget ?? 0)) * 100, 100)}%` }}
             />
           </div>
         </div>

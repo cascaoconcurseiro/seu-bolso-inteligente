@@ -32,8 +32,18 @@ const isTouchDevice =
 export function SwipeableRow({ children, leftAction, rightAction, className }: SwipeableRowProps) {
   const [offset, setOffset] = useState(0);
   const [dir, setDir] = useState<"left" | "right" | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const startX = useRef<number | null>(null);
   const isAnimating = useRef(false);
+  // Long-press (HIG): menu contextual como alternativa descobrível ao swipe
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
 
   // Desktop: substituir swipe por DropdownMenu
   if (!isTouchDevice && (leftAction || rightAction)) {
@@ -68,11 +78,19 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
   const handleTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     isAnimating.current = false;
+    if (leftAction || rightAction) {
+      cancelLongPress();
+      longPressTimer.current = setTimeout(() => {
+        haptics.light();
+        setMenuOpen(true);
+      }, 500);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (startX.current === null) return;
     const diff = e.touches[0].clientX - startX.current;
+    if (Math.abs(diff) > 10) cancelLongPress();
 
     if (diff < 0 && rightAction) {
       const next = Math.max(diff, -MAX_OFFSET);
@@ -88,6 +106,7 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
   };
 
   const handleTouchEnd = () => {
+    cancelLongPress();
     startX.current = null;
     isAnimating.current = true;
 
@@ -149,20 +168,33 @@ export function SwipeableRow({ children, leftAction, rightAction, className }: S
       )}
 
       {/* Content */}
-      <div
-        className={cn(isAnimating.current && "transition-transform duration-200")}
-        style={{ transform: `translateX(${isSnapped ? -MAX_OFFSET : offset}px)` }}
-        onClick={() => {
-          if (dir) {
-            reset();
-          }
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {children}
-      </div>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+        <DropdownMenuTrigger asChild>
+          <div
+            className={cn(isAnimating.current && "transition-transform duration-200")}
+            style={{ transform: `translateX(${isSnapped ? -MAX_OFFSET : offset}px)` }}
+            onClick={() => {
+              if (dir) {
+                reset();
+              }
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {children}
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center">
+          {([leftAction, rightAction].filter(Boolean) as SwipeAction[]).map((action, i) => (
+            <DropdownMenuItem key={i} onClick={action.onClick} className="gap-2">
+              {action.icon}
+              {action.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
