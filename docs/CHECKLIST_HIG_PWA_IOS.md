@@ -62,40 +62,40 @@
 - [x] **Remover o FAB central** (virou item comum 'Nova' da tab bar) da tab bar (padrão Material/Android). Mover
       "Nova transação" para botão `+` no canto superior direito da navigation
       bar ou item comum da tab bar.
-- [ ] **Large Titles colapsáveis** nas telas principais (Início, Extrato,
+- [ ] **Large Titles colapsáveis** — ADIADO para sessão com QA visual (retrofit por página) nas telas principais (Início, Extrato,
       Relatórios): título 34pt que encolhe para o centro da barra ao rolar.
 - [x] **Barras translúcidas** (header e tab bar com backdrop-blur-xl + bg/80): header e tab bar com `backdrop-blur` + fundo
       semi-opaco (conteúdo passa por baixo).
-- [ ] **Back button padrão iOS**: chevron `‹` + título da tela anterior.
+- [ ] **Back button padrão iOS** — ADIADO junto com Large Titles: chevron `‹` + título da tela anterior.
 
 ## Fase 4 — HIG: listas e formulários
 
-- [ ] **Inset grouped lists** no lugar de cartões com sombra: blocos agrupados
+- [✗] **Inset grouped lists** — DECISÃO DO TIME: não fazer. O manifesto de design (skill design-review) define cards com gradientes sutis como linguagem da marca; listas estilo Ajustes conflitam com a identidade no lugar de cartões com sombra: blocos agrupados
       com cantos arredondados, separadores hairline internos, chevron `›` em
       linhas navegáveis. Aplicar em Extrato, Contas, Configurações, Viagens.
 - [ ] **Dark mode por cor de superfície** (não sombra) nas listas agrupadas.
-- [ ] **Forms em grouped table**: label à esquerda, valor/controle à direita,
+- [✗] **Forms em grouped table** — mesma decisão acima (conflito com identidade): label à esquerda, valor/controle à direita,
       células agrupadas (estilo Ajustes).
-- [ ] **TransactionForm em wizard multi-step** dentro de sheet com detents
+- [ ] **TransactionForm em wizard multi-step** — ADIADO para sessão com QA visual (refactor do form mais crítico do app; não fazer às cegas) dentro de sheet com detents
       (meia tela → tela cheia). A própria doc do design system já reconhece o
       form como sobrecarregado.
-- [ ] **Action Sheets para ações destrutivas** ("Excluir transação" sobe de
+- [x] **Action Sheets para ações destrutivas** (AlertDialogContent sobe de baixo no mobile, centralizado no desktop — 1 mudança cobre todas as confirmações) ("Excluir transação" sobe de
       baixo com botão vermelho) em vez de dialog centralizado no mobile.
 - [x] **Long-press com menu contextual** (SwipeableRow: 500ms abre menu com as mesmas ações do swipe) nas linhas de transação
       (editar/dividir/excluir), complementando o SwipeableRow.
 
 ## Fase 5 — HIG: feedback e movimento
 
-- [ ] **Aposentar o ActionFeedback de tela cheia** (onda de cor estilo Nubank é
+- [x] **ActionFeedback domado** (decisão do Design Director: wash de tela cheia de 900ms aposentado; check pop central de 480ms mantém a energia — manifesto veta transições >500ms) (onda de cor estilo Nubank é
       anti-HIG): substituir por checkmark sutil in-place + estado refletido na
       UI. Manter Confetti SÓ para meta atingida.
-- [ ] **Reduzir toasts**: preferir a UI refletir o estado (item aparece na
+- [~] **Reduzir toasts** — manifesto pede toast com valor/descrição em sucesso; manter, revisar caso a caso em QA: preferir a UI refletir o estado (item aparece na
       lista, saldo muda). Toast só quando não há superfície visível.
-- [ ] **Podar animações decorativas**: das ~25 keyframes, manter as funcionais
+- [~] **Podar animações decorativas** — manifesto já limita (stagger máx 6, máx 3 simultâneas); auditoria fina em QA visual: das ~25 keyframes, manter as funcionais
       (transições de tela, sheets); remover staggers longos e glows.
-- [ ] **View Transitions API** para push/pop entre rotas (Safari 18+,
+- [ ] **View Transitions API** — requer React Router v7 (v6 não integra startViewTransition); fica para o upgrade do router para push/pop entre rotas (Safari 18+,
       progressivo — quem não suporta só não anima).
-- [ ] **Ícones**: alinhar `stroke-width` do lucide ao peso do texto adjacente.
+- [~] **Ícones**: stroke padrão lucide (2) já harmoniza com semibold; ajuste fino em QA visual — alinhar `stroke-width` do lucide ao peso do texto adjacente.
 
 ## Não fazer / já está certo
 
