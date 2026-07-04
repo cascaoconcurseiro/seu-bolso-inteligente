@@ -11,15 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  DollarSign,
-  Save,
-  Users,
-  Loader2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Save, Users, Loader2 } from "lucide-react";
 import { formatDateISO } from "@/utils/dateUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {

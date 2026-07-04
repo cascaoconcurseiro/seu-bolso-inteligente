@@ -23,12 +23,10 @@ import {
 } from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
+import { getInvoiceData, getTargetDate } from "@/lib/invoiceUtils";
 import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
-import { getInvoiceData as getInvoiceDataNew } from "@/utils/credit-cards/invoiceData";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { useAuth } from "@/contexts/AuthContext";
-import { getBankById } from "@/lib/banks";
 import { moneyUtils } from "@/utils/money";
 import { CascadeDeleteType } from "@/components/modals/DeleteTransactionModal";
 import { toast } from "sonner";

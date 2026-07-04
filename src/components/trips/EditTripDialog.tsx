@@ -15,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Trip } from "@/hooks/useTrips";
 import { moneyUtils } from "@/utils/money";

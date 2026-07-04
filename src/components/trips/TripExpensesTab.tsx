@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  DollarSign,
   Tag,
   Calendar,
   Users,
@@ -24,6 +23,7 @@ import { useTransactionModal } from "@/contexts/TransactionModalContext";
 import { Plus } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { moneyUtils } from "@/utils/money";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface TripExpensesTabProps {
   tripTransactions: any[];

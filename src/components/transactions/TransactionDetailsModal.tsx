@@ -12,7 +12,6 @@ import {
   Edit,
   Trash2,
   FastForward,
-  HandCoins,
   Calendar,
   Wallet,
   Tag,

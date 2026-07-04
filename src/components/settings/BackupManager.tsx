@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, Upload, AlertTriangle, ShieldAlert, CheckCircle, Database } from "lucide-react";
+import { Download, Upload, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
 

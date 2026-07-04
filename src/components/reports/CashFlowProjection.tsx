@@ -4,6 +4,7 @@ import { ptBR } from "date-fns/locale";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from "@/utils/money";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface CashFlowProjectionProps {
   transactions: any[];

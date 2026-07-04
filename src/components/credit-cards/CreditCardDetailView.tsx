@@ -1,5 +1,5 @@
 import React from "react";
-import { useSharedCreditCards, useRevokeSharedCard } from "@/hooks/useSharedCreditCards";
+import { useSharedCreditCards } from "@/hooks/useSharedCreditCards";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";

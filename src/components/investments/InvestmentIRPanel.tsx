@@ -1,9 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/database";
-import { getAssetTransactions, getPositionAtDate, getIRDetails } from "@/utils/investmentExport";
-import { formatCurrency } from "@/utils/currencyFormatter";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import {
   ShieldCheck,
@@ -16,13 +11,11 @@ import {
   TrendingUp,
   Download,
   AlertCircle,
-  HelpCircle,
-  ExternalLink,
   ChevronRight,
   TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -50,7 +43,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
     tributacaoExclusivaMap,
     monthlyResumo,
     operationsOfYear,
-    copyToClipboard,
+    copyToClipboard: handleCopy,
     handleExportPDF,
     handleExportExcel,
     monthNames,

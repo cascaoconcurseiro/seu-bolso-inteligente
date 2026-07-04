@@ -9,7 +9,6 @@ import {
   Undo2,
   Trash2,
   Clock,
-  CheckCircle,
   FastForward,
   ChevronDown,
   ChevronUp,

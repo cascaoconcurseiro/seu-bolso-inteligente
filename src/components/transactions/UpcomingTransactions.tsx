@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { CheckCircle2, Trash2, CalendarClock, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
@@ -10,7 +10,6 @@ import { calculateNextOccurrence } from "@/services/recurrenceService";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { getMonthDateRange, parseSafeDate } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
-import { toast } from "sonner";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { ConfirmTransactionDialog, ConfirmTarget } from "./ConfirmTransactionDialog";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/hooks/useScheduledBills";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface UnifiedItem {
   id: string;

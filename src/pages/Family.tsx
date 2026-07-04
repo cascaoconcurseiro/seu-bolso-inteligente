@@ -2,7 +2,6 @@ import { FamilyMemberCard } from "@/components/family/FamilyMemberCard";
 import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Loader2, Plus, Trash2, ShoppingCart, Check } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { AITripSuggestions } from "./AITripSuggestions";
 import { moneyUtils } from "@/utils/money";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface ShoppingItem {
   id: string;

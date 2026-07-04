@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 import { logger } from "@/utils/logger";
+import type { Database } from "@/integrations/supabase/types";
 
 // A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";

@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";

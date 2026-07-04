@@ -1,13 +1,4 @@
-import {
-  Plane,
-  Clock,
-  CheckCircle2,
-  MoreHorizontal,
-  Undo2,
-  Calendar,
-  Trash2,
-  CheckCircle,
-} from "lucide-react";
+import { Plane, Clock, CheckCircle2, MoreHorizontal, Undo2, Calendar, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -20,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
+import { Wallet } from "lucide-react";
 
 interface SharedTripCardProps {
   trip: any;

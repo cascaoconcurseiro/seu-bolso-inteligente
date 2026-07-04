@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { CreditCard, Users, Wallet, Plane } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ShortcutProps {
   to: string;

@@ -26,7 +26,6 @@ import { AccountBalanceCard } from "@/components/accounts/AccountBalanceCard";
 import { AccountStatement } from "@/components/accounts/AccountStatement";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { useMonth } from "@/contexts/MonthContext";
 import { format } from "date-fns";

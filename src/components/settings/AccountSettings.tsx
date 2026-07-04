@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Mail, LogOut, AlertTriangle, Check } from "lucide-react";
 import { AvatarCustomizer } from "./AvatarCustomizer";
 import { avatarIcons } from "@/lib/avatars";
-import { toast } from "sonner";
 
 interface AccountSettingsProps {
   profile: any;

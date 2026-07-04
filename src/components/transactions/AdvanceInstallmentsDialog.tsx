@@ -15,6 +15,7 @@ import { useFutureInstallments, useAdvanceInstallments } from "@/hooks/useInstal
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { showActionFeedback } from "@/components/ui/ActionFeedback";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface AdvanceInstallmentsDialogProps {
   open: boolean;

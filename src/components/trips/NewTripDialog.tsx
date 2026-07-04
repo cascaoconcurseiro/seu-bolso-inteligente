@@ -16,7 +16,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useAuth } from "@/contexts/AuthContext";

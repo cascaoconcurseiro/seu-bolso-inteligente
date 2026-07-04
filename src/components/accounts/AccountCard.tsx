@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ArrowDownRight, Globe, ArrowRight, CreditCard } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ArrowRight, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankIcon } from "@/components/financial/BankIcon";
 import { getBankById } from "@/lib/banks";

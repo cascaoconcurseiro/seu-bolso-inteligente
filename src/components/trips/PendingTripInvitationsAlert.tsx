@@ -8,7 +8,6 @@ import {
 } from "@/hooks/useTripInvitations";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { logger } from "@/utils/logger";
 
 export function PendingTripInvitationsAlert() {
   const { data: invitations = [], isLoading, error } = usePendingTripInvitations();

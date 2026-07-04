@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { CurrencyInput } from "@/components/ui/currency-input";
 import { AmountInput } from "@/components/ui/amount-input";
 import { Loader2, Banknote } from "lucide-react";
 import { useWithdrawal } from "@/hooks/useWithdrawal";

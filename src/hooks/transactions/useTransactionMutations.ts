@@ -17,6 +17,14 @@ import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 import { toast } from "sonner";
 import { rpcWithRetry } from "@/utils/rpcWithRetry";
+import type { QueryKey } from "@tanstack/react-query";
+// Splits vindos do formulário usam snake_case (member_id), diferente do
+// TransactionSplitData camelCase de types/transactions
+interface TransactionSplitData {
+  member_id: string;
+  percentage: number;
+  amount?: number;
+}
 
 export function useBulkCreateTransactions() {
   const { user } = useAuth();

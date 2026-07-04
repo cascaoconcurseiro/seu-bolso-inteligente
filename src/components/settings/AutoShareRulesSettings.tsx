@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, ToggleLeft, ToggleRight, Zap } from "lucide-react";
+import { Plus, Trash2, Zap } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

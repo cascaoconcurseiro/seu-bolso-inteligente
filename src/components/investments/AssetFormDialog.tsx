@@ -24,7 +24,7 @@ import { BR_BROKERS, ABROAD_BROKERS, getBrokerById, isCustomBroker } from "@/lib
 import { searchAbroadAssets, AbroadAsset } from "@/lib/abroadAssets";
 import { searchCryptoAssets } from "@/lib/cryptoAssets";
 import { useB3TickersSearch, B3Ticker } from "@/hooks/useB3TickersSearch";
-import { Globe, Building2, Search, Loader2 } from "lucide-react";
+import { Globe, Building2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from "@/utils/money";
 

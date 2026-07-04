@@ -16,7 +16,6 @@ import {
 import { Users, UserPlus, X, ShieldAlert } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 
 interface ShareCardDialogProps {

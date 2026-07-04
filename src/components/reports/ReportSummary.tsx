@@ -1,4 +1,3 @@
-import { moneyUtils } from "@/utils/money";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 

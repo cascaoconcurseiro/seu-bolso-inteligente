@@ -1,13 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Budget, BudgetProgress } from "@/types/database";
+import { Budget } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMonth } from "@/contexts/MonthContext";
 import { getMonthDateRange } from "@/utils/dateUtils";
-import * as dateFns from "date-fns";
 import { invalidateBudgetQueries } from "@/utils/queryInvalidation";
-import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { budgetToasts } from "@/utils/toastMessages";
 import { defaultQueryConfig } from "@/utils/queryConfig";
 

@@ -8,7 +8,6 @@ import { FormField } from "@/components/ui/form-field";
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const authSchema = z.object({
   email: z.string().trim().email("Email inválido").max(255),

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { parseLocalDate } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
 import { useQuery } from "@tanstack/react-query";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import {
   ArrowRight,
   Calendar,

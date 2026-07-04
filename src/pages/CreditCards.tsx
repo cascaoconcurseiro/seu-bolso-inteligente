@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useSearchParams, useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -13,31 +13,19 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Plus,
-  CreditCard,
-  Trash2,
-  Archive,
-  Download,
-  Loader2,
-  AlertCircle,
-  Pencil,
-} from "lucide-react";
+import { Plus, CreditCard, Trash2, Archive, Download, AlertCircle, Pencil } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMonth } from "@/contexts/MonthContext";
 import { getBankById, banks, internationalBanks } from "@/lib/banks";
 import { BankIcon } from "@/components/financial/BankIcon";
 import {
@@ -47,37 +35,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useAccounts,
-  useCreateAccount,
-  useUpdateAccount,
-  useDeleteAccount,
-  useArchiveAccount,
-  useArchivedAccounts,
-  useUnarchiveAccount,
-  useCreditCardInvoice,
-  useAccountDependencies,
-} from "@/hooks/useAccounts";
+import { useAccounts } from "@/hooks/useAccounts";
 import { useDependentTransactions } from "@/hooks/transactions/useDependentTransactions";
-import {
-  useTransactions,
-  useCreateTransaction,
-  useDeleteTransaction,
-  useBulkCreateTransactions,
-} from "@/hooks/useTransactions";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getInvoiceData, getTargetDate, formatCycleRange } from "@/lib/invoiceUtils";
-import { formatDateISO, getMonthDateRange } from "@/utils/dateUtils";
+import { formatCycleRange } from "@/lib/invoiceUtils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 
 import { TransactionModal } from "@/components/modals/TransactionModal";
-import {
-  DeleteTransactionModal,
-  CascadeDeleteType,
-} from "@/components/modals/DeleteTransactionModal";
+import { DeleteTransactionModal } from "@/components/modals/DeleteTransactionModal";
 import { EmptyState } from "@/components/ui/empty-state";
 
 // Modular Components
@@ -90,8 +57,6 @@ import { PayInvoiceDialog } from "@/components/credit-cards/PayInvoiceDialog";
 import { ArchivedCardsSection } from "@/components/credit-cards/ArchivedCardsSection";
 import { ArchiveConfirmModal } from "@/components/modals/ArchiveConfirmModal";
 import { ShareCardDialog } from "@/components/credit-cards/ShareCardDialog";
-import { PendingSharedCardInvitationsAlert } from "@/components/credit-cards/PendingSharedCardInvitationsAlert";
-import { moneyUtils } from "@/utils/money";
 import { useCreditCardsDashboard } from "@/hooks/credit-cards/useCreditCardsDashboard";
 
 type CardView = "list" | "detail";

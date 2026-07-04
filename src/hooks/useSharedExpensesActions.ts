@@ -5,7 +5,10 @@ import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import { User } from "@supabase/supabase-js";
-import { createNotification } from "@/services/notificationService";
+import {
+  createNotification,
+  createSettlementRejectedNotification,
+} from "@/services/notificationService";
 
 import { FamilyMember } from "@/hooks/useFamily";
 import { moneyUtils } from "@/utils/money";
@@ -86,6 +89,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     }
 
     setIsSettling(true);
+    let previousState: unknown = null;
     try {
       const member = members.find((m) => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
@@ -150,7 +154,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       // ATUALIZAÇÃO OTIMISTA
       setShowSettleDialog(false);
-      const previousState = queryClient
+      previousState = queryClient
         ? queryClient.getQueryData(["shared-transactions-consolidated"])
         : null;
       if (queryClient) {

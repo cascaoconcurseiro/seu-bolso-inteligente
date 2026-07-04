@@ -1,35 +1,12 @@
-import React from "react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/database";
-import { getAssetTransactions, getPositionAtDate, getIRDetails } from "@/utils/investmentExport";
-import { formatCurrency } from "@/utils/currencyFormatter";
+import { getPositionAtDate, getIRDetails } from "@/utils/investmentExport";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import {
-  ShieldCheck,
-  Copy,
-  Check,
-  Calendar,
-  Briefcase,
-  Coins,
-  Percent,
-  TrendingUp,
-  Download,
-  AlertCircle,
-  HelpCircle,
-  ExternalLink,
-  ChevronRight,
-  TrendingDown,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { exportToIRPDF, exportToIRExcel } from "@/utils/investmentExport";
 import { logger } from "@/utils/logger";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface InvestmentIRPanelProps {
   assets: Asset[];

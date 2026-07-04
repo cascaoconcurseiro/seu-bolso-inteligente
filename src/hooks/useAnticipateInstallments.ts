@@ -2,11 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
-import {
-  SettlementValidator,
-  SettlementErrorCode,
-  ERROR_MESSAGES,
-} from "@/services/settlementValidation";
+import { SettlementErrorCode, ERROR_MESSAGES } from "@/services/settlementValidation";
 
 interface AnticipateInstallmentsParams {
   seriesId: string;

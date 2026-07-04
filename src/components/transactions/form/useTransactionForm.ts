@@ -21,7 +21,7 @@ import { validateTransaction } from "@/services/validationService";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { haptics } from "@/utils/haptics";
 import { logger } from "@/utils/logger";
-import { differenceInDays, format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";

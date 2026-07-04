@@ -8,8 +8,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
 import { sheetDialogCn } from "@/lib/dialog-variants";
 

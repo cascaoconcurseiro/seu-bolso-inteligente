@@ -4,9 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { CurrencyInput } from "../ui/currency-input";
 import { AmountInput } from "../ui/amount-input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,

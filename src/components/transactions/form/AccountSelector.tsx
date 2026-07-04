@@ -12,7 +12,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { getBankById } from "@/lib/banks";
-import { Target } from "lucide-react";
 import { useTransactionStore } from "@/store/useTransactionStore";
 
 interface AccountSelectorProps {
