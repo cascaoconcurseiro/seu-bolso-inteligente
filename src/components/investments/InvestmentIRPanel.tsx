@@ -1,9 +1,4 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/database";
-import { getAssetTransactions, getPositionAtDate, getIRDetails } from "@/utils/investmentExport";
-import { formatCurrency } from "@/utils/currencyFormatter";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 import {
   ShieldCheck,
@@ -16,13 +11,11 @@ import {
   TrendingUp,
   Download,
   AlertCircle,
-  HelpCircle,
-  ExternalLink,
   ChevronRight,
   TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -50,7 +43,7 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
     tributacaoExclusivaMap,
     monthlyResumo,
     operationsOfYear,
-    copyToClipboard,
+    copyToClipboard: handleCopy,
     handleExportPDF,
     handleExportExcel,
     monthNames,
@@ -578,8 +571,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </span>
               <span className="text-base font-display font-black text-success mt-1 block">
                 R${" "}
-                {Object.values(monthlyResumo)
-                  .reduce((s, m) => SafeFinancialCalculator.add(s, m.compras), 0)
+                {SafeFinancialCalculator.safeSum(Object.values(monthlyResumo).map((m) => m.compras))
+                  .toNumber()
                   .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </span>
             </Card>
@@ -590,18 +583,17 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </span>
               <span className="text-base font-display font-black text-accent mt-1 block">
                 R${" "}
-                {Object.values(monthlyResumo)
-                  .reduce((s, m) => SafeFinancialCalculator.add(s, m.vendas), 0)
+                {SafeFinancialCalculator.safeSum(Object.values(monthlyResumo).map((m) => m.vendas))
+                  .toNumber()
                   .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </span>
             </Card>
 
             {/* Balanço Geral */}
             {(() => {
-              const totalPnL = Object.values(monthlyResumo).reduce(
-                (s, m) => SafeFinancialCalculator.add(s, m.lucroEstimado),
-                0
-              );
+              const totalPnL = SafeFinancialCalculator.safeSum(
+                Object.values(monthlyResumo).map((m) => m.lucroEstimado)
+              ).toNumber();
               const isProfit = totalPnL >= 0;
               return (
                 <Card

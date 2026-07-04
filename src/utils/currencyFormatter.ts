@@ -10,12 +10,9 @@ import { moneyUtils } from "@/utils/money";
  * @param currency - The currency code (default: BRL)
  * @returns Formatted currency string
  */
-export const formatCurrency = (
-  amount: number,
-  currency: string = 'BRL'
-): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
+export const formatCurrency = (amount: number, currency: string = "BRL"): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
     currency,
   }).format(amount);
 };
@@ -26,15 +23,12 @@ export const formatCurrency = (
  * @param currency - The currency code (default: BRL)
  * @returns Formatted compact currency string
  */
-export const formatCurrencyCompact = (
-  amount: number,
-  currency: string = 'BRL'
-): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
+export const formatCurrencyCompact = (amount: number, currency: string = "BRL"): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
     currency,
-    notation: 'compact',
-    compactDisplay: 'short',
+    notation: "compact",
+    compactDisplay: "short",
   }).format(amount);
 };
 
@@ -44,7 +38,7 @@ export const formatCurrencyCompact = (
  * @returns Formatted number string
  */
 export const formatAmount = (amount: number): string => {
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -56,11 +50,8 @@ export const formatAmount = (amount: number): string => {
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted number string
  */
-export const formatAmountWithDecimals = (
-  amount: number,
-  decimals: number = 2
-): string => {
-  return new Intl.NumberFormat('pt-BR', {
+export const formatAmountWithDecimals = (amount: number, decimals: number = 2): string => {
+  return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(amount);
@@ -72,12 +63,9 @@ export const formatAmountWithDecimals = (
  * @param decimals - Number of decimal places (default: 1)
  * @returns Formatted percentage string
  */
-export const formatPercentage = (
-  value: number,
-  decimals: number = 1
-): string => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'percent',
+export const formatPercentage = (value: number, decimals: number = 1): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "percent",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value / 100);
@@ -88,17 +76,17 @@ export const formatPercentage = (
  * @param currency - The currency code (default: BRL)
  * @returns Currency symbol
  */
-export const getCurrencySymbol = (currency: string = 'BRL'): string => {
+export const getCurrencySymbol = (currency: string = "BRL"): string => {
   const symbols: Record<string, string> = {
-    BRL: 'R$',
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    JPY: '¥',
-    ARS: '$',
-    CLP: '$',
-    UYU: '$',
-    PYG: '₲',
+    BRL: "R$",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥",
+    ARS: "$",
+    CLP: "$",
+    UYU: "$",
+    PYG: "₲",
   };
   return symbols[currency] || currency;
 };
@@ -111,10 +99,10 @@ export const getCurrencySymbol = (currency: string = 'BRL'): string => {
  */
 export const formatCurrencyWithColor = (
   amount: number,
-  currency: string = 'BRL'
+  currency: string = "BRL"
 ): { formatted: string; colorClass: string } => {
   const formatted = formatCurrency(amount, currency);
-  const colorClass = amount >= 0 ? 'text-green-600' : 'text-red-600';
+  const colorClass = amount >= 0 ? "text-green-600" : "text-red-600";
   return { formatted, colorClass };
 };
 
@@ -124,7 +112,7 @@ export const formatCurrencyWithColor = (
  * @returns Formatted string for input
  */
 export const formatCurrencyForInput = (amount: number): string => {
-  return amount.toFixed(2).replace('.', ',');
+  return amount.toFixed(2).replace(".", ",");
 };
 
 /**
@@ -134,9 +122,9 @@ export const formatCurrencyForInput = (amount: number): string => {
  */
 export const parseCurrencyInput = (value: string): number => {
   // Remove currency symbols and spaces
-  const cleaned = value.replace(/[R$\s]/g, '');
+  const cleaned = value.replace(/[R$\s]/g, "");
   // Replace comma with dot for decimal
-  const normalized = cleaned.replace(',', '.');
+  const normalized = cleaned.replace(",", ".");
   return moneyUtils.parse(normalized) || 0;
 };
 
@@ -148,9 +136,7 @@ export const parseCurrencyInput = (value: string): number => {
 export const formatMultipleCurrencies = (
   amounts: Array<{ amount: number; currency: string }>
 ): string => {
-  return amounts
-    .map(({ amount, currency }) => formatCurrency(amount, currency))
-    .join(' + ');
+  return amounts.map(({ amount, currency }) => formatCurrency(amount, currency)).join(" + ");
 };
 
 /**
@@ -159,10 +145,7 @@ export const formatMultipleCurrencies = (
  * @param currency - The currency code (default: BRL)
  * @returns Formatted currency with sign
  */
-export const formatCurrencyWithSign = (
-  amount: number,
-  currency: string = 'BRL'
-): string => {
+export const formatCurrencyWithSign = (amount: number, currency: string = "BRL"): string => {
   const formatted = formatCurrency(Math.abs(amount), currency);
   return amount >= 0 ? `+${formatted}` : `-${formatted}`;
 };

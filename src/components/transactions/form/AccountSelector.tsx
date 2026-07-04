@@ -1,19 +1,18 @@
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Wallet, Users } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Wallet, Users } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
-import { useTransactionModal } from '@/hooks/useTransactionModal';
-import { getBankById } from '@/lib/banks';
-import { Target } from 'lucide-react';
-import { useTransactionStore } from '@/store/useTransactionStore';
+} from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
+import { useTransactionModal } from "@/hooks/useTransactionModal";
+import { getBankById } from "@/lib/banks";
+import { useTransactionStore } from "@/store/useTransactionStore";
 
 interface AccountSelectorProps {
   filteredAccounts: any[];
@@ -36,7 +35,7 @@ export function AccountSelector({
   payerName,
   customLabel,
   customPlaceholder,
-  goals
+  goals,
 }: AccountSelectorProps) {
   const accountId = useTransactionStore((state) => state.accountId);
   const setAccountId = useTransactionStore((state) => state.setAccountId);
@@ -50,8 +49,8 @@ export function AccountSelector({
 
   const navigate = useNavigate();
   const { setShowTransactionModal } = useTransactionModal();
-  const isExpense = activeTab === 'EXPENSE';
-  const isTransfer = activeTab === 'TRANSFER';
+  const isExpense = activeTab === "EXPENSE";
+  const isTransfer = activeTab === "TRANSFER";
 
   if (!isTransfer) {
     if (isPaidByOther) {
@@ -59,7 +58,8 @@ export function AccountSelector({
         <Alert className="bg-muted/50 border-primary/20">
           <Users className="h-4 w-4 text-primary" />
           <AlertDescription className="text-sm">
-            💡 Despesa paga por <span className="font-semibold">{payerName}</span> — não afeta suas contas.
+            💡 Despesa paga por <span className="font-semibold">{payerName}</span> — não afeta suas
+            contas.
             <br />
             <span className="text-sm text-muted-foreground">
               Esta despesa será registrada como débito seu com {payerName}.
@@ -69,12 +69,13 @@ export function AccountSelector({
       );
     }
 
-    if (filteredAccounts.length === 0 && selectedTrip && selectedTrip.currency !== 'BRL') {
+    if (filteredAccounts.length === 0 && selectedTrip && selectedTrip.currency !== "BRL") {
       return (
         <Alert className="border-warning/40 bg-warning/8 dark:bg-warning/12">
           <Wallet className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm text-warning dark:text-warning">
-            ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span> encontrada.
+            ⚠️ Nenhuma conta em <span className="font-semibold">{selectedTrip.currency}</span>{" "}
+            encontrada.
             <br />
             <span className="text-sm">
               Crie uma conta internacional com moeda {selectedTrip.currency} em Contas.
@@ -87,7 +88,7 @@ export function AccountSelector({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.location.href = '/contas';
+                window.location.href = "/contas";
               }}
             >
               Criar conta internacional
@@ -98,9 +99,9 @@ export function AccountSelector({
     }
 
     const getAccountLabel = () => {
-      if (activeTab === 'EXPENSE') return 'Pagar com';
-      if (activeTab === 'INCOME') return 'Receber em';
-      return 'Conta';
+      if (activeTab === "EXPENSE") return "Pagar com";
+      if (activeTab === "INCOME") return "Receber em";
+      return "Conta";
     };
 
     return (
@@ -121,10 +122,8 @@ export function AccountSelector({
                     }}
                   />
                   {acc.name}
-                  {acc.type === 'CREDIT_CARD' && (
-                    <span className="text-sm text-muted-foreground">
-                      (Cartão)
-                    </span>
+                  {acc.type === "CREDIT_CARD" && (
+                    <span className="text-sm text-muted-foreground">(Cartão)</span>
                   )}
                   {acc.is_international && (
                     <span className="text-sm bg-accent/15 text-accent px-1.5 py-0.5 rounded">
@@ -136,7 +135,7 @@ export function AccountSelector({
             ))}
           </SelectContent>
         </Select>
-        {selectedTrip && selectedTrip.currency !== 'BRL' && (
+        {selectedTrip && selectedTrip.currency !== "BRL" && (
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             🌍 Mostrando apenas contas em {selectedTrip.currency}
           </p>
@@ -163,7 +162,7 @@ export function AccountSelector({
               <SelectItem key={acc.id} value={acc.id}>
                 <div className="flex items-center gap-2">
                   {acc.name}
-                  {acc.type === 'EMERGENCY_FUND' && (
+                  {acc.type === "EMERGENCY_FUND" && (
                     <span className="text-sm bg-warning/8 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                       Reserva
                     </span>
@@ -180,22 +179,21 @@ export function AccountSelector({
         </Select>
       </div>
       <div className="space-y-2">
-        
         <div className="flex items-center justify-between">
           <Label>Vai para (Destino)</Label>
           {setTransferType && (
             <div className="flex items-center gap-2 bg-muted p-1 rounded-lg">
               <button
                 type="button"
-                onClick={() => setTransferType('account')}
-                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === 'account' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+                onClick={() => setTransferType("account")}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === "account" ? "bg-background shadow-sm font-medium" : "text-muted-foreground"}`}
               >
                 Conta
               </button>
               <button
                 type="button"
-                onClick={() => setTransferType('goal')}
-                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === 'goal' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'}`}
+                onClick={() => setTransferType("goal")}
+                className={`text-xs px-2 py-1 rounded-md transition-colors ${transferType === "goal" ? "bg-background shadow-sm font-medium" : "text-muted-foreground"}`}
               >
                 Meta
               </button>
@@ -203,10 +201,7 @@ export function AccountSelector({
           )}
         </div>
 
-        <Select
-          value={destinationAccountId}
-          onValueChange={setDestinationAccountId}
-        >
+        <Select value={destinationAccountId} onValueChange={setDestinationAccountId}>
           <SelectTrigger>
             <SelectValue placeholder="Para onde vai" />
           </SelectTrigger>
@@ -217,7 +212,7 @@ export function AccountSelector({
                 <SelectItem key={acc.id} value={acc.id}>
                   <div className="flex items-center gap-2">
                     {acc.name}
-                    {acc.type === 'EMERGENCY_FUND' && (
+                    {acc.type === "EMERGENCY_FUND" && (
                       <span className="text-sm bg-warning/8 text-warning dark:text-warning px-1.5 py-0.5 rounded">
                         Reserva
                       </span>

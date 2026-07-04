@@ -1,6 +1,6 @@
 /**
  * Serviço de Recorrência de Transações
- * 
+ *
  * Gera automaticamente transações recorrentes baseadas em transações marcadas como is_recurring.
  * Este serviço pode ser chamado:
  * - Ao abrir o app (verificar transações pendentes)
@@ -105,7 +105,7 @@ export async function generatePendingRecurringTransactions(
       .eq("user_id", userId);
 
     const accountMap = new Map<string, { type: string; closing_day: number | null }>();
-    (userAccounts || []).forEach(acc => {
+    (userAccounts || []).forEach((acc) => {
       accountMap.set(acc.id, { type: acc.type, closing_day: acc.closing_day });
     });
 
@@ -113,30 +113,35 @@ export async function generatePendingRecurringTransactions(
      * Calcula a competence_date respeitando o ciclo do cartão de crédito.
      * Se não for cartão, retorna o primeiro dia do mês da transação.
      */
-    const calculateCompetenceForRecurrence = (dateStr: string, accountId: string | null): string => {
-      const d = new Date(dateStr + 'T12:00:00Z');
+    const calculateCompetenceForRecurrence = (
+      dateStr: string,
+      accountId: string | null
+    ): string => {
+      const d = new Date(dateStr + "T12:00:00Z");
       const account = accountId ? accountMap.get(accountId) : null;
-      if (account && account.type === 'CREDIT_CARD' && account.closing_day !== null) {
+      if (account && account.type === "CREDIT_CARD" && account.closing_day !== null) {
         const day = d.getUTCDate();
         let compMonth = d.getUTCMonth();
         let compYear = d.getUTCFullYear();
         if (day > account.closing_day) {
           compMonth++;
-          if (compMonth > 11) { compMonth = 0; compYear++; }
+          if (compMonth > 11) {
+            compMonth = 0;
+            compYear++;
+          }
         }
-        return `${compYear}-${String(compMonth + 1).padStart(2, '0')}-01`;
+        return `${compYear}-${String(compMonth + 1).padStart(2, "0")}-01`;
       }
-      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-01`;
+      return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`;
     };
-
 
     for (const tx of recurringTransactions) {
       if (!tx.recurrence_pattern) continue;
 
       // Determinar a última data gerada de forma segura contra deslocamentos de fuso horário
-      const lastGeneratedDate = tx.last_generated_date 
-        ? new Date(tx.last_generated_date + 'T12:00:00')
-        : new Date(tx.date + 'T12:00:00');
+      const lastGeneratedDate = tx.last_generated_date
+        ? new Date(tx.last_generated_date + "T12:00:00")
+        : new Date(tx.date + "T12:00:00");
 
       // Calcular próximas ocorrências até hoje
       let nextDate = calculateNextOccurrence(
@@ -146,7 +151,10 @@ export async function generatePendingRecurringTransactions(
       );
 
       // Gerar transações até a data limite (hoje)
-      while (dateFns.isBefore(dateFns.startOfDay(nextDate), today) || dateFns.format(nextDate, 'yyyy-MM-dd') === dateFns.format(today, 'yyyy-MM-dd')) {
+      while (
+        dateFns.isBefore(dateFns.startOfDay(nextDate), today) ||
+        dateFns.format(nextDate, "yyyy-MM-dd") === dateFns.format(today, "yyyy-MM-dd")
+      ) {
         // Criar nova transação baseada na recorrente
         const formattedDate = dateFns.format(nextDate, "yyyy-MM-dd");
         const newTransaction = {
@@ -169,11 +177,7 @@ export async function generatePendingRecurringTransactions(
         transactionsToCreate.push(newTransaction);
 
         // Calcular próxima data
-        nextDate = calculateNextOccurrence(
-          nextDate,
-          tx.recurrence_pattern,
-          tx.recurrence_day
-        );
+        nextDate = calculateNextOccurrence(nextDate, tx.recurrence_pattern, tx.recurrence_day);
 
         // Limite de segurança: máximo 12 transações por vez
         if (transactionsToCreate.length >= 12) {
@@ -184,7 +188,7 @@ export async function generatePendingRecurringTransactions(
       // Atualizar last_generated_date da transação original
       if (transactionsToCreate.length > 0) {
         const lastCreatedDate = transactionsToCreate[transactionsToCreate.length - 1].date;
-        
+
         const { error: updateError } = await supabase
           .from("transactions")
           .update({ last_generated_date: lastCreatedDate as string })
@@ -213,7 +217,9 @@ export async function generatePendingRecurringTransactions(
     return result;
   } catch (error: unknown) {
     result.success = false;
-    result.errors.push(`Erro inesperado: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    result.errors.push(
+      `Erro inesperado: ${error instanceof Error ? error.message : "Erro desconhecido"}`
+    );
     return result;
   }
 }
@@ -238,17 +244,16 @@ export async function checkPendingRecurrences(userId: string): Promise<number> {
       if (!tx.recurrence_pattern) continue;
 
       // Determinar a última data de forma segura contra deslocamentos de fuso horário
-      const lastDate = tx.last_generated_date 
-        ? new Date(tx.last_generated_date + 'T12:00:00')
-        : new Date(tx.date + 'T12:00:00');
+      const lastDate = tx.last_generated_date
+        ? new Date(tx.last_generated_date + "T12:00:00")
+        : new Date(tx.date + "T12:00:00");
 
-      const nextDate = calculateNextOccurrence(
-        lastDate,
-        tx.recurrence_pattern,
-        tx.recurrence_day
-      );
+      const nextDate = calculateNextOccurrence(lastDate, tx.recurrence_pattern, tx.recurrence_day);
 
-      if (dateFns.isBefore(dateFns.startOfDay(nextDate), today) || dateFns.format(nextDate, 'yyyy-MM-dd') === dateFns.format(today, 'yyyy-MM-dd')) {
+      if (
+        dateFns.isBefore(dateFns.startOfDay(nextDate), today) ||
+        dateFns.format(nextDate, "yyyy-MM-dd") === dateFns.format(today, "yyyy-MM-dd")
+      ) {
         pendingCount++;
       }
     }

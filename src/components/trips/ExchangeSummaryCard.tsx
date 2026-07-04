@@ -1,6 +1,14 @@
 import { ExchangeSummary } from "@/types/tripExchange";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
-import { TrendingUp, Wallet, ArrowRightLeft, Hash, DollarSign, RefreshCcw, Activity } from "lucide-react";
+import {
+  TrendingUp,
+  Wallet,
+  ArrowRightLeft,
+  Hash,
+  DollarSign,
+  RefreshCcw,
+  Activity,
+} from "lucide-react";
 import { useCurrencyRate } from "@/hooks/useCurrencyRate";
 
 interface ExchangeSummaryCardProps {
@@ -18,13 +26,18 @@ function calculateBRLEquivalent(foreignAmount: number, averageRate: number): num
   return foreignAmount * averageRate;
 }
 
-export function ExchangeSummaryCard({ summary, currency, totalExpenses }: ExchangeSummaryCardProps) {
+export function ExchangeSummaryCard({
+  summary,
+  currency,
+  totalExpenses,
+}: ExchangeSummaryCardProps) {
   const currencySymbol = getCurrencySymbol(currency);
-  
+
   // Calcula equivalente em BRL dos gastos usando taxa média
-  const expensesBRLEquivalent = totalExpenses && summary.weightedAverageRate > 0
-    ? calculateBRLEquivalent(totalExpenses, summary.weightedAverageRate)
-    : null;
+  const expensesBRLEquivalent =
+    totalExpenses && summary.weightedAverageRate > 0
+      ? calculateBRLEquivalent(totalExpenses, summary.weightedAverageRate)
+      : null;
 
   const { data: realTimeRate, isLoading: isRateLoading } = useCurrencyRate(currency, "BRL");
 
@@ -33,7 +46,7 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
       <h3 className="text-sm uppercase tracking-widest text-muted-foreground font-medium mb-4">
         Resumo do Câmbio
       </h3>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {/* Total em moeda estrangeira */}
         <div className="space-y-2">
@@ -42,7 +55,8 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
             <span className="text-sm">Total Comprado</span>
           </div>
           <p className="font-mono text-base font-bold">
-            {currencySymbol} {summary.totalForeignPurchased.toLocaleString("pt-BR", {
+            {currencySymbol}{" "}
+            {summary.totalForeignPurchased.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -56,7 +70,8 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
             <span className="text-sm">Total em R$</span>
           </div>
           <p className="font-mono text-base font-bold">
-            R$ {summary.totalLocalSpent.toLocaleString("pt-BR", {
+            R${" "}
+            {summary.totalLocalSpent.toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -85,9 +100,7 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
             <Hash className="h-4 w-4" />
             <span className="text-sm">Compras</span>
           </div>
-          <p className="font-mono text-base font-bold">
-            {summary.purchaseCount}
-          </p>
+          <p className="font-mono text-base font-bold">{summary.purchaseCount}</p>
         </div>
 
         {/* Cotação em Tempo Real */}
@@ -102,17 +115,21 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
                 <RefreshCcw className="h-4 w-4 animate-spin text-muted-foreground" />
               ) : realTimeRate ? (
                 `R$ ${realTimeRate.toLocaleString("pt-BR", {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4,
-                  })}`
+                  minimumFractionDigits: 4,
+                  maximumFractionDigits: 4,
+                })}`
               ) : (
                 "—"
               )}
             </p>
             {!isRateLoading && realTimeRate && summary.weightedAverageRate > 0 && (
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                realTimeRate < summary.weightedAverageRate ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
-              }`}>
+              <span
+                className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                  realTimeRate < summary.weightedAverageRate
+                    ? "bg-positive/10 text-positive"
+                    : "bg-negative/10 text-negative"
+                }`}
+              >
                 {((realTimeRate / summary.weightedAverageRate - 1) * 100).toFixed(1)}%
               </span>
             )}
@@ -130,16 +147,19 @@ export function ExchangeSummaryCard({ summary, currency, totalExpenses }: Exchan
             </div>
             <div className="text-right">
               <p className="font-mono text-base font-bold text-primary">
-                R$ {expensesBRLEquivalent.toLocaleString("pt-BR", {
+                R${" "}
+                {expensesBRLEquivalent.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
               </p>
               <p className="text-sm text-muted-foreground">
-                {currencySymbol} {totalExpenses.toLocaleString("pt-BR", {
+                {currencySymbol}{" "}
+                {totalExpenses.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                })} × R$ {summary.weightedAverageRate.toFixed(4)}
+                })}{" "}
+                × R$ {summary.weightedAverageRate.toFixed(4)}
               </p>
             </div>
           </div>

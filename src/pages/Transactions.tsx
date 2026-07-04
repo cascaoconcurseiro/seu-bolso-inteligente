@@ -170,12 +170,12 @@ export function Transactions() {
     () => groupTransactionsByDay(displayTransactions),
     [displayTransactions]
   );
-  const totalIncome = filteredTransactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
-  const totalExpense = filteredTransactions
-    .filter((t) => t.type === "EXPENSE")
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+  const totalIncome = SafeFinancialCalculator.safeSum(
+    filteredTransactions.filter((t) => t.type === "INCOME").map((t) => Number(t.amount))
+  ).toNumber();
+  const totalExpense = SafeFinancialCalculator.safeSum(
+    filteredTransactions.filter((t) => t.type === "EXPENSE").map((t) => Number(t.amount))
+  ).toNumber();
 
   const currencySummaries = useMemo(() => {
     if (selectedCurrency !== "all") return null;

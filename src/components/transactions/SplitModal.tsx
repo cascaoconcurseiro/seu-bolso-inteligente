@@ -1,8 +1,8 @@
-import { User, Check, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { User, Check, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -10,15 +10,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import { FamilyMember } from '@/hooks/useFamily';
-import { moneyUtils } from '@/utils/money';
-import { splitCalculator } from '@/utils/splitCalculator';
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { FamilyMember } from "@/hooks/useFamily";
+import { moneyUtils } from "@/utils/money";
+import { splitCalculator } from "@/utils/splitCalculator";
 
-import { TransactionSplitData } from '@/types/transactions';
+import { TransactionSplitData } from "@/types/transactions";
 
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from "react";
 
 interface SplitModalProps {
   isOpen: boolean;
@@ -61,24 +61,26 @@ export function SplitModal({
   const [mySplitPercentage, setMySplitPercentage] = useState<number>(50);
 
   // Ref para rastrear o último split enviado ao store e evitar loop de comparação com floats
-  const lastSetSplitRef = useRef<{ memberId: string; percentage: number; amount: number } | null>(null);
+  const lastSetSplitRef = useRef<{ memberId: string; percentage: number; amount: number } | null>(
+    null
+  );
 
   // Sincroniza o estado local ao abrir o modal para carregar splits existentes se houver
   // NOTA: `splits` propositalmente não está nas deps para evitar loop; lemos apenas na abertura
   useEffect(() => {
     if (isOpen) {
-      if (payerId !== 'me' && splits.length > 0) {
+      if (payerId !== "me" && splits.length > 0) {
         const newPct = Number((100 - splits[0].percentage).toFixed(1));
         setMySplitPercentage(newPct);
         lastSetSplitRef.current = splits[0]; // sincroniza ref com valor atual
-      } else if (splits.length === 0 && payerId !== 'me') {
+      } else if (splits.length === 0 && payerId !== "me") {
         setMySplitPercentage(50);
         lastSetSplitRef.current = null;
       }
 
       // Auto-inicializar 50/50 com o primeiro membro disponível se splits estiver vazio
       const otherMembersList = (familyMembers || []).filter((m) => m.id !== currentUserMemberId);
-      if (payerId === 'me' && splits.length === 0 && otherMembersList.length > 0) {
+      if (payerId === "me" && splits.length === 0 && otherMembersList.length > 0) {
         const memberId = otherMembersList[0].id;
         const totalPeople = 2; // eu + 1 parceiro
         const splitAmounts = moneyUtils.splitSafely(activeAmount, totalPeople);
@@ -92,17 +94,19 @@ export function SplitModal({
 
   // Ref estável para setSplits — evita que mudança de referência da prop recrie o efeito
   const setSplitsRef = useRef(setSplits);
-  useEffect(() => { setSplitsRef.current = setSplits; }, [setSplits]);
+  useEffect(() => {
+    setSplitsRef.current = setSplits;
+  }, [setSplits]);
 
   // Sempre que mySplitPercentage/payerId/activeAmount mudarem (quando outro pagou), atualiza os splits.
   // IMPORTANTE: `splits` NÃO está nas deps — usamos ref para evitar loop infinito (React Error #185).
   // `setSplits` também NÃO está nas deps — usamos setSplitsRef para evitar referência instável de prop.
   useEffect(() => {
-    if (!isOpen || payerId === 'me') return;
+    if (!isOpen || payerId === "me") return;
 
     const partnerPercentage = 100 - mySplitPercentage;
     // Usa centavos inteiros para comparação e evita imprecisão de float
-    const partnerAmountCents = Math.round((activeAmount * partnerPercentage) / 100 * 100);
+    const partnerAmountCents = Math.round(((activeAmount * partnerPercentage) / 100) * 100);
     const partnerAmount = partnerAmountCents / 100;
 
     const last = lastSetSplitRef.current;
@@ -127,7 +131,7 @@ export function SplitModal({
 
   // Filtro de quem divide a conta (exclui a pessoa que pagou)
   const checklistMembers = useMemo(() => {
-    const resolvedPayerMemberId = payerId === 'me' ? currentUserMemberId : payerId;
+    const resolvedPayerMemberId = payerId === "me" ? currentUserMemberId : payerId;
     return (familyMembers || []).filter((m) => m.id !== resolvedPayerMemberId);
   }, [familyMembers, payerId, currentUserMemberId]);
 
@@ -156,9 +160,9 @@ export function SplitModal({
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -184,33 +188,31 @@ export function SplitModal({
             <div className="flex gap-2 p-2 rounded-2xl bg-muted">
               <button
                 type="button"
-                onClick={() => setPayerId('me')}
+                onClick={() => setPayerId("me")}
                 className={cn(
-                  'flex-1 py-3 text-sm font-medium rounded-xl transition-all',
-                  payerId === 'me'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                  "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
+                  payerId === "me"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {currentUserName ? `${currentUserName} Pagou` : 'Eu Paguei'}
+                {currentUserName ? `${currentUserName} Pagou` : "Eu Paguei"}
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  setPayerId(otherMembers.length > 0 ? otherMembers[0].id : 'other')
-                }
+                onClick={() => setPayerId(otherMembers.length > 0 ? otherMembers[0].id : "other")}
                 className={cn(
-                  'flex-1 py-3 text-sm font-medium rounded-xl transition-all',
-                  payerId !== 'me'
-                    ? 'bg-background text-primary shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                  "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
+                  payerId !== "me"
+                    ? "bg-background text-primary shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Outro Pagou
               </button>
             </div>
 
-            {payerId !== 'me' && (
+            {payerId !== "me" && (
               <div className="space-y-4">
                 {otherMembers.length === 0 ? (
                   <div className="text-center py-4">
@@ -253,22 +255,19 @@ export function SplitModal({
                         <CreditCard className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">Foi parcelado?</span>
                       </div>
-                      <Switch
-                        checked={isInstallment}
-                        onCheckedChange={setIsInstallment}
-                      />
+                      <Switch checked={isInstallment} onCheckedChange={setIsInstallment} />
                     </label>
 
                     {isInstallment && (
                       <div className="flex items-center gap-4">
                         <span className="text-sm">Nº de Parcelas:</span>
-                        <Input type="number" inputMode="decimal"
+                        <Input
+                          type="number"
+                          inputMode="decimal"
                           min={2}
                           max={48}
                           value={totalInstallments}
-                          onChange={(e) =>
-                            setTotalInstallments(parseInt(e.target.value) || 2)
-                          }
+                          onChange={(e) => setTotalInstallments(parseInt(e.target.value) || 2)}
                           className="w-20 text-center"
                         />
                         <span className="text-sm text-muted-foreground">
@@ -282,7 +281,7 @@ export function SplitModal({
             )}
           </div>
 
-          {payerId !== 'me' ? (
+          {payerId !== "me" ? (
             /* NOVO PAINEL EXCLUSIVO: MINHA PARTICIPAÇÃO NO "OUTRO PAGOU" */
             <div className="space-y-4 border border-border p-4 rounded-2xl bg-card">
               <div className="flex items-center justify-between">
@@ -295,28 +294,39 @@ export function SplitModal({
               </div>
 
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Como <strong>{familyMembers.find(m => m.id === payerId)?.name || 'Parceiro'}</strong> pagou o valor total, defina abaixo a sua porcentagem de participação na despesa. O valor da sua fatia gerará uma dívida sua com essa pessoa.
+                Como{" "}
+                <strong>{familyMembers.find((m) => m.id === payerId)?.name || "Parceiro"}</strong>{" "}
+                pagou o valor total, defina abaixo a sua porcentagem de participação na despesa. O
+                valor da sua fatia gerará uma dívida sua com essa pessoa.
               </p>
 
               {/* Seletor Rápido de Percentual */}
               <div className="grid grid-cols-4 gap-2 pt-2">
                 {[
-                  { label: 'Meio a Meio (50%)', pct: 50 },
-                  { label: 'Só Eu (100%)', pct: 100 },
-                  { label: 'Proporcional (30%)', pct: 30 },
-                  { label: 'Só Parceiro (0%)', pct: 0 },
+                  { label: "Meio a Meio (50%)", pct: 50 },
+                  { label: "Só Eu (100%)", pct: 100 },
+                  { label: "Proporcional (30%)", pct: 30 },
+                  { label: "Só Parceiro (0%)", pct: 0 },
                 ].map((preset) => {
                   const isActive = mySplitPercentage === preset.pct;
                   return (
                     <Button
                       key={preset.label}
                       type="button"
-                      variant={isActive ? 'default' : 'outline'}
+                      variant={isActive ? "default" : "outline"}
                       className="py-2 text-sm sm:text-sm font-medium rounded-2xl h-10 flex flex-col items-center justify-center gap-0.5 leading-none shadow-sm"
                       onClick={() => setMySplitPercentage(preset.pct)}
                     >
                       <span className="font-bold">{preset.pct}%</span>
-                      <span className="text-[8px] opacity-75">{preset.pct === 50 ? 'Meio' : preset.pct === 100 ? 'Tudo' : preset.pct === 0 ? 'Nada' : 'Prop.'}</span>
+                      <span className="text-[8px] opacity-75">
+                        {preset.pct === 50
+                          ? "Meio"
+                          : preset.pct === 100
+                            ? "Tudo"
+                            : preset.pct === 0
+                              ? "Nada"
+                              : "Prop."}
+                      </span>
                     </Button>
                   );
                 })}
@@ -350,19 +360,30 @@ export function SplitModal({
               {/* Resumo de Custos em Cards Horizontais */}
               <div className="grid grid-cols-2 gap-3 pt-3">
                 <div className="p-3.5 rounded-2xl border border-primary/20 bg-primary/5 flex flex-col justify-between">
-                  <span className="text-sm font-bold text-primary uppercase tracking-wider">Minha Fatia (A Pagar)</span>
-                  <span className="text-base font-black text-primary mt-1.5 leading-none">
-                    R$ {((activeAmount * mySplitPercentage) / 100).toFixed(2).replace('.', ',')}
+                  <span className="text-sm font-bold text-primary uppercase tracking-wider">
+                    Minha Fatia (A Pagar)
                   </span>
-                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">Sua dívida com {familyMembers.find(m => m.id === payerId)?.name || 'parceiro'}</span>
+                  <span className="text-base font-black text-primary mt-1.5 leading-none">
+                    R$ {((activeAmount * mySplitPercentage) / 100).toFixed(2).replace(".", ",")}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">
+                    Sua dívida com {familyMembers.find((m) => m.id === payerId)?.name || "parceiro"}
+                  </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between">
-                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Custo do Parceiro</span>
-                  <span className="text-base font-black text-foreground mt-1.5 leading-none">
-                    R$ {((activeAmount * (100 - mySplitPercentage)) / 100).toFixed(2).replace('.', ',')}
+                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                    Custo do Parceiro
                   </span>
-                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">Parte que ele(a) consumiu</span>
+                  <span className="text-base font-black text-foreground mt-1.5 leading-none">
+                    R${" "}
+                    {((activeAmount * (100 - mySplitPercentage)) / 100)
+                      .toFixed(2)
+                      .replace(".", ",")}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground mt-1 font-medium">
+                    Parte que ele(a) consumiu
+                  </span>
                 </div>
               </div>
             </div>
@@ -404,10 +425,10 @@ export function SplitModal({
                           key={member.id}
                           onClick={() => toggleSplitMember(member.id)}
                           className={cn(
-                            'p-4 flex items-center justify-between cursor-pointer rounded-xl border transition-all',
+                            "p-4 flex items-center justify-between cursor-pointer rounded-xl border transition-all",
                             isSelected
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary/50'
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50"
                           )}
                         >
                           <div className="flex items-center gap-4">
@@ -417,9 +438,7 @@ export function SplitModal({
                             <div>
                               <p className="font-medium">{member.name}</p>
                               {member.linked_user_id && (
-                                <p className="text-sm text-primary">
-                                  Usuário vinculado ✓
-                                </p>
+                                <p className="text-sm text-primary">Usuário vinculado ✓</p>
                               )}
                             </div>
                           </div>
@@ -439,20 +458,19 @@ export function SplitModal({
                   </Label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: '50/50', myPct: 50 },
-                      { label: '60/40', myPct: 60 },
-                      { label: '70/30', myPct: 70 },
-                      { label: '80/20', myPct: 80 },
+                      { label: "50/50", myPct: 50 },
+                      { label: "60/40", myPct: 60 },
+                      { label: "70/30", myPct: 70 },
+                      { label: "80/20", myPct: 80 },
                     ].map((preset) => {
                       const otherPct = 100 - preset.myPct;
-                      const isActive =
-                        splits.length > 0 && Math.round(totalOtherPct) === otherPct;
+                      const isActive = splits.length > 0 && Math.round(totalOtherPct) === otherPct;
 
                       return (
                         <Button
                           key={preset.label}
                           type="button"
-                          variant={isActive ? 'default' : 'outline'}
+                          variant={isActive ? "default" : "outline"}
                           size="sm"
                           onClick={() => applyPreset(preset.myPct)}
                         >
@@ -468,10 +486,11 @@ export function SplitModal({
                         Porcentagem da outra pessoa ({totalOtherPct.toFixed(0)}%)
                       </Label>
                       <span className="font-bold">
-                        R$ {((activeAmount * totalOtherPct) / 100).toFixed(2).replace('.', ',')} {isInstallment && totalInstallments > 1 ? '/ parcela' : ''}
+                        R$ {((activeAmount * totalOtherPct) / 100).toFixed(2).replace(".", ",")}{" "}
+                        {isInstallment && totalInstallments > 1 ? "/ parcela" : ""}
                       </span>
                     </div>
-                    
+
                     <input
                       type="range"
                       min="0"
@@ -484,10 +503,14 @@ export function SplitModal({
                       }}
                       className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
                     />
-                    
+
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>
-                        Sua parte: R$ {((activeAmount * (100 - totalOtherPct)) / 100).toFixed(2).replace('.', ',')} ({(100 - totalOtherPct).toFixed(0)}%)
+                        Sua parte: R${" "}
+                        {((activeAmount * (100 - totalOtherPct)) / 100)
+                          .toFixed(2)
+                          .replace(".", ",")}{" "}
+                        ({(100 - totalOtherPct).toFixed(0)}%)
                       </span>
                     </div>
                   </div>
@@ -496,9 +519,8 @@ export function SplitModal({
 
               <div className="p-4 rounded-2xl bg-muted/50 text-sm text-muted-foreground">
                 <p>
-                  <strong>Nota:</strong> O valor que você dividiu com os membros
-                  será registrado como saldo a receber ou dívida, dependendo de
-                  quem pagou e da fatia de cada um.
+                  <strong>Nota:</strong> O valor que você dividiu com os membros será registrado
+                  como saldo a receber ou dívida, dependendo de quem pagou e da fatia de cada um.
                 </p>
               </div>
             </>
@@ -509,9 +531,11 @@ export function SplitModal({
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={() => {
-            onConfirm(splits);
-          }}>
+          <Button
+            onClick={() => {
+              onConfirm(splits);
+            }}
+          >
             Confirmar
           </Button>
         </DialogFooter>

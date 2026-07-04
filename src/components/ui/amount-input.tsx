@@ -1,6 +1,6 @@
-import { CurrencyInput } from '@/components/ui/currency-input';
-import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
 interface AmountInputProps {
   label?: string;
@@ -14,36 +14,35 @@ interface AmountInputProps {
   autoFocus?: boolean;
   textColorClass?: string;
   children?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   containerClassName?: string;
 }
 
 export function AmountInput({
-  label = 'Valor',
+  label = "Valor",
   value,
   onChange,
-  currency = 'BRL',
-  currencySymbol = 'R$',
+  currency = "BRL",
+  currencySymbol = "R$",
   className,
   error,
   disabled,
   autoFocus,
-  textColorClass = '',
+  textColorClass = "",
   children,
-  size = 'md',
-  containerClassName
+  size = "md",
+  containerClassName,
 }: AmountInputProps) {
-  
   const sizeClasses = {
-    sm: 'h-10 text-xl',
-    md: 'h-12 text-2xl',
-    lg: 'h-14 text-3xl',
+    sm: "h-10 text-xl",
+    md: "h-12 text-2xl",
+    lg: "h-14 text-3xl",
   };
 
   const symbolSizeClasses = {
-    sm: 'text-base',
-    md: 'text-lg',
-    lg: 'text-xl',
+    sm: "text-base",
+    md: "text-lg",
+    lg: "text-xl",
   };
 
   return (
@@ -55,7 +54,12 @@ export function AmountInput({
           </span>
         )}
         <div className="flex items-center justify-center w-full">
-          <span className={cn("text-muted-foreground/50 font-medium mr-2 mt-2", symbolSizeClasses[size])}>
+          <span
+            className={cn(
+              "text-muted-foreground/50 font-medium mr-2 mt-2",
+              symbolSizeClasses[size]
+            )}
+          >
             {currencySymbol}
           </span>
           <CurrencyInput
@@ -66,8 +70,8 @@ export function AmountInput({
             disabled={disabled}
             className={cn(
               sizeClasses[size],
-              'font-display font-bold text-center bg-transparent border-none shadow-none focus-visible:ring-0 p-0 placeholder:text-muted-foreground/20 min-w-[100px] w-auto max-w-full inline-block',
-              error && 'text-destructive',
+              "font-display font-bold text-center bg-transparent border-none shadow-none focus-visible:ring-0 p-0 placeholder:text-muted-foreground/20 min-w-[100px] w-auto max-w-full inline-block",
+              error && "text-destructive",
               textColorClass,
               className
             )}

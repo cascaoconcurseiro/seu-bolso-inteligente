@@ -155,7 +155,7 @@ export function GoalCard({ goal, index, onEdit, onDelete, onContribute }: GoalCa
         goal.target_amount,
         monthsToTarget,
         indicators.ipca.value
-      );
+      ).toNumber();
     }
   }
 

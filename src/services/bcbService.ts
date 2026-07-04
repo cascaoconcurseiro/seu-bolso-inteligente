@@ -1,4 +1,4 @@
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface EconomicIndicator {
   date: string;
@@ -7,7 +7,9 @@ export interface EconomicIndicator {
 
 const seriesCodes: Record<string, number> = { ipca: 13522, selic: 432, cdi: 4389 };
 
-async function fetchIndicator(indicator: 'ipca' | 'selic' | 'cdi'): Promise<EconomicIndicator | null> {
+async function fetchIndicator(
+  indicator: "ipca" | "selic" | "cdi"
+): Promise<EconomicIndicator | null> {
   try {
     const code = seriesCodes[indicator];
     const response = await fetch(
@@ -16,7 +18,7 @@ async function fetchIndicator(indicator: 'ipca' | 'selic' | 'cdi'): Promise<Econ
     if (!response.ok) throw new Error(`BCB HTTP ${response.status}`);
     const data = await response.json();
     if (data?.[0]) {
-      return { date: data[0].data, value: parseFloat(data[0].valor.replace(',', '.')) };
+      return { date: data[0].data, value: parseFloat(data[0].valor.replace(",", ".")) };
     }
   } catch (error) {
     logger.error(`Falha ao buscar ${indicator} do BCB:`, error);
@@ -25,7 +27,7 @@ async function fetchIndicator(indicator: 'ipca' | 'selic' | 'cdi'): Promise<Econ
 }
 
 export const bcbService = {
-  getIPCA: () => fetchIndicator('ipca'),
-  getSelic: () => fetchIndicator('selic'),
-  getCDI: () => fetchIndicator('cdi'),
+  getIPCA: () => fetchIndicator("ipca"),
+  getSelic: () => fetchIndicator("selic"),
+  getCDI: () => fetchIndicator("cdi"),
 };

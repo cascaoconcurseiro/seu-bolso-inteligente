@@ -79,9 +79,9 @@ export function SharedBalanceChart({
           if (itemMonth === monthDate.getMonth() && itemYear === monthDate.getFullYear()) {
             // Incluir todos os itens, não apenas isPaid === false
             if (item.type === "CREDIT") {
-              credits = SafeFinancialCalculator.add(credits, item.amount);
+              credits = SafeFinancialCalculator.add(credits, item.amount).toNumber();
             } else if (item.type === "DEBIT") {
-              debits = SafeFinancialCalculator.add(debits, item.amount);
+              debits = SafeFinancialCalculator.add(debits, item.amount).toNumber();
             }
           }
         });
@@ -91,7 +91,7 @@ export function SharedBalanceChart({
         month: monthLabel,
         credits,
         debits,
-        net: SafeFinancialCalculator.subtract(credits, debits),
+        net: SafeFinancialCalculator.subtract(credits, debits).toNumber(),
       });
     }
 
@@ -104,7 +104,7 @@ export function SharedBalanceChart({
   const previousMonthData =
     safeChartData.length > 1 ? safeChartData[safeChartData.length - 2] : null;
   const trend = currentMonthData
-    ? SafeFinancialCalculator.subtract(currentMonthData.net, previousMonthData?.net || 0)
+    ? SafeFinancialCalculator.subtract(currentMonthData.net, previousMonthData?.net || 0).toNumber()
     : 0;
 
   const formatCurrency = (value: number) => {
@@ -175,7 +175,11 @@ export function SharedBalanceChart({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-[200px] w-full" role="img" aria-label="Gráfico de evolução do balanço compartilhado nos últimos meses">
+        <div
+          className="h-[200px] w-full"
+          role="img"
+          aria-label="Gráfico de evolução do balanço compartilhado nos últimos meses"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={safeChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>

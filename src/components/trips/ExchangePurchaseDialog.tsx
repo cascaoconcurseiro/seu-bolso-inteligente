@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { ExchangePurchase, ExchangePurchaseInput } from "@/types/tripExchange";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
@@ -35,9 +34,7 @@ export function ExchangePurchaseDialog({
   const [foreignAmount, setForeignAmount] = useState("");
   const [localAmount, setLocalAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split("T")[0]);
 
   const currencySymbol = getCurrencySymbol(currency);
   const isEditing = !!purchase;
@@ -90,9 +87,7 @@ export function ExchangePurchaseDialog({
           <DialogTitle>
             {isEditing ? "Editar Compra de Câmbio" : "Nova Compra de Câmbio"}
           </DialogTitle>
-          <DialogDescription>
-            Registre uma compra de {currency} para esta viagem
-          </DialogDescription>
+          <DialogDescription>Registre uma compra de {currency} para esta viagem</DialogDescription>
         </DialogHeader>
 
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
@@ -141,7 +136,7 @@ export function ExchangePurchaseDialog({
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-muted-foreground font-medium">Taxa Efetiva:</span>
                   <span className="font-mono font-bold text-base text-primary">
-                    R$ {exchangeRateNum.toFixed(4).replace('.', ',')}
+                    R$ {exchangeRateNum.toFixed(4).replace(".", ",")}
                   </span>
                 </div>
               </div>
@@ -175,12 +170,21 @@ export function ExchangePurchaseDialog({
               </div>
             </div>
           </div>
-          
+
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
-            <Button className="flex-1 rounded-xl font-bold" onClick={handleSubmit} disabled={isLoading || !isValid}>
+            <Button
+              className="flex-1 rounded-xl font-bold"
+              onClick={handleSubmit}
+              disabled={isLoading || !isValid}
+            >
               {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
             </Button>
           </div>

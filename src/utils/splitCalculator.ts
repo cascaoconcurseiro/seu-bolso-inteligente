@@ -1,6 +1,6 @@
-import { TransactionSplitData } from '@/types/transactions';
-import { moneyUtils } from './money';
-import { Decimal } from 'decimal.js';
+import { TransactionSplitData } from "@/types/transactions";
+import { moneyUtils } from "./money";
+import { Decimal } from "decimal.js";
 
 function toPct(amount: number, total: number): number {
   if (total === 0) return 0;
@@ -30,7 +30,11 @@ export const splitCalculator = {
   ): TransactionSplitData[] => {
     if (splits.length === 0) return [];
     const otherPct = new Decimal(100).minus(myPct);
-    const totalOtherAmount = new Decimal(activeAmount).times(otherPct).dividedBy(100).toDecimalPlaces(2).toNumber();
+    const totalOtherAmount = new Decimal(activeAmount)
+      .times(otherPct)
+      .dividedBy(100)
+      .toDecimalPlaces(2)
+      .toNumber();
     const otherAmounts = moneyUtils.splitSafely(totalOtherAmount, splits.length);
     const perSplitPct = otherPct.dividedBy(splits.length).toDecimalPlaces(1).toNumber();
     return splits.map((s, idx) => ({ ...s, percentage: perSplitPct, amount: otherAmounts[idx] }));

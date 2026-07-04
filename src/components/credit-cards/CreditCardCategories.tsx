@@ -14,20 +14,26 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
 
   const categoryData = useMemo(() => {
     const map: Record<string, { value: number; count: number; icon: string }> = {};
-    const expenses = transactions.filter(t => t.type === "EXPENSE");
-    
-    expenses.forEach(tx => {
+    const expenses = transactions.filter((t) => t.type === "EXPENSE");
+
+    expenses.forEach((tx) => {
       let categoryName = "Sem categoria";
       let categoryIcon = "🏷️";
-      
-      if (tx.category && tx.category.id && tx.category.name && tx.category.name !== "null" && tx.category.name !== "undefined") {
+
+      if (
+        tx.category &&
+        tx.category.id &&
+        tx.category.name &&
+        tx.category.name !== "null" &&
+        tx.category.name !== "undefined"
+      ) {
         const catId = tx.category.id;
-        const catInfo = categories.find(c => c.id === catId);
-        
+        const catInfo = categories.find((c) => c.id === catId);
+
         if (catInfo) {
           categoryIcon = catInfo.icon || "🏷️";
           if (catInfo.parent_category_id) {
-            const parentCat = categories.find(c => c.id === catInfo.parent_category_id);
+            const parentCat = categories.find((c) => c.id === catInfo.parent_category_id);
             if (parentCat) {
               categoryName = `${parentCat.name} › ${catInfo.name}`.trim();
               categoryIcon = parentCat.icon || categoryIcon;
@@ -43,7 +49,12 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
         }
       }
 
-      if (!categoryName || categoryName.trim() === "" || categoryName === "null" || categoryName === "undefined") {
+      if (
+        !categoryName ||
+        categoryName.trim() === "" ||
+        categoryName === "null" ||
+        categoryName === "undefined"
+      ) {
         categoryName = "Sem categoria";
       }
 
@@ -51,20 +62,25 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
 
       if (finalAmount > 0) {
         if (!map[categoryName]) map[categoryName] = { value: 0, count: 0, icon: categoryIcon };
-        map[categoryName].value = SafeFinancialCalculator.add(map[categoryName].value, finalAmount);
+        map[categoryName].value = SafeFinancialCalculator.add(
+          map[categoryName].value,
+          finalAmount
+        ).toNumber();
         map[categoryName].count += 1;
       }
     });
-    
-    const total = Object.values(map).reduce((sum, c) => SafeFinancialCalculator.add(sum, c.value), 0);
-    
+
+    const total = SafeFinancialCalculator.safeSum(
+      Object.values(map).map((c) => c.value)
+    ).toNumber();
+
     return Object.entries(map)
-      .map(([category, d]) => ({ 
-        category, 
+      .map(([category, d]) => ({
+        category,
         icon: d.icon,
-        value: d.value, 
-        count: d.count, 
-        percent: total > 0 ? Math.round((d.value / total) * 100) : 0 
+        value: d.value,
+        count: d.count,
+        percent: total > 0 ? Math.round((d.value / total) * 100) : 0,
       }))
       .sort((a, b) => b.value - a.value);
   }, [transactions, categories]);
@@ -84,7 +100,7 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
       <h3 className="text-sm font-bold tracking-tight mb-4 flex items-center gap-2">
         <span>Resumo por Categoria</span>
       </h3>
-      
+
       <div className="space-y-4">
         {categoryData.map((item) => (
           <div key={item.category} className="group relative">
@@ -95,18 +111,22 @@ export function CreditCardCategories({ transactions }: CreditCardCategoriesProps
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground leading-none">{item.category}</p>
-                  <p className="text-sm text-muted-foreground mt-1 font-medium">{item.count} {item.count === 1 ? 'transação' : 'transações'}</p>
+                  <p className="text-sm text-muted-foreground mt-1 font-medium">
+                    {item.count} {item.count === 1 ? "transação" : "transações"}
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-foreground leading-none">{moneyUtils.format(item.value)}</p>
+                <p className="text-sm font-bold text-foreground leading-none">
+                  {moneyUtils.format(item.value)}
+                </p>
                 <p className="text-sm text-muted-foreground mt-1 font-semibold">{item.percent}%</p>
               </div>
             </div>
-            
+
             <div className="h-2 w-full bg-secondary/50 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary/80 transition-all duration-1000 ease-out" 
+              <div
+                className="h-full bg-primary/80 transition-all duration-1000 ease-out"
                 style={{ width: `${item.percent}%` }}
               />
             </div>

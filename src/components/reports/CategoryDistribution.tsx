@@ -13,7 +13,11 @@ interface CategoryDistributionProps {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export function CategoryDistribution({ data, formatCurrency, currency }: CategoryDistributionProps) {
+export function CategoryDistribution({
+  data,
+  formatCurrency,
+  currency,
+}: CategoryDistributionProps) {
   return (
     <section className="p-5 md:p-8 rounded-4xl border border-border/40 bg-card/50 backdrop-blur-md shadow-sm">
       <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium mb-4 md:mb-6">
@@ -30,15 +34,17 @@ export function CategoryDistribution({ data, formatCurrency, currency }: Categor
                   <span className="font-medium truncate flex-1">{cat.category}</span>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono">{formatCurrency(cat.value, currency)}</span>
-                    <span className="text-sm text-muted-foreground w-10 text-right">{cat.percent}%</span>
+                    <span className="text-sm text-muted-foreground w-10 text-right">
+                      {cat.percent}%
+                    </span>
                   </div>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-foreground rounded-full transition-all"
-                    style={{ 
+                    style={{
                       width: `${cat.percent}%`,
-                      opacity: 1 - (index * 0.08)
+                      opacity: 1 - index * 0.08,
                     }}
                   />
                 </div>

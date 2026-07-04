@@ -1,12 +1,12 @@
 /**
  * Transaction Synchronization Hook
- * 
+ *
  * React hook for synchronizing shared transactions between different pages.
  * Ensures that changes in Compartilhados reflect in Transações and vice-versa.
  */
 
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 // ============================================================================
 // Types and Interfaces
@@ -25,16 +25,16 @@ export interface TransactionSyncResult {
 
 /**
  * Hook to synchronize shared transactions across pages
- * 
+ *
  * @returns Sync functions and loading state
- * 
+ *
  * @example
  * ```tsx
  * const { syncTransaction, invalidateRelated, isSyncing } = useTransactionSync();
- * 
+ *
  * // After settling a transaction
  * await syncTransaction(transactionId);
- * 
+ *
  * // After any operation on a shared transaction
  * await invalidateRelated(transactionId);
  * ```
@@ -53,30 +53,30 @@ export function useTransactionSync(): TransactionSyncResult {
       try {
         await Promise.all([
           // Invalidate shared finances queries
-          queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] }),
-          queryClient.invalidateQueries({ queryKey: ['paid-by-others-transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] }),
-          
+          queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] }),
+          queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] }),
+          queryClient.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] }),
+
           // Invalidate transactions queries
-          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-          
+          queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+
           // Invalidate specific transaction
-          queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] }),
-          queryClient.invalidateQueries({ queryKey: ['transaction-validation', transactionId] }),
-          
+          queryClient.invalidateQueries({ queryKey: ["transaction", transactionId] }),
+          queryClient.invalidateQueries({ queryKey: ["transaction-validation", transactionId] }),
+
           // Invalidate accounts (for balance updates)
-          queryClient.invalidateQueries({ queryKey: ['accounts'] }),
-          
+          queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+
           // Invalidate splits
-          queryClient.invalidateQueries({ queryKey: ['transaction-splits'] }),
-          
+          queryClient.invalidateQueries({ queryKey: ["transaction-splits"] }),
+
           // Invalidate trips and trip sub-queries to sync statuses
-          queryClient.invalidateQueries({ queryKey: ['trips'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-participant-balances'] }),
-          queryClient.invalidateQueries({ queryKey: ['my-trip-spent'] }),
+          queryClient.invalidateQueries({ queryKey: ["trips"] }),
+          queryClient.invalidateQueries({ queryKey: ["trip"] }),
+          queryClient.invalidateQueries({ queryKey: ["trip-transactions"] }),
+          queryClient.invalidateQueries({ queryKey: ["trip-financial-summary"] }),
+          queryClient.invalidateQueries({ queryKey: ["trip-participant-balances"] }),
+          queryClient.invalidateQueries({ queryKey: ["my-trip-spent"] }),
         ]);
       } finally {
         setIsSyncing(false);
@@ -95,10 +95,10 @@ export function useTransactionSync(): TransactionSyncResult {
       try {
         // Invalidate and refetch
         await invalidateRelated(transactionId);
-        
+
         // Force refetch of the transaction
-        await queryClient.refetchQueries({ 
-          queryKey: ['transaction', transactionId],
+        await queryClient.refetchQueries({
+          queryKey: ["transaction", transactionId],
           exact: true,
         });
       } finally {
@@ -112,39 +112,36 @@ export function useTransactionSync(): TransactionSyncResult {
    * Sync all shared transactions
    * Useful after bulk operations
    */
-  const syncAllShared = useCallback(
-    async () => {
-      setIsSyncing(true);
-      try {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['shared-transactions-with-splits'] }),
-          queryClient.invalidateQueries({ queryKey: ['paid-by-others-transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['shared-transactions-consolidated'] }),
-          queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['accounts'] }),
-          
-          queryClient.invalidateQueries({ queryKey: ['trips'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-transactions'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-financial-summary'] }),
-          queryClient.invalidateQueries({ queryKey: ['trip-participant-balances'] }),
-          queryClient.invalidateQueries({ queryKey: ['my-trip-spent'] }),
-        ]);
-        
-        // Refetch all
-        await Promise.all([
-          queryClient.refetchQueries({ queryKey: ['shared-transactions-with-splits'] }),
-          queryClient.refetchQueries({ queryKey: ['paid-by-others-transactions'] }),
-          queryClient.refetchQueries({ queryKey: ['shared-transactions-consolidated'] }),
-          queryClient.refetchQueries({ queryKey: ['trips'] }),
-          queryClient.refetchQueries({ queryKey: ['trip-transactions'] }),
-        ]);
-      } finally {
-        setIsSyncing(false);
-      }
-    },
-    [queryClient]
-  );
+  const syncAllShared = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["shared-transactions-with-splits"] }),
+        queryClient.invalidateQueries({ queryKey: ["paid-by-others-transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] }),
+        queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["accounts"] }),
+
+        queryClient.invalidateQueries({ queryKey: ["trips"] }),
+        queryClient.invalidateQueries({ queryKey: ["trip"] }),
+        queryClient.invalidateQueries({ queryKey: ["trip-transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["trip-financial-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["trip-participant-balances"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-trip-spent"] }),
+      ]);
+
+      // Refetch all
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["shared-transactions-with-splits"] }),
+        queryClient.refetchQueries({ queryKey: ["paid-by-others-transactions"] }),
+        queryClient.refetchQueries({ queryKey: ["shared-transactions-consolidated"] }),
+        queryClient.refetchQueries({ queryKey: ["trips"] }),
+        queryClient.refetchQueries({ queryKey: ["trip-transactions"] }),
+      ]);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [queryClient]);
 
   return {
     syncTransaction,

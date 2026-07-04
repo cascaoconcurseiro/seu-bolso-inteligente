@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
 interface TransactionContext {
   tripId?: string;
@@ -28,7 +28,9 @@ export function TransactionModalProvider({ children }: { children: ReactNode }) 
   };
 
   return (
-    <TransactionModalContext.Provider value={{ showTransactionModal, setShowTransactionModal, transactionContext }}>
+    <TransactionModalContext.Provider
+      value={{ showTransactionModal, setShowTransactionModal, transactionContext }}
+    >
       {children}
     </TransactionModalContext.Provider>
   );
@@ -37,7 +39,7 @@ export function TransactionModalProvider({ children }: { children: ReactNode }) 
 export function useTransactionModal() {
   const context = useContext(TransactionModalContext);
   if (!context) {
-    throw new Error('useTransactionModal must be used within TransactionModalProvider');
+    throw new Error("useTransactionModal must be used within TransactionModalProvider");
   }
   return context;
 }

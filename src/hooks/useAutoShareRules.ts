@@ -78,10 +78,7 @@ export function useDeleteAutoShareRule() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("transaction_auto_share_rules")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("transaction_auto_share_rules").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -103,8 +100,10 @@ export function matchAutoShareRule(
   const descLower = description.toLowerCase();
   for (const rule of rules) {
     if (!rule.is_active) continue;
-    if (rule.trigger_type === "category" && categoryId && rule.trigger_value === categoryId) return rule;
-    if (rule.trigger_type === "keyword" && descLower.includes(rule.trigger_value.toLowerCase())) return rule;
+    if (rule.trigger_type === "category" && categoryId && rule.trigger_value === categoryId)
+      return rule;
+    if (rule.trigger_type === "keyword" && descLower.includes(rule.trigger_value.toLowerCase()))
+      return rule;
   }
   return null;
 }

@@ -43,7 +43,9 @@ export function AccountHeader({ account, bank }: AccountHeaderProps) {
       </Button>
       {bank && <BankIcon bankId={account.bank_id} size="lg" />}
       <div className="flex-1 min-w-0">
-        <h1 className="font-display font-bold text-xl md:text-2xl tracking-tight truncate">{account.name}</h1>
+        <h1 className="font-display font-bold text-xl md:text-2xl tracking-tight truncate">
+          {account.name}
+        </h1>
         <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
           {typeLabel[account.type] ?? account.type}
         </p>

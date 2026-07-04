@@ -12,7 +12,12 @@ interface AvatarCustomizerProps {
   isSaving?: boolean;
 }
 
-export function AvatarCustomizer({ currentColor, currentIcon, onSave, isSaving }: AvatarCustomizerProps) {
+export function AvatarCustomizer({
+  currentColor,
+  currentIcon,
+  onSave,
+  isSaving,
+}: AvatarCustomizerProps) {
   const [selectedColor, setSelectedColor] = useState(currentColor);
   const [selectedIcon, setSelectedIcon] = useState(currentIcon);
 
@@ -79,7 +84,7 @@ export function AvatarCustomizer({ currentColor, currentIcon, onSave, isSaving }
                 "w-12 h-12 rounded-full flex items-center justify-center overflow-hidden transition-all duration-200 hover:scale-110 border-2",
                 selectedIcon === i.id && "ring-2 ring-offset-2 ring-primary scale-110"
               )}
-              style={{ borderColor: selectedIcon === i.id ? color.bg : 'transparent' }}
+              style={{ borderColor: selectedIcon === i.id ? color.bg : "transparent" }}
               title={i.name}
             >
               {i.path ? (

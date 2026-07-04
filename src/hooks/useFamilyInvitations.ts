@@ -49,7 +49,7 @@ export function usePendingInvitations() {
         }
 
         // Buscar dados dos usuários que enviaram os convites
-        const fromUserIds = invitations.map(inv => inv.from_user_id);
+        const fromUserIds = invitations.map((inv) => inv.from_user_id);
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, full_name, email")
@@ -60,11 +60,11 @@ export function usePendingInvitations() {
         }
 
         // Combinar dados
-        const invitationsWithUsers = invitations.map(inv => ({
+        const invitationsWithUsers = invitations.map((inv) => ({
           ...inv,
-          from_user: profiles?.find(p => p.id === inv.from_user_id) || null
+          from_user: profiles?.find((p) => p.id === inv.from_user_id) || null,
         }));
-        
+
         return invitationsWithUsers as FamilyInvitation[];
       } catch (error) {
         logger.error("Erro inesperado ao buscar convites de família:", error);
@@ -106,9 +106,9 @@ export function useAcceptInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { data, error } = await supabase.rpc('fn_respond_family_invitation', {
+      const { data, error } = await supabase.rpc("fn_respond_family_invitation", {
         p_invitation_id: invitationId,
-        p_status: 'accepted'
+        p_status: "accepted",
       });
 
       if (error) throw error;
@@ -132,9 +132,9 @@ export function useRejectInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { data, error } = await supabase.rpc('fn_respond_family_invitation', {
+      const { data, error } = await supabase.rpc("fn_respond_family_invitation", {
         p_invitation_id: invitationId,
-        p_status: 'rejected'
+        p_status: "rejected",
       });
 
       if (error) throw error;
@@ -157,10 +157,7 @@ export function useCancelInvitation() {
 
   return useMutation({
     mutationFn: async (invitationId: string) => {
-      const { error } = await supabase
-        .from("family_invitations")
-        .delete()
-        .eq("id", invitationId);
+      const { error } = await supabase.from("family_invitations").delete().eq("id", invitationId);
 
       if (error) throw error;
     },
@@ -183,9 +180,9 @@ export function useResendInvitation() {
     mutationFn: async (invitationId: string) => {
       const { error } = await supabase
         .from("family_invitations")
-        .update({ 
+        .update({
           status: "pending",
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", invitationId);
 

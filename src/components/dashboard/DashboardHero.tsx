@@ -15,7 +15,7 @@ interface DashboardHeroProps {
 
   currency: string;
   formatCurrency: (value: number) => string;
-  wealthHistory?: { month_label: string; balance: number; }[];
+  wealthHistory?: { month_label: string; balance: number }[];
   monthlyBudget?: number | null;
   realTimeRate?: number | null;
   isRateLoading?: boolean;
@@ -56,13 +56,13 @@ export const DashboardHero = memo(function DashboardHero({
         <div className="space-y-4 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-               <div className="p-1.5 rounded-lg bg-primary/10">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-               </div>
-               <p className="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1">
-                 Saldo das Contas ({currency})
-                 <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
-               </p>
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground/70 uppercase tracking-[0.2em] font-semibold flex items-center gap-1">
+                Saldo das Contas ({currency})
+                <InfoTooltip content="Soma do saldo atual de todas as suas contas correntes e poupanças. Não inclui investimentos nem reserva de emergência." />
+              </p>
             </div>
 
             {currency !== "BRL" && (
@@ -74,7 +74,9 @@ export const DashboardHero = memo(function DashboardHero({
                 {isRateLoading ? (
                   <span className="h-3 w-16 bg-primary/20 animate-pulse rounded" />
                 ) : realTimeRate ? (
-                  <span>1 {currency} = {moneyUtils.format(realTimeRate, "BRL")}</span>
+                  <span>
+                    1 {currency} = {moneyUtils.format(realTimeRate, "BRL")}
+                  </span>
                 ) : (
                   <span className="text-xs opacity-60">Indisponível</span>
                 )}
@@ -82,11 +84,13 @@ export const DashboardHero = memo(function DashboardHero({
             )}
           </div>
 
-          <h1 className={cn(
-            "font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up",
-            predictedBalance >= 0 ? "text-foreground" : "text-destructive",
-            isPrivate && "blur-md opacity-50 select-none"
-          )}>
+          <h1
+            className={cn(
+              "font-display font-black text-3xl sm:text-4xl md:text-5xl tracking-tighter transition-all duration-500 animate-fade-in-up",
+              predictedBalance >= 0 ? "text-foreground" : "text-destructive",
+              isPrivate && "blur-md opacity-50 select-none"
+            )}
+          >
             {isPrivate ? "R$ •••••" : formatCurrency(predictedBalance)}
           </h1>
 
@@ -96,8 +100,15 @@ export const DashboardHero = memo(function DashboardHero({
                 <Globe className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Patrimônio</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-foreground truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
+                  Patrimônio
+                </p>
+                <p
+                  className={cn(
+                    "text-xs sm:text-sm font-bold text-foreground truncate",
+                    isPrivate && "blur-md opacity-50 select-none"
+                  )}
+                >
                   {isPrivate ? "•••••" : formatCurrency(totalPatrimony)}
                 </p>
               </div>
@@ -108,8 +119,15 @@ export const DashboardHero = memo(function DashboardHero({
                 <TrendingUp className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Entradas</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-positive truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
+                  Entradas
+                </p>
+                <p
+                  className={cn(
+                    "text-xs sm:text-sm font-bold text-positive truncate",
+                    isPrivate && "blur-md opacity-50 select-none"
+                  )}
+                >
                   {isPrivate ? "•••••" : formatCurrency(income)}
                 </p>
               </div>
@@ -120,31 +138,49 @@ export const DashboardHero = memo(function DashboardHero({
                 <TrendingDown className="h-3 w-3" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Saídas</p>
-                <p className={cn("text-xs sm:text-sm font-bold text-negative truncate", isPrivate && "blur-md opacity-50 select-none")}>
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
+                  Saídas
+                </p>
+                <p
+                  className={cn(
+                    "text-xs sm:text-sm font-bold text-negative truncate",
+                    isPrivate && "blur-md opacity-50 select-none"
+                  )}
+                >
                   {isPrivate ? "•••••" : formatCurrency(expenses)}
                 </p>
               </div>
             </div>
 
             {income > 0 && (
-              <div className={cn(
-                "animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden",
-                savingsRate >= 0
-                  ? "bg-positive/10 border-positive/20 hover:bg-positive/15"
-                  : "bg-warning/10 border-warning/20 hover:bg-warning/15"
-              )}>
-                <div className={cn(
-                  "shrink-0 p-1.5 rounded-full text-white shadow-lg",
+              <div
+                className={cn(
+                  "animate-stagger stagger-4 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl border transition-all overflow-hidden",
                   savingsRate >= 0
-                    ? "bg-success shadow-success/20"
-                    : "bg-warning shadow-warning/20"
-                )}>
+                    ? "bg-positive/10 border-positive/20 hover:bg-positive/15"
+                    : "bg-warning/10 border-warning/20 hover:bg-warning/15"
+                )}
+              >
+                <div
+                  className={cn(
+                    "shrink-0 p-1.5 rounded-full text-white shadow-lg",
+                    savingsRate >= 0
+                      ? "bg-success shadow-success/20"
+                      : "bg-warning shadow-warning/20"
+                  )}
+                >
                   <Target className="h-3 w-3" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">Poupança</p>
-                  <p className={cn("text-sm font-bold truncate", savingsRate >= 0 ? "text-positive" : "text-warning")}>
+                  <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate">
+                    Poupança
+                  </p>
+                  <p
+                    className={cn(
+                      "text-sm font-bold truncate",
+                      savingsRate >= 0 ? "text-positive" : "text-warning"
+                    )}
+                  >
                     {savingsRate > 0 ? `+${savingsRate}%` : `${savingsRate}%`}
                   </p>
                 </div>
@@ -155,16 +191,15 @@ export const DashboardHero = memo(function DashboardHero({
 
         {/* Sparkline de Evolução Patrimonial dos últimos 6 meses */}
         {wealthHistory && wealthHistory.length > 0 && (
-          <Suspense fallback={
-            <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart animate-pulse">
-              <div className="w-1/2 h-3 bg-muted rounded mb-2"></div>
-              <div className="w-full h-full bg-muted/50 rounded-lg mt-2"></div>
-            </div>
-          }>
-            <WealthEvolutionChart
-              wealthHistory={wealthHistory}
-              formatCurrency={formatCurrency}
-            />
+          <Suspense
+            fallback={
+              <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart animate-pulse">
+                <div className="w-1/2 h-3 bg-muted rounded mb-2"></div>
+                <div className="w-full h-full bg-muted/50 rounded-lg mt-2"></div>
+              </div>
+            }
+          >
+            <WealthEvolutionChart wealthHistory={wealthHistory} formatCurrency={formatCurrency} />
           </Suspense>
         )}
       </div>
@@ -183,15 +218,20 @@ export const DashboardHero = memo(function DashboardHero({
                   <InfoTooltip content="Configurado nas suas preferências. Ajuda a limitar os gastos (saídas) totais do mês corrente." />
                 </p>
                 <p className="text-sm font-semibold text-foreground">
-                  {formatCurrency(expenses)} <span className="text-muted-foreground font-normal">/ {formatCurrency(monthlyBudget)}</span>
+                  {formatCurrency(expenses)}{" "}
+                  <span className="text-muted-foreground font-normal">
+                    / {formatCurrency(monthlyBudget)}
+                  </span>
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className={cn(
-                "text-xs font-bold",
-                expenses > monthlyBudget ? "text-destructive" : "text-success"
-              )}>
+              <p
+                className={cn(
+                  "text-xs font-bold",
+                  expenses > monthlyBudget ? "text-destructive" : "text-success"
+                )}
+              >
                 {((expenses / monthlyBudget) * 100).toFixed(1)}% utilizado
               </p>
             </div>
@@ -200,9 +240,11 @@ export const DashboardHero = memo(function DashboardHero({
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-1000 ease-out",
-                expenses > monthlyBudget ? "bg-destructive" :
-                expenses > monthlyBudget * 0.8 ? "bg-warning" :
-                "bg-success"
+                expenses > monthlyBudget
+                  ? "bg-destructive"
+                  : expenses > monthlyBudget * 0.8
+                    ? "bg-warning"
+                    : "bg-success"
               )}
               style={{ width: `${Math.min((expenses / monthlyBudget) * 100, 100)}%` }}
             />

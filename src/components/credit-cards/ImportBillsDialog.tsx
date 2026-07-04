@@ -3,11 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Calendar, DollarSign, Save, Users, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight, Calendar, Save, Users, Loader2 } from "lucide-react";
 import { formatDateISO } from "@/utils/dateUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,7 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CategorySelector } from "@/components/transactions/CategorySelector";
 import { toast } from "sonner";
 import { moneyUtils } from "@/utils/money";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 type CreditCardAccount = any;
 
@@ -31,7 +44,7 @@ interface ImportBillsDialogProps {
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
 };
 
 export function ImportBillsDialog({ isOpen, onClose, account, onImport }: ImportBillsDialogProps) {
@@ -40,16 +53,18 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   // Tab 1: Global state
   const [year, setYear] = useState(new Date().getFullYear());
-  const [months, setMonths] = useState<{ date: string; label: string; amount: string; isPast: boolean }[]>([]);
+  const [months, setMonths] = useState<
+    { date: string; label: string; amount: string; isPast: boolean }[]
+  >([]);
 
   // Tab 2: Installments state
   const [desc, setDesc] = useState("");
   const [instValue, setInstValue] = useState("");
   const [currentInst, setCurrentInst] = useState("1");
   const [totalInst, setTotalInst] = useState("2");
-  
+
   // New Installment Fields
-  const [selectedMonth, setSelectedMonth] = useState(dateFns.format(new Date(), 'yyyy-MM'));
+  const [selectedMonth, setSelectedMonth] = useState(dateFns.format(new Date(), "yyyy-MM"));
   const [categoryId, setCategoryId] = useState("");
   const [isShared, setIsShared] = useState(false);
   const [assigneeId, setAssigneeId] = useState("");
@@ -60,14 +75,16 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
   const { data: categories = [] } = useCategoriesHierarchical();
   const createTransaction = useCreateTransaction();
 
-  const availableMembers = familyMembers.filter(m => m.linked_user_id !== user?.id);
+  const availableMembers = familyMembers.filter((m) => m.linked_user_id !== user?.id);
 
   // Gerar lista de meses (12 meses: atual + 11 próximos)
   const availableMonths = Array.from({ length: 12 }, (_, i) => {
     const date = dateFns.addMonths(new Date(), i);
     return {
-      value: dateFns.format(date, 'yyyy-MM'),
-      label: dateFns.format(date, 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase()),
+      value: dateFns.format(date, "yyyy-MM"),
+      label: dateFns
+        .format(date, "MMMM yyyy", { locale: ptBR })
+        .replace(/^\w/, (c) => c.toUpperCase()),
     };
   });
 
@@ -75,7 +92,7 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
     if (isOpen) {
       const nextMonths = [];
       const today = new Date();
-      
+
       for (let i = 0; i < 12; i++) {
         const targetDate = new Date(year, i, 1);
         let isPast = false;
@@ -87,14 +104,14 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             isPast = true;
           }
         }
-        const monthName = targetDate.toLocaleDateString('pt-BR', { month: 'long' });
+        const monthName = targetDate.toLocaleDateString("pt-BR", { month: "long" });
         const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
-        
+
         nextMonths.push({
           date: formatDateISO(targetDate),
           label,
-          amount: '',
-          isPast
+          amount: "",
+          isPast,
         });
       }
       setMonths(nextMonths);
@@ -116,12 +133,12 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
   const handleSaveGlobal = () => {
     const transactionsToCreate = months
-      .filter(m => m.amount && moneyUtils.parse(m.amount) > 0)
-      .map(m => {
-        const [y, month] = m.date.split('-').map(Number);
+      .filter((m) => m.amount && moneyUtils.parse(m.amount) > 0)
+      .map((m) => {
+        const [y, month] = m.date.split("-").map(Number);
         const closingDay = account.closing_day || 1;
         const transactionDate = new Date(y, month - 1, closingDay);
-        
+
         return {
           date: formatDateISO(transactionDate),
           competence_date: formatDateISO(new Date(y, month - 1, 1)),
@@ -139,11 +156,18 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
   };
 
   const handleSaveInstallments = async () => {
-    const valueNum = moneyUtils.parse(instValue.replace(/\./g, '').replace(',', '.')); // in case user types with comma
+    const valueNum = moneyUtils.parse(instValue.replace(/\./g, "").replace(",", ".")); // in case user types with comma
     const currNum = parseInt(currentInst);
     const totNum = parseInt(totalInst);
 
-    if (!desc || isNaN(valueNum) || valueNum <= 0 || isNaN(currNum) || isNaN(totNum) || currNum > totNum) {
+    if (
+      !desc ||
+      isNaN(valueNum) ||
+      valueNum <= 0 ||
+      isNaN(currNum) ||
+      isNaN(totNum) ||
+      currNum > totNum
+    ) {
       toast.error("Preencha todos os campos corretamente.");
       return;
     }
@@ -156,8 +180,8 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
     setIsSubmitting(true);
 
     try {
-      const [yearStr, monthStr] = selectedMonth.split('-');
-      
+      const [yearStr, monthStr] = selectedMonth.split("-");
+
       // Criamos a transação num dia anterior ao fechamento para que a competência (fatura)
       // caia exatamente no mês selecionado, de acordo com o ciclo do cartão.
       const closingDay = account?.closing_day || 1;
@@ -180,18 +204,20 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
         current_installment: currNum,
         total_installments: totNum,
         is_shared: isShared,
-        splits: isShared ? [
-          {
-            member_id: user!.id,
-            percentage: 100 - assigneePercentage,
-            amount: totalRemainingAmount * ((100 - assigneePercentage) / 100),
-          },
-          {
-            member_id: assigneeId,
-            percentage: assigneePercentage,
-            amount: totalRemainingAmount * (assigneePercentage / 100),
-          }
-        ] : undefined
+        splits: isShared
+          ? [
+              {
+                member_id: user!.id,
+                percentage: 100 - assigneePercentage,
+                amount: totalRemainingAmount * ((100 - assigneePercentage) / 100),
+              },
+              {
+                member_id: assigneeId,
+                percentage: assigneePercentage,
+                amount: totalRemainingAmount * (assigneePercentage / 100),
+              },
+            ]
+          : undefined,
       };
 
       await createTransaction.mutateAsync(baseTransaction);
@@ -207,14 +233,16 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
   };
 
   // Calcular data da última parcela
-  let lastInstallmentText = '';
+  let lastInstallmentText = "";
   if (selectedMonth && currentInst && totalInst) {
     const installmentsToCreate = parseInt(totalInst) - parseInt(currentInst) + 1;
     if (installmentsToCreate >= 1) {
-      const [year, month] = selectedMonth.split('-').map(Number);
+      const [year, month] = selectedMonth.split("-").map(Number);
       const baseDate = new Date(year, month - 1, 1);
       const lastDate = dateFns.addMonths(baseDate, installmentsToCreate - 1);
-      lastInstallmentText = dateFns.format(lastDate, 'MMMM yyyy', { locale: ptBR }).replace(/^\w/, c => c.toUpperCase());
+      lastInstallmentText = dateFns
+        .format(lastDate, "MMMM yyyy", { locale: ptBR })
+        .replace(/^\w/, (c) => c.toUpperCase());
     }
   }
 
@@ -240,7 +268,11 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex-1 flex flex-col overflow-hidden"
+        >
           {/* Aba 'global' removida provisoriamente conforme solicitado */}
           <TabsList className="grid w-full grid-cols-1 hidden">
             <TabsTrigger value="installment">Compra Parcelada</TabsTrigger>
@@ -248,18 +280,21 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
 
           <TabsContent value="global" className="flex-1 overflow-hidden flex flex-col mt-6">
             <div className="flex items-center justify-center gap-4 py-1.5">
-              <Button variant="ghost" size="icon" onClick={() => setYear(y => y - 1)}>
+              <Button variant="ghost" size="icon" onClick={() => setYear((y) => y - 1)}>
                 <ChevronLeft className="h-6 w-6" />
               </Button>
               <span className="text-base font-bold font-mono">{year}</span>
-              <Button variant="ghost" size="icon" onClick={() => setYear(y => y + 1)}>
+              <Button variant="ghost" size="icon" onClick={() => setYear((y) => y + 1)}>
                 <ChevronRight className="h-6 w-6" />
               </Button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto space-y-4 py-4 no-scrollbar pr-4">
               {months.map((month, index) => (
-                <div key={month.date} className="flex items-center gap-4 p-3 rounded-xl border border-border">
+                <div
+                  key={month.date}
+                  className="flex items-center gap-4 p-3 rounded-xl border border-border"
+                >
                   <div className="flex items-center gap-4 flex-1">
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                     <span className="font-medium text-sm">{month.label}</span>
@@ -282,10 +317,14 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             </div>
 
             <DialogFooter className="mt-6 pt-6 border-t">
-              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-              <Button 
+              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+                Cancelar
+              </Button>
+              <Button
                 onClick={handleSaveGlobal}
-                disabled={!months.some(m => m.amount && moneyUtils.parse(m.amount) > 0) || isSubmitting}
+                disabled={
+                  !months.some((m) => m.amount && moneyUtils.parse(m.amount) > 0) || isSubmitting
+                }
               >
                 <Save className="h-5 w-5 mr-2" />
                 Salvar Faturas
@@ -293,13 +332,20 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             </DialogFooter>
           </TabsContent>
 
-          <TabsContent value="installment" className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col mt-4 space-y-4 no-scrollbar pr-2 pb-4">
+          <TabsContent
+            value="installment"
+            className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col mt-4 space-y-4 no-scrollbar pr-2 pb-4"
+          >
             <div className="space-y-4 px-1">
               <div className="space-y-2">
                 <Label>Descrição da Compra</Label>
-                <Input placeholder="Ex: TV Nova" value={desc} onChange={e => setDesc(e.target.value)} />
+                <Input
+                  placeholder="Ex: TV Nova"
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Mês da Próxima Parcela</Label>
@@ -318,11 +364,11 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                 </div>
                 <div className="space-y-2">
                   <Label>Valor da Parcela</Label>
-                  <CurrencyInput 
-                    value={instValue} 
-                    onChange={setInstValue} 
-                    currency={account?.currency || "BRL"} 
-                    placeholder="0,00" 
+                  <CurrencyInput
+                    value={instValue}
+                    onChange={setInstValue}
+                    currency={account?.currency || "BRL"}
+                    placeholder="0,00"
                   />
                 </div>
               </div>
@@ -330,11 +376,23 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Parcela Atual (Ex: 3)</Label>
-                  <Input type="number" inputMode="decimal" value={currentInst} onChange={e => setCurrentInst(e.target.value)} min="1" />
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    value={currentInst}
+                    onChange={(e) => setCurrentInst(e.target.value)}
+                    min="1"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Total de Parcelas (Ex: 10)</Label>
-                  <Input type="number" inputMode="decimal" value={totalInst} onChange={e => setTotalInst(e.target.value)} min="2" />
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    value={totalInst}
+                    onChange={(e) => setTotalInst(e.target.value)}
+                    min="2"
+                  />
                 </div>
               </div>
 
@@ -343,7 +401,9 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                   <Calendar className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium">Última Parcela</p>
-                    <p className="text-muted-foreground">A última parcela será em <strong>{lastInstallmentText}</strong>.</p>
+                    <p className="text-muted-foreground">
+                      A última parcela será em <strong>{lastInstallmentText}</strong>.
+                    </p>
                   </div>
                 </div>
               )}
@@ -361,17 +421,14 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
               <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border">
                 <div className="space-y-0.5">
                   <Label className="text-base flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    É uma compra compartilhada?
+                    <Users className="h-4 w-4" />É uma compra compartilhada?
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    O valor total fica no cartão, mas a outra pessoa ficará com saldo devedor para você nas Contas Compartilhadas.
+                    O valor total fica no cartão, mas a outra pessoa ficará com saldo devedor para
+                    você nas Contas Compartilhadas.
                   </p>
                 </div>
-                <Switch 
-                  checked={isShared}
-                  onCheckedChange={setIsShared}
-                />
+                <Switch checked={isShared} onCheckedChange={setIsShared} />
               </div>
 
               {isShared && (
@@ -408,7 +465,10 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
                       className="w-full accent-primary"
                     />
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Sua parte: {formatCurrency(creatorParcelAmount)} ({(100 - assigneePercentage).toFixed(0)}%)</span>
+                      <span>
+                        Sua parte: {formatCurrency(creatorParcelAmount)} (
+                        {(100 - assigneePercentage).toFixed(0)}%)
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -416,9 +476,18 @@ export function ImportBillsDialog({ isOpen, onClose, account, onImport }: Import
             </div>
 
             <DialogFooter className="mt-auto pt-4 border-t">
-              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
-              <Button onClick={handleSaveInstallments} disabled={!desc || !instValue || moneyUtils.parse(instValue) <= 0 || isSubmitting}>
-                {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveInstallments}
+                disabled={!desc || !instValue || moneyUtils.parse(instValue) <= 0 || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
                 Importar Parcelas
               </Button>
             </DialogFooter>

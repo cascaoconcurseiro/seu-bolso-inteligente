@@ -2,13 +2,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface SharedCreditCard {
   id: string;
   account_id: string;
   user_id: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'REVOKED';
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "REVOKED";
   credit_limit?: number | null;
   created_at: string;
   updated_at: string;
@@ -26,7 +26,9 @@ export function useSharedCreditCards(accountId?: string) {
 
       let query = supabase
         .from("shared_credit_cards")
-        .select("*, user:profiles!shared_credit_cards_user_id_fkey(full_name, email, avatar_url, avatar_icon, avatar_color), accounts(name)");
+        .select(
+          "*, user:profiles!shared_credit_cards_user_id_fkey(full_name, email, avatar_url, avatar_icon, avatar_color), accounts(name)"
+        );
 
       if (accountId) {
         query = query.eq("account_id", accountId);
@@ -51,7 +53,17 @@ export function useInviteSharedCard() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ accountId, userId, cardName, creditLimit }: { accountId: string; userId: string; cardName: string; creditLimit?: number | null }) => {
+    mutationFn: async ({
+      accountId,
+      userId,
+      cardName,
+      creditLimit,
+    }: {
+      accountId: string;
+      userId: string;
+      cardName: string;
+      creditLimit?: number | null;
+    }) => {
       // First check if it exists
       const { data: existing } = await supabase
         .from("shared_credit_cards")
@@ -61,11 +73,11 @@ export function useInviteSharedCard() {
         .maybeSingle();
 
       let data, error;
-      
+
       if (existing) {
         const res = await supabase
           .from("shared_credit_cards")
-          .update({ status: 'PENDING', credit_limit: creditLimit || null })
+          .update({ status: "PENDING", credit_limit: creditLimit || null })
           .eq("id", existing.id)
           .select()
           .single();
@@ -77,7 +89,7 @@ export function useInviteSharedCard() {
           .insert({
             account_id: accountId,
             user_id: userId,
-            status: 'PENDING',
+            status: "PENDING",
             credit_limit: creditLimit || null,
           })
           .select()
@@ -96,7 +108,7 @@ export function useInviteSharedCard() {
           message: `Você foi convidado para compartilhar o cartão ${cardName}.`,
           type: "INVITATION",
           read: false,
-          metadata: { type: 'shared_card_invite', shared_card_id: data.id, account_id: accountId }
+          metadata: { type: "shared_card_invite", shared_card_id: data.id, account_id: accountId },
         });
       }
 
@@ -116,7 +128,15 @@ export function useRespondSharedCardInvite() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ inviteId, status, creditLimit }: { inviteId: string; status: 'ACCEPTED' | 'REJECTED'; creditLimit?: number | null }) => {
+    mutationFn: async ({
+      inviteId,
+      status,
+      creditLimit,
+    }: {
+      inviteId: string;
+      status: "ACCEPTED" | "REJECTED";
+      creditLimit?: number | null;
+    }) => {
       const { data, error } = await supabase
         .from("shared_credit_cards")
         .update({ status, ...(creditLimit ? { credit_limit: creditLimit } : {}) })
@@ -130,7 +150,7 @@ export function useRespondSharedCardInvite() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["shared-credit-cards"] });
       queryClient.invalidateQueries({ queryKey: ["accounts"] }); // atualizar lista de cartões se aceito
-      toast.success(`Convite ${data.status === 'ACCEPTED' ? 'aceito' : 'recusado'}!`);
+      toast.success(`Convite ${data.status === "ACCEPTED" ? "aceito" : "recusado"}!`);
     },
     onError: (error: any) => {
       toast.error(error.message || "Erro ao responder convite.");
@@ -143,10 +163,7 @@ export function useRevokeSharedCard() {
 
   return useMutation({
     mutationFn: async (inviteId: string) => {
-      const { error } = await supabase
-        .from("shared_credit_cards")
-        .delete()
-        .eq("id", inviteId);
+      const { error } = await supabase.from("shared_credit_cards").delete().eq("id", inviteId);
 
       if (error) throw error;
     },

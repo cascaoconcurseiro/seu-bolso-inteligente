@@ -129,22 +129,25 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
       }
 
       if (t.type === "INCOME") {
-        totalIncome = SafeFinancialCalculator.add(totalIncome, amount);
+        totalIncome = SafeFinancialCalculator.add(totalIncome, amount).toNumber();
         balancesByCurrency[currency].totalIncome = SafeFinancialCalculator.add(
           balancesByCurrency[currency].totalIncome,
           amount
-        );
+        ).toNumber();
       } else if (t.type === "EXPENSE") {
-        totalExpense = SafeFinancialCalculator.add(totalExpense, amount);
+        totalExpense = SafeFinancialCalculator.add(totalExpense, amount).toNumber();
         balancesByCurrency[currency].totalExpense = SafeFinancialCalculator.add(
           balancesByCurrency[currency].totalExpense,
           amount
-        );
+        ).toNumber();
       }
     }
 
     Object.values(balancesByCurrency).forEach((totals) => {
-      totals.balance = SafeFinancialCalculator.subtract(totals.totalIncome, totals.totalExpense);
+      totals.balance = SafeFinancialCalculator.subtract(
+        totals.totalIncome,
+        totals.totalExpense
+      ).toNumber();
     });
 
     groups.push({
@@ -153,7 +156,7 @@ export function groupTransactionsByDay(transactions: Transaction[]): DayGroup[] 
       transactions: sortedTransactions,
       totalIncome,
       totalExpense,
-      balance: SafeFinancialCalculator.subtract(totalIncome, totalExpense),
+      balance: SafeFinancialCalculator.subtract(totalIncome, totalExpense).toNumber(),
       balancesByCurrency,
     });
   }
@@ -194,10 +197,10 @@ export function calculateRunningBalance(
     let amt = Number(transaction.amount);
 
     if (transaction.type === "INCOME") {
-      runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
+      runningBalance = SafeFinancialCalculator.add(runningBalance, amt).toNumber();
       isIncoming = true;
     } else if (transaction.type === "EXPENSE") {
-      runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
+      runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt).toNumber();
       isIncoming = false;
     } else if (transaction.type === "TRANSFER") {
       // Transferência: verificar direção
@@ -207,11 +210,11 @@ export function calculateRunningBalance(
           transaction.destination_amount !== null && transaction.destination_amount !== undefined
             ? Number(transaction.destination_amount)
             : Number(transaction.amount);
-        runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
+        runningBalance = SafeFinancialCalculator.add(runningBalance, amt).toNumber();
         isIncoming = true;
       } else if (transaction.account_id === accountId) {
         // Saída da conta
-        runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
+        runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt).toNumber();
         isIncoming = false;
       }
     }

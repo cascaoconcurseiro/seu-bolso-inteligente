@@ -3,12 +3,12 @@
  * Centralized Supabase query patterns to reduce duplication
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { handleSupabaseError, retryWithBackoff } from './errorHandling';
+import { supabase } from "@/integrations/supabase/client";
+import { handleSupabaseError, retryWithBackoff } from "./errorHandling";
 
-import { Database } from '@/integrations/supabase/types';
+import { Database } from "@/integrations/supabase/types";
 
-export type ValidTable = keyof Database['public']['Tables'] | keyof Database['public']['Views'];
+export type ValidTable = keyof Database["public"]["Tables"] | keyof Database["public"]["Views"];
 
 /**
  * Fetch user data from a table
@@ -27,9 +27,9 @@ export const fetchUserData = async <T>(
 ): Promise<T[]> => {
   try {
     let query = supabase
-      .from(table as keyof Database['public']['Tables'])
-      .select(options?.select || '*')
-      .eq('user_id', userId);
+      .from(table as keyof Database["public"]["Tables"])
+      .select(options?.select || "*")
+      .eq("user_id", userId);
 
     // Apply additional filters
     if (options?.filters) {
@@ -75,9 +75,9 @@ export const fetchById = async <T>(
 ): Promise<T | null> => {
   try {
     const { data, error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
-      .select(select || '*')
-      .eq('id', id)
+      .from(table as keyof Database["public"]["Tables"])
+      .select(select || "*")
+      .eq("id", id)
       .maybeSingle();
 
     if (error) {
@@ -94,13 +94,10 @@ export const fetchById = async <T>(
 /**
  * Insert single record
  */
-export const insertRecord = async <T>(
-  table: string,
-  data: Partial<T>
-): Promise<T> => {
+export const insertRecord = async <T>(table: string, data: Partial<T>): Promise<T> => {
   try {
     const { data: result, error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
+      .from(table as keyof Database["public"]["Tables"])
       .insert(data as never)
       .select()
       .single();
@@ -119,13 +116,10 @@ export const insertRecord = async <T>(
 /**
  * Insert multiple records
  */
-export const insertRecords = async <T>(
-  table: string,
-  data: Partial<T>[]
-): Promise<T[]> => {
+export const insertRecords = async <T>(table: string, data: Partial<T>[]): Promise<T[]> => {
   try {
     const { data: result, error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
+      .from(table as keyof Database["public"]["Tables"])
       .insert(data as never)
       .select();
 
@@ -143,16 +137,12 @@ export const insertRecords = async <T>(
 /**
  * Update record by ID
  */
-export const updateRecord = async <T>(
-  table: string,
-  id: string,
-  data: Partial<T>
-): Promise<T> => {
+export const updateRecord = async <T>(table: string, id: string, data: Partial<T>): Promise<T> => {
   try {
     const { data: result, error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
+      .from(table as keyof Database["public"]["Tables"])
       .update(data as never)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -170,15 +160,12 @@ export const updateRecord = async <T>(
 /**
  * Delete record by ID
  */
-export const deleteRecord = async (
-  table: string,
-  id: string
-): Promise<void> => {
+export const deleteRecord = async (table: string, id: string): Promise<void> => {
   try {
     const { error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
+      .from(table as keyof Database["public"]["Tables"])
       .delete()
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
       handleSupabaseError(error, `excluir de ${table}`);
@@ -191,15 +178,12 @@ export const deleteRecord = async (
 /**
  * Soft delete record (set deleted = true)
  */
-export const softDeleteRecord = async (
-  table: string,
-  id: string
-): Promise<void> => {
+export const softDeleteRecord = async (table: string, id: string): Promise<void> => {
   try {
     const { error } = await supabase
-      .from(table as keyof Database['public']['Tables'])
+      .from(table as keyof Database["public"]["Tables"])
       .update({ deleted: true, is_active: false } as never)
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
       handleSupabaseError(error, `excluir ${table}`);
@@ -218,8 +202,8 @@ export const countRecords = async (
 ): Promise<number> => {
   try {
     let query = supabase
-      .from(table as keyof Database['public']['Tables'])
-      .select('*', { count: 'exact', head: true });
+      .from(table as keyof Database["public"]["Tables"])
+      .select("*", { count: "exact", head: true });
 
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -261,7 +245,7 @@ export const fetchWithDateRange = async <T>(
   userId: string,
   startDate: string,
   endDate: string,
-  dateField: string = 'date',
+  dateField: string = "date",
   options?: {
     select?: string;
     orderBy?: string;
@@ -271,9 +255,9 @@ export const fetchWithDateRange = async <T>(
 ): Promise<T[]> => {
   try {
     let query = supabase
-      .from(table as keyof Database['public']['Tables'])
-      .select(options?.select || '*')
-      .eq('user_id', userId)
+      .from(table as keyof Database["public"]["Tables"])
+      .select(options?.select || "*")
+      .eq("user_id", userId)
       .gte(dateField, startDate)
       .lte(dateField, endDate);
 
@@ -335,8 +319,5 @@ export const callRPCWithRetry = async <T>(
   params?: Record<string, unknown>,
   maxRetries: number = 3
 ): Promise<T> => {
-  return retryWithBackoff(
-    () => callRPC<T>(functionName, params),
-    maxRetries
-  );
+  return retryWithBackoff(() => callRPC<T>(functionName, params), maxRetries);
 };

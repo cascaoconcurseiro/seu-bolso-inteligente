@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-import { logger } from '@/utils/logger';
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
-export type B3Ticker = Database['public']['Tables']['b3_tickers_cache']['Row'];
+export type B3Ticker = Database["public"]["Tables"]["b3_tickers_cache"]["Row"];
 
 export function useB3TickersSearch(searchTerm: string) {
   const [results, setResults] = useState<B3Ticker[]>([]);
@@ -24,17 +24,17 @@ export function useB3TickersSearch(searchTerm: string) {
         // pg_trgm makes this fast
         const searchPattern = `%${searchTerm}%`;
         const { data, error } = await supabase
-          .from('b3_tickers_cache')
-          .select('*')
+          .from("b3_tickers_cache")
+          .select("*")
           .or(`ticker.ilike.${searchPattern},name.ilike.${searchPattern}`)
-          .order('ticker', { ascending: true })
+          .order("ticker", { ascending: true })
           .limit(10);
 
         if (error) throw error;
-        
+
         setResults(data || []);
       } catch (error) {
-        logger.error('Error fetching B3 tickers:', error);
+        logger.error("Error fetching B3 tickers:", error);
         setResults([]);
       } finally {
         setIsLoading(false);

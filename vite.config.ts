@@ -46,6 +46,11 @@ export default defineConfig(({ mode }) => {
         project: process.env.SENTRY_PROJECT || "javascript-react",
         authToken: process.env.SENTRY_AUTH_TOKEN,
         telemetry: false,
+        sourcemaps: {
+          // Remove os .map do dist após upload ao Sentry para que não sejam
+          // publicados no deploy (complementa build.sourcemap: "hidden")
+          filesToDeleteAfterUpload: ["./dist/**/*.map"],
+        },
       }),
       VitePWA({
         registerType: "autoUpdate",
@@ -86,7 +91,9 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       minify: "esbuild",
-      sourcemap: true,
+      // "hidden": gera source maps para upload ao Sentry sem referenciá-los nos
+      // bundles — evita expor o código-fonte publicamente em produção
+      sourcemap: "hidden",
       chunkSizeWarningLimit: 950,
       rollupOptions: {
         output: {

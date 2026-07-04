@@ -230,7 +230,7 @@ async function generateInvoiceDueNotifications(
 
       const invoiceAmount = SafeFinancialCalculator.safeSum(
         ((transactions as TransactionData[]) || []).map((tx: TransactionData) => Number(tx.amount))
-      );
+      ).toNumber();
 
       logger.debug(`  Transações: ${transactions?.length || 0}`);
       logger.debug(`  Valor total: R$ ${invoiceAmount.toFixed(2)}`);
@@ -335,7 +335,7 @@ async function generateBudgetWarningNotifications(
       spentByCategory[catId][txCurrency] = SafeFinancialCalculator.add(
         spentByCategory[catId][txCurrency],
         finalAmount
-      );
+      ).toNumber();
 
       // Se for moeda diferente de BRL, também armazenamos o valor convertido em BRL para orçamentos em BRL
       if (txCurrency !== "BRL" && rate > 0) {
@@ -343,7 +343,7 @@ async function generateBudgetWarningNotifications(
         spentByCategory[catId]["BRL"] = SafeFinancialCalculator.add(
           spentByCategory[catId]["BRL"],
           finalAmount * rate
-        );
+        ).toNumber();
       }
     });
 
@@ -469,7 +469,7 @@ async function generateSharedPendingNotifications(userId: string): Promise<numbe
       byMember[memberId].amount = SafeFinancialCalculator.add(
         byMember[memberId].amount,
         Number(split.amount)
-      );
+      ).toNumber();
       byMember[memberId].count++;
     });
 
@@ -773,10 +773,12 @@ async function generateWeeklySummaryNotification(userId: string): Promise<number
 
     if (!txs || txs.length === 0) return 0;
 
-    const expenses = txs
-      .filter((t) => t.type === "EXPENSE")
-      .reduce((s, t) => SafeFinancialCalculator.add(s, Number(t.amount)), 0);
-    const income = txs.filter((t) => t.type === "INCOME").reduce((s, t) => SafeFinancialCalculator.add(s, Number(t.amount)), 0);
+    const expenses = SafeFinancialCalculator.safeSum(
+      txs.filter((t) => t.type === "EXPENSE").map((t) => Number(t.amount))
+    ).toNumber();
+    const income = SafeFinancialCalculator.safeSum(
+      txs.filter((t) => t.type === "INCOME").map((t) => Number(t.amount))
+    ).toNumber();
     const balance = income - expenses;
     const sign = balance >= 0 ? "+" : "";
 

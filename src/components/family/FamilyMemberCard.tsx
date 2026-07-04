@@ -1,6 +1,12 @@
 import { Crown, Mail, MoreHorizontal, Trash2, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 type FamilyRole = "admin" | "editor" | "viewer";
@@ -24,7 +30,13 @@ interface FamilyMemberCardProps {
 }
 
 export function FamilyMemberCard({
-  member, isSelf, roleLabels, getInitials, onUpdateRole, onRemove, onMoveToContact
+  member,
+  isSelf,
+  roleLabels,
+  getInitials,
+  onUpdateRole,
+  onRemove,
+  onMoveToContact,
 }: FamilyMemberCardProps) {
   const memberIsOwner = member.role === "admin"; // Enhanced logic
 
@@ -39,10 +51,16 @@ export function FamilyMemberCard({
           <div>
             <div className="flex items-center gap-2">
               <p className="font-display font-bold text-foreground flex items-center gap-2">
-                {member.name} 
-                {isSelf && <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
+                {member.name}
+                {isSelf && (
+                  <span className="text-sm text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">
+                    VOCÊ
+                  </span>
+                )}
               </p>
-              {memberIsOwner && <Crown className="h-3.5 w-3.5 text-warning fill-amber-500 animate-pulse" />}
+              {memberIsOwner && (
+                <Crown className="h-3.5 w-3.5 text-warning fill-amber-500 animate-pulse" />
+              )}
             </div>
             {member.email && (
               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -52,29 +70,41 @@ export function FamilyMemberCard({
             )}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <span className={cn(
-            "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all", 
-            member.role === "admin" 
-              ? "bg-warning/10 text-warning dark:text-warning" 
-              : member.role === "editor" 
-                ? "bg-primary/10 text-primary" 
-                : "bg-muted text-muted-foreground"
-          )}>
+          <span
+            className={cn(
+              "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest transition-all",
+              member.role === "admin"
+                ? "bg-warning/10 text-warning dark:text-warning"
+                : member.role === "editor"
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground"
+            )}
+          >
             {roleLabels[member.role]?.label}
           </span>
           {!isSelf && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="rounded-xl">
-                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "admin")}>Tornar Admin</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "editor")}>Tornar Editor</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "viewer")}>Tornar Visualizador</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "admin")}>
+                  Tornar Admin
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "editor")}>
+                  Tornar Editor
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onUpdateRole(member.id, "viewer")}>
+                  Tornar Visualizador
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {onMoveToContact && (
                   <DropdownMenuItem onClick={() => onMoveToContact(member.id)}>
@@ -82,7 +112,10 @@ export function FamilyMemberCard({
                     Mover para Contatos
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem className="text-destructive font-semibold focus:text-destructive" onClick={() => onRemove(member.id)}>
+                <DropdownMenuItem
+                  className="text-destructive font-semibold focus:text-destructive"
+                  onClick={() => onRemove(member.id)}
+                >
                   <Trash2 className="h-4 w-4 mr-2 text-destructive" />
                   Remover Membro
                 </DropdownMenuItem>

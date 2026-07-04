@@ -46,15 +46,34 @@ async function deriveKey(sessionId: string): Promise<CryptoKey> {
   );
 }
 
+function findSupabaseAuthToken(): Record<string, unknown> | null {
+  // A chave do token no localStorage inclui o ref do projeto (sb-<ref>-auth-token);
+  // localizar dinamicamente evita hardcode do ref
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith("sb-") && key.endsWith("-auth-token")) {
+      try {
+        return JSON.parse(localStorage.getItem(key) || "{}");
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
 async function getKey(): Promise<CryptoKey> {
   if (cryptoKey) return cryptoKey;
-  // Usa o ID da sessão do Supabase como segredo de derivação
-  const sessionId = localStorage.getItem("sb-vrrcagukyfnlhxuvnssp-auth-token")
-    ? JSON.parse(
-        localStorage.getItem("sb-vrrcagukyfnlhxuvnssp-auth-token") || "{}"
-      )?.access_token?.slice(0, 32)
-    : crypto.randomUUID();
-  cryptoKey = await deriveKey(sessionId);
+  // Deriva do user.id (estável entre sessões) — usar access_token quebraria a
+  // descriptografia do cache a cada refresh de token
+  const token = findSupabaseAuthToken();
+  const user = token?.user as { id?: string } | undefined;
+  const secret =
+    user?.id ??
+    (typeof token?.access_token === "string"
+      ? (token.access_token as string).slice(0, 32)
+      : crypto.randomUUID());
+  cryptoKey = await deriveKey(secret);
   return cryptoKey;
 }
 
@@ -86,6 +105,10 @@ export async function decrypt(encryptedData: string): Promise<string> {
 /**
  * Substitui o storage do localForage por uma versão criptografada.
  * Uso: storage: createEncryptedStorage()
+ *
+ * @deprecated Usa localStorage (limite ~5MB, síncrono). Para o persister do
+ * TanStack Query, prefira createEncryptedForageStorage(), que mantém os dados
+ * no IndexedDB via localForage.
  */
 export function createEncryptedStorage() {
   return {
@@ -110,6 +133,44 @@ export function createEncryptedStorage() {
     async removeItem(key: string): Promise<void> {
       localStorage.removeItem(`enc_${key}`);
       localStorage.removeItem(key);
+    },
+  };
+}
+
+interface AsyncStringStorage {
+  getItem(key: string): Promise<string | null>;
+  setItem(key: string, value: string): Promise<unknown>;
+  removeItem(key: string): Promise<void>;
+}
+
+/**
+ * Camada de criptografia AES-256-GCM sobre um storage assíncrono (localForage/
+ * IndexedDB). Dados legados não criptografados são lidos normalmente (decrypt
+ * passa adiante valores sem o prefixo) e passam a ser gravados criptografados.
+ */
+export function createEncryptedForageStorage(forage: AsyncStringStorage): AsyncStringStorage {
+  return {
+    async getItem(key: string): Promise<string | null> {
+      try {
+        const raw = await forage.getItem(key);
+        if (!raw) return null;
+        return await decrypt(raw);
+      } catch {
+        // Chave de derivação mudou ou dado corrompido — trata como cache miss
+        return null;
+      }
+    },
+    async setItem(key: string, value: string): Promise<void> {
+      try {
+        const encrypted = await encrypt(value);
+        await forage.setItem(key, encrypted);
+      } catch {
+        // Web Crypto indisponível — persiste sem criptografia a manter o app funcional
+        await forage.setItem(key, value);
+      }
+    },
+    async removeItem(key: string): Promise<void> {
+      await forage.removeItem(key);
     },
   };
 }

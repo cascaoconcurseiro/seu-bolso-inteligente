@@ -7,13 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Loader2, CheckCircle, Link2, RefreshCw, Calculator } from "lucide-react";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useAssignDefaultAccount, useRecalculateBalances } from "@/hooks/useAccountManagement";
@@ -25,7 +19,7 @@ export function OrphanTransactionsManager() {
   const { data: accounts = [] } = useAccounts();
   const assignDefaultAccount = useAssignDefaultAccount();
   const recalculateBalances = useRecalculateBalances();
-  
+
   const [orphanCount, setOrphanCount] = useState<number | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +28,7 @@ export function OrphanTransactionsManager() {
   useEffect(() => {
     const fetchOrphanCount = async () => {
       if (!user) return;
-      
+
       setIsLoading(true);
       try {
         const { count, error } = await supabase
@@ -57,13 +51,13 @@ export function OrphanTransactionsManager() {
   }, [user]);
 
   // Filtrar apenas contas que podem receber transações (não cartões)
-  const availableAccounts = accounts.filter(a => a.type !== "CREDIT_CARD");
+  const availableAccounts = accounts.filter((a) => a.type !== "CREDIT_CARD");
 
   const handleAssign = async () => {
     if (!user || !selectedAccountId) return;
-    
+
     await assignDefaultAccount.mutateAsync(selectedAccountId);
-    
+
     // Atualizar contagem
     const { count } = await supabase
       .from("transactions")
@@ -72,7 +66,7 @@ export function OrphanTransactionsManager() {
       .is("account_id", null)
       .neq("type", "TRANSFER")
       .or("payer_id.is.null,payer_id.eq.me");
-    
+
     setOrphanCount(count || 0);
   };
 
@@ -102,9 +96,7 @@ export function OrphanTransactionsManager() {
               <CheckCircle className="h-5 w-5 text-positive" />
               Transações Vinculadas
             </CardTitle>
-            <CardDescription>
-              Todas as suas transações estão vinculadas a contas.
-            </CardDescription>
+            <CardDescription>Todas as suas transações estão vinculadas a contas.</CardDescription>
           </CardHeader>
         </Card>
 
@@ -151,8 +143,8 @@ export function OrphanTransactionsManager() {
             Transações sem Conta
           </CardTitle>
           <CardDescription>
-            Você tem {orphanCount} transação(ões) sem conta vinculada.
-            Vincule-as a uma conta para melhor organização.
+            Você tem {orphanCount} transação(ões) sem conta vinculada. Vincule-as a uma conta para
+            melhor organização.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

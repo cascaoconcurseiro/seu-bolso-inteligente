@@ -54,8 +54,7 @@ vi.mock("./SplitModal", () => ({
   SplitModal: () => null,
 }));
 
-const createClient = () =>
-  new QueryClient({ defaultOptions: { queries: { retry: false } } });
+const createClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
 const wrap = (ui: React.ReactElement) =>
   render(

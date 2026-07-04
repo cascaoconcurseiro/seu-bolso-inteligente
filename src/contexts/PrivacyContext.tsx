@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface PrivacyContextType {
   isPrivate: boolean;
@@ -9,19 +9,19 @@ const PrivacyContext = createContext<PrivacyContextType | undefined>(undefined);
 
 export function PrivacyProvider({ children }: { children: ReactNode }) {
   const [isPrivate, setIsPrivate] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('@BolsoInteligente:privacy');
-      return saved === 'true';
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("@BolsoInteligente:privacy");
+      return saved === "true";
     }
     return false;
   });
 
   useEffect(() => {
-    localStorage.setItem('@BolsoInteligente:privacy', String(isPrivate));
+    localStorage.setItem("@BolsoInteligente:privacy", String(isPrivate));
   }, [isPrivate]);
 
   const togglePrivacy = () => {
-    setIsPrivate(prev => !prev);
+    setIsPrivate((prev) => !prev);
   };
 
   return (
@@ -34,7 +34,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
 export function usePrivacy() {
   const context = useContext(PrivacyContext);
   if (context === undefined) {
-    throw new Error('usePrivacy must be used within a PrivacyProvider');
+    throw new Error("usePrivacy must be used within a PrivacyProvider");
   }
   return context;
 }

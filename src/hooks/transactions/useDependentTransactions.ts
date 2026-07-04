@@ -11,7 +11,11 @@ interface UseDependentTransactionsProps {
   endDate?: string;
 }
 
-export function useDependentTransactions({ cardIds, startDate, endDate }: UseDependentTransactionsProps) {
+export function useDependentTransactions({
+  cardIds,
+  startDate,
+  endDate,
+}: UseDependentTransactionsProps) {
   const { user } = useAuth();
 
   return useQuery({
@@ -22,34 +26,36 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
     queryFn: async () => {
       if (!user || cardIds.length === 0) return [];
 
-      logger.debug('useDependentTransactions query:', {
+      logger.debug("useDependentTransactions query:", {
         userId: user.id,
         cardIds,
         startDate,
-        endDate
+        endDate,
       });
 
       const { data: memberData } = await supabase
-        .from('family_members')
-        .select('id')
-        .eq('linked_user_id', user.id)
+        .from("family_members")
+        .select("id")
+        .eq("linked_user_id", user.id)
         .maybeSingle();
       const memberId = memberData?.id;
 
       let query = supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           account:accounts!account_id(id, name, currency, bank_id),
           category:categories(id, name, icon, parent_category_id),
           transaction_splits:transaction_splits!transaction_id(*)
-        `)
+        `
+        )
         .is("deleted_at", null)
-        .in('account_id', cardIds)
-        .not('payer_id', 'is', null);
+        .in("account_id", cardIds)
+        .not("payer_id", "is", null);
 
       if (memberId) {
-        query = query.neq('payer_id', memberId);
+        query = query.neq("payer_id", memberId);
       }
 
       if (startDate) {
@@ -60,16 +66,16 @@ export function useDependentTransactions({ cardIds, startDate, endDate }: UseDep
       }
 
       const { data, error } = await query
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false })
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(2000);
 
       if (error) {
         logger.error("Erro ao buscar transações de dependentes:", error);
         throw error;
       }
-      
+
       return (data || []) as Transaction[];
-    }
+    },
   });
 }

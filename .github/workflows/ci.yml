@@ -22,7 +22,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx tsc --noEmit
+      # tsc na raiz é no-op (files: [] + references); o projeto real é tsconfig.app.json.
+      # Não-bloqueante até zerar o backlog de erros pré-existentes (~560, maioria TS6133).
+      - run: npx tsc --noEmit -p tsconfig.app.json
+        continue-on-error: true
       - run: npm run lint
       - run: npm run format:check
 
@@ -67,5 +70,6 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm audit --audit-level=high
-        continue-on-error: true
+      # Bloqueante: vulnerabilidades high/critical em deps de produção impedem o merge.
+      # (--omit=dev: a cadeia vite/esbuild só afeta o dev server e exige major bump)
+      - run: npm audit --audit-level=high --omit=dev

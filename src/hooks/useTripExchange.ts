@@ -2,15 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  ExchangePurchase, 
-  ExchangePurchaseInput, 
-  ExchangeSummary 
-} from "@/types/tripExchange";
-import { 
-  calculateEffectiveRate, 
-  calculateLocalAmount, 
-  calculateExchangeSummary 
+import { ExchangePurchase, ExchangePurchaseInput, ExchangeSummary } from "@/types/tripExchange";
+import {
+  calculateEffectiveRate,
+  calculateLocalAmount,
+  calculateExchangeSummary,
 } from "@/services/exchangeCalculations";
 
 /**
@@ -64,7 +60,8 @@ export function useTripExchangePurchases(tripId: string | null) {
       const mappedTransfers: ExchangePurchase[] = (transfers || []).map((t) => {
         const localAmount = t.amount || 0;
         const foreignAmount = t.destination_amount || 0;
-        const exchangeRate = t.exchange_rate || (foreignAmount > 0 ? localAmount / foreignAmount : 0);
+        const exchangeRate =
+          t.exchange_rate || (foreignAmount > 0 ? localAmount / foreignAmount : 0);
 
         return {
           id: t.id,
@@ -85,13 +82,15 @@ export function useTripExchangePurchases(tripId: string | null) {
 
       // 5. Combinar compras manuais e automáticas, ordenando por data de compra decrescente
       const combined = [...(manualPurchases || []), ...mappedTransfers];
-      combined.sort((a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime());
+      combined.sort(
+        (a, b) => new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime()
+      );
 
       return combined as ExchangePurchase[];
     },
     enabled: !!tripId,
     staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
   });
 }
 
@@ -104,23 +103,11 @@ export function useCreateExchangePurchase() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({
-      tripId,
-      input,
-    }: {
-      tripId: string;
-      input: ExchangePurchaseInput;
-    }) => {
+    mutationFn: async ({ tripId, input }: { tripId: string; input: ExchangePurchaseInput }) => {
       if (!user) throw new Error("Usuário não autenticado");
 
-      const effectiveRate = calculateEffectiveRate(
-        input.exchange_rate,
-        input.cet_percentage
-      );
-      const localAmount = calculateLocalAmount(
-        input.foreign_amount,
-        effectiveRate
-      );
+      const effectiveRate = calculateEffectiveRate(input.exchange_rate, input.cet_percentage);
+      const localAmount = calculateLocalAmount(input.foreign_amount, effectiveRate);
 
       const { data, error } = await supabase
         .from("trip_exchange_purchases")
@@ -177,14 +164,8 @@ export function useUpdateExchangePurchase() {
       tripId: string;
       input: ExchangePurchaseInput;
     }) => {
-      const effectiveRate = calculateEffectiveRate(
-        input.exchange_rate,
-        input.cet_percentage
-      );
-      const localAmount = calculateLocalAmount(
-        input.foreign_amount,
-        effectiveRate
-      );
+      const effectiveRate = calculateEffectiveRate(input.exchange_rate, input.cet_percentage);
+      const localAmount = calculateLocalAmount(input.foreign_amount, effectiveRate);
 
       const { data, error } = await supabase
         .from("trip_exchange_purchases")
@@ -233,10 +214,7 @@ export function useDeleteExchangePurchase() {
 
   return useMutation({
     mutationFn: async ({ id, tripId }: { id: string; tripId: string }) => {
-      const { error } = await supabase
-        .from("trip_exchange_purchases")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("trip_exchange_purchases").delete().eq("id", id);
 
       if (error) throw error;
     },

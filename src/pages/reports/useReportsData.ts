@@ -96,11 +96,15 @@ export function useReportsData({
                 s.member_id !== myMemberId &&
                 (s.is_settled === true || s.settled_by_debtor === true)
             )
-            .reduce((sum: number, s: any) => SafeFinancialCalculator.add(sum, Number(s.amount)), 0);
+            .reduce(
+              (sum: number, s: any) =>
+                SafeFinancialCalculator.add(sum, Number(s.amount)).toNumber(),
+              0
+            );
 
           const netAmount = Math.max(
             0,
-            SafeFinancialCalculator.subtract(Number(tx.amount), settledByOthers)
+            SafeFinancialCalculator.subtract(Number(tx.amount), settledByOthers).toNumber()
           );
           return { ...tx, amount: netAmount };
         }
@@ -281,18 +285,26 @@ export function useReportsData({
       if (tx.transaction_splits && Array.isArray(tx.transaction_splits)) {
         tx.transaction_splits.forEach((split: any) => {
           if (split.is_settled) {
-            finalAmount = SafeFinancialCalculator.subtract(finalAmount, Number(split.amount || 0));
+            finalAmount = SafeFinancialCalculator.subtract(
+              finalAmount,
+              Number(split.amount || 0)
+            ).toNumber();
           }
         });
       }
 
       if (finalAmount > 0) {
         if (!map[categoryName]) map[categoryName] = { value: 0, count: 0 };
-        map[categoryName].value = SafeFinancialCalculator.add(map[categoryName].value, finalAmount);
+        map[categoryName].value = SafeFinancialCalculator.add(
+          map[categoryName].value,
+          finalAmount
+        ).toNumber();
         map[categoryName].count += 1;
       }
     });
-    const total = Object.values(map).reduce((sum, c) => SafeFinancialCalculator.add(sum, c.value), 0);
+    const total = SafeFinancialCalculator.safeSum(
+      Object.values(map).map((c) => c.value)
+    ).toNumber();
     return Object.entries(map)
       .map(([category, d]) => ({
         category,
@@ -351,8 +363,7 @@ export function useReportsData({
         involvedMembers.forEach((name) => {
           map[name].count += 1;
         });
-      }
-      else if (!tx.is_shared && tx.domain === "SHARED" && tx.related_member_id) {
+      } else if (!tx.is_shared && tx.domain === "SHARED" && tx.related_member_id) {
         const creatorMember = familyMembers.find((m) => m.linked_user_id === tx.user_id);
         const receiverMember = familyMembers.find((m) => m.id === tx.related_member_id);
 
@@ -374,8 +385,7 @@ export function useReportsData({
         if (payerName !== receiverName) {
           map[receiverName].count += 1;
         }
-      }
-      else if (
+      } else if (
         !tx.is_shared &&
         tx.domain === "SHARED" &&
         (tx.description?.includes("Acerto") || tx.description?.includes("acerto") || tx.is_settled)
@@ -476,8 +486,7 @@ export function useReportsData({
             }
             map[name].totalInstallments += 1;
           });
-        }
-        else if (!tx.is_shared && tx.domain === "SHARED" && tx.related_member_id) {
+        } else if (!tx.is_shared && tx.domain === "SHARED" && tx.related_member_id) {
           const member = familyMembers.find((m) => m.id === tx.related_member_id);
           const name = member?.name || "Desconhecido";
           if (!map[name])

@@ -15,20 +15,19 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Trip } from "@/hooks/useTrips";
 import { moneyUtils } from "@/utils/money";
 
 const CURRENCIES = [
-  { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
-  { code: 'USD', symbol: '$', name: 'Dólar Americano' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'Libra Esterlina' },
-  { code: 'ARS', symbol: '$', name: 'Peso Argentino' },
-  { code: 'CLP', symbol: '$', name: 'Peso Chileno' },
-  { code: 'UYU', symbol: '$', name: 'Peso Uruguaio' },
-  { code: 'PYG', symbol: '₲', name: 'Guarani Paraguaio' },
+  { code: "BRL", symbol: "R$", name: "Real Brasileiro" },
+  { code: "USD", symbol: "$", name: "Dólar Americano" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "Libra Esterlina" },
+  { code: "ARS", symbol: "$", name: "Peso Argentino" },
+  { code: "CLP", symbol: "$", name: "Peso Chileno" },
+  { code: "UYU", symbol: "$", name: "Peso Uruguaio" },
+  { code: "PYG", symbol: "₲", name: "Guarani Paraguaio" },
 ];
 
 interface EditTripDialogProps {
@@ -91,9 +90,7 @@ export function EditTripDialog({
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0">
           <DialogTitle>Editar Viagem</DialogTitle>
-          <DialogDescription>
-            Apenas o criador da viagem pode editar estes campos
-          </DialogDescription>
+          <DialogDescription>Apenas o criador da viagem pode editar estes campos</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-6 hide-scrollbar">
           <div className="space-y-4 py-2">
@@ -158,7 +155,12 @@ export function EditTripDialog({
 
         {/* Rodapé fixo */}
         <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
-          <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 h-11 rounded-xl"
+            onClick={() => onOpenChange(false)}
+          >
             Cancelar
           </Button>
           <Button

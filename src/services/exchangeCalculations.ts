@@ -7,7 +7,7 @@
  * Taxas cambiais (exchange_rate) são arredondadas a 4 casas decimais.
  */
 
-import { SafeFinancialCalculator } from './SafeFinancialCalculator';
+import { SafeFinancialCalculator } from "./SafeFinancialCalculator";
 
 export interface ExchangePurchase {
   id: string;
@@ -59,7 +59,7 @@ export function calculateLocalAmount(foreignAmount: number, effectiveRate: numbe
   if (effectiveRate <= 0) {
     throw new Error("Taxa efetiva deve ser maior que zero");
   }
-  return SafeFinancialCalculator.multiply(foreignAmount, effectiveRate);
+  return SafeFinancialCalculator.multiply(foreignAmount, effectiveRate).toNumber();
 }
 
 /**
@@ -76,16 +76,16 @@ export function calculateWeightedAverageRate(purchases: ExchangePurchase[]): num
   }
 
   // Soma segura dos valores locais (BRL) em centavos
-  const totalLocal = SafeFinancialCalculator.safeSum(purchases.map(p => p.local_amount));
+  const totalLocal = SafeFinancialCalculator.safeSum(purchases.map((p) => p.local_amount));
   // Soma segura dos valores estrangeiros em suas unidades mínimas
-  const totalForeign = SafeFinancialCalculator.safeSum(purchases.map(p => p.foreign_amount));
+  const totalForeign = SafeFinancialCalculator.safeSum(purchases.map((p) => p.foreign_amount));
 
-  if (totalForeign === 0) {
+  if (totalForeign.isZero()) {
     return 0;
   }
 
-  // Taxa é arredondada a 4 casas decimais (precisão cambial)
-  return Math.round((totalLocal / totalForeign) * 10000) / 10000;
+  // Divisão via Decimal (sem operadores nativos) — taxa a 4 casas decimais
+  return totalLocal.dividedBy(totalForeign).toDecimalPlaces(4).toNumber();
 }
 
 /**
@@ -93,8 +93,12 @@ export function calculateWeightedAverageRate(purchases: ExchangePurchase[]): num
  */
 export function calculateExchangeSummary(purchases: ExchangePurchase[]): ExchangeSummary {
   // Somas seguras para valores monetários
-  const totalForeignPurchased = SafeFinancialCalculator.safeSum(purchases.map(p => p.foreign_amount));
-  const totalLocalSpent = SafeFinancialCalculator.safeSum(purchases.map(p => p.local_amount));
+  const totalForeignPurchased = SafeFinancialCalculator.safeSum(
+    purchases.map((p) => p.foreign_amount)
+  ).toNumber();
+  const totalLocalSpent = SafeFinancialCalculator.safeSum(
+    purchases.map((p) => p.local_amount)
+  ).toNumber();
   const weightedAverageRate = calculateWeightedAverageRate(purchases);
 
   return {
@@ -128,11 +132,13 @@ export function formatCurrencyWithSymbol(value: number, currencyCode: string): s
   };
 
   const symbol = symbols[currencyCode] || currencyCode;
-  
+
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value).replace(/^/, `${symbol} `);
+  })
+    .format(value)
+    .replace(/^/, `${symbol} `);
 }
 
 /**

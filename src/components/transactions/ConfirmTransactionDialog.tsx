@@ -79,7 +79,9 @@ export function ConfirmTransactionDialog({ target, onClose, onConfirm, isPending
               <span className="text-muted-foreground font-normal">(ajuste se necessário)</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                R$
+              </span>
               <Input
                 id="confirm-amount"
                 type="number"

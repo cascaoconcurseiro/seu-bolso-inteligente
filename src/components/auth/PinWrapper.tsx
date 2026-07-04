@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Lock, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 
 /**
  * PinWrapper — Proteção de sessão com PIN.

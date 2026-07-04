@@ -12,9 +12,7 @@ interface TripArchivedCardProps {
 
 export function TripArchivedCard({ trip, onUnarchive, onClick }: TripArchivedCardProps) {
   return (
-    <div
-      className="group p-5 rounded-xl border border-border bg-muted/30"
-    >
+    <div className="group p-5 rounded-xl border border-border bg-muted/30">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3">
@@ -39,26 +37,18 @@ export function TripArchivedCard({ trip, onUnarchive, onClick }: TripArchivedCar
             </div>
             {trip.archived_at && (
               <div className="text-xs text-muted-foreground">
-                Arquivada em {dateFns.format(new Date(trip.archived_at), "dd/MM/yyyy", { locale: ptBR })}
+                Arquivada em{" "}
+                {dateFns.format(new Date(trip.archived_at), "dd/MM/yyyy", { locale: ptBR })}
               </div>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onUnarchive}
-            className="gap-2"
-          >
+          <Button variant="outline" size="sm" onClick={onUnarchive} className="gap-2">
             <ArchiveRestore className="h-4 w-4" />
             <span className="hidden sm:inline">Desarquivar</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClick}
-          >
+          <Button variant="ghost" size="sm" onClick={onClick}>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { ChevronRight, CalendarClock, AlertCircle, Wifi } from "lucide-react";
+import { AlertCircle, Wifi } from "lucide-react";
 import { BankIcon, CardBrandIcon } from "@/components/financial/BankIcon";
 import { cn } from "@/lib/utils";
 import * as dateFns from "date-fns";

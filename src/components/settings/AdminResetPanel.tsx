@@ -52,6 +52,7 @@ import {
   Sparkle,
   Bug,
   Code,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +64,18 @@ import { useRecalculateBalances } from "@/hooks/useAccountManagement";
 const CONFIRM_WORD = "RESETAR";
 
 import { useAdminActions } from "@/hooks/useAdminActions";
+import {
+  Activity,
+  AlertCircle,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Info,
+  RefreshCw,
+  Search,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 
 export function AdminResetPanel() {
   const recalculateBalances = useRecalculateBalances();

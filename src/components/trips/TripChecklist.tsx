@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -23,7 +22,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { AITripSuggestions } from './AITripSuggestions';
+import { AITripSuggestions } from "./AITripSuggestions";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface ChecklistItem {
@@ -107,10 +106,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   // Toggle completion mutation
   const toggleItem = useMutation({
     mutationFn: async ({ id, is_completed }: { id: string; is_completed: boolean }) => {
-      const { error } = await supabase
-        .from("trip_checklist")
-        .update({ is_completed })
-        .eq("id", id);
+      const { error } = await supabase.from("trip_checklist").update({ is_completed }).eq("id", id);
 
       if (error) throw error;
     },
@@ -125,10 +121,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("trip_checklist")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("trip_checklist").delete().eq("id", id);
 
       if (error) throw error;
     },
@@ -164,9 +157,12 @@ export function TripChecklist({ trip }: TripChecklistProps) {
       });
 
       await Promise.all(promises);
-      
+
       queryClient.invalidateQueries({ queryKey: ["trip-checklist", tripId] });
-      toast({ title: "Sucesso", description: `${suggestions.length} itens adicionados ao checklist.` });
+      toast({
+        title: "Sucesso",
+        description: `${suggestions.length} itens adicionados ao checklist.`,
+      });
     } catch (error: any) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } finally {
@@ -175,12 +171,15 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   };
 
   // Agrupar por categoria
-  const groupedItems = items.reduce((acc, item) => {
-    const cat = item.category || "outros";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(item);
-    return acc;
-  }, {} as Record<string, ChecklistItem[]>);
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      const cat = item.category || "outros";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(item);
+      return acc;
+    },
+    {} as Record<string, ChecklistItem[]>
+  );
 
   // Calcular progresso
   const completedCount = items.filter((i) => i.is_completed).length;
@@ -234,7 +233,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
             Checklist ({completedCount}/{items.length})
           </h2>
           <div className="flex items-center gap-2">
-            <AITripSuggestions 
+            <AITripSuggestions
               type="checklist"
               destination={trip.destination || trip.name}
               startDate={trip.start_date}
@@ -268,8 +267,8 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                     key={item.id}
                     className={cn(
                       "flex items-center justify-between p-3 rounded-xl border transition-all duration-300",
-                      item.is_completed 
-                        ? "bg-muted/30 border-transparent opacity-70" 
+                      item.is_completed
+                        ? "bg-muted/30 border-transparent opacity-70"
                         : "bg-card/40 border-border/50 hover:bg-card/80 hover:shadow-sm"
                     )}
                   >
@@ -286,10 +285,14 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                           }
                         }}
                       />
-                      <span className={cn(
-                        "text-sm font-medium transition-all duration-300 truncate",
-                        item.is_completed ? "line-through text-muted-foreground" : "text-foreground"
-                      )}>
+                      <span
+                        className={cn(
+                          "text-sm font-medium transition-all duration-300 truncate",
+                          item.is_completed
+                            ? "line-through text-muted-foreground"
+                            : "text-foreground"
+                        )}
+                      >
                         {item.item}
                       </span>
                     </div>
@@ -401,10 +404,19 @@ function ChecklistDialog({
 
         {/* Rodapé fixo */}
         <div className="shrink-0 flex gap-3 px-6 py-4 border-t border-border bg-background">
-          <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-1/2 h-11"
+            onClick={() => onOpenChange(false)}
+          >
             Cancelar
           </Button>
-          <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !newItem.trim()}>
+          <Button
+            className="w-1/2 h-11 font-bold"
+            onClick={onSubmit}
+            disabled={isLoading || !newItem.trim()}
+          >
             {isLoading ? "Adicionando..." : "Adicionar"}
           </Button>
         </div>

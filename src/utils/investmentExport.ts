@@ -1,9 +1,9 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { Asset } from '@/types/database';
-import { formatCurrency } from './currencyFormatter';
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Asset } from "@/types/database";
+import { formatCurrency } from "./currencyFormatter";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface AssetTransaction {
   id: string;
@@ -23,23 +23,23 @@ const TEXT_COLOR: [number, number, number] = [31, 41, 55]; // Cinza Escuro
 // Helper para invocar autoTable de forma resiliente diante de variações de bundler
 const safeCallAutoTable = (doc: jsPDF, options: Record<string, unknown>) => {
   try {
-    if (typeof autoTable === 'function') {
+    if (typeof autoTable === "function") {
       autoTable(doc, options);
-    } else if (autoTable && typeof (autoTable as any).default === 'function') {
+    } else if (autoTable && typeof (autoTable as any).default === "function") {
       (autoTable as any).default(doc, options);
-    } else if (typeof (doc as any).autoTable === 'function') {
+    } else if (typeof (doc as any).autoTable === "function") {
       (doc as any).autoTable(options);
     } else {
-      logger.warn('Metodo autoTable não encontrado no escopo global ou local do jsPDF.');
+      logger.warn("Metodo autoTable não encontrado no escopo global ou local do jsPDF.");
     }
   } catch (error) {
-    logger.error('Erro ao renderizar autoTable no PDF:', error);
+    logger.error("Erro ao renderizar autoTable no PDF:", error);
   }
 };
 
 const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
   const lastAutoTable = (doc as any).lastAutoTable;
-  if (lastAutoTable && typeof lastAutoTable.finalY === 'number') {
+  if (lastAutoTable && typeof lastAutoTable.finalY === "number") {
     return lastAutoTable.finalY + 12;
   }
   return fallbackY;
@@ -47,39 +47,47 @@ const getNextStartY = (doc: jsPDF, fallbackY: number): number => {
 
 // Retorna as transações de um ativo (reais do banco ou seed virtual)
 export const getAssetTransactions = (asset: Asset, realTransactions: AssetTransaction[]) => {
-  const assetTxs = realTransactions.filter(tx => tx.asset_id === asset.id);
+  const assetTxs = realTransactions.filter((tx) => tx.asset_id === asset.id);
   if (assetTxs.length === 0) {
     // Se não há transações no banco, gera a transação virtual / seed baseada no ativo para retrocompatibilidade
-    const pDate = asset.purchase_date ? asset.purchase_date.split('T')[0] : (asset.created_at || '').split('T')[0];
-    return [{
-      id: `virtual-${asset.id}`,
-      asset_id: asset.id,
-      type: 'BUY',
-      quantity: Number(asset.quantity || 0),
-      price: Number(asset.purchase_price || 0),
-      date: pDate
-    }];
+    const pDate = asset.purchase_date
+      ? asset.purchase_date.split("T")[0]
+      : (asset.created_at || "").split("T")[0];
+    return [
+      {
+        id: `virtual-${asset.id}`,
+        asset_id: asset.id,
+        type: "BUY",
+        quantity: Number(asset.quantity || 0),
+        price: Number(asset.purchase_price || 0),
+        date: pDate,
+      },
+    ];
   }
   return assetTxs;
 };
 
-export const getPositionAtDate = (asset: Asset, transactions: AssetTransaction[], cutoffDate: string) => {
+export const getPositionAtDate = (
+  asset: Asset,
+  transactions: AssetTransaction[],
+  cutoffDate: string
+) => {
   const assetTxs = getAssetTransactions(asset, transactions);
-  
+
   let qty = 0;
   let totalCost = 0;
   let avgPrice = 0;
-  
+
   for (const tx of assetTxs) {
     if (tx.date > cutoffDate) continue;
-    
+
     const txQty = Number(tx.quantity);
     const txPrice = Number(tx.price);
-    
-    if (tx.type === 'BUY') {
+
+    if (tx.type === "BUY") {
       totalCost += txQty * txPrice;
       qty += txQty;
-    } else if (tx.type === 'SELL') {
+    } else if (tx.type === "SELL") {
       if (qty > 0) {
         const currentAvg = totalCost / qty;
         const soldQty = Math.min(txQty, qty);
@@ -89,7 +97,7 @@ export const getPositionAtDate = (asset: Asset, transactions: AssetTransaction[]
     }
   }
   if (qty > 0) avgPrice = totalCost / qty;
-  
+
   return { quantity: qty, totalCost: qty > 0 ? totalCost : 0, avgPrice: qty > 0 ? avgPrice : 0 };
 };
 
@@ -107,18 +115,20 @@ export interface IRAssetDetails {
  * Mapeia e retorna os detalhes de imposto de renda (IR) de um ativo com base nos padrões da Receita Federal
  */
 export const getIRDetails = (
-  asset: Asset, 
+  asset: Asset,
   year: number,
   calculatedPosAntCost?: number,
   calculatedPosAtuCost?: number,
   calculatedQty?: number,
   calculatedAvgPrice?: number
 ): IRAssetDetails => {
-  const ticker = (asset.ticker || '').toUpperCase().trim();
+  const ticker = (asset.ticker || "").toUpperCase().trim();
   const quantity = calculatedQty !== undefined ? calculatedQty : Number(asset.quantity || 0);
-  const purchasePrice = calculatedAvgPrice !== undefined ? calculatedAvgPrice : Number(asset.purchase_price || 0);
-  const totalCost = calculatedPosAtuCost !== undefined ? calculatedPosAtuCost : (quantity * purchasePrice);
-  
+  const purchasePrice =
+    calculatedAvgPrice !== undefined ? calculatedAvgPrice : Number(asset.purchase_price || 0);
+  const totalCost =
+    calculatedPosAtuCost !== undefined ? calculatedPosAtuCost : quantity * purchasePrice;
+
   // Determina se foi comprado no ano atual
   let purchasedThisYear = false;
   if (asset.purchase_date) {
@@ -127,125 +137,166 @@ export const getIRDetails = (
       if (pYear === year) {
         purchasedThisYear = true;
       }
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
-  
-  const situacaoAnterior = calculatedPosAntCost !== undefined ? calculatedPosAntCost : (purchasedThisYear ? 0 : totalCost);
+
+  const situacaoAnterior =
+    calculatedPosAntCost !== undefined ? calculatedPosAntCost : purchasedThisYear ? 0 : totalCost;
   const situacaoAtual = totalCost;
 
   // Código de localização no IR (105 é Brasil, 249 é EUA)
-  const locationCode = asset.location === 'ABROAD' ? '249' : '105';
+  const locationCode = asset.location === "ABROAD" ? "249" : "105";
 
   // Base de CNPJs de ativos mais comuns da B3 para enriquecimento e efeito WOW na exportação do IR
   const cnpjMap: Record<string, { cnpj: string; razaoSocial: string }> = {
-    'PETR4': { cnpj: '33.000.167/0001-01', razaoSocial: 'PETROLEO BRASILEIRO S.A. PETROBRAS' },
-    'PETR3': { cnpj: '33.000.167/0001-01', razaoSocial: 'PETROLEO BRASILEIRO S.A. PETROBRAS' },
-    'VALE3': { cnpj: '33.592.510/0001-54', razaoSocial: 'VALE S.A.' },
-    'ITUB4': { cnpj: '60.872.504/0001-23', razaoSocial: 'ITAÚ UNIBANCO HOLDING S.A.' },
-    'ITUB3': { cnpj: '60.872.504/0001-23', razaoSocial: 'ITAÚ UNIBANCO HOLDING S.A.' },
-    'BBDC4': { cnpj: '60.746.948/0001-12', razaoSocial: 'BANCO BRADESCO S.A.' },
-    'BBDC3': { cnpj: '60.746.948/0001-12', razaoSocial: 'BANCO BRADESCO S.A.' },
-    'BBAS3': { cnpj: '00.000.000/0001-91', razaoSocial: 'BANCO DO BRASIL S.A.' },
-    'MGLU3': { cnpj: '47.960.950/0001-21', razaoSocial: 'MAGAZINE LUIZA S.A.' },
-    'ABEV3': { cnpj: '07.526.557/0001-00', razaoSocial: 'AMBEV S.A.' },
-    'WEGE3': { cnpj: '84.429.695/0001-11', razaoSocial: 'WEG S.A.' },
-    'B3SA3': { cnpj: '09.346.601/0001-25', razaoSocial: 'B3 S.A. - BRASIL, BOLSA, BALCÃO' },
-    'ITSA4': { cnpj: '17.217.989/0001-04', razaoSocial: 'ITAÚSA S.A.' },
-    'ITSA3': { cnpj: '17.217.989/0001-04', razaoSocial: 'ITAÚSA S.A.' },
-    
+    PETR4: { cnpj: "33.000.167/0001-01", razaoSocial: "PETROLEO BRASILEIRO S.A. PETROBRAS" },
+    PETR3: { cnpj: "33.000.167/0001-01", razaoSocial: "PETROLEO BRASILEIRO S.A. PETROBRAS" },
+    VALE3: { cnpj: "33.592.510/0001-54", razaoSocial: "VALE S.A." },
+    ITUB4: { cnpj: "60.872.504/0001-23", razaoSocial: "ITAÚ UNIBANCO HOLDING S.A." },
+    ITUB3: { cnpj: "60.872.504/0001-23", razaoSocial: "ITAÚ UNIBANCO HOLDING S.A." },
+    BBDC4: { cnpj: "60.746.948/0001-12", razaoSocial: "BANCO BRADESCO S.A." },
+    BBDC3: { cnpj: "60.746.948/0001-12", razaoSocial: "BANCO BRADESCO S.A." },
+    BBAS3: { cnpj: "00.000.000/0001-91", razaoSocial: "BANCO DO BRASIL S.A." },
+    MGLU3: { cnpj: "47.960.950/0001-21", razaoSocial: "MAGAZINE LUIZA S.A." },
+    ABEV3: { cnpj: "07.526.557/0001-00", razaoSocial: "AMBEV S.A." },
+    WEGE3: { cnpj: "84.429.695/0001-11", razaoSocial: "WEG S.A." },
+    B3SA3: { cnpj: "09.346.601/0001-25", razaoSocial: "B3 S.A. - BRASIL, BOLSA, BALCÃO" },
+    ITSA4: { cnpj: "17.217.989/0001-04", razaoSocial: "ITAÚSA S.A." },
+    ITSA3: { cnpj: "17.217.989/0001-04", razaoSocial: "ITAÚSA S.A." },
+
     // FIIs comuns
-    'MXRF11': { cnpj: '12.006.126/0001-60', razaoSocial: 'MAXI RENDA FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'HGLG11': { cnpj: '11.728.847/0001-70', razaoSocial: 'CSHG LOGÍSTICA - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'XPML11': { cnpj: '28.757.540/0001-48', razaoSocial: 'XP MALLS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'KNIP11': { cnpj: '23.223.940/0001-38', razaoSocial: 'KINEA ÍNDICES DE PREÇOS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'XPLG11': { cnpj: '26.685.992/0001-24', razaoSocial: 'XP LOG - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'KNRI11': { cnpj: '12.005.956/0001-65', razaoSocial: 'KINEA RENDA IMOBILIÁRIA FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'HGRE11': { cnpj: '09.072.068/0001-16', razaoSocial: 'CSHG REAL ESTATE - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
-    'VISC11': { cnpj: '18.860.759/0001-30', razaoSocial: 'VINCI SHOPPING CENTERS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII' },
+    MXRF11: {
+      cnpj: "12.006.126/0001-60",
+      razaoSocial: "MAXI RENDA FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    HGLG11: {
+      cnpj: "11.728.847/0001-70",
+      razaoSocial: "CSHG LOGÍSTICA - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    XPML11: {
+      cnpj: "28.757.540/0001-48",
+      razaoSocial: "XP MALLS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    KNIP11: {
+      cnpj: "23.223.940/0001-38",
+      razaoSocial: "KINEA ÍNDICES DE PREÇOS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    XPLG11: {
+      cnpj: "26.685.992/0001-24",
+      razaoSocial: "XP LOG - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    KNRI11: {
+      cnpj: "12.005.956/0001-65",
+      razaoSocial: "KINEA RENDA IMOBILIÁRIA FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    HGRE11: {
+      cnpj: "09.072.068/0001-16",
+      razaoSocial: "CSHG REAL ESTATE - FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
+    VISC11: {
+      cnpj: "18.860.759/0001-30",
+      razaoSocial: "VINCI SHOPPING CENTERS FUNDO DE INVESTIMENTO IMOBILIÁRIO - FII",
+    },
   };
 
-  const lookup = cnpjMap[ticker] || { cnpj: '', razaoSocial: asset.name };
-  const cnpj = lookup.cnpj || '';
+  const lookup = cnpjMap[ticker] || { cnpj: "", razaoSocial: asset.name };
+  const cnpj = lookup.cnpj || "";
   const companyName = lookup.razaoSocial || asset.name;
 
-  let grupo = '03 - Participações Societárias';
-  let codigo = '01 - Ações (inclusive as listadas em bolsa)';
-  let typeLabel = 'AÇÕES';
+  let grupo = "03 - Participações Societárias";
+  let codigo = "01 - Ações (inclusive as listadas em bolsa)";
+  let typeLabel = "AÇÕES";
 
   switch (asset.type) {
-    case 'STOCK':
-      grupo = '03 - Participações Societárias';
-      codigo = '01 - Ações (inclusive as listadas em bolsa)';
-      typeLabel = 'AÇÕES ORDINÁRIAS/PREFERENCIAIS';
+    case "STOCK":
+      grupo = "03 - Participações Societárias";
+      codigo = "01 - Ações (inclusive as listadas em bolsa)";
+      typeLabel = "AÇÕES ORDINÁRIAS/PREFERENCIAIS";
       break;
-    case 'FII':
-      grupo = '07 - Fundos';
-      codigo = '03 - Fundo de Investimento Imobiliário (FII)';
-      typeLabel = 'FUNDO DE INVESTIMENTO IMOBILIÁRIO';
+    case "FII":
+      grupo = "07 - Fundos";
+      codigo = "03 - Fundo de Investimento Imobiliário (FII)";
+      typeLabel = "FUNDO DE INVESTIMENTO IMOBILIÁRIO";
       break;
-    case 'ETF':
-      grupo = '07 - Fundos';
-      codigo = '09 - Outros fundos de índice (ETFs)';
-      typeLabel = 'FUNDO DE ÍNDICE (ETF)';
+    case "ETF":
+      grupo = "07 - Fundos";
+      codigo = "09 - Outros fundos de índice (ETFs)";
+      typeLabel = "FUNDO DE ÍNDICE (ETF)";
       break;
-    case 'REIT':
-      grupo = '03 - Participações Societárias';
-      codigo = '01 - Ações (inclusive as listadas em bolsa)';
-      typeLabel = 'REIT (REAL ESTATE INVESTMENT TRUST)';
+    case "REIT":
+      grupo = "03 - Participações Societárias";
+      codigo = "01 - Ações (inclusive as listadas em bolsa)";
+      typeLabel = "REIT (REAL ESTATE INVESTMENT TRUST)";
       break;
-    case 'BOND':
-      grupo = '04 - Aplicações e Investimentos';
-      if (asset.name.toUpperCase().includes('POUPANÇA')) {
-        codigo = '01 - Depósito em caderneta de poupança';
-        typeLabel = 'CADERNETA DE POUPANÇA';
-      } else if (asset.name.toUpperCase().includes('LCI') || asset.name.toUpperCase().includes('LCA') || asset.name.toUpperCase().includes('CRA') || asset.name.toUpperCase().includes('CRI')) {
-        codigo = '03 - Títulos isentos de tributação (LCI, LCA, CRI, CRA, etc.)';
-        typeLabel = 'RENDA FIXA ISENTA (LCI/LCA/CRI/CRA)';
+    case "BOND":
+      grupo = "04 - Aplicações e Investimentos";
+      if (asset.name.toUpperCase().includes("POUPANÇA")) {
+        codigo = "01 - Depósito em caderneta de poupança";
+        typeLabel = "CADERNETA DE POUPANÇA";
+      } else if (
+        asset.name.toUpperCase().includes("LCI") ||
+        asset.name.toUpperCase().includes("LCA") ||
+        asset.name.toUpperCase().includes("CRA") ||
+        asset.name.toUpperCase().includes("CRI")
+      ) {
+        codigo = "03 - Títulos isentos de tributação (LCI, LCA, CRI, CRA, etc.)";
+        typeLabel = "RENDA FIXA ISENTA (LCI/LCA/CRI/CRA)";
       } else {
-        codigo = '02 - Títulos públicos e privados sujeitos a tributação (Tesouro Direto, CDB, RDB, Debêntures)';
-        typeLabel = 'RENDA FIXA TRIBUTADA (CDB/TESOURO DIRETO)';
+        codigo =
+          "02 - Títulos públicos e privados sujeitos a tributação (Tesouro Direto, CDB, RDB, Debêntures)";
+        typeLabel = "RENDA FIXA TRIBUTADA (CDB/TESOURO DIRETO)";
       }
       break;
-    case 'CRYPTO':
-      grupo = '08 - Criptoativos';
-      if (ticker === 'BTC' || ticker === 'BTCUSD' || asset.name.toUpperCase().includes('BITCOIN')) {
-        codigo = '01 - Criptoativo Bitcoin (BTC)';
-        typeLabel = 'CRIPTOATIVO BITCOIN (BTC)';
-      } else if (ticker === 'ETH' || ticker === 'ETHUSD' || asset.name.toUpperCase().includes('ETHEREUM')) {
-        codigo = '02 - Outros criptoativos, conhecidos como altcoins (ETH, SOL, etc.)';
-        typeLabel = 'CRIPTOATIVO ALTCOIN (ETH)';
-      } else if (ticker === 'USDT' || ticker === 'USDC' || asset.name.toUpperCase().includes('STABLECOIN')) {
-        codigo = '03 - Criptoativos conhecidos como stablecoins (USDT, USDC, BUSD, etc.)';
-        typeLabel = 'CRIPTOATIVO STABLECOIN';
+    case "CRYPTO":
+      grupo = "08 - Criptoativos";
+      if (ticker === "BTC" || ticker === "BTCUSD" || asset.name.toUpperCase().includes("BITCOIN")) {
+        codigo = "01 - Criptoativo Bitcoin (BTC)";
+        typeLabel = "CRIPTOATIVO BITCOIN (BTC)";
+      } else if (
+        ticker === "ETH" ||
+        ticker === "ETHUSD" ||
+        asset.name.toUpperCase().includes("ETHEREUM")
+      ) {
+        codigo = "02 - Outros criptoativos, conhecidos como altcoins (ETH, SOL, etc.)";
+        typeLabel = "CRIPTOATIVO ALTCOIN (ETH)";
+      } else if (
+        ticker === "USDT" ||
+        ticker === "USDC" ||
+        asset.name.toUpperCase().includes("STABLECOIN")
+      ) {
+        codigo = "03 - Criptoativos conhecidos como stablecoins (USDT, USDC, BUSD, etc.)";
+        typeLabel = "CRIPTOATIVO STABLECOIN";
       } else {
-        codigo = '99 - Outros criptoativos';
-        typeLabel = 'CRIPTOATIVO';
+        codigo = "99 - Outros criptoativos";
+        typeLabel = "CRIPTOATIVO";
       }
       break;
-    case 'FUND':
-      grupo = '07 - Fundos';
-      codigo = '99 - Outros fundos';
-      typeLabel = 'FUNDO DE INVESTIMENTO';
+    case "FUND":
+      grupo = "07 - Fundos";
+      codigo = "99 - Outros fundos";
+      typeLabel = "FUNDO DE INVESTIMENTO";
       break;
     default:
-      grupo = '99 - Outros Bens e Direitos';
-      codigo = '99 - Outros bens e direitos';
-      typeLabel = 'OUTRO ATIVO FINANCEIRO';
+      grupo = "99 - Outros Bens e Direitos";
+      codigo = "99 - Outros bens e direitos";
+      typeLabel = "OUTRO ATIVO FINANCEIRO";
       break;
   }
 
-  if (asset.location === 'ABROAD') {
-    typeLabel += ' NO EXTERIOR';
+  if (asset.location === "ABROAD") {
+    typeLabel += " NO EXTERIOR";
   }
 
-  const tickerStr = ticker ? ` (Ticker: ${ticker})` : '';
-  const cnpjStr = cnpj ? ` CNPJ do emissor: ${cnpj}.` : '';
-  const brokerName = asset.broker_name || 'Não informada';
-  const currencySymbol = asset.currency === 'USD' ? 'US$' : asset.currency === 'EUR' ? '€' : 'R$';
-  const originalCurrency = asset.currency || 'BRL';
+  const tickerStr = ticker ? ` (Ticker: ${ticker})` : "";
+  const cnpjStr = cnpj ? ` CNPJ do emissor: ${cnpj}.` : "";
+  const brokerName = asset.broker_name || "Não informada";
+  const currencySymbol = asset.currency === "USD" ? "US$" : asset.currency === "EUR" ? "€" : "R$";
+  const originalCurrency = asset.currency || "BRL";
 
   // Discriminação super detalhada aceita pela Receita Federal
-  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade consolidada em 31/12/${year}: ${quantity.toLocaleString('pt-BR', { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
+  const discriminacao = `${typeLabel}${tickerStr} - ${companyName}.${cnpjStr} Quantidade consolidada em 31/12/${year}: ${quantity.toLocaleString("pt-BR", { maximumFractionDigits: 8 })}. Preço médio de aquisição: ${currencySymbol} ${purchasePrice.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })} (${originalCurrency}). Custodiado na instituição/corretora: ${brokerName}. Custo histórico total de aquisição: R$ ${totalCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}.`;
 
   return {
     grupo,
@@ -254,34 +305,36 @@ export const getIRDetails = (
     locationCode,
     discriminacao,
     situacaoAnterior,
-    situacaoAtual
+    situacaoAtual,
   };
 };
 
 export const exportPortfolioToPDF = (assets: Asset[]) => {
   const doc = new jsPDF();
-  const today = new Date().toLocaleDateString('pt-BR');
-  const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const today = new Date().toLocaleDateString("pt-BR");
+  const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   // 1. Cabeçalho e Branding Premium
   doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
-  doc.rect(0, 0, 210, 40, 'F');
-  
+  doc.rect(0, 0, 210, 40, "F");
+
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('controle financeiro', 14, 23);
-  
+  doc.setFont("helvetica", "bold");
+  doc.text("controle financeiro", 14, 23);
+
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Carteira de Investimentos Consolidada', 14, 31);
-  
+  doc.setFont("helvetica", "normal");
+  doc.text("Carteira de Investimentos Consolidada", 14, 31);
+
   doc.setFontSize(9);
   doc.text(`Emitido em: ${today} às ${now}`, 150, 23);
 
   // Totals Calculation
-  const totalsByCurrency = assets.reduce<Record<string, { cost: number; current: number; pnl: number }>>((acc, asset) => {
-    const currency = asset.currency || 'BRL';
+  const totalsByCurrency = assets.reduce<
+    Record<string, { cost: number; current: number; pnl: number }>
+  >((acc, asset) => {
+    const currency = asset.currency || "BRL";
     const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
     const current = (asset.quantity || 0) * (asset.current_price || 0);
     if (!acc[currency]) acc[currency] = { cost: 0, current: 0, pnl: 0 };
@@ -294,11 +347,11 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
   // Executive Summary Card
   doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Resumo do Patrimônio', 14, 52);
+  doc.setFont("helvetica", "bold");
+  doc.text("Resumo do Patrimônio", 14, 52);
 
   safeCallAutoTable(doc, {
-    head: [['Moeda', 'Custo', 'Valor Atual', 'Lucro/Prejuízo']],
+    head: [["Moeda", "Custo", "Valor Atual", "Lucro/Prejuízo"]],
     body: Object.entries(totalsByCurrency).map(([currency, total]) => [
       currency,
       formatCurrency(total.cost, currency),
@@ -306,25 +359,25 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
       formatCurrency(total.pnl, currency),
     ]),
     startY: 56,
-    theme: 'striped',
+    theme: "striped",
     styles: { fontSize: 10, cellPadding: 2.5 },
     headStyles: { fillColor: BRAND_COLOR },
-    columnStyles: { 
-      0: { fontStyle: 'bold', textColor: [100, 110, 120] },
-      1: { fontStyle: 'bold', textColor: TEXT_COLOR },
-      2: { fontStyle: 'bold', textColor: [100, 110, 120] },
-      3: { fontStyle: 'bold' }
-    }
+    columnStyles: {
+      0: { fontStyle: "bold", textColor: [100, 110, 120] },
+      1: { fontStyle: "bold", textColor: TEXT_COLOR },
+      2: { fontStyle: "bold", textColor: [100, 110, 120] },
+      3: { fontStyle: "bold" },
+    },
   });
 
   const nextStartY = getNextStartY(doc, 80);
 
   // Assets Table
   doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Detalhamento de Ativos', 14, nextStartY);
+  doc.setFont("helvetica", "bold");
+  doc.text("Detalhamento de Ativos", 14, nextStartY);
 
-  const tableData = assets.map(asset => {
+  const tableData = assets.map((asset) => {
     const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
     const current = (asset.quantity || 0) * (asset.current_price || 0);
     const pnl = current - cost;
@@ -333,33 +386,33 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
     return [
       asset.ticker || asset.name,
       asset.type,
-      asset.location === 'BR' ? 'Brasil' : 'Exterior',
-      asset.quantity?.toFixed(4).replace(/\.?0+$/, '') || '0',
-      formatCurrency(asset.purchase_price || 0, asset.currency || 'BRL'),
-      formatCurrency(current, asset.currency || 'BRL'),
-      `${pnl >= 0 ? '+' : ''}${formatCurrency(pnl, asset.currency || 'BRL')} (${pnlPercent.toFixed(2)}%)`
+      asset.location === "BR" ? "Brasil" : "Exterior",
+      asset.quantity?.toFixed(4).replace(/\.?0+$/, "") || "0",
+      formatCurrency(asset.purchase_price || 0, asset.currency || "BRL"),
+      formatCurrency(current, asset.currency || "BRL"),
+      `${pnl >= 0 ? "+" : ""}${formatCurrency(pnl, asset.currency || "BRL")} (${pnlPercent.toFixed(2)}%)`,
     ];
   });
 
   safeCallAutoTable(doc, {
-    head: [['Ativo', 'Tipo', 'Local', 'Qtd', 'Preço Médio', 'Valor Atual', 'PnL Total']],
+    head: [["Ativo", "Tipo", "Local", "Qtd", "Preço Médio", "Valor Atual", "PnL Total"]],
     body: tableData,
     startY: nextStartY + 5,
-    theme: 'striped',
-    headStyles: { fillColor: BRAND_COLOR, fontSize: 9.5, halign: 'center' },
-    bodyStyles: { fontSize: 9, halign: 'center' },
+    theme: "striped",
+    headStyles: { fillColor: BRAND_COLOR, fontSize: 9.5, halign: "center" },
+    bodyStyles: { fontSize: 9, halign: "center" },
     columnStyles: {
-      0: { halign: 'left', fontStyle: 'bold' },
-      6: { fontStyle: 'bold' }
+      0: { halign: "left", fontStyle: "bold" },
+      6: { fontStyle: "bold" },
     },
-    
+
     didParseCell: (cellData: Record<string, any>) => {
-      if (cellData.section === 'body' && cellData.column.index === 6) {
+      if (cellData.section === "body" && cellData.column.index === 6) {
         const text = cellData.cell.text[0];
-        if (text.startsWith('+')) cellData.cell.styles.textColor = [16, 185, 129];
-        else if (text.startsWith('-')) cellData.cell.styles.textColor = [239, 68, 68];
+        if (text.startsWith("+")) cellData.cell.styles.textColor = [16, 185, 129];
+        else if (text.startsWith("-")) cellData.cell.styles.textColor = [239, 68, 68];
       }
-    }
+    },
   });
 
   // Footer
@@ -368,29 +421,31 @@ export const exportPortfolioToPDF = (assets: Asset[]) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
   }
 
-  doc.save(`carteira_seu_bolso_inteligente_${today.replace(/\//g, '-')}.pdf`);
+  doc.save(`carteira_seu_bolso_inteligente_${today.replace(/\//g, "-")}.pdf`);
 };
 
 const downloadExcel = (htmlContent: string, filename: string) => {
-  const safeFilename = filename.replace(/\.csv$/, '.xls');
-  const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-  const link = document.createElement('a');
+  const safeFilename = filename.replace(/\.csv$/, ".xls");
+  const blob = new Blob([htmlContent], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', safeFilename);
-  link.style.visibility = 'hidden';
+  link.setAttribute("download", safeFilename);
+  link.style.visibility = "hidden";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
 
 export const exportToCSV = (assets: Asset[]) => {
-  const today = new Date().toLocaleDateString('pt-BR');
-  
-  const totalsByCurrency = assets.reduce<Record<string, { cost: number; current: number; pnl: number }>>((acc, asset) => {
-    const currency = asset.currency || 'BRL';
+  const today = new Date().toLocaleDateString("pt-BR");
+
+  const totalsByCurrency = assets.reduce<
+    Record<string, { cost: number; current: number; pnl: number }>
+  >((acc, asset) => {
+    const currency = asset.currency || "BRL";
     const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
     const current = (asset.quantity || 0) * (asset.current_price || 0);
     if (!acc[currency]) acc[currency] = { cost: 0, current: 0, pnl: 0 };
@@ -399,8 +454,10 @@ export const exportToCSV = (assets: Asset[]) => {
     acc[currency].pnl += current - cost;
     return acc;
   }, {});
-  const summaryText = (field: 'cost' | 'current' | 'pnl') =>
-    Object.entries(totalsByCurrency).map(([currency, total]) => formatCurrency(total[field], currency)).join(' / ');
+  const summaryText = (field: "cost" | "current" | "pnl") =>
+    Object.entries(totalsByCurrency)
+      .map(([currency, total]) => formatCurrency(total[field], currency))
+      .join(" / ");
 
   let html = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -439,13 +496,13 @@ export const exportToCSV = (assets: Asset[]) => {
       </tr>
       <tr>
         <td class="label-cell">Patrimônio Total:</td>
-        <td colspan="2" class="value-cell text-cell green-text">${summaryText('current')}</td>
+        <td colspan="2" class="value-cell text-cell green-text">${summaryText("current")}</td>
         <td class="label-cell">Lucro/Prejuízo Total:</td>
-        <td colspan="2" class="value-cell text-cell">${summaryText('pnl')}</td>
+        <td colspan="2" class="value-cell text-cell">${summaryText("pnl")}</td>
         <td class="label-cell">Custo Total:</td>
-        <td colspan="2" class="value-cell text-cell">${summaryText('cost')}</td>
+        <td colspan="2" class="value-cell text-cell">${summaryText("cost")}</td>
         <td class="label-cell">Moedas:</td>
-        <td colspan="2" class="value-cell text-cell">${Object.keys(totalsByCurrency).join(' / ')}</td>
+        <td colspan="2" class="value-cell text-cell">${Object.keys(totalsByCurrency).join(" / ")}</td>
       </tr>
       <tr><td colspan="12" style="border:none; height: 15px;"></td></tr>
 
@@ -469,7 +526,7 @@ export const exportToCSV = (assets: Asset[]) => {
   `;
 
   assets.forEach((asset, index) => {
-    const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
+    const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : "";
     const cost = (asset.quantity || 0) * (asset.purchase_price || 0);
     const currentValue = (asset.quantity || 0) * (asset.current_price || 0);
     const pnl = currentValue - cost;
@@ -479,16 +536,16 @@ export const exportToCSV = (assets: Asset[]) => {
       <tr ${zebraClass}>
         <td class="text-cell" style="font-weight: bold;">${asset.ticker || asset.name}</td>
         <td class="text-cell">${asset.type}</td>
-        <td class="text-cell">${asset.location === 'BR' ? 'Brasil' : 'Exterior'}</td>
+        <td class="text-cell">${asset.location === "BR" ? "Brasil" : "Exterior"}</td>
         <td class="qty-cell">${asset.quantity || 0}</td>
         <td class="number-cell">${asset.purchase_price || 0}</td>
         <td class="number-cell">${asset.current_price || 0}</td>
         <td class="number-cell" style="font-weight: bold;">${currentValue}</td>
-        <td class="text-cell">${asset.currency || 'BRL'}</td>
-        <td class="number-cell ${pnl >= 0 ? 'green-text' : 'red-text'}">${pnl}</td>
-        <td class="number-cell ${pnl >= 0 ? 'green-text' : 'red-text'}">${pnlPercent.toFixed(2)}%</td>
-        <td class="text-cell">${asset.sector || ''}</td>
-        <td class="text-cell">${asset.broker_name || ''}</td>
+        <td class="text-cell">${asset.currency || "BRL"}</td>
+        <td class="number-cell ${pnl >= 0 ? "green-text" : "red-text"}">${pnl}</td>
+        <td class="number-cell ${pnl >= 0 ? "green-text" : "red-text"}">${pnlPercent.toFixed(2)}%</td>
+        <td class="text-cell">${asset.sector || ""}</td>
+        <td class="text-cell">${asset.broker_name || ""}</td>
       </tr>
     `;
   });
@@ -499,7 +556,7 @@ export const exportToCSV = (assets: Asset[]) => {
     </html>
   `;
 
-  downloadExcel(html, `investimentos_seu_bolso_inteligente_${today.replace(/\//g, '-')}.xls`);
+  downloadExcel(html, `investimentos_seu_bolso_inteligente_${today.replace(/\//g, "-")}.xls`);
 };
 
 /**
@@ -508,17 +565,20 @@ export const exportToCSV = (assets: Asset[]) => {
 export const exportToIRPDF = async (assets: Asset[]) => {
   if (!assets || assets.length === 0) return;
   const doc = new jsPDF();
-  const today = new Date().toLocaleDateString('pt-BR');
-  const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const today = new Date().toLocaleDateString("pt-BR");
+  const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   const year = new Date().getFullYear();
 
   // Buscar todas as transações de ativos para os ativos em questão no Supabase
   const { data: transactions, error } = await supabase
-    .from('asset_transactions')
-    .select('*')
-    .in('asset_id', assets.map(a => a.id))
-    .order('date', { ascending: true })
-    .order('created_at', { ascending: true });
+    .from("asset_transactions")
+    .select("*")
+    .in(
+      "asset_id",
+      assets.map((a) => a.id)
+    )
+    .order("date", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     logger.error("Erro ao buscar transações de ativos para IR PDF:", error);
@@ -528,29 +588,33 @@ export const exportToIRPDF = async (assets: Asset[]) => {
 
   // 1. Cabeçalho e Branding Premium
   doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
-  doc.rect(0, 0, 210, 40, 'F');
-  
+  doc.rect(0, 0, 210, 40, "F");
+
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('controle financeiro', 14, 23);
-  
+  doc.setFont("helvetica", "bold");
+  doc.text("controle financeiro", 14, 23);
+
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   doc.text(`Auxiliar de Imposto de Renda — Ano-Calendário ${year - 1}`, 14, 31);
-  
+
   doc.setFontSize(9);
   doc.text(`Emitido em: ${today} às ${now}`, 150, 23);
 
   doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont("helvetica", "bold");
   doc.text(`Declaração de Bens e Direitos - Posição em 31/12/${year - 1}`, 14, 50);
-  
+
   doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'italic');
+  doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text('AVISO: Este relatório é um demonstrativo auxiliar e informativo com base no custo histórico de aquisição. Use os informes oficiais.', 14, 55);
+  doc.text(
+    "AVISO: Este relatório é um demonstrativo auxiliar e informativo com base no custo histórico de aquisição. Use os informes oficiais.",
+    14,
+    55
+  );
 
   let currentY = 62;
   let declaredCount = 0;
@@ -558,15 +622,22 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   assets.forEach((asset) => {
     const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
     const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
-    
+
     // Se a quantidade consolidada no final de ambos os anos for zero, não declaramos esse ativo na ficha de Bens e Direitos para não poluir
     if (posAnt.quantity === 0 && posAtu.quantity === 0) {
       return;
     }
 
     declaredCount++;
-    const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
-    
+    const ir = getIRDetails(
+      asset,
+      year - 1,
+      posAnt.totalCost,
+      posAtu.totalCost,
+      posAtu.quantity,
+      posAtu.avgPrice
+    );
+
     // Verifica espaço na página
     if (currentY > 230) {
       doc.addPage();
@@ -575,85 +646,105 @@ export const exportToIRPDF = async (assets: Asset[]) => {
 
     // Card background
     doc.setFillColor(249, 250, 251);
-    doc.rect(14, currentY, 182, 45, 'F');
+    doc.rect(14, currentY, 182, 45, "F");
     doc.setDrawColor(229, 231, 235);
-    doc.rect(14, currentY, 182, 45, 'S');
-    
+    doc.rect(14, currentY, 182, 45, "S");
+
     // Título / Ticker
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
     doc.text(`${declaredCount}. ${asset.ticker || asset.name} (${asset.type})`, 18, currentY + 7);
-    
+
     // Grupo e Código
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(100, 110, 120);
-    doc.text(`GRUPO: ${ir.grupo}   |   CÓDIGO: ${ir.codigo}   |   LOCAL: ${ir.locationCode}`, 18, currentY + 12);
-    
+    doc.text(
+      `GRUPO: ${ir.grupo}   |   CÓDIGO: ${ir.codigo}   |   LOCAL: ${ir.locationCode}`,
+      18,
+      currentY + 12
+    );
+
     // Discriminação
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
     const splitDescription = doc.splitTextToSize(ir.discriminacao, 174);
     doc.text(splitDescription, 18, currentY + 17);
-    
+
     // Situações Financeiras
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text(`Situação em 31/12/${year - 2}: R$ ${ir.situacaoAnterior.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 18, currentY + 40);
-    doc.text(`Situação em 31/12/${year - 1}: R$ ${ir.situacaoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 105, currentY + 40);
-    
+    doc.text(
+      `Situação em 31/12/${year - 2}: R$ ${ir.situacaoAnterior.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      18,
+      currentY + 40
+    );
+    doc.text(
+      `Situação em 31/12/${year - 1}: R$ ${ir.situacaoAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+      105,
+      currentY + 40
+    );
+
     currentY += 50;
   });
 
   if (declaredCount === 0) {
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text('Nenhum ativo com saldo para declarar nesta ficha no período selecionado.', 14, currentY + 10);
+    doc.text(
+      "Nenhum ativo com saldo para declarar nesta ficha no período selecionado.",
+      14,
+      currentY + 10
+    );
     currentY += 20;
   }
 
   // --- OPERATIONS SECTION (RENDA VARIÁVEL / GANHOS DE CAPITAL) ---
   doc.addPage();
-  
+
   // Cabeçalho da página de operações
   doc.setFillColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2]);
-  doc.rect(0, 0, 210, 25, 'F');
+  doc.rect(0, 0, 210, 25, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text('controle financeiro', 14, 12);
+  doc.setFont("helvetica", "bold");
+  doc.text("controle financeiro", 14, 12);
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   doc.text(`Demonstrativo de Operações de Ativos — Ano-Calendário ${year - 1}`, 14, 19);
 
   doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont("helvetica", "bold");
   doc.text(`Histórico de Compras e Vendas (01/01/${year - 1} a 31/12/${year - 1})`, 14, 38);
-  
+
   doc.setFontSize(8.5);
-  doc.setFont('helvetica', 'italic');
+  doc.setFont("helvetica", "italic");
   doc.setTextColor(120);
-  doc.text('Utilize esta tabela para auxiliar no preenchimento de suas declarações mensais ou anuais de Renda Variável.', 14, 43);
+  doc.text(
+    "Utilize esta tabela para auxiliar no preenchimento de suas declarações mensais ou anuais de Renda Variável.",
+    14,
+    43
+  );
 
   // Coletar transações ocorridas no ano-calendário
   // Se a tabela de transações reais estava vazia para um ativo, nós incluímos o seed virtual dele na listagem se a data for no ano
   const yearStart = `${year - 1}-01-01`;
   const yearEnd = `${year - 1}-12-31`;
-  
+
   const allTxsForListing: AssetTransaction[] = [];
-  assets.forEach(asset => {
+  assets.forEach((asset) => {
     const txs = getAssetTransactions(asset, allTxs);
-    txs.forEach(tx => {
+    txs.forEach((tx) => {
       if (tx.date >= yearStart && tx.date <= yearEnd) {
         allTxsForListing.push({
           ...tx,
           ticker: asset.ticker || asset.name,
           name: asset.name,
-          currency: asset.currency || 'BRL'
+          currency: asset.currency || "BRL",
         });
       }
     });
@@ -663,44 +754,50 @@ export const exportToIRPDF = async (assets: Asset[]) => {
   allTxsForListing.sort((a, b) => a.date.localeCompare(b.date));
 
   if (allTxsForListing.length === 0) {
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text('Nenhuma operação realizada de compra ou venda identificada para este ano-calendário.', 14, 53);
+    doc.text(
+      "Nenhuma operação realizada de compra ou venda identificada para este ano-calendário.",
+      14,
+      53
+    );
   } else {
-    const opsData = allTxsForListing.map(tx => {
+    const opsData = allTxsForListing.map((tx) => {
       const total = Number(tx.quantity) * Number(tx.price);
-      const typeStr = tx.type === 'BUY' ? 'COMPRA' : 'VENDA';
-      const dateStr = tx.date.split('-').reverse().join('/');
+      const typeStr = tx.type === "BUY" ? "COMPRA" : "VENDA";
+      const dateStr = tx.date.split("-").reverse().join("/");
       return [
         dateStr,
-        (tx.ticker || '').toUpperCase(),
-        tx.name || '',
+        (tx.ticker || "").toUpperCase(),
+        tx.name || "",
         typeStr,
-        Number(tx.quantity).toLocaleString('pt-BR', { maximumFractionDigits: 8 }),
+        Number(tx.quantity).toLocaleString("pt-BR", { maximumFractionDigits: 8 }),
         formatCurrency(Number(tx.price), tx.currency),
-        formatCurrency(total, tx.currency)
+        formatCurrency(total, tx.currency),
       ];
     });
 
     safeCallAutoTable(doc, {
-      head: [['Data', 'Ticker', 'Nome do Ativo', 'Operação', 'Quantidade', 'Preço Unit.', 'Valor Total']],
+      head: [
+        ["Data", "Ticker", "Nome do Ativo", "Operação", "Quantidade", "Preço Unit.", "Valor Total"],
+      ],
       body: opsData,
       startY: 48,
-      theme: 'striped',
-      headStyles: { fillColor: BRAND_COLOR, fontSize: 9, halign: 'center' },
-      bodyStyles: { fontSize: 8, halign: 'center' },
+      theme: "striped",
+      headStyles: { fillColor: BRAND_COLOR, fontSize: 9, halign: "center" },
+      bodyStyles: { fontSize: 8, halign: "center" },
       columnStyles: {
-        2: { halign: 'left' },
-        3: { fontStyle: 'bold' }
+        2: { halign: "left" },
+        3: { fontStyle: "bold" },
       },
-      
+
       didParseCell: (cellData: Record<string, any>) => {
-        if (cellData.section === 'body' && cellData.column.index === 3) {
+        if (cellData.section === "body" && cellData.column.index === 3) {
           const val = cellData.cell.text[0];
-          if (val === 'COMPRA') cellData.cell.styles.textColor = [16, 185, 129];
-          else if (val === 'VENDA') cellData.cell.styles.textColor = [239, 68, 68];
+          if (val === "COMPRA") cellData.cell.styles.textColor = [16, 185, 129];
+          else if (val === "VENDA") cellData.cell.styles.textColor = [239, 68, 68];
         }
-      }
+      },
     });
   }
 
@@ -710,7 +807,7 @@ export const exportToIRPDF = async (assets: Asset[]) => {
     doc.setPage(i);
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    doc.text(`Gestão Financeira | Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
   }
 
   doc.save(`auxiliar_ir_seu_bolso_inteligente_${year - 1}.pdf`);
@@ -722,15 +819,18 @@ export const exportToIRPDF = async (assets: Asset[]) => {
 export const exportToIRExcel = async (assets: Asset[]) => {
   if (!assets || assets.length === 0) return;
   const year = new Date().getFullYear();
-  const today = new Date().toLocaleDateString('pt-BR');
+  const today = new Date().toLocaleDateString("pt-BR");
 
   // Buscar transações
   const { data: transactions, error } = await supabase
-    .from('asset_transactions')
-    .select('*')
-    .in('asset_id', assets.map(a => a.id))
-    .order('date', { ascending: true })
-    .order('created_at', { ascending: true });
+    .from("asset_transactions")
+    .select("*")
+    .in(
+      "asset_id",
+      assets.map((a) => a.id)
+    )
+    .order("date", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     logger.error("Erro ao buscar transações de ativos para IR Excel:", error);
@@ -804,23 +904,30 @@ export const exportToIRExcel = async (assets: Asset[]) => {
   assets.forEach((asset) => {
     const posAnt = getPositionAtDate(asset, allTxs, `${year - 2}-12-31`);
     const posAtu = getPositionAtDate(asset, allTxs, `${year - 1}-12-31`);
-    
+
     // Filtro para não poluir Bens e Direitos com ativos de saldo zero em ambos os marcos
     if (posAnt.quantity === 0 && posAtu.quantity === 0) {
       return;
     }
 
     declaredCount++;
-    const zebraClass = declaredCount % 2 === 1 ? 'class="tr-zebra"' : '';
-    const ir = getIRDetails(asset, year - 1, posAnt.totalCost, posAtu.totalCost, posAtu.quantity, posAtu.avgPrice);
+    const zebraClass = declaredCount % 2 === 1 ? 'class="tr-zebra"' : "";
+    const ir = getIRDetails(
+      asset,
+      year - 1,
+      posAnt.totalCost,
+      posAtu.totalCost,
+      posAtu.quantity,
+      posAtu.avgPrice
+    );
 
     html += `
       <tr ${zebraClass}>
         <td class="text-cell">${ir.grupo}</td>
         <td class="text-cell">${ir.codigo}</td>
         <td class="text-cell">${ir.locationCode}</td>
-        <td class="text-cell">${ir.cnpj || 'N/A'}</td>
-        <td class="text-cell" style="font-weight: bold;">${(asset.ticker || '').toUpperCase()}</td>
+        <td class="text-cell">${ir.cnpj || "N/A"}</td>
+        <td class="text-cell" style="font-weight: bold;">${(asset.ticker || "").toUpperCase()}</td>
         <td class="text-cell">${asset.name}</td>
         <td class="text-cell" style="font-size: 10px; color: #4b5563;">${ir.discriminacao}</td>
         <td class="qty-cell">${posAtu.quantity}</td>
@@ -855,15 +962,15 @@ export const exportToIRExcel = async (assets: Asset[]) => {
   const yearEnd = `${year - 1}-12-31`;
 
   const allTxsForListing: AssetTransaction[] = [];
-  assets.forEach(asset => {
+  assets.forEach((asset) => {
     const txs = getAssetTransactions(asset, allTxs);
-    txs.forEach(tx => {
+    txs.forEach((tx) => {
       if (tx.date >= yearStart && tx.date <= yearEnd) {
         allTxsForListing.push({
           ...tx,
           ticker: asset.ticker || asset.name,
           name: asset.name,
-          currency: asset.currency || 'BRL'
+          currency: asset.currency || "BRL",
         });
       }
     });
@@ -880,16 +987,16 @@ export const exportToIRExcel = async (assets: Asset[]) => {
     `;
   } else {
     allTxsForListing.forEach((tx, index) => {
-      const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
+      const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : "";
       const total = Number(tx.quantity) * Number(tx.price);
-      const typeStr = tx.type === 'BUY' ? 'COMPRA' : 'VENDA';
-      const dateStr = tx.date.split('-').reverse().join('/');
-      const color = tx.type === 'BUY' ? '#059669' : '#dc2626';
+      const typeStr = tx.type === "BUY" ? "COMPRA" : "VENDA";
+      const dateStr = tx.date.split("-").reverse().join("/");
+      const color = tx.type === "BUY" ? "#059669" : "#dc2626";
 
       html += `
         <tr ${zebraClass}>
           <td class="text-cell">${dateStr}</td>
-          <td class="text-cell" style="font-weight: bold;">${(tx.ticker || '').toUpperCase()}</td>
+          <td class="text-cell" style="font-weight: bold;">${(tx.ticker || "").toUpperCase()}</td>
           <td class="text-cell">${tx.name}</td>
           <td class="text-cell" style="font-weight: bold; color: ${color};">${typeStr}</td>
           <td class="qty-cell">${Number(tx.quantity)}</td>

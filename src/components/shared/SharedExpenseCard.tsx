@@ -9,7 +9,6 @@ import {
   Undo2,
   Trash2,
   Clock,
-  CheckCircle,
   FastForward,
   ChevronDown,
   ChevronUp,
@@ -66,8 +65,6 @@ export function SharedExpenseCard({
 
   const pendingCount = items.filter((i) => !i.isPaid).length;
   const paidCount = items.filter((i) => i.isPaid).length;
-
-
 
   // Group items by trip
   const groups: Record<string, { tripName?: string; items: InvoiceItem[] }> = {};
@@ -195,8 +192,6 @@ export function SharedExpenseCard({
         </div>
       </div>
 
-
-
       {/* Accordion Toggle Button */}
       {items.length > 0 && (
         <button
@@ -257,12 +252,12 @@ export function SharedExpenseCard({
                           </p>
                           {item.creatorName && (
                             <div className="flex items-center gap-2 ml-2 shrink-0 bg-secondary/50 rounded-full pr-2">
-                              <UserAvatar 
-                                name={item.creatorName} 
+                              <UserAvatar
+                                name={item.creatorName}
                                 avatarUrl={item.creatorAvatarUrl}
                                 colorId={item.creatorAvatarColor || undefined}
                                 iconId={item.creatorAvatarIcon || undefined}
-                                className="h-5 w-5" 
+                                className="h-5 w-5"
                               />
                               <span className="text-sm font-bold uppercase tracking-wider text-secondary-foreground truncate max-w-[80px]">
                                 {item.creatorName.split(" ")[0]}

@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { CreditCard, Users, Wallet, Plane } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ShortcutProps {
   to: string;
@@ -16,26 +15,26 @@ export const DashboardQuickAccess = memo(function DashboardQuickAccess() {
       to: "/contas",
       icon: Wallet,
       title: "Contas",
-      colorName: "blue"
+      colorName: "blue",
     },
     {
       to: "/cartoes",
       icon: CreditCard,
       title: "Cartões",
-      colorName: "indigo"
+      colorName: "indigo",
     },
     {
       to: "/viagens",
       icon: Plane,
       title: "Viagens",
-      colorName: "orange"
+      colorName: "orange",
     },
     {
       to: "/compartilhados",
       icon: Users,
       title: "Grupos",
-      colorName: "emerald"
-    }
+      colorName: "emerald",
+    },
   ];
 
   return (

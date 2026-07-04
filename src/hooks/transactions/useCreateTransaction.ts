@@ -9,8 +9,6 @@ import {
   invalidateSharedQueries,
   invalidateTripQueries,
 } from "@/utils/queryInvalidation";
-import { transactionToasts } from "@/utils/toastMessages";
-import { showActionFeedback } from "@/components/ui/ActionFeedback";
 import { logger } from "@/utils/logger";
 import {
   generateAllNotifications,
@@ -192,10 +190,9 @@ export function useCreateTransaction() {
       const finalSplits = [...(input.splits || [])];
 
       if (input.is_shared) {
-        const totalPercentage = finalSplits.reduce(
-          (sum, s) => SafeFinancialCalculator.add(sum, Number(s.percentage || 0)),
-          0
-        );
+        const totalPercentage = SafeFinancialCalculator.safeSum(
+          finalSplits.map((s) => Number(s.percentage || 0))
+        ).toNumber();
 
         if (totalPercentage > 100) {
           throw new Error(
@@ -222,13 +219,16 @@ export function useCreateTransaction() {
               finalSplits[mySplitIndex] = {
                 ...finalSplits[mySplitIndex],
                 percentage: newPct,
-                amount: SafeFinancialCalculator.percentage(input.amount, newPct),
+                amount: SafeFinancialCalculator.percentage(input.amount, newPct).toNumber(),
               };
             } else if (myFamilyMemberId) {
               finalSplits.push({
                 member_id: myFamilyMemberId,
                 percentage: remainingPercentage,
-                amount: SafeFinancialCalculator.percentage(input.amount, remainingPercentage),
+                amount: SafeFinancialCalculator.percentage(
+                  input.amount,
+                  remainingPercentage
+                ).toNumber(),
               });
             }
           }

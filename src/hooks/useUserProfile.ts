@@ -63,16 +63,18 @@ export function useUserProfile() {
       if (data) {
         try {
           if (data.require_pin_on_open !== undefined) {
-            localStorage.setItem('@pedemeia:require_pin', JSON.stringify(data.require_pin_on_open));
+            localStorage.setItem("@pedemeia:require_pin", JSON.stringify(data.require_pin_on_open));
           }
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          /* ignore */
+        }
       }
 
       return { ...data, name: data.full_name } as UserProfile;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutos de cache
-    gcTime: 30 * 60 * 1000,   // Manter no cache por 30 minutos
+    gcTime: 30 * 60 * 1000, // Manter no cache por 30 minutos
   });
 }
 
@@ -81,8 +83,8 @@ export function useUpdateUserProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: { 
-      name?: string; 
+    mutationFn: async (input: {
+      name?: string;
       avatar_url?: string;
       avatar_color?: string;
       avatar_icon?: string;
@@ -104,7 +106,7 @@ export function useUpdateUserProfile() {
       const updateData: Record<string, any> = {
         updated_at: new Date().toISOString(),
       };
-      
+
       if (input.name !== undefined) {
         updateData.full_name = input.name;
       }
@@ -166,9 +168,11 @@ export function useUpdateUserProfile() {
       // Mantém o LocalStorage sincronizado com a fonte da verdade
       try {
         if (input.require_pin_on_open !== undefined) {
-          localStorage.setItem('@pedemeia:require_pin', JSON.stringify(input.require_pin_on_open));
+          localStorage.setItem("@pedemeia:require_pin", JSON.stringify(input.require_pin_on_open));
         }
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        /* ignore */
+      }
 
       // Also update auth metadata
       if (input.name) {
@@ -219,9 +223,9 @@ export function useDeleteAccount() {
       // ─── LGPD: Expurgo físico em cascata de todos os dados do usuário ───
       // Agora realizado via função segura e atômica no banco (RPC)
       // garantindo que não restem registros fantasmas nem falhas de rede intermediárias.
-      
-      const { error } = await supabase.rpc('delete_user_account');
-      
+
+      const { error } = await supabase.rpc("delete_user_account");
+
       if (error) {
         throw new Error(`Erro no banco de dados ao excluir conta: ${error.message}`);
       }

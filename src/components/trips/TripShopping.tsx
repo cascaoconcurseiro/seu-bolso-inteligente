@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Loader2, Plus, Trash2, ShoppingCart, Check } from 'lucide-react';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { CurrencyInput } from '@/components/ui/currency-input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Loader2, Plus, Trash2, ShoppingCart, Check } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { toast } from 'sonner';
-import { AITripSuggestions } from './AITripSuggestions';
+import { toast } from "sonner";
+import { AITripSuggestions } from "./AITripSuggestions";
 import { moneyUtils } from "@/utils/money";
+import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
 
 interface ShoppingItem {
   id: string;
@@ -32,20 +32,18 @@ interface TripShoppingProps {
 }
 
 export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripShoppingProps) {
-  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(
-    trip.shopping_list || []
-  );
-  const [newItem, setNewItem] = useState('');
-  const [newCost, setNewCost] = useState('');
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(trip.shopping_list || []);
+  const [newItem, setNewItem] = useState("");
+  const [newCost, setNewCost] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   const handleApplyAISuggestions = async (suggestions: any[]) => {
     setIsAdding(true);
-    const newItems: ShoppingItem[] = suggestions.map(s => ({
+    const newItems: ShoppingItem[] = suggestions.map((s) => ({
       id: crypto.randomUUID(),
       item: s.item,
       estimatedCost: Number(s.estimatedCost) || 0,
-      purchased: false
+      purchased: false,
     }));
 
     const updatedList = [...shoppingList, ...newItems];
@@ -56,7 +54,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
       toast.success(`${suggestions.length} itens adicionados com sucesso!`);
     } catch (error) {
       setShoppingList(shoppingList);
-      toast.error('Erro ao salvar sugestões');
+      toast.error("Erro ao salvar sugestões");
     } finally {
       setIsAdding(false);
     }
@@ -72,13 +70,13 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
   const handleAddItem = async () => {
     if (!newItem.trim()) {
-      toast.error('Digite o nome do item');
+      toast.error("Digite o nome do item");
       return;
     }
 
     const cost = getNumericCost();
     if (cost <= 0) {
-      toast.error('Digite um valor válido');
+      toast.error("Digite um valor válido");
       return;
     }
 
@@ -96,12 +94,12 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
     try {
       await onUpdateTrip({ shopping_list: updatedList });
-      setNewItem('');
-      setNewCost('');
-      toast.success('Item adicionado');
+      setNewItem("");
+      setNewCost("");
+      toast.success("Item adicionado");
     } catch (error) {
       setShoppingList(shoppingList);
-      toast.error('Erro ao adicionar item');
+      toast.error("Erro ao adicionar item");
     } finally {
       setIsAdding(false);
     }
@@ -117,7 +115,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
       await onUpdateTrip({ shopping_list: updatedList });
     } catch (error) {
       setShoppingList(shoppingList);
-      toast.error('Erro ao atualizar item');
+      toast.error("Erro ao atualizar item");
     }
   };
 
@@ -127,14 +125,17 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
 
     try {
       await onUpdateTrip({ shopping_list: updatedList });
-      toast.success('Item removido');
+      toast.success("Item removido");
     } catch (error) {
       setShoppingList(shoppingList);
-      toast.error('Erro ao remover item');
+      toast.error("Erro ao remover item");
     }
   };
 
-  const totalEstimated = shoppingList.reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost), 0);
+  const totalEstimated = shoppingList.reduce(
+    (sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost),
+    0
+  );
   const totalPurchased = shoppingList
     .filter((item) => item.purchased)
     .reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost), 0);
@@ -152,7 +153,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
             {trip.currency} {totalEstimated.toFixed(2)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {shoppingList.length} {shoppingList.length === 1 ? 'item' : 'itens'}
+            {shoppingList.length} {shoppingList.length === 1 ? "item" : "itens"}
           </p>
         </div>
 
@@ -176,7 +177,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
             <ShoppingCart className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-semibold">Adicionar Item</h3>
           </div>
-          <AITripSuggestions 
+          <AITripSuggestions
             type="shopping"
             destination={trip.destination || trip.name}
             currency={trip.currency}
@@ -188,12 +189,13 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
           <div className="space-y-2">
             <Label>Item</Label>
             <Input
-              id="shoppingItem" name="shoppingItem"
+              id="shoppingItem"
+              name="shoppingItem"
               placeholder="Ex: Protetor solar, Snorkel…"
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddItem();
                 }
@@ -215,18 +217,14 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                   currency={trip.currency}
                   className="pl-16"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       handleAddItem();
                     }
                   }}
                 />
               </div>
-              <Button
-                onClick={handleAddItem}
-                disabled={isAdding || isUpdating}
-                size="icon"
-              >
+              <Button onClick={handleAddItem} disabled={isAdding || isUpdating} size="icon">
                 {isAdding ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -255,8 +253,8 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
               key={item.id}
               className={cn(
                 "flex items-center gap-4 p-4 rounded-xl border transition-all duration-300",
-                item.purchased 
-                  ? "bg-muted/30 border-transparent opacity-70" 
+                item.purchased
+                  ? "bg-muted/30 border-transparent opacity-70"
                   : "bg-card/40 border-border/50 hover:bg-card/80 hover:shadow-sm"
               )}
             >
@@ -270,9 +268,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                 <p
                   className={cn(
                     "font-medium text-sm transition-all duration-300",
-                    item.purchased
-                      ? 'line-through text-muted-foreground'
-                      : 'text-foreground'
+                    item.purchased ? "line-through text-muted-foreground" : "text-foreground"
                   )}
                 >
                   {item.item}
@@ -282,9 +278,7 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
                 </p>
               </div>
 
-              {item.purchased && (
-                <Check className="h-4 w-4 text-positive flex-shrink-0" />
-              )}
+              {item.purchased && <Check className="h-4 w-4 text-positive flex-shrink-0" />}
 
               <Button
                 variant="ghost"

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export function VersionGuard() {
   const location = useLocation();
@@ -20,8 +20,8 @@ export function VersionGuard() {
         cache: "no-store",
         headers: {
           "Cache-Control": "no-cache",
-          "Pragma": "no-cache"
-        }
+          Pragma: "no-cache",
+        },
       });
 
       if (!response.ok) {
@@ -30,7 +30,7 @@ export function VersionGuard() {
       }
 
       const data = await response.json();
-      
+
       if (data && typeof data.buildTimestamp === "number") {
         if (initialTimestampRef.current === null) {
           // Salva o timestamp de build correspondente à versão carregada inicialmente
@@ -39,33 +39,34 @@ export function VersionGuard() {
           if (!updateAvailableRef.current) {
             updateAvailableRef.current = true;
 
-            toast('Nova versão disponível!', {
-              description: 'Acabamos de lançar novos recursos e correções. Atualize para continuar.',
+            toast("Nova versão disponível!", {
+              description:
+                "Acabamos de lançar novos recursos e correções. Atualize para continuar.",
               icon: <RefreshCw className="h-4 w-4 animate-spin text-primary" />,
               duration: Infinity,
               action: {
-                label: '🚀 Atualizar Agora',
+                label: "🚀 Atualizar Agora",
                 onClick: async () => {
                   // Remove os service workers e limpa o cache local para forçar a nova versão
-                  if ('serviceWorker' in navigator) {
+                  if ("serviceWorker" in navigator) {
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     for (const registration of registrations) {
                       await registration.unregister();
                     }
                   }
-                  if ('caches' in window) {
+                  if ("caches" in window) {
                     const keys = await caches.keys();
                     for (const key of keys) {
                       await caches.delete(key);
                     }
                   }
                   // Adiciona um timestamp na URL para quebrar o cache do navegador na raiz
-                  window.location.href = window.location.pathname + '?v=' + Date.now();
+                  window.location.href = window.location.pathname + "?v=" + Date.now();
                 },
               },
             });
           }
-          
+
           // Se houver Service Worker ativo do Vite PWA, forçar silenciosamente a checagem e atualização do service worker
           if ("serviceWorker" in navigator) {
             navigator.serviceWorker.getRegistrations().then((registrations) => {

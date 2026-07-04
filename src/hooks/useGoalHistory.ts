@@ -6,7 +6,7 @@ export interface GoalHistoryPoint {
   date: string;
   amount: number;
   cumulative: number;
-  type: 'EXPENSE' | 'INCOME';
+  type: "EXPENSE" | "INCOME";
 }
 
 export function useGoalHistory(goalId: string, goalName: string) {
@@ -28,14 +28,14 @@ export function useGoalHistory(goalId: string, goalName: string) {
       if (error) throw error;
 
       let cumulative = 0;
-      return (data || []).map(tx => {
-        const delta = tx.type === 'EXPENSE' ? Number(tx.amount) : -Number(tx.amount);
+      return (data || []).map((tx) => {
+        const delta = tx.type === "EXPENSE" ? Number(tx.amount) : -Number(tx.amount);
         cumulative += delta;
         return {
           date: tx.date,
           amount: delta,
           cumulative: Math.max(0, cumulative),
-          type: tx.type as 'EXPENSE' | 'INCOME',
+          type: tx.type as "EXPENSE" | "INCOME",
         };
       });
     },

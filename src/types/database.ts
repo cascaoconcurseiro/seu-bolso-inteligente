@@ -1,10 +1,10 @@
-import { Database as SupabaseDatabase } from '@/integrations/supabase/types';
+import { Database as SupabaseDatabase } from "@/integrations/supabase/types";
 
 export type Database = SupabaseDatabase;
 
-export type Goal = Database['public']['Tables']['goals']['Row'];
-export type Asset = Database['public']['Tables']['assets']['Row'];
-export type Budget = Database['public']['Tables']['budgets']['Row'];
+export type Goal = Database["public"]["Tables"]["goals"]["Row"];
+export type Asset = Database["public"]["Tables"]["assets"]["Row"];
+export type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 
 export interface GoalProgress {
   goal_id: string;

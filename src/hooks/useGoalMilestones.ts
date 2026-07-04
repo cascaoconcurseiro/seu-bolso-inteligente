@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export interface GoalMilestone {
   id: string;
@@ -16,14 +16,14 @@ export interface GoalMilestone {
 export function useGoalMilestones(goalId: string | null) {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ['goal-milestones', goalId],
+    queryKey: ["goal-milestones", goalId],
     queryFn: async (): Promise<GoalMilestone[]> => {
       if (!goalId) return [];
       const { data, error } = await supabase
-        .from('goal_milestones')
-        .select('*')
-        .eq('goal_id', goalId)
-        .order('target_pct');
+        .from("goal_milestones")
+        .select("*")
+        .eq("goal_id", goalId)
+        .order("target_pct");
       if (error) throw error;
       return data as GoalMilestone[];
     },
@@ -36,9 +36,17 @@ export function useCreateGoalMilestone() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ goalId, name, targetPct }: { goalId: string; name: string; targetPct: number }) => {
+    mutationFn: async ({
+      goalId,
+      name,
+      targetPct,
+    }: {
+      goalId: string;
+      name: string;
+      targetPct: number;
+    }) => {
       const { data, error } = await supabase
-        .from('goal_milestones')
+        .from("goal_milestones")
         .insert({ goal_id: goalId, user_id: user!.id, name, target_pct: targetPct })
         .select()
         .single();
@@ -46,10 +54,10 @@ export function useCreateGoalMilestone() {
       return data;
     },
     onSuccess: (_, v) => {
-      queryClient.invalidateQueries({ queryKey: ['goal-milestones', v.goalId] });
-      toast.success('Marco adicionado');
+      queryClient.invalidateQueries({ queryKey: ["goal-milestones", v.goalId] });
+      toast.success("Marco adicionado");
     },
-    onError: () => toast.error('Erro ao adicionar marco'),
+    onError: () => toast.error("Erro ao adicionar marco"),
   });
 }
 
@@ -57,15 +65,15 @@ export function useDeleteGoalMilestone() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, goalId }: { id: string; goalId: string }) => {
-      const { error } = await supabase.from('goal_milestones').delete().eq('id', id);
+      const { error } = await supabase.from("goal_milestones").delete().eq("id", id);
       if (error) throw error;
       return goalId;
     },
     onSuccess: (goalId) => {
-      queryClient.invalidateQueries({ queryKey: ['goal-milestones', goalId] });
-      toast.success('Marco removido');
+      queryClient.invalidateQueries({ queryKey: ["goal-milestones", goalId] });
+      toast.success("Marco removido");
     },
-    onError: () => toast.error('Erro ao remover marco'),
+    onError: () => toast.error("Erro ao remover marco"),
   });
 }
 
@@ -74,14 +82,14 @@ export function useMarkMilestoneReached() {
   return useMutation({
     mutationFn: async ({ id, goalId }: { id: string; goalId: string }) => {
       const { error } = await supabase
-        .from('goal_milestones')
+        .from("goal_milestones")
         .update({ reached_at: new Date().toISOString() })
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
       return goalId;
     },
     onSuccess: (goalId) => {
-      queryClient.invalidateQueries({ queryKey: ['goal-milestones', goalId] });
+      queryClient.invalidateQueries({ queryKey: ["goal-milestones", goalId] });
     },
   });
 }

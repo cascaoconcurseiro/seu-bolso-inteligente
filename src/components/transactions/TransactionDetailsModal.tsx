@@ -12,7 +12,6 @@ import {
   Edit,
   Trash2,
   FastForward,
-  HandCoins,
   Calendar,
   Wallet,
   Tag,
@@ -73,8 +72,14 @@ export function TransactionDetailsModal({
   const isShared = transaction.is_shared;
   const isInstallment = transaction.is_installment;
   const splits = transaction.transaction_splits || [];
-  const hasPendingSplits = splits.some((s: DBTransactionSplit) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor);
-  const isFullySettled = splits.length > 0 && splits.every((s: DBTransactionSplit) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor);
+  const hasPendingSplits = splits.some(
+    (s: DBTransactionSplit) => !s.is_settled && !s.settled_by_debtor && !s.settled_by_creditor
+  );
+  const isFullySettled =
+    splits.length > 0 &&
+    splits.every(
+      (s: DBTransactionSplit) => s.is_settled || s.settled_by_debtor || s.settled_by_creditor
+    );
 
   const getTransferTypeLabel = () => {
     const desc = transaction.description.toLowerCase();
@@ -314,20 +319,23 @@ export function TransactionDetailsModal({
 
           {/* Ações */}
           <div className="space-y-2.5">
-            {transaction.status === "CONFIRMED" && !!transaction.series_id && transaction.account?.type !== "CREDIT_CARD" && onUnconfirm && (
-              <Button
-                variant="outline"
-                className="w-full gap-2 text-warning border-warning/30 hover:bg-warning/10 hover:text-warning"
-                size="default"
-                onClick={() => {
-                  onOpenChange(false);
-                  onUnconfirm();
-                }}
-              >
-                <Undo2 className="h-5 w-5" />
-                Desmarcar pagamento
-              </Button>
-            )}
+            {transaction.status === "CONFIRMED" &&
+              !!transaction.series_id &&
+              transaction.account?.type !== "CREDIT_CARD" &&
+              onUnconfirm && (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 text-warning border-warning/30 hover:bg-warning/10 hover:text-warning"
+                  size="default"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onUnconfirm();
+                  }}
+                >
+                  <Undo2 className="h-5 w-5" />
+                  Desmarcar pagamento
+                </Button>
+              )}
 
             {onEdit && (
               <Button

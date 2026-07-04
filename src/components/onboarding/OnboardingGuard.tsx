@@ -18,14 +18,16 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     if (isSuccess && !isLoading && !isFetching && accounts !== undefined && accounts.length === 0) {
       if (profile?.id) {
         // Check if user permanently dismissed it
-        const hasCompleted = localStorage.getItem(`ONBOARDING_COMPLETED_${profile.id}`) || sessionStorage.getItem("ONBOARDING_COMPLETED");
+        const hasCompleted =
+          localStorage.getItem(`ONBOARDING_COMPLETED_${profile.id}`) ||
+          sessionStorage.getItem("ONBOARDING_COMPLETED");
         if (!hasCompleted) {
           setShowOnboarding(true);
         }
       } else if (!profile) {
         // Fallback for cases without profile yet but no session skip
         if (!sessionStorage.getItem("ONBOARDING_COMPLETED")) {
-           setShowOnboarding(true);
+          setShowOnboarding(true);
         }
       }
     }
@@ -43,14 +45,14 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     <>
       {children}
       {showOnboarding && (
-        <WelcomeOnboarding 
+        <WelcomeOnboarding
           onComplete={() => {
             if (profile?.id) {
               localStorage.setItem(`ONBOARDING_COMPLETED_${profile.id}`, "true");
             }
             sessionStorage.setItem("ONBOARDING_COMPLETED", "true");
             setShowOnboarding(false);
-          }} 
+          }}
         />
       )}
     </>

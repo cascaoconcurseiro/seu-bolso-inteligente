@@ -10,7 +10,6 @@ import { useAccounts } from "@/hooks/useAccounts";
 import { useTransactions } from "@/hooks/useTransactions";
 import { insertRecords } from "@/utils/supabaseHelpers";
 import { useAuth } from "@/contexts/AuthContext";
-import { CreateTransactionInput } from "@/hooks/useTransactions";
 import {
   Select,
   SelectContent,

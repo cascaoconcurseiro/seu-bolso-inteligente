@@ -1,18 +1,16 @@
 import { useMemo } from "react";
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 import { cn } from "@/lib/utils";
 
 interface WealthEvolutionChartProps {
-  wealthHistory: { month_label: string; balance: number; }[];
+  wealthHistory: { month_label: string; balance: number }[];
   formatCurrency: (value: number) => string;
 }
 
-export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: WealthEvolutionChartProps) {
+export default function WealthEvolutionChart({
+  wealthHistory,
+  formatCurrency,
+}: WealthEvolutionChartProps) {
   const isPositiveTrend = useMemo(() => {
     if (!wealthHistory || wealthHistory.length < 2) return true;
     const first = wealthHistory[0].balance;
@@ -29,9 +27,7 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
           <p className="text-muted-foreground text-[11px] uppercase tracking-wider mb-0.5">
             {payload[0].payload.month_label}
           </p>
-          <p className="font-display">
-            {formatCurrency(payload[0].value)}
-          </p>
+          <p className="font-display">{formatCurrency(payload[0].value)}</p>
         </div>
       );
     }
@@ -39,12 +35,20 @@ export default function WealthEvolutionChart({ wealthHistory, formatCurrency }: 
   };
 
   return (
-    <div className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart transition-all duration-300 hover:border-border/60" role="img" aria-label={`Gráfico de evolução patrimonial dos últimos 6 meses. Tendência ${isPositiveTrend ? 'positiva' : 'negativa'}.`}>
+    <div
+      className="w-full lg:w-[280px] h-[90px] rounded-2xl border border-border/30 bg-card/10 backdrop-blur-sm p-3.5 relative overflow-hidden group/chart transition-all duration-300 hover:border-border/60"
+      role="img"
+      aria-label={`Gráfico de evolução patrimonial dos últimos 6 meses. Tendência ${isPositiveTrend ? "positiva" : "negativa"}.`}
+    >
       <div className="absolute top-2.5 left-3.5 z-10 flex items-center gap-2 pointer-events-none">
-        <span className={cn(
-          "w-1.5 h-2 rounded-full animate-pulse",
-          isPositiveTrend ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
-        )} />
+        <span
+          className={cn(
+            "w-1.5 h-2 rounded-full animate-pulse",
+            isPositiveTrend
+              ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+              : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
+          )}
+        />
         <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
           Evolução (6 Meses)
         </p>

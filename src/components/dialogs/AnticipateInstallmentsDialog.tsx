@@ -301,9 +301,11 @@ export function AnticipateInstallmentsDialog({
                     <span className="font-medium">Valor total:</span>
                     <span className="font-mono font-bold">
                       {formatCurrency(
-                        futureInstallments
-                          .filter((i) => selectedIds.includes(i.id))
-                          .reduce((sum, i) => SafeFinancialCalculator.add(sum, i.amount), 0)
+                        SafeFinancialCalculator.safeSum(
+                          futureInstallments
+                            .filter((i) => selectedIds.includes(i.id))
+                            .map((i) => i.amount)
+                        ).toNumber()
                       )}
                     </span>
                   </div>

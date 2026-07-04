@@ -39,7 +39,11 @@ export function FormField({
           )}
         >
           {label}
-          {required && <span className="text-destructive ml-1" aria-hidden="true">*</span>}
+          {required && (
+            <span className="text-destructive ml-1" aria-hidden="true">
+              *
+            </span>
+          )}
         </Label>
       )}
       {children}
@@ -48,9 +52,7 @@ export function FormField({
           {error}
         </p>
       )}
-      {hint && !error && (
-        <p className="text-xs text-muted-foreground leading-snug">{hint}</p>
-      )}
+      {hint && !error && <p className="text-xs text-muted-foreground leading-snug">{hint}</p>}
     </div>
   );
 }

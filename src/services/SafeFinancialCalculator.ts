@@ -117,7 +117,7 @@ export class SafeFinancialCalculator {
    * Safe sum of array — returns Decimal
    */
   static safeSum(values: (number | Decimal)[]): Decimal {
-    const sum = values.reduce(
+    const sum = values.reduce<Decimal>(
       (acc, val) => acc.plus(SafeFinancialCalculator.toDecimal(val)),
       new Decimal(0)
     );
@@ -152,7 +152,10 @@ export class SafeFinancialCalculator {
   }
 
   /**
-   * Validate split amounts don't exceed total
+   * Validate split amounts don't exceed total.
+   * A soma pode ser menor que o total (o sistema auto-completa com a parte do
+   * criador), mas não pode exceder o total além de 1 centavo de arredondamento —
+   * mesma semântica da validação de splits do validationService.
    */
   static validateSplits(
     total: number | Decimal,
@@ -164,7 +167,7 @@ export class SafeFinancialCalculator {
     );
     const splitSumSafe = SafeFinancialCalculator.toSafeNumber(splitSum.toNumber());
 
-    return splitSumSafe === totalSafe;
+    return splitSumSafe <= totalSafe + 1;
   }
 
   /**

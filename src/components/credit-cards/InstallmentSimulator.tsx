@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Calculator, ChevronDown, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { NumericFormat } from "react-number-format";
@@ -12,7 +11,11 @@ interface InstallmentSimulatorProps {
   formatCurrency: (v: number) => string;
 }
 
-export function InstallmentSimulator({ creditLimit, currentBalance, formatCurrency }: InstallmentSimulatorProps) {
+export function InstallmentSimulator({
+  creditLimit,
+  currentBalance,
+  formatCurrency,
+}: InstallmentSimulatorProps) {
   const [open, setOpen] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState(0);
   const [installments, setInstallments] = useState(12);
@@ -20,9 +23,10 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
 
   const available = Math.max(0, (creditLimit ?? 0) - Math.abs(currentBalance));
   const monthly = purchaseAmount > 0 ? purchaseAmount / installments : 0;
-  const totalWithInterest = purchaseAmount > 0 && installments > 1
-    ? purchaseAmount * Math.pow(1 + interestRate / 100, installments)
-    : purchaseAmount;
+  const totalWithInterest =
+    purchaseAmount > 0 && installments > 1
+      ? purchaseAmount * Math.pow(1 + interestRate / 100, installments)
+      : purchaseAmount;
   const monthlyWithInterest = totalWithInterest / installments;
   const exceedsLimit = purchaseAmount > available;
 
@@ -30,7 +34,7 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
     <div className="mt-4 pt-3 border-t border-white/10">
       <button
         className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider opacity-80 hover:opacity-100 transition-opacity"
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen((v) => !v)}
       >
         <span className="flex items-center gap-1.5">
           <Calculator className="w-3.5 h-3.5" />
@@ -55,7 +59,9 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
               className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-white/50"
             />
             {exceedsLimit && (
-              <p className="text-xs text-red-300">⚠ Excede o limite disponível ({formatCurrency(available)})</p>
+              <p className="text-xs text-red-300">
+                ⚠ Excede o limite disponível ({formatCurrency(available)})
+              </p>
             )}
           </div>
 
@@ -74,7 +80,11 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
               className="accent-white"
             />
             <div className="flex justify-between text-xs text-white/40">
-              <span>1x</span><span>6x</span><span>12x</span><span>18x</span><span>24x</span>
+              <span>1x</span>
+              <span>6x</span>
+              <span>12x</span>
+              <span>18x</span>
+              <span>24x</span>
             </div>
           </div>
 
@@ -97,14 +107,17 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
 
           {/* Result */}
           {purchaseAmount > 0 && (
-            <div className={cn(
-              "rounded-xl p-3 space-y-2 border",
-              exceedsLimit ? "bg-red-500/20 border-red-400/30" : "bg-white/10 border-white/15"
-            )}>
+            <div
+              className={cn(
+                "rounded-xl p-3 space-y-2 border",
+                exceedsLimit ? "bg-red-500/20 border-red-400/30" : "bg-white/10 border-white/15"
+              )}
+            >
               <div className="flex justify-between items-center">
                 <span className="text-xs text-white/70">Parcela</span>
                 <span className="font-bold text-white text-sm">
-                  {installments}x {formatCurrency(installments === 1 ? purchaseAmount : monthlyWithInterest)}
+                  {installments}x{" "}
+                  {formatCurrency(installments === 1 ? purchaseAmount : monthlyWithInterest)}
                 </span>
               </div>
               {installments > 1 && interestRate > 0 && (
@@ -115,7 +128,9 @@ export function InstallmentSimulator({ creditLimit, currentBalance, formatCurren
                   </div>
                   <div className="flex justify-between items-center pt-1 border-t border-white/10">
                     <span className="text-xs text-white/70">Total com juros</span>
-                    <span className="text-xs font-semibold text-orange-300">{formatCurrency(totalWithInterest)}</span>
+                    <span className="text-xs font-semibold text-orange-300">
+                      {formatCurrency(totalWithInterest)}
+                    </span>
                   </div>
                 </>
               )}

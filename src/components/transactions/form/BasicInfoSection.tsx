@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Sparkles, Loader2 } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CategorySelector } from '../CategorySelector';
-import { parseLocalDate } from '@/utils/dateUtils';
-import { useTransactionStore } from '@/store/useTransactionStore';
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon, Sparkles, Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CategorySelector } from "../CategorySelector";
+import { parseLocalDate } from "@/utils/dateUtils";
+import { useTransactionStore } from "@/store/useTransactionStore";
 
 interface BasicInfoSectionProps {
   categories: any[];
@@ -33,8 +33,10 @@ export function BasicInfoSection({
   const setDate = useTransactionStore((state) => state.setDate);
   const categoryId = useTransactionStore((state) => state.categoryId);
   const _setCategoryId = useTransactionStore((state) => state.setCategoryId);
-  const _setHasUserSelectedCategoryManually = useTransactionStore((state) => state.setHasUserSelectedCategoryManually);
-  
+  const _setHasUserSelectedCategoryManually = useTransactionStore(
+    (state) => state.setHasUserSelectedCategoryManually
+  );
+
   const setCategoryId = (id: string) => {
     _setCategoryId(id);
     _setHasUserSelectedCategoryManually(true);
@@ -43,7 +45,7 @@ export function BasicInfoSection({
   const [descTouched, setDescTouched] = useState(false);
   const descError = descTouched && !description.trim();
 
-  const isTransfer = activeTab === 'TRANSFER';
+  const isTransfer = activeTab === "TRANSFER";
 
   return (
     <div className="space-y-4">
@@ -58,16 +60,21 @@ export function BasicInfoSection({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => setDescTouched(true)}
-            className={cn("pr-10 text-base relative z-10 bg-transparent", descError && "border-destructive focus-visible:ring-destructive animate-shake")}
+            className={cn(
+              "pr-10 text-base relative z-10 bg-transparent",
+              descError && "border-destructive focus-visible:ring-destructive animate-shake"
+            )}
           />
-          
+
           {isPredicting && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           )}
         </div>
-        {descError && <p className="text-xs text-destructive font-medium">Descrição é obrigatória</p>}
+        {descError && (
+          <p className="text-xs text-destructive font-medium">Descrição é obrigatória</p>
+        )}
       </div>
 
       {/* Date & Category (responsive: stacked on mobile, side by side on sm screens) */}
@@ -80,10 +87,10 @@ export function BasicInfoSection({
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  selectedTrip && (
-                  format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
-                  format(date, 'yyyy-MM-dd') > selectedTrip.end_date
-                  ) && "border-warning/40"
+                  selectedTrip &&
+                    (format(date, "yyyy-MM-dd") < selectedTrip.start_date ||
+                      format(date, "yyyy-MM-dd") > selectedTrip.end_date) &&
+                    "border-warning/40"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -99,12 +106,13 @@ export function BasicInfoSection({
               />
             </PopoverContent>
           </Popover>
-          {selectedTrip && (
-            format(date, 'yyyy-MM-dd') < selectedTrip.start_date ||
-            format(date, 'yyyy-MM-dd') > selectedTrip.end_date
-          ) && (
+          {selectedTrip &&
+            (format(date, "yyyy-MM-dd") < selectedTrip.start_date ||
+              format(date, "yyyy-MM-dd") > selectedTrip.end_date) && (
               <p className="text-sm font-bold text-warning dark:text-warning leading-tight">
-                ⚠️ Data fora do período da viagem ({format(parseLocalDate(selectedTrip.start_date), 'dd/MM/yy')} - {format(parseLocalDate(selectedTrip.end_date), 'dd/MM/yy')})
+                ⚠️ Data fora do período da viagem (
+                {format(parseLocalDate(selectedTrip.start_date), "dd/MM/yy")} -{" "}
+                {format(parseLocalDate(selectedTrip.end_date), "dd/MM/yy")})
               </p>
             )}
         </div>
@@ -120,11 +128,7 @@ export function BasicInfoSection({
             </Label>
 
             {categoriesLoading ? (
-              <Button
-                variant="outline"
-                disabled
-                className="w-full justify-between font-normal"
-              >
+              <Button variant="outline" disabled className="w-full justify-between font-normal">
                 <span className="text-muted-foreground">Carregando categorias...</span>
               </Button>
             ) : (
@@ -132,7 +136,7 @@ export function BasicInfoSection({
                 categories={categories || []}
                 value={categoryId}
                 onValueChange={setCategoryId}
-                type={activeTab === 'INCOME' ? 'income' : 'expense'}
+                type={activeTab === "INCOME" ? "income" : "expense"}
                 placeholder="Selecione uma categoria"
               />
             )}

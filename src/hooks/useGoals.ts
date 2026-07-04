@@ -4,6 +4,7 @@ import { Goal, GoalProgress } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { logger } from "@/utils/logger";
+import { callRPCWithRetry } from "@/utils/supabaseHelpers";
 
 // AUDITORIA 2026-05-10: Corrigido contributeToGoal — agora cria transação financeira
 // para rastrear o aporte no fluxo de caixa. Sem isso, o dinheiro "sumia" do saldo

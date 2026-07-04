@@ -14,6 +14,7 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     // Verificar se estamos em uma sessão de recuperação

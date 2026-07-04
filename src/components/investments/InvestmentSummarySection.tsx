@@ -1,5 +1,5 @@
-import { Globe, PieChart, TrendingUp, Coins } from 'lucide-react';
-import { formatCurrency } from '@/utils/currencyFormatter';
+import { Globe, PieChart, TrendingUp, Coins } from "lucide-react";
+import { formatCurrency } from "@/utils/currencyFormatter";
 
 interface InvestmentSummarySectionProps {
   totalBR: number;
@@ -10,10 +10,10 @@ interface InvestmentSummarySectionProps {
 }
 
 const ESTIMATED_RATES: Record<string, number> = {
-  'USD': 5.25,
-  'EUR': 5.65,
-  'GBP': 6.50,
-  'BRL': 1.0
+  USD: 5.25,
+  EUR: 5.65,
+  GBP: 6.5,
+  BRL: 1.0,
 };
 
 export function InvestmentSummarySection({
@@ -21,12 +21,11 @@ export function InvestmentSummarySection({
   totalsByCurrency,
   brAssetsCount,
   abroadAssetsCount,
-  assetTypesCount
+  assetTypesCount,
 }: InvestmentSummarySectionProps) {
-  
   const totalAbroadInBRL = Object.entries(totalsByCurrency).reduce((sum, [curr, val]) => {
     const rate = ESTIMATED_RATES[curr] || 5.0; // Fallback mais sensato que 5 fixo
-    return sum + (val * rate);
+    return sum + val * rate;
   }, 0);
 
   const totalEquity = totalBR + totalAbroadInBRL;
@@ -43,7 +42,7 @@ export function InvestmentSummarySection({
         <p className="text-base font-mono font-bold text-foreground">{formatCurrency(totalBR)}</p>
         <p className="text-sm text-muted-foreground mt-1">{brAssetsCount} ativos custodiados</p>
       </div>
-      
+
       <div className="p-4 rounded-2xl bg-card border border-border hover:border-accent/20 hover:shadow-lg transition-all group">
         <div className="flex items-center gap-2 text-muted-foreground mb-2">
           <div className="p-1 rounded-lg bg-accent/10 group-hover:bg-accent/20 transition-colors">
@@ -55,14 +54,16 @@ export function InvestmentSummarySection({
           {Object.keys(totalsByCurrency).length > 0 ? (
             Object.entries(totalsByCurrency).map(([curr, val]) => (
               <p key={curr} className="text-sm font-mono font-bold text-foreground">
-                {curr} {val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {curr} {val.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </p>
             ))
           ) : (
             <p className="text-base font-mono font-bold text-foreground/40">---</p>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">{abroadAssetsCount} ativos internacionais</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {abroadAssetsCount} ativos internacionais
+        </p>
       </div>
 
       <div className="p-4 rounded-2xl bg-card border border-border hover:border-green/20 hover:shadow-lg transition-all group">

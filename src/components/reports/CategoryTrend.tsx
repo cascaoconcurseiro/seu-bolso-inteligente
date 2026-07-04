@@ -19,7 +19,12 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
     const now = new Date();
     for (let i = 11; i >= 0; i--) {
       const d = subMonths(now, i);
-      result.push({ date: d, label: format(d, "MMM/yy", { locale: ptBR }), start: startOfMonth(d), end: endOfMonth(d) });
+      result.push({
+        date: d,
+        label: format(d, "MMM/yy", { locale: ptBR }),
+        start: startOfMonth(d),
+        end: endOfMonth(d),
+      });
     }
     return result;
   }, []);
@@ -31,7 +36,7 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
     for (const tx of transactions) {
       if (tx.type !== "EXPENSE" || tx.deleted_at) continue;
       const txDate = new Date(tx.date);
-      const monthIdx = months.findIndex(m => txDate >= m.start && txDate <= m.end);
+      const monthIdx = months.findIndex((m) => txDate >= m.start && txDate <= m.end);
       if (monthIdx === -1) continue;
 
       const cat = Array.isArray(tx.category) ? tx.category[0] : tx.category;
@@ -52,11 +57,9 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
       .slice(0, 12);
   }, [transactions, months]);
 
-  const filtered = selectedCategory
-    ? matrix.filter(c => c.id === selectedCategory)
-    : matrix;
+  const filtered = selectedCategory ? matrix.filter((c) => c.id === selectedCategory) : matrix;
 
-  const maxValue = useMemo(() => Math.max(...matrix.flatMap(c => c.months), 1), [matrix]);
+  const maxValue = useMemo(() => Math.max(...matrix.flatMap((c) => c.months), 1), [matrix]);
 
   if (matrix.length === 0) {
     return (
@@ -88,7 +91,7 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
         >
           Todas
         </button>
-        {matrix.slice(0, 8).map(c => (
+        {matrix.slice(0, 8).map((c) => (
           <button
             key={c.id}
             onClick={() => setSelectedCategory(selectedCategory === c.id ? null : c.id)}
@@ -109,18 +112,21 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
       <ScrollArea className="w-full mt-4">
         <div className="min-w-[700px] p-5 md:p-6 pt-0">
           {/* Header */}
-          <div className="grid text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3"
+          <div
+            className="grid text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3"
             style={{ gridTemplateColumns: `180px repeat(12, 1fr)` }}
           >
             <div>Categoria</div>
-            {months.map(m => (
-              <div key={m.label} className="text-center">{m.label}</div>
+            {months.map((m) => (
+              <div key={m.label} className="text-center">
+                {m.label}
+              </div>
             ))}
           </div>
 
           {/* Rows */}
           <div className="space-y-1">
-            {filtered.map(cat => {
+            {filtered.map((cat) => {
               const lastMonth = cat.months[11];
               const prevMonth = cat.months[10];
               const trend = prevMonth > 0 ? ((lastMonth - prevMonth) / prevMonth) * 100 : null;
@@ -136,8 +142,17 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
                     <div className="min-w-0">
                       <p className="text-xs font-semibold truncate">{cat.name}</p>
                       {trend !== null && (
-                        <p className={cn("text-xs flex items-center gap-0.5", trend > 0 ? "text-destructive" : "text-success")}>
-                          {trend > 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                        <p
+                          className={cn(
+                            "text-xs flex items-center gap-0.5",
+                            trend > 0 ? "text-destructive" : "text-success"
+                          )}
+                        >
+                          {trend > 0 ? (
+                            <TrendingUp className="w-2.5 h-2.5" />
+                          ) : (
+                            <TrendingDown className="w-2.5 h-2.5" />
+                          )}
                           {Math.abs(trend).toFixed(0)}% vs mês ant.
                         </p>
                       )}
@@ -158,7 +173,9 @@ export function CategoryTrend({ transactions, categories, formatCurrency }: Cate
                           />
                         </div>
                         <span className="text-[11px] text-muted-foreground font-medium text-center leading-tight">
-                          {val > 0 ? formatCurrency(val).replace("R$ ", "").replace("R$ ", "") : "–"}
+                          {val > 0
+                            ? formatCurrency(val).replace("R$ ", "").replace("R$ ", "")
+                            : "–"}
                         </span>
                       </div>
                     );

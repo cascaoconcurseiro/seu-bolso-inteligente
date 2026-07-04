@@ -1,10 +1,10 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ActionFeedback } from "@/components/ui/ActionFeedback";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import localforage from "localforage";
+import { createEncryptedForageStorage } from "@/utils/encryptedStorage";
 import { queryClient } from "@/config/queryClient";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -78,8 +78,9 @@ localforage.config({
   storeName: "reactQueryCache",
 });
 
+// Cache do React Query criptografado em repouso (AES-256-GCM) no IndexedDB — LGPD Art. 46
 const asyncStoragePersister = createAsyncStoragePersister({
-  storage: localforage,
+  storage: createEncryptedForageStorage(localforage),
 });
 
 const App = () => (
@@ -94,7 +95,6 @@ const App = () => (
             <TransactionModalProvider>
               <PrivacyProvider>
                 <TooltipProvider>
-                  <Toaster />
                   <Sonner />
                   <ActionFeedback />
 
