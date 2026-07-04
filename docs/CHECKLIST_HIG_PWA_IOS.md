@@ -24,22 +24,22 @@
 
 ## Fase 1 — PWA iOS: alto impacto
 
-- [ ] **Splash screens** (`apple-touch-startup-image`): gerar com
+- [x] **Splash screens** (24 geradas via scripts/generate-splash.js, light+dark) (`apple-touch-startup-image`): gerar com
       `pwa-asset-generator`, uma por resolução de device + variantes dark.
       Elimina o flash branco ao abrir da tela de início (maior denunciante de
       "não é nativo").
-- [ ] **Status bar translúcida**: trocar
+- [x] **Status bar translúcida** (+ safe-top no header): trocar
       `apple-mobile-web-app-status-bar-style` de `default` para
       `black-translucent` no index.html. As safe areas já existentes cuidam do
       conteúdo sob a Dynamic Island.
-- [ ] **theme-color por tema**: dois meta tags com
+- [x] **theme-color por tema**: dois meta tags com
       `media="(prefers-color-scheme: light/dark)"` para a barra acompanhar o
       dark mode.
-- [ ] **Banner de instalação iOS**: detectar Safari fora de standalone
+- [x] **Banner de instalação iOS** (IOSInstallPrompt, dispensa de 30 dias): detectar Safari fora de standalone
       (`!matchMedia('(display-mode: standalone)').matches` + userAgent iOS) e
       mostrar card "Compartilhar → Adicionar à Tela de Início". iOS não tem
       `beforeinstallprompt`.
-- [ ] **Gesto de voltar (edge-swipe)**: drag da borda esquerda → pop da tela
+- [x] **Gesto de voltar (edge-swipe)** (EdgeSwipeBack, rotas de detalhe): drag da borda esquerda → pop da tela
       (Framer Motion) nas telas de detalhe (conta, cartão, viagem). PWA
       standalone não tem o swipe-back do Safari.
 
@@ -54,7 +54,7 @@
       micro-feedback visual; o `whileTap scale` já existe).
 - [ ] **Overscroll**: `overscroll-behavior-y: none` no body; rubber-band só nas
       listas internas (não conflitar com PullToRefresh).
-- [ ] **Ícone**: conferir que `apple-touch-icon` é 180×180 **sem transparência**
+- [x] **Ícone**: apple-touch-icon.png 180px sem alpha gerado (o icon-192 tinha transparência) — conferir que `apple-touch-icon` é 180×180 **sem transparência**
       (alpha vira fundo preto no iOS).
 
 ## Fase 3 — HIG no app inteiro: navegação e estrutura

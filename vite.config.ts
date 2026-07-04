@@ -80,6 +80,8 @@ export default defineConfig(({ mode }) => {
         injectManifestConfig: {
           maximumFileSizeToCacheInBytes: 2097152, // 2MB
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+          // Splash screens iOS são buscadas pelo SO no launch — não precachear
+          globIgnores: ["splash/**"],
         },
       }),
     ].filter(Boolean),
