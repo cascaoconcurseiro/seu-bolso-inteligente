@@ -117,7 +117,9 @@
 - [x] Deduplicação OFX server-side — migration
       `20260704010000_ofx_dedup_unique_external_id.sql` (índice único parcial +
       soft-delete de duplicatas antigas) + import tolera 23505 linha a linha.
-      ⚠️ Aplicar a migration no Supabase (supabase db push ou dashboard)
+      ✅ APLICADA em produção via MCP (04/07). Descoberta no processo: a
+      coluna external_id NÃO EXISTIA em produção (drift schema/código — o
+      import OFX estava quebrado); a migration também cria a coluna
 - [ ] Onboarding interativo passo-a-passo
 - [x] Resumo semanal — JÁ IMPLEMENTADO em notificationGenerator
       (generateWeeklySummaryNotification, roda quando weekly_summary_enabled);

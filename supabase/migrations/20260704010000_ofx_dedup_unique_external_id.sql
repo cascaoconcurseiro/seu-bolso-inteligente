@@ -1,9 +1,14 @@
--- Deduplicação server-side de importação OFX
--- A dedup atual é feita em memória no frontend (compara com transações
--- carregadas); importar o mesmo arquivo em sessões diferentes podia duplicar.
--- Este índice único parcial garante a invariante no banco.
+-- Deduplicação server-side de importação OFX + correção de drift:
+-- o frontend grava external_id (FITID) mas a coluna não existia em produção,
+-- o que quebrava o import OFX (PostgREST rejeita coluna desconhecida).
+-- APLICADA em produção via MCP em 04/07/2026.
 
--- 1. Soft-deletar duplicatas pré-existentes (mantém a mais antiga de cada grupo)
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS external_id text;
+
+COMMENT ON COLUMN public.transactions.external_id IS
+  'FITID do OFX (ou id externo de import) — base da deduplicação server-side';
+
+-- Soft-deletar duplicatas pré-existentes (mantém a mais antiga de cada grupo)
 WITH dupes AS (
   SELECT id,
          ROW_NUMBER() OVER (
@@ -20,7 +25,7 @@ FROM dupes d
 WHERE t.id = d.id
   AND d.rn > 1;
 
--- 2. Índice único parcial: um FITID por usuário+conta entre transações vivas
+-- Índice único parcial: um FITID por usuário+conta entre transações vivas
 CREATE UNIQUE INDEX IF NOT EXISTS uq_transactions_user_account_external_id
   ON public.transactions (user_id, account_id, external_id)
   WHERE external_id IS NOT NULL AND deleted_at IS NULL;
