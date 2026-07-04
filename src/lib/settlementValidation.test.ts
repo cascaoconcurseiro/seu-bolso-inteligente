@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
+import { SafeFinancialCalculator } from '@/services/SafeFinancialCalculator';
 
 /**
  * Testes para Validação de Settlement
@@ -167,9 +168,10 @@ describe('Settlement Validation', () => {
         { amount: 200 },
         { amount: 300 },
       ];
-      const total = splits.reduce((sum, split) => SafeFinancialCalculator.add(sum, split.amount), 0);
-      
-      expect(total).toBeGreaterThan(0);
+      const total = SafeFinancialCalculator.safeSum(splits.map((s) => s.amount));
+
+      expect(total.toNumber()).toBe(600);
+      expect(total.greaterThan(0)).toBe(true);
     });
   });
 

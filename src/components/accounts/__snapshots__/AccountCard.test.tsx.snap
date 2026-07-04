@@ -2,9 +2,10 @@
 
 exports[`AccountCard > renders correctly (snapshot) 1`] = `
 <div
-  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden"
+  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
 >
   <a
+    aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
     href="/contas/acc-1"
   >
@@ -151,9 +152,10 @@ exports[`AccountCard > renders correctly (snapshot) 1`] = `
 
 exports[`AccountCard > renders international account (snapshot) 1`] = `
 <div
-  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden"
+  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
 >
   <a
+    aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
     href="/contas/acc-1"
   >
@@ -310,9 +312,10 @@ exports[`AccountCard > renders international account (snapshot) 1`] = `
 
 exports[`AccountCard > renders with hidden balance (snapshot) 1`] = `
 <div
-  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden"
+  class="group flex flex-col rounded-2xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background"
 >
   <a
+    aria-label="Conta: Conta Principal, saldo R$ 2500.50"
     class="flex flex-col flex-1"
     href="/contas/acc-1"
   >
