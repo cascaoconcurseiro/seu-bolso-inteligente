@@ -81,7 +81,7 @@
       form como sobrecarregado.
 - [ ] **Action Sheets para ações destrutivas** ("Excluir transação" sobe de
       baixo com botão vermelho) em vez de dialog centralizado no mobile.
-- [ ] **Long-press com menu contextual** nas linhas de transação
+- [x] **Long-press com menu contextual** (SwipeableRow: 500ms abre menu com as mesmas ações do swipe) nas linhas de transação
       (editar/dividir/excluir), complementando o SwipeableRow.
 
 ## Fase 5 — HIG: feedback e movimento
