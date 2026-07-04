@@ -122,11 +122,11 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
         if (txType === "INCOME") {
           isIncoming = true;
           displayAmount = amt;
-          runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
+          runningBalance = SafeFinancialCalculator.add(runningBalance, amt).toNumber();
         } else if (txType === "EXPENSE") {
           isIncoming = false;
           displayAmount = -amt;
-          runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
+          runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt).toNumber();
         } else if (txType === "TRANSFER") {
           if (t.destination_account_id === accountId) {
             isIncoming = true;
@@ -136,11 +136,11 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
                 : Number(t.amount);
             curr = t.destination_currency || t.currency;
             displayAmount = amt;
-            runningBalance = SafeFinancialCalculator.add(runningBalance, amt);
+            runningBalance = SafeFinancialCalculator.add(runningBalance, amt).toNumber();
           } else if (t.account_id === accountId) {
             isIncoming = false;
             displayAmount = -amt;
-            runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt);
+            runningBalance = SafeFinancialCalculator.subtract(runningBalance, amt).toNumber();
           }
         }
 

@@ -11,7 +11,13 @@ export function useMigrateTransactions() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ fromAccountId, toAccountId }: { fromAccountId: string; toAccountId: string }) => {
+    mutationFn: async ({
+      fromAccountId,
+      toAccountId,
+    }: {
+      fromAccountId: string;
+      toAccountId: string;
+    }) => {
       if (!user) throw new Error("Não autenticado");
 
       const { data, error } = await supabase.rpc("migrate_transactions_to_account", {

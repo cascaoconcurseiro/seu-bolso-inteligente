@@ -5,8 +5,8 @@
  * AbortController para cancelamento real de requests, e tratamento de erros.
  */
 
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from './logger';
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "./logger";
 
 interface RpcRetryOptions {
   maxRetries?: number;
@@ -31,10 +31,10 @@ function calculateBackoffDelay(attempt: number, baseDelayMs: number): number {
 function isRetriableError(error: unknown): boolean {
   const err = error as Record<string, unknown>;
   // Whitelist-only: never retry client errors (4xx) unless explicitly allowed
-  if ((err as Error)?.name === 'AbortError') return true;  // our own timeout = network flakiness
-  if (err?.status === 429) return true;                    // rate-limited
+  if ((err as Error)?.name === "AbortError") return true; // our own timeout = network flakiness
+  if (err?.status === 429) return true; // rate-limited
   if (err?.status === 503 || err?.status === 504) return true; // server unavailable / gateway timeout
-  if (err?.code === 'PGRST999') return true;               // Supabase internal transient
+  if (err?.code === "PGRST999") return true; // Supabase internal transient
   // Everything else (400, 401, 403, 404, 409, 422, 500 logic errors) is not retriable
   return false;
 }
@@ -59,7 +59,7 @@ async function rpcAttempt<T>(
     if (error) throw error;
     return data as T;
   } catch (err) {
-    if ((err as Error)?.name === 'AbortError') {
+    if ((err as Error)?.name === "AbortError") {
       throw new Error(`RPC timeout após ${timeoutMs}ms: ${functionName}`);
     }
     throw err;
@@ -73,12 +73,7 @@ export async function rpcWithRetry<T = unknown>(
   params?: Record<string, unknown>,
   options: RpcRetryOptions = {}
 ): Promise<T> {
-  const {
-    maxRetries = 3,
-    baseDelayMs = 1000,
-    timeoutMs = 30000,
-    onRetry,
-  } = options;
+  const { maxRetries = 3, baseDelayMs = 1000, timeoutMs = 30000, onRetry } = options;
 
   let lastError: Error | null = null;
 
@@ -113,7 +108,7 @@ export async function rpcWithRetry<T = unknown>(
 
       const delay = calculateBackoffDelay(attempt, baseDelayMs);
       logger.debug(`[RPC] Aguardando ${delay.toFixed(0)}ms antes de retry...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -125,12 +120,7 @@ export async function rpcWithRetryDetailed<T = unknown>(
   params?: Record<string, unknown>,
   options: RpcRetryOptions = {}
 ): Promise<RpcCallResult<T>> {
-  const {
-    maxRetries = 3,
-    baseDelayMs = 1000,
-    timeoutMs = 30000,
-    onRetry,
-  } = options;
+  const { maxRetries = 3, baseDelayMs = 1000, timeoutMs = 30000, onRetry } = options;
 
   let lastError: Error | null = null;
 
@@ -162,7 +152,7 @@ export async function rpcWithRetryDetailed<T = unknown>(
       }
 
       const delay = calculateBackoffDelay(attempt, baseDelayMs);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -181,14 +171,12 @@ export async function batchRpcWithRetry<T = unknown>(
   logger.debug(`[RPC] Iniciando batch de ${calls.length} chamadas RPC`);
 
   const results = await Promise.allSettled(
-    calls.map(({ functionName, params }) =>
-      rpcWithRetry<T>(functionName, params, options)
-    )
+    calls.map(({ functionName, params }) => rpcWithRetry<T>(functionName, params, options))
   );
 
   const succeeded: T[] = [];
   for (const result of results) {
-    if (result.status === 'fulfilled') {
+    if (result.status === "fulfilled") {
       succeeded.push(result.value);
     } else {
       logger.error(`[RPC] Erro em batch call`, result.reason);

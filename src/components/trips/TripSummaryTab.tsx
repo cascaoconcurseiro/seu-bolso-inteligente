@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
-import { parseLocalDate } from '@/utils/dateUtils';
-import { moneyUtils } from '@/utils/money';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/utils/dateUtils";
+import { moneyUtils } from "@/utils/money";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   Calendar,
@@ -17,7 +17,7 @@ import {
   User,
   Users,
   Wallet,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface TripSummaryTabProps {
   selectedTrip: any;
@@ -60,18 +60,18 @@ export function TripSummaryTab({
     Math.ceil(
       (parseLocalDate(selectedTrip.end_date).getTime() -
         parseLocalDate(selectedTrip.start_date).getTime()) /
-        (1000 * 60 * 60 * 24),
-    ) + 1,
+        (1000 * 60 * 60 * 24)
+    ) + 1
   );
-  const currency = selectedTrip.currency || 'BRL';
+  const currency = selectedTrip.currency || "BRL";
 
   // (a) Gastos pessoais: minhas transações NÃO compartilhadas
   const myPersonalExpenses = tripTransactions
     .filter(
       (t) =>
-        t.type === 'EXPENSE' &&
+        t.type === "EXPENSE" &&
         !t.is_shared &&
-        (t.creator_user_id === user?.id || t.user_id === user?.id),
+        (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
     .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
@@ -79,7 +79,7 @@ export function TripSummaryTab({
   const myBalance = balances.find((b) => b.participantId === user?.id);
 
   const myShareOfSharedExpenses = tripTransactions
-    .filter((t) => t.type === 'EXPENSE' && t.is_shared)
+    .filter((t) => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => {
       if (!t.transaction_splits) return sum;
       const mySplit = t.transaction_splits.find((s: any) => s.user_id === user?.id);
@@ -92,29 +92,29 @@ export function TripSummaryTab({
   const mySharedExpensesPaid = tripTransactions
     .filter(
       (t) =>
-        t.type === 'EXPENSE' &&
+        t.type === "EXPENSE" &&
         t.is_shared &&
-        (t.creator_user_id === user?.id || t.user_id === user?.id),
+        (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
     .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // (c) Total de despesas compartilhadas do grupo (para exibição geral)
   const totalSharedExpenses = tripTransactions
-    .filter((t) => t.type === 'EXPENSE' && t.is_shared)
+    .filter((t) => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
 
   // Busca cotação em tempo real se não for BRL
   const { data: realTimeRate } = useQuery({
-    queryKey: ['currency-quote', currency],
+    queryKey: ["currency-quote", currency],
     queryFn: async () => {
-      if (currency === 'BRL') return null;
+      if (currency === "BRL") return null;
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) return null;
 
-      const { data, error } = await supabase.functions.invoke('get-currency-quote', {
+      const { data, error } = await supabase.functions.invoke("get-currency-quote", {
         body: { currency },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -124,12 +124,12 @@ export function TripSummaryTab({
       if (error) throw error;
       return data.rate as number;
     },
-    enabled: currency !== 'BRL',
+    enabled: currency !== "BRL",
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
 
   const { data: session } = useQuery({
-    queryKey: ['session'],
+    queryKey: ["session"],
     queryFn: async () => {
       const { data } = await supabase.auth.getSession();
       return data.session;
@@ -171,7 +171,7 @@ export function TripSummaryTab({
         </button>
 
         <button
-          onClick={() => setActiveTab && setActiveTab('itinerary')}
+          onClick={() => setActiveTab && setActiveTab("itinerary")}
           className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-warning/30 hover:shadow-warning/10 transition-all group backdrop-blur-sm"
         >
           <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -185,7 +185,7 @@ export function TripSummaryTab({
         </button>
 
         <button
-          onClick={() => setActiveTab && setActiveTab('expenses')}
+          onClick={() => setActiveTab && setActiveTab("expenses")}
           className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-success/30 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all group backdrop-blur-sm"
         >
           <div className="w-12 h-12 rounded-full bg-success/12 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -199,7 +199,7 @@ export function TripSummaryTab({
         </button>
 
         <button
-          onClick={() => setActiveTab && setActiveTab('checklist')}
+          onClick={() => setActiveTab && setActiveTab("checklist")}
           className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border border-border/50 bg-card/50 hover:bg-card hover:border-accent/30 hover:shadow-accent/10 transition-all group backdrop-blur-sm"
         >
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -267,19 +267,19 @@ export function TripSummaryTab({
             )}
 
             {/* Aviso de Cotação em Tempo Real para Moedas Estrangeiras */}
-            {currency !== 'BRL' && realTimeRate && (
+            {currency !== "BRL" && realTimeRate && (
               <div className="mt-4 p-3 rounded-lg border border-warning/30 bg-warning/10 backdrop-blur-sm relative overflow-hidden group">
                 <div className="flex items-start gap-2 relative z-10">
                   <Info className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                   <div>
                     <p className="text-sm font-bold text-warning mb-0.5">Cotação Oficial de Hoje</p>
                     <p className="text-sm text-muted-foreground">
-                      Seu gasto pelo <strong>PM atual</strong> é{' '}
-                      {moneyUtils.format(myTotalSpent, currency)}. Pela cotação de hoje (R${' '}
-                      {realTimeRate.toFixed(2)}), custaria{' '}
+                      Seu gasto pelo <strong>PM atual</strong> é{" "}
+                      {moneyUtils.format(myTotalSpent, currency)}. Pela cotação de hoje (R${" "}
+                      {realTimeRate.toFixed(2)}), custaria{" "}
                       <strong className="text-warning">
-                        R${' '}
-                        {(myTotalSpent * realTimeRate).toLocaleString('pt-BR', {
+                        R${" "}
+                        {(myTotalSpent * realTimeRate).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -312,11 +312,11 @@ export function TripSummaryTab({
               {
                 tripTransactions.filter(
                   (t) =>
-                    t.type === 'EXPENSE' &&
+                    t.type === "EXPENSE" &&
                     t.is_shared &&
-                    (t.creator_user_id === user?.id || t.user_id === user?.id),
+                    (t.creator_user_id === user?.id || t.user_id === user?.id)
                 ).length
-              }{' '}
+              }{" "}
               despesas do grupo
             </p>
             <div className="mt-3 pt-3 border-t border-border/50">
@@ -344,29 +344,29 @@ export function TripSummaryTab({
               <>
                 <p
                   className={cn(
-                    'font-mono text-3xl font-black tracking-tighter mb-1',
+                    "font-mono text-3xl font-black tracking-tighter mb-1",
                     Math.abs(myBalance.balance) < 0.01
-                      ? 'text-muted-foreground'
+                      ? "text-muted-foreground"
                       : myBalance.balance > 0
-                        ? 'text-success dark:text-success'
-                        : 'text-warning',
+                        ? "text-success dark:text-success"
+                        : "text-warning"
                   )}
                 >
                   {Math.abs(myBalance.balance) < 0.01 ? (
-                    'Em dia!'
+                    "Em dia!"
                   ) : (
                     <>
-                      {myBalance.balance > 0 ? '+' : ''}
+                      {myBalance.balance > 0 ? "+" : ""}
                       {moneyUtils.format(myBalance.balance, currency)}
                     </>
                   )}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {Math.abs(myBalance.balance) < 0.01
-                    ? 'Tudo acertado'
+                    ? "Tudo acertado"
                     : myBalance.balance > 0
-                      ? 'Outros te devem'
-                      : 'Você deve ao grupo'}
+                      ? "Outros te devem"
+                      : "Você deve ao grupo"}
                 </p>
                 <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-2">
                   <div>
@@ -403,50 +403,50 @@ export function TripSummaryTab({
           // Verificar se há acertos pendentes de confirmação
           const waitingMyConfirmation = tripTransactions.some(
             (t) =>
-              t.type === 'EXPENSE' &&
+              t.type === "EXPENSE" &&
               t.is_shared &&
               t.transaction_splits?.some(
                 (s: any) =>
                   s.user_id !== user?.id && // não sou eu que devo
                   (t.creator_user_id === user?.id || t.user_id === user?.id) && // eu paguei
                   s.settled_by_debtor === true &&
-                  !s.settled_by_creditor,
-              ),
+                  !s.settled_by_creditor
+              )
           );
 
           const waitingTheirConfirmation = tripTransactions.some(
             (t) =>
-              t.type === 'EXPENSE' &&
+              t.type === "EXPENSE" &&
               t.is_shared &&
               t.transaction_splits?.some(
                 (s: any) =>
                   s.user_id === user?.id && // eu devo
                   s.settled_by_debtor === true &&
-                  !s.settled_by_creditor,
-              ),
+                  !s.settled_by_creditor
+              )
           );
 
           return (
             <div
               className={cn(
-                'p-8 rounded-4xl border transition-all duration-500 relative overflow-hidden',
+                "p-8 rounded-4xl border transition-all duration-500 relative overflow-hidden",
                 isSettled
-                  ? 'border-success/20 bg-success/5'
+                  ? "border-success/20 bg-success/5"
                   : myBalance.balance >= 0
-                    ? 'border-accent/20 bg-accent/5'
-                    : 'border-warning/20 bg-warning/5',
+                    ? "border-accent/20 bg-accent/5"
+                    : "border-warning/20 bg-warning/5"
               )}
             >
               <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="flex items-center gap-5">
                   <div
                     className={cn(
-                      'w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110',
+                      "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transition-transform hover:scale-110",
                       isSettled
-                        ? 'bg-success shadow-success/20'
+                        ? "bg-success shadow-success/20"
                         : myBalance.balance >= 0
-                          ? 'bg-accent shadow-accent/20'
-                          : 'bg-warning shadow-warning/20',
+                          ? "bg-accent shadow-accent/20"
+                          : "bg-warning shadow-warning/20"
                     )}
                   >
                     {isSettled ? (
@@ -461,10 +461,10 @@ export function TripSummaryTab({
                     </h3>
                     <p className="text-muted-foreground">
                       {isSettled
-                        ? 'Você está em dia com a viagem!'
+                        ? "Você está em dia com a viagem!"
                         : myBalance.balance >= 0
-                          ? 'Você pagou mais que a sua parte.'
-                          : 'Você deve para o grupo ou participante.'}
+                          ? "Você pagou mais que a sua parte."
+                          : "Você deve para o grupo ou participante."}
                     </p>
                   </div>
                 </div>
@@ -492,19 +492,19 @@ export function TripSummaryTab({
                     </p>
                     <p
                       className={cn(
-                        'font-mono text-2xl font-black tracking-tighter',
+                        "font-mono text-2xl font-black tracking-tighter",
                         isSettled
-                          ? 'text-success dark:text-success'
+                          ? "text-success dark:text-success"
                           : myBalance.balance >= 0
-                            ? 'text-accent'
-                            : 'text-warning',
+                            ? "text-accent"
+                            : "text-warning"
                       )}
                     >
                       {isSettled ? (
                         moneyUtils.format(0, currency)
                       ) : (
                         <>
-                          {myBalance.balance >= 0 ? '+' : ''}
+                          {myBalance.balance >= 0 ? "+" : ""}
                           {moneyUtils.format(myBalance.balance, currency)}
                         </>
                       )}
@@ -526,15 +526,15 @@ export function TripSummaryTab({
                         Aguardando o credor confirmar o seu pagamento.
                       </span>
                     ) : myBalance.balance >= 0 ? (
-                      'Aguarde os outros participantes realizarem o acerto com você.'
+                      "Aguarde os outros participantes realizarem o acerto com você."
                     ) : (
-                      'Realize o acerto na aba Compartilhados para equilibrar seu saldo.'
+                      "Realize o acerto na aba Compartilhados para equilibrar seu saldo."
                     )}
                   </div>
                   <Button
                     variant="outline"
                     className="rounded-xl gap-2 hover:bg-muted"
-                    onClick={() => (window.location.href = '/compartilhados?tab=TRAVEL')}
+                    onClick={() => (window.location.href = "/compartilhados?tab=TRAVEL")}
                   >
                     Ir para Acertos <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -567,92 +567,94 @@ export function TripSummaryTab({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {participants
-              .map((participant) => {
-                // CORREÇÃO: usar user_id para lookup consistente com o RPC
-                const balance = balances.find((b) => b.participantId === participant.user_id);
-                const currentBalance = balance?.balance ?? 0;
-                const isOwner = participant.role === 'owner';
-                const isCurrentUser = participant.user_id === user?.id;
+            {participants.map((participant) => {
+              // CORREÇÃO: usar user_id para lookup consistente com o RPC
+              const balance = balances.find((b) => b.participantId === participant.user_id);
+              const currentBalance = balance?.balance ?? 0;
+              const isOwner = participant.role === "owner";
+              const isCurrentUser = participant.user_id === user?.id;
 
-                return (
-                  <div
-                    key={participant.id}
-                    className="p-4 rounded-2xl border border-border/50 bg-card/40 flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium font-display shrink-0 border border-border">
-                        {participant.name
-                          .split(' ')
-                          .map((x: string) => x[0])
-                          .join('')
-                          .toUpperCase()
-                          .slice(0, 2)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm text-foreground truncate">
-                            {participant.name}
-                          </p>
-                          {isCurrentUser && (
-                            <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
-                              Você
-                            </span>
-                          )}
-                          {isOwner && (
-                            <span className="text-[8px] bg-warning/10 text-warning dark:text-warning px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
-                              Líder
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-0.5 font-mono">
-                          Saldo:{' '}
-                          <span
-                            className={cn(
-                              'font-bold',
-                              Math.abs(currentBalance) < 0.01
-                                ? 'text-muted-foreground'
-                                : currentBalance < 0
-                                  ? 'text-warning'
-                                  : 'text-accent',
-                            )}
-                          >
-                            {moneyUtils.format(currentBalance, currency)}
-                          </span>
-                        </p>
-                        {/* Gasto Compartilhado do participante */}
-                        <p className="text-sm text-muted-foreground mt-0.5 font-mono">
-                          Gastou no compartilhado:{' '}
-                          <span className="font-bold text-foreground">
-                            {moneyUtils.format(
-                              tripTransactions
-                                .filter(
-                                  (t) =>
-                                    t.type === 'EXPENSE' &&
-                                    t.is_shared &&
-                                    t.user_id === participant.user_id,
-                                )
-                                .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0),
-                              currency,
-                            )}
-                          </span>
-                        </p>
-                      </div>
+              return (
+                <div
+                  key={participant.id}
+                  className="p-4 rounded-2xl border border-border/50 bg-card/40 flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium font-display shrink-0 border border-border">
+                      {participant.name
+                        .split(" ")
+                        .map((x: string) => x[0])
+                        .join("")
+                        .toUpperCase()
+                        .slice(0, 2)}
                     </div>
-
-                    {permissions?.isOwner && !isOwner && onRemoveClick && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                        onClick={() => onRemoveClick(participant, balance || null)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm text-foreground truncate">
+                          {participant.name}
+                        </p>
+                        {isCurrentUser && (
+                          <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                            Você
+                          </span>
+                        )}
+                        {isOwner && (
+                          <span className="text-[8px] bg-warning/10 text-warning dark:text-warning px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                            Líder
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-0.5 font-mono">
+                        Saldo:{" "}
+                        <span
+                          className={cn(
+                            "font-bold",
+                            Math.abs(currentBalance) < 0.01
+                              ? "text-muted-foreground"
+                              : currentBalance < 0
+                                ? "text-warning"
+                                : "text-accent"
+                          )}
+                        >
+                          {moneyUtils.format(currentBalance, currency)}
+                        </span>
+                      </p>
+                      {/* Gasto Compartilhado do participante */}
+                      <p className="text-sm text-muted-foreground mt-0.5 font-mono">
+                        Gastou no compartilhado:{" "}
+                        <span className="font-bold text-foreground">
+                          {moneyUtils.format(
+                            tripTransactions
+                              .filter(
+                                (t) =>
+                                  t.type === "EXPENSE" &&
+                                  t.is_shared &&
+                                  t.user_id === participant.user_id
+                              )
+                              .reduce(
+                                (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+                                0
+                              ),
+                            currency
+                          )}
+                        </span>
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
+
+                  {permissions?.isOwner && !isOwner && onRemoveClick && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      onClick={() => onRemoveClick(participant, balance || null)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
 
             {permissions?.isOwner &&
               pendingInvitations.map((inv) => (
@@ -663,16 +665,16 @@ export function TripSummaryTab({
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium font-display shrink-0 border border-dashed border-border">
                       {inv.invitee?.full_name
-                        ?.split(' ')
+                        ?.split(" ")
                         .map((x: string) => x[0])
-                        .join('')
+                        .join("")
                         .toUpperCase()
-                        .slice(0, 2) || '?'}
+                        .slice(0, 2) || "?"}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-sm text-foreground truncate">
-                          {inv.invitee?.full_name || 'Convidado'}
+                          {inv.invitee?.full_name || "Convidado"}
                         </p>
                         <span className="text-[8px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
                           Pendente

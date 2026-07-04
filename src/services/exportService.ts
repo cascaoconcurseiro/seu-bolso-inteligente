@@ -1,9 +1,14 @@
-import { calculateTransactionTotalsByCurrency, formatExportMoney, formatTotalsInline, resolveItemCurrency } from "@/utils/exportCurrency";
-import { saveAs } from 'file-saver';
-import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import {
+  calculateTransactionTotalsByCurrency,
+  formatExportMoney,
+  formatTotalsInline,
+  resolveItemCurrency,
+} from "@/utils/exportCurrency";
+import { saveAs } from "file-saver";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 export interface ExportOptions {
   format: "csv" | "json";
   dateRange?: { start: Date; end: Date };
@@ -11,18 +16,18 @@ export interface ExportOptions {
 }
 
 const safeFormatDate = (dateVal: any): string => {
-  if (!dateVal) return 'N/A';
+  if (!dateVal) return "N/A";
   try {
     const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return 'N/A';
+    if (isNaN(d.getTime())) return "N/A";
     // Corrige fuso horário local na renderização
     const utcDate = new Date(d.getTime() + d.getTimezoneOffset() * 60000);
-    const day = String(utcDate.getDate()).padStart(2, '0');
-    const month = String(utcDate.getMonth() + 1).padStart(2, '0');
+    const day = String(utcDate.getDate()).padStart(2, "0");
+    const month = String(utcDate.getMonth() + 1).padStart(2, "0");
     const year = utcDate.getFullYear();
     return `${day}/${month}/${year}`;
   } catch (e) {
-    return 'N/A';
+    return "N/A";
   }
 };
 
@@ -62,10 +67,14 @@ export async function exportTransactions(
   format: "csv" | "json" | "pdf" = "csv"
 ) {
   const date = new Date().toISOString().split("T")[0];
-  const today = new Date().toLocaleDateString('pt-BR');
-  
-  const totalIncome = transactions.filter(t => t.type === 'INCOME' || t.type === 'RECEITA').reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
-  const totalExpense = transactions.filter(t => t.type === 'EXPENSE' || t.type === 'DESPESA').reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
+  const today = new Date().toLocaleDateString("pt-BR");
+
+  const totalIncome = transactions
+    .filter((t) => t.type === "INCOME" || t.type === "RECEITA")
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
+  const totalExpense = transactions
+    .filter((t) => t.type === "EXPENSE" || t.type === "DESPESA")
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount || 0)), 0);
   const totalsByCurrency = calculateTransactionTotalsByCurrency(transactions);
 
   if (format === "pdf") {
@@ -73,7 +82,7 @@ export async function exportTransactions(
     exportToPDF(transactions, totalIncome, totalExpense, `transacoes_${date}.pdf`);
   } else if (format === "csv") {
     // Formatação de Excel Premium em XML/HTML
-    const balance = SafeFinancialCalculator.subtract(totalIncome, totalExpense);
+    const balance = SafeFinancialCalculator.subtract(totalIncome, totalExpense).toNumber();
 
     let html = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -118,7 +127,7 @@ export async function exportTransactions(
           <td class="label-cell">Total de Despesas:</td>
           <td colspan="2" class="value-cell text-cell red-text">${formatTotalsInline(totalsByCurrency, "expense")}</td>
           <td class="label-cell">Saldo Líquido:</td>
-          <td colspan="2" class="value-cell text-cell ${balance >= 0 ? 'green-text' : 'red-text'}">${formatTotalsInline(totalsByCurrency, "balance")}</td>
+          <td colspan="2" class="value-cell text-cell ${balance >= 0 ? "green-text" : "red-text"}">${formatTotalsInline(totalsByCurrency, "balance")}</td>
         </tr>
         <tr><td colspan="9" style="border:none; height: 15px;"></td></tr>
 
@@ -139,25 +148,29 @@ export async function exportTransactions(
     `;
 
     transactions.forEach((t, index) => {
-      const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : '';
+      const zebraClass = index % 2 === 1 ? 'class="tr-zebra"' : "";
       const dateFormatted = safeFormatDate(t.date);
-      const isIncome = t.type === 'INCOME' || t.type === 'RECEITA';
-      const typeText = isIncome ? 'Receita' : t.type === 'EXPENSE' || t.type === 'DESPESA' ? 'Despesa' : 'Transferência';
+      const isIncome = t.type === "INCOME" || t.type === "RECEITA";
+      const typeText = isIncome
+        ? "Receita"
+        : t.type === "EXPENSE" || t.type === "DESPESA"
+          ? "Despesa"
+          : "Transferência";
       const amountVal = Number(t.amount || 0);
       const currency = resolveItemCurrency(t);
-      const installmentText = t.is_installment 
-        ? `Parc. ${t.current_installment}/${t.total_installments}` 
-        : '';
+      const installmentText = t.is_installment
+        ? `Parc. ${t.current_installment}/${t.total_installments}`
+        : "";
 
       html += `
         <tr ${zebraClass}>
           <td class="date-cell">${dateFormatted}</td>
-          <td class="text-cell" style="color: ${isIncome ? '#059669' : t.type === 'TRANSFER' ? '#4b5563' : '#dc2626'}">${typeText}</td>
-          <td colspan="2" class="text-cell">${t.description || 'Sem descrição'}</td>
-          <td class="text-cell">${t.category?.name || t.category || 'Sem categoria'}</td>
-          <td class="text-cell" style="font-weight: bold; color: ${isIncome ? '#059669' : t.type === 'TRANSFER' ? '#4b5563' : '#dc2626'}">${formatExportMoney(amountVal, currency)}</td>
+          <td class="text-cell" style="color: ${isIncome ? "#059669" : t.type === "TRANSFER" ? "#4b5563" : "#dc2626"}">${typeText}</td>
+          <td colspan="2" class="text-cell">${t.description || "Sem descrição"}</td>
+          <td class="text-cell">${t.category?.name || t.category || "Sem categoria"}</td>
+          <td class="text-cell" style="font-weight: bold; color: ${isIncome ? "#059669" : t.type === "TRANSFER" ? "#4b5563" : "#dc2626"}">${formatExportMoney(amountVal, currency)}</td>
           <td class="text-cell">${currency}</td>
-          <td class="text-cell">${t.account?.name || ''}</td>
+          <td class="text-cell">${t.account?.name || ""}</td>
           <td class="text-cell">${installmentText}</td>
         </tr>
       `;
@@ -169,12 +182,12 @@ export async function exportTransactions(
       </html>
     `;
 
-    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     link.setAttribute("download", `transacoes_${date}.xls`);
-    link.style.visibility = 'hidden';
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -195,93 +208,114 @@ export interface ExportData {
 
 export const exportMonthlyReport = async (data: ExportData) => {
   try {
-    const { data: templateData, error: downloadError } = await supabase
-      .storage
-      .from('templates')
-      .download('template_base.xlsx');
+    const { data: templateData, error: downloadError } = await supabase.storage
+      .from("templates")
+      .download("template_base.xlsx");
 
-    const ExcelJS = await import('exceljs');
+    const ExcelJS = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
 
     if (downloadError || !templateData) {
-      logger.warn('Template não encontrado no Supabase. Criando planilha em branco como fallback.');
-      workbook.addWorksheet('Fluxo de Caixa');
-      workbook.addWorksheet('Transações Mês a Mês');
-      workbook.addWorksheet('Compras Compartilhadas');
-      workbook.addWorksheet('Dívidas');
+      logger.warn("Template não encontrado no Supabase. Criando planilha em branco como fallback.");
+      workbook.addWorksheet("Fluxo de Caixa");
+      workbook.addWorksheet("Transações Mês a Mês");
+      workbook.addWorksheet("Compras Compartilhadas");
+      workbook.addWorksheet("Dívidas");
     } else {
       const arrayBuffer = await templateData.arrayBuffer();
       await workbook.xlsx.load(arrayBuffer);
-      
-      const mercadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'mercado');
-      if (mercadoSheet) mercadoSheet.name = 'Compras Compartilhadas';
 
-      const compartilhadoSheet = workbook.worksheets.find(s => s.name.toLowerCase() === 'compartilhado fran' || s.name.toLowerCase() === 'dívidas');
-      if (compartilhadoSheet) compartilhadoSheet.name = 'Dívidas';
+      const mercadoSheet = workbook.worksheets.find((s) => s.name.toLowerCase() === "mercado");
+      if (mercadoSheet) mercadoSheet.name = "Compras Compartilhadas";
 
-      if (!workbook.worksheets.find(s => s.name === 'Transações Mês a Mês')) {
-        workbook.addWorksheet('Transações Mês a Mês');
+      const compartilhadoSheet = workbook.worksheets.find(
+        (s) => s.name.toLowerCase() === "compartilhado fran" || s.name.toLowerCase() === "dívidas"
+      );
+      if (compartilhadoSheet) compartilhadoSheet.name = "Dívidas";
+
+      if (!workbook.worksheets.find((s) => s.name === "Transações Mês a Mês")) {
+        workbook.addWorksheet("Transações Mês a Mês");
       }
     }
 
-    const transacoesSheet = workbook.getWorksheet('Transações Mês a Mês')!;
+    const transacoesSheet = workbook.getWorksheet("Transações Mês a Mês")!;
     if (transacoesSheet) {
       transacoesSheet.spliceRows(2, Math.max(transacoesSheet.rowCount, 2));
-      transacoesSheet.getRow(1).values = ['Data', 'Descrição', 'Categoria', 'Conta', 'Valor', 'Tipo'];
+      transacoesSheet.getRow(1).values = [
+        "Data",
+        "Descrição",
+        "Categoria",
+        "Conta",
+        "Valor",
+        "Tipo",
+      ];
       transacoesSheet.getRow(1).font = { bold: true };
-      
+
       (data.transactions || []).forEach((tx) => {
         transacoesSheet.addRow([
-          format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
+          format(new Date(tx.date || tx.competency_date), "dd/MM/yyyy"),
           tx.description,
-          tx.category?.name || '',
-          Array.isArray(tx.account) ? tx.account[0]?.name : tx.account?.name || '',
+          tx.category?.name || "",
+          Array.isArray(tx.account) ? tx.account[0]?.name : tx.account?.name || "",
           tx.amount,
-          tx.type
+          tx.type,
         ]);
       });
     }
 
-    const comprasSheet = workbook.getWorksheet('Compras Compartilhadas');
+    const comprasSheet = workbook.getWorksheet("Compras Compartilhadas");
     if (comprasSheet) {
       comprasSheet.spliceRows(2, Math.max(comprasSheet.rowCount, 2));
-      comprasSheet.getRow(1).values = ['Data', 'Descrição', 'Valor Total', 'Sua Parte', 'Parte Terceiros', 'Status'];
-      (data.sharedPurchases || []).forEach(tx => {
-        const meuValor = tx.transaction_splits?.find((s:any) => s.member_id !== null)?.amount || SafeFinancialCalculator.divide(tx.amount, 2);
+      comprasSheet.getRow(1).values = [
+        "Data",
+        "Descrição",
+        "Valor Total",
+        "Sua Parte",
+        "Parte Terceiros",
+        "Status",
+      ];
+      (data.sharedPurchases || []).forEach((tx) => {
+        const meuValor =
+          tx.transaction_splits?.find((s: any) => s.member_id !== null)?.amount ||
+          SafeFinancialCalculator.divide(tx.amount, 2);
         const outroValor = SafeFinancialCalculator.subtract(tx.amount, meuValor);
         comprasSheet.addRow([
-          format(new Date(tx.date || tx.competency_date), 'dd/MM/yyyy'),
+          format(new Date(tx.date || tx.competency_date), "dd/MM/yyyy"),
           tx.description,
           tx.amount,
           meuValor,
           outroValor,
-          tx.status
+          tx.status,
         ]);
       });
     }
 
-    const dividasSheet = workbook.getWorksheet('Dívidas');
+    const dividasSheet = workbook.getWorksheet("Dívidas");
     if (dividasSheet) {
       dividasSheet.spliceRows(2, Math.max(dividasSheet.rowCount, 2));
-      dividasSheet.getRow(1).values = ['Dívida/Fatura', 'Valor Original', 'Falta Pagar'];
-      const allDebts = Array.isArray(data.debts) ? data.debts : Object.values(data.debts || {}).flat();
+      dividasSheet.getRow(1).values = ["Dívida/Fatura", "Valor Original", "Falta Pagar"];
+      const allDebts = Array.isArray(data.debts)
+        ? data.debts
+        : Object.values(data.debts || {}).flat();
       allDebts.forEach((debt: any) => {
         dividasSheet.addRow([
           debt.description || debt.name,
           debt.total_amount || debt.amount,
-          debt.remaining_amount || 0
+          debt.remaining_amount || 0,
         ]);
       });
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const fileName = `Fechamento_${format(data.month, 'MM_yyyy')}.xlsx`;
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const fileName = `Fechamento_${format(data.month, "MM_yyyy")}.xlsx`;
     saveAs(blob, fileName);
 
     return true;
   } catch (error) {
-    logger.error('Erro ao exportar planilha:', error);
+    logger.error("Erro ao exportar planilha:", error);
     throw error;
   }
 };

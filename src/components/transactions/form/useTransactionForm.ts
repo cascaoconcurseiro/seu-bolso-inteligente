@@ -417,7 +417,6 @@ export function useTransactionForm({
     // If it's family
     const payerMemberId = payerId === "me" ? myMemberRecord?.id : payerId;
     return membersList.filter((m) => m.id !== payerMemberId);
-     
   }, [tripId, tripMembers, effectiveFamilyMembers, user?.id, payerId, myMemberRecord?.id]);
 
   const tripFilteredMembers = useMemo(() => {

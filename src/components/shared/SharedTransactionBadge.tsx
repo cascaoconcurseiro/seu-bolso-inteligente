@@ -1,6 +1,6 @@
 /**
  * Shared Transaction Badge Component
- * 
+ *
  * Visual badge to identify shared transactions consistently across all pages.
  * Shows settlement status, transaction type (CREDIT/DEBIT), and member name.
  */
@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 export interface SharedTransactionBadgeProps {
   isShared: boolean;
   isSettled: boolean;
-  type: 'CREDIT' | 'DEBIT';
+  type: "CREDIT" | "DEBIT";
   memberName?: string;
   compact?: boolean;
 }
@@ -27,10 +27,10 @@ export interface SharedTransactionBadgeProps {
 
 /**
  * Badge component for shared transactions
- * 
+ *
  * @param props - Component props
  * @returns JSX.Element
- * 
+ *
  * @example
  * ```tsx
  * <SharedTransactionBadge
@@ -59,15 +59,17 @@ export function SharedTransactionBadge({
         variant="outline"
         className={cn(
           "text-[11px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap border-0",
-          isSettled
-            ? "bg-success/12 text-success"
-            : "bg-warning/12 text-warning"
+          isSettled ? "bg-success/12 text-success" : "bg-warning/12 text-warning"
         )}
       >
         {isSettled ? (
-          <><CheckCircle2 className="h-3 w-3 mr-1" /> Pago</>
+          <>
+            <CheckCircle2 className="h-3 w-3 mr-1" /> Pago
+          </>
         ) : (
-          <><Clock className="h-3 w-3 mr-1" /> Pendente</>
+          <>
+            <Clock className="h-3 w-3 mr-1" /> Pendente
+          </>
         )}
       </Badge>
 

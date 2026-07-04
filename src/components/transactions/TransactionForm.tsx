@@ -494,13 +494,9 @@ export function TransactionForm(props: TransactionFormProps) {
             }
             variant="default"
             className="w-1/2 h-11 text-base font-bold"
-            disabled={
-              form.updateTransaction?.isPending ||
-              updateSeries.isPending
-            }
+            disabled={form.updateTransaction?.isPending || updateSeries.isPending}
           >
-            {form.updateTransaction?.isPending ||
-            updateSeries.isPending ? (
+            {form.updateTransaction?.isPending || updateSeries.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               "Salvar"

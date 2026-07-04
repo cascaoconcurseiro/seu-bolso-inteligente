@@ -23,10 +23,12 @@ export function PullToRefresh({ children, queryKeys, onRefresh, className }: Pul
         className="absolute left-0 right-0 flex items-center justify-center pointer-events-none z-10 transition-all duration-200"
         style={{ top: -48 + pullDistance, opacity: Math.min(pullDistance / 60, 1) }}
       >
-        <div className={cn(
-          "w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center",
-          triggered && "bg-primary/10 border-primary/30"
-        )}>
+        <div
+          className={cn(
+            "w-9 h-9 rounded-full bg-card border border-border shadow-md flex items-center justify-center",
+            triggered && "bg-primary/10 border-primary/30"
+          )}
+        >
           <RefreshCw
             className={cn(
               "h-4 w-4 transition-colors",
@@ -37,7 +39,12 @@ export function PullToRefresh({ children, queryKeys, onRefresh, className }: Pul
           />
         </div>
       </div>
-      <div style={{ transform: `translateY(${pullDistance}px)`, transition: pullDistance === 0 ? "transform 0.3s ease" : "none" }}>
+      <div
+        style={{
+          transform: `translateY(${pullDistance}px)`,
+          transition: pullDistance === 0 ? "transform 0.3s ease" : "none",
+        }}
+      >
         {children}
       </div>
     </div>

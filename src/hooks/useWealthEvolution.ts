@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { logger } from '@/utils/logger';
+import { logger } from "@/utils/logger";
 
 export interface WealthPoint {
   month_label: string;

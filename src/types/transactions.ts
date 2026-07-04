@@ -4,4 +4,4 @@ export interface TransactionSplitData {
   amount: number;
 }
 
-export type TabType = 'EXPENSE' | 'INCOME' | 'TRANSFER' | 'WITHDRAWAL' | 'DEPOSIT';
+export type TabType = "EXPENSE" | "INCOME" | "TRANSFER" | "WITHDRAWAL" | "DEPOSIT";

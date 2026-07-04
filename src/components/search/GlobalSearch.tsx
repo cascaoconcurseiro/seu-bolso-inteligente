@@ -1,6 +1,14 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { DialogTitle } from "@/components/ui/dialog";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -30,9 +38,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   // Cache-first: search in-memory immediately; fall back to server after 400ms debounce
   const cachedTransactions = useMemo(() => {
     if (q.length < 2) return [];
-    return transactions
-      .filter(t => t.description.toLowerCase().includes(q))
-      .slice(0, 8);
+    return transactions.filter((t) => t.description.toLowerCase().includes(q)).slice(0, 8);
   }, [transactions, q]);
 
   useEffect(() => {
@@ -48,14 +54,14 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     }
 
     const id = setTimeout(async () => {
-      const { data } = await supabase.rpc('search_transactions', {
+      const { data } = await supabase.rpc("search_transactions", {
         p_query: q,
         p_limit: 20,
       });
       if (data) {
         // Merge server results with cache, dedup by id
-        const cachedIds = new Set(cachedTransactions.map(t => t.id));
-        const extra = (data as any[]).filter(r => !cachedIds.has(r.id));
+        const cachedIds = new Set(cachedTransactions.map((t) => t.id));
+        const extra = (data as any[]).filter((r) => !cachedIds.has(r.id));
         setServerResults(extra.slice(0, 8 - cachedTransactions.length));
       }
     }, 400);
@@ -77,7 +83,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     return goals?.filter((g: any) => g.name.toLowerCase().includes(q)).slice(0, 5) ?? [];
   }, [goals, q]);
 
-  const hasResults = filteredTransactions.length > 0 || filteredAccounts.length > 0 || filteredGoals.length > 0;
+  const hasResults =
+    filteredTransactions.length > 0 || filteredAccounts.length > 0 || filteredGoals.length > 0;
 
   const close = useCallback(() => {
     onOpenChange(false);
@@ -85,13 +92,21 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     setServerResults([]);
   }, [onOpenChange]);
 
-  const goTo = useCallback((path: string) => {
-    close();
-    navigate(path);
-  }, [close, navigate]);
+  const goTo = useCallback(
+    (path: string) => {
+      close();
+      navigate(path);
+    },
+    [close, navigate]
+  );
 
   return (
-    <CommandDialog open={open} onOpenChange={(v) => { if (!v) close(); }}>
+    <CommandDialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) close();
+      }}
+    >
       <DialogTitle className="sr-only">Busca global</DialogTitle>
       <CommandInput
         placeholder="Buscar transações, contas, metas..."
@@ -138,8 +153,11 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     {t.category?.name ? ` · ${t.category.name}` : ""}
                   </p>
                 </div>
-                <span className={`text-sm font-mono font-medium shrink-0 ${t.type === "INCOME" ? "text-positive" : "text-negative"}`}>
-                  {t.type === "INCOME" ? "+" : "-"}{moneyUtils.format(t.amount, t.currency || "BRL")}
+                <span
+                  className={`text-sm font-mono font-medium shrink-0 ${t.type === "INCOME" ? "text-positive" : "text-negative"}`}
+                >
+                  {t.type === "INCOME" ? "+" : "-"}
+                  {moneyUtils.format(t.amount, t.currency || "BRL")}
                 </span>
               </CommandItem>
             ))}
@@ -181,7 +199,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{g.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {moneyUtils.format(g.current_amount ?? 0, "BRL")} / {moneyUtils.format(g.target_amount ?? 0, "BRL")}
+                    {moneyUtils.format(g.current_amount ?? 0, "BRL")} /{" "}
+                    {moneyUtils.format(g.target_amount ?? 0, "BRL")}
                   </p>
                 </div>
               </CommandItem>

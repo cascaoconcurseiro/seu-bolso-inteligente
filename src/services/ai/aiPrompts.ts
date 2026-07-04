@@ -1,10 +1,9 @@
-
-import { FinancialReportData } from '../aiAdvisorService';
+import { FinancialReportData } from "../aiAdvisorService";
 
 export const getFinancialAnalysisPrompt = (data: FinancialReportData) => `
 Você é o consultor financeiro IA oficial do aplicativo.
 O usuário do sistema precisa de análises, dicas e um raio-x do comportamento financeiro.
-O usuário está visualizando os relatórios do período: ${data.periodLabel} (${data.viewType === 'MONTH' ? 'Mensal' : 'Anual'}).
+O usuário está visualizando os relatórios do período: ${data.periodLabel} (${data.viewType === "MONTH" ? "Mensal" : "Anual"}).
 
 DADOS DO PERÍODO:
 - Receitas Totais: ${data.currency} ${data.totalIncome.toFixed(2)}
@@ -13,9 +12,9 @@ DADOS DO PERÍODO:
 - Taxa de Poupança (economia): ${data.savingsRate.toFixed(1)}%
 
 Top Categorias de Gasto:
-${data.topCategories.map(c => `- ${c.category}: ${data.currency} ${c.value.toFixed(2)}`).join('\n')}
+${data.topCategories.map((c) => `- ${c.category}: ${data.currency} ${c.value.toFixed(2)}`).join("\n")}
 
-${data.largestExpense ? `Maior Despesa Única: ${data.largestExpense.description} (${data.currency} ${data.largestExpense.amount.toFixed(2)})` : ''}
+${data.largestExpense ? `Maior Despesa Única: ${data.largestExpense.description} (${data.currency} ${data.largestExpense.amount.toFixed(2)})` : ""}
 
 SUA MISSÃO:
 1. Analise a saúde financeira do usuário neste período.
@@ -30,7 +29,12 @@ SUA MISSÃO:
 Não invente números, use apenas os dados acima. Se os dados estiverem todos zerados, diga que precisa de mais movimentações para gerar uma análise.
 `;
 
-export const getAutocompletePrompt = (sanitizedPartial: string, uniqueHistory: string[], categoryList: string, userExamples: string = '') => `
+export const getAutocompletePrompt = (
+  sanitizedPartial: string,
+  uniqueHistory: string[],
+  categoryList: string,
+  userExamples: string = ""
+) => `
 Você é a inteligência artificial "Arquiteto Financeiro", especialista em finanças pessoais do Brasil, embutida no teclado do aplicativo.
 Sua missão é ajudar o usuário a preencher campos difíceis (como descrições e títulos) ou responder perguntas rápidas de forma direta.
 O usuário começou a digitar uma transação (despesa ou receita): "${sanitizedPartial}"
@@ -76,10 +80,10 @@ EXEMPLOS EXPLICITOS DE MAPEAMENTO DIRETO (Mapeie sem hesitar):
 4. REGRA DE SOBREVIVÊNCIA E PROTEÇÃO DE FLUXO: É expressamente PROIBIDO sugerir uma categoria de despesa se a lista de categorias disponíveis só contiver categorias de receita, e vice-versa! Se você não tiver certeza de qual categoria escolher, escolha a categoria com nome "Outros" presente na lista de categorias disponíveis do usuário. NUNCA invente categorias fora da lista!
 
 CLASSIFICAÇÕES JÁ FEITAS PELO USUÁRIO (MÁXIMA PRIORIDADE — aprenda com elas):
-${userExamples || '(nenhum histórico classificado ainda)'}
+${userExamples || "(nenhum histórico classificado ainda)"}
 
 Histórico de descrições recentes do usuário (use como base para sugestão de texto):
-[${uniqueHistory.join(', ')}]
+[${uniqueHistory.join(", ")}]
 
 Categorias disponíveis no banco de dados do usuário:
 ${categoryList}
@@ -127,38 +131,131 @@ RETORNE APENAS UM JSON no seguinte formato, e nada mais:
 
 // Destinations in northern hemisphere — season is opposite to Brazil
 const NORTHERN_HEMISPHERE_KEYWORDS = [
-  'europa', 'europe', 'paris', 'london', 'londres', 'roma', 'rome', 'madrid', 'barcelona',
-  'amsterdam', 'berlin', 'berlim', 'viena', 'vienna', 'praga', 'prague', 'lisboa', 'lisbon',
-  'porto', 'budapest', 'varsóvia', 'warsaw', 'estocolmo', 'stockholm', 'copenhague', 'copenhagen',
-  'oslo', 'helsinki', 'dublin', 'edinburgh', 'edimburgo', 'zurique', 'zurich', 'genebra', 'geneva',
-  'bruxelas', 'brussels', 'milão', 'milan', 'florença', 'florence', 'veneza', 'venice', 'nápoles',
-  'naples', 'atenas', 'athens', 'istambul', 'istanbul', 'moscou', 'moscow',
-  'eua', 'usa', 'estados unidos', 'united states', 'new york', 'nova york', 'los angeles',
-  'miami', 'orlando', 'chicago', 'las vegas', 'san francisco', 'boston', 'washington',
-  'canada', 'canadá', 'toronto', 'vancouver', 'montreal',
-  'méxico', 'mexico', 'cidade do méxico', 'cancún', 'cancun',
-  'japão', 'japan', 'tóquio', 'tokyo', 'osaka', 'kyoto', 'beijing', 'xangai', 'shanghai',
-  'china', 'coreia', 'korea', 'seoul', 'seul', 'bangcoc', 'bangkok', 'tailândia', 'thailand',
-  'índia', 'india', 'dubai', 'abu dhabi', 'marrocos', 'morocco', 'egito', 'egypt', 'cairo',
+  "europa",
+  "europe",
+  "paris",
+  "london",
+  "londres",
+  "roma",
+  "rome",
+  "madrid",
+  "barcelona",
+  "amsterdam",
+  "berlin",
+  "berlim",
+  "viena",
+  "vienna",
+  "praga",
+  "prague",
+  "lisboa",
+  "lisbon",
+  "porto",
+  "budapest",
+  "varsóvia",
+  "warsaw",
+  "estocolmo",
+  "stockholm",
+  "copenhague",
+  "copenhagen",
+  "oslo",
+  "helsinki",
+  "dublin",
+  "edinburgh",
+  "edimburgo",
+  "zurique",
+  "zurich",
+  "genebra",
+  "geneva",
+  "bruxelas",
+  "brussels",
+  "milão",
+  "milan",
+  "florença",
+  "florence",
+  "veneza",
+  "venice",
+  "nápoles",
+  "naples",
+  "atenas",
+  "athens",
+  "istambul",
+  "istanbul",
+  "moscou",
+  "moscow",
+  "eua",
+  "usa",
+  "estados unidos",
+  "united states",
+  "new york",
+  "nova york",
+  "los angeles",
+  "miami",
+  "orlando",
+  "chicago",
+  "las vegas",
+  "san francisco",
+  "boston",
+  "washington",
+  "canada",
+  "canadá",
+  "toronto",
+  "vancouver",
+  "montreal",
+  "méxico",
+  "mexico",
+  "cidade do méxico",
+  "cancún",
+  "cancun",
+  "japão",
+  "japan",
+  "tóquio",
+  "tokyo",
+  "osaka",
+  "kyoto",
+  "beijing",
+  "xangai",
+  "shanghai",
+  "china",
+  "coreia",
+  "korea",
+  "seoul",
+  "seul",
+  "bangcoc",
+  "bangkok",
+  "tailândia",
+  "thailand",
+  "índia",
+  "india",
+  "dubai",
+  "abu dhabi",
+  "marrocos",
+  "morocco",
+  "egito",
+  "egypt",
+  "cairo",
 ];
 
 const isNorthernHemisphere = (destination: string): boolean => {
   const lower = destination.toLowerCase();
-  return NORTHERN_HEMISPHERE_KEYWORDS.some(kw => lower.includes(kw));
+  return NORTHERN_HEMISPHERE_KEYWORDS.some((kw) => lower.includes(kw));
 };
 
-export const getTripChecklistPrompt = (destination: string, startDate?: string, endDate?: string) => {
-  let seasonHint = '';
-  let durationHint = '';
+export const getTripChecklistPrompt = (
+  destination: string,
+  startDate?: string,
+  endDate?: string
+) => {
+  let seasonHint = "";
+  let durationHint = "";
 
   if (startDate && endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const month = start.getMonth() + 1;
     const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    const dateRange = `${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
+    const dateRange = `${start.toLocaleDateString("pt-BR")} a ${end.toLocaleDateString("pt-BR")}`;
 
-    durationHint = `Duração da viagem: ${days} dia${days > 1 ? 's' : ''}.`;
+    durationHint = `Duração da viagem: ${days} dia${days > 1 ? "s" : ""}.`;
 
     const northern = isNorthernHemisphere(destination);
 
@@ -171,14 +268,14 @@ export const getTripChecklistPrompt = (destination: string, startDate?: string, 
       isSummer = month >= 10 || month <= 3;
     }
 
-    const isWinter = northern ? (month === 12 || month <= 2) : (month >= 6 && month <= 8);
-    const isAutumn = northern ? (month >= 9 && month <= 11) : (month >= 3 && month <= 5);
-    const isSpring = northern ? (month >= 3 && month <= 5) : (month >= 9 && month <= 11);
+    const isWinter = northern ? month === 12 || month <= 2 : month >= 6 && month <= 8;
+    const isAutumn = northern ? month >= 9 && month <= 11 : month >= 3 && month <= 5;
+    const isSpring = northern ? month >= 3 && month <= 5 : month >= 9 && month <= 11;
 
     if (isSummer) {
       seasonHint = `ESTAÇÃO: VERÃO (${dateRange}). Calor, sol forte, possível alta umidade. Roupas leves, protetor solar alto FPS, óculos de sol. NÃO sugira casacos, agasalhos ou roupas de frio.`;
     } else if (isWinter) {
-      seasonHint = `ESTAÇÃO: INVERNO (${dateRange}). Frio${northern ? ' intenso' : ', especialmente à noite'}. Casaco, agasalhos, meias grossas. NÃO sugira roupas de praia ou itens de calor.`;
+      seasonHint = `ESTAÇÃO: INVERNO (${dateRange}). Frio${northern ? " intenso" : ", especialmente à noite"}. Casaco, agasalhos, meias grossas. NÃO sugira roupas de praia ou itens de calor.`;
     } else if (isAutumn) {
       seasonHint = `ESTAÇÃO: OUTONO (${dateRange}). Temperaturas amenas a frescas, pode chover. Jaqueta leve, camadas de roupa.`;
     } else if (isSpring) {
@@ -188,13 +285,13 @@ export const getTripChecklistPrompt = (destination: string, startDate?: string, 
 
   return `Você é um viajante experiente que já foi para ${destination} diversas vezes.
 Crie um checklist de mala/preparação com exatamente 10 itens PRÁTICOS e ESPECÍFICOS para quem vai viajar para ${destination}.
-${durationHint ? `\n${durationHint}` : ''}
-${seasonHint ? `\n⚠️ ESTAÇÃO/CLIMA — SIGA RIGOROSAMENTE:\n${seasonHint}\n` : ''}
+${durationHint ? `\n${durationHint}` : ""}
+${seasonHint ? `\n⚠️ ESTAÇÃO/CLIMA — SIGA RIGOROSAMENTE:\n${seasonHint}\n` : ""}
 
 REGRAS OBRIGATÓRIAS:
 1. Pense no que um viajante REAL leva — não uma lista de hotel genérica.
 2. Considere se é destino internacional (passaporte, visto, adaptador de tomada, câmbio, chip internacional) ou nacional.
-3. Seja específico: não "roupas" mas "Camisetas leves de secagem rápida (${seasonHint.includes('VERÃO') ? '5-6 peças' : '3-4 peças'})".
+3. Seja específico: não "roupas" mas "Camisetas leves de secagem rápida (${seasonHint.includes("VERÃO") ? "5-6 peças" : "3-4 peças"})".
 4. Inclua 1-2 itens que viajantes frequentemente ESQUECEM mas fazem diferença real neste destino.
 5. NUNCA sugira itens incompatíveis com a estação indicada acima.
 6. Adapte à duração da viagem — não sugira 10 pares de sapato para 3 dias.

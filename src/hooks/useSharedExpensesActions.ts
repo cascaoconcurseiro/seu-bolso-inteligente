@@ -110,10 +110,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       const settlementCurrency = itemsToSettle[0]?.currency || "BRL";
 
-      const itemsTotal = itemsToSettle.reduce((sum, item) => {
-        if (item.type === "CREDIT") return SafeFinancialCalculator.add(sum, item.amount);
-        return SafeFinancialCalculator.subtract(sum, item.amount);
-      }, 0);
+      const itemsTotal = itemsToSettle
+        .reduce(
+          (sum, item) =>
+            item.type === "CREDIT"
+              ? SafeFinancialCalculator.add(sum, item.amount)
+              : SafeFinancialCalculator.subtract(sum, item.amount),
+          SafeFinancialCalculator.ZERO
+        )
+        .toNumber();
 
       const absoluteTotalDue = Math.abs(itemsTotal);
 

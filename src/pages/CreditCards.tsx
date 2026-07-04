@@ -21,7 +21,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, CreditCard, Trash2, Archive, Download, Loader2, AlertCircle, Pencil } from "lucide-react";
+import {
+  Plus,
+  CreditCard,
+  Trash2,
+  Archive,
+  Download,
+  Loader2,
+  AlertCircle,
+  Pencil,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -356,15 +365,19 @@ export function CreditCards() {
             if (!selectedCard) return;
             const refStart = dateFns.startOfMonth(referenceDate);
             // Evitar dias inválidos (ex: 31 de abril vira 30)
-            const safeClosingDate = dateFns.setDate(refStart, Math.min(newDay, dateFns.getDaysInMonth(refStart)));
+            const safeClosingDate = dateFns.setDate(
+              refStart,
+              Math.min(newDay, dateFns.getDaysInMonth(refStart))
+            );
 
-            const { error } = await supabase
-              .from("credit_card_closing_overrides")
-              .upsert({
+            const { error } = await supabase.from("credit_card_closing_overrides").upsert(
+              {
                 account_id: selectedCard.id,
                 reference_date: dateFns.format(refStart, "yyyy-MM-dd"),
-                closing_date: dateFns.format(safeClosingDate, "yyyy-MM-dd")
-              }, { onConflict: "account_id, reference_date" });
+                closing_date: dateFns.format(safeClosingDate, "yyyy-MM-dd"),
+              },
+              { onConflict: "account_id, reference_date" }
+            );
 
             if (!error) {
               toast.success(`Fechamento da fatura atual ajustado para dia ${newDay}`);

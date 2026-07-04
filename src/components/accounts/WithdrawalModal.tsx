@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { CurrencyInput } from '@/components/ui/currency-input';
-import { AmountInput } from '@/components/ui/amount-input';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { AmountInput } from "@/components/ui/amount-input";
 import { Loader2, Banknote } from "lucide-react";
 import { useWithdrawal } from "@/hooks/useWithdrawal";
 import { moneyUtils } from "@/utils/money";
@@ -74,9 +80,7 @@ export function WithdrawalModal({
             <Banknote className="h-5 w-5" />
             Sacar dinheiro
           </DialogTitle>
-          <DialogDescription>
-            Registre um saque em dinheiro desta conta
-          </DialogDescription>
+          <DialogDescription>Registre um saque em dinheiro desta conta</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
@@ -93,7 +97,7 @@ export function WithdrawalModal({
 
           {/* Valor */}
           <div className="space-y-2">
-            <AmountInput 
+            <AmountInput
               label="Valor do saque"
               value={amount}
               onChange={handleAmountChange}
@@ -130,11 +134,7 @@ export function WithdrawalModal({
             </Button>
             <Button
               type="submit"
-              disabled={
-                numericAmount <= 0 ||
-                isInvalid ||
-                withdrawal.isPending
-              }
+              disabled={numericAmount <= 0 || isInvalid || withdrawal.isPending}
               className="flex-1"
             >
               {withdrawal.isPending ? (

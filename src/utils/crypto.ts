@@ -1,6 +1,6 @@
 const PBKDF2_ITERATIONS = 200_000;
-const PBKDF2_HASH = 'SHA-256';
-const SEPARATOR = ':';
+const PBKDF2_HASH = "SHA-256";
+const SEPARATOR = ":";
 
 /**
  * Hash a PIN using PBKDF2 with a random salt.
@@ -29,8 +29,8 @@ export async function verifyPin(pin: string, stored: string): Promise<boolean> {
   const [saltB64, hashB64] = stored.split(SEPARATOR);
   if (!saltB64 || !hashB64) return false;
 
-  const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
-  const expected = Uint8Array.from(atob(hashB64), c => c.charCodeAt(0));
+  const salt = Uint8Array.from(atob(saltB64), (c) => c.charCodeAt(0));
+  const expected = Uint8Array.from(atob(hashB64), (c) => c.charCodeAt(0));
   const derived = new Uint8Array(await deriveKey(pin, salt));
 
   // Constant-time comparison to prevent timing attacks
@@ -42,21 +42,23 @@ export async function verifyPin(pin: string, stored: string): Promise<boolean> {
 
 async function deriveKey(pin: string, salt: Uint8Array): Promise<ArrayBuffer> {
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     new TextEncoder().encode(pin),
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveBits'],
+    ["deriveBits"]
   );
   return crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: PBKDF2_HASH },
+    { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: PBKDF2_HASH },
     keyMaterial,
-    256,
+    256
   );
 }
 
 async function legacySHA256(pin: string): Promise<string> {
   const data = new TextEncoder().encode(pin);
-  const buf = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }

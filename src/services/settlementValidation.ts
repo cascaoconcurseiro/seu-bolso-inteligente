@@ -1,6 +1,6 @@
 /**
  * Settlement Validation Service
- * 
+ *
  * Provides validation logic for transaction settlement operations.
  * Ensures that settled transactions cannot be modified, deleted, or anticipated.
  */
@@ -11,7 +11,7 @@
 
 export interface SettlementStatus {
   isSettled: boolean;
-  settledBy: 'debtor' | 'creditor' | 'both' | 'none';
+  settledBy: "debtor" | "creditor" | "both" | "none";
   canEdit: boolean;
   canDelete: boolean;
   canAnticipate: boolean;
@@ -57,13 +57,13 @@ export interface TransactionSplit {
 // ============================================================================
 
 export enum SettlementErrorCode {
-  TRANSACTION_SETTLED = 'TRANSACTION_SETTLED',
-  TRANSACTION_NOT_FOUND = 'TRANSACTION_NOT_FOUND',
-  NO_PERMISSION = 'NO_PERMISSION',
-  SERIES_HAS_SETTLED_INSTALLMENTS = 'SERIES_HAS_SETTLED_INSTALLMENTS',
-  INSTALLMENT_SETTLED = 'INSTALLMENT_SETTLED',
-  DUPLICATE_SETTLEMENT = 'DUPLICATE_SETTLEMENT',
-  INVALID_OPERATION = 'INVALID_OPERATION',
+  TRANSACTION_SETTLED = "TRANSACTION_SETTLED",
+  TRANSACTION_NOT_FOUND = "TRANSACTION_NOT_FOUND",
+  NO_PERMISSION = "NO_PERMISSION",
+  SERIES_HAS_SETTLED_INSTALLMENTS = "SERIES_HAS_SETTLED_INSTALLMENTS",
+  INSTALLMENT_SETTLED = "INSTALLMENT_SETTLED",
+  DUPLICATE_SETTLEMENT = "DUPLICATE_SETTLEMENT",
+  INVALID_OPERATION = "INVALID_OPERATION",
 }
 
 // ============================================================================
@@ -72,28 +72,28 @@ export enum SettlementErrorCode {
 
 export const ERROR_MESSAGES: Record<SettlementErrorCode, { message: string; action?: string }> = {
   [SettlementErrorCode.TRANSACTION_SETTLED]: {
-    message: 'Esta transação já foi acertada e não pode ser modificada',
-    action: 'Desfaça o acerto primeiro para poder editar',
+    message: "Esta transação já foi acertada e não pode ser modificada",
+    action: "Desfaça o acerto primeiro para poder editar",
   },
   [SettlementErrorCode.TRANSACTION_NOT_FOUND]: {
-    message: 'Transação não encontrada',
+    message: "Transação não encontrada",
   },
   [SettlementErrorCode.NO_PERMISSION]: {
-    message: 'Apenas o criador da transação pode realizar esta operação',
+    message: "Apenas o criador da transação pode realizar esta operação",
   },
   [SettlementErrorCode.SERIES_HAS_SETTLED_INSTALLMENTS]: {
-    message: 'Esta série contém parcelas já acertadas',
-    action: 'Desfaça os acertos das parcelas antes de excluir a série',
+    message: "Esta série contém parcelas já acertadas",
+    action: "Desfaça os acertos das parcelas antes de excluir a série",
   },
   [SettlementErrorCode.INSTALLMENT_SETTLED]: {
-    message: 'Parcelas acertadas não podem ser antecipadas',
-    action: 'Desfaça o acerto primeiro para poder antecipar',
+    message: "Parcelas acertadas não podem ser antecipadas",
+    action: "Desfaça o acerto primeiro para poder antecipar",
   },
   [SettlementErrorCode.DUPLICATE_SETTLEMENT]: {
-    message: 'Já existe um acerto para esta transação',
+    message: "Já existe um acerto para esta transação",
   },
   [SettlementErrorCode.INVALID_OPERATION]: {
-    message: 'Operação inválida',
+    message: "Operação inválida",
   },
 };
 
@@ -130,14 +130,14 @@ export class SettlementValidator {
   static getSettlementStatus(transaction: Transaction, split?: TransactionSplit): SettlementStatus {
     const isSettled = this.isTransactionSettled(transaction, split);
 
-    let settledBy: 'debtor' | 'creditor' | 'both' | 'none' = 'none';
+    let settledBy: "debtor" | "creditor" | "both" | "none" = "none";
     if (split) {
       if (split.settled_by_debtor && split.settled_by_creditor) {
-        settledBy = 'both';
+        settledBy = "both";
       } else if (split.settled_by_debtor) {
-        settledBy = 'debtor';
+        settledBy = "debtor";
       } else if (split.settled_by_creditor) {
-        settledBy = 'creditor';
+        settledBy = "creditor";
       }
     }
 
@@ -145,8 +145,8 @@ export class SettlementValidator {
     const canDelete = !isSettled;
     const canAnticipate = !isSettled;
 
-    const blockReason = isSettled 
-      ? ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED].message 
+    const blockReason = isSettled
+      ? ERROR_MESSAGES[SettlementErrorCode.TRANSACTION_SETTLED].message
       : undefined;
 
     return {
@@ -216,7 +216,7 @@ export class SettlementValidator {
     // Check if any split is settled
     if (splits && splits.length > 0) {
       const hasSettledSplit = splits.some(
-        split => split.settled_by_debtor || split.settled_by_creditor
+        (split) => split.settled_by_debtor || split.settled_by_creditor
       );
 
       if (hasSettledSplit) {
@@ -266,7 +266,11 @@ export class SettlementValidator {
    * Check if a series can be deleted
    * A series can only be deleted if ALL installments are not settled
    */
-  static canDeleteSeries(seriesId: string, transactions: Transaction[], allSplits?: TransactionSplit[]): ValidationResult {
+  static canDeleteSeries(
+    seriesId: string,
+    transactions: Transaction[],
+    allSplits?: TransactionSplit[]
+  ): ValidationResult {
     if (!seriesId || !transactions || transactions.length === 0) {
       return {
         isValid: false,
@@ -278,7 +282,7 @@ export class SettlementValidator {
     }
 
     // Check if any transaction in the series is settled
-    const hasSettledTransaction = transactions.some(tx => tx.is_settled);
+    const hasSettledTransaction = transactions.some((tx) => tx.is_settled);
 
     if (hasSettledTransaction) {
       return {
@@ -293,7 +297,7 @@ export class SettlementValidator {
     // Check if any split is settled
     if (allSplits && allSplits.length > 0) {
       const hasSettledSplit = allSplits.some(
-        split => split.settled_by_debtor || split.settled_by_creditor
+        (split) => split.settled_by_debtor || split.settled_by_creditor
       );
 
       if (hasSettledSplit) {
@@ -313,8 +317,8 @@ export class SettlementValidator {
   /**
    * Check if a settlement already exists for a split
    */
-  static hasExistingSettlement(split: TransactionSplit, type: 'debtor' | 'creditor'): boolean {
-    if (type === 'debtor') {
+  static hasExistingSettlement(split: TransactionSplit, type: "debtor" | "creditor"): boolean {
+    if (type === "debtor") {
       return split.settled_by_debtor || !!split.debtor_settlement_tx_id;
     } else {
       return split.settled_by_creditor || !!split.creditor_settlement_tx_id;
@@ -324,7 +328,10 @@ export class SettlementValidator {
   /**
    * Validate settlement creation
    */
-  static canCreateSettlement(split: TransactionSplit, type: 'debtor' | 'creditor'): ValidationResult {
+  static canCreateSettlement(
+    split: TransactionSplit,
+    type: "debtor" | "creditor"
+  ): ValidationResult {
     if (this.hasExistingSettlement(split, type)) {
       return {
         isValid: false,

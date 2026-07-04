@@ -294,12 +294,12 @@ export const useSharedFinances = ({
           totalsByCurrency[curr].credits = SafeFinancialCalculator.add(
             totalsByCurrency[curr].credits,
             i.amount
-          );
+          ).toNumber();
         } else {
           totalsByCurrency[curr].debits = SafeFinancialCalculator.add(
             totalsByCurrency[curr].debits,
             i.amount
-          );
+          ).toNumber();
         }
       }
     });
@@ -308,7 +308,7 @@ export const useSharedFinances = ({
       totalsByCurrency[curr].net = SafeFinancialCalculator.subtract(
         totalsByCurrency[curr].credits,
         totalsByCurrency[curr].debits
-      );
+      ).toNumber();
     });
 
     return totalsByCurrency;
@@ -333,15 +333,15 @@ export const useSharedFinances = ({
         summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(
           summaryByCurrency[curr].totalCredits,
           Number(balance.total_credits)
-        );
+        ).toNumber();
         summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(
           summaryByCurrency[curr].totalDebits,
           Number(balance.total_debits)
-        );
+        ).toNumber();
         summaryByCurrency[curr].net = SafeFinancialCalculator.add(
           summaryByCurrency[curr].net,
           Number(balance.net_balance)
-        );
+        ).toNumber();
       });
 
       return {
@@ -363,12 +363,12 @@ export const useSharedFinances = ({
             summaryByCurrency[curr].totalCredits = SafeFinancialCalculator.add(
               summaryByCurrency[curr].totalCredits,
               item.amount
-            );
+            ).toNumber();
           } else {
             summaryByCurrency[curr].totalDebits = SafeFinancialCalculator.add(
               summaryByCurrency[curr].totalDebits,
               item.amount
-            );
+            ).toNumber();
           }
         }
       });
@@ -379,7 +379,7 @@ export const useSharedFinances = ({
       summaryByCurrency[curr].net = SafeFinancialCalculator.subtract(
         summaryByCurrency[curr].totalCredits,
         summaryByCurrency[curr].totalDebits
-      );
+      ).toNumber();
     });
 
     return {

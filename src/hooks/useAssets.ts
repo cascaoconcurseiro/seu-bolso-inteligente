@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Asset, AssetPerformance } from '@/types/database';
-import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/utils/logger';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Asset, AssetPerformance } from "@/types/database";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 export const useAssets = () => {
   const { toast } = useToast();
@@ -10,12 +10,12 @@ export const useAssets = () => {
 
   // Buscar todos os investimentos
   const { data: assets, isLoading } = useQuery({
-    queryKey: ['assets'],
+    queryKey: ["assets"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("assets")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Asset[];
@@ -24,7 +24,7 @@ export const useAssets = () => {
 
   // Buscar performance de um investimento
   const getAssetPerformance = async (assetId: string) => {
-    const { data, error } = await supabase.rpc('get_asset_performance', {
+    const { data, error } = await supabase.rpc("get_asset_performance", {
       p_asset_id: assetId,
     });
 
@@ -34,12 +34,16 @@ export const useAssets = () => {
 
   // Criar investimento
   const createAsset = useMutation({
-    mutationFn: async (asset: Omit<Asset, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'deleted'>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+    mutationFn: async (
+      asset: Omit<Asset, "id" | "user_id" | "created_at" | "updated_at" | "deleted">
+    ) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
 
       const { data: assetData, error } = await supabase
-        .from('assets')
+        .from("assets")
         .insert([{ ...asset, user_id: user.id }])
         .select()
         .single();
@@ -49,33 +53,33 @@ export const useAssets = () => {
       // SE houver conta vinculada e valor investido, gerar transação automática
       if (assetData.account_id && asset.purchase_price && asset.quantity) {
         const totalAmount = asset.purchase_price * asset.quantity;
-        const purchaseDate = asset.purchase_date || new Date().toISOString().split('T')[0];
+        const purchaseDate = asset.purchase_date || new Date().toISOString().split("T")[0];
         const competenceDate = `${purchaseDate.substring(0, 7)}-01`;
 
         // Buscar categoria de Investimentos ou usar uma padrão
         const { data: catData } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('user_id', user.id)
-          .ilike('name', '%investimento%')
+          .from("categories")
+          .select("id")
+          .eq("user_id", user.id)
+          .ilike("name", "%investimento%")
           .limit(1)
           .maybeSingle();
 
-        const { error: txError } = await supabase.from('transactions').insert({
+        const { error: txError } = await supabase.from("transactions").insert({
           user_id: user.id,
           creator_user_id: user.id,
           account_id: assetData.account_id,
-          type: 'EXPENSE',
+          type: "EXPENSE",
           amount: totalAmount,
           description: `Compra de Ativo: ${assetData.ticker || assetData.name}`,
           category_id: catData?.id || null,
           date: purchaseDate,
           competence_date: competenceDate,
-          domain: 'PERSONAL',
+          domain: "PERSONAL",
           is_shared: false,
           is_installment: false,
           is_recurring: false,
-          currency: assetData.currency || 'BRL',
+          currency: assetData.currency || "BRL",
           notes: `Compra de ${assetData.quantity} cotas de ${assetData.name}`,
           asset_id: assetData.id,
         });
@@ -86,14 +90,14 @@ export const useAssets = () => {
         }
 
         // TAMBÉM INSERE NA asset_transactions PARA MANTER O HISTÓRICO CORRETO
-        const { error: assetTxError } = await supabase.from('asset_transactions').insert({
+        const { error: assetTxError } = await supabase.from("asset_transactions").insert({
           user_id: user.id,
           asset_id: assetData.id,
           account_id: assetData.account_id,
-          type: 'BUY',
+          type: "BUY",
           quantity: asset.quantity,
           price: asset.purchase_price,
-          date: purchaseDate
+          date: purchaseDate,
         });
 
         if (assetTxError) {
@@ -104,18 +108,18 @@ export const useAssets = () => {
       return assetData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
-      queryClient.invalidateQueries({ queryKey: ['asset-transactions'] }); // ADICIONADO
+      queryClient.invalidateQueries({ queryKey: ["assets"] });
+      queryClient.invalidateQueries({ queryKey: ["asset-transactions"] }); // ADICIONADO
       toast({
-        title: 'Investimento criado',
-        description: 'Investimento criado com sucesso!',
+        title: "Investimento criado",
+        description: "Investimento criado com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao criar investimento',
+        title: "Erro ao criar investimento",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -124,9 +128,9 @@ export const useAssets = () => {
   const updateAsset = useMutation({
     mutationFn: async ({ id, ...asset }: Partial<Asset> & { id: string }) => {
       const { data, error } = await supabase
-        .from('assets')
+        .from("assets")
         .update(asset)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -134,17 +138,17 @@ export const useAssets = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ["assets"] });
       toast({
-        title: 'Investimento atualizado',
-        description: 'Investimento atualizado com sucesso!',
+        title: "Investimento atualizado",
+        description: "Investimento atualizado com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao atualizar investimento',
+        title: "Erro ao atualizar investimento",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -153,9 +157,9 @@ export const useAssets = () => {
   const updateAssetPrice = useMutation({
     mutationFn: async ({ id, currentPrice }: { id: string; currentPrice: number }) => {
       const { data, error } = await supabase
-        .from('assets')
+        .from("assets")
         .update({ current_price: currentPrice })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -163,17 +167,17 @@ export const useAssets = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ["assets"] });
       toast({
-        title: 'Preço atualizado',
-        description: 'Preço atualizado com sucesso!',
+        title: "Preço atualizado",
+        description: "Preço atualizado com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao atualizar preço',
+        title: "Erro ao atualizar preço",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -183,12 +187,12 @@ export const useAssets = () => {
     mutationFn: async (id: string) => {
       // 1. Fetch the asset to know its name/ticker
       const { data: asset, error: fetchError } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('id', id)
+        .from("assets")
+        .select("*")
+        .eq("id", id)
         .single();
-        
-      if (fetchError || !asset) throw fetchError || new Error('Investimento não encontrado');
+
+      if (fetchError || !asset) throw fetchError || new Error("Investimento não encontrado");
 
       const assetIdentifier = asset.ticker || asset.name;
 
@@ -197,31 +201,25 @@ export const useAssets = () => {
       // e na asset_transactions via FK asset_id ON DELETE CASCADE (se aplicável, mas já temos manual abaixo para garantir).
 
       // 3. Delete from asset_transactions (Efeito Cascata)
-      await supabase
-        .from('asset_transactions')
-        .delete()
-        .eq('asset_id', id);
+      await supabase.from("asset_transactions").delete().eq("asset_id", id);
 
       // 4. Finally, delete the asset
-      const { error } = await supabase
-        .from('assets')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("assets").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ["assets"] });
       toast({
-        title: 'Investimento excluído',
-        description: 'Investimento excluído com sucesso!',
+        title: "Investimento excluído",
+        description: "Investimento excluído com sucesso!",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Erro ao excluir investimento',
+        title: "Erro ao excluir investimento",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });

@@ -22,7 +22,7 @@ export function NumberTicker({
   const motionValue = useMotionValue(
     animateOnMount ? (direction === "down" ? value + 1000 : 0) : value
   );
-  
+
   const displayValue = useTransform(motionValue, (latest) =>
     formatCurrency ? formatCurrency(latest) : Math.round(latest).toString()
   );

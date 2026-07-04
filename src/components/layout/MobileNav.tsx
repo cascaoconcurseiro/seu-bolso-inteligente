@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Home,
   ArrowLeftRight,
@@ -29,6 +29,10 @@ export function MobileNav() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { theme, setTheme, systemTheme } = useTheme();
   const { signOut } = useAuth();
+  const prefersReducedMotion = useReducedMotion();
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const tapAnimation = prefersReducedMotion ? undefined : { scale: 0.9 };
 
   const currentTheme = theme === "system" ? systemTheme : theme;
   const isDark = currentTheme === "dark";
@@ -48,6 +52,44 @@ export function MobileNav() {
   useEffect(() => {
     closeSheet();
   }, [location.pathname]);
+
+  // Padrão ARIA de diálogo: Escape fecha, Tab fica preso no sheet,
+  // foco vai para o sheet ao abrir e volta ao botão "Mais" ao fechar
+  useEffect(() => {
+    if (!isSheetOpen) return;
+
+    const sheet = sheetRef.current;
+    sheet?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setIsSheetOpen(false);
+        return;
+      }
+      if (event.key === "Tab" && sheet) {
+        const focusables = sheet.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      menuButtonRef.current?.focus();
+    };
+  }, [isSheetOpen]);
 
   const navItems = [
     { label: "Início", icon: Home, path: "/" },
@@ -73,24 +115,36 @@ export function MobileNav() {
 
       {/* Bottom Sheet Modal */}
       <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navegação"
+        aria-hidden={!isSheetOpen}
+        tabIndex={-1}
         className={cn(
-          "md:hidden fixed bottom-0 left-0 right-0 z-[70] bg-background border-t border-border rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-out flex flex-col",
-          isSheetOpen ? "translate-y-0" : "translate-y-full"
+          "md:hidden fixed bottom-0 left-0 right-0 z-[70] bg-background border-t border-border rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-out flex flex-col focus:outline-none",
+          isSheetOpen ? "translate-y-0" : "translate-y-full pointer-events-none invisible"
         )}
         style={{ maxHeight: "85vh" }}
       >
-        <div className="w-full flex justify-center py-3" onClick={closeSheet}>
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="w-full flex justify-center py-3"
+          onClick={closeSheet}
+        >
           <div className="w-12 h-2 bg-muted rounded-full" />
-        </div>
+        </button>
 
         <div className="px-6 pb-6 overflow-y-auto no-scrollbar flex-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-semibold text-base">Explorar</h2>
             <button
               onClick={closeSheet}
+              aria-label="Fechar menu"
               className="p-2 bg-muted/50 rounded-full text-muted-foreground hover:text-foreground"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
 
@@ -101,6 +155,7 @@ export function MobileNav() {
               return (
                 <button
                   key={item.path}
+                  aria-current={active ? "page" : undefined}
                   onClick={() => {
                     navigate(item.path);
                     closeSheet();
@@ -167,11 +222,12 @@ export function MobileNav() {
               return (
                 <motion.button
                   key="add-btn"
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={tapAnimation}
+                  aria-label="Nova transação"
                   onClick={() => setShowTransactionModal(true)}
                   className="relative -top-5 w-14 h-14 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center transition-transform duration-200 hover:brightness-110"
                 >
-                  <Plus className="w-7 h-7" />
+                  <Plus className="w-7 h-7" aria-hidden="true" />
                 </motion.button>
               );
             }
@@ -180,7 +236,11 @@ export function MobileNav() {
               return (
                 <motion.button
                   key="menu-btn"
-                  whileTap={{ scale: 0.9 }}
+                  ref={menuButtonRef}
+                  whileTap={tapAnimation}
+                  aria-expanded={isSheetOpen}
+                  aria-haspopup="dialog"
+                  aria-label="Abrir menu de navegação"
                   onClick={() => setIsSheetOpen(true)}
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl",
@@ -217,7 +277,8 @@ export function MobileNav() {
             return (
               <motion.button
                 key={item.path}
-                whileTap={{ scale: 0.9 }}
+                whileTap={tapAnimation}
+                aria-current={active ? "page" : undefined}
                 onClick={() => navigate(item.path!)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors duration-200 py-1 rounded-xl",

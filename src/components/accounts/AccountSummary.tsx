@@ -23,29 +23,35 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
                 <p className="text-sm sm:text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">
                   Saldo Geral Consolidado ({currency})
                 </p>
-                <p className={cn(
-                  "font-mono text-3xl sm:text-4xl font-black tracking-tight leading-none",
-                  balance >= 0 ? "text-positive" : "text-negative"
-                )}>
-                  {symbol} {balance.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <p
+                  className={cn(
+                    "font-mono text-3xl sm:text-4xl font-black tracking-tight leading-none",
+                    balance >= 0 ? "text-positive" : "text-negative"
+                  )}
+                >
+                  {symbol}{" "}
+                  {balance.toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
             </div>
           ))}
           {balancesByCurrency.length === 0 && (
-             <div className="flex items-start gap-4">
-               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                 <Wallet className="h-6 w-6 text-primary" />
-               </div>
-               <div>
-                 <p className="text-sm sm:text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">
-                   Saldo Geral Consolidado (BRL)
-                 </p>
-                 <p className="font-mono text-3xl sm:text-3xl font-black tracking-tight leading-none text-positive">
-                   R$ 0,00
-                 </p>
-               </div>
-             </div>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Wallet className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm sm:text-sm text-muted-foreground uppercase font-bold tracking-widest mb-1">
+                  Saldo Geral Consolidado (BRL)
+                </p>
+                <p className="font-mono text-3xl sm:text-3xl font-black tracking-tight leading-none text-positive">
+                  R$ 0,00
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
@@ -54,7 +60,9 @@ export function AccountSummary({ balancesByCurrency, activeAccountsCount }: Acco
             <CheckCircle className="h-5 w-5 text-success" />
           </div>
           <div>
-            <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1">Contas Ativas</p>
+            <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-wider leading-none mb-1">
+              Contas Ativas
+            </p>
             <p className="font-mono text-base font-bold leading-none">{activeAccountsCount}</p>
           </div>
         </div>

@@ -18,7 +18,14 @@ const sizeClasses = {
   xl: "w-16 h-16 text-2xl",
 };
 
-export function UserAvatar({ name, colorId = "green", iconId = "avatar_1", avatarUrl, size = "md", className }: UserAvatarProps) {
+export function UserAvatar({
+  name,
+  colorId = "green",
+  iconId = "avatar_1",
+  avatarUrl,
+  size = "md",
+  className,
+}: UserAvatarProps) {
   const color = getAvatarColor(colorId);
   const icon = getAvatarIcon(iconId);
   const [imgError, setImgError] = useState(false);

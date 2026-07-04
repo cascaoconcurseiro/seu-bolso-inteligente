@@ -15,7 +15,7 @@ export function RippleEffect({ status }: RippleEffectProps) {
             animate={{ scale: 20, opacity: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
             className={`w-20 h-20 rounded-full ${
-              status === "success" ? "bg-green-500" : "bg-red-500"
+              status === "success" ? "bg-positive" : "bg-negative"
             }`}
           />
         </div>

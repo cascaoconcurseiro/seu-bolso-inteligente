@@ -1,30 +1,41 @@
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Calendar as CalendarIcon, RefreshCw, RotateCcw, Repeat, Bell, Plane, Users, ChevronDown, Minus, Plus } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import {
+  Calendar as CalendarIcon,
+  RefreshCw,
+  RotateCcw,
+  Repeat,
+  Bell,
+  Plane,
+  Users,
+  ChevronDown,
+  Minus,
+  Plus,
+} from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { useState } from 'react';
-import { useTransactionStore } from '@/store/useTransactionStore';
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useState } from "react";
+import { useTransactionStore } from "@/store/useTransactionStore";
 
 interface AdvancedOptionsProps {
   isExpense: boolean;
   isCreditCard: boolean;
   currencySymbol: string;
   numericAmount: number;
-  
+
   // Novas propriedades integradas para Viagem e Partilha
   trips: any[];
   hasSharing: boolean;
@@ -36,7 +47,7 @@ export function AdvancedOptions({
   isCreditCard,
   currencySymbol,
   numericAmount,
-  
+
   // Desestruturando novas propriedades
   trips,
   hasSharing,
@@ -63,13 +74,21 @@ export function AdvancedOptions({
   const setShowSplitModal = useTransactionStore((state) => state.setShowSplitModal);
   const [isExpanded, setIsExpanded] = useState(false);
   const [quickSplitPeople, setQuickSplitPeople] = useState(0); // 0 = inactive
-  const hasActiveOption = !!(tripId || hasSharing || isInstallment || isRefund || isRecurring || enableNotification || quickSplitPeople > 0);
+  const hasActiveOption = !!(
+    tripId ||
+    hasSharing ||
+    isInstallment ||
+    isRefund ||
+    isRecurring ||
+    enableNotification ||
+    quickSplitPeople > 0
+  );
 
   const handleDividirClick = () => {
     if (tripId || availableMembers.length > 0) {
       setShowSplitModal(true);
     } else {
-      setQuickSplitPeople(prev => prev > 0 ? 0 : 2);
+      setQuickSplitPeople((prev) => (prev > 0 ? 0 : 2));
     }
   };
 
@@ -121,23 +140,28 @@ export function AdvancedOptions({
                 type="button"
                 className={cn(
                   "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-                  tripId 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+                  tripId
+                    ? "bg-success text-white border-success font-bold shadow-md"
                     : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
                 )}
               >
                 <Plane className="h-5 w-5 animate-pulse-slow" />
                 <span className="text-sm tracking-tight font-medium truncate max-w-[70px] text-center">
-                  {tripId ? (trips.find(t => t.id === tripId)?.name || 'Viagem') : 'Viagem'}
+                  {tripId ? trips.find((t) => t.id === tripId)?.name || "Viagem" : "Viagem"}
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-2 rounded-xl border border-border bg-card shadow-md" align="start">
-              <p className="text-sm font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider text-sm">Vincular Viagem</p>
+            <PopoverContent
+              className="w-56 p-2 rounded-xl border border-border bg-card shadow-md"
+              align="start"
+            >
+              <p className="text-sm font-bold text-muted-foreground px-2 py-1 uppercase tracking-wider text-sm">
+                Vincular Viagem
+              </p>
               <div className="space-y-2 mt-1.5">
                 <button
                   type="button"
-                  onClick={() => setTripId('')}
+                  onClick={() => setTripId("")}
                   className={cn(
                     "w-full text-left px-2.5 py-2 text-xs rounded-lg font-medium transition-all",
                     !tripId ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
@@ -145,20 +169,25 @@ export function AdvancedOptions({
                 >
                   Nenhuma Viagem
                 </button>
-                {trips && trips.map((trip) => (
-                  <button
-                    key={trip.id}
-                    type="button"
-                    onClick={() => setTripId(trip.id)}
-                    className={cn(
-                      "w-full text-left px-2.5 py-2 text-xs rounded-lg font-medium flex items-center justify-between transition-all gap-2",
-                      tripId === trip.id ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"
-                    )}
-                  >
-                    <span className="truncate flex-1">{trip.name}</span>
-                    <span className="text-[8px] px-1 py-0.2 bg-muted text-muted-foreground rounded uppercase font-bold shrink-0">{trip.currency}</span>
-                  </button>
-                ))}
+                {trips &&
+                  trips.map((trip) => (
+                    <button
+                      key={trip.id}
+                      type="button"
+                      onClick={() => setTripId(trip.id)}
+                      className={cn(
+                        "w-full text-left px-2.5 py-2 text-xs rounded-lg font-medium flex items-center justify-between transition-all gap-2",
+                        tripId === trip.id
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted text-foreground"
+                      )}
+                    >
+                      <span className="truncate flex-1">{trip.name}</span>
+                      <span className="text-[8px] px-1 py-0.2 bg-muted text-muted-foreground rounded uppercase font-bold shrink-0">
+                        {trip.currency}
+                      </span>
+                    </button>
+                  ))}
               </div>
             </PopoverContent>
           </Popover>
@@ -171,14 +200,14 @@ export function AdvancedOptions({
             onClick={handleDividirClick}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-              (hasSharing || quickSplitPeople > 0)
+              hasSharing || quickSplitPeople > 0
                 ? "bg-success text-white border-success font-bold shadow-md"
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
             <Users className="h-5 w-5" />
             <span className="text-sm tracking-tight font-medium text-center">
-              {hasSharing ? 'Dividido' : quickSplitPeople > 0 ? `${quickSplitPeople}x` : 'Dividir'}
+              {hasSharing ? "Dividido" : quickSplitPeople > 0 ? `${quickSplitPeople}x` : "Dividir"}
             </span>
           </button>
         )}
@@ -194,8 +223,8 @@ export function AdvancedOptions({
             }}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-              isInstallment 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+              isInstallment
+                ? "bg-success text-white border-success font-bold shadow-md"
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
@@ -211,8 +240,8 @@ export function AdvancedOptions({
             onClick={() => setIsRefund(!isRefund)}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-              isRefund 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+              isRefund
+                ? "bg-success text-white border-success font-bold shadow-md"
                 : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
             )}
           >
@@ -227,8 +256,8 @@ export function AdvancedOptions({
           onClick={() => setIsRecurring(!isRecurring)}
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-            isRecurring 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+            isRecurring
+              ? "bg-success text-white border-success font-bold shadow-md"
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
@@ -246,8 +275,8 @@ export function AdvancedOptions({
           }}
           className={cn(
             "flex-1 flex flex-col items-center justify-center gap-2 py-3 px-1 rounded-2xl border transition-all duration-300 shadow-sm active:scale-95 min-h-[72px]",
-            enableNotification 
-                ? "bg-success text-white border-success font-bold shadow-md" 
+            enableNotification
+              ? "bg-success text-white border-success font-bold shadow-md"
               : "border-border hover:border-muted-foreground/30 text-muted-foreground hover:text-foreground bg-transparent"
           )}
         >
@@ -258,7 +287,6 @@ export function AdvancedOptions({
 
       {/* Painéis de Detalhes Dinâmicos (só aparecem se o estado estiver ativo) */}
       <div className="space-y-3 mt-1">
-        
         {/* 1. Detalhes do Parcelamento Manual */}
         {isExpense && !isCreditCard && isInstallment && (
           <div className="p-4 rounded-2xl border border-primary/20 bg-card space-y-4 animate-slide-in shadow-sm">
@@ -268,10 +296,7 @@ export function AdvancedOptions({
                 <span className="font-bold text-sm">Parcelamento Manual</span>
                 <InfoTooltip content="Divide esta despesa em várias parcelas iguais, criando transações avulsas nos próximos meses. Ideal para crediários ou compras fora de cartão de crédito." />
               </div>
-              <Switch 
-                checked={isInstallment} 
-                onCheckedChange={(v) => setIsInstallment(v)} 
-              />
+              <Switch checked={isInstallment} onCheckedChange={(v) => setIsInstallment(v)} />
             </div>
             <p className="text-sm text-muted-foreground leading-normal">
               Parcelamento manual (ex: empréstimo pessoal ou acordos fora do cartão).
@@ -290,8 +315,7 @@ export function AdvancedOptions({
                   <SelectContent>
                     {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
-                        {n}x de {currencySymbol}{' '}
-                        {(numericAmount / n).toFixed(2).replace('.', ',')}
+                        {n}x de {currencySymbol} {(numericAmount / n).toFixed(2).replace(".", ",")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -301,14 +325,15 @@ export function AdvancedOptions({
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-accent/5 dark:bg-accent/10 border border-accent/20">
                 <span className="text-accent text-sm mt-0.5 shrink-0">ℹ️</span>
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-accent">
-                    Aviso Importante
+                  <p className="text-sm font-semibold text-accent">Aviso Importante</p>
+                  <p className="text-sm leading-relaxed text-accent/80">
+                    Isso criará <strong>{totalInstallments} transações separadas</strong> no extrato
+                    (uma por mês).
                   </p>
                   <p className="text-sm leading-relaxed text-accent/80">
-                    Isso criará <strong>{totalInstallments} transações separadas</strong> no extrato (uma por mês).
-                  </p>
-                  <p className="text-sm leading-relaxed text-accent/80">
-                    ⚠️ Para compras no <strong>cartão de crédito</strong>, não use este painel. Use o parcelamento que aparece automaticamente no seletor de contas ao escolher seu cartão.
+                    ⚠️ Para compras no <strong>cartão de crédito</strong>, não use este painel. Use
+                    o parcelamento que aparece automaticamente no seletor de contas ao escolher seu
+                    cartão.
                   </p>
                 </div>
               </div>
@@ -338,7 +363,7 @@ export function AdvancedOptions({
             <div className="flex items-center justify-center gap-6">
               <button
                 type="button"
-                onClick={() => setQuickSplitPeople(p => Math.max(2, p - 1))}
+                onClick={() => setQuickSplitPeople((p) => Math.max(2, p - 1))}
                 className="w-10 h-10 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
               >
                 <Minus className="h-4 w-4" />
@@ -349,7 +374,7 @@ export function AdvancedOptions({
               </div>
               <button
                 type="button"
-                onClick={() => setQuickSplitPeople(p => Math.min(20, p + 1))}
+                onClick={() => setQuickSplitPeople((p) => Math.min(20, p + 1))}
                 className="w-10 h-10 rounded-full border border-border bg-background flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
               >
                 <Plus className="h-4 w-4" />
@@ -359,15 +384,27 @@ export function AdvancedOptions({
             {/* Resultado */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 rounded-xl bg-background border border-border text-center">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">Parte de cada um</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+                  Parte de cada um
+                </p>
                 <p className="text-lg font-black text-foreground">
-                  R$ {(numericAmount / quickSplitPeople).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  R${" "}
+                  {(numericAmount / quickSplitPeople).toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-success/10 border border-success/20 text-center">
-                <p className="text-xs text-success uppercase tracking-wider font-medium mb-1">Você vai receber</p>
+                <p className="text-xs text-success uppercase tracking-wider font-medium mb-1">
+                  Você vai receber
+                </p>
                 <p className="text-lg font-black text-success">
-                  R$ {(numericAmount - numericAmount / quickSplitPeople).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  R${" "}
+                  {(numericAmount - numericAmount / quickSplitPeople).toLocaleString("pt-BR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </div>
             </div>
@@ -375,7 +412,10 @@ export function AdvancedOptions({
             {availableMembers.length > 0 && (
               <button
                 type="button"
-                onClick={() => { setQuickSplitPeople(0); setShowSplitModal(true); }}
+                onClick={() => {
+                  setQuickSplitPeople(0);
+                  setShowSplitModal(true);
+                }}
                 className="w-full py-2 text-xs text-center text-primary hover:underline"
               >
                 Registrar dívidas com membros da família →
@@ -432,10 +472,12 @@ export function AdvancedOptions({
                 </Select>
               </div>
 
-              {frequency === 'MONTHLY' && (
+              {frequency === "MONTHLY" && (
                 <div className="space-y-2">
                   <Label className="text-sm">Dia do mês para repetição</Label>
-                  <Input type="number" inputMode="decimal"
+                  <Input
+                    type="number"
+                    inputMode="decimal"
                     min="1"
                     max="31"
                     value={recurrenceDay}
@@ -472,7 +514,9 @@ export function AdvancedOptions({
                     className="w-full justify-start text-left font-normal rounded-xl border-border/80"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {notificationDate ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR }) : 'Selecionar data'}
+                    {notificationDate
+                      ? format(notificationDate, "dd/MM/yyyy", { locale: ptBR })
+                      : "Selecionar data"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">

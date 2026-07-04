@@ -11,7 +11,17 @@ import { useTransactionModal } from "@/hooks/useTransactionModal";
 import { useToast } from "@/hooks/use-toast";
 import { exportMonthlyReport } from "@/services/exportService";
 
-import { Globe, TrendingUp, Calendar, Tag, Target, Search, Info, HelpCircle, BarChart2 } from "lucide-react";
+import {
+  Globe,
+  TrendingUp,
+  Calendar,
+  Tag,
+  Target,
+  Search,
+  Info,
+  HelpCircle,
+  BarChart2,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -48,7 +58,7 @@ export function Reports() {
   const currentYear = new Date().getFullYear();
   const reportStartDate = `${currentYear - 1}-01-01`;
   const reportEndDate = `${currentYear}-12-31`;
-  
+
   const { data: allTransactions = [], isLoading } = useTransactions({
     startDate: reportStartDate,
     endDate: reportEndDate,
@@ -88,10 +98,19 @@ export function Reports() {
     return `${getCurrencySymbol(currency)} ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const handleExport = async (format: "csv" | "pdf", exportViewType: "MONTH" | "YEAR" = viewType) => {
+  const handleExport = async (
+    format: "csv" | "pdf",
+    exportViewType: "MONTH" | "YEAR" = viewType
+  ) => {
     const { exportToCSV, exportToPDF } = await import("@/utils/exportData");
     if (format === "csv") exportToCSV(data.filteredTxList, `relatorio-${exportViewType}`);
-    else exportToPDF(data.filteredTxList, data.totalIncome, data.totalExpense, `relatorio-${exportViewType}`);
+    else
+      exportToPDF(
+        data.filteredTxList,
+        data.totalIncome,
+        data.totalExpense,
+        `relatorio-${exportViewType}`
+      );
   };
 
   const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -216,7 +235,10 @@ export function Reports() {
             </TabsList>
           </div>
 
-          <TabsContent value="overview" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+          <TabsContent
+            value="overview"
+            className="space-y-6 mt-4 animate-in fade-in-50 duration-500"
+          >
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <ReportSummary
                 totalIncome={data.totalIncome}
@@ -236,7 +258,9 @@ export function Reports() {
                     <Calendar className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Média Diária</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                      Média Diária
+                    </p>
                     <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground">
                       {formatCurrency(data.dailyAverageExpense, selectedCurrency)}
                     </h3>
@@ -255,14 +279,23 @@ export function Reports() {
                     <TrendingUp className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Maior Despesa</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                      Maior Despesa
+                    </p>
                     <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
-                      {data.largestExpense ? formatCurrency(Number(data.largestExpense.amount), selectedCurrency) : formatCurrency(0, selectedCurrency)}
+                      {data.largestExpense
+                        ? formatCurrency(Number(data.largestExpense.amount), selectedCurrency)
+                        : formatCurrency(0, selectedCurrency)}
                     </h3>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={data.largestExpense ? data.largestExpense.description : "Nenhum gasto"}>
-                  {data.largestExpense ? data.largestExpense.description : "Nenhum gasto no período"}
+                <p
+                  className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]"
+                  title={data.largestExpense ? data.largestExpense.description : "Nenhum gasto"}
+                >
+                  {data.largestExpense
+                    ? data.largestExpense.description
+                    : "Nenhum gasto no período"}
                 </p>
               </div>
 
@@ -273,13 +306,20 @@ export function Reports() {
                     <Tag className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Categoria Líder</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                      Categoria Líder
+                    </p>
                     <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground truncate max-w-[150px]">
-                      {data.topCategory ? formatCurrency(data.topCategory.value, selectedCurrency) : formatCurrency(0, selectedCurrency)}
+                      {data.topCategory
+                        ? formatCurrency(data.topCategory.value, selectedCurrency)
+                        : formatCurrency(0, selectedCurrency)}
                     </h3>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]" title={data.topCategory ? data.topCategory.category : "Nenhum gasto"}>
+                <p
+                  className="text-sm text-muted-foreground mt-3 truncate font-medium max-w-[200px]"
+                  title={data.topCategory ? data.topCategory.category : "Nenhum gasto"}
+                >
                   🏷️ {data.topCategory ? data.topCategory.category : "Nenhum gasto"}
                 </p>
               </div>
@@ -291,14 +331,21 @@ export function Reports() {
                     <Target className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Taxa de Poupança</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                      Taxa de Poupança
+                    </p>
                     <h3 className="text-base font-black font-display tracking-tight mt-0.5 text-foreground">
-                      {data.totalIncome > 0 ? ((data.balance / data.totalIncome) * 100).toFixed(1) : "0.0"}%
+                      {data.totalIncome > 0
+                        ? ((data.balance / data.totalIncome) * 100).toFixed(1)
+                        : "0.0"}
+                      %
                     </h3>
                   </div>
                 </div>
                 <div className="mt-3">
-                  <span className={`inline-block px-3 py-1 rounded-xl text-xs font-semibold border leading-tight ${data.savingsGoalStatus.color}`}>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-xl text-xs font-semibold border leading-tight ${data.savingsGoalStatus.color}`}
+                  >
                     {data.savingsGoalStatus.text}
                   </span>
                 </div>
@@ -306,10 +353,15 @@ export function Reports() {
             </div>
           </TabsContent>
 
-          <TabsContent value="evolution" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+          <TabsContent
+            value="evolution"
+            className="space-y-6 mt-4 animate-in fade-in-50 duration-500"
+          >
             <section className="p-6 rounded-xl border border-border">
               <div className="flex items-center gap-2 mb-6">
-                <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">Evolução do Saldo</h2>
+                <h2 className="text-sm uppercase tracking-widest text-muted-foreground font-medium">
+                  Evolução do Saldo
+                </h2>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -317,7 +369,12 @@ export function Reports() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs space-y-2 p-3 bg-card text-card-foreground shadow-premium-sm border-border">
                       <p className="font-bold text-sm">O que é a Evolução do Saldo?</p>
-                      <p className="text-sm text-muted-foreground">Este gráfico cruza o seu saldo em caixa (contas bancárias) com todas as despesas e receitas futuras projetadas, incluindo faturas de cartão de crédito e parcelamentos ao longo do tempo. Ele mostra exatamente quanto dinheiro você terá nos próximos dias e meses!</p>
+                      <p className="text-sm text-muted-foreground">
+                        Este gráfico cruza o seu saldo em caixa (contas bancárias) com todas as
+                        despesas e receitas futuras projetadas, incluindo faturas de cartão de
+                        crédito e parcelamentos ao longo do tempo. Ele mostra exatamente quanto
+                        dinheiro você terá nos próximos dias e meses!
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -340,7 +397,10 @@ export function Reports() {
             </div>
           </TabsContent>
 
-          <TabsContent value="categories" className="space-y-6 mt-4 animate-in fade-in-50 duration-500">
+          <TabsContent
+            value="categories"
+            className="space-y-6 mt-4 animate-in fade-in-50 duration-500"
+          >
             <div className="grid grid-cols-1 gap-6">
               <CategoryDistribution
                 data={data.categoryData}

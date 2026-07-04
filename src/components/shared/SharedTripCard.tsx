@@ -75,8 +75,6 @@ export function SharedTripCard({
 
   const pendingCount = tripItems.filter((i) => !i.isPaid).length;
 
-
-
   return (
     <div
       key={trip.id}
@@ -126,8 +124,6 @@ export function SharedTripCard({
           </div>
         </div>
       </div>
-
-
 
       <div className="border-t border-border">
         {Object.entries(itemsByMember).map(([memberId, memberItems]) => {
@@ -247,8 +243,6 @@ export function SharedTripCard({
                             >
                               {isCredit ? "CRÉDITO" : "DÉBITO"}
                             </Badge>
-
-
 
                             {(item.isPaid ||
                               item.creatorUserId === user?.id ||
@@ -391,8 +385,6 @@ export function SharedTripCard({
                           >
                             {isCredit ? "CRÉDITO" : "DÉBITO"}
                           </Badge>
-
-
 
                           {!item.isPaid && (
                             <Button

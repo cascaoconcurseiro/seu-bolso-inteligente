@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { TabType, TransactionSplitData } from '@/types/transactions';
-import { Transaction } from '@/hooks/useTransactions';
-import { parseISO } from 'date-fns';
+import { create } from "zustand";
+import { TabType, TransactionSplitData } from "@/types/transactions";
+import { Transaction } from "@/hooks/useTransactions";
+import { parseISO } from "date-fns";
 
 export interface TransactionFormState {
   activeTab: TabType;
@@ -23,7 +23,7 @@ export interface TransactionFormState {
   splits: TransactionSplitData[];
   isRefund: boolean;
   isRecurring: boolean;
-  frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  frequency: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
   recurrenceDay: number;
   enableNotification: boolean;
   notificationDate?: Date;
@@ -31,7 +31,7 @@ export interface TransactionFormState {
   hasUserSelectedCategoryManually: boolean;
   lastAppliedCategoryId: string | null;
 
-  transferType: 'account' | 'goal';
+  transferType: "account" | "goal";
   goalId: string;
   saveAsPending: boolean;
 
@@ -54,15 +54,15 @@ export interface TransactionFormState {
   setSplits: (splits: TransactionSplitData[]) => void;
   setIsRefund: (val: boolean) => void;
   setIsRecurring: (val: boolean) => void;
-  setFrequency: (freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY') => void;
+  setFrequency: (freq: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY") => void;
   setRecurrenceDay: (day: number) => void;
   setEnableNotification: (val: boolean) => void;
   setNotificationDate: (date?: Date) => void;
 
   setHasUserSelectedCategoryManually: (val: boolean) => void;
   setLastAppliedCategoryId: (id: string | null) => void;
-  
-  setTransferType: (type: 'account' | 'goal') => void;
+
+  setTransferType: (type: "account" | "goal") => void;
   setGoalId: (id: string) => void;
   setSaveAsPending: (val: boolean) => void;
 
@@ -71,35 +71,35 @@ export interface TransactionFormState {
 }
 
 const initialState = {
-  activeTab: 'EXPENSE' as TabType,
-  amount: '',
-  description: '',
+  activeTab: "EXPENSE" as TabType,
+  amount: "",
+  description: "",
   date: new Date(),
-  accountId: '',
-  destinationAccountId: '',
-  categoryId: '',
-  tripId: '',
-  notes: '',
-  exchangeRate: '',
-  destinationAmount: '',
+  accountId: "",
+  destinationAccountId: "",
+  categoryId: "",
+  tripId: "",
+  notes: "",
+  exchangeRate: "",
+  destinationAmount: "",
 
   isInstallment: false,
   totalInstallments: 1,
   showSplitModal: false,
-  payerId: 'me',
+  payerId: "me",
   splits: [],
   isRefund: false,
   isRecurring: false,
-  frequency: 'MONTHLY' as const,
+  frequency: "MONTHLY" as const,
   recurrenceDay: 1,
   enableNotification: false,
   notificationDate: undefined,
 
   hasUserSelectedCategoryManually: false,
   lastAppliedCategoryId: null,
-  
-  transferType: 'account' as const,
-  goalId: '',
+
+  transferType: "account" as const,
+  goalId: "",
   saveAsPending: false,
 };
 
@@ -111,7 +111,7 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
   setDescription: (description) => {
     set(() => {
       // Se limpar a descrição, reseta a escolha manual de categoria
-      if (description.trim() === '') {
+      if (description.trim() === "") {
         return { description, hasUserSelectedCategoryManually: false, lastAppliedCategoryId: null };
       }
       return { description };
@@ -149,11 +149,12 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
   initFromData: (data: any) => {
     set(() => {
       const updates: Partial<TransactionFormState> = {};
-      
+
       if (data.type) updates.activeTab = data.type;
-      if (data.amount !== undefined && data.amount !== null) updates.amount = data.amount.toString();
+      if (data.amount !== undefined && data.amount !== null)
+        updates.amount = data.amount.toString();
       if (data.description) updates.description = data.description;
-      if (data.date) updates.date = typeof data.date === 'string' ? parseISO(data.date) : data.date;
+      if (data.date) updates.date = typeof data.date === "string" ? parseISO(data.date) : data.date;
       if (data.account_id) updates.accountId = data.account_id;
       if (data.destination_account_id) updates.destinationAccountId = data.destination_account_id;
       if (data.category_id) updates.categoryId = data.category_id;
@@ -162,22 +163,26 @@ export const useTransactionStore = create<TransactionFormState>((set) => ({
       if (data.payer_id) updates.payerId = data.payer_id;
       if (data.is_installment) updates.isInstallment = data.is_installment;
       if (data.total_installments) updates.totalInstallments = data.total_installments;
-      
-      if (data.transaction_splits && Array.isArray(data.transaction_splits) && data.transaction_splits.length > 0) {
+
+      if (
+        data.transaction_splits &&
+        Array.isArray(data.transaction_splits) &&
+        data.transaction_splits.length > 0
+      ) {
         updates.splits = data.transaction_splits.map((s: any) => ({
           memberId: s.member_id || s.memberId,
           percentage: s.percentage,
-          amount: s.amount
+          amount: s.amount,
         }));
       } else if (data.splits && Array.isArray(data.splits) && data.splits.length > 0) {
         updates.splits = data.splits.map((s: any) => ({
           memberId: s.member_id || s.memberId,
           percentage: s.percentage,
-          amount: s.amount
+          amount: s.amount,
         }));
       }
 
       return updates;
     });
-  }
+  },
 }));

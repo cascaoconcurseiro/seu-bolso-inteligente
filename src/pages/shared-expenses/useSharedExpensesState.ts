@@ -14,7 +14,6 @@ export function useSharedExpensesState() {
   const [isSettling, setIsSettling] = useState(false);
   const [settlingMode, setSettlingMode] = useState<"ALL" | "SINGLE">("ALL");
 
-
   const [undoConfirm, setUndoConfirm] = useState<{ isOpen: boolean; item: InvoiceItem | null }>({
     isOpen: false,
     item: null,
@@ -35,23 +34,38 @@ export function useSharedExpensesState() {
     totalInstallments: number;
   }>({ isOpen: false, seriesId: null, currentInstallment: 0, totalInstallments: 0 });
 
-
   return {
-    selectedItems, setSelectedItems,
-    showSettleDialog, setShowSettleDialog,
-    showImportDialog, setShowImportDialog,
-    selectedMember, setSelectedMember,
-    settleAmount, setSettleAmount,
-    settleAccountId, setSettleAccountId,
-    settleDate, setSettleDate,
-    settleType, setSettleType,
-    isSettling, setIsSettling,
-    settlingMode, setSettlingMode,
-    undoConfirm, setUndoConfirm,
-    deleteConfirm, setDeleteConfirm,
-    deleteSeriesConfirm, setDeleteSeriesConfirm,
-    undoAllConfirm, setUndoAllConfirm,
-    isUndoingAll, setIsUndoingAll,
-    anticipateDialog, setAnticipateDialog
+    selectedItems,
+    setSelectedItems,
+    showSettleDialog,
+    setShowSettleDialog,
+    showImportDialog,
+    setShowImportDialog,
+    selectedMember,
+    setSelectedMember,
+    settleAmount,
+    setSettleAmount,
+    settleAccountId,
+    setSettleAccountId,
+    settleDate,
+    setSettleDate,
+    settleType,
+    setSettleType,
+    isSettling,
+    setIsSettling,
+    settlingMode,
+    setSettlingMode,
+    undoConfirm,
+    setUndoConfirm,
+    deleteConfirm,
+    setDeleteConfirm,
+    deleteSeriesConfirm,
+    setDeleteSeriesConfirm,
+    undoAllConfirm,
+    setUndoAllConfirm,
+    isUndoingAll,
+    setIsUndoingAll,
+    anticipateDialog,
+    setAnticipateDialog,
   };
 }

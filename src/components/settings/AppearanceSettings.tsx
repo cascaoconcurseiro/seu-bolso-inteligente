@@ -14,8 +14,10 @@ export function AppearanceSettings({ isDark, onToggleTheme }: AppearanceSettings
         <p className="text-sm text-muted-foreground">Personalize a interface</p>
       </div>
       <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 rounded-xl border border-border 
-                       hover:border-foreground/20 transition-all duration-200">
+        <div
+          className="flex items-center justify-between p-4 rounded-xl border border-border 
+                       hover:border-foreground/20 transition-all duration-200"
+        >
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
               {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}

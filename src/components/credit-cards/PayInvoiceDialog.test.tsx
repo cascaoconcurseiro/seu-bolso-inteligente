@@ -28,7 +28,7 @@ describe("PayInvoiceDialog", () => {
           },
         ]}
         onPay={vi.fn()}
-      />,
+      />
     );
 
     expect(screen.getByText("Pagar Fatura")).toBeInTheDocument();

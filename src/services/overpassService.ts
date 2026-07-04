@@ -22,81 +22,79 @@ const POI_TYPES: Array<{
   category: string;
   durationHours: number;
 }> = [
-  { query: 'tourism=museum',          category: 'Museu',        durationHours: 2   },
-  { query: 'tourism=attraction',      category: 'Atração',      durationHours: 1.5 },
-  { query: 'tourism=viewpoint',       category: 'Mirante',      durationHours: 1   },
-  { query: 'tourism=gallery',         category: 'Galeria',      durationHours: 1.5 },
-  { query: 'historic=castle',         category: 'Castelo',      durationHours: 2   },
-  { query: 'historic=monument',       category: 'Monumento',    durationHours: 1   },
-  { query: 'historic=ruins',          category: 'Ruínas',       durationHours: 1.5 },
-  { query: 'amenity=restaurant',      category: 'Restaurante',  durationHours: 1.5 },
-  { query: 'amenity=cafe',            category: 'Café',         durationHours: 1   },
-  { query: 'leisure=park',            category: 'Parque',       durationHours: 1.5 },
-  { query: 'natural=beach',           category: 'Praia',        durationHours: 2.5 },
-  { query: 'amenity=marketplace',     category: 'Mercado',      durationHours: 1.5 },
-  { query: 'shop=mall',               category: 'Shopping',     durationHours: 2   },
+  { query: "tourism=museum", category: "Museu", durationHours: 2 },
+  { query: "tourism=attraction", category: "Atração", durationHours: 1.5 },
+  { query: "tourism=viewpoint", category: "Mirante", durationHours: 1 },
+  { query: "tourism=gallery", category: "Galeria", durationHours: 1.5 },
+  { query: "historic=castle", category: "Castelo", durationHours: 2 },
+  { query: "historic=monument", category: "Monumento", durationHours: 1 },
+  { query: "historic=ruins", category: "Ruínas", durationHours: 1.5 },
+  { query: "amenity=restaurant", category: "Restaurante", durationHours: 1.5 },
+  { query: "amenity=cafe", category: "Café", durationHours: 1 },
+  { query: "leisure=park", category: "Parque", durationHours: 1.5 },
+  { query: "natural=beach", category: "Praia", durationHours: 2.5 },
+  { query: "amenity=marketplace", category: "Mercado", durationHours: 1.5 },
+  { query: "shop=mall", category: "Shopping", durationHours: 2 },
 ];
 
 // Best name field from OSM tags, in order of preference
 function getBestName(tags: Record<string, string>): string | null {
-  return (
-    tags['name:pt'] ||
-    tags['name'] ||
-    tags['official_name'] ||
-    tags['alt_name'] ||
-    null
-  );
+  return tags["name:pt"] || tags["name"] || tags["official_name"] || tags["alt_name"] || null;
 }
 
 // Build human-readable location string from OSM tags
 function buildLocation(tags: Record<string, string>): string {
   const parts: string[] = [];
-  if (tags['addr:street']) {
-    parts.push(tags['addr:street'] + (tags['addr:housenumber'] ? `, ${tags['addr:housenumber']}` : ''));
+  if (tags["addr:street"]) {
+    parts.push(
+      tags["addr:street"] + (tags["addr:housenumber"] ? `, ${tags["addr:housenumber"]}` : "")
+    );
   }
-  if (tags['addr:suburb'] || tags['addr:neighbourhood']) {
-    parts.push(tags['addr:suburb'] || tags['addr:neighbourhood']);
+  if (tags["addr:suburb"] || tags["addr:neighbourhood"]) {
+    parts.push(tags["addr:suburb"] || tags["addr:neighbourhood"]);
   }
-  if (tags['addr:city']) parts.push(tags['addr:city']);
-  if (parts.length === 0 && tags['district']) parts.push(tags['district']);
-  return parts.join(' — ') || '';
+  if (tags["addr:city"]) parts.push(tags["addr:city"]);
+  if (parts.length === 0 && tags["district"]) parts.push(tags["district"]);
+  return parts.join(" — ") || "";
 }
 
 // Build description from available OSM tags
 function buildDescription(tags: Record<string, string>, category: string): string {
   const parts: string[] = [];
 
-  if (tags['description'] || tags['description:pt']) {
-    parts.push(tags['description:pt'] || tags['description']);
+  if (tags["description"] || tags["description:pt"]) {
+    parts.push(tags["description:pt"] || tags["description"]);
   }
-  if (tags['opening_hours']) {
-    parts.push(`Horário: ${tags['opening_hours']}`);
+  if (tags["opening_hours"]) {
+    parts.push(`Horário: ${tags["opening_hours"]}`);
   }
-  if (tags['fee'] === 'yes' && tags['charge']) {
-    parts.push(`Entrada: ${tags['charge']}`);
-  } else if (tags['fee'] === 'no') {
-    parts.push('Entrada gratuita');
+  if (tags["fee"] === "yes" && tags["charge"]) {
+    parts.push(`Entrada: ${tags["charge"]}`);
+  } else if (tags["fee"] === "no") {
+    parts.push("Entrada gratuita");
   }
-  if (tags['cuisine']) {
-    parts.push(`Culinária: ${tags['cuisine'].replace(/_/g, ' ')}`);
+  if (tags["cuisine"]) {
+    parts.push(`Culinária: ${tags["cuisine"].replace(/_/g, " ")}`);
   }
-  if (tags['website'] || tags['url']) {
-    parts.push(`Site: ${tags['website'] || tags['url']}`);
+  if (tags["website"] || tags["url"]) {
+    parts.push(`Site: ${tags["website"] || tags["url"]}`);
   }
 
-  return parts.length > 0 ? parts.join(' | ') : category;
+  return parts.length > 0 ? parts.join(" | ") : category;
 }
 
 /**
  * Get lat/lon for a destination string using Nominatim (OpenStreetMap geocoder).
  */
-export async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number } | null> {
+export async function geocodeDestination(
+  destination: string
+): Promise<{ lat: number; lon: number } | null> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}&format=json&limit=1`;
     const res = await fetch(url, {
-      headers: { 'Accept-Language': 'pt-BR,pt;q=0.9', 'User-Agent': 'SeuBolsoInteligente/1.0' },
+      headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -117,16 +115,16 @@ async function fetchOverpassPOIs(
   lat: number,
   lon: number,
   radiusMeters = 5000,
-  limit = 12,
+  limit = 12
 ): Promise<POI[]> {
   // Build union query for all POI types
   const unionParts = POI_TYPES.map(({ query }) => {
-    const [key, value] = query.split('=');
+    const [key, value] = query.split("=");
     return (
       `node["${key}"="${value}"](around:${radiusMeters},${lat},${lon});\n` +
       `way["${key}"="${value}"](around:${radiusMeters},${lat},${lon});`
     );
-  }).join('\n');
+  }).join("\n");
 
   const overpassQuery = `[out:json][timeout:20];(\n${unionParts}\n);out center tags 50;`;
 
@@ -135,16 +133,16 @@ async function fetchOverpassPOIs(
 
   // Try multiple Overpass mirrors — some block CORS, pick first that works
   const mirrors = [
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.openstreetmap.fr/api/interpreter',
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
   ];
 
   let res: Response | null = null;
   for (const mirror of mirrors) {
     try {
       res = await fetch(mirror, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `data=${encodeURIComponent(overpassQuery)}`,
         signal: controller.signal,
       });
@@ -175,10 +173,10 @@ async function fetchOverpassPOIs(
     if (!elLat || !elLon) continue;
 
     // Find matching POI type for category/duration
-    let category = 'Atração';
+    let category = "Atração";
     let durationHours = 1.5;
     for (const { query, category: cat, durationHours: dur } of POI_TYPES) {
-      const [key, value] = query.split('=');
+      const [key, value] = query.split("=");
       if (tags[key] === value) {
         category = cat;
         durationHours = dur;
@@ -190,7 +188,16 @@ async function fetchOverpassPOIs(
     const description = buildDescription(tags, category);
     const mapsUrl = `https://www.google.com/maps/place/${elLat},${elLon}`;
 
-    pois.push({ title: name, location, description, durationHours, lat: elLat, lon: elLon, mapsUrl, tags });
+    pois.push({
+      title: name,
+      location,
+      description,
+      durationHours,
+      lat: elLat,
+      lon: elLon,
+      mapsUrl,
+      tags,
+    });
 
     if (pois.length >= limit * 3) break; // collect extra for diversity filtering
   }
@@ -198,7 +205,8 @@ async function fetchOverpassPOIs(
   // Ensure category diversity — pick best spread
   const byCategory = new Map<string, POI[]>();
   for (const poi of pois) {
-    const cat = poi.tags?.tourism || poi.tags?.amenity || poi.tags?.historic || poi.tags?.leisure || 'other';
+    const cat =
+      poi.tags?.tourism || poi.tags?.amenity || poi.tags?.historic || poi.tags?.leisure || "other";
     if (!byCategory.has(cat)) byCategory.set(cat, []);
     byCategory.get(cat)!.push(poi);
   }

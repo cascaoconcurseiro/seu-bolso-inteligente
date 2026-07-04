@@ -53,14 +53,16 @@ export function TransactionFilters({
   categories,
   accounts,
   hasFilters,
-  clearFilters
+  clearFilters,
 }: TransactionFiltersProps) {
   const isMobile = useIsMobile();
 
   const FilterFields = () => (
     <>
       <div className="space-y-2.5">
-        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Tipo</label>
+        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Tipo
+        </label>
         <Select value={selectedType} onValueChange={setSelectedType}>
           <SelectTrigger className="w-full h-12 md:h-10">
             <SelectValue />
@@ -72,9 +74,11 @@ export function TransactionFilters({
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2.5">
-        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Categoria</label>
+        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Categoria
+        </label>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todas" />
@@ -92,9 +96,11 @@ export function TransactionFilters({
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2.5">
-        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Conta</label>
+        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Conta
+        </label>
         <Select value={selectedAccount} onValueChange={setSelectedAccount}>
           <SelectTrigger className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todas" />
@@ -109,9 +115,11 @@ export function TransactionFilters({
           </SelectContent>
         </Select>
       </div>
-      
+
       <div className="space-y-2.5">
-        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Período</label>
+        <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+          Período
+        </label>
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
           <SelectTrigger className="w-full h-12 md:h-10">
             <SelectValue placeholder="Todo período" />
@@ -149,9 +157,7 @@ export function TransactionFilters({
         >
           <Filter className="h-4 w-4" />
           <span className="hidden sm:inline">Filtros</span>
-          {hasFilters && (
-            <span className="w-2 h-2 rounded-full bg-background" />
-          )}
+          {hasFilters && <span className="w-2 h-2 rounded-full bg-background" />}
         </Button>
       </div>
 
@@ -179,41 +185,45 @@ export function TransactionFilters({
 
       {/* Mobile Filters (Drawer via Dialog) */}
       {isMobile && (
-      <Dialog open={showFilters} onOpenChange={setShowFilters}>
-        <DialogContent className="!bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] !rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
-          <div className="w-full flex justify-center pt-3 pb-1">
-            <div className="w-12 h-2 bg-muted rounded-full" />
-          </div>
-          <DialogHeader className="px-6 pt-2 pb-4 text-left">
-            <DialogTitle className="font-display text-base font-bold">Filtros de Transação</DialogTitle>
-            <DialogDescription className="sr-only">Filtrar transações por tipo, categoria, conta e período.</DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[70vh]">
-            <div className="px-6 pb-6 space-y-5">
-              <FilterFields />
+        <Dialog open={showFilters} onOpenChange={setShowFilters}>
+          <DialogContent className="!bottom-0 !top-auto !translate-y-0 rounded-t-[2rem] !rounded-b-none p-0 w-full shadow-[0_-10px_40px_rgba(0,0,0,0.1)] transition-transform duration-500">
+            <div className="w-full flex justify-center pt-3 pb-1">
+              <div className="w-12 h-2 bg-muted rounded-full" />
             </div>
-          </ScrollArea>
-          
-          <div className="px-6 pb-6 pt-2 flex flex-col gap-3">
-            <Button onClick={() => setShowFilters(false)} className="w-full h-12 font-semibold">
-              Aplicar Filtros
-            </Button>
-            {hasFilters && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  clearFilters();
-                  setShowFilters(false);
-                }}
-                className="w-full h-12 gap-2 text-muted-foreground"
-              >
-                <X className="h-4 w-4" />
-                Limpar Todos
+            <DialogHeader className="px-6 pt-2 pb-4 text-left">
+              <DialogTitle className="font-display text-base font-bold">
+                Filtros de Transação
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Filtrar transações por tipo, categoria, conta e período.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="px-6 pb-6 space-y-5">
+                <FilterFields />
+              </div>
+            </ScrollArea>
+
+            <div className="px-6 pb-6 pt-2 flex flex-col gap-3">
+              <Button onClick={() => setShowFilters(false)} className="w-full h-12 font-semibold">
+                Aplicar Filtros
               </Button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    clearFilters();
+                    setShowFilters(false);
+                  }}
+                  className="w-full h-12 gap-2 text-muted-foreground"
+                >
+                  <X className="h-4 w-4" />
+                  Limpar Todos
+                </Button>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

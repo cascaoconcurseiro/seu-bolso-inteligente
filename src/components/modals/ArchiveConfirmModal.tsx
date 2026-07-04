@@ -49,10 +49,10 @@ export function ArchiveConfirmModal({
               Tem certeza que deseja arquivar <strong>{itemName}</strong>?
             </p>
             <p>
-              Itens arquivados não aparecem nos seus cálculos do mês atual, mas
-              ainda podem ser acessados na seção de "Arquivados" no final da página.
+              Itens arquivados não aparecem nos seus cálculos do mês atual, mas ainda podem ser
+              acessados na seção de "Arquivados" no final da página.
             </p>
-            
+
             <div className="space-y-2 mt-2 text-left">
               <Label htmlFor="confirm-archive" className="text-foreground font-semibold">
                 Digite "confirmar" para prosseguir:

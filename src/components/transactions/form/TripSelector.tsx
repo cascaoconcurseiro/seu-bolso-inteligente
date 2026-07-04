@@ -1,14 +1,14 @@
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Plane } from 'lucide-react';
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Plane } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
+} from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
 
 interface TripSelectorProps {
   tripId: string;
@@ -23,10 +23,7 @@ export function TripSelector({ tripId, setTripId, trips }: TripSelectorProps) {
     <div className="space-y-2">
       <Label>Viagem (opcional)</Label>
       {trips && trips.length > 0 ? (
-        <Select
-          value={tripId || 'none'}
-          onValueChange={(v) => setTripId(v === 'none' ? '' : v)}
-        >
+        <Select value={tripId || "none"} onValueChange={(v) => setTripId(v === "none" ? "" : v)}>
           <SelectTrigger className="h-12">
             <SelectValue placeholder="Vincular a uma viagem" />
           </SelectTrigger>
@@ -52,7 +49,7 @@ export function TripSelector({ tripId, setTripId, trips }: TripSelectorProps) {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/viagens')}
+            onClick={() => navigate("/viagens")}
             className="text-sm"
           >
             Criar viagem

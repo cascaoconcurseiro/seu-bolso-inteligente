@@ -578,8 +578,8 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </span>
               <span className="text-base font-display font-black text-success mt-1 block">
                 R${" "}
-                {Object.values(monthlyResumo)
-                  .reduce((s, m) => SafeFinancialCalculator.add(s, m.compras), 0)
+                {SafeFinancialCalculator.safeSum(Object.values(monthlyResumo).map((m) => m.compras))
+                  .toNumber()
                   .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </span>
             </Card>
@@ -590,18 +590,17 @@ export function InvestmentIRPanel({ assets }: InvestmentIRPanelProps) {
               </span>
               <span className="text-base font-display font-black text-accent mt-1 block">
                 R${" "}
-                {Object.values(monthlyResumo)
-                  .reduce((s, m) => SafeFinancialCalculator.add(s, m.vendas), 0)
+                {SafeFinancialCalculator.safeSum(Object.values(monthlyResumo).map((m) => m.vendas))
+                  .toNumber()
                   .toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
               </span>
             </Card>
 
             {/* Balanço Geral */}
             {(() => {
-              const totalPnL = Object.values(monthlyResumo).reduce(
-                (s, m) => SafeFinancialCalculator.add(s, m.lucroEstimado),
-                0
-              );
+              const totalPnL = SafeFinancialCalculator.safeSum(
+                Object.values(monthlyResumo).map((m) => m.lucroEstimado)
+              ).toNumber();
               const isProfit = totalPnL >= 0;
               return (
                 <Card

@@ -25,7 +25,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
   };
 
   // Tentar buscar logo real do banco pelo nome ou pelo ID
-  const logoUrl = !hasError ? (getBankLogo(bank.name) || getBankLogo(bank.id)) : undefined;
+  const logoUrl = !hasError ? getBankLogo(bank.name) || getBankLogo(bank.id) : undefined;
 
   // Função para pegar as iniciais do nome
   const getInitials = (name: string) => {
@@ -68,7 +68,7 @@ export function BankIcon({ bankId, bankName, accountName, size = "md", className
       )}
       style={{
         backgroundColor: bank.color,
-        color: bank.textColor
+        color: bank.textColor,
       }}
     >
       {displayText}
@@ -103,13 +103,10 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
         <img
           src={logoUrl}
           alt={brandConfig.name}
-          className={cn(
-            "object-contain rounded",
-            sizeClasses[size]
-          )}
+          className={cn("object-contain rounded", sizeClasses[size])}
           onError={(e) => {
             // Fallback se a imagem não carregar
-            e.currentTarget.style.display = 'none';
+            e.currentTarget.style.display = "none";
           }}
         />
       </div>
@@ -126,7 +123,7 @@ export function CardBrandIcon({ brand, size = "sm", className }: CardBrandIconPr
       )}
       style={{
         backgroundColor: brandConfig.color,
-        color: "#FFFFFF"
+        color: "#FFFFFF",
       }}
     >
       {brandConfig.icon}

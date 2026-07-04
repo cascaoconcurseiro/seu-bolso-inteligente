@@ -300,11 +300,11 @@ export function validateTransaction(
       transaction.transaction_splits.map((s) =>
         SafeFinancialCalculator.toSafeNumber(s.percentage, 0)
       )
-    );
+    ).toNumber();
 
     const totalAssigned = SafeFinancialCalculator.safeSum(
       transaction.transaction_splits.map((s) => SafeFinancialCalculator.toSafeNumber(s.amount, 0))
-    );
+    ).toNumber();
 
     // Soma de percentagens não deve exceder 100%
     // Se for menor que 100%, o sistema auto-completa com a parte do criador no hook useCreateTransaction

@@ -16,11 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Mail, Check, X, Loader2, ChevronDown, Settings, Users, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,9 +26,9 @@ import { FamilyRole, SharingScope } from "@/hooks/useFamily";
 interface InviteMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onInvite: (data: { 
-    name: string; 
-    email: string; 
+  onInvite: (data: {
+    name: string;
+    email: string;
     role: FamilyRole;
     sharingScope?: SharingScope;
     scopeStartDate?: string;
@@ -44,27 +40,27 @@ interface InviteMemberDialogProps {
   isContactPending?: boolean;
 }
 
-export function InviteMemberDialog({ 
-  open, 
-  onOpenChange, 
+export function InviteMemberDialog({
+  open,
+  onOpenChange,
   onInvite,
   onAddContact,
   isPending,
   isContactPending = false,
 }: InviteMemberDialogProps) {
   const { user } = useAuth();
-  const [tab, setTab] = useState<'family' | 'contact'>('family');
+  const [tab, setTab] = useState<"family" | "contact">("family");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<FamilyRole>("editor");
-  
+
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sharingScope, setSharingScope] = useState<SharingScope>("all");
   const [scopeStartDate, setScopeStartDate] = useState("");
   const [scopeEndDate, setScopeEndDate] = useState("");
   const [scopeTripId, setScopeTripId] = useState("");
   const [trips, setTrips] = useState<any[]>([]);
-  
+
   const [isChecking, setIsChecking] = useState(false);
   const [userExists, setUserExists] = useState<boolean | null>(null);
   const [foundUser, setFoundUser] = useState<{ id: string; full_name: string | null } | null>(null);
@@ -73,7 +69,8 @@ export function InviteMemberDialog({
     if (user && sharingScope === "specific_trip") {
       supabase
         .from("trip_members")
-        .select(`
+        .select(
+          `
           trip_id,
           trips:trip_id (
             id,
@@ -82,20 +79,21 @@ export function InviteMemberDialog({
             end_date,
             destination
           )
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .then(({ data }) => {
           if (data) {
             const userTrips = data
-              .map(item => item.trips)
-              .filter(trip => trip !== null)
-              .map(trip => ({
+              .map((item) => item.trips)
+              .filter((trip) => trip !== null)
+              .map((trip) => ({
                 id: trip.id,
                 name: trip.name,
                 start_date: trip.start_date,
                 end_date: trip.end_date,
-                destination: trip.destination
+                destination: trip.destination,
               }));
             setTrips(userTrips);
           } else {
@@ -107,7 +105,7 @@ export function InviteMemberDialog({
 
   useEffect(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (!email || !emailRegex.test(email.trim())) {
       setUserExists(null);
       setFoundUser(null);
@@ -116,7 +114,7 @@ export function InviteMemberDialog({
 
     const timer = setTimeout(async () => {
       setIsChecking(true);
-      
+
       try {
         const { data } = await supabase
           .from("profiles")
@@ -126,12 +124,12 @@ export function InviteMemberDialog({
 
         if (data) {
           setUserExists(true);
-          setFoundUser({ 
-            id: data.id, 
-            full_name: data.full_name || data.email.split('@')[0]
+          setFoundUser({
+            id: data.id,
+            full_name: data.full_name || data.email.split("@")[0],
           });
           if (!name) {
-            setName(data.full_name || data.email.split('@')[0]);
+            setName(data.full_name || data.email.split("@")[0]);
           }
         } else {
           setUserExists(false);
@@ -149,12 +147,12 @@ export function InviteMemberDialog({
   }, [email, name]);
 
   const handleSubmit = async () => {
-    if (tab === 'contact' && onAddContact) {
+    if (tab === "contact" && onAddContact) {
       await onAddContact({ name, email: email || undefined });
     } else {
-      await onInvite({ 
-        name, 
-        email, 
+      await onInvite({
+        name,
+        email,
         role,
         sharingScope: showAdvanced ? sharingScope : "all",
         scopeStartDate: sharingScope === "date_range" ? scopeStartDate : undefined,
@@ -177,7 +175,7 @@ export function InviteMemberDialog({
       setShowAdvanced(false);
       setUserExists(null);
       setFoundUser(null);
-      setTab('family');
+      setTab("family");
     }
     onOpenChange(isOpen);
   };
@@ -189,14 +187,13 @@ export function InviteMemberDialog({
           <div className="w-12 h-2 bg-muted rounded-full" />
         </div>
         <DialogHeader className="px-6 pt-2 pb-2 text-left shrink-0 border-b border-border/40">
-          <DialogTitle>{tab === 'family' ? 'Convidar membro' : 'Adicionar contato'}</DialogTitle>
+          <DialogTitle>{tab === "family" ? "Convidar membro" : "Adicionar contato"}</DialogTitle>
           <DialogDescription>
-            {tab === 'family'
-              ? (userExists 
-                ? "Usuário encontrado! Será enviada uma solicitação." 
-                : "Adicione alguém para compartilhar finanças")
-              : "Contatos aparecem no formulário de transação mas não têm acesso à família"
-            }
+            {tab === "family"
+              ? userExists
+                ? "Usuário encontrado! Será enviada uma solicitação."
+                : "Adicione alguém para compartilhar finanças"
+              : "Contatos aparecem no formulário de transação mas não têm acesso à família"}
           </DialogDescription>
         </DialogHeader>
 
@@ -205,10 +202,12 @@ export function InviteMemberDialog({
           <div className="flex gap-1 p-1 rounded-xl bg-muted">
             <button
               type="button"
-              onClick={() => setTab('family')}
+              onClick={() => setTab("family")}
               className={cn(
                 "flex-1 py-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5",
-                tab === 'family' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                tab === "family"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground"
               )}
             >
               <Users className="h-3.5 w-3.5" />
@@ -216,10 +215,12 @@ export function InviteMemberDialog({
             </button>
             <button
               type="button"
-              onClick={() => setTab('contact')}
+              onClick={() => setTab("contact")}
               className={cn(
                 "flex-1 py-2 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5",
-                tab === 'contact' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+                tab === "contact"
+                  ? "bg-background shadow-sm text-foreground"
+                  : "text-muted-foreground"
               )}
             >
               <UserCircle2 className="h-3.5 w-3.5" />
@@ -227,7 +228,7 @@ export function InviteMemberDialog({
             </button>
           </div>
         </div>
-        
+
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-4 mt-4">
             <FormField label="Email" htmlFor="invite-email">
@@ -250,7 +251,9 @@ export function InviteMemberDialog({
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   {isChecking && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                  {!isChecking && userExists === true && <Check className="h-4 w-4 text-positive" />}
+                  {!isChecking && userExists === true && (
+                    <Check className="h-4 w-4 text-positive" />
+                  )}
                   {!isChecking && userExists === false && <X className="h-4 w-4 text-warning" />}
                 </div>
               </div>
@@ -280,156 +283,174 @@ export function InviteMemberDialog({
               />
             </FormField>
 
-            {tab === 'family' && (
-            <FormField label="Permissão" htmlFor="invite-role">
-              <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
-                <SelectTrigger id="invite-role" className="h-12 rounded-xl">
-                  <SelectValue placeholder="Selecione…" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="admin">
-                    <div className="flex flex-col items-start py-1">
-                      <span>Administrador</span>
-                      <span className="text-sm text-muted-foreground">Acesso total</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="editor">
-                    <div className="flex flex-col items-start py-1">
-                      <span>Editor</span>
-                      <span className="text-sm text-muted-foreground">Pode criar e editar</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="viewer">
-                    <div className="flex flex-col items-start py-1">
-                      <span>Visualizador</span>
-                      <span className="text-sm text-muted-foreground">Apenas visualização</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
+            {tab === "family" && (
+              <FormField label="Permissão" htmlFor="invite-role">
+                <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
+                  <SelectTrigger id="invite-role" className="h-12 rounded-xl">
+                    <SelectValue placeholder="Selecione…" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="admin">
+                      <div className="flex flex-col items-start py-1">
+                        <span>Administrador</span>
+                        <span className="text-sm text-muted-foreground">Acesso total</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="editor">
+                      <div className="flex flex-col items-start py-1">
+                        <span>Editor</span>
+                        <span className="text-sm text-muted-foreground">Pode criar e editar</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="viewer">
+                      <div className="flex flex-col items-start py-1">
+                        <span>Visualizador</span>
+                        <span className="text-sm text-muted-foreground">Apenas visualização</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
             )}
 
-            {tab === 'family' && (
-            <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="border border-border/50 rounded-xl overflow-hidden bg-muted/10">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="gap-2 w-full justify-between h-12 px-4 hover:bg-muted/20">
-                  <div className="flex items-center gap-2 font-semibold">
-                    <Settings className="h-4 w-4" />
-                    Opções Avançadas
-                  </div>
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4 p-4 border-t border-border/50">
-                <FormField label="Escopo de Compartilhamento" htmlFor="invite-scope">
-                  <Select value={sharingScope} onValueChange={(v) => setSharingScope(v as SharingScope)}>
-                    <SelectTrigger id="invite-scope" className="h-12 rounded-xl">
-                      <SelectValue placeholder="Selecione…" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      <SelectItem value="all">
-                        <div className="flex flex-col items-start py-1">
-                          <span>Tudo</span>
-                          <span className="text-sm text-muted-foreground">Compartilhar todas as transações</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="trips_only">
-                        <div className="flex flex-col items-start py-1">
-                          <span>🧳 Apenas Viagens</span>
-                          <span className="text-sm text-muted-foreground">Apenas transações de viagens</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="date_range">
-                        <div className="flex flex-col items-start py-1">
-                          <span>📅 Período Específico</span>
-                          <span className="text-sm text-muted-foreground">Transações em um período</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="specific_trip">
-                        <div className="flex flex-col items-start py-1">
-                          <span>🎯 Viagem Específica</span>
-                          <span className="text-sm text-muted-foreground">Apenas uma viagem</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
-
-                {sharingScope === "date_range" && (
-                  <>
-                    <FormField label="Data Início" htmlFor="invite-start">
-                      <Input
-                        id="invite-start"
-                        name="invite-start"
-                        type="date"
-                        value={scopeStartDate}
-                        onChange={(e) => setScopeStartDate(e.target.value)}
-                        autoComplete="off"
-                        className="h-12 rounded-xl"
-                      />
-                    </FormField>
-                    <FormField label="Data Fim" htmlFor="invite-end">
-                      <Input
-                        id="invite-end"
-                        name="invite-end"
-                        type="date"
-                        value={scopeEndDate}
-                        onChange={(e) => setScopeEndDate(e.target.value)}
-                        autoComplete="off"
-                        className="h-12 rounded-xl"
-                      />
-                    </FormField>
-                    <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
-                      📆 Transações antigas do período permanecerão visíveis
-                    </p>
-                  </>
-                )}
-
-                {sharingScope === "specific_trip" && (
-                  <FormField label="Viagem" htmlFor="invite-trip">
-                    <Select value={scopeTripId} onValueChange={setScopeTripId}>
-                      <SelectTrigger id="invite-trip" className="h-12 rounded-xl">
-                        <SelectValue placeholder="Selecione uma viagem…" />
+            {tab === "family" && (
+              <Collapsible
+                open={showAdvanced}
+                onOpenChange={setShowAdvanced}
+                className="border border-border/50 rounded-xl overflow-hidden bg-muted/10"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="gap-2 w-full justify-between h-12 px-4 hover:bg-muted/20"
+                  >
+                    <div className="flex items-center gap-2 font-semibold">
+                      <Settings className="h-4 w-4" />
+                      Opções Avançadas
+                    </div>
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")}
+                    />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 p-4 border-t border-border/50">
+                  <FormField label="Escopo de Compartilhamento" htmlFor="invite-scope">
+                    <Select
+                      value={sharingScope}
+                      onValueChange={(v) => setSharingScope(v as SharingScope)}
+                    >
+                      <SelectTrigger id="invite-scope" className="h-12 rounded-xl">
+                        <SelectValue placeholder="Selecione…" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        {trips.map((trip) => (
-                          <SelectItem key={trip.id} value={trip.id} className="py-2">
-                            <div className="flex flex-col items-start">
-                              <span>{trip.name}</span>
-                              {trip.destination && (
-                                <span className="text-sm text-muted-foreground">
-                                  📍 {trip.destination}
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="all">
+                          <div className="flex flex-col items-start py-1">
+                            <span>Tudo</span>
+                            <span className="text-sm text-muted-foreground">
+                              Compartilhar todas as transações
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="trips_only">
+                          <div className="flex flex-col items-start py-1">
+                            <span>🧳 Apenas Viagens</span>
+                            <span className="text-sm text-muted-foreground">
+                              Apenas transações de viagens
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="date_range">
+                          <div className="flex flex-col items-start py-1">
+                            <span>📅 Período Específico</span>
+                            <span className="text-sm text-muted-foreground">
+                              Transações em um período
+                            </span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="specific_trip">
+                          <div className="flex flex-col items-start py-1">
+                            <span>🎯 Viagem Específica</span>
+                            <span className="text-sm text-muted-foreground">Apenas uma viagem</span>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
-                    {trips.length === 0 && (
-                      <p className="text-sm text-warning bg-warning/10 p-2 rounded-lg">
-                        ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
-                      </p>
-                    )}
-                    {trips.length > 0 && (
-                      <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
-                        🧳 Apenas transações desta viagem serão compartilhadas
-                      </p>
-                    )}
                   </FormField>
-                )}
 
-                {sharingScope === "trips_only" && (
-                  <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
-                    ✈️ Apenas transações vinculadas a viagens serão compartilhadas
-                  </p>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
+                  {sharingScope === "date_range" && (
+                    <>
+                      <FormField label="Data Início" htmlFor="invite-start">
+                        <Input
+                          id="invite-start"
+                          name="invite-start"
+                          type="date"
+                          value={scopeStartDate}
+                          onChange={(e) => setScopeStartDate(e.target.value)}
+                          autoComplete="off"
+                          className="h-12 rounded-xl"
+                        />
+                      </FormField>
+                      <FormField label="Data Fim" htmlFor="invite-end">
+                        <Input
+                          id="invite-end"
+                          name="invite-end"
+                          type="date"
+                          value={scopeEndDate}
+                          onChange={(e) => setScopeEndDate(e.target.value)}
+                          autoComplete="off"
+                          className="h-12 rounded-xl"
+                        />
+                      </FormField>
+                      <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
+                        📆 Transações antigas do período permanecerão visíveis
+                      </p>
+                    </>
+                  )}
+
+                  {sharingScope === "specific_trip" && (
+                    <FormField label="Viagem" htmlFor="invite-trip">
+                      <Select value={scopeTripId} onValueChange={setScopeTripId}>
+                        <SelectTrigger id="invite-trip" className="h-12 rounded-xl">
+                          <SelectValue placeholder="Selecione uma viagem…" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {trips.map((trip) => (
+                            <SelectItem key={trip.id} value={trip.id} className="py-2">
+                              <div className="flex flex-col items-start">
+                                <span>{trip.name}</span>
+                                {trip.destination && (
+                                  <span className="text-sm text-muted-foreground">
+                                    📍 {trip.destination}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {trips.length === 0 && (
+                        <p className="text-sm text-warning bg-warning/10 p-2 rounded-lg">
+                          ⚠️ Nenhuma viagem encontrada. Crie ou participe de uma viagem primeiro.
+                        </p>
+                      )}
+                      {trips.length > 0 && (
+                        <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
+                          🧳 Apenas transações desta viagem serão compartilhadas
+                        </p>
+                      )}
+                    </FormField>
+                  )}
+
+                  {sharingScope === "trips_only" && (
+                    <p className="text-sm text-muted-foreground bg-background p-2 rounded-lg border">
+                      ✈️ Apenas transações vinculadas a viagens serão compartilhadas
+                    </p>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
-            {tab === 'family' && userExists === true && (
+            {tab === "family" && userExists === true && (
               <div className="p-3 rounded-xl bg-positive/10 border border-positive/20">
                 <p className="text-sm text-positive">
                   ✓ Solicitação será enviada. O usuário precisa aceitar para criar o vínculo.
@@ -439,22 +460,25 @@ export function InviteMemberDialog({
           </div>
 
           <div className="pt-4 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl h-12" onClick={() => handleClose(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl h-12"
+              onClick={() => handleClose(false)}
+            >
               Cancelar
             </Button>
             <Button
               className="flex-1 rounded-xl h-12 font-bold"
               onClick={handleSubmit}
               disabled={
-                !email.trim() ||
-                !name.trim() ||
-                (tab === 'family' ? isPending : isContactPending)
+                !email.trim() || !name.trim() || (tab === "family" ? isPending : isContactPending)
               }
             >
-              {(tab === 'family' ? isPending : isContactPending) ? (
+              {(tab === "family" ? isPending : isContactPending) ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
-              {tab === 'family' ? 'Enviar Convite' : 'Salvar Contato'}
+              {tab === "family" ? "Enviar Convite" : "Salvar Contato"}
             </Button>
           </div>
         </div>

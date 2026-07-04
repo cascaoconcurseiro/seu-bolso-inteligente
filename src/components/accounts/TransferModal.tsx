@@ -1,10 +1,22 @@
 import { useState, useEffect, useMemo } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AmountInput } from "@/components/ui/amount-input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, ArrowRight, ArrowRightLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -42,7 +54,7 @@ export function TransferModal({
     return accounts.filter((acc) => {
       if (acc.id === fromAccountId) return false;
       if (acc.type === "CREDIT_CARD") return false;
-      
+
       if (fromAccountCurrency !== "BRL") {
         const accCurrency = acc.currency || "BRL";
         return accCurrency === fromAccountCurrency || accCurrency === "BRL";
@@ -54,7 +66,7 @@ export function TransferModal({
   const selectedDestAccount = accounts.find((acc) => acc.id === toAccountId);
   const destCurrency = selectedDestAccount?.currency || "BRL";
   const isCrossCurrency = fromAccountCurrency !== destCurrency;
-  
+
   const foreignCurrency = fromAccountCurrency === "BRL" ? destCurrency : fromAccountCurrency;
 
   useEffect(() => {
@@ -62,9 +74,10 @@ export function TransferModal({
       const numericAmount = moneyUtils.parse(amount) || 0;
       const rate = moneyUtils.parse(exchangeRate.replace(",", ".")) || 0;
       if (numericAmount > 0 && rate > 0) {
-        const destValue = fromAccountCurrency === "BRL"
-          ? moneyUtils.div(numericAmount, rate)
-          : moneyUtils.mul(numericAmount, rate);
+        const destValue =
+          fromAccountCurrency === "BRL"
+            ? moneyUtils.div(numericAmount, rate)
+            : moneyUtils.mul(numericAmount, rate);
         setDestinationAmount(destValue.toFixed(2).replace(".", ","));
       } else {
         setDestinationAmount("");
@@ -102,7 +115,9 @@ export function TransferModal({
     }
 
     const rate = isCrossCurrency ? moneyUtils.parse(exchangeRate.replace(",", ".")) : undefined;
-    const destAmount = isCrossCurrency ? moneyUtils.parse(destinationAmount.replace(",", ".")) : undefined;
+    const destAmount = isCrossCurrency
+      ? moneyUtils.parse(destinationAmount.replace(",", "."))
+      : undefined;
 
     await transfer.mutateAsync({
       fromAccountId,
@@ -124,19 +139,21 @@ export function TransferModal({
 
   const numericAmount = getNumericAmount();
   const isInvalid = numericAmount > fromAccountBalance;
-  const isMissingExchangeRate = isCrossCurrency && (!exchangeRate || moneyUtils.parse(exchangeRate.replace(",", ".")) <= 0);
+  const isMissingExchangeRate =
+    isCrossCurrency && (!exchangeRate || moneyUtils.parse(exchangeRate.replace(",", ".")) <= 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] w-full !bottom-0 !top-auto !translate-y-0 sm:!top-[50%] sm:!bottom-auto sm:!-translate-y-1/2 rounded-t-[2rem] sm:!rounded-4xl !rounded-b-none sm:!rounded-b-[2rem] p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] sm:shadow-lg max-h-[90vh] flex flex-col border-b-0 sm:border-b bg-background pb-[env(safe-area-inset-bottom)] overflow-hidden pb-[env(safe-area-inset-bottom)]">
         <DialogHeader className="px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
           <DialogTitle>Transferir entre contas</DialogTitle>
-          <DialogDescription>
-            Transfira dinheiro de forma instantânea
-          </DialogDescription>
+          <DialogDescription>Transfira dinheiro de forma instantânea</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6 overflow-y-auto"
+        >
           <div className="grid gap-4">
             {/* Conta de origem (readonly) */}
             <div className="space-y-2">
@@ -144,7 +161,8 @@ export function TransferModal({
               <div className="p-3 rounded-xl border border-border/50 bg-muted/20">
                 <p className="font-semibold text-sm">{fromAccountName}</p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Saldo disponível: {getCurrencySymbol(fromAccountCurrency)} {fromAccountBalance.toFixed(2)}
+                  Saldo disponível: {getCurrencySymbol(fromAccountCurrency)}{" "}
+                  {fromAccountBalance.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -157,7 +175,12 @@ export function TransferModal({
 
             {/* Conta de destino */}
             <div className="space-y-2">
-              <Label htmlFor="to-account" className="text-sm uppercase tracking-wider text-muted-foreground">Para</Label>
+              <Label
+                htmlFor="to-account"
+                className="text-sm uppercase tracking-wider text-muted-foreground"
+              >
+                Para
+              </Label>
               <Select value={toAccountId} onValueChange={setToAccountId}>
                 <SelectTrigger id="to-account" className="h-12 rounded-xl">
                   <SelectValue placeholder="Selecione a conta de destino" />
@@ -185,16 +208,16 @@ export function TransferModal({
             <Alert className="border-accent/20 bg-accent/10 text-accent rounded-xl">
               <ArrowRightLeft className="h-4 w-4" />
               <AlertDescription className="text-sm font-medium">
-                Transferência internacional ({fromAccountCurrency} → {destCurrency}).
-                A cotação é obrigatória.
+                Transferência internacional ({fromAccountCurrency} → {destCurrency}). A cotação é
+                obrigatória.
               </AlertDescription>
             </Alert>
           )}
 
           {/* Valor */}
           <div className="space-y-2">
-            <AmountInput 
-              label={`Valor a enviar ${isCrossCurrency ? `(${fromAccountCurrency})` : ''}`}
+            <AmountInput
+              label={`Valor a enviar ${isCrossCurrency ? `(${fromAccountCurrency})` : ""}`}
               value={amount}
               onChange={handleAmountChange}
               currency={fromAccountCurrency}
@@ -230,7 +253,9 @@ export function TransferModal({
               {/* Valor de destino calculado */}
               {destinationAmount && (
                 <div className="p-4 rounded-xl bg-accent/10 border border-accent/20 flex flex-col gap-1">
-                  <p className="text-sm text-accent/80 uppercase font-black tracking-widest">Valor recebido no destino</p>
+                  <p className="text-sm text-accent/80 uppercase font-black tracking-widest">
+                    Valor recebido no destino
+                  </p>
                   <p className="font-mono font-black text-2xl text-accent">
                     {getCurrencySymbol(destCurrency)} {destinationAmount}
                   </p>
@@ -241,7 +266,12 @@ export function TransferModal({
 
           {/* Descrição */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm uppercase tracking-wider text-muted-foreground">Descrição (Opcional)</Label>
+            <Label
+              htmlFor="description"
+              className="text-sm uppercase tracking-wider text-muted-foreground"
+            >
+              Descrição (Opcional)
+            </Label>
             <Input
               id="description"
               name="description"

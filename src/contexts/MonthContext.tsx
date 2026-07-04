@@ -16,7 +16,7 @@ const MonthContext = createContext<MonthContextType | undefined>(undefined);
 export function MonthProvider({ children }: { children: ReactNode }) {
   const [currentDate, setCurrentDate] = useState(() => dateFns.startOfMonth(new Date()));
   const { data: profile } = useUserProfile();
-  
+
   const startDay = profile?.month_start_day || 1;
 
   const goToPrevMonth = () => setCurrentDate((prev) => dateFns.subMonths(prev, 1));

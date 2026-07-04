@@ -44,12 +44,13 @@ export function ActionFeedback() {
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
       style={{
-        animation: "feedbackFadeIn 0.12s ease-out forwards, feedbackFadeOut 0.22s 0.68s ease-in forwards",
+        animation:
+          "feedbackFadeIn 0.12s ease-out forwards, feedbackFadeOut 0.22s 0.68s ease-in forwards",
       }}
     >
       {/* Full-screen color wash wave */}
       <div
-        className={`absolute top-1/2 left-1/2 rounded-full ${isSuccess ? "bg-emerald-500" : "bg-red-500"}`}
+        className={`absolute top-1/2 left-1/2 rounded-full ${isSuccess ? "bg-positive" : "bg-negative"}`}
         style={{
           width: "250vmax",
           height: "250vmax",
@@ -72,7 +73,7 @@ export function ActionFeedback() {
         <div
           className={`
             flex items-center justify-center rounded-full
-            ${isSuccess ? "bg-white text-emerald-500" : "bg-white text-red-500"}
+            ${isSuccess ? "bg-white text-positive" : "bg-white text-negative"}
             w-24 h-24 shadow-2xl
           `}
         >

@@ -117,7 +117,7 @@ export class SafeFinancialCalculator {
    * Safe sum of array — returns Decimal
    */
   static safeSum(values: (number | Decimal)[]): Decimal {
-    const sum = values.reduce(
+    const sum = values.reduce<Decimal>(
       (acc, val) => acc.plus(SafeFinancialCalculator.toDecimal(val)),
       new Decimal(0)
     );

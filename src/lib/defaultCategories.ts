@@ -10,7 +10,7 @@ export interface CategoryDefinition {
 
 export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
   // ========== DESPESAS ==========
-  
+
   {
     name: "Supermercado",
     icon: "🛒",
@@ -20,10 +20,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Açougue", icon: "🥩", type: "expense" },
       { name: "Padaria", icon: "🥖", type: "expense" },
       { name: "Bebidas", icon: "🥤", type: "expense" },
-      { name: "Higiene e Limpeza", icon: "🧼", type: "expense" }
+      { name: "Higiene e Limpeza", icon: "🧼", type: "expense" },
     ],
   },
-  
+
   {
     name: "Restaurantes e Lanches",
     icon: "🍽️",
@@ -33,7 +33,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Lanche", icon: "🍔", type: "expense" },
       { name: "Café", icon: "☕", type: "expense" },
       { name: "Bar", icon: "🍺", type: "expense" },
-      { name: "Fast Food", icon: "🍟", type: "expense" }
+      { name: "Fast Food", icon: "🍟", type: "expense" },
     ],
   },
 
@@ -45,7 +45,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Marmita", icon: "🍱", type: "expense" },
       { name: "Pizza", icon: "🍕", type: "expense" },
       { name: "Hamburguer", icon: "🍔", type: "expense" },
-      { name: "Comida Japonesa", icon: "🍣", type: "expense" }
+      { name: "Comida Japonesa", icon: "🍣", type: "expense" },
     ],
   },
 
@@ -57,7 +57,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Combustível", icon: "⛽", type: "expense" },
       { name: "Etanol", icon: "🌿", type: "expense" },
       { name: "Diesel", icon: "🚚", type: "expense" },
-      { name: "GNV", icon: "🎈" , type: "expense"}
+      { name: "GNV", icon: "🎈", type: "expense" },
     ],
   },
 
@@ -78,10 +78,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Seguro Veículo", icon: "🛡️", type: "expense" },
       { name: "Licenciamento", icon: "📋", type: "expense" },
       { name: "Multas", icon: "🚨", type: "expense" },
-      { name: "Financiamento Veículo", icon: "💳", type: "expense" }
+      { name: "Financiamento Veículo", icon: "💳", type: "expense" },
     ],
   },
-  
+
   {
     name: "Moradia",
     icon: "🏠",
@@ -100,7 +100,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Móveis", icon: "🛋️", type: "expense" },
       { name: "Decoração", icon: "🖼️", type: "expense" },
       { name: "Eletrodomésticos", icon: "🔌", type: "expense" },
-      { name: "Limpeza", icon: "🧹", type: "expense" }
+      { name: "Limpeza", icon: "🧹", type: "expense" },
     ],
   },
 
@@ -121,10 +121,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Encanador", icon: "🚰", type: "expense" },
       { name: "Eletricista", icon: "⚡", type: "expense" },
       { name: "Diarista", icon: "🧹", type: "expense" },
-      { name: "Jardineiro", icon: "🌱", type: "expense" }
+      { name: "Jardineiro", icon: "🌱", type: "expense" },
     ],
   },
-  
+
   {
     name: "Saúde",
     icon: "💊",
@@ -140,10 +140,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Terapia", icon: "🧠", type: "expense" },
       { name: "Psicólogo", icon: "💭", type: "expense" },
       { name: "Óculos/Lentes", icon: "👓", type: "expense" },
-      { name: "Aparelho Ortodôntico", icon: "😁", type: "expense" }
+      { name: "Aparelho Ortodôntico", icon: "😁", type: "expense" },
     ],
   },
-  
+
   {
     name: "Educação",
     icon: "📚",
@@ -157,10 +157,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Material Escolar", icon: "✏️", type: "expense" },
       { name: "Idiomas", icon: "🗣️", type: "expense" },
       { name: "Certificações", icon: "📜", type: "expense" },
-      { name: "Uniforme", icon: "👔", type: "expense" }
+      { name: "Uniforme", icon: "👔", type: "expense" },
     ],
   },
-  
+
   {
     name: "Compras",
     icon: "🛍️",
@@ -175,10 +175,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Informática", icon: "💻", type: "expense" },
       { name: "Cosméticos", icon: "💄", type: "expense" },
       { name: "Perfumes", icon: "🌸", type: "expense" },
-      { name: "Presentes", icon: "🎁", type: "expense" }
+      { name: "Presentes", icon: "🎁", type: "expense" },
     ],
   },
-  
+
   {
     name: "Lazer",
     icon: "🎮",
@@ -194,7 +194,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Jogos", icon: "🎮", type: "expense" },
       { name: "Esportes", icon: "⚽", type: "expense" },
       { name: "Academia", icon: "💪", type: "expense" },
-      { name: "Clube", icon: "🏊", type: "expense" }
+      { name: "Clube", icon: "🏊", type: "expense" },
     ],
   },
 
@@ -211,7 +211,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Turismo", icon: "🗺️", type: "expense" },
       { name: "Passeios", icon: "🎢", type: "expense" },
       { name: "Seguro Viagem", icon: "🛡️", type: "expense" },
-      { name: "Visto", icon: "📋", type: "expense" }
+      { name: "Visto", icon: "📋", type: "expense" },
     ],
   },
 
@@ -225,10 +225,10 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "Pet Shop", icon: "🐾", type: "expense" },
       { name: "Banho e Tosa", icon: "🛁", type: "expense" },
       { name: "Medicamentos Pet", icon: "💊", type: "expense" },
-      { name: "Hotel Pet", icon: "🏨", type: "expense" }
+      { name: "Hotel Pet", icon: "🏨", type: "expense" },
     ],
   },
-  
+
   {
     name: "Financeiro",
     icon: "🏦",
@@ -241,7 +241,7 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
       { name: "IPTU", icon: "🏘️", type: "expense" },
       { name: "IPVA", icon: "🚗", type: "expense" },
       { name: "IR", icon: "💼", type: "expense" },
-      { name: "Multas", icon: "🚨", type: "expense" }
+      { name: "Multas", icon: "🚨", type: "expense" },
     ],
   },
 
@@ -251,12 +251,12 @@ export const DEFAULT_CATEGORIES: CategoryDefinition[] = [
     type: "expense",
     children: [
       { name: "Diversos", icon: "📦", type: "expense" },
-      { name: "Emergência", icon: "🚨", type: "expense" }
+      { name: "Emergência", icon: "🚨", type: "expense" },
     ],
   },
 
   // ========== RECEITAS ==========
-  
+
   { name: "Salário", icon: "💰", type: "income" },
   { name: "Freelance", icon: "💻", type: "income" },
   { name: "Vendas", icon: "🏷️", type: "income" },

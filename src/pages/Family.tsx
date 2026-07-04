@@ -1,10 +1,10 @@
-import { FamilyMemberCard } from '@/components/family/FamilyMemberCard';
-import { InviteMemberDialog } from '@/components/family/InviteMemberDialog';
-import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { useAuth } from '@/contexts/AuthContext';
+import { FamilyMemberCard } from "@/components/family/FamilyMemberCard";
+import { InviteMemberDialog } from "@/components/family/InviteMemberDialog";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   FamilyRole,
   useAddSharedContact,
@@ -17,17 +17,17 @@ import {
   useSharedContacts,
   useToggleContactActiveInForm,
   useUpdateFamilyMember,
-} from '@/hooks/useFamily';
-import { useCancelInvitation, useFamilyInvitations } from '@/hooks/useFamilyInvitations';
-import { cn } from '@/lib/utils';
-import { Check, Crown, Plus, Trash2, UserCircle2, UserPlus, Users, X } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
+} from "@/hooks/useFamily";
+import { useCancelInvitation, useFamilyInvitations } from "@/hooks/useFamilyInvitations";
+import { cn } from "@/lib/utils";
+import { Check, Crown, Plus, Trash2, UserCircle2, UserPlus, Users, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const roleLabels: Record<FamilyRole, { label: string; description: string }> = {
-  admin: { label: 'Administrador', description: 'Acesso total, pode gerenciar membros' },
-  editor: { label: 'Editor', description: 'Pode criar e editar transações' },
-  viewer: { label: 'Visualizador', description: 'Apenas visualização' },
+  admin: { label: "Administrador", description: "Acesso total, pode gerenciar membros" },
+  editor: { label: "Editor", description: "Pode criar e editar transações" },
+  viewer: { label: "Visualizador", description: "Apenas visualização" },
 };
 
 export function Family() {
@@ -51,17 +51,17 @@ export function Family() {
 
   const getInitials = (n: string) =>
     n
-      .split(' ')
+      .split(" ")
       .map((x) => x[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   const getRoleColor = (r: string) =>
-    r === 'admin'
-      ? 'bg-foreground text-background'
-      : r === 'editor'
-        ? 'bg-primary/20 text-primary'
-        : 'bg-muted text-muted-foreground';
+    r === "admin"
+      ? "bg-foreground text-background"
+      : r === "editor"
+        ? "bg-primary/20 text-primary"
+        : "bg-muted text-muted-foreground";
 
   if (familyLoading || membersLoading)
     return (
@@ -86,19 +86,19 @@ export function Family() {
     );
 
   const activeMembers = members.filter(
-    (m) => m.status === 'active' && m.linked_user_id !== user?.id,
+    (m) => m.status === "active" && m.linked_user_id !== user?.id
   );
   const pendingInvitations = [
-    ...invitations.filter((i) => i.status === 'pending'),
-    ...members.filter((m) => m.status === 'pending'),
+    ...invitations.filter((i) => i.status === "pending"),
+    ...members.filter((m) => m.status === "pending"),
   ];
 
   const formatFamilyName = (name: string) => {
-    if (!name) return 'Família';
+    if (!name) return "Família";
 
     // Se o nome contém "Família de" seguido de algo com ponto ou cara de email
-    if (name.includes('Família de') && (name.includes('.') || name.includes('_'))) {
-      const parts = name.replace('Família de ', '').split(/[._]/);
+    if (name.includes("Família de") && (name.includes(".") || name.includes("_"))) {
+      const parts = name.replace("Família de ", "").split(/[._]/);
       const firstName = parts[0];
       return `Família de ${firstName.charAt(0).toUpperCase() + firstName.slice(1)}`;
     }
@@ -113,7 +113,7 @@ export function Family() {
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="font-display font-black text-2xl md:text-4xl tracking-tighter">
-              {formatFamilyName(family?.name || 'Família')}
+              {formatFamilyName(family?.name || "Família")}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm md:text-base font-medium">
               Gerencie o núcleo familiar e as contas vinculadas
@@ -186,17 +186,17 @@ export function Family() {
                 onUpdateRole={async (id, r) => {
                   try {
                     await updateMember.mutateAsync({ id, role: r });
-                    toast.success('Permissão atualizada com sucesso');
+                    toast.success("Permissão atualizada com sucesso");
                   } catch (e: any) {
-                    toast.error(e.message || 'Erro ao atualizar permissão');
+                    toast.error(e.message || "Erro ao atualizar permissão");
                   }
                 }}
                 onRemove={async (id) => {
                   try {
                     await removeMember.mutateAsync(id);
-                    toast.success('Membro removido com sucesso');
+                    toast.success("Membro removido com sucesso");
                   } catch (e: any) {
-                    toast.error(e.message || 'Erro ao remover membro');
+                    toast.error(e.message || "Erro ao remover membro");
                   }
                 }}
                 onMoveToContact={
@@ -244,9 +244,9 @@ export function Family() {
                       } else {
                         await removeMember.mutateAsync(i.id);
                       }
-                      toast.success('Convite cancelado');
+                      toast.success("Convite cancelado");
                     } catch (e: any) {
-                      toast.error(e.message || 'Erro ao cancelar convite');
+                      toast.error(e.message || "Erro ao cancelar convite");
                     }
                   }}
                 >
@@ -298,10 +298,10 @@ export function Family() {
                     <p className="text-sm font-medium">{c.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {c.linked_user_id
-                        ? 'Vinculado ao app — convites habilitados'
+                        ? "Vinculado ao app — convites habilitados"
                         : c.active_in_form
-                          ? 'Ativo no formulário de transação'
-                          : 'Contato externo — histórico preservado'}
+                          ? "Ativo no formulário de transação"
+                          : "Contato externo — histórico preservado"}
                     </p>
                   </div>
                 </div>
@@ -335,9 +335,9 @@ export function Family() {
                       onClick={async () => {
                         try {
                           await removeMember.mutateAsync(c.id);
-                          toast.success('Contato excluído');
+                          toast.success("Contato excluído");
                         } catch (e: any) {
-                          toast.error(e.message || 'Erro ao excluir contato');
+                          toast.error(e.message || "Erro ao excluir contato");
                         }
                       }}
                       disabled={removeMember.isPending}
@@ -362,13 +362,13 @@ export function Family() {
             <div key={k} className="flex items-start gap-3">
               <div
                 className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
-                  getRoleColor(k),
+                  "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                  getRoleColor(k)
                 )}
               >
-                {k === 'admin' ? (
+                {k === "admin" ? (
                   <Crown className="h-4 w-4" />
-                ) : k === 'editor' ? (
+                ) : k === "editor" ? (
                   <Check className="h-4 w-4" />
                 ) : (
                   <Users className="h-4 w-4" />

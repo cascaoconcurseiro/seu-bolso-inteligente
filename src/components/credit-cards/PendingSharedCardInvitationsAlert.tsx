@@ -9,7 +9,6 @@ export function PendingSharedCardInvitationsAlert() {
   const { data: sharedCards = [], isLoading } = useSharedCreditCards();
   const respondInvite = useRespondSharedCardInvite();
 
-
   if (isLoading) return null;
 
   const pendingInvites = sharedCards.filter(
@@ -21,17 +20,18 @@ export function PendingSharedCardInvitationsAlert() {
   return (
     <div className="space-y-3 mb-6">
       {pendingInvites.map((invite) => {
-
-
         const handleAccept = () => {
-          respondInvite.mutate({ 
-            inviteId: invite.id, 
-            status: 'ACCEPTED'
+          respondInvite.mutate({
+            inviteId: invite.id,
+            status: "ACCEPTED",
           });
         };
 
         return (
-          <Alert key={invite.id} className="border-success/50 bg-success/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <Alert
+            key={invite.id}
+            className="border-success/50 bg-success/5 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+          >
             <div className="flex gap-3 items-center">
               <div className="p-2 bg-success/20 rounded-full text-success">
                 <CreditCard className="w-5 h-5" />
@@ -39,18 +39,19 @@ export function PendingSharedCardInvitationsAlert() {
               <div>
                 <p className="font-semibold text-sm">Convite de Cartão Compartilhado</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Você foi convidado(a) para participar do cartão de crédito <b>{invite.account?.name || 'Compartilhado'}</b>. Ao aceitar, vocês poderão dividir faturas.
+                  Você foi convidado(a) para participar do cartão de crédito{" "}
+                  <b>{invite.account?.name || "Compartilhado"}</b>. Ao aceitar, vocês poderão
+                  dividir faturas.
                 </p>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
 
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/8"
-                onClick={() => respondInvite.mutate({ inviteId: invite.id, status: 'REJECTED' })}
+                onClick={() => respondInvite.mutate({ inviteId: invite.id, status: "REJECTED" })}
                 disabled={respondInvite.isPending}
               >
                 <X className="w-4 h-4 mr-1.5" />

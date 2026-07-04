@@ -39,9 +39,7 @@ export function AccountDeleteArchiveModal({
                 <div className="flex items-start gap-3">
                   <Archive className="h-5 w-5 text-accent mt-0.5 shrink-0" />
                   <div className="space-y-2">
-                    <p className="font-medium text-sm text-accent">
-                      Arquivar (Recomendado)
-                    </p>
+                    <p className="font-medium text-sm text-accent">Arquivar (Recomendado)</p>
                     <p className="text-sm text-accent/80">
                       • A conta não aparecerá mais nos formulários
                       <br />
@@ -73,11 +71,7 @@ export function AccountDeleteArchiveModal({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex-col sm:flex-row gap-2 px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="w-full sm:w-auto"
-          >
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Cancelar
           </Button>
           <Button

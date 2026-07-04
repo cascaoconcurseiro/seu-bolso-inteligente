@@ -62,13 +62,13 @@ export function useCategoriesHierarchical(includeArchived = false) {
     if (!allCategories) return { parents: [], children: new Map() };
 
     // Separar pais e filhos
-    const parents = allCategories.filter(cat => !cat.parent_category_id);
+    const parents = allCategories.filter((cat) => !cat.parent_category_id);
     const children = new Map<string, Category[]>();
 
     // Agrupar filhos por pai
     allCategories
-      .filter(cat => cat.parent_category_id)
-      .forEach(cat => {
+      .filter((cat) => cat.parent_category_id)
+      .forEach((cat) => {
         const parentId = cat.parent_category_id!;
         if (!children.has(parentId)) {
           children.set(parentId, []);
@@ -111,7 +111,7 @@ export function useCreateCategory() {
       categoryToasts.created();
     },
     onError: (error) => {
-      categoryToasts.error('criar', error);
+      categoryToasts.error("criar", error);
     },
   });
 }
@@ -129,14 +129,15 @@ export function useUpdateCategory() {
     onMutate: async ({ id, ...input }: UpdateCategoryInput & { id: string }) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previousData = queryClient.getQueriesData<Category[]>({ queryKey: ["categories"] });
-      queryClient.setQueriesData<Category[]>({ queryKey: ["categories"] }, (old) =>
-        old?.map((c) => c.id === id ? { ...c, ...input } : c) ?? []
+      queryClient.setQueriesData<Category[]>(
+        { queryKey: ["categories"] },
+        (old) => old?.map((c) => (c.id === id ? { ...c, ...input } : c)) ?? []
       );
       return { previousData };
     },
     onError: (error, _vars, context) => {
       context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      categoryToasts.error('atualizar', error);
+      categoryToasts.error("atualizar", error);
     },
     mutationFn: async ({ id, ...input }: UpdateCategoryInput & { id: string }) => {
       const { data, error } = await supabase
@@ -165,14 +166,15 @@ export function useDeleteCategory() {
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previousData = queryClient.getQueriesData<Category[]>({ queryKey: ["categories"] });
-      queryClient.setQueriesData<Category[]>({ queryKey: ["categories"] }, (old) =>
-        old?.filter((c) => c.id !== id) ?? []
+      queryClient.setQueriesData<Category[]>(
+        { queryKey: ["categories"] },
+        (old) => old?.filter((c) => c.id !== id) ?? []
       );
       return { previousData };
     },
     onError: (error, _id, context) => {
       context?.previousData?.forEach(([key, data]) => queryClient.setQueryData(key, data));
-      categoryToasts.error('remover', error);
+      categoryToasts.error("remover", error);
     },
     mutationFn: async (id: string) => {
       // INTEGRIDADE DO BANCO: Verificar subcategorias filhas antes de excluir
@@ -184,7 +186,7 @@ export function useDeleteCategory() {
       if (subCount && subCount > 0) {
         throw new Error(
           `Esta categoria possui ${subCount} subcategoria(s) vinculada(s). ` +
-          `Exclua as subcategorias primeiro antes de remover a categoria principal.`
+            `Exclua as subcategorias primeiro antes de remover a categoria principal.`
         );
       }
 
@@ -223,11 +225,13 @@ export function useCreateDefaultCategories() {
         .eq("user_id", user.id);
 
       if (checkError) throw checkError;
-      
-      const existingNames = new Set((existing || []).map(c => c.name.toLowerCase()));
+
+      const existingNames = new Set((existing || []).map((c) => c.name.toLowerCase()));
 
       if (!force && existing && existing.length >= 20) {
-        logger.info("Usuário já possui estrutura completa de categorias. Ignorando criação padrão.");
+        logger.info(
+          "Usuário já possui estrutura completa de categorias. Ignorando criação padrão."
+        );
         return;
       }
 
@@ -235,7 +239,9 @@ export function useCreateDefaultCategories() {
       const { DEFAULT_CATEGORIES } = await import("@/lib/defaultCategories");
 
       // Filtrar as categorias pai que ainda NÃO existem
-      const parentCategoriesToCreate = DEFAULT_CATEGORIES.filter(cat => !existingNames.has(cat.name.toLowerCase())).map(cat => ({
+      const parentCategoriesToCreate = DEFAULT_CATEGORIES.filter(
+        (cat) => !existingNames.has(cat.name.toLowerCase())
+      ).map((cat) => ({
         user_id: user.id,
         name: cat.name,
         icon: cat.icon,
@@ -260,15 +266,15 @@ export function useCreateDefaultCategories() {
         .eq("user_id", user.id)
         .is("parent_category_id", null);
 
-      const parentMap = new Map((allParents || []).map(cat => [cat.name.toLowerCase(), cat.id]));
+      const parentMap = new Map((allParents || []).map((cat) => [cat.name.toLowerCase(), cat.id]));
 
       // Agora preparar as subcategorias
       const childCategories: unknown[] = [];
-      
-      DEFAULT_CATEGORIES.forEach(parent => {
+
+      DEFAULT_CATEGORIES.forEach((parent) => {
         const parentId = parentMap.get(parent.name.toLowerCase());
         if (parent.children && parentId) {
-          parent.children.forEach(child => {
+          parent.children.forEach((child) => {
             // Se a subcategoria já existe com este nome, não cria de novo
             if (!existingNames.has(child.name.toLowerCase())) {
               childCategories.push({
@@ -284,14 +290,14 @@ export function useCreateDefaultCategories() {
       });
 
       if (childCategories.length > 0) {
-        const { error: childError } = await supabase
-          .from("categories")
-          .insert(childCategories);
+        const { error: childError } = await supabase.from("categories").insert(childCategories);
 
         if (childError) throw childError;
       }
 
-      logger.success(`Criadas ${createdParents.length} categorias pai e ${childCategories.length} subcategorias`);
+      logger.success(
+        `Criadas ${createdParents.length} categorias pai e ${childCategories.length} subcategorias`
+      );
     },
     onSuccess: async () => {
       await invalidateCategoryQueries(queryClient);

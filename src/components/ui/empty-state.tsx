@@ -13,7 +13,10 @@ interface EmptyStateProps {
   variant?: EmptyStateVariant;
 }
 
-const variantStyles: Record<EmptyStateVariant, { bg: string; glow: string; icon: string; ring: string }> = {
+const variantStyles: Record<
+  EmptyStateVariant,
+  { bg: string; glow: string; icon: string; ring: string }
+> = {
   default: {
     bg: "bg-accent/10",
     glow: "shadow-[0_0_40px_hsl(var(--accent)/0.15)]",
@@ -51,27 +54,29 @@ export function EmptyState({
   const styles = variantStyles[variant];
 
   return (
-    <div className={cn(
-      "relative flex flex-col items-center justify-center p-10 text-center overflow-hidden",
-      "rounded-3xl border border-border/40 bg-gradient-to-b from-card/60 to-muted/10",
-      "animate-fade-in-up",
-      className
-    )}>
+    <div
+      className={cn(
+        "relative flex flex-col items-center justify-center p-10 text-center overflow-hidden",
+        "rounded-3xl border border-border/40 bg-gradient-to-b from-card/60 to-muted/10",
+        "animate-fade-in-up",
+        className
+      )}
+    >
       {/* Decorative blur behind icon */}
-      <div className={cn(
-        "absolute inset-0 flex items-center justify-center pointer-events-none",
-      )}>
+      <div className={cn("absolute inset-0 flex items-center justify-center pointer-events-none")}>
         <div className={cn("w-40 h-40 rounded-full blur-3xl opacity-30", styles.bg)} />
       </div>
 
       {/* Icon container */}
-      <div className={cn(
-        "relative z-10 w-20 h-20 mb-5 rounded-2xl flex items-center justify-center",
-        "ring-2",
-        styles.bg,
-        styles.glow,
-        styles.ring,
-      )}>
+      <div
+        className={cn(
+          "relative z-10 w-20 h-20 mb-5 rounded-2xl flex items-center justify-center",
+          "ring-2",
+          styles.bg,
+          styles.glow,
+          styles.ring
+        )}
+      >
         <Icon className={cn("h-9 w-9", styles.icon)} strokeWidth={1.5} />
       </div>
 
@@ -81,11 +86,7 @@ export function EmptyState({
       <p className="relative z-10 text-sm text-muted-foreground max-w-xs leading-relaxed">
         {description}
       </p>
-      {action && (
-        <div className="relative z-10 mt-6">
-          {action}
-        </div>
-      )}
+      {action && <div className="relative z-10 mt-6">{action}</div>}
     </div>
   );
 }

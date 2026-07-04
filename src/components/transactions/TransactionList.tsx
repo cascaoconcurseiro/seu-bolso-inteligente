@@ -90,12 +90,13 @@ export function TransactionList({
                     totals.balance >= 0 ? "text-positive" : "text-negative"
                   )}
                 >
-                  {totals.balance >= 0 ? "+" : ""}{formatCurrency(totals.balance, currency)}
+                  {totals.balance >= 0 ? "+" : ""}
+                  {formatCurrency(totals.balance, currency)}
                 </span>
               ))}
             </div>
           </div>
-          
+
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             {group.transactions.map((transaction) => (
               <TransactionItem

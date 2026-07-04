@@ -62,7 +62,6 @@ export function PreferencesSettings({
       setDefaultCreditCardId(profile.default_credit_card_id ?? "none");
       setMonthlyReportEnabled(profile.monthly_report_enabled ?? true);
     }
-     
   }, [profile]);
 
   const handleSave = async () => {

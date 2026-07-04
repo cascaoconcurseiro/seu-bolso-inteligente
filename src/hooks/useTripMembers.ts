@@ -7,9 +7,9 @@ import { logger } from "@/utils/logger";
 export interface TripMember {
   id: string;
   trip_id: string;
-  user_id: string | null;   // null para participantes sem conta (guests)
+  user_id: string | null; // null para participantes sem conta (guests)
   guest_name?: string | null; // nome do convidado externo
-  role: 'owner' | 'member';
+  role: "owner" | "member";
   can_edit_details: boolean;
   can_manage_expenses: boolean;
   personal_budget: number | null;
@@ -34,7 +34,9 @@ export function useTripMembers(tripId: string | null) {
 
       const { data, error } = await supabase
         .from("trip_members")
-        .select("id, trip_id, user_id, guest_name, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at")
+        .select(
+          "id, trip_id, user_id, guest_name, role, can_edit_details, can_manage_expenses, personal_budget, created_at, updated_at"
+        )
         .eq("trip_id", tripId)
         .order("created_at");
 
@@ -44,7 +46,7 @@ export function useTripMembers(tripId: string | null) {
 
       if (data && data.length > 0) {
         // Só buscar profiles para membros com user_id
-        const userIds = [...new Set(data.map(m => m.user_id).filter(Boolean))] as string[];
+        const userIds = [...new Set(data.map((m) => m.user_id).filter(Boolean))] as string[];
         const profilesMap = new Map<string, { full_name: string | null; email: string }>();
 
         if (userIds.length > 0) {
@@ -52,12 +54,13 @@ export function useTripMembers(tripId: string | null) {
             .from("profiles")
             .select("id, full_name, email")
             .in("id", userIds);
-          profiles?.forEach(p => profilesMap.set(p.id, p));
+          profiles?.forEach((p) => profilesMap.set(p.id, p));
         }
 
-        const enrichedData = data.map(member => {
+        const enrichedData = data.map((member) => {
           const profile = member.user_id ? profilesMap.get(member.user_id) : undefined;
-          const display_name = profile?.full_name || profile?.email || member.guest_name || 'Convidado';
+          const display_name =
+            profile?.full_name || profile?.email || member.guest_name || "Convidado";
           return {
             ...member,
             profiles: profile,
@@ -83,19 +86,13 @@ export function useAddTripMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      tripId,
-      userId,
-    }: {
-      tripId: string;
-      userId: string;
-    }) => {
+    mutationFn: async ({ tripId, userId }: { tripId: string; userId: string }) => {
       const { data, error } = await supabase
         .from("trip_members")
         .insert({
           trip_id: tripId,
           user_id: userId,
-          role: 'member',
+          role: "member",
           can_edit_details: false,
           can_manage_expenses: true,
         })
@@ -128,7 +125,7 @@ export function useAddGuestTripMember() {
           trip_id: tripId,
           user_id: null,
           guest_name: guestName.trim(),
-          role: 'member',
+          role: "member",
           can_edit_details: false,
           can_manage_expenses: false,
         })
@@ -154,22 +151,17 @@ export function useRemoveTripMember() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      memberId,
-      tripId,
-    }: {
-      memberId: string;
-      tripId: string;
-    }) => {
-      const { data: member } = await supabase.from('trip_members').select('role').eq('id', memberId).single();
-      if (member?.role === 'owner') {
-        throw new Error('Não é possível remover o criador da viagem');
+    mutationFn: async ({ memberId, tripId }: { memberId: string; tripId: string }) => {
+      const { data: member } = await supabase
+        .from("trip_members")
+        .select("role")
+        .eq("id", memberId)
+        .single();
+      if (member?.role === "owner") {
+        throw new Error("Não é possível remover o criador da viagem");
       }
 
-      const { error } = await supabase
-        .from("trip_members")
-        .delete()
-        .eq("id", memberId);
+      const { error } = await supabase.from("trip_members").delete().eq("id", memberId);
 
       if (error) throw error;
     },
@@ -206,14 +198,14 @@ export function useTripPermissions(tripId: string | null) {
       }
 
       return {
-        isOwner: data.role === 'owner',
+        isOwner: data.role === "owner",
         canEditDetails: data.can_edit_details,
         canManageExpenses: data.can_manage_expenses,
       };
     },
     enabled: !!tripId && !!user,
     staleTime: 0, // ✅ Dados sempre frescos
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
   });
 }
 
@@ -253,4 +245,3 @@ export function useUpdatePersonalBudget() {
     },
   });
 }
-

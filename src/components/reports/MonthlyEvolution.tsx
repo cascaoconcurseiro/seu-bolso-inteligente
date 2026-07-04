@@ -23,7 +23,7 @@ export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvol
     );
   }
 
-  const maxMonthValue = Math.max(...data.flatMap(m => [m.income, m.expense]), 1);
+  const maxMonthValue = Math.max(...data.flatMap((m) => [m.income, m.expense]), 1);
 
   return (
     <section className="p-5 md:p-8 rounded-4xl border border-border/40 bg-card/50 backdrop-blur-md shadow-sm">
@@ -38,7 +38,7 @@ export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvol
               <div className="flex-1 mx-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-positive rounded-full transition-all"
                       style={{ width: `${(month.income / maxMonthValue) * 100}%` }}
                     />
@@ -49,7 +49,7 @@ export function MonthlyEvolution({ data, formatCurrency, currency }: MonthlyEvol
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-negative rounded-full transition-all"
                       style={{ width: `${(month.expense / maxMonthValue) * 100}%` }}
                     />

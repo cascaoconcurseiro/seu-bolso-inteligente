@@ -13,7 +13,7 @@ interface DashboardRecentActivityProps {
 
 export const DashboardRecentActivity = memo(function DashboardRecentActivity({
   recentTransactions,
-  formatCurrencyWithSymbol
+  formatCurrencyWithSymbol,
 }: DashboardRecentActivityProps) {
   const { isPrivate } = usePrivacy();
 
@@ -67,17 +67,21 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                 key={tx.id}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
-                  "group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 hover:bg-card/50 hover:shadow-sm transition-all duration-300 animate-fade-in-up text-left",
+                  "group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 hover:bg-card/50 hover:shadow-sm transition-all duration-300 animate-fade-in-up text-left"
                 )}
               >
                 <div className="flex items-center gap-4 min-w-0">
                   {/* Category Icon Circle */}
-                  <div className={cn(
-                    "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
-                    isIncome ? "bg-success/12 text-success" :
-                    isTransfer ? "bg-accent/10 text-accent" :
-                    "bg-muted text-muted-foreground"
-                  )}>
+                  <div
+                    className={cn(
+                      "w-11 h-12 rounded-2xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 duration-500",
+                      isIncome
+                        ? "bg-success/12 text-success"
+                        : isTransfer
+                          ? "bg-accent/10 text-accent"
+                          : "bg-muted text-muted-foreground"
+                    )}
+                  >
                     {tx.category?.icon || (isIncome ? "💰" : isTransfer ? "⇄" : "💸")}
                   </div>
 
@@ -87,11 +91,16 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                         {tx.description}
                       </p>
                       {tx.is_shared && (
-                        <div className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_hsl(var(--accent)/0.5)]" title="Compartilhado" />
+                        <div
+                          className="w-1.5 h-2 rounded-full bg-accent shadow-[0_0_8px_hsl(var(--accent)/0.5)]"
+                          title="Compartilhado"
+                        />
                       )}
                     </div>
                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <span className="truncate">{tx.category?.name || (isTransfer ? "Transferência" : "Geral")}</span>
+                      <span className="truncate">
+                        {tx.category?.name || (isTransfer ? "Transferência" : "Geral")}
+                      </span>
                       <span className="w-1 h-1 rounded-full bg-border" />
                       <span className="whitespace-nowrap">{dateLabel}</span>
                     </p>
@@ -99,20 +108,41 @@ export const DashboardRecentActivity = memo(function DashboardRecentActivity({
                 </div>
 
                 <div className="text-right shrink-0 ml-4">
-                  <p className={cn(
-                    "font-display font-black text-sm md:text-base tracking-tight",
-                    isIncome ? "text-success" : isTransfer ? "text-accent" : "text-foreground",
-                    isPrivate && "blur-md opacity-50 select-none"
-                  )}>
-                    {isPrivate ? "•••••" : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || 'BRL')}`}
+                  <p
+                    className={cn(
+                      "font-display font-black text-sm md:text-base tracking-tight",
+                      isIncome ? "text-success" : isTransfer ? "text-accent" : "text-foreground",
+                      isPrivate && "blur-md opacity-50 select-none"
+                    )}
+                  >
+                    {isPrivate
+                      ? "•••••"
+                      : `${isIncome ? "+" : isTransfer ? "" : "-"}${formatCurrencyWithSymbol(Number(tx.amount), tx.currency || "BRL")}`}
                   </p>
-                  {isTransfer && tx.destination_amount && tx.destination_currency && (tx.currency || 'BRL') !== tx.destination_currency && (
-                    <p className={cn("text-xs font-display font-bold text-success tracking-tight mt-0.5", isPrivate && "blur-md opacity-50 select-none")} title="Valor convertido creditado">
-                      {isPrivate ? "➔ •••••" : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
-                    </p>
-                  )}
+                  {isTransfer &&
+                    tx.destination_amount &&
+                    tx.destination_currency &&
+                    (tx.currency || "BRL") !== tx.destination_currency && (
+                      <p
+                        className={cn(
+                          "text-xs font-display font-bold text-success tracking-tight mt-0.5",
+                          isPrivate && "blur-md opacity-50 select-none"
+                        )}
+                        title="Valor convertido creditado"
+                      >
+                        {isPrivate
+                          ? "➔ •••••"
+                          : `➔ ${formatCurrencyWithSymbol(Number(tx.destination_amount), tx.destination_currency)}`}
+                      </p>
+                    )}
                   <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/50 flex items-center justify-end gap-1">
-                    {isIncome ? <ArrowDownLeft className="h-2 w-2" /> : isTransfer ? <RefreshCw className="h-2 w-2" /> : <ArrowUpRight className="h-2 w-2" />}
+                    {isIncome ? (
+                      <ArrowDownLeft className="h-2 w-2" />
+                    ) : isTransfer ? (
+                      <RefreshCw className="h-2 w-2" />
+                    ) : (
+                      <ArrowUpRight className="h-2 w-2" />
+                    )}
                     {isIncome ? "Entrada" : isTransfer ? "Transfer" : "Saída"}
                   </p>
                 </div>

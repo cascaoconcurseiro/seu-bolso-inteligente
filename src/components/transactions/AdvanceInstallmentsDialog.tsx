@@ -30,7 +30,7 @@ export function AdvanceInstallmentsDialog({
   transactionDescription,
 }: AdvanceInstallmentsDialogProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  
+
   const { data: futureInstallments = [], isLoading } = useFutureInstallments(seriesId);
   const advanceInstallments = useAdvanceInstallments();
 
@@ -47,24 +47,20 @@ export function AdvanceInstallmentsDialog({
   };
 
   const handleToggle = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
-        ? prev.filter(i => i !== id)
-        : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const handleSelectAll = () => {
     if (selectedIds.length === futureInstallments.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(futureInstallments.map(i => i.id));
+      setSelectedIds(futureInstallments.map((i) => i.id));
     }
   };
 
   const handleAdvance = async () => {
     if (selectedIds.length === 0) return;
-    
+
     showActionFeedback("success");
     setTimeout(() => {
       setSelectedIds([]);
@@ -75,7 +71,7 @@ export function AdvanceInstallmentsDialog({
   };
 
   const totalToAdvance = futureInstallments
-    .filter(i => selectedIds.includes(i.id))
+    .filter((i) => selectedIds.includes(i.id))
     .reduce((sum, i) => SafeFinancialCalculator.add(sum, Number(i.amount)), 0);
 
   return (

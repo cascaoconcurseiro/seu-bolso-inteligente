@@ -13,7 +13,11 @@ import { moneyUtils } from "@/utils/money";
 import { toast } from "sonner";
 import { generateAllNotifications } from "@/services/notificationGenerator";
 import { ConfirmTransactionDialog, ConfirmTarget } from "./ConfirmTransactionDialog";
-import { useConfirmScheduledBill, useConfirmRecurringOccurrence, useCancelScheduledBill } from "@/hooks/useScheduledBills";
+import {
+  useConfirmScheduledBill,
+  useConfirmRecurringOccurrence,
+  useCancelScheduledBill,
+} from "@/hooks/useScheduledBills";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -74,11 +78,19 @@ function UnifiedItemRow({
   const isIncome = item.type === "INCOME";
   const isTransfer = item.type === "TRANSFER";
 
-  const amountColor = isExpense ? "text-negative" : isIncome ? "text-positive" : "text-muted-foreground";
+  const amountColor = isExpense
+    ? "text-negative"
+    : isIncome
+      ? "text-positive"
+      : "text-muted-foreground";
   const amountPrefix = isExpense ? "-" : isIncome ? "+" : "";
 
   const defaultIcon = isIncome ? "💰" : isTransfer ? "↔️" : "📋";
-  const confirmLabel = isIncome ? "Marcar como recebido" : isTransfer ? "Marcar como realizado" : "Marcar como pago";
+  const confirmLabel = isIncome
+    ? "Marcar como recebido"
+    : isTransfer
+      ? "Marcar como realizado"
+      : "Marcar como pago";
 
   const borderClass = overdue
     ? "border-destructive/30 bg-destructive/5"
@@ -91,7 +103,12 @@ function UnifiedItemRow({
       : "border-border/60 bg-card/50";
 
   return (
-    <div className={cn("flex items-center gap-3 px-3 py-3 rounded-xl border transition-all", borderClass)}>
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-3 rounded-xl border transition-all",
+        borderClass
+      )}
+    >
       <div className="w-9 h-9 rounded-lg flex items-center justify-center text-base flex-shrink-0 bg-muted/50">
         {item.categoryIcon ?? defaultIcon}
       </div>
@@ -102,14 +119,20 @@ function UnifiedItemRow({
           {item.kind === "recurring" && item.recurrencePattern && (
             <>
               <ArrowRightLeft className="h-3 w-3 text-muted-foreground/60" />
-              <span className="text-[11px] text-muted-foreground">{patternLabel(item.recurrencePattern)}</span>
+              <span className="text-[11px] text-muted-foreground">
+                {patternLabel(item.recurrencePattern)}
+              </span>
               <span className="text-muted-foreground/40">·</span>
             </>
           )}
           <span
             className={cn(
               "text-[11px] font-medium",
-              overdue ? "text-destructive" : item.kind === "scheduled" && isIncome ? "text-positive" : "text-muted-foreground"
+              overdue
+                ? "text-destructive"
+                : item.kind === "scheduled" && isIncome
+                  ? "text-positive"
+                  : "text-muted-foreground"
             )}
           >
             {label}
@@ -181,11 +204,13 @@ export function UpcomingTransactions() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           id, description, amount, date, currency, type,
           category:categories(id, name, icon),
           account:accounts!account_id(id, name)
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("status", "PENDING")
         .is("deleted_at", null)
@@ -219,11 +244,13 @@ export function UpcomingTransactions() {
       if (!user) return [];
       const { data, error } = await supabase
         .from("transactions")
-        .select(`
+        .select(
+          `
           *,
           category:categories(id, name, icon),
           account:accounts!account_id(id, name, currency)
-        `)
+        `
+        )
         .eq("user_id", user.id)
         .eq("is_recurring", true)
         .not("recurrence_pattern", "is", null)
@@ -235,7 +262,10 @@ export function UpcomingTransactions() {
     },
   });
 
-  const monthStart = useMemo(() => dateFns.startOfDay(new Date(startDate + "T00:00:00")), [startDate]);
+  const monthStart = useMemo(
+    () => dateFns.startOfDay(new Date(startDate + "T00:00:00")),
+    [startDate]
+  );
   const monthEnd = useMemo(() => dateFns.startOfDay(new Date(endDate + "T00:00:00")), [endDate]);
 
   const recurringItems = useMemo<UnifiedItem[]>(() => {
@@ -255,18 +285,20 @@ export function UpcomingTransactions() {
       // Só inclui se a ocorrência cai dentro do mês
       if (dateFns.isAfter(dateFns.startOfDay(nextDate), monthEnd)) return [];
 
-      return [{
-        id: tx.id,
-        description: tx.description,
-        amount: Number(tx.amount),
-        date: nextDate,
-        type: tx.type as "INCOME" | "EXPENSE" | "TRANSFER",
-        kind: "recurring" as const,
-        categoryIcon: (tx as any).category?.icon,
-        accountName: (tx as any).account?.name,
-        currency: tx.currency,
-        recurrencePattern: tx.recurrence_pattern!,
-      }] satisfies UnifiedItem[];
+      return [
+        {
+          id: tx.id,
+          description: tx.description,
+          amount: Number(tx.amount),
+          date: nextDate,
+          type: tx.type as "INCOME" | "EXPENSE" | "TRANSFER",
+          kind: "recurring" as const,
+          categoryIcon: (tx as any).category?.icon,
+          accountName: (tx as any).account?.name,
+          currency: tx.currency,
+          recurrencePattern: tx.recurrence_pattern!,
+        },
+      ] satisfies UnifiedItem[];
     });
   }, [recurringTxs, monthStart, monthEnd]);
 
@@ -279,11 +311,17 @@ export function UpcomingTransactions() {
   );
 
   const monthlyExpenses = useMemo(
-    () => allItems.filter((i) => i.type === "EXPENSE").reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
+    () =>
+      allItems
+        .filter((i) => i.type === "EXPENSE")
+        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
     [allItems]
   );
   const monthlyIncome = useMemo(
-    () => allItems.filter((i) => i.type === "INCOME").reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
+    () =>
+      allItems
+        .filter((i) => i.type === "INCOME")
+        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
     [allItems]
   );
 
@@ -295,7 +333,12 @@ export function UpcomingTransactions() {
     }
   }, [user]);
 
-  function handleConfirm(id: string, amount: number, date: string, kind: "scheduled" | "recurring") {
+  function handleConfirm(
+    id: string,
+    amount: number,
+    date: string,
+    kind: "scheduled" | "recurring"
+  ) {
     setConfirmTarget(null);
     if (kind === "scheduled") {
       confirmScheduled.mutate({ id, amount, paidDate: date });
@@ -357,15 +400,17 @@ export function UpcomingTransactions() {
             key={`${item.kind}-${item.id}`}
             item={item}
             isPrivate={isPrivate}
-            onConfirm={() => setConfirmTarget({
-              id: item.id,
-              description: item.description,
-              amount: item.amount,
-              date: item.date,
-              type: item.type,
-              kind: item.kind,
-              currency: item.currency,
-            })}
+            onConfirm={() =>
+              setConfirmTarget({
+                id: item.id,
+                description: item.description,
+                amount: item.amount,
+                date: item.date,
+                type: item.type,
+                kind: item.kind,
+                currency: item.currency,
+              })
+            }
             onCancel={item.kind === "scheduled" ? () => cancelMutation.mutate(item.id) : undefined}
             isConfirming={confirmScheduled.isPending || confirmRecurring.isPending}
             isCancelling={cancelMutation.isPending}

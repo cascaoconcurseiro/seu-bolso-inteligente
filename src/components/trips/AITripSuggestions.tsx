@@ -1,19 +1,19 @@
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { AIAdvisorService } from '@/services/aiAdvisorService';
-import { Loader2, MapPin, Sparkles } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { AIAdvisorService } from "@/services/aiAdvisorService";
+import { Loader2, MapPin, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AITripSuggestionsProps {
-  type: 'shopping' | 'itinerary' | 'checklist';
+  type: "shopping" | "itinerary" | "checklist";
   destination: string;
   currency?: string;
   startDate?: string;
@@ -25,7 +25,7 @@ interface AITripSuggestionsProps {
 export function AITripSuggestions({
   type,
   destination,
-  currency = 'BRL',
+  currency = "BRL",
   startDate,
   endDate,
   onApply,
@@ -38,7 +38,7 @@ export function AITripSuggestions({
 
   const handleOpen = async () => {
     if (!destination) {
-      toast.error('O destino da viagem precisa estar preenchido para receber sugestões.');
+      toast.error("O destino da viagem precisa estar preenchido para receber sugestões.");
       return;
     }
 
@@ -49,11 +49,11 @@ export function AITripSuggestions({
 
     try {
       let results: any[] = [];
-      if (type === 'shopping') {
+      if (type === "shopping") {
         results = await AIAdvisorService.suggestTripShopping(destination, currency);
-      } else if (type === 'itinerary') {
+      } else if (type === "itinerary") {
         results = await AIAdvisorService.suggestTripItinerary(destination);
-      } else if (type === 'checklist') {
+      } else if (type === "checklist") {
         results = await AIAdvisorService.suggestTripChecklist(destination, startDate, endDate);
       }
 
@@ -61,7 +61,7 @@ export function AITripSuggestions({
       // Selecionar todos por padrão
       setSelectedIndices(new Set(results.map((_, i) => i)));
     } catch (error) {
-      toast.error('Erro ao buscar sugestões da IA.');
+      toast.error("Erro ao buscar sugestões da IA.");
       setIsOpen(false);
     } finally {
       setIsLoading(false);
@@ -85,15 +85,15 @@ export function AITripSuggestions({
   };
 
   const titles = {
-    shopping: 'Sugestões de Compras',
-    itinerary: 'Sugestões de Roteiro',
-    checklist: 'Sugestões de Checklist',
+    shopping: "Sugestões de Compras",
+    itinerary: "Sugestões de Roteiro",
+    checklist: "Sugestões de Checklist",
   };
 
   const descriptions = {
-    shopping: 'Itens comuns que viajantes compram neste destino.',
-    itinerary: 'Passeios e atividades imperdíveis.',
-    checklist: 'Itens essenciais para levar na mala ou providenciar.',
+    shopping: "Itens comuns que viajantes compram neste destino.",
+    itinerary: "Passeios e atividades imperdíveis.",
+    checklist: "Itens essenciais para levar na mala ou providenciar.",
   };
 
   return (
@@ -104,7 +104,7 @@ export function AITripSuggestions({
         size="sm"
         className={
           buttonClassName ||
-          'relative overflow-hidden group bg-accent hover:bg-accent/92 text-white border-none shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 active:scale-95'
+          "relative overflow-hidden group bg-accent hover:bg-accent/92 text-white border-none shadow-lg shadow-accent/25 transition-all duration-300 hover:scale-105 active:scale-95"
         }
       >
         <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-1000 -skew-x-12 -translate-x-full z-0" />
@@ -173,8 +173,8 @@ export function AITripSuggestions({
                     }}
                   >
                     {selectedIndices.size === suggestions.length
-                      ? 'Desmarcar todos'
-                      : 'Marcar todos'}
+                      ? "Desmarcar todos"
+                      : "Marcar todos"}
                   </Button>
                 </div>
 
@@ -184,8 +184,8 @@ export function AITripSuggestions({
                       key={index}
                       className={`flex items-start space-x-3 p-3 rounded-xl border transition-colors cursor-pointer ${
                         selectedIndices.has(index)
-                          ? 'border-accent/50 bg-accent/10 dark:bg-accent/20'
-                          : 'border-border/50 hover:bg-muted/50'
+                          ? "border-accent/50 bg-accent/10 dark:bg-accent/20"
+                          : "border-border/50 hover:bg-muted/50"
                       }`}
                       onClick={() => toggleSelection(index)}
                     >
@@ -197,34 +197,41 @@ export function AITripSuggestions({
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm leading-tight">
-                          {type === 'shopping' && item.item}
-                          {type === 'itinerary' && item.title}
-                          {type === 'checklist' && item.item}
+                          {type === "shopping" && item.item}
+                          {type === "itinerary" && item.title}
+                          {type === "checklist" && item.item}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {type === 'shopping' &&
+                          {type === "shopping" &&
                             `Custo estimado: ${currency} ${item.estimatedCost?.toFixed(2)}`}
-                          {type === 'itinerary' &&
+                          {type === "itinerary" &&
                             `${item.location} • Aprox. ${item.durationHours}h`}
-                          {type === 'checklist' && item.category}
+                          {type === "checklist" && item.category}
                         </p>
-                        {type === 'itinerary' && item.description && (
+                        {type === "itinerary" && item.description && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {item.description}
                           </p>
                         )}
-                        {type === 'itinerary' && (
+                        {type === "itinerary" && (
                           <div className="flex gap-1 mt-2">
                             <a
-                              href={item.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + (item.location ? ', ' + item.location : '') + ', ' + destination)}`}
+                              href={
+                                item.mapsUrl ||
+                                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title + (item.location ? ", " + item.location : "") + ", " + destination)}`
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
                               onClick={(e) => e.stopPropagation()}
-                              title={item.mapsUrl ? 'Abrir localização exata no Google Maps' : 'Buscar no Google Maps'}
+                              title={
+                                item.mapsUrl
+                                  ? "Abrir localização exata no Google Maps"
+                                  : "Buscar no Google Maps"
+                              }
                             >
                               <MapPin className="h-3 w-3" />
-                              Maps{item.mapsUrl ? ' ✓' : ''}
+                              Maps{item.mapsUrl ? " ✓" : ""}
                             </a>
                             {item.rating && (
                               <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
@@ -250,7 +257,7 @@ export function AITripSuggestions({
               disabled={isLoading || suggestions.length === 0 || selectedIndices.size === 0}
               className="bg-accent hover:bg-accent/90 text-white"
             >
-              Adicionar {selectedIndices.size} {selectedIndices.size === 1 ? 'item' : 'itens'}
+              Adicionar {selectedIndices.size} {selectedIndices.size === 1 ? "item" : "itens"}
             </Button>
           </div>
         </DialogContent>

@@ -78,7 +78,10 @@ export function SharedExpensesDialogs({
           </AlertDialogHeader>
           <AlertDialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteTransaction}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -98,7 +101,10 @@ export function SharedExpensesDialogs({
           </AlertDialogHeader>
           <AlertDialogFooter className="px-5 pb-5 pt-2 sm:px-6 sm:pb-6">
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSeries} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDeleteSeries}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

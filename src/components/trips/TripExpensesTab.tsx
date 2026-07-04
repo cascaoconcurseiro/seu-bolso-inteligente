@@ -75,7 +75,10 @@ export function TripExpensesTab({
   const myShareOfShared = myBalance?.owes || 0;
 
   // Totais
-  const totalShared = sharedExpenses.reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+  const totalShared = sharedExpenses.reduce(
+    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+    0
+  );
   const totalPersonalOnly = personalExpenses.reduce(
     (sum, t) => sum + (t.type === "INCOME" ? -Number(t.amount) : Number(t.amount)),
     0
@@ -409,7 +412,11 @@ export function TripExpensesTab({
                                   </p>
                                   {isInternational && rate && (
                                     <p className="font-mono text-sm text-warning/70 dark:text-warning/70 font-medium mt-0.5">
-                                      ≈ {formatCurrency(moneyUtils.mul(mySplitAmount, rate), baseCurrency)}
+                                      ≈{" "}
+                                      {formatCurrency(
+                                        moneyUtils.mul(mySplitAmount, rate),
+                                        baseCurrency
+                                      )}
                                     </p>
                                   )}
                                   <p className="text-sm text-warning/70 dark:text-warning/70 mt-0.5 font-bold uppercase tracking-widest">

@@ -21,11 +21,16 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Orçamento: ${budget.category_name || 'Global'}, ${percentage.toFixed(0)}% utilizado`}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(budget); } }}
+      aria-label={`Orçamento: ${budget.category_name || "Global"}, ${percentage.toFixed(0)}% utilizado`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onEdit(budget);
+        }
+      }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
-        if (target.closest('button')) return;
+        if (target.closest("button")) return;
         onEdit(budget);
       }}
       className={cn(
@@ -38,21 +43,25 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
       )}
     >
       {/* Background Decor */}
-      <div className={cn(
-        "absolute -right-12 -top-12 w-32 h-32 blur-[60px] opacity-20 transition-colors duration-700",
-        isOverBudget ? "bg-destructive" : isWarning ? "bg-warning" : "bg-primary"
-      )} />
+      <div
+        className={cn(
+          "absolute -right-12 -top-12 w-32 h-32 blur-[60px] opacity-20 transition-colors duration-700",
+          isOverBudget ? "bg-destructive" : isWarning ? "bg-warning" : "bg-primary"
+        )}
+      />
 
       <div className="relative flex items-start justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className={cn(
-            "w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner transition-transform group-hover:scale-110 duration-500",
-            isOverBudget
-              ? "bg-destructive/12 text-destructive"
-              : isWarning
-                ? "bg-warning/10 text-warning"
-                : "bg-muted text-foreground"
-          )}>
+          <div
+            className={cn(
+              "w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner transition-transform group-hover:scale-110 duration-500",
+              isOverBudget
+                ? "bg-destructive/12 text-destructive"
+                : isWarning
+                  ? "bg-warning/10 text-warning"
+                  : "bg-muted text-foreground"
+            )}
+          >
             {budget.category_icon || "💰"}
           </div>
           <div>
@@ -94,16 +103,22 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         <div className="space-y-2.5">
           <div className="flex items-end justify-between">
             <div className="space-y-0.5">
-              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">Consumido</p>
-              <p className={cn(
-                "text-2xl font-display font-black tracking-tighter transition-colors",
-                isOverBudget ? "text-destructive" : isWarning ? "text-warning" : "text-foreground"
-              )}>
+              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">
+                Consumido
+              </p>
+              <p
+                className={cn(
+                  "text-2xl font-display font-black tracking-tighter transition-colors",
+                  isOverBudget ? "text-destructive" : isWarning ? "text-warning" : "text-foreground"
+                )}
+              >
                 {moneyUtils.format(spent, budget.currency)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">Limite</p>
+              <p className="text-sm text-muted-foreground uppercase font-bold tracking-wider">
+                Limite
+              </p>
               <p className="font-mono font-bold text-sm text-muted-foreground">
                 {moneyUtils.format(budgetAmount, budget.currency)}
               </p>
@@ -114,7 +129,11 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             <div
               className={cn(
                 "absolute top-0 left-0 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(0,0,0,0.15)]",
-                isOverBudget ? "bg-gradient-to-r from-red-600 to-red-400" : isWarning ? "bg-gradient-to-r from-amber-500 to-amber-300" : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
+                isOverBudget
+                  ? "bg-gradient-to-r from-red-600 to-red-400"
+                  : isWarning
+                    ? "bg-gradient-to-r from-amber-500 to-amber-300"
+                    : "bg-gradient-to-r from-primary via-primary/80 to-accent/60"
               )}
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
@@ -123,9 +142,10 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
               <div
                 className="absolute top-0 left-0 h-full w-full opacity-30"
                 style={{
-                  backgroundImage: 'linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)',
-                  backgroundSize: '1rem 1rem',
-                  animation: 'progress-stripes 1s linear infinite'
+                  backgroundImage:
+                    "linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent)",
+                  backgroundSize: "1rem 1rem",
+                  animation: "progress-stripes 1s linear infinite",
                 }}
               />
             )}
@@ -144,10 +164,16 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
               </div>
             )}
           </div>
-          <p className={cn(
-            "text-xs font-bold",
-            isOverBudget ? "text-destructive" : isWarning ? "text-warning" : "text-muted-foreground"
-          )}>
+          <p
+            className={cn(
+              "text-xs font-bold",
+              isOverBudget
+                ? "text-destructive"
+                : isWarning
+                  ? "text-warning"
+                  : "text-muted-foreground"
+            )}
+          >
             {percentage.toFixed(0)}% <span className="font-normal opacity-60">utilizado</span>
           </p>
         </div>

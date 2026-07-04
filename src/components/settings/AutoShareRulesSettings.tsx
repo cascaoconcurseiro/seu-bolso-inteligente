@@ -4,9 +4,20 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useAutoShareRules, useCreateAutoShareRule, useDeleteAutoShareRule, useUpdateAutoShareRule } from "@/hooks/useAutoShareRules";
+import {
+  useAutoShareRules,
+  useCreateAutoShareRule,
+  useDeleteAutoShareRule,
+  useUpdateAutoShareRule,
+} from "@/hooks/useAutoShareRules";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useCategories } from "@/hooks/useCategories";
 import { cn } from "@/lib/utils";
@@ -38,7 +49,7 @@ export function AutoShareRulesSettings() {
   const [splitRatio, setSplitRatio] = useState(50);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const activeMembers = members.filter(m => m.linked_user_id !== undefined || m.name);
+  const activeMembers = members.filter((m) => m.linked_user_id !== undefined || m.name);
 
   const handleCreate = async () => {
     if (!name || !triggerValue || !memberId) return;
@@ -50,10 +61,13 @@ export function AutoShareRulesSettings() {
       split_ratio: splitRatio / 100,
     });
     setShowForm(false);
-    setName(""); setTriggerValue(""); setMemberId(""); setSplitRatio(50);
+    setName("");
+    setTriggerValue("");
+    setMemberId("");
+    setSplitRatio(50);
   };
 
-  const expenseCategories = categories.filter(c => c.type === "expense" && !c.parent_category_id);
+  const expenseCategories = categories.filter((c) => c.type === "expense" && !c.parent_category_id);
 
   if (isLoading) return null;
 
@@ -65,8 +79,8 @@ export function AutoShareRulesSettings() {
           Automações de Compartilhamento
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Crie regras para que despesas sejam automaticamente divididas com membros da família quando lançadas.
-          Ex: toda compra no "Supermercado" já vai 50% para a esposa.
+          Crie regras para que despesas sejam automaticamente divididas com membros da família
+          quando lançadas. Ex: toda compra no "Supermercado" já vai 50% para a esposa.
         </p>
       </div>
 
@@ -80,23 +94,29 @@ export function AutoShareRulesSettings() {
           />
         )}
 
-        {rules.map(rule => {
-          const member = members.find(m => m.id === rule.member_id);
-          const category = categories.find(c => c.id === rule.trigger_value);
+        {rules.map((rule) => {
+          const member = members.find((m) => m.id === rule.member_id);
+          const category = categories.find((c) => c.id === rule.trigger_value);
           return (
-            <div key={rule.id} className={cn(
-              "flex items-center gap-3 p-4 rounded-2xl border transition-all",
-              rule.is_active ? "border-border/50 bg-card" : "border-border/30 bg-muted/30 opacity-60"
-            )}>
+            <div
+              key={rule.id}
+              className={cn(
+                "flex items-center gap-3 p-4 rounded-2xl border transition-all",
+                rule.is_active
+                  ? "border-border/50 bg-card"
+                  : "border-border/30 bg-muted/30 opacity-60"
+              )}
+            >
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm">{rule.name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {rule.trigger_type === "category"
                     ? `Categoria: ${category?.icon ?? ""} ${category?.name ?? rule.trigger_value}`
-                    : `Palavra-chave: "${rule.trigger_value}"`
-                  }
+                    : `Palavra-chave: "${rule.trigger_value}"`}
                   {" · "}
-                  <span className="font-medium text-foreground">{(rule.split_ratio * 100).toFixed(0)}%</span>
+                  <span className="font-medium text-foreground">
+                    {(rule.split_ratio * 100).toFixed(0)}%
+                  </span>
                   {" com "}
                   <span className="font-medium text-foreground">{member?.name ?? "membro"}</span>
                 </p>
@@ -128,15 +148,23 @@ export function AutoShareRulesSettings() {
               <Label>Nome da regra</Label>
               <Input
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 placeholder='Ex: "Mercado com esposa"'
               />
             </div>
 
             <div className="space-y-1.5">
               <Label>Disparar por</Label>
-              <Select value={triggerType} onValueChange={v => { setTriggerType(v as any); setTriggerValue(""); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={triggerType}
+                onValueChange={(v) => {
+                  setTriggerType(v as any);
+                  setTriggerValue("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="keyword">Palavra-chave na descrição</SelectItem>
                   <SelectItem value="category">Categoria da transação</SelectItem>
@@ -149,15 +177,19 @@ export function AutoShareRulesSettings() {
               {triggerType === "keyword" ? (
                 <Input
                   value={triggerValue}
-                  onChange={e => setTriggerValue(e.target.value)}
+                  onChange={(e) => setTriggerValue(e.target.value)}
                   placeholder='Ex: "mercado", "escola", "farmácia"'
                 />
               ) : (
                 <Select value={triggerValue} onValueChange={setTriggerValue}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar categoria" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {expenseCategories.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
+                    {expenseCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.icon} {c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -167,10 +199,14 @@ export function AutoShareRulesSettings() {
             <div className="space-y-1.5">
               <Label>Dividir com</Label>
               <Select value={memberId} onValueChange={setMemberId}>
-                <SelectTrigger><SelectValue placeholder="Selecionar membro" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar membro" />
+                </SelectTrigger>
                 <SelectContent>
-                  {activeMembers.map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  {activeMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -181,20 +217,23 @@ export function AutoShareRulesSettings() {
               <div className="flex items-center gap-3">
                 <NumericFormat
                   value={splitRatio}
-                  onValueChange={v => setSplitRatio(v.floatValue ?? 50)}
+                  onValueChange={(v) => setSplitRatio(v.floatValue ?? 50)}
                   decimalScale={0}
                   suffix="%"
                   className="w-24 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Você paga <strong>{100 - splitRatio}%</strong> · membro paga <strong>{splitRatio}%</strong>
+                  Você paga <strong>{100 - splitRatio}%</strong> · membro paga{" "}
+                  <strong>{splitRatio}%</strong>
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>
+              Cancelar
+            </Button>
             <Button
               onClick={handleCreate}
               disabled={!name || !triggerValue || !memberId || createRule.isPending}
@@ -204,18 +243,26 @@ export function AutoShareRulesSettings() {
           </div>
         </div>
       ) : (
-        <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => setShowForm(true)}>
+        <Button
+          variant="outline"
+          className="gap-2 w-full sm:w-auto"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="h-4 w-4" />
           Nova Regra de Auto-Compartilhamento
         </Button>
       )}
 
-      <AlertDialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+      <AlertDialog
+        open={!!confirmDeleteId}
+        onOpenChange={(open) => !open && setConfirmDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir regra?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A regra de compartilhamento automático será removida permanentemente.
+              Esta ação não pode ser desfeita. A regra de compartilhamento automático será removida
+              permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

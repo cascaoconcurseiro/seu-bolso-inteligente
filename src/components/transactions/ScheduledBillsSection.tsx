@@ -2,7 +2,11 @@ import { CheckCircle2, Trash2, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { moneyUtils } from "@/utils/money";
-import { useScheduledBills, useConfirmScheduledBill, useCancelScheduledBill } from "@/hooks/useScheduledBills";
+import {
+  useScheduledBills,
+  useConfirmScheduledBill,
+  useCancelScheduledBill,
+} from "@/hooks/useScheduledBills";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { differenceInCalendarDays, parseISO, startOfDay } from "date-fns";
 
@@ -40,11 +44,19 @@ export function ScheduledBillsSection() {
         const isIncome = bill.type === "INCOME";
         const isTransfer = bill.type === "TRANSFER";
 
-        const amountColor = isExpense ? "text-negative" : isIncome ? "text-positive" : "text-muted-foreground";
+        const amountColor = isExpense
+          ? "text-negative"
+          : isIncome
+            ? "text-positive"
+            : "text-muted-foreground";
         const amountPrefix = isExpense ? "-" : isIncome ? "+" : "↔";
 
         const defaultIcon = isIncome ? "💰" : isTransfer ? "↔️" : "📋";
-        const confirmLabel = isIncome ? "Marcar como recebido" : isTransfer ? "Marcar como realizado" : "Marcar como pago";
+        const confirmLabel = isIncome
+          ? "Marcar como recebido"
+          : isTransfer
+            ? "Marcar como realizado"
+            : "Marcar como pago";
 
         const borderClass = overdue
           ? "border-destructive/30 bg-destructive/5"
@@ -57,21 +69,26 @@ export function ScheduledBillsSection() {
         return (
           <div
             key={bill.id}
-            className={cn("flex items-center gap-3 px-3 py-3 rounded-xl border transition-all", borderClass)}
+            className={cn(
+              "flex items-center gap-3 px-3 py-3 rounded-xl border transition-all",
+              borderClass
+            )}
           >
-            <span className="text-xl flex-shrink-0">
-              {bill.category?.icon ?? defaultIcon}
-            </span>
+            <span className="text-xl flex-shrink-0">{bill.category?.icon ?? defaultIcon}</span>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">
-                {bill.description}
-              </p>
+              <p className="text-sm font-semibold text-foreground truncate">{bill.description}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span
                   className={cn(
                     "text-[11px] font-medium",
-                    overdue ? "text-destructive" : isIncome ? "text-positive" : isTransfer ? "text-muted-foreground" : "text-primary"
+                    overdue
+                      ? "text-destructive"
+                      : isIncome
+                        ? "text-positive"
+                        : isTransfer
+                          ? "text-muted-foreground"
+                          : "text-primary"
                   )}
                 >
                   {label}
@@ -88,9 +105,7 @@ export function ScheduledBillsSection() {
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span
-                className={cn("text-sm font-bold font-mono tabular-nums mr-1", amountColor)}
-              >
+              <span className={cn("text-sm font-bold font-mono tabular-nums mr-1", amountColor)}>
                 {isPrivate
                   ? "••••"
                   : amountPrefix + moneyUtils.format(Number(bill.amount), bill.currency ?? "BRL")}

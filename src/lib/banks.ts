@@ -98,7 +98,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "O",
   },
-  
+
   // Grandes bancos tradicionais
   itau: {
     id: "itau",
@@ -135,7 +135,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "S",
   },
-  
+
   // Bancos de investimento
   btg: {
     id: "btg",
@@ -207,7 +207,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "M",
   },
-  
+
   // Bancos médios
   pan: {
     id: "pan",
@@ -342,7 +342,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "BS2",
   },
-  
+
   // Bancos regionais
   banrisul: {
     id: "banrisul",
@@ -393,7 +393,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "BP",
   },
-  
+
   // Cooperativas
   sicredi: {
     id: "sicredi",
@@ -409,7 +409,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "S",
   },
-  
+
   // Outros
   genial: {
     id: "genial",
@@ -453,7 +453,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "EF",
   },
-  
+
   // Cartões de Loja e Financeiras
   carrefour: {
     id: "carrefour",
@@ -511,7 +511,7 @@ export const banks: Record<string, BankConfig> = {
     textColor: "#FFFFFF",
     icon: "R",
   },
-  
+
   default: {
     id: "default",
     name: "Outro",
@@ -688,22 +688,22 @@ export const cardBrands: Record<string, CardBrandConfig> = {
 // Função para obter config do banco pelo nome ou ID
 export function getBankByName(name: string): BankConfig {
   if (!name) return banks.default;
-  
+
   const normalizedName = name.toLowerCase().replace(/\s+/g, "");
-  
+
   // Busca direta pelo ID
   if (banks[normalizedName]) {
     return banks[normalizedName];
   }
-  
+
   // Busca parcial pelo nome
   const found = Object.values(banks).find(
-    (bank) => 
+    (bank) =>
       bank.name.toLowerCase().includes(normalizedName) ||
       normalizedName.includes(bank.id) ||
       bank.name.toLowerCase().replace(/\s+/g, "") === normalizedName
   );
-  
+
   return found || banks.default;
 }
 
@@ -713,7 +713,7 @@ export function getBankById(id: string | null): BankConfig {
   // Busca primeiro em bancos nacionais, depois em internacionais
   if (banks[id]) return banks[id];
   if (internationalBanks[id]) return internationalBanks[id];
-  
+
   if (id.startsWith("custom:")) {
     const customName = id.replace("custom:", "");
     return {
@@ -736,19 +736,18 @@ export function getInternationalBankById(id: string | null): BankConfig {
 // Função para obter bandeira pelo nome
 export function getCardBrand(name: string): CardBrandConfig | null {
   if (!name) return null;
-  
+
   const normalizedName = name.toLowerCase().replace(/\s+/g, "");
-  
+
   if (cardBrands[normalizedName]) {
     return cardBrands[normalizedName];
   }
-  
+
   const found = Object.values(cardBrands).find(
-    (brand) => 
-      brand.name.toLowerCase().includes(normalizedName) ||
-      normalizedName.includes(brand.id)
+    (brand) =>
+      brand.name.toLowerCase().includes(normalizedName) || normalizedName.includes(brand.id)
   );
-  
+
   return found || null;
 }
 

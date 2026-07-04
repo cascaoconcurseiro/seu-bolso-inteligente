@@ -25,14 +25,14 @@ import * as dateFns from "date-fns";
 import { CurrencyInput } from "@/components/ui/currency-input";
 
 const CURRENCIES = [
-  { code: 'BRL', symbol: 'R$', name: 'Real Brasileiro' },
-  { code: 'USD', symbol: '$', name: 'Dólar Americano' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'Libra Esterlina' },
-  { code: 'ARS', symbol: '$', name: 'Peso Argentino' },
-  { code: 'CLP', symbol: '$', name: 'Peso Chileno' },
-  { code: 'UYU', symbol: '$', name: 'Peso Uruguaio' },
-  { code: 'PYG', symbol: '₲', name: 'Guarani Paraguaio' },
+  { code: "BRL", symbol: "R$", name: "Real Brasileiro" },
+  { code: "USD", symbol: "$", name: "Dólar Americano" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "GBP", symbol: "£", name: "Libra Esterlina" },
+  { code: "ARS", symbol: "$", name: "Peso Argentino" },
+  { code: "CLP", symbol: "$", name: "Peso Chileno" },
+  { code: "UYU", symbol: "$", name: "Peso Uruguaio" },
+  { code: "PYG", symbol: "₲", name: "Guarani Paraguaio" },
 ];
 
 interface NewTripDialogProps {
@@ -69,7 +69,7 @@ export function NewTripDialog({
   setEndDate,
   budget,
   setBudget,
-  currency = 'BRL',
+  currency = "BRL",
   setCurrency,
 }: NewTripDialogProps) {
   const { user } = useAuth();
@@ -101,10 +101,8 @@ export function NewTripDialog({
   };
 
   const toggleMember = (userId: string) => {
-    setSelectedMembers(prev =>
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+    setSelectedMembers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
     );
   };
 
@@ -121,8 +119,8 @@ export function NewTripDialog({
         <div className="px-6 pb-6 overflow-y-auto hide-scrollbar space-y-4">
           <div className="space-y-2 mt-2">
             <Label>Destino</Label>
-            <Input 
-              placeholder="Ex: Rio de Janeiro, RJ" 
+            <Input
+              placeholder="Ex: Rio de Janeiro, RJ"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               className="rounded-xl"
@@ -131,8 +129,8 @@ export function NewTripDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Início</Label>
-              <Input 
-                type="date" 
+              <Input
+                type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 className="rounded-xl"
@@ -140,8 +138,8 @@ export function NewTripDialog({
             </div>
             <div className="space-y-2">
               <Label>Fim</Label>
-              <Input 
-                type="date" 
+              <Input
+                type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate} // Não permitir data anterior ao início
@@ -149,17 +147,17 @@ export function NewTripDialog({
               />
             </div>
           </div>
-          
+
           {/* Mostrar número de dias */}
           {tripDays && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/50 p-3 rounded-xl border border-border/50">
               <Calendar className="h-4 w-4" />
               <span>
-                {tripDays} {tripDays === 1 ? 'dia' : 'dias'} de viagem
+                {tripDays} {tripDays === 1 ? "dia" : "dias"} de viagem
               </span>
             </div>
           )}
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Moeda</Label>
@@ -181,8 +179,8 @@ export function NewTripDialog({
                 Orçamento Total
                 <span className="ml-1 text-sm text-muted-foreground font-normal">(opcional)</span>
               </Label>
-              <CurrencyInput 
-                placeholder="5000" 
+              <CurrencyInput
+                placeholder="5000"
                 value={budget}
                 onChange={setBudget}
                 currency={localCurrency}
@@ -202,8 +200,8 @@ export function NewTripDialog({
               </p>
               <div className="space-y-2 max-h-40 overflow-y-auto hide-scrollbar border rounded-xl p-3 bg-muted/20">
                 {familyMembers
-                  .filter(member => member.linked_user_id) // Apenas membros cadastrados
-                  .filter(member => member.linked_user_id !== user?.id) // Excluir o criador da viagem
+                  .filter((member) => member.linked_user_id) // Apenas membros cadastrados
+                  .filter((member) => member.linked_user_id !== user?.id) // Excluir o criador da viagem
                   .map((member) => (
                     <div
                       key={member.id}
@@ -225,17 +223,27 @@ export function NewTripDialog({
               </div>
               {selectedMembers.length > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  {selectedMembers.length} {selectedMembers.length === 1 ? 'convite será enviado' : 'convites serão enviados'}
+                  {selectedMembers.length}{" "}
+                  {selectedMembers.length === 1
+                    ? "convite será enviado"
+                    : "convites serão enviados"}
                 </p>
               )}
             </div>
           )}
 
           <div className="pt-2 flex gap-3">
-            <Button type="button" variant="outline" className="flex-1 rounded-xl" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button 
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
               className="flex-1 rounded-xl font-bold"
-              onClick={handleSubmit} 
+              onClick={handleSubmit}
               disabled={isLoading || !destination || !startDate || !endDate}
             >
               {isLoading ? (

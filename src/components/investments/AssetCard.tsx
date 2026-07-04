@@ -1,8 +1,8 @@
-import { Edit, Trash2, Clock, ArrowRightLeft } from 'lucide-react';
+import { Edit, Trash2, Clock, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Asset } from '../../types/database';
-import { getBrokerById } from '@/lib/brokers';
+import { Asset } from "../../types/database";
+import { getBrokerById } from "@/lib/brokers";
 
 interface AssetCardProps {
   asset: Asset;
@@ -21,10 +21,14 @@ export function AssetCard({
   onDelete,
   onShowHistory,
   onTransact,
-  formatAssetValue
+  formatAssetValue,
 }: AssetCardProps) {
   const totalInvested = (asset.quantity || 0) * (asset.purchase_price || 0);
-  const currentValue = (asset.quantity || 0) * ((asset.current_price && asset.current_price > 0) ? asset.current_price : asset.purchase_price || 0);
+  const currentValue =
+    (asset.quantity || 0) *
+    (asset.current_price && asset.current_price > 0
+      ? asset.current_price
+      : asset.purchase_price || 0);
   const pnl = currentValue - totalInvested;
   const pnlPercent = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
   const isPositive = pnl >= 0;
@@ -41,7 +45,12 @@ export function AssetCard({
         <Button variant="ghost" size="icon" onClick={() => onEdit(asset)} className="h-8 w-8">
           <Edit className="w-4 h-4 text-muted-foreground" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onDelete(asset)} className="h-8 w-8 hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(asset)}
+          className="h-8 w-8 hover:text-destructive"
+        >
           <Trash2 className="w-4 h-4 text-muted-foreground" />
         </Button>
       </div>
@@ -52,11 +61,15 @@ export function AssetCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-display font-bold text-foreground leading-tight truncate">{asset.ticker || asset.name}</h3>
-            <span className={cn(
-              "text-[8px] px-1.5 py-0.5 rounded-full font-bold tracking-tighter uppercase",
-              asset.location === 'BR' ? "bg-success/12 text-success" : "bg-accent/15 text-accent"
-            )}>
+            <h3 className="text-base font-display font-bold text-foreground leading-tight truncate">
+              {asset.ticker || asset.name}
+            </h3>
+            <span
+              className={cn(
+                "text-[8px] px-1.5 py-0.5 rounded-full font-bold tracking-tighter uppercase",
+                asset.location === "BR" ? "bg-success/12 text-success" : "bg-accent/15 text-accent"
+              )}
+            >
               {asset.location}
             </span>
           </div>
@@ -78,26 +91,33 @@ export function AssetCard({
             )}
           </p>
           <p className="text-base font-mono font-bold text-foreground">
-            {formatAssetValue(currentValue, asset.currency || 'BRL')}
+            {formatAssetValue(currentValue, asset.currency || "BRL")}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">Retorno</p>
+          <p className="text-sm text-muted-foreground uppercase font-bold tracking-widest">
+            Retorno
+          </p>
           {!hasCurrentPrice ? (
             <p className="text-sm text-muted-foreground font-medium mt-1">Aguardando API</p>
           ) : (
             <div className="flex flex-col items-end">
-              <p className={cn(
-                "text-sm font-mono font-bold",
-                isPositive ? "text-success" : "text-destructive"
-              )}>
-                {isPositive ? '+' : ''}{formatAssetValue(pnl, asset.currency || 'BRL')}
+              <p
+                className={cn(
+                  "text-sm font-mono font-bold",
+                  isPositive ? "text-success" : "text-destructive"
+                )}
+              >
+                {isPositive ? "+" : ""}
+                {formatAssetValue(pnl, asset.currency || "BRL")}
               </p>
-              <p className={cn(
-                "text-xs font-bold px-1.5 py-0.5 rounded-sm mt-0.5",
-                isPositive ? "bg-success/12 text-success" : "bg-destructive/12 text-destructive"
-              )}>
-                {isPositive ? '▲' : '▼'} {Math.abs(pnlPercent).toFixed(2)}%
+              <p
+                className={cn(
+                  "text-xs font-bold px-1.5 py-0.5 rounded-sm mt-0.5",
+                  isPositive ? "bg-success/12 text-success" : "bg-destructive/12 text-destructive"
+                )}
+              >
+                {isPositive ? "▲" : "▼"} {Math.abs(pnlPercent).toFixed(2)}%
               </p>
             </div>
           )}
@@ -107,13 +127,22 @@ export function AssetCard({
       <div className="flex justify-between items-center pt-4 border-t border-border mt-2">
         <div className="text-sm text-muted-foreground flex flex-col gap-0.5">
           <div className="flex items-center gap-1">
-            Qtd: <span className="text-foreground font-medium font-mono">{(asset.quantity || 0).toFixed(8).replace(/\.?0+$/, '')}</span>
+            Qtd:{" "}
+            <span className="text-foreground font-medium font-mono">
+              {(asset.quantity || 0).toFixed(8).replace(/\.?0+$/, "")}
+            </span>
             <span className="opacity-30">·</span>
-            PM: <span className="text-foreground font-medium font-mono">{formatAssetValue(asset.purchase_price || 0, asset.currency || 'BRL')}</span>
+            PM:{" "}
+            <span className="text-foreground font-medium font-mono">
+              {formatAssetValue(asset.purchase_price || 0, asset.currency || "BRL")}
+            </span>
             {hasCurrentPrice && (
               <>
                 <span className="opacity-30">·</span>
-                Atual: <span className="text-foreground font-medium font-mono">{formatAssetValue(asset.current_price || 0, asset.currency || 'BRL')}</span>
+                Atual:{" "}
+                <span className="text-foreground font-medium font-mono">
+                  {formatAssetValue(asset.current_price || 0, asset.currency || "BRL")}
+                </span>
               </>
             )}
           </div>

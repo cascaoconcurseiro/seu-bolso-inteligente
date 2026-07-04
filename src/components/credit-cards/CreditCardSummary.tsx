@@ -20,7 +20,9 @@ export function CreditCardSummary({
         {/* Faturas Atuais */}
         <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-sm sm:text-sm text-primary/70 uppercase font-bold tracking-widest">Faturas do Mês</p>
+            <p className="text-sm sm:text-sm text-primary/70 uppercase font-bold tracking-widest">
+              Faturas do Mês
+            </p>
             <div className="p-1.5 rounded-lg bg-primary/15">
               <CreditCard className="h-3.5 w-3.5 text-primary" />
             </div>
@@ -33,7 +35,9 @@ export function CreditCardSummary({
         {/* Dívida Total */}
         <div className="group flex flex-col gap-2 p-4 rounded-2xl border border-destructive/20 bg-destructive/5 hover:bg-destructive/12 transition-colors">
           <div className="flex items-center justify-between">
-            <p className="text-sm sm:text-sm text-destructive/70 dark:text-destructive/70 uppercase font-bold tracking-widest">Dívida Total Geral</p>
+            <p className="text-sm sm:text-sm text-destructive/70 dark:text-destructive/70 uppercase font-bold tracking-widest">
+              Dívida Total Geral
+            </p>
             <div className="p-1.5 rounded-lg bg-destructive/15">
               <ShieldAlert className="h-3.5 w-3.5 text-destructive" />
             </div>
@@ -44,39 +48,44 @@ export function CreditCardSummary({
         </div>
 
         {/* Próximo Vencimento */}
-        <div className={cn(
-          "group flex flex-col gap-2 p-4 rounded-2xl border transition-colors",
-          nextDueDate <= 3 
-            ? "border-warning/20 bg-warning/5 hover:bg-warning/10" 
-            : "border-border bg-card hover:bg-muted/50"
-        )}>
+        <div
+          className={cn(
+            "group flex flex-col gap-2 p-4 rounded-2xl border transition-colors",
+            nextDueDate <= 3
+              ? "border-warning/20 bg-warning/5 hover:bg-warning/10"
+              : "border-border bg-card hover:bg-muted/50"
+          )}
+        >
           <div className="flex items-center justify-between">
-            <p className={cn(
-              "text-xs sm:text-xs uppercase font-bold tracking-widest",
-              nextDueDate <= 3 ? "text-warning/70 dark:text-warning/70" : "text-muted-foreground"
-            )}>
+            <p
+              className={cn(
+                "text-xs sm:text-xs uppercase font-bold tracking-widest",
+                nextDueDate <= 3 ? "text-warning/70 dark:text-warning/70" : "text-muted-foreground"
+              )}
+            >
               Próximo Vencimento
             </p>
-            <div className={cn(
-              "p-1.5 rounded-lg",
-              nextDueDate <= 3 ? "bg-warning/15" : "bg-muted"
-            )}>
-              <CalendarClock className={cn(
-                "h-3.5 w-3.5",
-                nextDueDate <= 3 ? "text-warning" : "text-muted-foreground"
-              )} />
+            <div
+              className={cn("p-1.5 rounded-lg", nextDueDate <= 3 ? "bg-warning/15" : "bg-muted")}
+            >
+              <CalendarClock
+                className={cn(
+                  "h-3.5 w-3.5",
+                  nextDueDate <= 3 ? "text-warning" : "text-muted-foreground"
+                )}
+              />
             </div>
           </div>
-          <p className={cn(
-            "font-display font-bold text-lg sm:text-xl tracking-tight leading-none mt-1",
-            nextDueDate <= 3 ? "text-warning dark:text-warning" : "text-foreground"
-          )}>
-            {nextDueDate > 0 ? `${nextDueDate} ${nextDueDate === 1 ? 'dia' : 'dias'}` : "Hoje"}
+          <p
+            className={cn(
+              "font-display font-bold text-lg sm:text-xl tracking-tight leading-none mt-1",
+              nextDueDate <= 3 ? "text-warning dark:text-warning" : "text-foreground"
+            )}
+          >
+            {nextDueDate > 0 ? `${nextDueDate} ${nextDueDate === 1 ? "dia" : "dias"}` : "Hoje"}
           </p>
         </div>
       </div>
-
-
     </div>
   );
 }

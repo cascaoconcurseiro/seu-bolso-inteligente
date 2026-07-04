@@ -17,7 +17,7 @@ export function ReportSummary({
   balance,
   savingsRate,
   formatCurrency,
-  currency
+  currency,
 }: ReportSummaryProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -29,8 +29,8 @@ export function ReportSummary({
         <div className="relative z-10 flex items-center gap-2 text-sm sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           <span className="truncate">Entradas</span>
         </div>
-        <p 
-          className="relative z-10 font-display text-base xs:text-base sm:text-3xl font-black text-positive truncate select-all tracking-tight" 
+        <p
+          className="relative z-10 font-display text-base xs:text-base sm:text-3xl font-black text-positive truncate select-all tracking-tight"
           title={formatCurrency(totalIncome, currency)}
         >
           {formatCurrency(totalIncome, currency)}
@@ -45,8 +45,8 @@ export function ReportSummary({
         <div className="relative z-10 flex items-center gap-2 text-sm sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           <span className="truncate">Saídas</span>
         </div>
-        <p 
-          className="relative z-10 font-display text-base xs:text-base sm:text-3xl font-black text-negative truncate select-all tracking-tight" 
+        <p
+          className="relative z-10 font-display text-base xs:text-base sm:text-3xl font-black text-negative truncate select-all tracking-tight"
           title={formatCurrency(totalExpense, currency)}
         >
           {formatCurrency(totalExpense, currency)}
@@ -58,14 +58,15 @@ export function ReportSummary({
         <div className="text-sm sm:text-sm text-muted-foreground font-semibold mb-3 truncate uppercase tracking-widest">
           Resultado
         </div>
-        <p 
+        <p
           className={cn(
             "font-display text-lg xs:text-xl sm:text-3xl font-black truncate select-all tracking-tight",
             balance >= 0 ? "text-positive" : "text-negative"
           )}
           title={`${balance >= 0 ? "+" : ""}${formatCurrency(balance, currency)}`}
         >
-          {balance >= 0 ? "+" : ""}{formatCurrency(balance, currency)}
+          {balance >= 0 ? "+" : ""}
+          {formatCurrency(balance, currency)}
         </p>
       </div>
 

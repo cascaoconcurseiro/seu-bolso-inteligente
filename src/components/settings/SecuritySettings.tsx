@@ -16,7 +16,12 @@ interface SecuritySettingsProps {
   onChangePassword: () => void;
 }
 
-export function SecuritySettings({ profile, isLoading, updateProfile, onChangePassword }: SecuritySettingsProps) {
+export function SecuritySettings({
+  profile,
+  isLoading,
+  updateProfile,
+  onChangePassword,
+}: SecuritySettingsProps) {
   const [requirePin, setRequirePin] = useState(false);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -45,11 +50,11 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
     try {
       if (!requirePin) {
         // Disabling PIN: clear hash via RPC + update flag
-        const { error } = await supabase.rpc('clear_pin');
+        const { error } = await supabase.rpc("clear_pin");
         if (error) throw error;
       } else if (pin !== "****" && pin.length >= 4) {
         // New PIN: hash via RPC (never send to profiles directly)
-        const { error } = await supabase.rpc('set_pin', {
+        const { error } = await supabase.rpc("set_pin", {
           p_pin: pin,
           p_require_on_open: requirePin,
         });
@@ -67,7 +72,11 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const hasPinSet = !!(profile as any)?.app_pin_hash;
@@ -76,11 +85,12 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
     <div className="space-y-8 animate-fade-in">
       <div>
         <h2 className="font-display font-semibold text-lg">Segurança de Acesso</h2>
-        <p className="text-sm text-muted-foreground">Proteja seus dados financeiros com um bloqueio por PIN.</p>
+        <p className="text-sm text-muted-foreground">
+          Proteja seus dados financeiros com um bloqueio por PIN.
+        </p>
       </div>
 
       <div className="space-y-6 max-w-2xl">
-
         <div className="p-4 rounded-xl border border-border hover:border-foreground/20 transition-all">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -92,7 +102,9 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
                 <p className="text-sm text-muted-foreground">Atualize sua senha de acesso ao app</p>
               </div>
             </div>
-            <Button variant="outline" onClick={onChangePassword}>Alterar</Button>
+            <Button variant="outline" onClick={onChangePassword}>
+              Alterar
+            </Button>
           </div>
         </div>
 
@@ -103,18 +115,21 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
           <div>
             <h3 className="font-medium text-foreground">Bloqueio do Aplicativo</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Ao ativar, o sistema pedirá um PIN numérico de 4 dígitos sempre que o aplicativo for aberto. Isso protege seus dados caso alguém pegue seu dispositivo destravado.
+              Ao ativar, o sistema pedirá um PIN numérico de 4 dígitos sempre que o aplicativo for
+              aberto. Isso protege seus dados caso alguém pegue seu dispositivo destravado.
             </p>
-            
+
             <div className="mt-6 flex items-center justify-between p-4 bg-background border border-border rounded-lg">
               <div className="flex items-center gap-3">
                 <Smartphone className="h-5 w-5 text-muted-foreground" />
-                <Label htmlFor="require-pin" className="cursor-pointer">Exigir PIN ao abrir o app</Label>
+                <Label htmlFor="require-pin" className="cursor-pointer">
+                  Exigir PIN ao abrir o app
+                </Label>
                 <InfoTooltip content="Quando ativado, caso o aplicativo seja fechado ou recarregado, será necessário digitar o PIN para visualizar suas finanças." />
               </div>
-              <Switch 
-                id="require-pin" 
-                checked={requirePin} 
+              <Switch
+                id="require-pin"
+                checked={requirePin}
                 onCheckedChange={(checked) => {
                   setRequirePin(checked);
                   setIsEditing(true);
@@ -122,7 +137,7 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
                     setPin("");
                     setConfirmPin("");
                   }
-                }} 
+                }}
               />
             </div>
 
@@ -132,35 +147,43 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
                   <Lock className="h-4 w-4" />
                   {hasPinSet && !isEditing ? "PIN Configurado" : "Configure seu PIN de 4 dígitos"}
                 </div>
-                
+
                 {hasPinSet && !isEditing ? (
-                  <Button variant="outline" size="sm" onClick={() => { setIsEditing(true); setPin(""); setConfirmPin(""); }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setPin("");
+                      setConfirmPin("");
+                    }}
+                  >
                     Alterar PIN
                   </Button>
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>PIN Numérico</Label>
-                      <Input 
-                        type="password" 
-                        maxLength={4} 
+                      <Input
+                        type="password"
+                        maxLength={4}
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={pin}
-                        onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ""))}
                         placeholder="0000"
                         className="text-center tracking-widest text-lg"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Confirmar PIN</Label>
-                      <Input 
-                        type="password" 
-                        maxLength={4} 
+                      <Input
+                        type="password"
+                        maxLength={4}
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={confirmPin}
-                        onChange={(e) => setConfirmPin(e.target.value.replace(/[^0-9]/g, ''))}
+                        onChange={(e) => setConfirmPin(e.target.value.replace(/[^0-9]/g, ""))}
                         placeholder="0000"
                         className="text-center tracking-widest text-lg"
                       />
@@ -172,16 +195,20 @@ export function SecuritySettings({ profile, isLoading, updateProfile, onChangePa
 
             {isEditing && (
               <div className="mt-6 flex justify-end">
-                <Button 
-                  onClick={handleSavePin} 
-                  disabled={updateProfile.isPending || (requirePin && (pin.length !== 4 || pin !== confirmPin))}
+                <Button
+                  onClick={handleSavePin}
+                  disabled={
+                    updateProfile.isPending ||
+                    (requirePin && (pin.length !== 4 || pin !== confirmPin))
+                  }
                 >
-                  {updateProfile.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {updateProfile.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
                   Salvar Configuração de Segurança
                 </Button>
               </div>
             )}
-
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 /**
  * React Query Configuration Utilities
  * Centralized query configuration to ensure consistency
- * 
+ *
  * AUDITORIA 2026-05-10: Corrigido staleTime de 0 para 30s.
  * Com staleTime: 0, toda troca de aba no app disparava refetch de TODAS as queries,
  * causando lentidão visível especialmente no módulo Compartilhados.
@@ -9,7 +9,7 @@
  * após mutações (create/update/delete) via invalidateQueries.
  */
 
-import { UseQueryOptions, keepPreviousData } from '@tanstack/react-query';
+import { UseQueryOptions, keepPreviousData } from "@tanstack/react-query";
 
 /**
  * Default query configuration

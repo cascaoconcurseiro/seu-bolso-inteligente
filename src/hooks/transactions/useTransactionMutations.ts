@@ -144,9 +144,12 @@ export function useUpdateTransaction() {
         if (finalSplits.length > 0) {
           const totalPercentage = SafeFinancialCalculator.safeSum(
             finalSplits.map((s: TransactionSplitData) => s.percentage)
-          );
+          ).toNumber();
           if (totalPercentage < 100) {
-            const remainingPercentage = SafeFinancialCalculator.subtract(100, totalPercentage);
+            const remainingPercentage = SafeFinancialCalculator.subtract(
+              100,
+              totalPercentage
+            ).toNumber();
             const { data: currentUserMember } = await supabase
               .from("family_members")
               .select("id")
@@ -204,14 +207,14 @@ export function useUpdateTransaction() {
 
             let splitAmount = 0;
             if (index === finalSplits.length - 1) {
-              splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum);
+              splitAmount = SafeFinancialCalculator.subtract(data.amount, allocatedSum).toNumber();
             } else {
               const baseAmount =
                 split.amount !== undefined
                   ? split.amount
-                  : SafeFinancialCalculator.percentage(data.amount, split.percentage);
+                  : SafeFinancialCalculator.percentage(data.amount, split.percentage).toNumber();
               splitAmount = baseAmount;
-              allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount);
+              allocatedSum = SafeFinancialCalculator.add(allocatedSum, splitAmount).toNumber();
             }
 
             return {

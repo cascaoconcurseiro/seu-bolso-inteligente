@@ -60,22 +60,38 @@ export function SharedExpenses() {
 
   const state = useSharedExpensesState();
   const {
-    selectedItems, setSelectedItems,
-    showSettleDialog, setShowSettleDialog,
-    showImportDialog, setShowImportDialog,
-    selectedMember, setSelectedMember,
-    settleAmount, setSettleAmount,
-    settleAccountId, setSettleAccountId,
-    settleDate, setSettleDate,
-    settleType, setSettleType,
-    isSettling, setIsSettling,
-    settlingMode, setSettlingMode,
-    undoConfirm, setUndoConfirm,
-    deleteConfirm, setDeleteConfirm,
-    deleteSeriesConfirm, setDeleteSeriesConfirm,
-    undoAllConfirm, setUndoAllConfirm,
-    isUndoingAll, setIsUndoingAll,
-    anticipateDialog, setAnticipateDialog
+    selectedItems,
+    setSelectedItems,
+    showSettleDialog,
+    setShowSettleDialog,
+    showImportDialog,
+    setShowImportDialog,
+    selectedMember,
+    setSelectedMember,
+    settleAmount,
+    setSettleAmount,
+    settleAccountId,
+    setSettleAccountId,
+    settleDate,
+    setSettleDate,
+    settleType,
+    setSettleType,
+    isSettling,
+    setIsSettling,
+    settlingMode,
+    setSettlingMode,
+    undoConfirm,
+    setUndoConfirm,
+    deleteConfirm,
+    setDeleteConfirm,
+    deleteSeriesConfirm,
+    setDeleteSeriesConfirm,
+    undoAllConfirm,
+    setUndoAllConfirm,
+    isUndoingAll,
+    setIsUndoingAll,
+    anticipateDialog,
+    setAnticipateDialog,
   } = state;
 
   const [activeTab, setActiveTab] = useState<SharedTab>(
@@ -162,8 +178,18 @@ export function SharedExpenses() {
         return y === currentDate.getFullYear() && m - 1 === currentDate.getMonth();
       });
       const monthNames = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
       ];
       periodLabel = `${monthNames[currentDate.getMonth()]} de ${currentDate.getFullYear()}`;
     } else {
@@ -182,7 +208,12 @@ export function SharedExpenses() {
     }
   };
 
-  const handleSettleClick = (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => {
+  const handleSettleClick = (
+    id: string,
+    type: "PAY" | "RECEIVE",
+    amt: number,
+    specificItem?: InvoiceItem
+  ) => {
     setSelectedMember(id);
     setSettleType(type);
     if (specificItem) {
@@ -198,7 +229,13 @@ export function SharedExpenses() {
     setShowSettleDialog(true);
   };
 
-  const handleSettleTripClick = (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem: InvoiceItem | undefined, tripId: string) => {
+  const handleSettleTripClick = (
+    id: string,
+    type: "PAY" | "RECEIVE",
+    amt: number,
+    specificItem: InvoiceItem | undefined,
+    tripId: string
+  ) => {
     setSelectedMember(id);
     setSettleType(type);
     if (specificItem) {
@@ -213,7 +250,6 @@ export function SharedExpenses() {
     }
     setShowSettleDialog(true);
   };
-
 
   const hasData = members.length > 0 && Object.keys(invoices).length > 0;
   const isInitialLoading = (membersLoading || sharedLoading) && !hasData;
@@ -246,19 +282,36 @@ export function SharedExpenses() {
           <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto mt-4 sm:mt-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="default" variant="outline" className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-12">
+                <Button
+                  size="default"
+                  variant="outline"
+                  className="gap-2 shadow-sm border-border/80 w-full sm:w-auto h-12"
+                >
                   <Download className="h-5 w-5" />
                   <span>Exportar</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem onClick={() => handleExportShared("PDF", "MONTH")}>Mensal em PDF</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportShared("CSV", "MONTH")}>Mensal em Excel (CSV)</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportShared("PDF", "YEAR")}>Anual em PDF</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportShared("CSV", "YEAR")}>Anual em Excel (CSV)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportShared("PDF", "MONTH")}>
+                  Mensal em PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportShared("CSV", "MONTH")}>
+                  Mensal em Excel (CSV)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportShared("PDF", "YEAR")}>
+                  Anual em PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportShared("CSV", "YEAR")}>
+                  Anual em Excel (CSV)
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button size="default" variant="default" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2 w-full sm:w-auto h-12" onClick={() => setShowImportDialog(true)}>
+            <Button
+              size="default"
+              variant="default"
+              className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-95 gap-2 w-full sm:w-auto h-12"
+              onClick={() => setShowImportDialog(true)}
+            >
               <Layers className="h-5 w-5" />
               <span>Importar Parcelas</span>
             </Button>
@@ -267,25 +320,47 @@ export function SharedExpenses() {
       </div>
 
       <Suspense fallback={null}>
-        <SharedBalanceChart transactions={transactions} invoices={invoices} currentDate={currentDate} />
+        <SharedBalanceChart
+          transactions={transactions}
+          invoices={invoices}
+          currentDate={currentDate}
+        />
       </Suspense>
-      <SharedSummarySection totalsByCurrency={totalsByCurrency} travelTotalsByCurrency={travelTotalsByCurrency} formatCurrency={formatCurrency} activeTab={activeTab} />
+      <SharedSummarySection
+        totalsByCurrency={totalsByCurrency}
+        travelTotalsByCurrency={travelTotalsByCurrency}
+        formatCurrency={formatCurrency}
+        activeTab={activeTab}
+      />
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SharedTab)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as SharedTab)}
+        className="w-full"
+      >
         <TabsList className="grid grid-cols-3 w-full h-auto p-1.5 bg-secondary/30 rounded-2xl mb-8 shadow-inner border border-border/40">
-          <TabsTrigger value="REGULAR" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+          <TabsTrigger
+            value="REGULAR"
+            className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300"
+          >
             <div className="flex flex-col items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="text-sm font-bold uppercase tracking-wider">Regular</span>
             </div>
           </TabsTrigger>
-          <TabsTrigger value="TRAVEL" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+          <TabsTrigger
+            value="TRAVEL"
+            className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300"
+          >
             <div className="flex flex-col items-center gap-2">
               <Plane className="h-4 w-4" />
               <span className="text-sm font-bold uppercase tracking-wider">Viagens</span>
             </div>
           </TabsTrigger>
-          <TabsTrigger value="HISTORY" className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300">
+          <TabsTrigger
+            value="HISTORY"
+            className="rounded-xl py-3 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-300"
+          >
             <div className="flex flex-col items-center gap-2">
               <History className="h-4 w-4" />
               <span className="text-sm font-bold uppercase tracking-wider">Histórico</span>
@@ -300,7 +375,11 @@ export function SharedExpenses() {
               title="Nenhum membro ativo"
               description="Convide membros da sua família para começar a dividir despesas e gerenciar orçamentos compartilhados."
               action={
-                <Button onClick={() => navigate("/familia")} variant="outline" className="h-12 px-8 rounded-2xl gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all font-semibold">
+                <Button
+                  onClick={() => navigate("/familia")}
+                  variant="outline"
+                  className="h-12 px-8 rounded-2xl gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all font-semibold"
+                >
                   <Users className="h-4 w-4" />
                   Convidar Membros
                 </Button>
@@ -308,35 +387,74 @@ export function SharedExpenses() {
             />
           ) : (
             <div className="space-y-4">
-              {activeTab === "HISTORY" && members.some((m) => getFilteredInvoice(m.id).some((i) => i.isPaid)) && (
-                <div className="flex justify-end">
-                  <Button variant="destructive" size="sm" onClick={() => setUndoAllConfirm(true)} className="gap-2">
-                    <Undo2 className="h-4 w-4" /> Desfazer Tudo
-                  </Button>
-                </div>
-              )}
+              {activeTab === "HISTORY" &&
+                members.some((m) => getFilteredInvoice(m.id).some((i) => i.isPaid)) && (
+                  <div className="flex justify-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setUndoAllConfirm(true)}
+                      className="gap-2"
+                    >
+                      <Undo2 className="h-4 w-4" /> Desfazer Tudo
+                    </Button>
+                  </div>
+                )}
               {activeTab !== "TRAVEL" ? (
                 <SharedRegularList
-                  members={members} user={user} activeTab={activeTab} getFilteredInvoice={getFilteredInvoice} getTotals={getTotals} formatCurrency={formatCurrency}
+                  members={members}
+                  user={user}
+                  activeTab={activeTab}
+                  getFilteredInvoice={getFilteredInvoice}
+                  getTotals={getTotals}
+                  formatCurrency={formatCurrency}
                   onSettle={handleSettleClick}
                   onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
                   onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
-                  onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
+                  onAnticipate={(i) =>
+                    setAnticipateDialog({
+                      isOpen: true,
+                      seriesId: i.seriesId ?? null,
+                      currentInstallment: i.installmentNumber ?? 0,
+                      totalInstallments: i.totalInstallments ?? 0,
+                    })
+                  }
                 />
               ) : (
                 <SharedTravelList
-                  trips={trips} members={members} user={user} getFilteredInvoice={getFilteredInvoice} getTotals={getTotals} formatCurrency={formatCurrency}
+                  trips={trips}
+                  members={members}
+                  user={user}
+                  getFilteredInvoice={getFilteredInvoice}
+                  getTotals={getTotals}
+                  formatCurrency={formatCurrency}
                   onSettle={handleSettleTripClick}
                   onUndo={(i) => setUndoConfirm({ isOpen: true, item: i })}
                   onDelete={(i) => setDeleteConfirm({ isOpen: true, item: i })}
                   onDeleteSeries={(i) => setDeleteSeriesConfirm({ isOpen: true, item: i })}
-                  onAnticipate={(i) => setAnticipateDialog({ isOpen: true, seriesId: i.seriesId ?? null, currentInstallment: i.installmentNumber ?? 0, totalInstallments: i.totalInstallments ?? 0 })}
+                  onAnticipate={(i) =>
+                    setAnticipateDialog({
+                      isOpen: true,
+                      seriesId: i.seriesId ?? null,
+                      currentInstallment: i.installmentNumber ?? 0,
+                      totalInstallments: i.totalInstallments ?? 0,
+                    })
+                  }
                 />
               )}
               {(activeTab === "TRAVEL"
-                ? trips.filter((t) => members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))).length === 0
-                : members.filter((m) => m.linked_user_id !== user?.id).every((m) => getFilteredInvoice(m.id).length === 0)) && (
-                <EmptyState icon={CheckCircle2} title="Tudo em dia!" description="Nenhuma despesa compartilhada pendente neste período." variant="success" />
+                ? trips.filter((t) =>
+                    members.some((m) => getFilteredInvoice(m.id).some((i) => i.tripId === t.id))
+                  ).length === 0
+                : members
+                    .filter((m) => m.linked_user_id !== user?.id)
+                    .every((m) => getFilteredInvoice(m.id).length === 0)) && (
+                <EmptyState
+                  icon={CheckCircle2}
+                  title="Tudo em dia!"
+                  description="Nenhuma despesa compartilhada pendente neste período."
+                  variant="success"
+                />
               )}
             </div>
           )}
@@ -348,14 +466,25 @@ export function SharedExpenses() {
         onOpenChange={setShowSettleDialog}
         selectedMember={selectedMember}
         members={members}
-        pendingMemberItems={selectedMember ? getFilteredInvoice(selectedMember).filter((i) => !i.isPaid) : []}
+        pendingMemberItems={
+          selectedMember ? getFilteredInvoice(selectedMember).filter((i) => !i.isPaid) : []
+        }
         selectedItems={selectedItems}
         onToggleItem={(id) =>
           setSelectedItems((prev) => {
             const ni = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
             if (selectedMember) {
               const items = getFilteredInvoice(selectedMember);
-              const tot = items.filter((i) => ni.includes(i.id)).reduce((s, x) => x.type === "CREDIT" ? SafeFinancialCalculator.add(s, x.amount) : SafeFinancialCalculator.subtract(s, x.amount), 0);
+              const tot = items
+                .filter((i) => ni.includes(i.id))
+                .reduce(
+                  (s, x) =>
+                    x.type === "CREDIT"
+                      ? SafeFinancialCalculator.add(s, x.amount)
+                      : SafeFinancialCalculator.subtract(s, x.amount),
+                  SafeFinancialCalculator.ZERO
+                )
+                .toNumber();
               setSettleAmount(Math.abs(tot).toFixed(2).replace(".", ","));
               setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
             }
@@ -371,7 +500,15 @@ export function SharedExpenses() {
             setSettleType("PAY");
           } else {
             setSelectedItems(items.map((i) => i.id));
-            const tot = items.reduce((s, x) => x.type === "CREDIT" ? SafeFinancialCalculator.add(s, x.amount) : SafeFinancialCalculator.subtract(s, x.amount), 0);
+            const tot = items
+              .reduce(
+                (s, x) =>
+                  x.type === "CREDIT"
+                    ? SafeFinancialCalculator.add(s, x.amount)
+                    : SafeFinancialCalculator.subtract(s, x.amount),
+                SafeFinancialCalculator.ZERO
+              )
+              .toNumber();
             setSettleAmount(Math.abs(tot).toFixed(2).replace(".", ","));
             setSettleType(tot >= 0 ? "RECEIVE" : "PAY");
           }
@@ -392,10 +529,14 @@ export function SharedExpenses() {
       />
 
       <SharedExpensesDialogs
-        undoConfirm={undoConfirm} setUndoConfirm={setUndoConfirm}
-        deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm}
-        deleteSeriesConfirm={deleteSeriesConfirm} setDeleteSeriesConfirm={setDeleteSeriesConfirm}
-        undoAllConfirm={undoAllConfirm} setUndoAllConfirm={setUndoAllConfirm}
+        undoConfirm={undoConfirm}
+        setUndoConfirm={setUndoConfirm}
+        deleteConfirm={deleteConfirm}
+        setDeleteConfirm={setDeleteConfirm}
+        deleteSeriesConfirm={deleteSeriesConfirm}
+        setDeleteSeriesConfirm={setDeleteSeriesConfirm}
+        undoAllConfirm={undoAllConfirm}
+        setUndoAllConfirm={setUndoAllConfirm}
         isUndoingAll={isUndoingAll}
         handleUndoSettlement={handleUndoSettlement}
         handleDeleteTransaction={handleDeleteTransaction}
@@ -404,11 +545,15 @@ export function SharedExpenses() {
       />
 
       <Suspense fallback={null}>
-        <SharedInstallmentImport isOpen={showImportDialog} onClose={() => setShowImportDialog(false)} members={members} onSuccess={() => refetch()} />
+        <SharedInstallmentImport
+          isOpen={showImportDialog}
+          onClose={() => setShowImportDialog(false)}
+          members={members}
+          onSuccess={() => refetch()}
+        />
       </Suspense>
 
       <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
-
 
       <Suspense fallback={null}>
         {anticipateDialog.seriesId && (

@@ -20,7 +20,7 @@ const DialogOverlay = React.forwardRef<
     ref={ref}
     className={cn(
       "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className,
+      className
     )}
     {...props}
   />
@@ -37,9 +37,9 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-0 right-0 mx-auto top-[50%] z-50 grid w-[95vw] sm:w-full max-w-lg translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 rounded-lg max-h-[90dvh] overflow-y-auto",
-        className,
+        className
       )}
-      style={{ touchAction: 'pan-y', overscrollBehaviorX: 'none', ...style }}
+      style={{ touchAction: "pan-y", overscrollBehaviorX: "none", ...style }}
       {...props}
     >
       {children}
@@ -52,26 +52,31 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-const DialogHeader = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col space-y-2 text-left", className)} {...props} />
-));
+const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("flex flex-col space-y-2 text-left", className)} {...props} />
+  )
+);
 DialogHeader.displayName = "DialogHeader";
 
 // Force preserve Dialog components in build to prevent tree-shaking
 // Uses a self-executing void expression
 // so Rollup/Vite cannot statically analyze and remove it
-void (globalThis as any)?.['dialogHeaderPreserve'];
-void (DialogHeader);
+void (globalThis as any)?.["dialogHeaderPreserve"];
+void DialogHeader;
 
-const DialogFooter = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 [&>button]:w-full sm:[&>button]:w-auto", className)} {...props} />
-));
+const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2 [&>button]:w-full sm:[&>button]:w-auto",
+        className
+      )}
+      {...props}
+    />
+  )
+);
 DialogFooter.displayName = "DialogFooter";
 
 const DialogTitle = React.forwardRef<
@@ -90,7 +95,11 @@ const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm font-normal text-muted-foreground", className)} {...props} />
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm font-normal text-muted-foreground", className)}
+    {...props}
+  />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 

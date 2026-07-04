@@ -37,7 +37,10 @@ export function BackupManager() {
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [importProgress, setImportProgress] = useState<{ step: string; percent: number }>({ step: "", percent: 0 });
+  const [importProgress, setImportProgress] = useState<{ step: string; percent: number }>({
+    step: "",
+    percent: 0,
+  });
   const [confirmText, setConfirmText] = useState("");
   const [importedFile, setImportedFile] = useState<BackupData | null>(null);
 
@@ -49,9 +52,7 @@ export function BackupManager() {
 
     try {
       const getTableData = async (tableName: string) => {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select("*");
+        const { data, error } = await supabase.from(tableName).select("*");
         if (error) {
           logger.error(`Erro ao exportar tabela ${tableName}:`, error);
           throw error;
@@ -73,7 +74,7 @@ export function BackupManager() {
         goals,
         assets,
         asset_transactions,
-        notification_preferences
+        notification_preferences,
       ] = await Promise.all([
         getTableData("accounts"),
         getTableData("categories"),
@@ -88,7 +89,7 @@ export function BackupManager() {
         getTableData("goals"),
         getTableData("assets"),
         getTableData("asset_transactions"),
-        getTableData("notification_preferences")
+        getTableData("notification_preferences"),
       ]);
 
       const backup: BackupData = {
@@ -109,8 +110,8 @@ export function BackupManager() {
           goals,
           assets,
           asset_transactions,
-          notification_preferences
-        }
+          notification_preferences,
+        },
       };
 
       // Disparar download do arquivo JSON
@@ -118,7 +119,10 @@ export function BackupManager() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `pe-de-meia-backup-${new Date().toISOString().split('T')[0]}.json`);
+      link.setAttribute(
+        "download",
+        `pe-de-meia-backup-${new Date().toISOString().split("T")[0]}.json`
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -179,10 +183,10 @@ export function BackupManager() {
       // Helper para inserir em lote mantendo IDs originais
       const insertRows = async (tableName: string, rows: any[]) => {
         if (!rows || rows.length === 0) return;
-        
+
         // Garante que cada linha está associada ao usuário correto (segurança extra!)
-        const safeRows = rows.map(r => ({ ...r, user_id: user.id }));
-        
+        const safeRows = rows.map((r) => ({ ...r, user_id: user.id }));
+
         const { error } = await supabase.from(tableName).insert(safeRows);
         if (error) {
           logger.error(`Erro ao restaurar tabela ${tableName}:`, error);
@@ -239,7 +243,7 @@ export function BackupManager() {
 
       setImportProgress({ step: "Concluído!", percent: 100 });
       toast.success("Sistema restaurado com sucesso absoluto para a data do backup!");
-      
+
       // Invalidar todas as queries para recarregar a interface
       queryClient.invalidateQueries();
       setImportedFile(null);
@@ -257,11 +261,12 @@ export function BackupManager() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display font-black text-2xl tracking-tight">Backup e Dados</h2>
-        <p className="text-sm text-muted-foreground">Exportação integral e restauração total do banco de dados</p>
+        <p className="text-sm text-muted-foreground">
+          Exportação integral e restauração total do banco de dados
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
         {/* Bloco de Exportar */}
         <Card className="p-6 border border-border bg-card/50 shadow-sm rounded-2xl flex flex-col justify-between">
           <div className="space-y-4">
@@ -271,12 +276,13 @@ export function BackupManager() {
             <div>
               <h3 className="font-semibold text-base">Exportar Backup Completo</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Gera um arquivo seguro contendo todas as suas transações, contas, categorias, metas, viagens e ativos. Ideal para guardar como cópia física ou migrar de conta.
+                Gera um arquivo seguro contendo todas as suas transações, contas, categorias, metas,
+                viagens e ativos. Ideal para guardar como cópia física ou migrar de conta.
               </p>
             </div>
           </div>
-          <Button 
-            className="w-full mt-6 gap-2 rounded-xl h-10 font-medium" 
+          <Button
+            className="w-full mt-6 gap-2 rounded-xl h-10 font-medium"
             onClick={handleExport}
             disabled={isExporting}
           >
@@ -293,17 +299,23 @@ export function BackupManager() {
             <div>
               <h3 className="font-semibold text-base">Restaurar do Backup</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Substitui de forma completa todos os seus dados atuais pelas informações de um backup anterior.
+                Substitui de forma completa todos os seus dados atuais pelas informações de um
+                backup anterior.
               </p>
             </div>
 
             {/* Input de Arquivo */}
             <div className="space-y-2 mt-4">
-              <Label htmlFor="backup-file" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Selecionar arquivo de Backup (.json)</Label>
-              <Input 
-                id="backup-file" 
-                type="file" 
-                accept=".json" 
+              <Label
+                htmlFor="backup-file"
+                className="text-sm font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Selecionar arquivo de Backup (.json)
+              </Label>
+              <Input
+                id="backup-file"
+                type="file"
+                accept=".json"
                 onChange={handleFileChange}
                 disabled={isImporting}
                 className="cursor-pointer bg-muted/20 border-border/50 rounded-xl file:bg-primary file:text-white file:border-0 file:rounded-lg file:mr-2 file:text-sm file:font-semibold"
@@ -317,13 +329,22 @@ export function BackupManager() {
                 <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
                 <div className="text-sm space-y-2">
                   <p className="font-bold uppercase tracking-wide">Atenção Crítica</p>
-                  <p>A restauração irá deletar <strong>todos os seus lançamentos, contas e configurações atuais</strong> para inserir os dados do backup.</p>
+                  <p>
+                    A restauração irá deletar{" "}
+                    <strong>todos os seus lançamentos, contas e configurações atuais</strong> para
+                    inserir os dados do backup.
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-restore" className="text-sm font-bold uppercase text-muted-foreground">Digite RESTAURAR para autorizar:</Label>
-                <Input 
+                <Label
+                  htmlFor="confirm-restore"
+                  className="text-sm font-bold uppercase text-muted-foreground"
+                >
+                  Digite RESTAURAR para autorizar:
+                </Label>
+                <Input
                   id="confirm-restore"
                   placeholder="RESTAURAR"
                   value={confirmText}
@@ -333,9 +354,9 @@ export function BackupManager() {
                 />
               </div>
 
-              <Button 
+              <Button
                 variant="destructive"
-                className="w-full gap-2 rounded-xl h-10 font-bold" 
+                className="w-full gap-2 rounded-xl h-10 font-bold"
                 onClick={handleRestore}
                 disabled={isImporting || confirmText !== "RESTAURAR"}
               >
@@ -355,8 +376,8 @@ export function BackupManager() {
               <span className="font-mono font-bold text-primary">{importProgress.percent}%</span>
             </div>
             <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div 
-                className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-out" 
+              <div
+                className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${importProgress.percent}%` }}
               />
             </div>

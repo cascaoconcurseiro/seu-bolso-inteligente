@@ -1,4 +1,5 @@
 import { SettlementValidator } from "@/services/settlementValidation";
+import type { Decimal } from "decimal.js";
 import { dateUtils } from "@/utils/dateUtils";
 import { Database } from "@/types/database";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";

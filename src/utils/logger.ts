@@ -6,9 +6,9 @@
  *
  * Hierarquia: debug/info/success → só em DEV | warn/error → sempre + Sentry em PROD
  */
-import * as Sentry from '@sentry/react';
+import * as Sentry from "@sentry/react";
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
   level: LogLevel;
@@ -24,29 +24,29 @@ class Logger {
   /** Log de debug — apenas em desenvolvimento */
   debug(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.log(`[DEBUG] ${message}`, data !== undefined ? data : '');
+      console.log(`[DEBUG] ${message}`, data !== undefined ? data : "");
     }
   }
 
   /** Log informativo — apenas em desenvolvimento */
   info(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.info(`[INFO] ${message}`, data !== undefined ? data : '');
+      console.info(`[INFO] ${message}`, data !== undefined ? data : "");
     }
   }
 
   /** Log de sucesso — apenas em desenvolvimento */
   success(message: string, data?: unknown): void {
     if (this.isDev) {
-      console.log(`[OK] ${message}`, data !== undefined ? data : '');
+      console.log(`[OK] ${message}`, data !== undefined ? data : "");
     }
   }
 
   /** Log de aviso — sempre exibido + Sentry em produção */
   warn(message: string, data?: unknown): void {
-    console.warn(`[WARN] ${message}`, data !== undefined ? data : '');
+    console.warn(`[WARN] ${message}`, data !== undefined ? data : "");
     if (this.isProd) {
-      Sentry.captureMessage(message, { level: 'warning', extra: { data } });
+      Sentry.captureMessage(message, { level: "warning", extra: { data } });
     }
   }
 
@@ -56,12 +56,12 @@ class Logger {
    * @param error - instância de Error ou dado extra
    */
   error(message: string, error?: unknown): void {
-    console.error(`[ERROR] ${message}`, error !== undefined ? error : '');
+    console.error(`[ERROR] ${message}`, error !== undefined ? error : "");
     if (this.isProd) {
       if (error instanceof Error) {
         Sentry.captureException(error, { extra: { message } });
       } else {
-        Sentry.captureMessage(message, { level: 'error', extra: { error } });
+        Sentry.captureMessage(message, { level: "error", extra: { error } });
       }
     }
   }

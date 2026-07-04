@@ -294,13 +294,20 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           onOpenChange={setShowDialog}
           isEditing={!!editingItem}
           isLoading={createItem.isPending || updateItem.isPending}
-          date={date} setDate={setDate}
-          title={title} setTitle={setTitle}
-          description={description} setDescription={setDescription}
-          location={location} setLocation={setLocation}
-          startTime={startTime} setStartTime={setStartTime}
-          endTime={endTime} setEndTime={setEndTime}
-          mapsUrl={mapsUrl} setMapsUrl={setMapsUrl}
+          date={date}
+          setDate={setDate}
+          title={title}
+          setTitle={setTitle}
+          description={description}
+          setDescription={setDescription}
+          location={location}
+          setLocation={setLocation}
+          startTime={startTime}
+          setStartTime={setStartTime}
+          endTime={endTime}
+          setEndTime={setEndTime}
+          mapsUrl={mapsUrl}
+          setMapsUrl={setMapsUrl}
           onSubmit={handleSubmit}
         />
       </div>
@@ -332,7 +339,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         {Object.entries(groupedItems).map(([dateKey, dayItems]) => (
           <div key={dateKey} className="space-y-3">
             <h3 className="text-sm font-semibold capitalize text-foreground">
-              {dateFns.format(new Date(dateKey + 'T12:00:00'), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
+                locale: ptBR,
+              })}
             </h3>
             <div className="space-y-2">
               {dayItems.map((item) => {
@@ -366,18 +375,27 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                         <a
                           href={(() => {
                             if (meta.mapsUrl) return meta.mapsUrl;
-                            const query = encodeURIComponent((item.location || item.title) + (trip.destination ? ", " + trip.destination : ""));
+                            const query = encodeURIComponent(
+                              (item.location || item.title) +
+                                (trip.destination ? ", " + trip.destination : "")
+                            );
                             return `https://www.google.com/maps/search/?api=1&query=${query}`;
                           })()}
                           onClick={(e) => {
-                            const query = encodeURIComponent((item.location || item.title) + (trip.destination ? ", " + trip.destination : ""));
+                            const query = encodeURIComponent(
+                              (item.location || item.title) +
+                                (trip.destination ? ", " + trip.destination : "")
+                            );
                             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                             if (isIOS) {
                               e.preventDefault();
                               // Tenta abrir o app do Google Maps; fallback para web
                               window.location.href = `comgooglemaps://?q=${query}`;
                               setTimeout(() => {
-                                window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                                window.open(
+                                  `https://www.google.com/maps/search/?api=1&query=${query}`,
+                                  "_blank"
+                                );
                               }, 500);
                             }
                           }}
@@ -423,13 +441,20 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         onOpenChange={setShowDialog}
         isEditing={!!editingItem}
         isLoading={createItem.isPending || updateItem.isPending}
-        date={date} setDate={setDate}
-        title={title} setTitle={setTitle}
-        description={description} setDescription={setDescription}
-        location={location} setLocation={setLocation}
-        startTime={startTime} setStartTime={setStartTime}
-        endTime={endTime} setEndTime={setEndTime}
-        mapsUrl={mapsUrl} setMapsUrl={setMapsUrl}
+        date={date}
+        setDate={setDate}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        location={location}
+        setLocation={setLocation}
+        startTime={startTime}
+        setStartTime={setStartTime}
+        endTime={endTime}
+        setEndTime={setEndTime}
+        mapsUrl={mapsUrl}
+        setMapsUrl={setMapsUrl}
         onSubmit={handleSubmit}
       />
 
@@ -460,24 +485,44 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
 // Dialog component
 function ItineraryDialog({
-  open, onOpenChange, isEditing, isLoading,
-  date, setDate, title, setTitle,
-  description, setDescription,
-  location, setLocation,
-  startTime, setStartTime,
-  endTime, setEndTime,
-  mapsUrl, setMapsUrl,
+  open,
+  onOpenChange,
+  isEditing,
+  isLoading,
+  date,
+  setDate,
+  title,
+  setTitle,
+  description,
+  setDescription,
+  location,
+  setLocation,
+  startTime,
+  setStartTime,
+  endTime,
+  setEndTime,
+  mapsUrl,
+  setMapsUrl,
   onSubmit,
 }: {
-  open: boolean; onOpenChange: (open: boolean) => void;
-  isEditing: boolean; isLoading: boolean;
-  date: string; setDate: (v: string) => void;
-  title: string; setTitle: (v: string) => void;
-  description: string; setDescription: (v: string) => void;
-  location: string; setLocation: (v: string) => void;
-  startTime: string; setStartTime: (v: string) => void;
-  endTime: string; setEndTime: (v: string) => void;
-  mapsUrl: string; setMapsUrl: (v: string) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isEditing: boolean;
+  isLoading: boolean;
+  date: string;
+  setDate: (v: string) => void;
+  title: string;
+  setTitle: (v: string) => void;
+  description: string;
+  setDescription: (v: string) => void;
+  location: string;
+  setLocation: (v: string) => void;
+  startTime: string;
+  setStartTime: (v: string) => void;
+  endTime: string;
+  setEndTime: (v: string) => void;
+  mapsUrl: string;
+  setMapsUrl: (v: string) => void;
   onSubmit: () => void;
 }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -487,7 +532,7 @@ function ItineraryDialog({
     const url = isIOS
       ? `https://maps.apple.com/?q=${query}`
       : `https://www.google.com/maps/search/?api=1&query=${query}`;
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   return (
@@ -502,31 +547,53 @@ function ItineraryDialog({
 
         <DialogHeader>
           <DialogTitle>{isEditing ? "Editar Atividade" : "Nova Atividade"}</DialogTitle>
-          <DialogDescription className="sr-only">Formulário de atividade do roteiro</DialogDescription>
+          <DialogDescription className="sr-only">
+            Formulário de atividade do roteiro
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Data */}
           <div className="space-y-2">
             <Label>Data *</Label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11" />
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-11"
+            />
           </div>
 
           {/* Título */}
           <div className="space-y-2">
             <Label>Título *</Label>
-            <Input placeholder="Ex: Visita ao museu" value={title} onChange={(e) => setTitle(e.target.value)} className="h-11" />
+            <Input
+              placeholder="Ex: Visita ao museu"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="h-11"
+            />
           </div>
 
           {/* Horários */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Horário início</Label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-11" />
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-11"
+              />
             </div>
             <div className="space-y-2">
               <Label>Horário fim</Label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-11" />
+              <Input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="h-11"
+              />
             </div>
           </div>
 
@@ -597,10 +664,19 @@ function ItineraryDialog({
 
           {/* Botões */}
           <div className="flex gap-3 pt-2 pb-2">
-            <Button type="button" variant="outline" className="w-1/2 h-11" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-1/2 h-11"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
-            <Button className="w-1/2 h-11 font-bold" onClick={onSubmit} disabled={isLoading || !date || !title}>
+            <Button
+              className="w-1/2 h-11 font-bold"
+              onClick={onSubmit}
+              disabled={isLoading || !date || !title}
+            >
               {isLoading ? "Salvando…" : isEditing ? "Salvar" : "Adicionar"}
             </Button>
           </div>

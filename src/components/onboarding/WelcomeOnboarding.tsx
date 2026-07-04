@@ -7,8 +7,15 @@ import { Switch } from "@/components/ui/switch";
 import { useCreateAccount } from "@/hooks/useAccounts";
 import { useCreateDefaultCategories } from "@/hooks/useCategories";
 import {
-  Loader2, Wallet, CreditCard, Sparkles, ChevronRight,
-  CheckCircle2, ArrowRight, Tag, ChevronLeft
+  Loader2,
+  Wallet,
+  CreditCard,
+  Sparkles,
+  ChevronRight,
+  CheckCircle2,
+  ArrowRight,
+  Tag,
+  ChevronLeft,
 } from "lucide-react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "sonner";
@@ -123,7 +130,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               <div
                 key={i}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
-                  i + 1 === step ? "w-6 bg-primary" : i + 1 < step ? "w-3 bg-primary/60" : "w-3 bg-border"
+                  i + 1 === step
+                    ? "w-6 bg-primary"
+                    : i + 1 < step
+                      ? "w-3 bg-primary/60"
+                      : "w-3 bg-border"
                 }`}
               />
             ))}
@@ -135,8 +146,16 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
           <AnimatePresence mode="wait" custom={dir}>
             {/* PASSO 1 — Conta */}
             {step === 1 && (
-              <motion.div key="s1" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+              <motion.div
+                key="s1"
+                custom={dir}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="space-y-5 pt-2"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <Wallet className="w-5 h-5 text-primary" />
@@ -148,7 +167,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Qual é sua conta principal? Pode ser uma conta bancária, carteira física ou qualquer lugar onde seu dinheiro fica.
+                  Qual é sua conta principal? Pode ser uma conta bancária, carteira física ou
+                  qualquer lugar onde seu dinheiro fica.
                 </p>
 
                 <div className="space-y-4">
@@ -157,7 +177,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                     <Input
                       id="accName"
                       value={accountName}
-                      onChange={e => setAccountName(e.target.value)}
+                      onChange={(e) => setAccountName(e.target.value)}
                       placeholder="Ex: Nubank, Itaú, Carteira"
                       className="h-12 text-base"
                       autoFocus
@@ -170,18 +190,28 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                       inputMode="decimal"
                       placeholder="0,00"
                       value={initialBalance}
-                      onChange={e => setInitialBalance(e.target.value)}
+                      onChange={(e) => setInitialBalance(e.target.value)}
                       className="h-12 text-base font-mono"
                     />
-                    <p className="text-xs text-muted-foreground">Quanto você tem hoje nessa conta? Pode digitar 0 e ajustar depois.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Quanto você tem hoje nessa conta? Pode digitar 0 e ajustar depois.
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-3 pt-2">
-                  <Button onClick={() => go(2)} disabled={!accountName.trim()} className="w-full h-12 text-base font-semibold rounded-xl">
+                  <Button
+                    onClick={() => go(2)}
+                    disabled={!accountName.trim()}
+                    className="w-full h-12 text-base font-semibold rounded-xl"
+                  >
                     Continuar <ChevronRight className="w-5 h-5 ml-1" />
                   </Button>
-                  <Button variant="ghost" onClick={onComplete} className="w-full text-sm text-muted-foreground">
+                  <Button
+                    variant="ghost"
+                    onClick={onComplete}
+                    className="w-full text-sm text-muted-foreground"
+                  >
                     Pular (configurar depois)
                   </Button>
                 </div>
@@ -190,8 +220,16 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
             {/* PASSO 2 — Cartão */}
             {step === 2 && (
-              <motion.div key="s2" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+              <motion.div
+                key="s2"
+                custom={dir}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="space-y-5 pt-2"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <CreditCard className="w-5 h-5 text-primary" />
@@ -203,17 +241,29 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Se você usa cartão de crédito, configurar agora garante que as faturas sejam calculadas corretamente.
+                  Se você usa cartão de crédito, configurar agora garante que as faturas sejam
+                  calculadas corretamente.
                 </p>
 
                 {/* Sim / Não */}
                 {hasCard === null && (
                   <div className="grid grid-cols-2 gap-3">
-                    <Button variant="outline" className="h-16 flex flex-col gap-1 text-base" onClick={() => setHasCard(true)}>
+                    <Button
+                      variant="outline"
+                      className="h-16 flex flex-col gap-1 text-base"
+                      onClick={() => setHasCard(true)}
+                    >
                       <span className="text-2xl">💳</span>
                       <span>Sim, tenho</span>
                     </Button>
-                    <Button variant="outline" className="h-16 flex flex-col gap-1 text-base" onClick={() => { setHasCard(false); go(3); }}>
+                    <Button
+                      variant="outline"
+                      className="h-16 flex flex-col gap-1 text-base"
+                      onClick={() => {
+                        setHasCard(false);
+                        go(3);
+                      }}
+                    >
                       <span className="text-2xl">❌</span>
                       <span>Não tenho</span>
                     </Button>
@@ -224,21 +274,45 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Nome do cartão</Label>
-                      <Input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Ex: Nubank, Inter, Itaú Visa" className="h-12 text-base" autoFocus />
+                      <Input
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
+                        placeholder="Ex: Nubank, Inter, Itaú Visa"
+                        className="h-12 text-base"
+                        autoFocus
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Limite (R$)</Label>
-                      <Input inputMode="decimal" value={cardLimit} onChange={e => setCardLimit(e.target.value)} placeholder="5000,00" className="h-12 text-base font-mono" />
+                      <Input
+                        inputMode="decimal"
+                        value={cardLimit}
+                        onChange={(e) => setCardLimit(e.target.value)}
+                        placeholder="5000,00"
+                        className="h-12 text-base font-mono"
+                      />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label>Dia de fechamento</Label>
-                        <Input inputMode="numeric" value={closingDay} onChange={e => setClosingDay(e.target.value)} placeholder="10" className="h-12 text-base font-mono text-center" />
+                        <Input
+                          inputMode="numeric"
+                          value={closingDay}
+                          onChange={(e) => setClosingDay(e.target.value)}
+                          placeholder="10"
+                          className="h-12 text-base font-mono text-center"
+                        />
                         <p className="text-xs text-muted-foreground">Dia que a fatura fecha</p>
                       </div>
                       <div className="space-y-2">
                         <Label>Dia de vencimento</Label>
-                        <Input inputMode="numeric" value={dueDay} onChange={e => setDueDay(e.target.value)} placeholder="17" className="h-12 text-base font-mono text-center" />
+                        <Input
+                          inputMode="numeric"
+                          value={dueDay}
+                          onChange={(e) => setDueDay(e.target.value)}
+                          placeholder="17"
+                          className="h-12 text-base font-mono text-center"
+                        />
                         <p className="text-xs text-muted-foreground">Dia que você paga</p>
                       </div>
                     </div>
@@ -246,11 +320,19 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 )}
 
                 <div className="flex gap-3 pt-2">
-                  <Button variant="outline" onClick={() => go(1)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                  <Button
+                    variant="outline"
+                    onClick={() => go(1)}
+                    className="h-12 w-12 shrink-0 rounded-xl p-0"
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
                   {hasCard !== null && (
-                    <Button onClick={() => go(3)} disabled={hasCard && !cardName.trim()} className="flex-1 h-12 text-base font-semibold rounded-xl">
+                    <Button
+                      onClick={() => go(3)}
+                      disabled={hasCard && !cardName.trim()}
+                      className="flex-1 h-12 text-base font-semibold rounded-xl"
+                    >
                       Continuar <ChevronRight className="w-5 h-5 ml-1" />
                     </Button>
                   )}
@@ -260,8 +342,16 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
             {/* PASSO 3 — Categorias */}
             {step === 3 && (
-              <motion.div key="s3" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+              <motion.div
+                key="s3"
+                custom={dir}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="space-y-5 pt-2"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <Tag className="w-5 h-5 text-primary" />
@@ -273,12 +363,27 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  Vamos criar automaticamente as categorias mais usadas para você já poder categorizar seus gastos de imediato.
+                  Vamos criar automaticamente as categorias mais usadas para você já poder
+                  categorizar seus gastos de imediato.
                 </p>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {["🍔 Alimentação","🚗 Transporte","🏠 Moradia","❤️ Saúde","🎉 Lazer","📚 Educação","💡 Contas","🛍️ Compras","💰 Salário","📈 Investimentos"].map(cat => (
-                    <div key={cat} className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 text-sm font-medium">
+                  {[
+                    "🍔 Alimentação",
+                    "🚗 Transporte",
+                    "🏠 Moradia",
+                    "❤️ Saúde",
+                    "🎉 Lazer",
+                    "📚 Educação",
+                    "💡 Contas",
+                    "🛍️ Compras",
+                    "💰 Salário",
+                    "📈 Investimentos",
+                  ].map((cat) => (
+                    <div
+                      key={cat}
+                      className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 text-sm font-medium"
+                    >
                       <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                       {cat}
                     </div>
@@ -290,10 +395,17 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 </p>
 
                 <div className="flex gap-3 pt-2">
-                  <Button variant="outline" onClick={() => go(2)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                  <Button
+                    variant="outline"
+                    onClick={() => go(2)}
+                    className="h-12 w-12 shrink-0 rounded-xl p-0"
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
-                  <Button onClick={() => go(4)} className="flex-1 h-12 text-base font-semibold rounded-xl">
+                  <Button
+                    onClick={() => go(4)}
+                    className="flex-1 h-12 text-base font-semibold rounded-xl"
+                  >
                     Perfeito, vamos lá! <ArrowRight className="w-5 h-5 ml-1" />
                   </Button>
                 </div>
@@ -302,8 +414,16 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
             {/* PASSO 4 — Pronto */}
             {step === 4 && (
-              <motion.div key="s4" custom={dir} variants={variants} initial="enter" animate="center" exit="exit"
-                transition={{ type: "spring", stiffness: 300, damping: 30 }} className="space-y-5 pt-2">
+              <motion.div
+                key="s4"
+                custom={dir}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="space-y-5 pt-2"
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="w-5 h-5 text-success" />
@@ -314,15 +434,32 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                   </div>
                 </div>
 
-                <p className="text-sm text-muted-foreground">Você está pronto. Aqui está o que pode fazer primeiro:</p>
+                <p className="text-sm text-muted-foreground">
+                  Você está pronto. Aqui está o que pode fazer primeiro:
+                </p>
 
                 <div className="space-y-3">
                   {[
-                    { emoji: "➕", title: "Lançar uma despesa", desc: "Toque no botão + para registrar qualquer gasto" },
-                    { emoji: "📊", title: "Ver seu dashboard", desc: "Resumo do mês, saldos e faturas na tela inicial" },
-                    { emoji: "💳", title: "Acompanhar sua fatura", desc: "Em Cartões, veja os gastos do ciclo atual" },
-                  ].map(tip => (
-                    <div key={tip.title} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-muted/30">
+                    {
+                      emoji: "➕",
+                      title: "Lançar uma despesa",
+                      desc: "Toque no botão + para registrar qualquer gasto",
+                    },
+                    {
+                      emoji: "📊",
+                      title: "Ver seu dashboard",
+                      desc: "Resumo do mês, saldos e faturas na tela inicial",
+                    },
+                    {
+                      emoji: "💳",
+                      title: "Acompanhar sua fatura",
+                      desc: "Em Cartões, veja os gastos do ciclo atual",
+                    },
+                  ].map((tip) => (
+                    <div
+                      key={tip.title}
+                      className="flex items-start gap-3 p-3 rounded-xl border border-border bg-muted/30"
+                    >
                       <span className="text-xl shrink-0">{tip.emoji}</span>
                       <div>
                         <p className="text-sm font-semibold">{tip.title}</p>
@@ -333,10 +470,18 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Button variant="outline" onClick={() => go(3)} className="h-12 w-12 shrink-0 rounded-xl p-0">
+                  <Button
+                    variant="outline"
+                    onClick={() => go(3)}
+                    className="h-12 w-12 shrink-0 rounded-xl p-0"
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </Button>
-                  <Button onClick={handleFinish} disabled={isLoading} className="flex-1 h-12 text-base font-semibold rounded-xl shadow-lg shadow-primary/20">
+                  <Button
+                    onClick={handleFinish}
+                    disabled={isLoading}
+                    className="flex-1 h-12 text-base font-semibold rounded-xl shadow-lg shadow-primary/20"
+                  >
                     {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Começar agora 🚀"}
                   </Button>
                 </div>

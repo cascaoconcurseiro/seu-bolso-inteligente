@@ -184,7 +184,6 @@ export function Dashboard() {
     return Array.from(map.values()).sort((a) => (a.currency === "BRL" ? -1 : 1));
   }, [accounts, currentDate, dashboardData]);
 
-
   const brlData = currenciesData.find((c) => c.currency === "BRL") || {
     currency: "BRL",
     balance: 0,

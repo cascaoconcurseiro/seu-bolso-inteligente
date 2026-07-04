@@ -1,7 +1,30 @@
 import { cn } from "@/lib/utils";
-import { User, Tag, Users, Bell, Shield, Database, HelpCircle, SlidersHorizontal, Lock, Zap, ShieldCheck } from "lucide-react";
+import {
+  User,
+  Tag,
+  Users,
+  Bell,
+  Shield,
+  Database,
+  HelpCircle,
+  SlidersHorizontal,
+  Lock,
+  Zap,
+  ShieldCheck,
+} from "lucide-react";
 
-export type SettingsSection = "account" | "preferences" | "security" | "categories" | "people" | "notifications" | "backup" | "admin" | "help" | "automations" | "privacy";
+export type SettingsSection =
+  | "account"
+  | "preferences"
+  | "security"
+  | "categories"
+  | "people"
+  | "notifications"
+  | "backup"
+  | "admin"
+  | "help"
+  | "automations"
+  | "privacy";
 
 interface SettingsSidebarProps {
   activeSection: SettingsSection;
@@ -10,7 +33,12 @@ interface SettingsSidebarProps {
   membersCount: number;
 }
 
-export function SettingsSidebar({ activeSection, setActiveSection, categoriesCount, membersCount }: SettingsSidebarProps) {
+export function SettingsSidebar({
+  activeSection,
+  setActiveSection,
+  categoriesCount,
+  membersCount,
+}: SettingsSidebarProps) {
   const sections = [
     { id: "help" as const, label: "Central de Ajuda (FAQ)", icon: HelpCircle },
     { id: "account" as const, label: "Perfil", icon: User },
@@ -43,10 +71,12 @@ export function SettingsSidebar({ activeSection, setActiveSection, categoriesCou
             <span className="font-medium">{section.label}</span>
           </div>
           {section.count !== undefined && (
-            <span className={cn(
-              "text-xs px-2 py-0.5 rounded-full transition-all",
-              activeSection === section.id ? "bg-background/20" : "bg-muted"
-            )}>
+            <span
+              className={cn(
+                "text-xs px-2 py-0.5 rounded-full transition-all",
+                activeSection === section.id ? "bg-background/20" : "bg-muted"
+              )}
+            >
               {section.count}
             </span>
           )}

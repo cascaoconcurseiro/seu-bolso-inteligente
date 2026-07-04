@@ -16,26 +16,26 @@ export const DashboardQuickAccess = memo(function DashboardQuickAccess() {
       to: "/contas",
       icon: Wallet,
       title: "Contas",
-      colorName: "blue"
+      colorName: "blue",
     },
     {
       to: "/cartoes",
       icon: CreditCard,
       title: "Cartões",
-      colorName: "indigo"
+      colorName: "indigo",
     },
     {
       to: "/viagens",
       icon: Plane,
       title: "Viagens",
-      colorName: "orange"
+      colorName: "orange",
     },
     {
       to: "/compartilhados",
       icon: Users,
       title: "Grupos",
-      colorName: "emerald"
-    }
+      colorName: "emerald",
+    },
   ];
 
   return (
