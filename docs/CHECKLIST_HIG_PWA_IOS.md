@@ -45,26 +45,26 @@
 
 ## Fase 2 — PWA iOS: refinamento
 
-- [ ] **Tipografia do sistema no corpo**: `-apple-system, system-ui` para body
+- [x] **Tipografia do sistema no corpo** (font-sans → -apple-system/system-ui; Inter fallback): `-apple-system, system-ui` para body
       (SF Pro no iPhone). Manter Space Grotesk em headings e JetBrains Mono nos
       valores. Corpo ~17px, captions 11–13px.
-- [ ] **Tap feedback**: `-webkit-tap-highlight-color: transparent` +
+- [x] **Tap feedback** (tap-highlight transparent, touch-action manipulation, user-select none em botões/links): `-webkit-tap-highlight-color: transparent` +
       `touch-action: manipulation` global; `user-select: none` no chrome da UI
       (haptics via `navigator.vibrate` NÃO existem no iOS — compensar com
       micro-feedback visual; o `whileTap scale` já existe).
-- [ ] **Overscroll**: `overscroll-behavior-y: none` no body; rubber-band só nas
+- [x] **Overscroll** (overscroll-behavior-y none no body): `overscroll-behavior-y: none` no body; rubber-band só nas
       listas internas (não conflitar com PullToRefresh).
 - [x] **Ícone**: apple-touch-icon.png 180px sem alpha gerado (o icon-192 tinha transparência) — conferir que `apple-touch-icon` é 180×180 **sem transparência**
       (alpha vira fundo preto no iOS).
 
 ## Fase 3 — HIG no app inteiro: navegação e estrutura
 
-- [ ] **Remover o FAB central** da tab bar (padrão Material/Android). Mover
+- [x] **Remover o FAB central** (virou item comum 'Nova' da tab bar) da tab bar (padrão Material/Android). Mover
       "Nova transação" para botão `+` no canto superior direito da navigation
       bar ou item comum da tab bar.
 - [ ] **Large Titles colapsáveis** nas telas principais (Início, Extrato,
       Relatórios): título 34pt que encolhe para o centro da barra ao rolar.
-- [ ] **Barras translúcidas**: header e tab bar com `backdrop-blur` + fundo
+- [x] **Barras translúcidas** (header e tab bar com backdrop-blur-xl + bg/80): header e tab bar com `backdrop-blur` + fundo
       semi-opaco (conteúdo passa por baixo).
 - [ ] **Back button padrão iOS**: chevron `‹` + título da tela anterior.
 

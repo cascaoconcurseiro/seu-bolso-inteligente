@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -15,7 +20,16 @@ export default {
     extend: {
       fontFamily: {
         display: ["Space Grotesk", "system-ui", "sans-serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        // Fonte do sistema no corpo (SF Pro no iOS, Roboto no Android) — HIG;
+        // Inter como fallback web. Display/mono mantêm a identidade da marca.
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "system-ui",
+          "Inter",
+          "Segoe UI",
+          "sans-serif",
+        ],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
@@ -91,11 +105,11 @@ export default {
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "feedback-pop": {
-          "0%":   { opacity: "0", transform: "scale(0.4)" },
-          "40%":  { opacity: "1", transform: "scale(1.15)" },
-          "60%":  { opacity: "1", transform: "scale(0.95)" },
-          "75%":  { opacity: "1", transform: "scale(1)" },
-          "88%":  { opacity: "1", transform: "scale(1)" },
+          "0%": { opacity: "0", transform: "scale(0.4)" },
+          "40%": { opacity: "1", transform: "scale(1.15)" },
+          "60%": { opacity: "1", transform: "scale(0.95)" },
+          "75%": { opacity: "1", transform: "scale(1)" },
+          "88%": { opacity: "1", transform: "scale(1)" },
           "100%": { opacity: "0", transform: "scale(0.85)" },
         },
       },

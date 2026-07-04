@@ -131,7 +131,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         Pular para o conteúdo principal
       </a>
       {/* TopBar */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background transform-gpu safe-top">
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl transform-gpu safe-top">
         <div className="w-full px-4 md:px-6 lg:px-8">
           <div className="flex h-12 items-center justify-between gap-2">
             {/* Logo Wordmark */}
