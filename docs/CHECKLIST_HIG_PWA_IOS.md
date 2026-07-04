@@ -113,7 +113,10 @@
       responsabilidade do ESLint (noUnusedLocals off no tsc); restam apenas
       mismatches estruturais antigos, sem impacto de runtime
 - [ ] Paginação cursor-based nas listagens + substituir `SELECT *`
-- [ ] Migration base consolidada (dump do schema como migration zero)
+- [x] Migration base consolidada — supabase/baseline/000_baseline_schema.sql
+      (7 enums + 36 tabelas + 90 FKs, gerado do catálogo de produção 04/07).
+      Fora de migrations/ de propósito: uso manual em banco VAZIO, depois
+      replay das migrations normais
 - [x] Deduplicação OFX server-side — migration
       `20260704010000_ofx_dedup_unique_external_id.sql` (índice único parcial +
       soft-delete de duplicatas antigas) + import tolera 23505 linha a linha.
@@ -131,3 +134,5 @@
       Pré-requisito: desacoplar imports de src/pages/* dentro de components/
 - [~] Dependências: @supabase/supabase-js 2.110 e @sentry/react 10.63
       atualizados (04/07); restante fica com o Dependabot semanal
+- [x] Reconciliação diária de saldos — cron job daily-balance-reconciliation
+      (04:00 UTC) roda recalculate_all_balances(); aplicado em produção 04/07
