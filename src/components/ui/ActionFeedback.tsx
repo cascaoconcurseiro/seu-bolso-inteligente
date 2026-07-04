@@ -20,8 +20,10 @@ export function showActionFeedback(type: "success" | "error") {
   useFeedbackStore.getState().show(type);
 }
 
-// Total visible duration: 900ms (fade-in 120ms + hold ~600ms + fade-out 180ms)
-const DURATION = 900;
+// Manifesto de design: transições de interações comuns ficam abaixo de 500ms.
+// O antigo wash de tela cheia (900ms) foi aposentado; o check pop central
+// mantém a energia da confirmação sem sequestrar a tela.
+const DURATION = 480;
 
 export function ActionFeedback() {
   const { type, hide } = useFeedbackStore();
@@ -45,50 +47,28 @@ export function ActionFeedback() {
       className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none"
       style={{
         animation:
-          "feedbackFadeIn 0.12s ease-out forwards, feedbackFadeOut 0.22s 0.68s ease-in forwards",
+          "feedbackFadeIn 0.1s ease-out forwards, feedbackFadeOut 0.16s 0.32s ease-in forwards",
       }}
+      aria-live="polite"
     >
-      {/* Full-screen color wash wave */}
-      <div
-        className={`absolute top-1/2 left-1/2 rounded-full ${isSuccess ? "bg-positive" : "bg-negative"}`}
-        style={{
-          width: "250vmax",
-          height: "250vmax",
-          opacity: 0.95,
-          animation: "feedbackWave 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards",
-        }}
-      />
-
-      {/* Centered icon pill */}
       <div
         className={`
-          relative flex flex-col items-center justify-center gap-3
+          flex items-center justify-center rounded-full shadow-lg
+          ${isSuccess ? "bg-positive text-white" : "bg-negative text-white"}
+          w-16 h-16
         `}
         style={{
-          animation: "feedbackPop 0.35s 0.04s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+          animation: "feedbackPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
           opacity: 0,
           transform: "scale(0.6)",
         }}
       >
-        <div
-          className={`
-            flex items-center justify-center rounded-full
-            ${isSuccess ? "bg-white text-positive" : "bg-white text-negative"}
-            w-24 h-24 shadow-2xl
-          `}
-        >
-          {isSuccess ? (
-            <Check className="w-12 h-12" strokeWidth={2.5} />
-          ) : (
-            <X className="w-12 h-12" strokeWidth={2.5} />
-          )}
-        </div>
-        <p
-          className="text-white font-semibold text-base tracking-wide"
-          style={{ textShadow: "0 1px 4px rgba(0,0,0,0.2)" }}
-        >
-          {isSuccess ? "Salvo!" : "Erro ao salvar"}
-        </p>
+        {isSuccess ? (
+          <Check className="w-8 h-8" strokeWidth={2.5} aria-hidden="true" />
+        ) : (
+          <X className="w-8 h-8" strokeWidth={2.5} aria-hidden="true" />
+        )}
+        <span className="sr-only">{isSuccess ? "Salvo" : "Erro ao salvar"}</span>
       </div>
     </div>
   );

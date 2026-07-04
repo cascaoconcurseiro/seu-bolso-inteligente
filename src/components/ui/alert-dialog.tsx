@@ -34,7 +34,7 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-0 right-0 mx-auto top-[50%] z-50 grid w-[95vw] sm:w-full max-w-lg translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:!rounded-lg max-h-[90dvh] overflow-y-auto",
+        "fixed left-0 right-0 mx-auto z-50 grid w-full sm:w-full max-w-lg gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 bottom-0 rounded-t-3xl pb-[calc(1.5rem+env(safe-area-inset-bottom))] data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-4 sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%] sm:w-[95vw] sm:rounded-t-lg sm:pb-6 sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95 sm:!rounded-lg max-h-[90dvh] overflow-y-auto",
         className
       )}
       style={{ touchAction: "pan-y", overscrollBehaviorX: "none", ...style }}
