@@ -11,7 +11,7 @@
 
 ## ⚠️ Pré-requisito: bug em produção
 
-- [ ] **Mergear o PR #57** — produção (meupedemeia.vercel.app) está crashando
+- [x] **Mergear o PR #57** (mergeado em 04/07) — produção (meupedemeia.vercel.app) está crashando
       com `ReferenceError: SafeFinancialCalculator is not defined` na página de
       viagens (import ausente em TripSummaryTab/TripExpensesTab/TripShopping).
       A correção já está na branch `claude/team-project-evaluation-wsk16l`,
@@ -109,14 +109,23 @@
 
 ## Backlog herdado da avaliação de equipe (pendências não-HIG)
 
-- [ ] ~560 → 261 erros de tipo restantes (81 vars locais não usadas + mismatches
-      estruturais antigos, sem impacto de runtime)
+- [x] Erros de tipo: 738 → ~155 (04/07). Unused locals/params agora são
+      responsabilidade do ESLint (noUnusedLocals off no tsc); restam apenas
+      mismatches estruturais antigos, sem impacto de runtime
 - [ ] Paginação cursor-based nas listagens + substituir `SELECT *`
 - [ ] Migration base consolidada (dump do schema como migration zero)
-- [ ] Deduplicação OFX server-side (unique constraint em
-      `(user_id, account_id, external_id)`)
+- [x] Deduplicação OFX server-side — migration
+      `20260704010000_ofx_dedup_unique_external_id.sql` (índice único parcial +
+      soft-delete de duplicatas antigas) + import tolera 23505 linha a linha.
+      ⚠️ Aplicar a migration no Supabase (supabase db push ou dashboard)
 - [ ] Onboarding interativo passo-a-passo
-- [ ] Resumo semanal (WEEKLY_SUMMARY já modelado, falta cron/edge function)
-- [ ] Playwright no CI + coverage threshold
-- [ ] Reduzir chunk page-shared (574 KB)
-- [ ] Atualizar ~60 dependências desatualizadas
+- [x] Resumo semanal — JÁ IMPLEMENTADO em notificationGenerator
+      (generateWeeklySummaryNotification, roda quando weekly_summary_enabled);
+      item estava desatualizado
+- [x] Playwright no CI (job e2e chromium; requer VITE_SUPABASE_URL/ANON_KEY
+      como vars/secrets do repo) + coverage threshold baseline (55/43/41/52)
+- [ ] Reduzir chunk page-shared (574 KB) — tentado via manualChunks em
+      04/07: gera chunks circulares (imports cruzados pages<->components).
+      Pré-requisito: desacoplar imports de src/pages/* dentro de components/
+- [~] Dependências: @supabase/supabase-js 2.110 e @sentry/react 10.63
+      atualizados (04/07); restante fica com o Dependabot semanal

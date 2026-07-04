@@ -161,22 +161,44 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
         }
       }
 
+      // O índice único (user_id, account_id, external_id) barra duplicatas que
+      // a checagem em memória não vê (ex.: import repetido em outra sessão).
+      // Se o lote inteiro falhar por 23505, insere linha a linha pulando conflitos.
+      let insertedCount = 0;
       if (newTransactions.length > 0) {
-        await insertRecords("transactions", newTransactions);
+        try {
+          await insertRecords("transactions", newTransactions);
+          insertedCount = newTransactions.length;
+        } catch (bulkError: unknown) {
+          const code = (bulkError as { code?: string })?.code;
+          if (code !== "23505") throw bulkError;
+          for (const row of newTransactions) {
+            try {
+              await insertRecords("transactions", [row]);
+              insertedCount++;
+            } catch (rowError: unknown) {
+              if ((rowError as { code?: string })?.code === "23505") {
+                duplicateCounter++;
+              } else {
+                throw rowError;
+              }
+            }
+          }
+        }
         queryClient.invalidateQueries({ queryKey: ["transactions"] });
         queryClient.invalidateQueries({ queryKey: ["financial-summary"] });
       }
 
-      setSuccessCount(newTransactions.length);
+      setSuccessCount(insertedCount);
       setDuplicatesCount(duplicateCounter);
 
-      if (newTransactions.length > 0) {
-        toast.success(`${newTransactions.length} transações salvas com sucesso!`);
+      if (insertedCount > 0) {
+        toast.success(`${insertedCount} transações salvas com sucesso!`);
       } else {
         toast.info(`Nenhuma transação nova. ${duplicateCounter} duplicadas ignoradas.`);
       }
     } catch (error) {
-      logger.error(error);
+      logger.error(String(error));
       toast.error("Erro ao ler arquivo. Verifique o formato.");
     } finally {
       setIsUploading(false);
@@ -266,7 +288,7 @@ export function OFXImportModal({ isOpen, onClose }: OFXImportModalProps) {
               </div>
 
               {!selectedAccountId && (
-                <Alert variant="warning" className="bg-warning/10 text-warning border-warning/20">
+                <Alert variant="default" className="bg-warning/10 text-warning border-warning/20">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-xs">
                     Selecione uma conta acima para liberar o botão de upload.
