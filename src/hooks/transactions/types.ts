@@ -68,6 +68,8 @@ export interface Transaction {
   created_at: string;
   updated_at: string;
   creator_user_id?: string | null;
+  idempotency_key?: string | null;
+  is_optimistic?: boolean;
   transaction_splits?: DBTransactionSplit[];
   // Joined data
   account?: { id: string; name: string; type?: string; currency?: string; bank_id?: string | null };
@@ -127,6 +129,7 @@ export interface CreateTransactionInput {
   status?: TransactionStatus;
   enable_notification?: boolean;
   notification_date?: string;
+  idempotency_key?: string;
 }
 
 export interface TransactionFilters {

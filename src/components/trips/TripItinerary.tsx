@@ -25,6 +25,8 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, ExternalLink, MapPin, Pencil, Plus, Route, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { geocodeDestination } from "@/services/overpassService";
+import { TripRouteMap } from "./TripRouteMap";
 
 interface ItineraryItem {
   id: string;
@@ -37,6 +39,9 @@ interface ItineraryItem {
   end_time: string | null;
   order_index: number;
   created_at: string;
+  maps_url: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 import { EmptyState } from "@/components/ui/empty-state";
@@ -61,6 +66,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [mapsUrl, setMapsUrl] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -182,6 +190,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           start_time: null,
           end_time: null,
           order_index: items.length + idx,
+          maps_url: s.mapsUrl || null,
+          latitude: s.lat ?? null,
+          longitude: s.lon ?? null,
         });
       });
 
@@ -207,6 +218,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setStartTime("");
     setEndTime("");
     setMapsUrl("");
+    setLatitude(null);
+    setLongitude(null);
   };
 
   const handleOpenDialog = (item?: ItineraryItem) => {
@@ -219,7 +232,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       setLocation(item.location || "");
       setStartTime(item.start_time || "");
       setEndTime(item.end_time || "");
-      setMapsUrl(meta.mapsUrl || "");
+      setMapsUrl(item.maps_url || meta.mapsUrl || "");
+      setLatitude(item.latitude);
+      setLongitude(item.longitude);
     } else {
       setEditingItem(null);
       resetForm();
@@ -227,24 +242,33 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setShowDialog(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!date || !title) return;
 
-    // Embute mapsUrl nos metadados da descrição
-    const metadata = JSON.stringify({ mapsUrl: mapsUrl || "", rating: null });
-    const fullDescription = description
-      ? `${description}\n<!--meta:${metadata}-->`
-      : `<!--meta:${metadata}-->`;
+    let resolvedLatitude = latitude;
+    let resolvedLongitude = longitude;
+    if (location && (resolvedLatitude === null || resolvedLongitude === null)) {
+      setIsGeocoding(true);
+      const coordinates = await geocodeDestination(
+        `${location}${trip.destination ? `, ${trip.destination}` : ""}`
+      );
+      setIsGeocoding(false);
+      resolvedLatitude = coordinates?.lat ?? null;
+      resolvedLongitude = coordinates?.lon ?? null;
+    }
 
     const itemData = {
       trip_id: tripId,
       date,
       title,
-      description: fullDescription,
+      description: description || null,
       location: location || null,
       start_time: startTime || null,
       end_time: endTime || null,
       order_index: items.length,
+      maps_url: mapsUrl || null,
+      latitude: resolvedLatitude,
+      longitude: resolvedLongitude,
     };
 
     if (editingItem) {
@@ -292,7 +316,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           open={showDialog}
           onOpenChange={setShowDialog}
           isEditing={!!editingItem}
-          isLoading={createItem.isPending || updateItem.isPending}
+          isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
           date={date}
           setDate={setDate}
           title={title}
@@ -334,6 +358,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       </div>
 
       {/* Lista agrupada por data */}
+      <TripRouteMap items={items} />
+
       <div className="space-y-6">
         {Object.entries(groupedItems).map(([dateKey, dayItems]) => (
           <div key={dateKey} className="space-y-3">
@@ -373,7 +399,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                       <div className="flex gap-1 mt-2">
                         <a
                           href={(() => {
-                            if (meta.mapsUrl) return meta.mapsUrl;
+                            if (item.maps_url || meta.mapsUrl) return item.maps_url || meta.mapsUrl;
                             const query = encodeURIComponent(
                               (item.location || item.title) +
                                 (trip.destination ? ", " + trip.destination : "")
@@ -404,7 +430,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
                           title="Abrir no Google Maps"
                         >
                           <MapPin className="h-3 w-3" />
-                          Maps{meta.mapsUrl ? " ✓" : ""}
+                          Maps{item.maps_url || meta.mapsUrl ? " ✓" : ""}
                         </a>
                         {meta.rating && (
                           <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
@@ -439,7 +465,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         open={showDialog}
         onOpenChange={setShowDialog}
         isEditing={!!editingItem}
-        isLoading={createItem.isPending || updateItem.isPending}
+        isLoading={createItem.isPending || updateItem.isPending || isGeocoding}
         date={date}
         setDate={setDate}
         title={title}

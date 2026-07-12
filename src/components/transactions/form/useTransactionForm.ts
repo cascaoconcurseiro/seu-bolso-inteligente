@@ -299,6 +299,9 @@ export function useTransactionForm({
       }
       const accountId = store.accountId;
       const hasDuplicate = allTransactions.some((tx) => {
+        // onMutate adiciona a própria transação ao cache antes da resposta do servidor.
+        // Ela não é uma duplicata e não deve disparar o aviso durante o salvamento.
+        if (tx.is_optimistic || tx.id.startsWith("temp-")) return false;
         if (initialData && tx.id === initialData.id) return false;
         if (initialData && initialData.series_id && tx.series_id === initialData.series_id)
           return false;

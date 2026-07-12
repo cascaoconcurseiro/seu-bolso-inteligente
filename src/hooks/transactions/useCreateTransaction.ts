@@ -94,41 +94,12 @@ export function useCreateTransaction() {
         .eq("linked_user_id", user.id)
         .maybeSingle();
 
-      // [B-17] Duplicate check — verifica transações recentes (últimos 60s)
-      // sem .gt("created_at",...) para evitar erros 400 de formato de timestamp no PostgREST
-      const recentWindow = new Date(Date.now() - 60000).toISOString().replace(/\.\d{3}Z$/, "Z");
+      // A chave acompanha a mesma tentativa em retries e é protegida por índice único no banco.
+      // Transações legitimamente iguais continuam permitidas em tentativas diferentes.
+      const idempotencyKey = input.idempotency_key || crypto.randomUUID();
+      input.idempotency_key = idempotencyKey;
 
-      const existingTxPromise = supabase
-        .from("transactions")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("amount", input.amount)
-        .eq("description", (input.description || "").trim())
-        .eq("date", input.date)
-        .is("deleted_at", null)
-        .gte("created_at", recentWindow)
-        .maybeSingle();
-
-      const existingTxPromise2 = input.account_id
-        ? supabase
-            .from("transactions")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("amount", input.amount)
-            .eq("description", (input.description || "").trim())
-            .eq("date", input.date)
-            .eq("account_id", input.account_id)
-            .is("deleted_at", null)
-            .gte("created_at", recentWindow)
-            .maybeSingle()
-        : Promise.resolve({ data: null });
-
-      const [accResult, memberResult, existingTxResult, existingTxResult2] = await Promise.all([
-        accDataPromise,
-        memberDataPromise,
-        existingTxPromise,
-        existingTxPromise2,
-      ]);
+      const [accResult, memberResult] = await Promise.all([accDataPromise, memberDataPromise]);
 
       let cardClosingDay: number | null = null;
       if (accResult.data && accResult.data.type === "CREDIT_CARD") {
@@ -243,13 +214,6 @@ export function useCreateTransaction() {
         throw new Error("A descrição é obrigatória");
       }
 
-      // [B-17] TRAVA DE DUPLICIDADE — janela de 15s, com e sem account_id
-      if (existingTxResult.data || existingTxResult2?.data) {
-        throw new Error(
-          "⚠️ Transação duplicada detectada! Aguarde alguns segundos ou verifique se já foi lançada."
-        );
-      }
-
       const { splits, transaction_splits, ...transactionData } = input;
 
       // Parcelamento — usa RPC atômica (ARC-02: rollback automático se splits falharem)
@@ -337,6 +301,7 @@ export function useCreateTransaction() {
 
           transactionsForRpc.push({
             ...transactionData,
+            idempotency_key: `${idempotencyKey}:${currentInstNum}`,
             amount: currentAmount.toNumber(),
             date: formattedDate,
             competence_date: competenceDate,

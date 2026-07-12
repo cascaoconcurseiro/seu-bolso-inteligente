@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { moneyUtils } from "@/utils/money";
 import { CurrencyInput } from "@/components/ui/currency-input";
 

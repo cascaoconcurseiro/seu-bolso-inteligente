@@ -2421,6 +2421,9 @@ export type Database = {
           end_time: string | null
           id: string
           location: string | null
+          latitude: number | null
+          longitude: number | null
+          maps_url: string | null
           order_index: number
           start_time: string | null
           title: string
@@ -2433,6 +2436,9 @@ export type Database = {
           end_time?: string | null
           id?: string
           location?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
           order_index?: number
           start_time?: string | null
           title: string
@@ -2445,6 +2451,9 @@ export type Database = {
           end_time?: string | null
           id?: string
           location?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
           order_index?: number
           start_time?: string | null
           title?: string
