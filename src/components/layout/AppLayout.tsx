@@ -19,7 +19,6 @@ import {
   Search,
   Grid3X3,
 } from "lucide-react";
-import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { navigationItems, secondaryNavItems } from "@/config/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +31,21 @@ import {
 import { NotificationButton } from "./NotificationButton";
 import { MonthSelector } from "./MonthSelector";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
-import { TransactionModal } from "@/components/modals/TransactionModal";
 import { MobileNav } from "./MobileNav";
 import { VersionGuard } from "./VersionGuard";
 import { usePrivacy } from "@/contexts/PrivacyContext";
 import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { lazy, Suspense } from "react";
+
+const GlobalSearch = lazy(() =>
+  import("@/components/search/GlobalSearch").then((module) => ({ default: module.GlobalSearch }))
+);
+const TransactionModal = lazy(() =>
+  import("@/components/modals/TransactionModal").then((module) => ({
+    default: module.TransactionModal,
+  }))
+);
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -99,7 +107,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Detectar contexto baseado na rota atual
   const handleNewTransaction = () => {
     // Extrair contexto da URL
-    const context: Record<string, any> = {};
+    const context: Record<string, string> = {};
 
     // Se estiver em uma viagem específica
     if (location.pathname.startsWith("/viagens/")) {
@@ -333,9 +341,17 @@ export function AppLayout({ children }: AppLayoutProps) {
       <MobileNav />
 
       {/* Global Transaction Modal */}
-      <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
+      {showTransactionModal && (
+        <Suspense fallback={null}>
+          <TransactionModal open={showTransactionModal} onOpenChange={setShowTransactionModal} />
+        </Suspense>
+      )}
 
-      <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
+      {showSearch && (
+        <Suspense fallback={null}>
+          <GlobalSearch open={showSearch} onOpenChange={setShowSearch} />
+        </Suspense>
+      )}
     </div>
   );
 }

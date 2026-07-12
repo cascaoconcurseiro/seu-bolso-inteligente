@@ -5,7 +5,7 @@ import {
   precacheAndRoute,
 } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { NetworkFirst } from "workbox-strategies";
+import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
@@ -22,23 +22,34 @@ cleanupOutdatedCaches();
 // SPA fallback
 registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
 
-// Cache Supabase API (NetworkFirst) — exclui endpoints de autenticação
+// Assets são armazenados somente quando usados. Assim a instalação da PWA
+// não disputa banda com a primeira tela em conexões móveis.
 registerRoute(
-  ({ url }) => {
-    if (!url.hostname.includes("supabase.co")) return false;
-    // [SEC] Nunca cachear tokens/auth endpoints
-    const path = url.pathname;
-    if (path.includes("/auth/") || path.includes("/token")) return false;
-    return true;
-  },
-  new NetworkFirst({
-    cacheName: "supabase-api-cache",
+  ({ request, url }) =>
+    url.origin === self.location.origin &&
+    (request.destination === "script" || request.destination === "style"),
+  new StaleWhileRevalidate({
+    cacheName: "app-assets",
     plugins: [
-      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 60 * 60 }), // [B-28] 1h em vez de 7 dias
       new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 }),
     ],
   })
 );
+
+registerRoute(
+  ({ request, url }) => url.origin === self.location.origin && request.destination === "font",
+  new CacheFirst({
+    cacheName: "app-fonts",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 12, maxAgeSeconds: 365 * 24 * 60 * 60 }),
+    ],
+  })
+);
+
+// Dados financeiros não ficam em texto puro no Cache Storage. O modo offline
+// usa o persister criptografado do React Query no IndexedDB.
 
 // ─── Push Notifications ─────────────────────────────────────────────────────
 

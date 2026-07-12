@@ -19,18 +19,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        display: ["-apple-system", "BlinkMacSystemFont", "Segoe UI", "system-ui", "sans-serif"],
         // Fonte do sistema no corpo (SF Pro no iOS, Roboto no Android) — HIG;
-        // Inter como fallback web. Display/mono mantêm a identidade da marca.
-        sans: [
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "system-ui",
-          "Inter",
-          "Segoe UI",
-          "sans-serif",
-        ],
-        mono: ["JetBrains Mono", "monospace"],
+        // Sem fontes remotas no caminho crítico: abertura imediata e sem layout shift.
+        sans: ["-apple-system", "BlinkMacSystemFont", "system-ui", "Segoe UI", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
         "/api/ai": {
           target: "https://api.groq.com/openai/v1/chat/completions",
           changeOrigin: true,
-          rewrite: (path) => "",
+          rewrite: () => "",
           configure: (proxy) => {
             proxy.on("proxyReq", (proxyReq) => {
               const key = env.VITE_GROQ_API_KEY;
@@ -58,7 +58,13 @@ export default defineConfig(({ mode }) => {
         strategies: "injectManifest",
         srcDir: "src",
         filename: "sw.ts",
-        includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+        includeAssets: [
+          "favicon.ico",
+          "apple-touch-icon.png",
+          "masked-icon.svg",
+          "icon-192.png",
+          "icon-512.png",
+        ],
         manifest: {
           name: "Pé de Meia",
           short_name: "Pé de Meia",
@@ -77,9 +83,9 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
-        injectManifestConfig: {
+        injectManifest: {
           maximumFileSizeToCacheInBytes: 2097152, // 2MB
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+          globPatterns: ["index.html", "manifest.webmanifest"],
           // Splash screens iOS são buscadas pelo SO no launch — não precachear
           globIgnores: ["splash/**"],
         },
@@ -97,87 +103,6 @@ export default defineConfig(({ mode }) => {
       // bundles — evita expor o código-fonte publicamente em produção
       sourcemap: "hidden",
       chunkSizeWarningLimit: 950,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            // Vendors React core
-            if (
-              id.includes("node_modules/react/") ||
-              id.includes("node_modules/react-dom/") ||
-              id.includes("node_modules/react-router-dom/")
-            ) {
-              return "vendor-react";
-            }
-            // Tanstack Query
-            if (id.includes("node_modules/@tanstack/")) {
-              return "vendor-query";
-            }
-            // Radix UI
-            if (id.includes("node_modules/@radix-ui/")) {
-              return "vendor-ui";
-            }
-            // Recharts
-            if (id.includes("node_modules/recharts") || id.includes("node_modules/d3-")) {
-              return "vendor-charts";
-            }
-            // Supabase client
-            if (id.includes("node_modules/@supabase/")) {
-              return "vendor-supabase";
-            }
-            // Date utilities
-            if (id.includes("node_modules/date-fns")) {
-              return "vendor-date";
-            }
-            // DOMPurify
-            if (
-              id.includes("node_modules/dompurify") ||
-              id.includes("node_modules/isomorphic-dompurify")
-            ) {
-              return "vendor-purify";
-            }
-            // html2canvas (heavy lib usada em Relatórios)
-            if (id.includes("node_modules/html2canvas")) {
-              return "vendor-html2canvas";
-            }
-            // Sonner toasts
-            if (id.includes("node_modules/sonner")) {
-              return "vendor-sonner";
-            }
-            // Export utilities (PDF e Excel) — chunks separados para evitar aviso de tamanho
-            if (id.includes("node_modules/jspdf")) {
-              return "vendor-jspdf";
-            }
-            if (id.includes("node_modules/exceljs") || id.includes("node_modules/file-saver")) {
-              return "vendor-excel";
-            }
-            // Lucide icons
-            if (id.includes("node_modules/lucide-react")) {
-              return "vendor-icons";
-            }
-            // NOTA (04/07/2026): tentativa de extrair components/{transactions,
-            // shared,trips} em feature-chunks gerou chunks circulares (imports
-            // cruzados pages<->components, risco de TDZ em runtime). Reduzir o
-            // page-shared (574 KB) exige antes desacoplar esses imports.
-            // Pages (lazy chunks por rota)
-            if (id.includes("/src/pages/Reports")) return "page-reports";
-            if (id.includes("/src/pages/SharedExpenses")) return "page-shared";
-            if (id.includes("/src/pages/Trips")) return "page-trips";
-            if (id.includes("/src/pages/GoalsAndInvestments")) return "page-goals";
-            if (id.includes("/src/pages/CreditCards")) return "page-creditcards";
-            if (id.includes("/src/pages/Settings")) return "page-settings";
-            // Services (notification e prediction em chunk próprio)
-            if (
-              id.includes("/src/services/notificationService") ||
-              id.includes("/src/services/notificationGenerator")
-            ) {
-              return "services-notifications";
-            }
-            if (id.includes("/src/services/categoryPrediction")) {
-              return "services-prediction";
-            }
-          },
-        },
-      },
     },
     test: {
       globals: true,
