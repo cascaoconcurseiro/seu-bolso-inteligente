@@ -113,7 +113,7 @@
       responsabilidade do ESLint (noUnusedLocals off no tsc); restam apenas
       mismatches estruturais antigos, sem impacto de runtime
 - [ ] Paginação cursor-based nas listagens + substituir `SELECT *`
-- [ ] Migration base consolidada (dump do schema como migration zero)
+- [x] Migration base consolidada — baseline de cutover reproduzivel em `supabase/baseline/20260713_public_schema.sql` (36 tabelas, 164 funcoes, ACLs; SHA-256 estavel).
 - [x] Deduplicação OFX server-side — migration
       `20260704010000_ofx_dedup_unique_external_id.sql` (índice único parcial +
       soft-delete de duplicatas antigas) + import tolera 23505 linha a linha.
