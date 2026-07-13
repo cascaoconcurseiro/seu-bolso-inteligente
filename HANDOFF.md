@@ -15,6 +15,59 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - API autenticada v2, etapa 8
+
+### Objetivo
+
+Eliminar IDs de usuario controlados pelo cliente nas RPCs financeiras, fechar a criacao compartilhada em uma unica transacao atomica e tornar grants e isolamento verificaveis no CI.
+
+### Diagnostico e causa raiz
+
+- Dezessete RPCs aceitavam `p_user_id` ou IDs de recursos sem uma fronteira uniforme baseada em `auth.uid()`.
+- A criacao de transacao compartilhada tinha fallback cliente em duas escritas, capaz de deixar transacao orfa ou splits parciais.
+- As novas funcoes herdavam `EXECUTE` de `PUBLIC`; revogar apenas de `anon` nao remove esse privilegio efetivo.
+- O checklist antigo afirmava incorretamente que o cache do PostgREST exigia `GRANT EXECUTE TO anon`.
+- Nao havia teste vivo automatizavel para grants, assinaturas legadas e isolamento entre tenants.
+
+### Decisoes e alteracoes
+
+- Criadas 17 assinaturas v2 sem `p_user_id`; a identidade vem exclusivamente de `auth.uid()`.
+- Conta e viagem recebem validacao adicional de ownership/membership no banco.
+- Assinaturas legadas e APIs de ledger quebradas foram retiradas de `authenticated`.
+- O frontend foi migrado para v2 e o fallback nao atomico de transacao compartilhada foi removido.
+- `EXECUTE` foi revogado de `PUBLIC` e `anon` em todas as funcoes dos schemas `public` e `private`; default privileges impedem nova exposicao acidental.
+- Criado teste de banco que valida 17 RPCs v2, 17 legadas e isolamento cross-user, sem persistir dados.
+- O CI passa a exigir `SUPABASE_DB_URL` para executar o contrato vivo de seguranca.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713112000_create_authenticated_api_v2.sql`.
+- `supabase/migrations/20260713114500_revoke_public_function_execution.sql`.
+- `scripts/test-database-security.mjs`.
+- `.github/workflows/ci.yml`, `package.json`.
+- Hooks de dashboard, compartilhados, orcamentos, patrimonio, extrato e criacao de transacao.
+- `src/integrations/supabase/types.ts`.
+- Duas migracoes aplicadas no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Sete RPCs de leitura v2 executadas com sessao real em producao.
+- [x] Assinatura legada de dashboard recusada com SQLSTATE `42501`.
+- [x] Teste vivo aprovou 17 RPCs v2, 17 legadas e isolamento de conta entre dois usuarios.
+- [x] `anon` sem execucao efetiva via heranca de `PUBLIC` nas assinaturas verificadas.
+- [x] ESLint focado sem erros; 14 avisos preexistentes registrados.
+- [x] Tipos v2 completos e `git diff --check` aprovado.
+- [x] 32 testes focados aprovados; 7 cenarios dependentes de ambiente ignorados.
+- [x] Build Vite de producao e service worker PWA aprovados.
+- [ ] Typecheck global bloqueado por divida preexistente agora explicitada; sera zerado em bloco proprio.
+
+### Proximo passo
+
+- Resolver advisors de RLS, mover `pg_trgm`, revisar administracao e configurar protecao de senha/MFA.
+- Depois corrigir drift de migrations, tipos globais, cache/paginacao, bundle/PDF, UX, viagens e operacoes.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 7
 
 ### Objetivo

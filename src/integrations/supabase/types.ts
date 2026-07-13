@@ -3913,8 +3913,16 @@ export type Database = {
         Args: { p_transactions: Json; p_user_id?: string }
         Returns: Json
       }
+      create_installment_series_v2: {
+        Args: { p_transactions: Json }
+        Returns: Json
+      }
       create_transaction_with_splits: {
         Args: { p_splits?: Json; p_transaction: Json; p_user_id?: string }
+        Returns: Json
+      }
+      create_transaction_with_splits_v2: {
+        Args: { p_splits?: Json; p_transaction: Json }
         Returns: Json
       }
       delete_installment_series: {
@@ -3960,6 +3968,10 @@ export type Database = {
         Args: { p_account_id: string; p_date?: string }
         Returns: number
       }
+      get_account_balance_at_date_v2: {
+        Args: { p_account_id: string; p_date: string }
+        Returns: number
+      }
       get_actual_closing_date: {
         Args: { p_closing_day: number; p_mode: string; p_year_month: string }
         Returns: string
@@ -4001,8 +4013,22 @@ export type Database = {
           total_debits: number
         }[]
       }
+      get_current_shared_debts_v2: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          currency: string
+          member_id: string
+          net_balance: number
+          total_credits: number
+          total_debits: number
+        }[]
+      }
       get_dashboard_summary: {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: Json
+      }
+      get_dashboard_summary_v2: {
+        Args: { p_end_date: string; p_start_date: string }
         Returns: Json
       }
       get_expenses_by_category: {
@@ -4053,8 +4079,21 @@ export type Database = {
         Args: { p_months: number; p_user_id: string }
         Returns: Json
       }
+      get_monthly_evolution_report_v2: {
+        Args: { p_months: number }
+        Returns: Json
+      }
       get_monthly_financial_summary: {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          net_savings: number
+          total_balance: number
+          total_expenses: number
+          total_income: number
+        }[]
+      }
+      get_monthly_financial_summary_v2: {
+        Args: { p_end_date: string; p_start_date: string }
         Returns: {
           net_savings: number
           total_balance: number
@@ -4073,7 +4112,19 @@ export type Database = {
           shared_debts: number
         }[]
       }
+      get_monthly_projection_v2: {
+        Args: { p_currency?: string; p_end_date: string }
+        Returns: {
+          credit_card_invoices: number
+          current_balance: number
+          future_expenses: number
+          future_income: number
+          projected_balance: number
+          shared_debts: number
+        }[]
+      }
       get_net_worth: { Args: { p_user_id: string }; Returns: Json }
+      get_net_worth_v2: { Args: never; Returns: Json }
       get_pending_splits_for_settlement: {
         Args: {
           p_creditor_user_id: string
@@ -4105,6 +4156,10 @@ export type Database = {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
         Returns: Json
       }
+      get_shared_expense_summary_by_person_v2: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: Json
+      }
       get_shared_finances_summary: {
         Args: { p_user_id: string }
         Returns: {
@@ -4116,6 +4171,7 @@ export type Database = {
         }[]
       }
       get_shared_invoice_data: { Args: { p_user_id: string }; Returns: Json }
+      get_shared_invoice_data_v2: { Args: never; Returns: Json }
       get_shared_transactions_for_current_user: {
         Args: never
         Returns: {
@@ -4165,6 +4221,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_trip_participant_balances_v2: {
+        Args: { p_trip_id: string }
+        Returns: {
+          balance: number
+          currency: string
+          name: string
+          owes: number
+          paid: number
+          participant_id: string
+          user_id: string
+        }[]
+      }
       get_user_budgets_progress: {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
         Returns: {
@@ -4181,8 +4249,42 @@ export type Database = {
           spent_amount: number
         }[]
       }
+      get_user_budgets_progress_v2: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          budget_amount: number
+          budget_id: string
+          budget_name: string
+          category_icon: string
+          category_id: string
+          category_name: string
+          currency: string
+          percentage_used: number
+          period: string
+          remaining_amount: number
+          spent_amount: number
+        }[]
+      }
       get_user_budgets_progress_with_rollover: {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          _original_budget: number
+          _rollover: number
+          budget_amount: number
+          budget_id: string
+          budget_name: string
+          category_icon: string
+          category_id: string
+          category_name: string
+          currency: string
+          percentage_used: number
+          period: string
+          remaining_amount: number
+          spent_amount: number
+        }[]
+      }
+      get_user_budgets_progress_with_rollover_v2: {
+        Args: { p_end_date: string; p_start_date: string }
         Returns: {
           _original_budget: number
           _rollover: number
@@ -4273,6 +4375,13 @@ export type Database = {
       get_user_trip_ids: { Args: { p_user_id: string }; Returns: string[] }
       get_wealth_evolution: {
         Args: { p_currency?: string; p_months?: number; p_user_id: string }
+        Returns: {
+          balance: number
+          month_label: string
+        }[]
+      }
+      get_wealth_evolution_v2: {
+        Args: { p_currency?: string; p_months?: number }
         Returns: {
           balance: number
           month_label: string
@@ -4382,6 +4491,15 @@ export type Database = {
         Args: { p_split_ids: string[] }
         Returns: Json
       }
+      request_settlement_v2: {
+        Args: {
+          p_account_id: string
+          p_amount?: number
+          p_is_payment: boolean
+          p_split_ids: string[]
+        }
+        Returns: Json
+      }
       set_pin: {
         Args: { p_pin: string; p_require_on_open?: boolean }
         Returns: boolean
@@ -4477,6 +4595,10 @@ export type Database = {
       }
       undo_settlement: {
         Args: { p_split_id: string; p_user_id: string }
+        Returns: Json
+      }
+      undo_settlement_v2: {
+        Args: { p_split_id: string }
         Returns: Json
       }
       undo_shared_settlements: {

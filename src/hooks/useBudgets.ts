@@ -40,8 +40,7 @@ export const useBudgets = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc("get_user_budgets_progress_with_rollover", {
-        p_user_id: user.id,
+      const { data, error } = await supabase.rpc("get_user_budgets_progress_with_rollover_v2", {
         p_start_date: startDate,
         p_end_date: endDate,
       });

@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "test": "vitest run",
+    "test:db-security": "node scripts/test-database-security.mjs",
     "test:watch": "vitest",
     "preview": "vite preview"
   },

@@ -15,8 +15,7 @@ export function useFinancialSummary(month: Date) {
     queryKey: ["financial-summary", user?.id, startDate, endDate],
     queryFn: async () => {
       try {
-        const data = await callRPCWithRetry("get_monthly_financial_summary", {
-          p_user_id: user!.id,
+        const data = await callRPCWithRetry("get_monthly_financial_summary_v2", {
           p_start_date: startDate,
           p_end_date: endDate,
         });

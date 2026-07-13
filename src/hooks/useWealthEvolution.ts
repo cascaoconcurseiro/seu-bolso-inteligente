@@ -20,8 +20,7 @@ export function useWealthEvolution(currency: string = "BRL", months: number = 6)
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc("get_wealth_evolution", {
-        p_user_id: user.id,
+      const { data, error } = await supabase.rpc("get_wealth_evolution_v2", {
         p_months: months,
         p_currency: currency,
       });

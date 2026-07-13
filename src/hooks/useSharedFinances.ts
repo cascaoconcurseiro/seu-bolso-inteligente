@@ -62,9 +62,7 @@ export const useSharedFinances = ({
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry("get_current_shared_debts", {
-          p_user_id: user.id,
-        });
+        const data = await rpcWithRetry("get_current_shared_debts_v2", {});
         return data as Array<{
           member_id: string;
           currency: string;
@@ -92,9 +90,7 @@ export const useSharedFinances = ({
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry("get_shared_invoice_data", {
-          p_user_id: user.id,
-        });
+        const data = await rpcWithRetry("get_shared_invoice_data_v2", {});
         return data;
       } catch (error) {
         logger.error("Erro ao buscar dados consolidados de finanças compartilhadas", error);

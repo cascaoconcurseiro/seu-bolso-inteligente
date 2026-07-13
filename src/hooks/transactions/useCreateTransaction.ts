@@ -315,9 +315,8 @@ export function useCreateTransaction() {
           });
         }
 
-        const { data: rpcData, error } = await supabase.rpc("create_installment_series", {
+        const { data: rpcData, error } = await supabase.rpc("create_installment_series_v2", {
           p_transactions: transactionsForRpc,
-          p_user_id: user.id,
         });
 
         if (error) {
@@ -483,56 +482,18 @@ export function useCreateTransaction() {
         });
 
         const { data: rpcResult, error: rpcError } = await supabase.rpc(
-          "create_transaction_with_splits",
+          "create_transaction_with_splits_v2",
           {
             p_transaction: txPayload,
             p_splits: splitsPayload,
-            p_user_id: user.id,
           }
         );
 
         if (rpcError) {
-          logger.error(
-            "Erro ao criar transação+splits (RPC atômica), tentando fallback direto:",
-            rpcError
-          );
-
-          // Fallback: insert transaction + splits diretamente
-          const { data: fallbackTx, error: fallbackTxError } = await supabase
-            .from("transactions")
-            .insert({ user_id: user.id, creator_user_id: user.id, ...txPayload })
-            .select()
-            .single();
-
-          if (fallbackTxError) {
-            logger.error("Fallback transaction insert também falhou:", fallbackTxError);
-            throw fallbackTxError;
-          }
-
-          // Insert splits
-          if (splitsPayload.length > 0) {
-            const splitsToInsert = splitsPayload.map((s: Record<string, unknown>) => ({
-              ...s,
-              transaction_id: fallbackTx.id,
-            }));
-            const { error: splitsError } = await supabase
-              .from("transaction_splits")
-              .insert(splitsToInsert);
-
-            if (splitsError) {
-              logger.error(
-                "Fallback splits insert falhou, tentando deletar transaction órfã:",
-                splitsError
-              );
-              await supabase.from("transactions").delete().eq("id", fallbackTx.id);
-              throw splitsError;
-            }
-          }
-
-          data = fallbackTx;
-        } else {
-          data = rpcResult;
+          logger.error("Erro ao criar transação+splits pela RPC atômica:", rpcError);
+          throw rpcError;
         }
+        data = rpcResult;
       } else {
         const { data: inserted, error } = await supabase
           .from("transactions")

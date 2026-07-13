@@ -74,6 +74,28 @@ jobs:
       # (--omit=dev: a cadeia vite/esbuild só afeta o dev server e exige major bump)
       - run: npm audit --audit-level=high --omit=dev
 
+  database-security:
+    name: Database Security Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Verify live RPC grants and tenant isolation
+        if: ${{ env.SUPABASE_DB_URL != '' }}
+        run: npm run test:db-security
+      - name: Require database connection secret
+        if: ${{ env.SUPABASE_DB_URL == '' }}
+        run: |
+          echo "SUPABASE_DB_URL secret is required for database security checks"
+          exit 1
+
   e2e:
     name: E2E (Playwright chromium)
     runs-on: ubuntu-latest

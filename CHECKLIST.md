@@ -5,10 +5,21 @@
 
 ---
 
+## Concluido - 13/07/2026 - API autenticada v2 e contrato de seguranca
+
+- [x] **[API-V2]** 17 RPCs financeiras sem `p_user_id`, vinculadas a `auth.uid()`.
+- [x] **[API-V2-FE]** Frontend migrado para v2; fallback compartilhado nao atomico removido.
+- [x] **[RPC-GRANTS]** `EXECUTE` removido de `PUBLIC`/`anon`; grants futuros fechados por padrao.
+- [x] **[RPC-LEGACY]** Assinaturas legadas e APIs quebradas retiradas de clientes autenticados.
+- [x] **[DB-SEC-CI]** Teste vivo de 17 RPCs v2, 17 legadas e isolamento cross-user criado e aprovado.
+- [ ] **[TYPECHECK]** Zerar erros globais e remover `continue-on-error` do CI.
+
+---
+
 ## ✅ CONCLUÍDO — Sessão 03/07/2026 (3 migrations)
 
 ### 🔴 Bugs de produção corrigidos
-- [x] **[RPC-01]** PostgREST 404 em todas as RPCs — 52 SECURITY DEFINER functions precisavam de `GRANT EXECUTE TO anon` para schema cache
+- [x] **[RPC-01]** PostgREST 404 resolvido por recarga/correcao do schema; `anon` nao precisa e nao deve receber `EXECUTE` para alimentar o cache.
 - [x] **[RPC-02]** `create_installment_series` falhava com 42P01 — trigger órfã `trg_create_ledger_on_split` referenciava `financial_ledger` (dropada na Fase 1). Trigger + 3 funções órfãs removidas
 - [x] **[SMOKE-01]** `create_account_with_balance` — TEXT→DATE incompatível com `search_path=''`
 - [x] **[SMOKE-02]** `search_transactions` — return type `text` vs enum `transaction_type`
@@ -101,7 +112,7 @@
 - [x] **[SSOT-03 parcial]** Das 14 funções de "balance", só 3 eram realmente órfãs (sem trigger, sem RPC do frontend, sem cron job): `calculate_account_balance`, `recalculate_all_account_balances`, `sync_account_balance` — dropadas. Verificado ao vivo: as 3 não existem mais.
   - A classificacao original preservou `settle_partial_balance` apenas pelo conceito. A auditoria de 13/07/2026 confirmou que ela nao tem consumidor e aceita usuarios arbitrarios; acesso de `authenticated` foi revogado na migration `20260713100500_restrict_legacy_settlement_confirmation_rpcs.sql`.
   - `calculate_single_account_balance` foi confirmada como auxiliar interna de `recalculate_all_balances`; a execucao direta por `authenticated` foi revogada e o fluxo em lote foi preservado na migration `20260713102500_harden_account_dependency_rpcs.sql`.
-  - Permanecem para auditoria individual: `recalculate_account_balance`, `get_account_balance_at_date`, `create_account_with_balance`, `get_trip_participant_balances`, `calculate_balance_between_users`, `calculate_member_balance` e `settle_balance_between_users`.
+  - Auditoria concluida em 13/07/2026: wrappers v2 protegem saldo de conta e viagem; APIs de balanceamento legadas/quebradas foram retiradas de `authenticated`; grants globais de `PUBLIC`/`anon` foram removidos.
   - Migration local criada em `supabase/migrations/20260702084014_fix_ssot_balance_update_trigger_and_ledger_cleanup.sql` (estava só no remoto, sem arquivo local)
   - ⚠️ Teste funcional end-to-end (criar/editar/deletar transação de teste e conferir saldo) ainda **não foi feito** — bloqueado pelo classificador de permissão do Claude Code no meio da sessão
 

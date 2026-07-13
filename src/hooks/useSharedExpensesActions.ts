@@ -203,10 +203,9 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       // 2. O usuário é o credor líquido (recebendo o valor compensado)
       else if (itemsTotal > 0) {
-        const { error } = await supabase.rpc("request_settlement", {
+        const { error } = await supabase.rpc("request_settlement_v2", {
           p_split_ids: splitIds,
           p_account_id: settleAccountId,
-          p_user_id: user.id,
           p_is_payment: false,
           p_amount: amount,
         });
@@ -217,10 +216,9 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       // 3. O usuário é o devedor líquido (pagando o saldo compensado)
       else {
-        const { error } = await supabase.rpc("request_settlement", {
+        const { error } = await supabase.rpc("request_settlement_v2", {
           p_split_ids: splitIds,
           p_account_id: settleAccountId,
-          p_user_id: user.id,
           p_is_payment: true,
           p_amount: amount,
         });
@@ -260,9 +258,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     if (!item || !item.splitId) return;
 
     try {
-      const { data, error } = await supabase.rpc("undo_settlement", {
+      const { data, error } = await supabase.rpc("undo_settlement_v2", {
         p_split_id: item.splitId,
-        p_user_id: user?.id,
       });
 
       if (error) {
@@ -434,9 +431,8 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       for (const item of allPaidItems) {
         try {
           if (item.splitId) {
-            const { error } = await supabase.rpc("undo_settlement", {
+            const { error } = await supabase.rpc("undo_settlement_v2", {
               p_split_id: item.splitId,
-              p_user_id: user?.id,
             });
 
             if (error) {

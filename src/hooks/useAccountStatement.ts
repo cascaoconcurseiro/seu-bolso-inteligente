@@ -69,7 +69,7 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
 
       // ── 1. Saldo de ABERTURA do mês (via DB — Single Source of Truth) ─────
       // Usa a mesma função que as triggers usam: get_account_balance_at_date
-      const { data: openingData } = await supabase.rpc("get_account_balance_at_date", {
+      const { data: openingData } = await supabase.rpc("get_account_balance_at_date_v2", {
         p_account_id: accountId,
         p_date: monthStart,
       });

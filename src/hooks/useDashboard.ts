@@ -63,8 +63,7 @@ export function useDashboardData() {
           recent_transactions: [],
         };
 
-      const { data, error } = await (supabase.rpc as any)("get_dashboard_summary", {
-        p_user_id: user.id,
+      const { data, error } = await supabase.rpc("get_dashboard_summary_v2", {
         p_start_date: startDate,
         p_end_date: endDate,
       });
@@ -117,8 +116,7 @@ export function useMonthlyEvolutionReport(months: number = 6, currency: string =
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase.rpc("get_monthly_evolution_report", {
-        p_user_id: user.id,
+      const { data, error } = await supabase.rpc("get_monthly_evolution_report_v2", {
         p_months: months,
       });
 
