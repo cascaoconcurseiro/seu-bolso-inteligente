@@ -15,6 +15,56 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 3
+
+### Objetivo
+
+Impedir falsificacao de identidade em RPCs auxiliares de contas, transacoes e verificacao de acesso.
+
+### Diagnostico e causa raiz
+
+- Foram encontradas 28 RPCs autenticadas com IDs de usuario, devedor ou credor nos parametros.
+- `assign_default_account_to_orphans`, `migrate_transactions_to_account` e `check_split_access` confiavam diretamente em `p_user_id` sob `SECURITY DEFINER`.
+- `recalculate_all_balances` ja comparava com `auth.uid()`, mas sem tratamento explicito de sessao ausente e com `search_path=public`.
+- As assinaturas sao usadas pelo frontend atual; remove-las agora quebraria compatibilidade.
+
+### Decisoes e alteracoes
+
+- As quatro assinaturas foram preservadas para Web/PWA.
+- `p_user_id` agora e apenas um campo de compatibilidade e deve coincidir com `auth.uid()`.
+- Consultas e mutacoes usam a identidade derivada do JWT, nunca o parametro do cliente.
+- `search_path` foi fixado como vazio e todos os objetos foram qualificados.
+- Grants continuam somente para `authenticated` e `service_role`; `anon` permanece bloqueado.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713091922_bind_account_rpcs_to_auth_uid.sql`.
+- `HANDOFF.md`.
+- Migracao aplicada no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Usuario A tentando atribuir conta para usuario B recebeu `42501`.
+- [x] Usuario A tentando migrar transacoes do usuario B recebeu `42501`.
+- [x] Usuario A tentando recalcular saldos do usuario B recebeu `42501`.
+- [x] Usuario A consultando acesso de split como usuario B recebeu `false`.
+- [x] As quatro funcoes foram confirmadas com `search_path = ''`.
+- [x] As quatro funcoes permanecem inacessiveis a `anon`.
+- [x] Advisors de seguranca executados apos a migracao.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Corrigir as RPCs de leitura e relatorios que ainda aceitam `p_user_id`.
+- [ ] Auditar ownership nas RPCs de liquidacao e compartilhamento.
+- [ ] Corrigir `confirm_settlement`, `settle_split`, `settle_multiple_splits` e `undo_settlement`.
+- [ ] Corrigir funcoes com papeis `debtor` e `creditor` fornecidos pelo cliente.
+- [ ] Auditar `calculate_single_account_balance` e `check_account_dependencies` por ID de conta.
+- [ ] Criar API v2 sem `p_user_id` para Web/PWA e futuro cliente Swift.
+- [ ] Criar teste automatizado de isolamento e grants para CI.
+- [ ] Resolver `admin_users`, `pg_trgm`, senhas vazadas e MFA.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 2
 
 ### Objetivo
