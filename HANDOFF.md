@@ -15,6 +15,62 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 1
+
+### Objetivo
+
+Eliminar a execução não autenticada das funções `SECURITY DEFINER` sem interromper os fluxos autenticados do app.
+
+### Diagnóstico e causa raiz
+
+- O inventário ao vivo encontrou funções administrativas e financeiras privilegiadas executáveis por `anon`.
+- A migração de 03/07 concedeu `anon` a dezenas de funções para exposição no cache do PostgREST, confundindo descoberta da API com autorização.
+- Funções PostgreSQL também nascem executáveis por `PUBLIC` se o privilégio padrão não for alterado.
+
+### Decisão
+
+- Revogar `EXECUTE` de `PUBLIC` e `anon` em todas as funções `SECURITY DEFINER` do schema `public`.
+- Preservar grants explícitos de `authenticated` nesta etapa para não quebrar jornadas existentes.
+- Revogar o privilégio padrão de `PUBLIC` e `anon` para futuras funções criadas por `postgres`.
+- A próxima etapa revisará autorização, `auth.uid()`, ownership e `search_path` função por função.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713012529_revoke_anon_from_privileged_functions.sql`.
+- `HANDOFF.md`.
+
+### Checklist concluído
+
+- [x] Consultar documentação e changelog atuais do Supabase.
+- [x] Inventariar funções `SECURITY DEFINER` diretamente na produção.
+- [x] Confirmar grants efetivos de `anon`, `authenticated` e `PUBLIC`.
+- [x] Criar migração pelo Supabase CLI.
+- [x] Preservar acesso autenticado existente.
+- [x] Aplicar a migração principal na produção.
+- [x] Rodar advisors de segurança após a alteração.
+- [x] Confirmar zero funções privilegiadas executáveis por `anon` ou `PUBLIC` (0 de 106).
+- [x] Confirmar que os 71 grants de `authenticated` foram preservados para revisão individual.
+- [x] Executar prova negativa como `anon`; `public.is_admin()` retornou `42501 permission denied`.
+
+### Limite encontrado
+
+- O papel da migração não pode alterar privilégios padrão pertencentes a `supabase_admin` (`42501 permission denied`).
+- A migração complementar foi descartada para não deixar SQL inaplicável no histórico local.
+- O default de `postgres` está protegido. Funções criadas por ferramentas internas do Supabase ainda devem ser verificadas pelo teste de grants após cada mudança de schema.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Classificar cada RPC como cliente autenticado, administrativa, interna ou trigger.
+- [ ] Derivar identidade exclusivamente de `auth.uid()` nas operações do usuário.
+- [ ] Remover confiança em parâmetros `p_user_id` fornecidos pelo cliente.
+- [ ] Testar usuário A contra recursos do usuário B.
+- [ ] Fixar `search_path` seguro e qualificar objetos em todas as privilegiadas.
+- [ ] Restringir RPCs administrativas a administradores reais.
+- [ ] Remover funções obsoletas e grants autenticados desnecessários.
+- [ ] Criar teste automatizado que falhe se uma nova privilegiada receber `anon`.
+
+---
+
 ## Handoff da sessão - 12/07/2026
 
 ### Objetivo
