@@ -179,7 +179,7 @@
 ## 🟡 BACKLOG TÉCNICO
 
 - [ ] **[ARC-05]** PDF export via Web Worker (frontend)
-- [ ] **[SEC-08]** Criptografar cache IndexedDB (frontend)
+- [x] **[SEC-08]** Cache IndexedDB criptografado (AES-256-GCM via `encryptedStorage` no persister do TanStack Query em `PrivateAppShell`).
 - [ ] **[FEAT-01]** Relatório mensal por email (Edge Function + Resend)
 - [ ] **[CONC-01]** Teste de concorrência real (pgbench em staging)
 - [x] **[AUD-07]** ~~financial_ledger dropado~~ ✅ DONE
