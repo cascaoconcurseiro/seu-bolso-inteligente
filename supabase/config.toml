@@ -3,6 +3,13 @@ project_id = "vrrcagukyfnlhxuvnssp"
 [auth]
 additional_redirect_urls = ["https://*.vercel.app/**"]
 
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
 [functions.sync-asset-prices]
 enabled = true
 verify_jwt = true

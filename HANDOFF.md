@@ -15,6 +15,50 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - Advisors Supabase e Auth, etapa 9
+
+### Objetivo
+
+Eliminar os advisors acionaveis de RLS e extensoes, explicitar o isolamento administrativo e habilitar MFA sem contratar servicos pagos.
+
+### Diagnostico e causa raiz
+
+- Cinco tabelas tinham policies permissivas sobrepostas para o mesmo comando.
+- `admin_users` tinha RLS sem policy e ainda conservava grant direto de `SELECT` para `authenticated`.
+- `pg_trgm` estava instalado no schema `public`, exposto pela API.
+- TOTP estava desabilitado; WebAuthn avancado tentaria contratar adicional pago e retornou 422 neste projeto.
+- Protecao HIBP e exclusiva do plano Pro; o projeto atual esta no plano Free.
+
+### Decisoes e alteracoes
+
+- Policies de `error_logs`, `shared_credit_cards`, `transaction_splits`, `transactions` e `trip_invitations` foram consolidadas preservando a uniao de atores e `WITH CHECK` existentes.
+- `admin_users` perdeu grants de cliente e recebeu policy explicita de bloqueio; acesso continua somente por RPCs administrativas auditadas.
+- `pg_trgm` foi movido para `extensions`.
+- MFA TOTP foi habilitado e versionado em `supabase/config.toml`.
+- WebAuthn e MFA por telefone nao foram habilitados por custo/provedor; HIBP foi classificado como dependencia de upgrade, nao como correcao executavel no Free.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713123000_consolidate_rls_and_move_pg_trgm.sql`.
+- `supabase/config.toml`.
+- `scripts/test-database-security.mjs`.
+- `CHECKLIST.md`, `HANDOFF.md`.
+- Migracao e configuracao TOTP aplicadas em producao.
+
+### Verificacao
+
+- [x] Migração completa aprovada em dry-run transacional antes da aplicacao.
+- [x] Advisors: zero `extension_in_public`, `rls_enabled_no_policy` e `multiple_permissive_policies`.
+- [x] Advisor de MFA insuficiente removido apos `config push`.
+- [x] Nenhum custo de WebAuthn/Storage contratado; tentativa recusada antes de alteracao paga.
+- [ ] HIBP permanece como dependencia explicita de plano Pro.
+
+### Proximo passo
+
+- Reconciliar baseline e drift de `error_logs`, depois zerar o typecheck e contratos de frontend.
+
+---
+
 ## Handoff da sessao - 13/07/2026 - API autenticada v2, etapa 8
 
 ### Objetivo

@@ -12,6 +12,11 @@
 - [x] **[RPC-GRANTS]** `EXECUTE` removido de `PUBLIC`/`anon`; grants futuros fechados por padrao.
 - [x] **[RPC-LEGACY]** Assinaturas legadas e APIs quebradas retiradas de clientes autenticados.
 - [x] **[DB-SEC-CI]** Teste vivo de 17 RPCs v2, 17 legadas e isolamento cross-user criado e aprovado.
+- [x] **[PERF-ADV]** Policies duplicadas consolidadas sem alterar os atores permitidos; advisor zerado.
+- [x] **[EXT-ADV]** `pg_trgm` movido de `public` para `extensions`.
+- [x] **[ADMIN-RLS]** `admin_users` sem acesso direto e com policy de bloqueio explicita.
+- [x] **[AUTH-MFA]** MFA TOTP habilitado e versionado; advisor de opcoes insuficientes zerado.
+- [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free.
 - [ ] **[TYPECHECK]** Zerar erros globais e remover `continue-on-error` do CI.
 
 ---
@@ -70,9 +75,9 @@
 - [x] **[TYP-02]** types.ts regenerado (soft_delete_transaction + app_pin removida)
 
 ### 📋 Advisors restantes (não-bloqueantes, decisão consciente de adiar)
-- [ ] **[PERF-ADV]** 5 combos de políticas RLS permissivas múltiplas (transactions UPDATE, error_logs SELECT, shared_credit_cards SELECT/UPDATE, transaction_splits SELECT, trip_invitations UPDATE) — consolidar exige cuidado, semântica de permissão em uso
-- [ ] **[AUTH-ADV]** Habilitar leaked password protection + mais opções de MFA (config no dashboard Supabase, não é SQL)
-- [ ] **[EXT-ADV]** pg_trgm no schema public (mover é arriscado, baixo valor)
+- [x] **[PERF-ADV]** 5 conjuntos de policies consolidados em 13/07/2026; zero alerta `multiple_permissive_policies`.
+- [x] **[AUTH-ADV]** MFA TOTP habilitado. HIBP exige plano Pro e permanece em `AUTH-HIBP-PLAN`.
+- [x] **[EXT-ADV]** `pg_trgm` movido para `extensions` em 13/07/2026.
 
 ---
 

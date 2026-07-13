@@ -82,6 +82,54 @@ async function expectSqlState(sql, expectedState, label) {
 try {
   await client.connect();
 
+  const { rows: anonymousFunctions } = await client.query(`
+    select p.oid::regprocedure::text as signature
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and has_function_privilege('anon', p.oid, 'execute')
+  `);
+  assert(
+    anonymousFunctions.length === 0,
+    `public functions exposed to anon: ${anonymousFunctions.map((row) => row.signature).join(", ")}`
+  );
+
+  const { rows: extensionSchemas } = await client.query(`
+    select n.nspname as schema_name
+    from pg_extension e
+    join pg_namespace n on n.oid = e.extnamespace
+    where e.extname = 'pg_trgm'
+  `);
+  assert(extensionSchemas[0]?.schema_name === "extensions", "pg_trgm is not in extensions schema");
+
+  assert(
+    !(await client
+      .query(
+        "select has_table_privilege('authenticated', 'public.admin_users', 'select') as allowed"
+      )
+      .then(({ rows }) => rows[0].allowed)),
+    "admin_users is directly readable by authenticated"
+  );
+
+  const { rows: duplicatePolicies } = await client.query(`
+    with expanded as (
+      select schemaname, tablename, cmd, policyname,
+             unnest(roles) as policy_role
+      from pg_policies
+      where permissive = 'PERMISSIVE'
+        and schemaname = 'public'
+        and tablename = any(array[
+          'error_logs', 'shared_credit_cards', 'transaction_splits',
+          'transactions', 'trip_invitations'
+        ])
+    )
+    select tablename, cmd, policy_role, count(*)
+    from expanded
+    group by tablename, cmd, policy_role
+    having count(*) > 1
+  `);
+  assert(duplicatePolicies.length === 0, "consolidated tables have overlapping policies");
+
   for (const signature of v2Signatures) {
     assert(
       await canExecute("authenticated", signature),
