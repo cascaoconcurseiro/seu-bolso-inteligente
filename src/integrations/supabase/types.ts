@@ -713,6 +713,7 @@ export type Database = {
           url: string | null
           user_agent: string | null
           user_id: string | null
+          updated_at: string
         }
         Insert: {
           app_version?: string | null
@@ -729,6 +730,7 @@ export type Database = {
           url?: string | null
           user_agent?: string | null
           user_id?: string | null
+          updated_at?: string
         }
         Update: {
           app_version?: string | null
@@ -745,6 +747,7 @@ export type Database = {
           url?: string | null
           user_agent?: string | null
           user_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

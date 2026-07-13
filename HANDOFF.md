@@ -15,6 +15,52 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - Baseline e error logs, etapa 10
+
+### Objetivo
+
+Criar um ponto de recuperacao reproduzivel do schema e eliminar o drift perigoso entre a migration historica de `error_logs`, producao e frontend.
+
+### Diagnostico e causa raiz
+
+- O primeiro arquivo historico ja altera tabelas centrais cujo CREATE original nunca entrou no repositorio.
+- `supabase db dump` depende de Docker; o daemon nao esta instalado nesta maquina.
+- A migration antiga de `error_logs` continha senha administrativa hardcoded, nomes de colunas obsoletos e trigger removido.
+- Producao tinha trigger de `updated_at`, mas nao tinha a coluna; updates administrativos podiam falhar.
+- O historico remoto depois de 02/07 possui timestamps diferentes dos nomes locais por aplicacoes via Management API.
+
+### Decisoes e alteracoes
+
+- Criado gerador PostgreSQL independente de Docker para extensoes, enums, sequencias, tabelas, constraints, funcoes, views, indices, triggers, RLS, policies e ACLs.
+- Gerada baseline de cutover do estado atual; migrations anteriores permanecem como trilha de auditoria, nao como bootstrap vazio confiavel.
+- A migration historica de `error_logs` foi sanitizada e alinhada ao contrato atual, sem RPC por senha.
+- Migration incremental adicionou `updated_at`, fortaleceu `message/status`, corrigiu trigger e RPCs administrativas com `is_admin()` e SQLSTATEs.
+- Tipos do frontend foram atualizados.
+
+### Arquivos e banco
+
+- `scripts/generate-database-baseline.mjs` e script npm `db:baseline`.
+- `supabase/baseline/20260713_public_schema.sql` e `README.md`.
+- `supabase/migrations/20260527135500_create_error_logs.sql`.
+- `supabase/migrations/20260713133000_reconcile_error_logs_schema.sql`.
+- `src/integrations/supabase/types.ts`.
+- Correcao incremental aplicada em producao.
+
+### Verificacao
+
+- [x] Baseline gerada duas vezes com o mesmo SHA-256.
+- [x] Snapshot contem 36 tabelas, 164 funcoes, 10 views e 239 grants de funcao.
+- [x] Zero grant de funcao para `anon` no snapshot.
+- [x] Migration de `error_logs` aprovada em dry-run com `ROLLBACK` antes da aplicacao.
+- [x] 107 registros existentes validados sem `message` nula ou `status` invalido.
+- [x] Senha administrativa historica removida do arquivo de migration e da baseline.
+
+### Proximo passo
+
+- Zerar o typecheck global, unificar modelos duplicados e revisar cache, paginacao e consultas amplas.
+
+---
+
 ## Handoff da sessao - 13/07/2026 - Advisors Supabase e Auth, etapa 9
 
 ### Objetivo

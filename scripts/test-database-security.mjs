@@ -130,6 +130,22 @@ try {
   `);
   assert(duplicatePolicies.length === 0, "consolidated tables have overlapping policies");
 
+  const { rows: errorLogContract } = await client.query(`
+    select
+      exists (
+        select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'error_logs'
+          and column_name = 'updated_at' and is_nullable = 'NO'
+      ) as has_updated_at,
+      exists (
+        select 1 from pg_trigger
+        where tgrelid = 'public.error_logs'::regclass
+          and tgname = 'trg_error_logs_updated_at' and not tgisinternal
+      ) as has_update_trigger
+  `);
+  assert(errorLogContract[0].has_updated_at, "error_logs.updated_at contract is missing");
+  assert(errorLogContract[0].has_update_trigger, "error_logs updated_at trigger is missing");
+
   for (const signature of v2Signatures) {
     assert(
       await canExecute("authenticated", signature),
@@ -167,6 +183,22 @@ try {
         `select public.get_account_balance_at_date_v2('${accounts[0].id}'::uuid, current_date)`,
         "42501",
         "cross-user account isolation"
+      );
+      await client.query("rollback");
+    }
+
+    const { rows: nonAdmins } = await client.query(
+      "select id from auth.users where id <> all(select user_id from public.admin_users) limit 1"
+    );
+    if (nonAdmins.length > 0) {
+      await client.query("begin");
+      await client.query("set local role authenticated");
+      await client.query("select set_config('request.jwt.claim.sub', $1, true)", [nonAdmins[0].id]);
+      await client.query("select set_config('request.jwt.claim.role', 'authenticated', true)");
+      await expectSqlState(
+        "select public.get_admin_error_logs()",
+        "42501",
+        "admin error log isolation"
       );
       await client.query("rollback");
     }

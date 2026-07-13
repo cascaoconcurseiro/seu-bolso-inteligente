@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "node scripts/generate-version.js && vite build",
     "build:dev": "vite build --mode development",
+    "db:baseline": "node scripts/generate-database-baseline.mjs",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",

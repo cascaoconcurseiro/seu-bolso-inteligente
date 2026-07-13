@@ -16,6 +16,8 @@
 - [x] **[EXT-ADV]** `pg_trgm` movido de `public` para `extensions`.
 - [x] **[ADMIN-RLS]** `admin_users` sem acesso direto e com policy de bloqueio explicita.
 - [x] **[AUTH-MFA]** MFA TOTP habilitado e versionado; advisor de opcoes insuficientes zerado.
+- [x] **[BASELINE]** Snapshot de cutover reproduzivel: 36 tabelas, 164 funcoes, 10 views e ACLs explicitas.
+- [x] **[ERROR-LOG]** Schema reconciliado, senha historica removida e `updated_at`/RPCs corrigidos.
 - [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free.
 - [ ] **[TYPECHECK]** Zerar erros globais e remover `continue-on-error` do CI.
 
@@ -168,11 +170,8 @@
 
 ## 🟠 ALTA PRIORIDADE — Esta Semana
 
-- [ ] **[BASELINE]** Criar migration baseline (19 tabelas SQL Editor sem CREATE TABLE)
-  - Bloqueio: requer Docker (`supabase db dump`)
-  - Schema definitions capturados via RPC em schema_full.json (referência)
-- [ ] **[ERROR_LOG]** Atualizar migration `20260527135500` com schema real do `error_logs`
-  - Já documentado como comment na migration `20260701235900`
+- [x] **[BASELINE]** Baseline de cutover gerada sem Docker por introspeccao PostgreSQL e documentada em `supabase/baseline/`.
+- [x] **[ERROR_LOG]** Migration historica reconciliada e correcao incremental aplicada em producao.
 
 ---
 
