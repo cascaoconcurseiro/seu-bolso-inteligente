@@ -5,6 +5,14 @@ import { parseLocalDate } from "@/utils/dateUtils";
 import { moneyUtils } from "@/utils/money";
 import { useQuery } from "@tanstack/react-query";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import type { Trip, TripParticipant } from "@/hooks/useTrips";
+import type {
+  SentTripInvitation,
+  TripBalance,
+  TripPermissions,
+  TripTransaction,
+  TripUser,
+} from "./types";
 import {
   ArrowRight,
   Calendar,
@@ -21,28 +29,23 @@ import {
 } from "lucide-react";
 
 interface TripSummaryTabProps {
-  selectedTrip: any;
-  totalExpenses: number;
+  selectedTrip: Trip;
   myTotalSpent: number;
   myPersonalBudget: number | null;
-  participants: any[];
-  balances: any[];
-  tripTransactions: any[];
-  tripFinancialSummary: any;
-  user: any;
+  participants: TripParticipant[];
+  balances: TripBalance[];
+  tripTransactions: TripTransaction[];
+  user: TripUser;
   onAddParticipant: () => void;
-  permissions: any;
-  dateFns: any;
-  ptBR: any;
-  onRemoveClick?: (participant: any, balance: any) => void;
-  pendingInvitations?: any[];
+  permissions: TripPermissions | null | undefined;
+  onRemoveClick?: (participant: TripParticipant, balance: TripBalance) => void;
+  pendingInvitations?: SentTripInvitation[];
   onCancelInvitation?: (id: string) => void;
   setActiveTab?: (tab: string) => void;
 }
 
 export function TripSummaryTab({
   selectedTrip,
-  totalExpenses,
   myTotalSpent,
   myPersonalBudget,
   participants,
@@ -74,7 +77,7 @@ export function TripSummaryTab({
         !t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
   // Saldo do participante atual (do RPC — fonte única da verdade)
   const myBalance = balances.find((b) => b.participantId === user?.id);
@@ -83,7 +86,7 @@ export function TripSummaryTab({
     .filter((t) => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => {
       if (!t.transaction_splits) return sum;
-      const mySplit = t.transaction_splits.find((s: any) => s.user_id === user?.id);
+      const mySplit = t.transaction_splits.find((split) => split.user_id === user?.id);
       return sum + (mySplit ? Number(mySplit.amount) : 0);
     }, 0);
 
@@ -97,12 +100,12 @@ export function TripSummaryTab({
         t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
   // (c) Total de despesas compartilhadas do grupo (para exibição geral)
   const totalSharedExpenses = tripTransactions
     .filter((t) => t.type === "EXPENSE" && t.is_shared)
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
   // Busca cotação em tempo real se não for BRL
   const { data: realTimeRate } = useQuery({
@@ -127,14 +130,6 @@ export function TripSummaryTab({
     },
     enabled: currency !== "BRL",
     staleTime: 5 * 60 * 1000, // 5 minutos
-  });
-
-  const { data: session } = useQuery({
-    queryKey: ["session"],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session;
-    },
   });
 
   return (
@@ -407,11 +402,11 @@ export function TripSummaryTab({
               t.type === "EXPENSE" &&
               t.is_shared &&
               t.transaction_splits?.some(
-                (s: any) =>
-                  s.user_id !== user?.id && // não sou eu que devo
+                (split) =>
+                  split.user_id !== user?.id && // não sou eu que devo
                   (t.creator_user_id === user?.id || t.user_id === user?.id) && // eu paguei
-                  s.settled_by_debtor === true &&
-                  !s.settled_by_creditor
+                  split.settled_by_debtor === true &&
+                  !split.settled_by_creditor
               )
           );
 
@@ -420,10 +415,10 @@ export function TripSummaryTab({
               t.type === "EXPENSE" &&
               t.is_shared &&
               t.transaction_splits?.some(
-                (s: any) =>
-                  s.user_id === user?.id && // eu devo
-                  s.settled_by_debtor === true &&
-                  !s.settled_by_creditor
+                (split) =>
+                  split.user_id === user?.id && // eu devo
+                  split.settled_by_debtor === true &&
+                  !split.settled_by_creditor
               )
           );
 
@@ -633,7 +628,8 @@ export function TripSummaryTab({
                                   t.user_id === participant.user_id
                               )
                               .reduce(
-                                (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+                                (sum, t) =>
+                                  SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(),
                                 0
                               ),
                             currency
@@ -648,7 +644,19 @@ export function TripSummaryTab({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      onClick={() => onRemoveClick(participant, balance || null)}
+                      onClick={() =>
+                        onRemoveClick(
+                          participant,
+                          balance ?? {
+                            participantId: participant.user_id ?? participant.id,
+                            name: participant.name,
+                            paid: 0,
+                            owes: 0,
+                            balance: 0,
+                            currency,
+                          }
+                        )
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

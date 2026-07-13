@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
-const APP_VERSION = import.meta.env.VITE_APP_VERSION || "unknown";
+const APP_VERSION =
+  typeof import.meta.env.VITE_APP_VERSION === "string"
+    ? import.meta.env.VITE_APP_VERSION
+    : "unknown";
 
 interface ErrorPayload {
   error_type: string;
@@ -10,7 +14,27 @@ interface ErrorPayload {
   file?: string;
   line?: number;
   col?: number;
-  extra?: Record<string, unknown>;
+  extra?: Json;
+}
+
+function toJson(value: unknown): Json {
+  if (value === null || ["string", "number", "boolean"].includes(typeof value)) {
+    return value as string | number | boolean | null;
+  }
+
+  if (Array.isArray(value)) return value.map(toJson);
+
+  if (typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, toJson(item)]));
+  }
+
+  return String(value);
+}
+
+function isErrorPayload(value: unknown): value is ErrorPayload {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.error_type === "string" && typeof candidate.message === "string";
 }
 
 async function send(payload: ErrorPayload) {
@@ -36,7 +60,7 @@ export function logError(error: unknown, extra?: Record<string, unknown>) {
     error_type: err.name || "Error",
     message: err.message,
     stack: err.stack?.slice(0, 2000),
-    extra,
+    extra: extra ? toJson(extra) : undefined,
   });
 }
 
@@ -44,8 +68,9 @@ async function flushPendingErrors() {
   try {
     const raw = localStorage.getItem("pending_error_log");
     if (!raw) return;
-    const pending = JSON.parse(raw);
-    if (!pending?.length) return;
+    const parsed: unknown = JSON.parse(raw);
+    const pending = Array.isArray(parsed) ? parsed.filter(isErrorPayload) : [];
+    if (pending.length === 0) return;
     localStorage.removeItem("pending_error_log");
     const {
       data: { user },

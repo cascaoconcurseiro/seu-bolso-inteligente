@@ -29,9 +29,9 @@ function calculateBackoffDelay(attempt: number, baseDelayMs: number): number {
 }
 
 function isRetriableError(error: unknown): boolean {
-  const err = error as Record<string, unknown>;
+  const err = error && typeof error === "object" ? (error as Record<string, unknown>) : {};
   // Whitelist-only: never retry client errors (4xx) unless explicitly allowed
-  if ((err as Error)?.name === "AbortError") return true; // our own timeout = network flakiness
+  if (err.name === "AbortError") return true; // our own timeout = network flakiness
   if (err?.status === 429) return true; // rate-limited
   if (err?.status === 503 || err?.status === 504) return true; // server unavailable / gateway timeout
   if (err?.code === "PGRST999") return true; // Supabase internal transient
@@ -54,7 +54,7 @@ async function rpcAttempt<T>(
   try {
     const builder = supabase.rpc(functionName as never, params as never);
     // abortSignal wires the AbortController to the underlying fetch call
-    const { data, error } = await (builder as any).abortSignal(controller.signal);
+    const { data, error } = await builder.abortSignal(controller.signal);
 
     if (error) throw error;
     return data as T;

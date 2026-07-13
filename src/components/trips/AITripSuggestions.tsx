@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AIAdvisorService } from "@/services/aiAdvisorService";
+import { AIAdvisorService, type TripSuggestion } from "@/services/aiAdvisorService";
 import { Loader2, MapPin, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ interface AITripSuggestionsProps {
   currency?: string;
   startDate?: string;
   endDate?: string;
-  onApply: (selectedItems: any[]) => void;
+  onApply: (selectedItems: TripSuggestion[]) => void;
   buttonClassName?: string;
 }
 
@@ -33,7 +33,7 @@ export function AITripSuggestions({
 }: AITripSuggestionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<TripSuggestion[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
   const handleOpen = async () => {
@@ -48,7 +48,7 @@ export function AITripSuggestions({
     setIsLoading(true);
 
     try {
-      let results: any[] = [];
+      let results: TripSuggestion[] = [];
       if (type === "shopping") {
         results = await AIAdvisorService.suggestTripShopping(destination, currency);
       } else if (type === "itinerary") {
@@ -60,7 +60,7 @@ export function AITripSuggestions({
       setSuggestions(results);
       // Selecionar todos por padrão
       setSelectedIndices(new Set(results.map((_, i) => i)));
-    } catch (error) {
+    } catch {
       toast.error("Erro ao buscar sugestões da IA.");
       setIsOpen(false);
     } finally {

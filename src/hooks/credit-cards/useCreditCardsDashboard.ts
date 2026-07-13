@@ -76,6 +76,7 @@ export function useCreditCardsDashboard() {
   const [newBrand, setNewBrand] = useState("");
   const [newCardName, setNewCardName] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("");
+  const [newClosingDayMode, setNewClosingDayMode] = useState("FIXED_DAY");
   const [newDueDay, setNewDueDay] = useState("");
   const [newLimit, setNewLimit] = useState("");
   const [newIsInternational, setNewIsInternational] = useState(false);
@@ -480,6 +481,8 @@ export function useCreditCardsDashboard() {
     setNewCardName,
     newClosingDay,
     setNewClosingDay,
+    newClosingDayMode,
+    setNewClosingDayMode,
     newDueDay,
     setNewDueDay,
     newLimit,

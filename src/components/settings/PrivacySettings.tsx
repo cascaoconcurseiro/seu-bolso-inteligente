@@ -43,12 +43,12 @@ export function PrivacySettings() {
         "goals",
         "assets",
         "asset_transactions",
-      ];
+      ] as const;
 
       // [B-25] Evitar SELECT * massivo — limita a 500 linhas por tabela
       const results = await Promise.all(tables.map((t) => supabase.from(t).select("*").limit(500)));
 
-      const data: Record<string, any[]> = {};
+      const data: Partial<Record<(typeof tables)[number], unknown[]>> = {};
       tables.forEach((t, i) => {
         data[t] = results[i].data || [];
       });

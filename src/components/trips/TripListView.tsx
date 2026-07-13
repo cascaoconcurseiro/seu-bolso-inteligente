@@ -3,9 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TripCard } from "@/components/trips/TripCard";
 import { TripArchivedCard } from "@/components/trips/TripArchivedCard";
 import { EmptyState } from "@/components/ui/empty-state";
+import type { TripWithPersonalBudget } from "@/hooks/useTrips";
 
 interface TripListViewProps {
-  trips: any[];
+  trips: TripWithPersonalBudget[];
   tripFilter: "active" | "archived";
   setTripFilter: (filter: "active" | "archived") => void;
   onTripClick: (id: string) => void;
@@ -24,7 +25,12 @@ export function TripListView({
   );
 
   return (
-    <Tabs value={tripFilter} onValueChange={(v) => setTripFilter(v as any)}>
+    <Tabs
+      value={tripFilter}
+      onValueChange={(value) => {
+        if (value === "active" || value === "archived") setTripFilter(value);
+      }}
+    >
       <TabsList className="w-full sm:w-auto">
         <TabsTrigger value="active" className="flex-1 sm:flex-none gap-2">
           <Plane className="h-4 w-4" /> Ativas ({trips.filter((t) => !t.is_archived).length})

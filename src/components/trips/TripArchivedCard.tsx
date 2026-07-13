@@ -3,9 +3,10 @@ import { Archive, MapPin, Calendar, ArchiveRestore, ChevronRight } from "lucide-
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/utils/dateUtils";
+import type { Trip } from "@/hooks/useTrips";
 
 interface TripArchivedCardProps {
-  trip: any;
+  trip: Trip;
   onUnarchive: () => void;
   onClick: () => void;
 }

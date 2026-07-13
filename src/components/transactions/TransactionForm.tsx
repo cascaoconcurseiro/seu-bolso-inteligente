@@ -563,7 +563,9 @@ export function TransactionForm(props: TransactionFormProps) {
                 onClick={async () => {
                   form.setShowWarningModal(false);
                   if (form.pendingSubmit)
-                    await form.performSubmit(form.pendingSubmit as Partial<Transaction>);
+                    await form.performSubmit(
+                      form.pendingSubmit as Parameters<typeof form.performSubmit>[0]
+                    );
                 }}
               >
                 Continuar

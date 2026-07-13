@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 
 // A senha administrativa não é mais mantida em texto puro no código do frontend
 const CONFIRM_WORD = "RESETAR";
@@ -26,9 +26,127 @@ interface AuditLog {
   operation: string;
   table_name: string;
   record_id: string;
-  old_data: Record<string, unknown> | null;
-  new_data: Record<string, unknown> | null;
+  old_data: JsonObject | null;
+  new_data: JsonObject | null;
   created_at: string;
+}
+
+type JsonObject = { [key: string]: Json | undefined };
+
+interface DetailAccount {
+  name: string;
+  type: string;
+  balance: number | null;
+}
+
+interface DetailFamily {
+  name: string;
+  role: string;
+  status: string;
+}
+
+function asJsonObject(value: Json | undefined): JsonObject | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value : null;
+}
+
+function asString(value: Json | undefined, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asNullableString(value: Json | undefined): string | null {
+  return typeof value === "string" ? value : null;
+}
+
+function parseSystemStats(value: Json): SystemStats {
+  const data = asJsonObject(value) ?? {};
+  return {
+    totalUsers: Number(data.totalUsers) || 0,
+    totalTransactions: Number(data.totalTransactions) || 0,
+    totalVolume: Number(data.totalVolume) || 0,
+    totalAccounts: Number(data.totalAccounts) || 0,
+    totalFamilies: Number(data.totalFamilies) || 0,
+    totalAssets: Number(data.totalAssets) || 0,
+  };
+}
+
+function parseAuditLogs(value: Json): AuditLog[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry) => {
+    const log = asJsonObject(entry);
+    if (!log) return [];
+
+    return [
+      {
+        id: asString(log.id),
+        user_id: asNullableString(log.user_id),
+        operation: asString(log.operation),
+        table_name: asString(log.table_name),
+        record_id: asString(log.record_id),
+        old_data: asJsonObject(log.old_data),
+        new_data: asJsonObject(log.new_data),
+        created_at: asString(log.created_at),
+      },
+    ];
+  });
+}
+
+function parseErrorLogs(value: Json): ErrorLog[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry) => {
+    const log = asJsonObject(entry);
+    if (!log) return [];
+
+    return [
+      {
+        id: asString(log.id),
+        user_id: asNullableString(log.user_id),
+        user_email: asNullableString(log.user_email),
+        error_message: asString(log.error_message),
+        stack_trace: asNullableString(log.stack_trace),
+        context: asNullableString(log.context),
+        status: asString(log.status),
+        created_at: asString(log.created_at),
+      },
+    ];
+  });
+}
+
+function parseUserDossier(value: Json): {
+  accounts: DetailAccount[];
+  families: DetailFamily[];
+} {
+  const dossier = asJsonObject(value) ?? {};
+  const accountEntries = Array.isArray(dossier.accounts) ? dossier.accounts : [];
+  const familyEntries = Array.isArray(dossier.families) ? dossier.families : [];
+
+  return {
+    accounts: accountEntries.flatMap((entry) => {
+      const account = asJsonObject(entry);
+      return account
+        ? [
+            {
+              name: asString(account.name),
+              type: asString(account.type),
+              balance: account.balance == null ? null : Number(account.balance),
+            },
+          ]
+        : [];
+    }),
+    families: familyEntries.flatMap((entry) => {
+      const family = asJsonObject(entry);
+      return family
+        ? [
+            {
+              name: asString(family.name),
+              role: asString(family.role),
+              status: asString(family.status),
+            },
+          ]
+        : [];
+    }),
+  };
 }
 
 interface ErrorLog {
@@ -107,8 +225,8 @@ export function useAdminActions() {
 
   const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [selectedDetailUser, setSelectedDetailUser] = useState<EnrichedUser | null>(null);
-  const [detailAccounts, setDetailAccounts] = useState<any[]>([]);
-  const [detailFamilies, setDetailFamilies] = useState<any[]>([]);
+  const [detailAccounts, setDetailAccounts] = useState<DetailAccount[]>([]);
+  const [detailFamilies, setDetailFamilies] = useState<DetailFamily[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const [selectedErrorLog, setSelectedErrorLog] = useState<ErrorLog | null>(null);
@@ -129,8 +247,8 @@ export function useAdminActions() {
     if (tbl === "transactions") {
       const data = log.new_data || log.old_data || {};
       amount = data.amount ? Number(data.amount) : null;
-      currency = data.currency || "BRL";
-      const desc = data.description || "";
+      currency = asString(data.currency, "BRL");
+      const desc = asString(data.description);
 
       if (op === "INSERT") {
         opType = "NOVA TRANSAÇÃO";
@@ -146,15 +264,15 @@ export function useAdminActions() {
       if (
         desc.toLowerCase().includes("acerto") ||
         desc.toLowerCase().includes("conciliação") ||
-        data.is_settled
+        data.is_settled === true
       ) {
         isSettlement = true;
       }
     } else if (tbl === "accounts") {
       const data = log.new_data || log.old_data || {};
       amount = data.balance ? Number(data.balance) : null;
-      currency = data.currency || "BRL";
-      const name = data.name || "";
+      currency = asString(data.currency, "BRL");
+      const name = asString(data.name);
 
       if (op === "INSERT") {
         opType = "NOVA CONTA";
@@ -168,7 +286,7 @@ export function useAdminActions() {
       }
     } else if (tbl === "families") {
       const data = log.new_data || log.old_data || {};
-      const name = data.name || "";
+      const name = asString(data.name);
       if (op === "INSERT") {
         opType = "NOVA FAMÍLIA";
         reason = `Grupo familiar criado: "${name}"`;
@@ -205,15 +323,7 @@ export function useAdminActions() {
       setPasswordError(false);
 
       if (data) {
-        setStats({
-          totalUsers: Number((data as unknown as Record<string, any>).totalUsers) || 0,
-          totalTransactions:
-            Number((data as unknown as Record<string, any>).totalTransactions) || 0,
-          totalVolume: Number((data as unknown as Record<string, any>).totalVolume) || 0,
-          totalAccounts: Number((data as unknown as Record<string, any>).totalAccounts) || 0,
-          totalFamilies: Number((data as unknown as Record<string, any>).totalFamilies) || 0,
-          totalAssets: Number((data as unknown as Record<string, any>).totalAssets) || 0,
-        });
+        setStats(parseSystemStats(data));
       }
 
       loadUsersDetailed();
@@ -242,15 +352,7 @@ export function useAdminActions() {
       if (error) throw error;
 
       if (data) {
-        setStats({
-          totalUsers: Number((data as unknown as Record<string, any>).totalUsers) || 0,
-          totalTransactions:
-            Number((data as unknown as Record<string, any>).totalTransactions) || 0,
-          totalVolume: Number((data as unknown as Record<string, any>).totalVolume) || 0,
-          totalAccounts: Number((data as unknown as Record<string, any>).totalAccounts) || 0,
-          totalFamilies: Number((data as unknown as Record<string, any>).totalFamilies) || 0,
-          totalAssets: Number((data as unknown as Record<string, any>).totalAssets) || 0,
-        });
+        setStats(parseSystemStats(data));
       }
     } catch (error) {
       logger.error("Error loading stats:", error);
@@ -297,7 +399,7 @@ export function useAdminActions() {
 
       if (error) throw error;
 
-      setAuditLogs(data || []);
+      setAuditLogs(data ? parseAuditLogs(data) : []);
     } catch (error) {
       logger.error("Error loading audit logs:", error);
       toast.error("Erro ao carregar logs de auditoria");
@@ -311,7 +413,7 @@ export function useAdminActions() {
     try {
       const { data, error } = await supabase.rpc("get_admin_error_logs");
       if (error) throw error;
-      setErrorLogs(data || []);
+      setErrorLogs(data ? parseErrorLogs(data) : []);
     } catch (error) {
       logger.error("Error loading error logs:", error);
       toast.error("Erro ao carregar relatórios de erros");
@@ -344,7 +446,7 @@ export function useAdminActions() {
       loadErrorLogs();
     } catch (error) {
       toast.error("Erro ao apagar logs");
-      logger.error(error);
+      logger.error("Error clearing error logs:", error);
     } finally {
       setIsPurging(false);
     }
@@ -516,8 +618,9 @@ export function useAdminActions() {
       if (error) throw error;
 
       if (data) {
-        setDetailAccounts(data.accounts || []);
-        setDetailFamilies(data.families || []);
+        const dossier = parseUserDossier(data);
+        setDetailAccounts(dossier.accounts);
+        setDetailFamilies(dossier.families);
       }
     } catch (error) {
       logger.error("Error loading user details:", error);

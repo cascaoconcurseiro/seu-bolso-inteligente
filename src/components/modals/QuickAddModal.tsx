@@ -416,7 +416,10 @@ export function QuickAddModal({ isOpen, onClose }: QuickAddModalProps) {
               <Label className="flex items-center gap-2">
                 Categoria
                 {predictedCategoryId === categoryId && categoryId && (
-                  <Sparkles className="h-4 w-4 text-accent" title="Categoria sugerida pela IA" />
+                  <span title="Categoria sugerida pela IA">
+                    <Sparkles className="h-4 w-4 text-accent" aria-hidden="true" />
+                    <span className="sr-only">Categoria sugerida pela IA</span>
+                  </span>
                 )}
               </Label>
               <Select value={categoryId} onValueChange={handleCategoryChange} required>

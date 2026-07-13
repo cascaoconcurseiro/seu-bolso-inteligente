@@ -41,8 +41,6 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
   // Detectar moeda da meta via conta vinculada
   const linkedAccount = accounts?.find((a) => a.id === goal.linked_account_id);
   const goalCurrency = linkedAccount?.currency || "BRL";
-  const currencySymbol =
-    goalCurrency === "BRL" ? "R$" : goalCurrency === "USD" ? "$" : goalCurrency;
 
   // Filtrar contas que tenham a mesma moeda da meta
   const filteredAccounts = accounts?.filter((acc) => acc.currency === goalCurrency) || [];
@@ -67,7 +65,7 @@ export function GoalContributeDialog({ isOpen, onClose, goal }: GoalContributeDi
         },
         {
           onSuccess: () => {
-            if (type === "add" && goal.current_amount + value >= goal.target_amount) {
+            if (type === "add" && (goal.current_amount ?? 0) + value >= goal.target_amount) {
               confetti({
                 particleCount: 150,
                 spread: 70,

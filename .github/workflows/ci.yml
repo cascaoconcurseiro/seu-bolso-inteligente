@@ -23,9 +23,8 @@ jobs:
           cache: npm
       - run: npm ci
       # tsc na raiz é no-op (files: [] + references); o projeto real é tsconfig.app.json.
-      # Não-bloqueante até zerar o backlog de erros pré-existentes (~560, maioria TS6133).
+      # Backlog zerado em 2026-07-13: typecheck agora é bloqueante.
       - run: npx tsc --noEmit -p tsconfig.app.json
-        continue-on-error: true
       - run: npm run lint
       - run: npm run format:check
 

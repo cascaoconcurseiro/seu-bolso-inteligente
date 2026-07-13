@@ -73,7 +73,7 @@ export function AdvanceInstallmentsDialog({
 
   const totalToAdvance = futureInstallments
     .filter((i) => selectedIds.includes(i.id))
-    .reduce((sum, i) => SafeFinancialCalculator.add(sum, Number(i.amount)), 0);
+    .reduce((sum, i) => SafeFinancialCalculator.add(sum, Number(i.amount)).toNumber(), 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

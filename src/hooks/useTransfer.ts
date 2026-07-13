@@ -23,15 +23,16 @@ export function useTransfer() {
         p_amount: data.amount,
         p_description: data.description,
         p_date: data.date,
-        p_exchange_rate: data.exchangeRate || null,
-        p_destination_amount: data.destinationAmount || null,
+        p_exchange_rate: data.exchangeRate || undefined,
+        p_destination_amount: data.destinationAmount || undefined,
       });
 
       if (error) throw error;
 
       // Verificar se a função retornou erro
-      if (result && !result.success) {
-        throw new Error(result.error || "Erro ao transferir");
+      const res = result as { success?: boolean; error?: string } | null;
+      if (res && !res.success) {
+        throw new Error(res.error || "Erro ao transferir");
       }
 
       return result;

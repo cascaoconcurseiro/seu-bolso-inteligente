@@ -8,8 +8,6 @@ import { useCategories } from "@/hooks/useCategories";
 import { useFamilyMembers } from "@/hooks/useFamily";
 import { useSharedFinances } from "@/hooks/useSharedFinances";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
-import { useToast } from "@/hooks/use-toast";
-import { exportMonthlyReport } from "@/services/exportService";
 
 import {
   Globe,
@@ -47,12 +45,13 @@ export function Reports() {
   }, [currentDate]);
 
   const { showTransactionModal, setShowTransactionModal } = useTransactionModal();
-  const { toast } = useToast();
   const [selectedCurrency, setSelectedCurrency] = useState<string>("BRL");
   const [viewType, setViewType] = useState<"MONTH" | "YEAR">("MONTH");
-  const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
-  const [txSearch, setTxSearch] = useState<string>("");
-  const [txTypeFilter, setTxTypeFilter] = useState<string>("ALL");
+  const [editingTransaction, setEditingTransaction] = useState<Record<string, unknown> | null>(
+    null
+  );
+  const txSearch = "";
+  const txTypeFilter = "ALL";
 
   const { user } = useAuth();
   const currentYear = new Date().getFullYear();
@@ -111,33 +110,6 @@ export function Reports() {
         data.totalExpense,
         `relatorio-${exportViewType}`
       );
-  };
-
-  const [isExportingExcel, setIsExportingExcel] = useState(false);
-
-  const handleExportFechamento = async () => {
-    setIsExportingExcel(true);
-    try {
-      await exportMonthlyReport({
-        month: safeCurrentDate,
-        transactions: data.filteredTxList,
-        sharedPurchases: sharedTransactions,
-        debts: invoices,
-        cashFlow: { totalIncome: data.totalIncome, totalExpense: data.totalExpense },
-      });
-      toast({
-        title: "Sucesso!",
-        description: "A planilha de fechamento foi exportada.",
-      });
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Erro na exportação",
-        description: "Não foi possível gerar a planilha. Verifique se o template existe.",
-      });
-    } finally {
-      setIsExportingExcel(false);
-    }
   };
 
   if (isLoading)
@@ -421,12 +393,14 @@ export function Reports() {
       )}
 
       <TransactionModal
-        isOpen={showTransactionModal || !!editingTransaction}
-        onClose={() => {
-          setShowTransactionModal(false);
-          setEditingTransaction(null);
+        open={showTransactionModal || !!editingTransaction}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowTransactionModal(false);
+            setEditingTransaction(null);
+          }
         }}
-        initialData={editingTransaction}
+        initialData={editingTransaction ?? undefined}
       />
     </div>
   );

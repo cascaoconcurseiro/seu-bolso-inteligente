@@ -12,8 +12,18 @@ export interface SharedCreditCard {
   credit_limit?: number | null;
   created_at: string;
   updated_at: string;
-  account?: any; // Para quando vier com join
-  user?: any; // Para quando vier com join
+  account?: { name: string } | null;
+  user?: {
+    full_name: string | null;
+    email: string;
+    avatar_url: string | null;
+    avatar_icon: string | null;
+    avatar_color: string | null;
+  } | null;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export function useSharedCreditCards(accountId?: string) {
@@ -108,7 +118,7 @@ export function useInviteSharedCard() {
           message: `Você foi convidado para compartilhar o cartão ${cardName}.`,
           type: "INVITATION",
           read: false,
-          metadata: { type: "shared_card_invite", shared_card_id: data.id, account_id: accountId },
+          metadata: { type: "shared_card_invite", shared_card_id: data?.id, account_id: accountId },
         });
       }
 
@@ -118,8 +128,8 @@ export function useInviteSharedCard() {
       queryClient.invalidateQueries({ queryKey: ["shared-credit-cards", variables.accountId] });
       toast.success("Convite enviado com sucesso!");
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Erro ao convidar usuário.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Erro ao convidar usuário."));
     },
   });
 }
@@ -152,8 +162,8 @@ export function useRespondSharedCardInvite() {
       queryClient.invalidateQueries({ queryKey: ["accounts"] }); // atualizar lista de cartões se aceito
       toast.success(`Convite ${data.status === "ACCEPTED" ? "aceito" : "recusado"}!`);
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Erro ao responder convite.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Erro ao responder convite."));
     },
   });
 }
@@ -171,8 +181,8 @@ export function useRevokeSharedCard() {
       queryClient.invalidateQueries({ queryKey: ["shared-credit-cards"] });
       toast.success("Compartilhamento removido.");
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Erro ao remover compartilhamento.");
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, "Erro ao remover compartilhamento."));
     },
   });
 }

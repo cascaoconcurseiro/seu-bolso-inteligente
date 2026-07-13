@@ -20,8 +20,8 @@ export function useDependentTransactions({
 
   return useQuery({
     queryKey: ["dependent_transactions", user?.id, cardIds, startDate, endDate],
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
     ...defaultQueryConfig,
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
     enabled: !!user && cardIds.length > 0,
     queryFn: async () => {
       if (!user || cardIds.length === 0) return [];

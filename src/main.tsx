@@ -33,6 +33,6 @@ if (SENTRY_DSN) {
   if ("requestIdleCallback" in window) {
     window.requestIdleCallback(() => void initializeSentry(), { timeout: 3000 });
   } else {
-    window.setTimeout(() => void initializeSentry(), 1500);
+    globalThis.setTimeout(() => void initializeSentry(), 1500);
   }
 }

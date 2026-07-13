@@ -375,7 +375,6 @@ export function Trips() {
                 await createInvitation.mutateAsync({
                   tripId: selectedTripId,
                   inviteeId: m.linked_user_id,
-                  message: null,
                 });
                 setShowAddParticipantDialog(false);
               } catch (err) {

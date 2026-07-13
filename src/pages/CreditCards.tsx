@@ -757,6 +757,8 @@ export function CreditCards() {
         setCardName={setNewCardName}
         closingDay={newClosingDay}
         setClosingDay={setNewClosingDay}
+        closingDayMode={newClosingDayMode}
+        setClosingDayMode={setNewClosingDayMode}
         dueDay={newDueDay}
         setDueDay={setNewDueDay}
         limit={newLimit}

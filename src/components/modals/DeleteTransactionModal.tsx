@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { Label } from "@/components/ui/label";
-import { Transaction } from "@/types";
+import type { Transaction } from "@/hooks/transactions/types";
 import { moneyUtils } from "@/utils/money";
 
 export type CascadeDeleteType = "NONE" | "NEXT" | "ALL";

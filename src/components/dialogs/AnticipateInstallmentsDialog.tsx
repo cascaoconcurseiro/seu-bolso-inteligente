@@ -124,6 +124,7 @@ export function AnticipateInstallmentsDialog({
 
         return {
           ...tx,
+          installment_number: tx.installment_number ?? 0,
           settled_by_debtor: txSplits.some((s) => s.settled_by_debtor),
           settled_by_creditor: txSplits.some((s) => s.settled_by_creditor),
           is_settled: tx.is_settled || hasSettledSplit,

@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import { AITripSuggestions } from "./AITripSuggestions";
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import type { TripSuggestion } from "@/services/aiAdvisorService";
+import type { Trip, TripUpdateInput } from "@/hooks/useTrips";
+import type { Json } from "@/integrations/supabase/types";
 
 interface ShoppingItem {
   id: string;
@@ -20,28 +23,28 @@ interface ShoppingItem {
 }
 
 interface TripShoppingProps {
-  trip: {
-    id: string;
-    name: string;
-    currency: string;
-    destination?: string;
-    shopping_list?: ShoppingItem[];
+  trip: Pick<Trip, "id" | "name" | "currency" | "destination"> & {
+    shopping_list?: Json | null;
   };
-  onUpdateTrip: (updates: { shopping_list: ShoppingItem[] }) => Promise<void>;
+  onUpdateTrip: (updates: TripUpdateInput) => Promise<void>;
   isUpdating?: boolean;
 }
 
 export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripShoppingProps) {
-  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(trip.shopping_list || []);
+  const persistList = (list: ShoppingItem[]) =>
+    onUpdateTrip({ shopping_list: list as unknown as Json });
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>(
+    (trip.shopping_list as ShoppingItem[] | null) || []
+  );
   const [newItem, setNewItem] = useState("");
   const [newCost, setNewCost] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleApplyAISuggestions = async (suggestions: any[]) => {
+  const handleApplyAISuggestions = async (suggestions: TripSuggestion[]) => {
     setIsAdding(true);
     const newItems: ShoppingItem[] = suggestions.map((s) => ({
       id: crypto.randomUUID(),
-      item: s.item,
+      item: s.item || "Item sugerido",
       estimatedCost: Number(s.estimatedCost) || 0,
       purchased: false,
     }));
@@ -50,9 +53,9 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     setShoppingList(updatedList);
 
     try {
-      await onUpdateTrip({ shopping_list: updatedList });
+      await persistList(updatedList);
       toast.success(`${suggestions.length} itens adicionados com sucesso!`);
-    } catch (error) {
+    } catch {
       setShoppingList(shoppingList);
       toast.error("Erro ao salvar sugestões");
     } finally {
@@ -93,11 +96,11 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     setShoppingList(updatedList);
 
     try {
-      await onUpdateTrip({ shopping_list: updatedList });
+      await persistList(updatedList);
       setNewItem("");
       setNewCost("");
       toast.success("Item adicionado");
-    } catch (error) {
+    } catch {
       setShoppingList(shoppingList);
       toast.error("Erro ao adicionar item");
     } finally {
@@ -112,8 +115,8 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     setShoppingList(updatedList);
 
     try {
-      await onUpdateTrip({ shopping_list: updatedList });
-    } catch (error) {
+      await persistList(updatedList);
+    } catch {
       setShoppingList(shoppingList);
       toast.error("Erro ao atualizar item");
     }
@@ -124,21 +127,21 @@ export function TripShopping({ trip, onUpdateTrip, isUpdating = false }: TripSho
     setShoppingList(updatedList);
 
     try {
-      await onUpdateTrip({ shopping_list: updatedList });
+      await persistList(updatedList);
       toast.success("Item removido");
-    } catch (error) {
+    } catch {
       setShoppingList(shoppingList);
       toast.error("Erro ao remover item");
     }
   };
 
   const totalEstimated = shoppingList.reduce(
-    (sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost),
+    (sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost).toNumber(),
     0
   );
   const totalPurchased = shoppingList
     .filter((item) => item.purchased)
-    .reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost), 0);
+    .reduce((sum, item) => SafeFinancialCalculator.add(sum, item.estimatedCost).toNumber(), 0);
   const purchasedCount = shoppingList.filter((item) => item.purchased).length;
 
   return (

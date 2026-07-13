@@ -3,7 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 
-// Brapi types no longer needed in frontend
+function hasResponseContext(error: unknown): error is { context: Response } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "context" in error &&
+    error.context instanceof Response
+  );
+}
 
 export const useSyncAssetPrices = () => {
   const { toast } = useToast();
@@ -32,11 +39,11 @@ export const useSyncAssetPrices = () => {
         // If it's a FunctionsHttpError, it might have a context/body
         const errorMessage = functionError.message || "Erro ao invocar função de sincronização";
         let details = "";
-        if ((functionError as any).context) {
+        if (hasResponseContext(functionError)) {
           try {
-            const contextBody = await (functionError as any).context.json();
+            const contextBody: unknown = await functionError.context.json();
             details = JSON.stringify(contextBody);
-          } catch (e) {
+          } catch {
             /* ignore */
           }
         }
@@ -69,7 +76,7 @@ export const useSyncAssetPrices = () => {
       }
     },
     onError: (error) => {
-      logger.error(error);
+      logger.error(error instanceof Error ? error.message : String(error));
       toast({
         title: "Erro na Sincronização",
         description:

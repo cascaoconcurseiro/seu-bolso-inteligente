@@ -153,7 +153,7 @@ export function useAccountStatement({ accountId }: UseAccountStatementOptions) {
           displayAmount,
           runningBalance,
           isInitialBalance,
-        };
+        } as StatementTransaction;
       });
 
       // ── 3. Saldo de FECHAMENTO (vem do DB — Single Source of Truth) ──────

@@ -831,12 +831,8 @@ export function AdminResetPanel() {
               de demonstração.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Select
-                value={selectedUser}
-                onValueChange={setSelectedUser}
-                className="w-full sm:w-[300px]"
-              >
-                <SelectTrigger className="border-destructive/30">
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger className="w-full border-destructive/30 sm:w-[300px]">
                   <SelectValue placeholder="Selecione um escopo" />
                 </SelectTrigger>
                 <SelectContent>

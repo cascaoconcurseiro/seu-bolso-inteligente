@@ -20,6 +20,7 @@ import { matchAutoShareRule, AutoShareRule } from "@/hooks/useAutoShareRules";
 import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 import { useRef, useEffect } from "react";
+import type { Json } from "@/integrations/supabase/types";
 
 export function useCreateTransaction() {
   const { user } = useAuth();
@@ -214,7 +215,7 @@ export function useCreateTransaction() {
         throw new Error("A descrição é obrigatória");
       }
 
-      const { splits, transaction_splits, ...transactionData } = input;
+      const { splits, ...transactionData } = input;
 
       // Parcelamento — usa RPC atômica (ARC-02: rollback automático se splits falharem)
       if (input.is_installment && input.total_installments && input.total_installments > 1) {
@@ -316,7 +317,7 @@ export function useCreateTransaction() {
         }
 
         const { data: rpcData, error } = await supabase.rpc("create_installment_series_v2", {
-          p_transactions: transactionsForRpc,
+          p_transactions: JSON.parse(JSON.stringify(transactionsForRpc)) as Json,
         });
 
         if (error) {
@@ -407,6 +408,7 @@ export function useCreateTransaction() {
               finalSplits.push({
                 member_id: matched.member_id,
                 percentage: otherPct,
+                amount: SafeFinancialCalculator.percentage(input.amount, otherPct).toNumber(),
               });
               // Criador também precisa de split explícito — senão o último split
               // (que é o outro membro) absorve 100% em calculateTransactionSplits.
@@ -416,6 +418,7 @@ export function useCreateTransaction() {
                 finalSplits.push({
                   member_id: myFamilyMemberId,
                   percentage: myPct,
+                  amount: SafeFinancialCalculator.percentage(input.amount, myPct).toNumber(),
                 });
               }
             }
@@ -493,7 +496,7 @@ export function useCreateTransaction() {
           logger.error("Erro ao criar transação+splits pela RPC atômica:", rpcError);
           throw rpcError;
         }
-        data = rpcResult;
+        data = rpcResult as Transaction | null;
       } else {
         const { data: inserted, error } = await supabase
           .from("transactions")
@@ -522,7 +525,11 @@ export function useCreateTransaction() {
 
           if (splitsData && splitsData.length > 0) {
             const otherUserIds = Array.from(
-              new Set(splitsData.map((s) => s.user_id).filter((uid) => uid && uid !== user?.id))
+              new Set(
+                splitsData
+                  .map((s) => s.user_id)
+                  .filter((uid): uid is string => Boolean(uid) && uid !== user.id)
+              )
             );
             await Promise.all(
               otherUserIds.map((otherUserId) =>

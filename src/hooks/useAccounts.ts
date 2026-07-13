@@ -418,7 +418,7 @@ export function useUpdateAccount() {
         .single();
 
       if (error) throw error;
-      return data as Account;
+      return data as unknown as Account;
     },
     onSuccess: async (_data, variables) => {
       await invalidateAccountQueries(queryClient);
@@ -638,7 +638,7 @@ export function useArchivedAccounts() {
         logger.error("Erro ao buscar contas arquivadas", error);
         throw error;
       }
-      return data as Account[];
+      return data as unknown as Account[];
     },
     enabled: !!user,
     ...defaultQueryConfig,

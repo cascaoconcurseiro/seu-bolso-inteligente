@@ -25,11 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import type { Trip, TripParticipant } from "@/hooks/useTrips";
+import type { TripPermissions } from "./types";
 
 interface TripDetailHeaderProps {
-  trip: any;
-  permissions: any;
-  participants?: any[];
+  trip: Trip;
+  permissions: TripPermissions | null | undefined;
+  participants?: TripParticipant[];
   onBack: () => void;
   onEdit: () => void;
   onAddParticipant: () => void;

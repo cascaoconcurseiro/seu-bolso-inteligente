@@ -44,10 +44,12 @@ export const useGoals = () => {
       logger.warn("[useGoals] get_goal_progress não disponível:", error.message);
       return [] as GoalProgress[];
     }
-    return (data as Array<GoalProgress & { percentage_complete: number }>).map((item) => ({
-      ...item,
-      percentage: item.percentage_complete,
-    })) as GoalProgress[];
+    return (data as unknown as Array<GoalProgress & { percentage_complete: number }>).map(
+      (item) => ({
+        ...item,
+        percentage: item.percentage_complete,
+      })
+    ) as GoalProgress[];
   };
 
   // Criar meta
@@ -168,7 +170,7 @@ export const useGoals = () => {
       accountId?: string;
       description?: string;
     }) => {
-      const result = await callRPCWithRetry("contribute_to_goal", {
+      await callRPCWithRetry("contribute_to_goal", {
         p_goal_id: id,
         p_amount: amount,
         p_account_id: accountId || null,

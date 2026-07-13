@@ -11,13 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Users, UserPlus, UserCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSharedContacts } from "@/hooks/useFamily";
+import { useSharedContacts, type FamilyMember } from "@/hooks/useFamily";
 
 interface AddParticipantDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  availableMembers: any[];
-  onAdd: (member: any) => void;
+  availableMembers: FamilyMember[];
+  onAdd: (member: Pick<FamilyMember, "name" | "email" | "linked_user_id">) => void;
   onAddGuest?: (guestName: string) => void;
   onNavigateToFamily: () => void;
   getInitials: (name: string) => string;
@@ -48,7 +48,7 @@ export function AddParticipantDialog({
     onOpenChange(false);
   };
 
-  const handleAddContact = (contact: any) => {
+  const handleAddContact = (contact: FamilyMember) => {
     // Se o contato tem linked_user_id (usuário registrado), envia convite
     if (contact.linked_user_id) {
       onAdd({ linked_user_id: contact.linked_user_id, name: contact.name, email: contact.email });

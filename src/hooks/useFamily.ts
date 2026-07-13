@@ -185,12 +185,13 @@ export function useFamilyMembers(includeContacts = false) {
           family_id: family.id,
           user_id: familyWithOwner.owner.id,
           name: ownerProfile.full_name || familyWithOwner.owner.full_name || "Dono da Família",
-          email: familyWithOwner.owner.email,
+          email: familyWithOwner.owner.email ?? null,
           role: "admin",
           status: "active",
           member_type: "family",
           linked_user_id: familyWithOwner.owner.id,
           sharing_scope: "all",
+          active_in_form: true,
           // ✅ FIX: Avatar vem do perfil real, não estático null
           avatar_url: ownerProfile.avatar_url ?? null,
           avatar_color: ownerProfile.avatar_color ?? null,
@@ -204,7 +205,7 @@ export function useFamilyMembers(includeContacts = false) {
         };
 
         const alreadyExists = filteredMembers.some(
-          (m) => m.linked_user_id === familyWithOwner.owner.id
+          (m) => m.linked_user_id === familyWithOwner.owner?.id
         );
         if (!alreadyExists) {
           return [ownerAsMember, ...filteredMembers];

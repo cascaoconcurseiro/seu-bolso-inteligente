@@ -37,6 +37,11 @@ interface UseSharedFinancesProps {
   activeTab: "REGULAR" | "TRAVEL" | "HISTORY";
 }
 
+interface SharedInvoiceData {
+  transactions: DBTransaction[];
+  accounts: DBAccount[];
+}
+
 export const useSharedFinances = ({
   currentDate = new Date(),
   activeTab,
@@ -57,7 +62,7 @@ export const useSharedFinances = ({
   };
 
   // NOVO: Fetch de saldos consolidados via RPC nativo (Performance DBA)
-  const { data: sharedBalances, isLoading: isBalancesLoading } = useQuery({
+  const { data: sharedBalances } = useQuery({
     queryKey: ["shared-balances", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -81,16 +86,12 @@ export const useSharedFinances = ({
   });
 
   // NOVO: Fetch consolidado via RPC para popular a lista de transações
-  const {
-    data: sharedData,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: sharedData, isLoading } = useQuery({
     queryKey: ["shared-transactions-consolidated", user?.id],
     queryFn: async () => {
       if (!user) return null;
       try {
-        const data = await rpcWithRetry("get_shared_invoice_data_v2", {});
+        const data = await rpcWithRetry<SharedInvoiceData>("get_shared_invoice_data_v2", {});
         return data;
       } catch (error) {
         logger.error("Erro ao buscar dados consolidados de finanças compartilhadas", error);
@@ -132,7 +133,9 @@ export const useSharedFinances = ({
   // Mapear dados do RPC para os estados existentes, filtrando soft-deletados
   const transactionsWithSplits = useMemo(
     () => ({
-      transactions: (sharedData?.transactions || []).filter((tx: any) => !tx.deleted_at),
+      transactions: (sharedData?.transactions || []).filter(
+        (transaction) => !transaction.deleted_at
+      ),
       accounts: sharedData?.accounts || [],
     }),
     [sharedData]

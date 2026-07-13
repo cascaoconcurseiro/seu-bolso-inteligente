@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useAccounts } from "@/hooks/useAccounts";
+import { useAccounts, type Account as AppAccount } from "@/hooks/useAccounts";
 import { useAIPrediction } from "@/hooks/useAIPrediction";
 import { useCategoriesHierarchical, useCreateDefaultCategories } from "@/hooks/useCategories";
 import { useFamilyMembers, useSharedContacts } from "@/hooks/useFamily";
@@ -8,6 +8,7 @@ import { useGoals } from "@/hooks/useGoals";
 import { useTransactionModal } from "@/hooks/useTransactionModal";
 import {
   CreateTransactionInput,
+  RecurrenceDay,
   TransactionType,
   useCreateTransaction,
   useTransactions,
@@ -17,7 +18,10 @@ import { useTripMembers } from "@/hooks/useTripMembers";
 import { useTrips } from "@/hooks/useTrips";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { CategoryPredictionService } from "@/services/categoryPredictionService";
-import { validateTransaction } from "@/services/validationService";
+import {
+  validateTransaction,
+  type Account as ValidationAccount,
+} from "@/services/validationService";
 import { useTransactionStore } from "@/store/useTransactionStore";
 import { haptics } from "@/utils/haptics";
 import { logger } from "@/utils/logger";
@@ -38,6 +42,19 @@ interface TransactionFormProps {
     tripId?: string;
     accountId?: string;
     categoryId?: string;
+  };
+}
+
+function toValidationAccount(account: AppAccount | undefined): ValidationAccount | undefined {
+  if (!account) return undefined;
+
+  return {
+    id: account.id,
+    type: account.type === "GLOBAL_ACCOUNT" ? "CHECKING" : account.type,
+    balance: account.balance,
+    credit_limit: account.credit_limit,
+    currency: account.currency,
+    is_international: account.is_international,
   };
 }
 
@@ -281,7 +298,7 @@ export function useTransactionForm({
   useEffect(() => {
     if (!categoriesLoading && !categoriesChecked) {
       setCategoriesChecked(true);
-      if (categories?.length === 0) createDefaultCategories.mutate();
+      if (categories?.length === 0) createDefaultCategories.mutate({});
     }
   }, [categoriesLoading, categoriesChecked, categories?.length, createDefaultCategories]);
 
@@ -321,8 +338,8 @@ export function useTransactionForm({
         const withinWindow = msSinceCreation >= 0 && msSinceCreation <= 30 * 60 * 1000;
 
         // The selected date in the form must match the existing tx date (same calendar day)
-        const txDateStr = typeof tx.date === "string" ? tx.date : tx.date?.toString?.();
-        const formDateStr = typeof date === "string" ? date : date?.toISOString?.()?.slice(0, 10);
+        const txDateStr = tx.date;
+        const formDateStr = format(date, "yyyy-MM-dd");
         const dateMatch = txDateStr?.slice(0, 10) === formDateStr?.slice(0, 10);
 
         return amountMatch && descMatch && withinWindow && dateMatch;
@@ -657,7 +674,7 @@ export function useTransactionForm({
 
     if (isShared && !isPaidByOther && transactionSplits.length === 0) {
       handleError("Selecione pelo menos um membro para dividir a despesa");
-      setShowSplitModal(true);
+      store.setShowSplitModal(true);
       return;
     }
     if (numericAmount <= 0) {
@@ -784,7 +801,10 @@ export function useTransactionForm({
       is_refund: isRefund,
       is_recurring: isRecurring,
       frequency: isRecurring ? frequency : undefined,
-      recurrence_day: isRecurring && frequency === "MONTHLY" ? recurrenceDay : undefined,
+      recurrence_day:
+        isRecurring && frequency === "MONTHLY" && recurrenceDay >= 1 && recurrenceDay <= 31
+          ? (recurrenceDay as RecurrenceDay)
+          : undefined,
       enable_notification: enableNotification,
       notification_date:
         enableNotification && notificationDate ? format(notificationDate, "yyyy-MM-dd") : undefined,
@@ -795,10 +815,9 @@ export function useTransactionForm({
       {
         ...transactionData,
         id: isEdit ? initialData?.id : undefined,
-        series_id: isEdit ? initialData?.series_id : undefined,
-      } as Partial<Transaction>,
-      selectedAccount,
-      accounts?.find((a) => a.id === destinationAccountId),
+      },
+      toValidationAccount(selectedAccount),
+      toValidationAccount(accounts?.find((a) => a.id === destinationAccountId)),
       selectedTrip,
       allTransactions,
       isPaidByOther,
@@ -853,6 +872,7 @@ export function useTransactionForm({
     rippleState,
 
     isPredicting,
+    predictedCategoryId,
 
     availableMembers,
     tripFilteredMembers,

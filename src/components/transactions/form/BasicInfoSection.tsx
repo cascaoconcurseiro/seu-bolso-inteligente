@@ -123,7 +123,10 @@ export function BasicInfoSection({
             <Label className="flex items-center gap-2">
               Categoria
               {predictedCategoryId === categoryId && categoryId && (
-                <Sparkles className="h-3 w-3 text-accent" title="Categoria sugerida pela IA" />
+                <span title="Categoria sugerida pela IA">
+                  <Sparkles className="h-3 w-3 text-accent" aria-hidden="true" />
+                  <span className="sr-only">Categoria sugerida pela IA</span>
+                </span>
               )}
             </Label>
 

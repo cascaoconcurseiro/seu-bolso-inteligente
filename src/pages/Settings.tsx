@@ -188,7 +188,7 @@ export function Settings() {
 
           {activeSection === "preferences" && (
             <PreferencesSettings
-              profile={profile}
+              profile={profile ?? null}
               isLoading={profileLoading}
               updateProfile={updateProfile}
             />
@@ -196,7 +196,7 @@ export function Settings() {
 
           {activeSection === "security" && (
             <SecuritySettings
-              profile={profile}
+              profile={profile ?? null}
               isLoading={profileLoading}
               updateProfile={updateProfile}
               onChangePassword={() => setShowChangePasswordDialog(true)}

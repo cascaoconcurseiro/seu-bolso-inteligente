@@ -35,6 +35,7 @@ import {
   groupTransactionsByDay,
   applyTransactionFilters,
 } from "@/utils/transactionUtils";
+import type { Transaction as DisplayTransaction } from "@/utils/transactionUtils";
 import { getCurrencySymbol } from "@/services/exchangeCalculations";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -166,9 +167,21 @@ export function Transactions() {
     }
     return base;
   }, [isSearchingHistory, filteredAnnualTransactions, filteredTransactions, activeTab]);
-  const dayGroups = useMemo(
-    () => groupTransactionsByDay(displayTransactions),
+
+  const displayTransactionsForUtilities = useMemo<DisplayTransaction[]>(
+    () =>
+      displayTransactions.map((transaction) => ({
+        ...transaction,
+        external_id: transaction.external_id ?? null,
+        account: transaction.account
+          ? { ...transaction.account, currency: transaction.account.currency ?? undefined }
+          : undefined,
+      })),
     [displayTransactions]
+  );
+  const dayGroups = useMemo(
+    () => groupTransactionsByDay(displayTransactionsForUtilities),
+    [displayTransactionsForUtilities]
   );
   const totalIncome = SafeFinancialCalculator.safeSum(
     filteredTransactions.filter((t) => t.type === "INCOME").map((t) => Number(t.amount))
@@ -343,8 +356,14 @@ export function Transactions() {
       <div className="space-y-6 animate-fade-in">
         <TransactionHeader
           count={displayTransactions.length}
-          filteredTransactions={displayTransactions}
-          filteredAnnualTransactions={filteredAnnualTransactions}
+          filteredTransactions={displayTransactionsForUtilities}
+          filteredAnnualTransactions={filteredAnnualTransactions.map((transaction) => ({
+            ...transaction,
+            external_id: transaction.external_id ?? null,
+            account: transaction.account
+              ? { ...transaction.account, currency: transaction.account.currency ?? undefined }
+              : undefined,
+          }))}
           onImportOFX={() => setShowOfxModal(true)}
         />
 
@@ -530,7 +549,7 @@ export function Transactions() {
             setShowTransactionModal(open);
             if (!open) setEditTransactionData(null);
           }}
-          initialData={editTransactionData}
+          initialData={editTransactionData ? { ...editTransactionData } : undefined}
         />
         <OFXImportModal isOpen={showOfxModal} onClose={() => setShowOfxModal(false)} />
       </div>

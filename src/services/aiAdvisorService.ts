@@ -27,8 +27,61 @@ export interface FinancialReportData {
   viewType: "MONTH" | "YEAR";
 }
 
+export interface TripSuggestion {
+  item?: string;
+  estimatedCost?: number;
+  category?: string;
+  title?: string;
+  location?: string;
+  description?: string;
+  durationHours?: number;
+  mapsUrl?: string;
+  rating?: number;
+  placeId?: string;
+  lat?: number;
+  lon?: number;
+}
+
+export interface TripShoppingSuggestion extends TripSuggestion {
+  item: string;
+  estimatedCost: number;
+}
+
+export interface TripItinerarySuggestion extends TripSuggestion {
+  title: string;
+  location: string;
+  description: string;
+  durationHours: number;
+  mapsUrl?: string;
+  rating?: number;
+  placeId?: string;
+  lat?: number;
+  lon?: number;
+}
+
+export interface TripChecklistSuggestion extends TripSuggestion {
+  item: string;
+  category: string;
+}
+
+interface GroqPayload {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  temperature: number;
+  max_tokens: number;
+  response_format?: { type: string };
+}
+
+interface GroqResponse {
+  choices?: Array<{ message: { content: string } }>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 export class AIAdvisorService {
-  private static async fetchGroq(payload: any): Promise<any> {
+  private static async fetchGroq(payload: GroqPayload): Promise<GroqResponse | null> {
     const isDev = import.meta.env.DEV;
 
     // In dev, use the local proxy (vite config) with optional direct key fallback.
@@ -58,7 +111,7 @@ export class AIAdvisorService {
       });
 
       if (response.ok) {
-        return await response.json();
+        return (await response.json()) as GroqResponse;
       } else {
         throw new Error(`Status ${response.status}`);
       }
@@ -75,7 +128,7 @@ export class AIAdvisorService {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
-          if (fallbackResponse.ok) return await fallbackResponse.json();
+          if (fallbackResponse.ok) return (await fallbackResponse.json()) as GroqResponse;
         } catch (fallbackError) {
           logger.error(
             "[AIAdvisorService] Erro no fallback dev",
@@ -84,6 +137,46 @@ export class AIAdvisorService {
         }
       }
       return null;
+    }
+  }
+
+  static async suggestTripShopping(
+    destination: string,
+    currency: string
+  ): Promise<TripShoppingSuggestion[]> {
+    if (!destination) return [];
+
+    const result = await this.fetchGroq({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `Sugira itens comuns para comprar em ${destination}. Responda somente JSON no formato {"suggestions":[{"item":"nome","estimatedCost":0}]}. Os custos devem estar em ${currency}.`,
+        },
+      ],
+      temperature: 0.4,
+      max_tokens: 400,
+      response_format: { type: "json_object" },
+    });
+
+    const content = result?.choices?.[0]?.message.content;
+    if (!content) return [];
+
+    try {
+      const parsed: unknown = JSON.parse(content);
+      if (!isRecord(parsed) || !Array.isArray(parsed.suggestions)) return [];
+      return parsed.suggestions.flatMap((suggestion): TripShoppingSuggestion[] => {
+        if (!isRecord(suggestion) || typeof suggestion.item !== "string") return [];
+        return [
+          {
+            item: suggestion.item,
+            estimatedCost:
+              typeof suggestion.estimatedCost === "number" ? suggestion.estimatedCost : 0,
+          },
+        ];
+      });
+    } catch {
+      return [];
     }
   }
 
@@ -322,29 +415,32 @@ export class AIAdvisorService {
 
     if (!response.ok) return [];
 
-    const data = await response.json();
-    return (data.suggestions || []).map((s: any) => ({
-      title: s.title,
-      location: s.location,
-      description: s.description,
-      durationHours: s.durationHours || 2,
-      mapsUrl: s.mapsUrl || "",
-      rating: s.rating,
-      placeId: s.placeId,
-    }));
+    const data: unknown = await response.json();
+    if (!isRecord(data) || !Array.isArray(data.suggestions)) return [];
+    return data.suggestions.flatMap((suggestion): TripItinerarySuggestion[] => {
+      if (
+        !isRecord(suggestion) ||
+        typeof suggestion.title !== "string" ||
+        typeof suggestion.location !== "string"
+      ) {
+        return [];
+      }
+      return [
+        {
+          title: suggestion.title,
+          location: suggestion.location,
+          description: typeof suggestion.description === "string" ? suggestion.description : "",
+          durationHours:
+            typeof suggestion.durationHours === "number" ? suggestion.durationHours : 2,
+          mapsUrl: typeof suggestion.mapsUrl === "string" ? suggestion.mapsUrl : "",
+          rating: typeof suggestion.rating === "number" ? suggestion.rating : undefined,
+          placeId: typeof suggestion.placeId === "string" ? suggestion.placeId : undefined,
+        },
+      ];
+    });
   }
 
-  static async suggestTripItinerary(destination: string): Promise<
-    Array<{
-      title: string;
-      location: string;
-      description: string;
-      durationHours: number;
-      mapsUrl?: string;
-      rating?: number;
-      placeId?: string;
-    }>
-  > {
+  static async suggestTripItinerary(destination: string): Promise<TripItinerarySuggestion[]> {
     if (!destination) return [];
 
     // 1. Try Overpass API (real OSM data, free, no key needed)
@@ -397,7 +493,7 @@ export class AIAdvisorService {
     destination: string,
     startDate?: string,
     endDate?: string
-  ): Promise<Array<{ item: string; category: string }>> {
+  ): Promise<TripChecklistSuggestion[]> {
     if (!destination) return [];
 
     const prompt = getTripChecklistPrompt(destination, startDate, endDate);

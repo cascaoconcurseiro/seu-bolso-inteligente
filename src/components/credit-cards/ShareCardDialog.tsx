@@ -102,9 +102,9 @@ export function ShareCardDialog({ isOpen, onClose, card }: ShareCardDialogProps)
                     <div className="flex items-center gap-3">
                       <UserAvatar
                         name={sc.user?.full_name || "Usuário"}
-                        avatarUrl={sc.user?.avatar_url}
-                        iconId={sc.user?.avatar_icon}
-                        colorId={sc.user?.avatar_color}
+                        avatarUrl={sc.user?.avatar_url ?? undefined}
+                        iconId={sc.user?.avatar_icon ?? undefined}
+                        colorId={sc.user?.avatar_color ?? undefined}
                         size="sm"
                       />
                       <div>

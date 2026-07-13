@@ -17,7 +17,6 @@ import { CreateTransactionInput, Transaction } from "./types";
 import { validatePayerId } from "./helpers";
 import { toast } from "sonner";
 import { rpcWithRetry } from "@/utils/rpcWithRetry";
-import type { QueryKey } from "@tanstack/react-query";
 // Splits vindos do formulário usam snake_case (member_id), diferente do
 // TransactionSplitData camelCase de types/transactions
 interface TransactionSplitData {
@@ -35,12 +34,14 @@ export function useBulkCreateTransactions() {
       if (!user) throw new Error("Usuário não autenticado");
 
       const transactionsToInsert = inputs.map((input) => {
-        const { splits, transaction_splits, ...transactionData } = input;
+        const { splits, ...transactionData } = input;
 
         return {
           user_id: user.id,
           creator_user_id: user.id,
           ...transactionData,
+          competence_date:
+            input.competence_date || dateUtils.getCompetenceDate(dateUtils.parseDate(input.date)),
         };
       });
 
@@ -168,7 +169,10 @@ export function useUpdateTransaction() {
               finalSplits.push({
                 member_id: currentUserMember.id,
                 percentage: remainingPercentage,
-                amount: SafeFinancialCalculator.percentage(data.amount, remainingPercentage),
+                amount: SafeFinancialCalculator.percentage(
+                  data.amount,
+                  remainingPercentage
+                ).toNumber(),
               });
             }
           }
@@ -259,9 +263,9 @@ export function useUpdateTransaction() {
       invalidateTripQueries(queryClient);
       showActionFeedback("success");
     },
-    onError: (error, _variables, context: { previousTransactions?: [QueryKey, unknown][] }) => {
-      if (context?.previousTransactions) {
-        context.previousTransactions.forEach(([queryKey, data]) => {
+    onError: (error, _variables, onMutateResult) => {
+      if (onMutateResult?.previousTransactions) {
+        onMutateResult.previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
@@ -311,7 +315,11 @@ export function useDeleteTransaction() {
 
         if (splitsData && splitsData.length > 0) {
           otherUserIds = Array.from(
-            new Set(splitsData.map((s) => s.user_id).filter((uid) => uid && uid !== user?.id))
+            new Set(
+              splitsData
+                .map((s) => s.user_id)
+                .filter((uid): uid is string => Boolean(uid) && uid !== user?.id)
+            )
           );
         }
       }
@@ -366,9 +374,9 @@ export function useDeleteTransaction() {
         );
       }
     },
-    onError: (error, _variables, context: { previousTransactions?: [QueryKey, unknown][] }) => {
-      if (context?.previousTransactions) {
-        context.previousTransactions.forEach(([queryKey, data]) => {
+    onError: (error, _variables, onMutateResult) => {
+      if (onMutateResult?.previousTransactions) {
+        onMutateResult.previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
         });
       }
@@ -471,6 +479,9 @@ export function useAnticipateInstallments() {
       newDate: string;
       updateFutureOnly?: boolean;
     }) => {
+      if (!user) throw new Error("Usuário não autenticado");
+      const userId = user.id;
+
       let query = supabase
         .from("transactions")
         .select("id, date, competence_date, current_installment")
@@ -497,7 +508,7 @@ export function useAnticipateInstallments() {
             competence_date: competenceDate,
           })
           .eq("id", t.id)
-          .eq("user_id", user.id);
+          .eq("user_id", userId);
       });
 
       await Promise.all(updates);

@@ -24,6 +24,9 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { AITripSuggestions } from "./AITripSuggestions";
 import { EmptyState } from "@/components/ui/empty-state";
+import type { Trip } from "@/hooks/useTrips";
+import type { TripSuggestion } from "@/services/aiAdvisorService";
+import { getErrorMessage } from "./types";
 
 interface ChecklistItem {
   id: string;
@@ -37,7 +40,7 @@ interface ChecklistItem {
 }
 
 interface TripChecklistProps {
-  trip: any;
+  trip: Trip;
 }
 
 const CATEGORIES = [
@@ -54,7 +57,7 @@ export function TripChecklist({ trip }: TripChecklistProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [newCategory, setNewCategory] = useState("");
-  const [isApplyingAI, setIsApplyingAI] = useState(false);
+  const [, setIsApplyingAI] = useState(false);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -143,13 +146,13 @@ export function TripChecklist({ trip }: TripChecklistProps) {
     });
   };
 
-  const handleApplyAISuggestions = async (suggestions: any[]) => {
+  const handleApplyAISuggestions = async (suggestions: TripSuggestion[]) => {
     setIsApplyingAI(true);
     try {
       const promises = suggestions.map((s, idx) => {
         return supabase.from("trip_checklist").insert({
           trip_id: tripId,
-          item: s.item,
+          item: s.item || "Item sugerido",
           category: s.category || "outros",
           is_completed: false,
           order_index: items.length + idx,
@@ -163,8 +166,12 @@ export function TripChecklist({ trip }: TripChecklistProps) {
         title: "Sucesso",
         description: `${suggestions.length} itens adicionados ao checklist.`,
       });
-    } catch (error: any) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({
+        title: "Erro ao salvar",
+        description: getErrorMessage(error, "Não foi possível salvar as sugestões"),
+        variant: "destructive",
+      });
     } finally {
       setIsApplyingAI(false);
     }
@@ -280,8 +287,11 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                         onCheckedChange={async (checked) => {
                           try {
                             await toggleItem.mutateAsync({ id: item.id, is_completed: !!checked });
-                          } catch (err: any) {
-                            toast.error(err.message || "Erro ao atualizar item");
+                          } catch (error: unknown) {
+                            toast({
+                              title: getErrorMessage(error, "Erro ao atualizar item"),
+                              variant: "destructive",
+                            });
                           }
                         }}
                       />
@@ -303,8 +313,11 @@ export function TripChecklist({ trip }: TripChecklistProps) {
                       onClick={async () => {
                         try {
                           await deleteItem.mutateAsync(item.id);
-                        } catch (err: any) {
-                          toast.error(err.message || "Erro ao excluir item");
+                        } catch (error: unknown) {
+                          toast({
+                            title: getErrorMessage(error, "Erro ao excluir item"),
+                            variant: "destructive",
+                          });
                         }
                       }}
                       className="h-8 w-8 text-muted-foreground hover:text-destructive"

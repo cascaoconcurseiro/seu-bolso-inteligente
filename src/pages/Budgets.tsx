@@ -43,6 +43,7 @@ import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
 import { logger } from "@/utils/logger";
+import type { Budget } from "@/types/database";
 
 export function Budgets() {
   const { currentDate } = useMonth();
@@ -67,7 +68,7 @@ export function Budgets() {
   } = useBudgets();
 
   const [showNewBudgetDialog, setShowNewBudgetDialog] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [amount, setAmount] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [currency, setCurrency] = useState("BRL");
@@ -101,6 +102,9 @@ export function Budgets() {
       is_active: true,
       start_date: null,
       end_date: null,
+      creator_user_id: null,
+      deleted_at: null,
+      deleted_by: null,
     };
 
     try {

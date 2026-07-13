@@ -1,21 +1,16 @@
 import { SharedExpenseCard } from "@/components/shared/SharedExpenseCard";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
-import { Database } from "@/types/database";
+import type { User } from "@supabase/supabase-js";
+import type { FamilyMember } from "@/hooks/useFamily";
 
-type FamilyMember = Database["public"]["Tables"]["family_members"]["Row"] & {
-  linked_user_id?: string | null;
-  sharing_scope?: string | null;
-  scope_start_date?: string | null;
-  scope_end_date?: string | null;
-  scope_trip_id?: string | null;
-};
+type CurrencyTotals = { credits: number; debits: number; net: number };
 
 interface SharedRegularListProps {
   members: FamilyMember[];
-  user: any;
+  user: Pick<User, "id"> | null;
   activeTab: "REGULAR" | "HISTORY";
   getFilteredInvoice: (memberId: string) => InvoiceItem[];
-  getTotals: (items: InvoiceItem[]) => Record<string, any>;
+  getTotals: (items: InvoiceItem[]) => Record<string, CurrencyTotals>;
   formatCurrency: (val: number, cur?: string) => string;
   onSettle: (id: string, type: "PAY" | "RECEIVE", amt: number, specificItem?: InvoiceItem) => void;
   onUndo: (item: InvoiceItem) => void;

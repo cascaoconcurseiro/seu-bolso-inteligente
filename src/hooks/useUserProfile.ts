@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+
+type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
 export interface UserProfile {
   id: string;
@@ -47,7 +50,7 @@ export function useUserProfile() {
           .from("profiles")
           .insert({
             id: user.id,
-            email: user.email,
+            email: user.email ?? "",
             full_name: user.user_metadata?.full_name || user.email?.split("@")[0],
           })
           .select()
@@ -65,7 +68,7 @@ export function useUserProfile() {
           if (data.require_pin_on_open !== undefined) {
             localStorage.setItem("@pedemeia:require_pin", JSON.stringify(data.require_pin_on_open));
           }
-        } catch (e) {
+        } catch {
           /* ignore */
         }
       }
@@ -103,7 +106,7 @@ export function useUpdateUserProfile() {
     }) => {
       if (!user) throw new Error("Não autenticado");
 
-      const updateData: Record<string, any> = {
+      const updateData: ProfileUpdate = {
         updated_at: new Date().toISOString(),
       };
 
@@ -170,7 +173,7 @@ export function useUpdateUserProfile() {
         if (input.require_pin_on_open !== undefined) {
           localStorage.setItem("@pedemeia:require_pin", JSON.stringify(input.require_pin_on_open));
         }
-      } catch (e) {
+      } catch {
         /* ignore */
       }
 
@@ -221,18 +224,16 @@ export function useDeleteAccount() {
       if (!user) throw new Error("Não autenticado");
 
       // ─── LGPD: Expurgo físico em cascata de todos os dados do usuário ───
-      // Agora realizado via função segura e atômica no banco (RPC)
-      // garantindo que não restem registros fantasmas nem falhas de rede intermediárias.
-
-      const { error } = await supabase.rpc("delete_user_account");
-
-      if (error) {
-        throw new Error(`Erro no banco de dados ao excluir conta: ${error.message}`);
-      }
-
-      // Deslogar localmente
-      await supabase.auth.signOut();
-      return true;
+      // BLOQUEADO: a RPC `delete_user_account` foi perdida no cutover de schema
+      // (2026-07-13) e ainda não foi reintroduzida com cascata completa para o
+      // schema atual (~30 tabelas, várias FKs NO ACTION e dados compartilhados).
+      // Recriar o expurgo físico envolve decisão de produto/LGPD sobre o destino
+      // de viagens/transações compartilhadas e é destrutivo/irreversível.
+      // Até essa decisão, a exclusão definitiva fica indisponível de forma
+      // explícita em vez de falhar com "function not found". Ver HANDOFF.md.
+      throw new Error(
+        "Exclusão definitiva de conta temporariamente indisponível. Fale com o suporte para solicitar a remoção dos seus dados."
+      );
     },
     onSuccess: () => {
       toast.success("Sua conta e todos os seus dados foram removidos permanentemente.");

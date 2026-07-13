@@ -68,7 +68,6 @@ self.addEventListener("push", (event: PushEvent) => {
     icon: data.icon ?? "/icon-192.png",
     badge: data.badge ?? "/icon-72.png",
     tag: "pedemeia-bill-reminder",
-    renotify: true,
     data: { url: data.url ?? "/" },
   };
 

@@ -24,14 +24,16 @@ import { Plus } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { moneyUtils } from "@/utils/money";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import type { Trip, TripParticipant } from "@/hooks/useTrips";
+import type { TripBalance, TripTransaction, TripTransactionSplit, TripUser } from "./types";
 
 interface TripExpensesTabProps {
-  tripTransactions: any[];
-  participants: any[];
-  selectedTrip: any;
-  user: any;
+  tripTransactions: TripTransaction[];
+  participants: TripParticipant[];
+  selectedTrip: Trip;
+  user: TripUser;
   formatCurrency: (value: number, currency: string) => string;
-  balances?: any[];
+  balances?: TripBalance[];
   myTotalSpent?: number;
 }
 
@@ -76,7 +78,7 @@ export function TripExpensesTab({
 
   // Totais
   const totalShared = sharedExpenses.reduce(
-    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(),
     0
   );
   const totalPersonalOnly = personalExpenses.reduce(
@@ -87,7 +89,7 @@ export function TripExpensesTab({
   const spentToDisplay = myTotalSpent !== undefined ? myTotalSpent : totalPersonal;
   const mySharedPaid = sharedExpenses
     .filter((t) => t.creator_user_id === user?.id || t.user_id === user?.id)
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
   const getParticipantName = (userId: string) => {
     if (userId === user?.id) return "Você";
@@ -95,19 +97,19 @@ export function TripExpensesTab({
     return p?.name || "Participante";
   };
 
-  const getSettlementStatus = (expense: any) => {
+  const getSettlementStatus = (expense: TripTransaction) => {
     // Se a transação tem splits, verificar se foram acertados
     if (!expense.transaction_splits || expense.transaction_splits.length === 0) {
       return "no_splits";
     }
-    const allSettled = expense.transaction_splits.every((s: any) => s.is_settled);
-    const anySettled = expense.transaction_splits.some((s: any) => s.is_settled);
+    const allSettled = expense.transaction_splits.every((split) => split.is_settled);
+    const anySettled = expense.transaction_splits.some((split) => split.is_settled);
 
     // Check if waiting for confirmation (one side settled, the other didn't)
     const waitingConfirmation = expense.transaction_splits.some(
-      (s: any) =>
-        (s.settled_by_debtor && !s.settled_by_creditor) ||
-        (!s.settled_by_debtor && s.settled_by_creditor)
+      (split) =>
+        (split.settled_by_debtor && !split.settled_by_creditor) ||
+        (!split.settled_by_debtor && split.settled_by_creditor)
     );
 
     if (allSettled) return "settled";
@@ -255,7 +257,7 @@ export function TripExpensesTab({
                       {/* Determinar minha parte */}
                       {(() => {
                         const mySplit = expense.transaction_splits?.find(
-                          (s: any) => s.user_id === user?.id
+                          (split) => split.user_id === user?.id
                         );
                         const mySplitAmount = mySplit ? Number(mySplit.amount) : 0;
 
@@ -337,9 +339,9 @@ export function TripExpensesTab({
                                         Dividido com:
                                       </span>
                                       <div className="flex -space-x-2.5">
-                                        {expense.transaction_splits.map((split: any) => {
+                                        {expense.transaction_splits.map((split) => {
                                           const member = participants.find(
-                                            (p: any) => p.id === split.member_id
+                                            (participant) => participant.id === split.member_id
                                           );
                                           return (
                                             <div

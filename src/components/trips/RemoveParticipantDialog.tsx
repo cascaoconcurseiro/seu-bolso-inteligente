@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { moneyUtils } from "@/utils/money";
 import { cn } from "@/lib/utils";
+import type { Account } from "@/hooks/useAccounts";
+import type { TripBalance } from "./types";
 
 interface RemoveParticipantDialogProps {
   open: boolean;
@@ -29,20 +31,13 @@ interface RemoveParticipantDialogProps {
     name: string;
     role: string;
   } | null;
-  balance: {
-    participantId: string;
-    name: string;
-    paid: number;
-    owes: number;
-    balance: number;
-    currency: string;
-  } | null;
+  balance: TripBalance | null;
   onConfirmDirectRemove: () => Promise<void>;
   onConfirmSettleRemove: (accountId: string) => Promise<void>;
   onConfirmForgiveRemove: () => Promise<void>;
   isRemoving: boolean;
   currency: string;
-  accounts: any[];
+  accounts: Array<Account & { bank_name?: string | null }>;
 }
 
 import { useState } from "react";

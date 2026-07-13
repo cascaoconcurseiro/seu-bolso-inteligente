@@ -220,7 +220,7 @@ export const DashboardHero = memo(function DashboardHero({
                 <p className="text-sm font-semibold text-foreground">
                   {formatCurrency(expenses)}{" "}
                   <span className="text-muted-foreground font-normal">
-                    / {formatCurrency(monthlyBudget)}
+                    / {formatCurrency(monthlyBudget ?? 0)}
                   </span>
                 </p>
               </div>

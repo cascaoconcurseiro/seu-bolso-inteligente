@@ -81,14 +81,15 @@ export function useDashboardData() {
         };
       }
 
+      const summary = (data ?? {}) as Partial<DashboardSummary>;
       return {
-        total_income: Number(data?.total_income) || 0,
-        total_expense: Number(data?.total_expense) || 0,
-        pending_income: Number(data?.pending_income) || 0,
-        pending_expense: Number(data?.pending_expense) || 0,
-        balance: Number(data?.balance) || 0,
-        totals_by_currency: data?.totals_by_currency || [],
-        recent_transactions: (data?.recent_transactions as DashboardTransaction[]) || [],
+        total_income: Number(summary.total_income) || 0,
+        total_expense: Number(summary.total_expense) || 0,
+        pending_income: Number(summary.pending_income) || 0,
+        pending_expense: Number(summary.pending_expense) || 0,
+        balance: Number(summary.balance) || 0,
+        totals_by_currency: summary.totals_by_currency ?? [],
+        recent_transactions: summary.recent_transactions ?? [],
       };
     },
     enabled: !!user,
@@ -102,6 +103,21 @@ interface MonthlyEvolutionRow {
   total_income: number;
   total_expense: number;
   currency: string;
+}
+
+function isMonthlyEvolutionRow(value: unknown): value is MonthlyEvolutionRow {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "month_date" in value &&
+    typeof value.month_date === "string" &&
+    "total_income" in value &&
+    typeof value.total_income === "number" &&
+    "total_expense" in value &&
+    typeof value.total_expense === "number" &&
+    "currency" in value &&
+    typeof value.currency === "string"
+  );
 }
 
 /**
@@ -125,10 +141,9 @@ export function useMonthlyEvolutionReport(months: number = 6, currency: string =
         return [];
       }
 
-      const typed = data as unknown as MonthlyEvolutionRow[] | null;
-      const currencyData = (Array.isArray(typed) ? typed : []).filter(
-        (row) => (row.currency || "BRL") === currency
-      );
+      const rows: unknown[] = Array.isArray(data) ? data : [];
+      const typed = rows.filter(isMonthlyEvolutionRow);
+      const currencyData = typed.filter((row) => (row.currency || "BRL") === currency);
 
       return currencyData.map((row) => ({
         month_start: row.month_date,

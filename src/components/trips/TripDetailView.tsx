@@ -8,21 +8,14 @@ import { TripShopping } from "@/components/trips/TripShopping";
 import { TripExchange } from "@/components/trips/TripExchange";
 import { TripItinerary } from "@/components/trips/TripItinerary";
 import { TripChecklist } from "@/components/trips/TripChecklist";
-import * as dateFns from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { SafeFinancialCalculator } from "@/services/SafeFinancialCalculator";
+import type { TripParticipant, TripUpdateInput } from "@/hooks/useTrips";
+import type { SentTripInvitation, TripBalance, TripDetailData } from "./types";
 
-interface TripDetailViewProps {
-  trip: any;
-  permissions: any;
-  participants: any[];
-  tripTransactions: any[];
-  tripFinancialSummary: any;
-  user: any;
+interface TripDetailViewProps extends TripDetailData {
   activeTab: string;
-  setActiveTab: (tab: any) => void;
+  setActiveTab: (tab: string) => void;
   myPersonalBudget: number | null;
-  balances: any[];
   onBack: () => void;
   onEdit: () => void;
   onAddParticipant: () => void;
@@ -30,12 +23,12 @@ interface TripDetailViewProps {
   onUnarchive: () => void;
   onDelete: () => void;
   onOpenBudget: () => void;
-  onUpdateTrip: (updates: any) => Promise<void>;
+  onUpdateTrip: (updates: TripUpdateInput) => Promise<void>;
   formatCurrency: (val: number, cur?: string) => string;
   onExportPDF: () => void;
   onExportExcel: () => void;
-  onRemoveParticipantClick?: (participant: any, balance: any) => void;
-  pendingInvitations?: any[];
+  onRemoveParticipantClick?: (participant: TripParticipant, balance: TripBalance) => void;
+  pendingInvitations?: SentTripInvitation[];
   onCancelInvitation?: (id: string) => void;
 }
 
@@ -44,7 +37,6 @@ export function TripDetailView({
   permissions,
   participants,
   tripTransactions,
-  tripFinancialSummary,
   user,
   activeTab,
   setActiveTab,
@@ -71,7 +63,7 @@ export function TripDetailView({
       (t.is_shared || t.creator_user_id === user?.id || t.user_id === user?.id)
   );
   const totalExpenses = relevantTransactions.reduce(
-    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)),
+    (sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(),
     0
   );
 
@@ -84,14 +76,14 @@ export function TripDetailView({
         !t.is_shared &&
         (t.creator_user_id === user?.id || t.user_id === user?.id)
     )
-    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)), 0);
+    .reduce((sum, t) => SafeFinancialCalculator.add(sum, Number(t.amount)).toNumber(), 0);
 
   // 2. Minha parte nos gastos compartilhados (mesmo que eu não tenha pago)
   const myShareOfShared = tripTransactions
     .filter((t) => t.type === "EXPENSE" && t.is_shared)
     .reduce((sum, t) => {
       if (!t.transaction_splits) return sum;
-      const mySplit = t.transaction_splits.find((s: any) => s.user_id === user?.id);
+      const mySplit = t.transaction_splits.find((split) => split.user_id === user?.id);
       return sum + (mySplit ? Number(mySplit.amount) : 0);
     }, 0);
 
@@ -193,18 +185,14 @@ export function TripDetailView({
         <TabsContent value="summary">
           <TripSummaryTab
             selectedTrip={trip}
-            totalExpenses={totalExpenses}
             myTotalSpent={myTotalSpent}
             myPersonalBudget={myPersonalBudget}
             participants={participants}
             balances={balances}
             tripTransactions={tripTransactions}
-            tripFinancialSummary={tripFinancialSummary}
             user={user}
             onAddParticipant={onAddParticipant}
             permissions={permissions}
-            dateFns={dateFns}
-            ptBR={ptBR}
             onRemoveClick={onRemoveParticipantClick}
             pendingInvitations={pendingInvitations}
             onCancelInvitation={onCancelInvitation}

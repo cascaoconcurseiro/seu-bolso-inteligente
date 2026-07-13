@@ -1,5 +1,7 @@
 import { useToast } from "@/hooks/use-toast";
 import {
+  type ToastActionElement,
+  type ToastProps,
   Toast,
   ToastClose,
   ToastDescription,
@@ -8,12 +10,25 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 
+type LegacyToast = ToastProps & {
+  id: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+};
+
 export function Toaster() {
   const { toasts } = useToast();
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {(toasts as readonly LegacyToast[]).map(function ({
+        id,
+        title,
+        description,
+        action,
+        ...props
+      }) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">

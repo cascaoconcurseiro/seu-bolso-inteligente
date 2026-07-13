@@ -59,8 +59,8 @@ export interface Transaction {
   is_recurring: boolean;
   recurrence_pattern: string | null;
   source_transaction_id: string | null;
-  status: TransactionStatus;
-  external_id: string | null;
+  status?: TransactionStatus | string;
+  external_id?: string | null;
   notes: string | null;
   exchange_rate: number | null;
   destination_amount: number | null;
@@ -72,7 +72,13 @@ export interface Transaction {
   is_optimistic?: boolean;
   transaction_splits?: DBTransactionSplit[];
   // Joined data
-  account?: { id: string; name: string; type?: string; currency?: string; bank_id?: string | null };
+  account?: {
+    id: string;
+    name: string;
+    type?: string;
+    currency?: string | null;
+    bank_id?: string | null;
+  };
   category?: { id: string; name: string; icon: string | null };
   trip?: { id: string; name: string };
 }
@@ -124,7 +130,7 @@ export interface CreateTransactionInput {
   competence_date?: string;
   is_refund?: boolean;
   is_recurring?: boolean;
-  frequency?: string;
+  frequency?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
   recurrence_day?: RecurrenceDay;
   status?: TransactionStatus;
   enable_notification?: boolean;

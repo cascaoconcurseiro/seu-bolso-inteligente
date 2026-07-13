@@ -25,7 +25,7 @@ export interface Transaction {
   is_recurring: boolean;
   recurrence_pattern: string | null;
   source_transaction_id: string | null;
-  external_id: string | null;
+  external_id?: string | null;
   notes: string | null;
   exchange_rate: number | null;
   destination_amount: number | null;
@@ -34,8 +34,8 @@ export interface Transaction {
   updated_at: string;
   creator_user_id?: string | null;
   transaction_splits?: DBTransactionSplit[];
-  settled_as_debtor?: any[];
-  settled_as_creditor?: any[];
+  settled_as_debtor?: unknown[];
+  settled_as_creditor?: unknown[];
   // Joined data
   account?: { id: string; name: string; currency?: string; type?: string; bank_id?: string | null };
   category?: { id: string; name: string; icon: string | null };
@@ -59,7 +59,7 @@ export interface DayGroup {
 }
 
 export function getTransactionCurrency(transaction: {
-  currency: string | null;
+  currency?: string | null;
   account?: { currency?: string | null } | null;
 }): string {
   return transaction.account?.currency || transaction.currency || "BRL";
@@ -305,7 +305,9 @@ export function applyTransactionFilters<
   const periodDates = getPeriodDates(filters.selectedPeriod);
 
   return transactions.filter((t) => {
-    const txCurrency = getTransactionCurrency(t);
+    const txCurrency = getTransactionCurrency(
+      t as { currency?: string | null; account?: { currency?: string | null } | null }
+    );
     if (filters.selectedCurrency !== "all" && txCurrency !== filters.selectedCurrency) return false;
 
     if (

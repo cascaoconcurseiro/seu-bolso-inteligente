@@ -249,14 +249,14 @@ export function useCreateDefaultCategories() {
         parent_category_id: null,
       }));
 
-      let createdParents: any[] = [];
+      let createdParentCount = 0;
       if (parentCategoriesToCreate.length > 0) {
         const { data, error: parentError } = await supabase
           .from("categories")
           .insert(parentCategoriesToCreate)
           .select();
         if (parentError) throw parentError;
-        createdParents = data || [];
+        createdParentCount = data?.length ?? 0;
       }
 
       // Buscar novamente todos os pais atualizados (os antigos + os novos criados)
@@ -269,7 +269,13 @@ export function useCreateDefaultCategories() {
       const parentMap = new Map((allParents || []).map((cat) => [cat.name.toLowerCase(), cat.id]));
 
       // Agora preparar as subcategorias
-      const childCategories: unknown[] = [];
+      const childCategories: Array<{
+        user_id: string;
+        name: string;
+        icon: string;
+        type: "expense" | "income";
+        parent_category_id: string;
+      }> = [];
 
       DEFAULT_CATEGORIES.forEach((parent) => {
         const parentId = parentMap.get(parent.name.toLowerCase());
@@ -296,7 +302,7 @@ export function useCreateDefaultCategories() {
       }
 
       logger.success(
-        `Criadas ${createdParents.length} categorias pai e ${childCategories.length} subcategorias`
+        `Criadas ${createdParentCount} categorias pai e ${childCategories.length} subcategorias`
       );
     },
     onSuccess: async () => {

@@ -39,7 +39,7 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
   });
 
   // 2. Query para carregar transações financeiras gerais (proventos e dividendos) do ano-calendário
-  const { data: financeTransactions, isLoading: isLoadingFinanceTxs } = useQuery({
+  const { data: financeTransactions } = useQuery({
     queryKey: ["finance-transactions-ir", selectedYear],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -383,7 +383,7 @@ export function useInvestmentIR({ assets }: InvestmentIRPanelProps) {
         const priorTxs = assetTxs.filter(
           (t) =>
             t.date < tx.date ||
-            (t.date === tx.date && t.id !== tx.id && t.created_at < tx.created_at)
+            (t.date === tx.date && t.id !== tx.id && (t.created_at ?? "") < (tx.created_at ?? ""))
         );
 
         let qty = 0;

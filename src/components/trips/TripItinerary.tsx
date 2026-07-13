@@ -27,6 +27,9 @@ import { Clock, ExternalLink, MapPin, Pencil, Plus, Route, Search, Trash2 } from
 import { useState } from "react";
 import { geocodeDestination } from "@/services/overpassService";
 import { TripRouteMap } from "./TripRouteMap";
+import type { Trip } from "@/hooks/useTrips";
+import type { TripSuggestion } from "@/services/aiAdvisorService";
+import { getErrorMessage } from "./types";
 
 interface ItineraryItem {
   id: string;
@@ -48,7 +51,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { AITripSuggestions } from "./AITripSuggestions";
 
 interface TripItineraryProps {
-  trip: any;
+  trip: Trip;
 }
 
 export function TripItinerary({ trip }: TripItineraryProps) {
@@ -56,7 +59,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ItineraryItem | null>(null);
   const [deletingItem, setDeletingItem] = useState<ItineraryItem | null>(null);
-  const [isApplyingAI, setIsApplyingAI] = useState(false);
+  const [, setIsApplyingAI] = useState(false);
 
   // Form state
   const [date, setDate] = useState("");
@@ -169,7 +172,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
-  const handleApplyAISuggestions = async (suggestions: any[]) => {
+  const handleApplyAISuggestions = async (suggestions: TripSuggestion[]) => {
     setIsApplyingAI(true);
     const startDate = trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd");
 
@@ -184,9 +187,9 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         return supabase.from("trip_itinerary").insert({
           trip_id: tripId,
           date: startDate,
-          title: s.title,
+          title: s.title || "Atividade sugerida",
           description: fullDescription,
-          location: s.location,
+          location: s.location || null,
           start_time: null,
           end_time: null,
           order_index: items.length + idx,
@@ -203,8 +206,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         title: "Sucesso",
         description: `${suggestions.length} atividades adicionadas no 1º dia.`,
       });
-    } catch (error: any) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      toast({
+        title: "Erro ao salvar",
+        description: getErrorMessage(error, "Não foi possível salvar as sugestões"),
+        variant: "destructive",
+      });
     } finally {
       setIsApplyingAI(false);
     }

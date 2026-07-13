@@ -9,27 +9,48 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Download, Upload, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
+import type { Database } from "@/integrations/supabase/types";
+import type { PostgrestError } from "@supabase/supabase-js";
+
+const BACKUP_TABLES = [
+  "accounts",
+  "categories",
+  "transactions",
+  "transaction_splits",
+  "trips",
+  "trip_members",
+  "trip_itinerary",
+  "trip_checklist",
+  "trip_exchange_purchases",
+  "budgets",
+  "goals",
+  "assets",
+  "asset_transactions",
+  "notification_preferences",
+] as const;
+
+type BackupTableName = (typeof BACKUP_TABLES)[number];
+type BackupTablesData = {
+  [Table in BackupTableName]: Database["public"]["Tables"][Table]["Row"][];
+};
 
 interface BackupData {
   version: string;
   exportedAt: string;
   userId: string;
-  data: {
-    accounts: any[];
-    categories: any[];
-    transactions: any[];
-    transaction_splits: any[];
-    trips: any[];
-    trip_members: any[];
-    trip_itinerary: any[];
-    trip_checklist: any[];
-    trip_exchange_purchases: any[];
-    budgets: any[];
-    goals: any[];
-    assets: any[];
-    asset_transactions: any[];
-    notification_preferences: any[];
-  };
+  data: BackupTablesData;
+}
+
+function isBackupData(value: unknown): value is BackupData {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  if (typeof candidate.version !== "string" || typeof candidate.userId !== "string") return false;
+  if (!candidate.data || typeof candidate.data !== "object" || Array.isArray(candidate.data)) {
+    return false;
+  }
+
+  const data = candidate.data as Record<string, unknown>;
+  return BACKUP_TABLES.every((table) => Array.isArray(data[table]));
 }
 
 export function BackupManager() {
@@ -51,7 +72,7 @@ export function BackupManager() {
     toast.info("Iniciando exportação completa de dados...");
 
     try {
-      const getTableData = async (tableName: string) => {
+      const getTableData = async <Table extends BackupTableName>(tableName: Table) => {
         const { data, error } = await supabase.from(tableName).select("*");
         if (error) {
           logger.error(`Erro ao exportar tabela ${tableName}:`, error);
@@ -129,7 +150,7 @@ export function BackupManager() {
 
       toast.success("Todos os dados do sistema foram exportados com orgulho contábil!");
     } catch (error) {
-      logger.error(error);
+      logger.error("Error exporting backup:", error);
       toast.error("Falha ao exportar backup.");
     } finally {
       setIsExporting(false);
@@ -144,8 +165,8 @@ export function BackupManager() {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const json = JSON.parse(event.target?.result as string);
-        if (!json.version || !json.data || !json.data.accounts || !json.data.categories) {
+        const json: unknown = JSON.parse(event.target?.result as string);
+        if (!isBackupData(json)) {
           toast.error("Formato de backup inválido.");
           return;
         }
@@ -166,13 +187,17 @@ export function BackupManager() {
       toast.warning("Por favor, digite RESTAURAR para prosseguir.");
       return;
     }
+    if (importedFile.userId !== user.id) {
+      toast.error("Este backup pertence a outro usuário e não pode ser restaurado nesta conta.");
+      return;
+    }
 
     setIsImporting(true);
     const data = importedFile.data;
 
     try {
       // Helper para deletar em lote
-      const cleanTable = async (tableName: string) => {
+      const cleanTable = async (tableName: BackupTableName) => {
         const { error } = await supabase.from(tableName).delete().eq("user_id", user.id);
         if (error) {
           logger.error(`Erro ao limpar tabela ${tableName}:`, error);
@@ -181,13 +206,80 @@ export function BackupManager() {
       };
 
       // Helper para inserir em lote mantendo IDs originais
-      const insertRows = async (tableName: string, rows: any[]) => {
+      const insertRows = async (
+        tableName: BackupTableName,
+        rows: BackupTablesData[BackupTableName]
+      ) => {
         if (!rows || rows.length === 0) return;
 
-        // Garante que cada linha está associada ao usuário correto (segurança extra!)
-        const safeRows = rows.map((r) => ({ ...r, user_id: user.id }));
+        let error: PostgrestError | null = null;
+        switch (tableName) {
+          case "accounts":
+            ({ error } = await supabase
+              .from("accounts")
+              .insert(rows as BackupTablesData["accounts"]));
+            break;
+          case "categories":
+            ({ error } = await supabase
+              .from("categories")
+              .insert(rows as BackupTablesData["categories"]));
+            break;
+          case "transactions":
+            ({ error } = await supabase
+              .from("transactions")
+              .insert(rows as BackupTablesData["transactions"]));
+            break;
+          case "transaction_splits":
+            ({ error } = await supabase
+              .from("transaction_splits")
+              .insert(rows as BackupTablesData["transaction_splits"]));
+            break;
+          case "trips":
+            ({ error } = await supabase.from("trips").insert(rows as BackupTablesData["trips"]));
+            break;
+          case "trip_members":
+            ({ error } = await supabase
+              .from("trip_members")
+              .insert(rows as BackupTablesData["trip_members"]));
+            break;
+          case "trip_itinerary":
+            ({ error } = await supabase
+              .from("trip_itinerary")
+              .insert(rows as BackupTablesData["trip_itinerary"]));
+            break;
+          case "trip_checklist":
+            ({ error } = await supabase
+              .from("trip_checklist")
+              .insert(rows as BackupTablesData["trip_checklist"]));
+            break;
+          case "trip_exchange_purchases":
+            ({ error } = await supabase
+              .from("trip_exchange_purchases")
+              .insert(rows as BackupTablesData["trip_exchange_purchases"]));
+            break;
+          case "budgets":
+            ({ error } = await supabase
+              .from("budgets")
+              .insert(rows as BackupTablesData["budgets"]));
+            break;
+          case "goals":
+            ({ error } = await supabase.from("goals").insert(rows as BackupTablesData["goals"]));
+            break;
+          case "assets":
+            ({ error } = await supabase.from("assets").insert(rows as BackupTablesData["assets"]));
+            break;
+          case "asset_transactions":
+            ({ error } = await supabase
+              .from("asset_transactions")
+              .insert(rows as BackupTablesData["asset_transactions"]));
+            break;
+          case "notification_preferences":
+            ({ error } = await supabase
+              .from("notification_preferences")
+              .insert(rows as BackupTablesData["notification_preferences"]));
+            break;
+        }
 
-        const { error } = await supabase.from(tableName).insert(safeRows);
         if (error) {
           logger.error(`Erro ao restaurar tabela ${tableName}:`, error);
           throw error;
@@ -249,7 +341,7 @@ export function BackupManager() {
       setImportedFile(null);
       setConfirmText("");
     } catch (error) {
-      logger.error(error);
+      logger.error("Error restoring backup:", error);
       toast.error("Ocorreu um erro crítico durante a restauração do banco de dados.");
     } finally {
       setIsImporting(false);

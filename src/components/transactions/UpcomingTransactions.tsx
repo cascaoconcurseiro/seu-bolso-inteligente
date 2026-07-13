@@ -295,7 +295,7 @@ export function UpcomingTransactions() {
           kind: "recurring" as const,
           categoryIcon: (tx as any).category?.icon,
           accountName: (tx as any).account?.name,
-          currency: tx.currency,
+          currency: tx.currency ?? undefined,
           recurrencePattern: tx.recurrence_pattern!,
         },
       ] satisfies UnifiedItem[];
@@ -314,14 +314,14 @@ export function UpcomingTransactions() {
     () =>
       allItems
         .filter((i) => i.type === "EXPENSE")
-        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
+        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount).toNumber(), 0),
     [allItems]
   );
   const monthlyIncome = useMemo(
     () =>
       allItems
         .filter((i) => i.type === "INCOME")
-        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount), 0),
+        .reduce((s, i) => SafeFinancialCalculator.add(s, i.amount).toNumber(), 0),
     [allItems]
   );
 

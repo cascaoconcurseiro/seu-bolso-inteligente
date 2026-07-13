@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { logger } from "@/utils/logger";
 import { callRPCWithRetry } from "@/utils/supabaseHelpers";
+import type { Database } from "@/integrations/supabase/types";
 
 export type TripStatus = "PLANNING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
 
@@ -34,6 +35,7 @@ export interface TripParticipant {
   trip_id: string;
   user_id: string | null;
   member_id: string | null;
+  role: string;
   name: string;
   avatar_url: string | null;
   avatar_color: string | null;
@@ -41,6 +43,8 @@ export interface TripParticipant {
   personal_budget: number | null;
   created_at: string;
 }
+
+export type TripUpdateInput = Database["public"]["Tables"]["trips"]["Update"];
 
 export interface CreateTripInput {
   name: string;
@@ -155,7 +159,7 @@ export function useTripParticipants(tripId: string | null) {
 
       if (error) throw error;
 
-      return (data || []).map((member: any) => ({
+      return (data || []).map((member) => ({
         id: member.id,
         trip_id: member.trip_id,
         user_id: member.user_id,
@@ -244,10 +248,10 @@ export function useUpdateTrip() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...input }: Partial<Trip> & { id: string }) => {
+    mutationFn: async ({ id, ...input }: TripUpdateInput & { id: string }) => {
       const { data, error } = await supabase
         .from("trips")
-        .update(input as any)
+        .update(input)
         .eq("id", id)
         .select()
         .single();
@@ -301,7 +305,7 @@ export function useArchiveTrip() {
         .update({
           is_archived: true,
           archived_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", id)
         .select()
         .single();
@@ -330,7 +334,7 @@ export function useUnarchiveTrip() {
         .update({
           is_archived: false,
           archived_at: null,
-        } as unknown)
+        })
         .eq("id", id)
         .select()
         .single();

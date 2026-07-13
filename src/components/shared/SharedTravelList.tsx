@@ -1,15 +1,7 @@
 import { SharedTripCard } from "@/components/shared/SharedTripCard";
 import { InvoiceItem } from "@/utils/sharedFinanceCalculations";
-import { Database } from "@/types/database";
-
-type Trip = Database["public"]["Tables"]["trips"]["Row"];
-type FamilyMember = Database["public"]["Tables"]["family_members"]["Row"] & {
-  linked_user_id?: string | null;
-  sharing_scope?: string | null;
-  scope_start_date?: string | null;
-  scope_end_date?: string | null;
-  scope_trip_id?: string | null;
-};
+import type { FamilyMember } from "@/hooks/useFamily";
+import type { TripWithPersonalBudget as Trip } from "@/hooks/useTrips";
 
 interface SharedTravelListProps {
   trips: Trip[];

@@ -24,8 +24,9 @@ export function useWithdrawal() {
       if (error) throw error;
 
       // Verificar se a função retornou erro
-      if (result && !result.success) {
-        throw new Error(result.error || "Erro ao sacar");
+      const res = result as { success?: boolean; error?: string } | null;
+      if (res && !res.success) {
+        throw new Error(res.error || "Erro ao sacar");
       }
 
       return result;

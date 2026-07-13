@@ -29,7 +29,7 @@ export const useAssets = () => {
     });
 
     if (error) throw error;
-    return data as AssetPerformance[];
+    return data as unknown as AssetPerformance[];
   };
 
   // Criar investimento
@@ -193,8 +193,6 @@ export const useAssets = () => {
         .single();
 
       if (fetchError || !asset) throw fetchError || new Error("Investimento não encontrado");
-
-      const assetIdentifier = asset.ticker || asset.name;
 
       // 2. Delete auto-generated transactions (Efeito Cascata via ON DELETE CASCADE no banco)
       // O banco cuidará da exclusão na tabela transactions via FK asset_id ON DELETE CASCADE
