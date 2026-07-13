@@ -546,7 +546,7 @@ export function useTripParticipantBalances(tripId: string | null) {
     queryFn: async () => {
       if (!tripId) return [];
       try {
-        const data = await callRPCWithRetry("get_trip_participant_balances", {
+        const data = await callRPCWithRetry("get_trip_participant_balances_v2", {
           p_trip_id: tripId,
         });
         return data as TripParticipantBalance[];

@@ -513,7 +513,7 @@ create table "public"."transactions" (
   "asset_id" uuid,
   "status" text default 'CONFIRMED'::text not null,
   "goal_id" uuid,
-  "idempotency_key" uuid,
+  "idempotency_key" text,
   "external_id" text
 );
 
