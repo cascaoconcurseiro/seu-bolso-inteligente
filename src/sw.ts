@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { CacheFirst, NetworkFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
@@ -37,15 +37,31 @@ registerRoute(
   })
 );
 
-// Assets são armazenados somente quando usados. Assim a instalação da PWA
-// não disputa banda com a primeira tela em conexões móveis.
+// Nunca cachear (nem servir) uma resposta HTML para um request de script/style.
+// Durante uma corrida de deploy, um asset com hash antigo pode 404 e a Vercel
+// responde o index.html (200 text/html); sem esta guarda, o SW guardava esse
+// HTML e passava a servi-lo como JS ("Failed to load module script"), envenenando
+// o cache de forma persistente.
+const denyHtmlForAssets = {
+  cacheWillUpdate: async ({ response }: { response: Response }) => {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("text/html")) return null;
+    return response.status === 0 || response.status === 200 ? response : null;
+  },
+};
+
+// Scripts/styles: NetworkFirst para que, online, o navegador sempre receba o
+// asset do deploy vigente — auto-curando dispositivos com cache envenenado de
+// deploys anteriores. Offline, cai para o cache (que só contém JS/CSS válidos).
 registerRoute(
   ({ request, url }) =>
     url.origin === self.location.origin &&
     (request.destination === "script" || request.destination === "style"),
-  new StaleWhileRevalidate({
+  new NetworkFirst({
     cacheName: "app-assets",
+    networkTimeoutSeconds: 4,
     plugins: [
+      denyHtmlForAssets,
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 }),
     ],
