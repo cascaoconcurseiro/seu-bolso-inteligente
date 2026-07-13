@@ -15,6 +15,58 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 2
+
+### Objetivo
+
+Separar endpoints administrativos legítimos de funções internas e impedir que usuários autenticados executem jobs globais ou criem notificações arbitrárias.
+
+### Diagnóstico e causa raiz
+
+- `clear_error_logs()` era `SECURITY DEFINER` e apagava todos os logs sem validar `auth.uid()` ou administrador.
+- Jobs de recorrência, rendimentos, expiração e limpeza permanente estavam expostos ao papel `authenticated`.
+- As duas sobrecargas de `fn_create_notification` aceitavam um `p_user_id` arbitrário e podiam ser chamadas diretamente por qualquer usuário logado.
+- `seed_default_categories(p_user_id)` permitia escrever categorias para um usuário indicado pelo cliente.
+
+### Decisões e alterações
+
+- `clear_error_logs()` agora exige sessão autenticada e `public.is_admin()`, usa `search_path = ''` e tabela qualificada.
+- Sete grants de `authenticated` foram removidos de rotinas internas; `service_role` foi preservado explicitamente.
+- RPCs administrativas que já verificam `public.is_admin()` continuam acessíveis ao painel administrativo.
+- Nenhuma RPC financeira de usuário foi alterada nesta etapa.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713091506_restrict_internal_and_admin_rpcs.sql`.
+- `HANDOFF.md`.
+- Migração aplicada no projeto de produção `vrrcagukyfnlhxuvnssp`.
+
+### Verificação
+
+- [x] Grants conferidos diretamente em `pg_proc` após a migração.
+- [x] Funções internas ficaram com `authenticated = false` e `service_role = true`.
+- [x] `clear_error_logs()` permaneceu disponível ao painel, com autorização interna obrigatória.
+- [x] Usuário autenticado comum chamando o job de recorrências recebeu `42501 permission denied`.
+- [x] Usuário autenticado comum chamando `clear_error_logs()` recebeu `42501 Acesso negado`.
+- [x] Advisors de segurança executados novamente.
+- [x] Funções privilegiadas expostas a `authenticated`: 71 para 64.
+- [x] Funções privilegiadas expostas a `anon`: permanecem em 0.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Classificar as 64 funções privilegiadas ainda acessíveis a `authenticated`.
+- [ ] Auditar primeiro RPCs com `p_user_id`, IDs de contas, splits e famílias.
+- [ ] Derivar identidade exclusivamente de `auth.uid()` nas operações do usuário.
+- [ ] Testar usuário A contra recursos do usuário B.
+- [ ] Fixar `search_path = ''` e qualificar objetos nas funções de cliente.
+- [ ] Corrigir ou retirar RPCs administrativas legadas com colunas obsoletas.
+- [ ] Criar teste automatizado de grants para CI.
+- [ ] Resolver `admin_users` com RLS sem policy de forma intencional.
+- [ ] Mover `pg_trgm` para schema de extensões em migração dedicada.
+- [ ] Ativar proteção contra senhas vazadas e ampliar MFA no painel Supabase.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 1
 
 ### Objetivo
