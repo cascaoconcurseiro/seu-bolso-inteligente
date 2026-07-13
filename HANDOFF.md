@@ -15,6 +15,54 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 6
+
+### Objetivo
+
+Retirar da API autenticada quatro endpoints legados de confirmacao e liquidacao parcial sem contrato de autorizacao seguro.
+
+### Diagnostico e causa raiz
+
+- Nenhuma das quatro RPCs possui consumidor no frontend, Edge Functions ou em outras funcoes do banco.
+- `reject_settlement_request` zerava os dois lados e apagava transacoes associadas sem validar participante ou ownership.
+- `settle_partial_balance` aceitava dois usuarios arbitrarios, alterava valores historicos de splits e confirmava ambos os lados.
+- `mark_as_paid_by_debtor` e `mark_as_received_by_creditor` aceitavam um ID de transacao de liquidacao sem validar ownership.
+- O checklist anterior preservava `settle_partial_balance` pelo conceito, sem evidencia de consumidor ou revisao de autorizacao.
+
+### Decisoes e alteracoes
+
+- Execucao por `PUBLIC`, `anon` e `authenticated` foi revogada das quatro RPCs.
+- `service_role` foi preservado explicitamente para recuperacao administrativa controlada.
+- As funcoes nao foram removidas nesta etapa para manter reversibilidade e permitir analise de dados historicos.
+- O checklist historico foi corrigido para registrar a nova evidencia e evitar que a decisao antiga seja reutilizada.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713100500_restrict_legacy_settlement_confirmation_rpcs.sql`.
+- `CHECKLIST.md`.
+- `HANDOFF.md`.
+- Migracao aplicada no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Busca no codigo executavel encontrou zero consumidores das quatro RPCs.
+- [x] Busca nas funcoes do banco encontrou zero chamadas indiretas.
+- [x] Chamadas reais como `authenticated` retornaram SQLSTATE `42501` nas quatro RPCs.
+- [x] Grants conferidos: somente `service_role` pode executar.
+- [x] Advisors de seguranca executados; as quatro funcoes sairam da lista autenticada.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Corrigir RPCs de leitura e relatorios que ainda aceitam `p_user_id`.
+- [ ] Auditar `calculate_single_account_balance` e `check_account_dependencies` por ID de conta.
+- [ ] Auditar `calculate_balance_between_users`, `calculate_member_balance` e `settle_balance_between_users`.
+- [ ] Criar API v2 sem `p_user_id` para Web/PWA e futuro cliente Swift.
+- [ ] Criar testes automatizados de isolamento, grants e compensacao no banco para CI.
+- [ ] Substituir os `any` de `useSharedExpensesActions` por tipos do cache e das mutacoes.
+- [ ] Resolver `admin_users`, `pg_trgm`, protecao contra senhas vazadas e MFA.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 5
 
 ### Objetivo
