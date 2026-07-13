@@ -70,6 +70,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run test:secrets
       # Bloqueante: vulnerabilidades high/critical em deps de produção impedem o merge.
       # (--omit=dev: a cadeia vite/esbuild só afeta o dev server e exige major bump)
       - run: npm audit --audit-level=high --omit=dev

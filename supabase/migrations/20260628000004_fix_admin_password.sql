@@ -3,7 +3,7 @@
 -- Data: 2026-06-28
 -- Branch: fix/29-bugs-report
 --
--- Substitui '909496' por verificação JWT via is_admin()
+-- Substitui a senha legada fixa por verificação JWT via is_admin()
 -- =========================================================================
 
 -- ─── get_admin_error_logs: substituir senha por is_admin() ──────────────────

@@ -15,6 +15,43 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - Segredos legados, etapa 11
+
+### Objetivo
+
+Eliminar a credencial administrativa fixa remanescente no historico SQL e impedir sua reintroducao.
+
+### Diagnostico e causa raiz
+
+- Quatro migrations antigas ainda comparavam o parametro `admin_password` com uma senha numerica embutida.
+- Migrations posteriores substituiam esse fluxo por JWT e `is_admin()`, mas o segredo continuava versionado e poderia voltar em um bootstrap legado.
+- O CI nao possuia contrato estatico para bloquear esse padrao.
+
+### Decisoes e alteracoes
+
+- Os doze pontos de autenticacao por senha legada agora falham de forma incondicional; as rotinas modernas por sessao permanecem como unico caminho administrativo.
+- Comentarios historicos deixaram de repetir a credencial.
+- Criado `test:secrets`, que varre TypeScript, JavaScript e SQL por comparacoes ou atribuicoes de senha administrativa numerica.
+- O job de auditoria do CI executa o contrato antes do `npm audit`.
+
+### Arquivos e banco
+
+- `scripts/check-no-hardcoded-secrets.mjs`, `package.json` e `.github/workflows/ci.yml`.
+- Migrations historicas administrativas de 21/05, 22/05 e comentarios de hardening de 28/06.
+- Nenhuma mudanca incremental de schema foi necessaria: as funcoes legadas ja estavam substituidas e restritas em producao.
+
+### Verificacao e publicacao
+
+- [x] `npm run test:secrets`.
+- [x] Busca independente sem ocorrencias da credencial ou comparacao numerica de `admin_password`.
+- [x] `git diff --check`.
+
+### Proximo passo
+
+- Integrar as correcoes TypeScript por dominio, tornar o typecheck bloqueante no CI e revisar cache, paginacao e consultas amplas.
+
+---
+
 ## Handoff da sessao - 13/07/2026 - Baseline e error logs, etapa 10
 
 ### Objetivo

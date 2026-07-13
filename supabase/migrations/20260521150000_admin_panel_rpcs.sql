@@ -33,7 +33,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -63,7 +63,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -102,7 +102,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -140,7 +140,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -185,7 +185,7 @@ DECLARE
   v_deleted_singular integer := 0;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -215,7 +215,7 @@ CREATE OR REPLACE FUNCTION public.admin_reset_all_data(admin_password text)
 AS $function$
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -255,7 +255,7 @@ CREATE OR REPLACE FUNCTION public.admin_reset_single_user(admin_password text, t
 AS $function$
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 

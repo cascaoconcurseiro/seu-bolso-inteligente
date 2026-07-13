@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION public.get_admin_users_detailed(admin_password text)
    v_result jsonb;
  BEGIN
    -- Strict Password Authentication Layer
-   IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
      RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
    END IF;
 

@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Migration: Replace hardcoded admin password with JWT-based admin table check
 -- Created: 2026-06-28
--- Purpose: Remove '909496' hardcoded password; use admin_users table instead.
+-- Purpose: Remove the hardcoded legacy password; use admin_users table instead.
 -- ============================================================================
 
 BEGIN;

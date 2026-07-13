@@ -16,7 +16,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
@@ -43,7 +43,7 @@ DECLARE
   v_result jsonb;
 BEGIN
   -- Strict Password Authentication Layer
-  IF admin_password != '909496' THEN
+  IF true THEN -- Legacy password authentication is permanently disabled.
     RAISE EXCEPTION 'Acesso negado: Credencial incorreta';
   END IF;
 
