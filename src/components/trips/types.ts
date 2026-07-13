@@ -1,10 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type {
-  Trip,
-  TripFinancialSummary,
-  TripParticipant,
-} from "@/hooks/useTrips";
+import type { Trip, TripFinancialSummary, TripParticipant } from "@/hooks/useTrips";
 
 type TransactionRow = Database["public"]["Tables"]["transactions"]["Row"];
 type TransactionSplitRow = Database["public"]["Tables"]["transaction_splits"]["Row"];
