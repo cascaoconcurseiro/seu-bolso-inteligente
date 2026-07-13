@@ -22,7 +22,7 @@ export const FamilyBalancePanel = memo(function FamilyBalancePanel() {
     queryFn: async () => {
       if (!user) return [];
       try {
-        const data = await rpcWithRetry("get_current_shared_debts", { p_user_id: user.id });
+        const data = await rpcWithRetry("get_current_shared_debts_v2", {});
         return data as Array<{
           member_id: string;
           currency: string;
