@@ -518,40 +518,29 @@ export function useDeleteAccount() {
     },
     mutationFn: async (id: string) => {
       // AUDITORIA 2026-05-10: Verificar dependências antes de excluir
-      try {
-        const deps = (await callRPCWithRetry("check_account_dependencies", {
-          p_account_id: id,
-        })) as AccountDependenciesResponse;
+      const deps = (await callRPCWithRetry("check_account_dependencies", {
+        p_account_id: id,
+      })) as AccountDependenciesResponse | null;
 
-        if (deps && !deps.can_delete) {
-          const msgs: string[] = [];
-          if (deps.total_transactions > 0)
-            msgs.push(`${deps.total_transactions} transação(ões) vinculada(s)`);
-          if (deps.future_installments > 0)
-            msgs.push(`${deps.future_installments} parcela(s) futura(s)`);
-          if (deps.open_shared_expenses > 0)
-            msgs.push(`${deps.open_shared_expenses} despesa(s) compartilhada(s) em aberto`);
-          if (deps.linked_goals > 0) msgs.push(`${deps.linked_goals} meta(s) vinculada(s)`);
-          throw new Error(
-            `Não é possível excluir esta conta. Ela possui: ${msgs.join(", ")}. ` +
-              "Por favor, utilize a opção de Arquivar para preservar o histórico."
-          );
-        }
-      } catch (error: unknown) {
-        // Se o erro for o que acabamos de lançar (com as dependências), re-lançar
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage?.includes("Não é possível excluir")) throw error;
-
-        logger.warn("check_account_dependencies falhou ou não existe", { message: errorMessage });
+      if (!deps) {
+        throw new Error("Não foi possível verificar as dependências desta conta.");
+      }
+      if (!deps.can_delete) {
+        const msgs: string[] = [];
+        if (deps.total_transactions > 0)
+          msgs.push(`${deps.total_transactions} transação(ões) vinculada(s)`);
+        if (deps.future_installments > 0)
+          msgs.push(`${deps.future_installments} parcela(s) futura(s)`);
+        if (deps.open_shared_expenses > 0)
+          msgs.push(`${deps.open_shared_expenses} despesa(s) compartilhada(s) em aberto`);
+        if (deps.linked_goals > 0) msgs.push(`${deps.linked_goals} meta(s) vinculada(s)`);
+        throw new Error(
+          `Não é possível excluir esta conta. Ela possui: ${msgs.join(", ")}. ` +
+            "Por favor, utilize a opção de Arquivar para preservar o histórico."
+        );
       }
 
-      // Soft delete — histórico é preservado
-      const { error } = await supabase
-        .from("accounts")
-        .update({ is_active: false, deleted: true })
-        .eq("id", id);
-
-      if (error) throw error;
+      await callRPCWithRetry("soft_delete_account", { p_account_id: id });
     },
     onSuccess: () => {
       accountToasts.deleted();

@@ -15,6 +15,66 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 7
+
+### Objetivo
+
+Proteger operacoes de conta baseadas apenas em ID e tornar a exclusao de conta consistente, autorizada e resistente a falhas concorrentes.
+
+### Diagnostico e causa raiz
+
+- `check_account_dependencies` era `SECURITY DEFINER` e revelava contagens de qualquer conta sem validar ownership.
+- A funcao ignorava transferencias de destino, registros removidos e despesas compartilhadas em aberto.
+- O frontend ignorava falhas da checagem e continuava a exclusao.
+- O frontend tentava atualizar a coluna removida `accounts.deleted`.
+- `soft_delete_account` apagava transacoes ativas em cascata, criando risco de perda caso uma transacao surgisse entre a checagem e a exclusao.
+- `calculate_single_account_balance` validava o dono, mas tinha `search_path=public` e estava exposta diretamente apesar de ser apenas auxiliar interna de `recalculate_all_balances`.
+
+### Decisoes e alteracoes
+
+- `check_account_dependencies` agora exige sessao, conta ativa do usuario e usa `search_path = ''`.
+- As contagens incluem origem e destino de transferencias, ignoram soft delete e calculam despesas compartilhadas abertas.
+- A exclusao no frontend agora falha fechada quando a verificacao nao retorna resultado.
+- O frontend chama `soft_delete_account` em vez de escrever uma coluna inexistente.
+- `soft_delete_account` repete ownership e invariantes sob lock, recusa contas com transacoes ou metas e nao apaga historico em cascata.
+- Contas com historico devem usar o fluxo separado de arquivamento.
+- A chamada direta de `calculate_single_account_balance` foi retirada de `authenticated`; o uso interno pelo recálculo em lote foi preservado.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713102500_harden_account_dependency_rpcs.sql`.
+- `supabase/migrations/20260713103500_harden_soft_delete_account.sql`.
+- `src/hooks/useAccounts.ts`.
+- `CHECKLIST.md`.
+- `HANDOFF.md`.
+- Duas migracoes aplicadas no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Dono consultou dependencias reais da propria conta.
+- [x] Usuario A consultando conta de B recebeu SQLSTATE `42501`.
+- [x] Chamada direta ao recalculo unitario recebeu SQLSTATE `42501`.
+- [x] `recalculate_all_balances` continuou funcional dentro de transacao com `ROLLBACK`.
+- [x] Conta com historico foi recusada por `soft_delete_account` com SQLSTATE `23503`.
+- [x] Exclusao de conta vazia foi validada com `ROLLBACK` e o estado original foi confirmado.
+- [x] Usuario A tentando excluir conta de B recebeu SQLSTATE `42501`.
+- [x] Grants e `search_path = ''` conferidos nas tres RPCs.
+- [x] Advisors de seguranca executados apos as migracoes.
+- [x] ESLint e `tsc --noEmit` aprovados.
+- [x] Testes focados: 3 arquivos e 38 testes aprovados.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Corrigir RPCs de leitura e relatorios que ainda aceitam `p_user_id`.
+- [ ] Auditar `calculate_balance_between_users`, `calculate_member_balance` e `settle_balance_between_users`.
+- [ ] Auditar `recalculate_account_balance`, `get_account_balance_at_date` e `create_account_with_balance`.
+- [ ] Criar API v2 sem `p_user_id` para Web/PWA e futuro cliente Swift.
+- [ ] Criar testes automatizados de isolamento, grants e compensacao no banco para CI.
+- [ ] Substituir os `any` de `useSharedExpensesActions` por tipos do cache e das mutacoes.
+- [ ] Resolver `admin_users`, `pg_trgm`, protecao contra senhas vazadas e MFA.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 6
 
 ### Objetivo
