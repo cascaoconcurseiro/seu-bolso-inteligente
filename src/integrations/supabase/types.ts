@@ -3934,6 +3934,7 @@ export type Database = {
           deleted_count: number
         }[]
       }
+      delete_user_account: { Args: never; Returns: undefined }
       expire_pending_settlements: { Args: never; Returns: Json }
       fn_create_notification:
         | {

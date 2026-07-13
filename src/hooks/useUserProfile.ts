@@ -224,16 +224,15 @@ export function useDeleteAccount() {
       if (!user) throw new Error("Não autenticado");
 
       // ─── LGPD: Expurgo físico em cascata de todos os dados do usuário ───
-      // BLOQUEADO: a RPC `delete_user_account` foi perdida no cutover de schema
-      // (2026-07-13) e ainda não foi reintroduzida com cascata completa para o
-      // schema atual (~30 tabelas, várias FKs NO ACTION e dados compartilhados).
-      // Recriar o expurgo físico envolve decisão de produto/LGPD sobre o destino
-      // de viagens/transações compartilhadas e é destrutivo/irreversível.
-      // Até essa decisão, a exclusão definitiva fica indisponível de forma
-      // explícita em vez de falhar com "function not found". Ver HANDOFF.md.
-      throw new Error(
-        "Exclusão definitiva de conta temporariamente indisponível. Fale com o suporte para solicitar a remoção dos seus dados."
-      );
+      // Escopado por auth.uid() no banco (migration 20260713140000). Apaga tudo
+      // que o usuário POSSUI (cascata a partir de auth.users) e apenas desvincula
+      // (SET NULL) onde ele é ator/criador de registro de OUTRO usuário.
+      const { error } = await supabase.rpc("delete_user_account");
+      if (error) throw error;
+
+      // Encerra a sessão local após o expurgo da identidade no servidor.
+      await supabase.auth.signOut();
+      return true;
     },
     onSuccess: () => {
       toast.success("Sua conta e todos os seus dados foram removidos permanentemente.");

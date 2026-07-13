@@ -20,7 +20,7 @@
 - [x] **[ERROR-LOG]** Schema reconciliado, senha historica removida e `updated_at`/RPCs corrigidos.
 - [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free.
 - [x] **[TYPECHECK]** Zerados os 124 erros globais (tsconfig.app.json) e removido `continue-on-error`: typecheck agora e bloqueante no CI.
-- [ ] **[LGPD-DELETE]** Reintroduzir `delete_user_account` com cascata completa para o schema atual (perdida no cutover). Requer decisao de produto sobre dados compartilhados. `useDeleteAccount` falha de forma segura ate la.
+- [~] **[LGPD-DELETE]** RPC `delete_user_account` reescrita para o schema atual (migration `20260713140000`), tipos e hook restaurados; typecheck/format verdes. Decisao adotada: expurgo fisico + SET NULL onde o usuario e so ator/criador de registro alheio. **Pendente:** aplicar em producao e provar com `scripts/verify-delete-user-account.sql` (BEGIN/ROLLBACK) contra um usuario real; validar privilegio de DELETE em `auth.users` (senao mover o passo 3 para Edge Function com service_role).
 
 ---
 

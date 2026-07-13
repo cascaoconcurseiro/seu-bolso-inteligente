@@ -15,6 +15,42 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - Reintroducao do expurgo LGPD, etapa 13
+
+### Objetivo
+
+Recriar a exclusao definitiva de conta (`delete_user_account`), perdida no cutover de baseline, cobrindo corretamente o schema atual (~30 tabelas, FKs NO ACTION e dados compartilhados).
+
+### Diagnostico e causa raiz
+
+- A versao antiga (`20260604174400`) so tratava um subconjunto de tabelas e deixava intactas varias FKs `NO ACTION` que bloqueariam `DELETE FROM auth.users`.
+- Grafo de FKs confirmado na baseline `20260713_public_schema.sql`: a maioria dos dados proprios apaga por CASCADE via `auth.users -> profiles`; o que bloqueia sao colunas de criador (`creator_user_id` em budgets/goals/transactions/trips), colunas de ator (`deleted_by`, `invited_by`, `removed_by`, `granted_by`, `changed_by`, `linked_user_id`) e um filho proprio sem cascade garantido (`asset_transactions.user_id`).
+
+### Decisoes (produto/LGPD)
+
+- **Dados compartilhados:** expurgar o que o usuario POSSUI (cascade) e apenas desvincular (SET NULL) onde ele e somente ator/criador de registro de OUTRO usuario. Nao destroi dado alheio, nao deixa orfao. (Alternativas de transferencia de posse / anonimizacao foram descartadas por complexidade nesta etapa.)
+- **Identidade:** expurgo fisico (`DELETE FROM auth.users`) — direito ao esquecimento real, alinhado ao proposito da feature.
+
+### Alteracoes
+
+- `supabase/migrations/20260713140000_reintroduce_delete_user_account_rpc.sql`: RPC `SECURITY DEFINER`, `search_path = ''`, escopada por `auth.uid()`; SET NULL nos atores/criadores, DELETE explicito em `asset_transactions`, DELETE final em `auth.users`. Grants: `authenticated` + `service_role`; revogado de PUBLIC/anon.
+- `src/integrations/supabase/types.ts`: `delete_user_account` adicionado em Functions.
+- `src/hooks/useUserProfile.ts`: `useDeleteAccount` volta a chamar a RPC e faz `signOut()` apos o expurgo (removido o stopgap).
+- `scripts/verify-delete-user-account.sql`: prova transacional (BEGIN/ROLLBACK) contra usuario real.
+
+### Verificacao
+
+- [x] `npx tsc --noEmit -p tsconfig.app.json` = 0 erros.
+- [x] `prettier --check` verde nos arquivos alterados.
+- [ ] **Bloqueado nesta sessao (sem credencial de banco):** aplicar migration em producao e rodar `scripts/verify-delete-user-account.sql` para provar conclusao sem erro de FK.
+- [ ] Validar que o papel definidor pode `DELETE FROM auth.users` neste projeto; se retornar `42501`, mover o passo 3 para Edge Function com `service_role` (`auth.admin.deleteUser`), mantendo passos 1-2 na RPC.
+
+### Proximo passo
+
+- Aplicar `20260713140000` em producao, rodar a prova transacional com um usuario real e, se o expurgo de `auth.users` for permitido, marcar `[LGPD-DELETE]` como concluido. Storage objects do usuario (se houver bucket) ficam como verificacao adicional.
+
+---
+
 ## Handoff da sessao - 13/07/2026 - Typecheck global bloqueante, etapa 12
 
 ### Objetivo
