@@ -53,7 +53,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     settleAccountId,
     settleAmount,
     selectedItems,
-    settleDate,
     members,
     getFilteredInvoice,
     user,
@@ -73,7 +72,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
     setSettleAmount,
     setSettleAccountId,
     setSelectedItems,
-    formatCurrency,
     queryClient,
   } = props;
 
@@ -83,15 +81,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       return;
     }
 
-    if (!selectedMember || !settleAccountId) {
-      toast.error("Selecione uma conta");
+    if (!selectedMember) {
+      toast.error("Selecione uma pessoa");
       return;
     }
 
     setIsSettling(true);
     let previousState: unknown = null;
+    let validationErrorMessage: string | null = null;
     try {
-      const member = members.find((m) => m.id === selectedMember);
       const items = getFilteredInvoice(selectedMember);
 
       const itemsToSettle =
@@ -126,6 +124,12 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
 
       const absoluteTotalDue = Math.abs(itemsTotal);
 
+      if (absoluteTotalDue >= 0.01 && !settleAccountId) {
+        toast.error("Selecione uma conta");
+        setIsSettling(false);
+        return;
+      }
+
       if (amount > absoluteTotalDue + 0.01) {
         toast.error(
           `O valor do acerto (${SafeFinancialCalculator.formatCurrency(amount, settlementCurrency)}) não pode ser maior que o total devido (${SafeFinancialCalculator.formatCurrency(absoluteTotalDue, settlementCurrency)})`
@@ -135,7 +139,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
 
       const splitIds = itemsToSettle.map((i) => i.splitId).filter((id): id is string => !!id);
-      const txId: string | null = null;
 
       // SEC-004: bloquear liquidação de itens de domínios distintos na mesma operação
       const uniqueTripIdsCheck = [...new Set(itemsToSettle.map((i) => i.tripId ?? null))];
@@ -147,10 +150,6 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         setIsSettling(false);
         return;
       }
-
-      const hasCredits = itemsToSettle.some((i) => i.type === "CREDIT");
-      const hasDebits = itemsToSettle.some((i) => i.type === "DEBIT");
-      const isCompensated = hasCredits && hasDebits;
 
       // ATUALIZAÇÃO OTIMISTA
       setShowSettleDialog(false);
@@ -166,14 +165,15 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
                 ...tx,
                 transaction_splits: tx.transaction_splits.map((split: any /* any */) => {
                   if (splitIds.includes(split.id)) {
-                    const isPerfectComp = Math.abs(itemsTotal) < 0.01;
+                    const settledByDebtor =
+                      user?.id === split.debtor_id ? true : split.settled_by_debtor;
+                    const settledByCreditor =
+                      user?.id === split.creditor_id ? true : split.settled_by_creditor;
                     return {
                       ...split,
-                      settled_by_debtor:
-                        user?.id === split.debtor_id ? true : split.settled_by_debtor,
-                      settled_by_creditor:
-                        user?.id === split.creditor_id ? true : split.settled_by_creditor,
-                      is_settled: isPerfectComp ? true : split.is_settled,
+                      settled_by_debtor: settledByDebtor,
+                      settled_by_creditor: settledByCreditor,
+                      is_settled: settledByDebtor === true && settledByCreditor === true,
                     };
                   }
                   return split;
@@ -185,23 +185,19 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
         });
       }
 
-      const uniqueTripIds = [...new Set(itemsToSettle.map((i) => i.tripId).filter(Boolean))];
-      const tripId = uniqueTripIds.length === 1 ? uniqueTripIds[0] : null;
-      const domain = tripId ? "TRAVEL" : "SHARED";
-
       // 1. Caso de compensação perfeita (valores iguais se anulam)
       if (Math.abs(itemsTotal) < 0.01) {
-        const { error: updateError } = await supabase
-          .from("transaction_splits")
-          .update({
-            settled_by_debtor: true,
-            settled_by_creditor: true,
-            is_settled: true,
-            settled_at: new Date().toISOString(),
-          })
-          .in("id", splitIds);
+        const { data, error } = await supabase.rpc("settle_compensated_splits", {
+          p_split_ids: splitIds,
+        });
 
-        if (updateError) throw updateError;
+        if (error) throw error;
+        const result = data as { success?: boolean; error?: string };
+        if (result?.success === false) {
+          validationErrorMessage =
+            result.error || "Não foi possível compensar as despesas selecionadas.";
+          throw new Error(validationErrorMessage);
+        }
 
         toast.success("Compensação realizada com sucesso! As despesas mútuas se anularam.");
       }
@@ -253,7 +249,7 @@ export function useSharedExpensesActions(props: SharedExpensesActionsProps) {
       }
       queryClient?.invalidateQueries({ queryKey: ["shared-transactions-consolidated"] });
       queryClient?.invalidateQueries({ queryKey: ["shared-balances"] });
-      toast.error("Erro ao realizar acerto");
+      toast.error(validationErrorMessage || "Erro ao realizar acerto");
     } finally {
       setIsSettling(false);
     }

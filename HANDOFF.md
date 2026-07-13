@@ -15,6 +15,67 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 5
+
+### Objetivo
+
+Eliminar a atualizacao direta e unilateral de splits na compensacao de despesas mutuas com saldo liquido zero.
+
+### Diagnostico e causa raiz
+
+- O frontend atualizava `transaction_splits` diretamente quando creditos e debitos se anulavam.
+- O cliente decidia sozinho que o saldo era zero, sem recalculo no PostgreSQL.
+- A operacao marcava devedor e credor como confirmados, permitindo que um usuario confirmasse em nome da contraparte.
+- O estado otimista tambem definia `is_settled = true` antes da confirmacao independente do outro lado.
+- O dialogo exigia uma conta mesmo quando a compensacao nao cria transacao financeira.
+
+### Decisoes e alteracoes
+
+- Criada a RPC `settle_compensated_splits(uuid[])`, atomica e derivada de `auth.uid()`.
+- O banco bloqueia os splits em ordem deterministica e recalcula o saldo com precisao de centavos.
+- A RPC exige splits existentes, ativos, nao duplicados, da mesma contraparte, moeda, dominio e viagem.
+- A compensacao exige valores nos dois sentidos e saldo final exatamente zero em centavos.
+- Cada usuario confirma somente o proprio lado; `is_settled` so fica verdadeiro quando ambos os lados confirmam.
+- O frontend deixou de escrever diretamente em `transaction_splits` e passou a usar a RPC.
+- O cache otimista agora respeita a confirmacao independente e a conta deixou de ser obrigatoria no saldo zero.
+- Mensagens funcionais retornadas pela RPC sao preservadas no feedback de erro.
+- Grants: `authenticated` e `service_role` podem executar; `anon` nao pode; `search_path = ''`.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713094500_settle_compensated_splits_atomically.sql`.
+- `src/hooks/useSharedExpensesActions.ts`.
+- `src/integrations/supabase/types.ts`.
+- `HANDOFF.md`.
+- Migracao aplicada no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Compensacao real de dois splits reciprocos e iguais validada dentro de transacao com `ROLLBACK`.
+- [x] Somente o lado do usuario autenticado foi confirmado em cada split; a contraparte permaneceu inalterada.
+- [x] Usuario terceiro recebeu SQLSTATE `42501` ao tentar compensar os mesmos splits.
+- [x] Arrays vazio e duplicado foram recusados.
+- [x] Selecao com valores em apenas um sentido foi recusada.
+- [x] Estado original dos splits foi confirmado apos o `ROLLBACK`.
+- [x] Grants, `SECURITY DEFINER` e `search_path = ''` conferidos em producao.
+- [x] Advisors de seguranca executados apos a migracao.
+- [x] `tsc --noEmit` aprovado.
+- [x] ESLint sem erros; permanecem 8 avisos de `any` preexistentes no hook.
+- [x] Testes focados: 2 arquivos e 35 testes aprovados.
+- [x] Build Vite de producao e service worker PWA aprovados.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Auditar `settle_partial_balance`, `reject_settlement_request`, `mark_as_paid_by_debtor` e `mark_as_received_by_creditor`.
+- [ ] Corrigir RPCs de leitura e relatorios que ainda aceitam `p_user_id`.
+- [ ] Auditar `calculate_single_account_balance` e `check_account_dependencies` por ID de conta.
+- [ ] Criar API v2 sem `p_user_id` para Web/PWA e futuro cliente Swift.
+- [ ] Criar testes automatizados de isolamento, grants e compensacao no banco para CI.
+- [ ] Substituir os `any` de `useSharedExpensesActions` por tipos do cache e das mutacoes.
+- [ ] Resolver `admin_users`, `pg_trgm`, protecao contra senhas vazadas e MFA.
+
+---
+
 ## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 4
 
 ### Objetivo

@@ -4378,6 +4378,10 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      settle_compensated_splits: {
+        Args: { p_split_ids: string[] }
+        Returns: Json
+      }
       set_pin: {
         Args: { p_pin: string; p_require_on_open?: boolean }
         Returns: boolean
