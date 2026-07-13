@@ -1,6 +1,53 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-03
+> Última atualização: 2026-07-12
+
+## Regras permanentes de continuidade
+
+- Atualizar este arquivo em toda entrega que altere código, banco, UX, design, infraestrutura ou decisões arquiteturais.
+- Descrever objetivo, causa raiz, decisões, arquivos, migrações, testes, riscos, publicação e próximo passo.
+- Tratar o PostgreSQL do Supabase como fonte única de verdade financeira.
+- Tratar o produto como controle financeiro pessoal manual, sem conexão bancária.
+- Revisar mudanças relevantes pelos critérios de produto, arquitetura, Supabase, segurança, frontend/PWA, UX, design, QA e operações.
+- Não declarar revisão de um especialista que não tenha sido efetivamente realizada; registrar o critério técnico aplicado e suas evidências.
+
+Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
+
+---
+
+## Handoff da sessão - 12/07/2026
+
+### Objetivo
+
+Formalizar o posicionamento do produto, a fonte única de dados e o protocolo obrigatório de handoff e coordenação técnica.
+
+### Decisões
+
+- O app é um sistema de controle financeiro pessoal sem conexão bancária.
+- O Supabase/PostgreSQL é a fonte canônica; caches e estados locais são derivados e descartáveis.
+- Escritas críticas devem ser atômicas, idempotentes e autorizadas no banco.
+- Integridade financeira e segurança prevalecem sobre velocidade de entrega e acabamento visual.
+- A direção visual passa a ser operacional e sóbria; efeitos decorativos deixam de ser padrão arquitetural.
+
+### Arquivos alterados
+
+- `docs/PRODUCT_OPERATING_MODEL.md`: contrato de produto, dados, especialidades e handoff.
+- `ARCHITECTURE.md`: fonte única de verdade, limite sem conexão bancária e direção visual coerente com a auditoria.
+- `HANDOFF.md`: regras permanentes e registro desta sessão.
+
+### Banco e compatibilidade
+
+- Nenhuma migração ou alteração de schema nesta sessão.
+- Nenhuma mudança de comportamento em produção.
+
+### Verificação
+
+- Revisão documental cruzada com a auditoria de produto e engenharia de 12/07/2026.
+- Não foram executados testes de código porque a entrega altera somente documentação.
+
+### Próximo passo concreto
+
+Auditar e classificar todas as RPCs `SECURITY DEFINER`, revogando acesso anônimo indevido e adicionando testes negativos de isolamento entre usuários.
 
 ---
 
