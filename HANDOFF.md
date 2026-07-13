@@ -15,6 +15,51 @@ Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
 
 ---
 
+## Handoff da sessao - 13/07/2026 - Typecheck global bloqueante, etapa 12
+
+### Objetivo
+
+Integrar as correcoes TypeScript das quatro frentes por dominio, zerar o typecheck real do projeto e torna-lo bloqueante no CI.
+
+### Diagnostico e causa raiz
+
+- Restavam 124 erros reais (tsconfig.app.json) apos as frentes; o CI mascarava tudo com `continue-on-error`.
+- Padrao dominante em Viagens: `SafeFinancialCalculator.add(...)` retorna `Decimal`, mas os `reduce` usavam inicial `0` (number). Isso quebrava a inferencia (acumulador inferido como `TripTransaction`) e, pior, vazava um `Decimal` em runtime onde o codigo esperava `number` (soma/format/comparacao).
+- Modelos duplicados (`FamilyMember`, `Trip`) em componentes divergiam dos tipos canonicos de `useFamily`/`useTrips`.
+- Varias RPCs v2 retornam `Json`; acesso a propriedades exigia narrowing/cast explicito.
+
+### Decisoes e alteracoes
+
+- Todos os `reduce` financeiros de Viagens encerram com `.toNumber()` (corrige tipo E o vazamento de `Decimal` em runtime).
+- `useDashboard`: resultado v2 tipado via `Partial<DashboardSummary>` e type guard aplicado sobre `unknown[]`.
+- `SharedRegularList`/`SharedTravelList` passam a importar `FamilyMember` de `useFamily` e `TripWithPersonalBudget` de `useTrips`; `TripSuggestion` ganhou `category?`.
+- Casts de fronteira RPC->app onde os shapes divergem (useAccounts, useAssets, useGoals, useAccountStatement); nulabilidades reais tratadas.
+- `CreditCards`: estado `closingDayMode` adicionado ao hook e propagado; `Reports` migrado para API `open/onOpenChange` do TransactionModal.
+- CI: removido `continue-on-error`; `npx tsc --noEmit -p tsconfig.app.json` agora bloqueia.
+- Backlog de formatacao do `src` normalizado com Prettier para o job `lint-and-typecheck` ficar verde (commit `style:` separado, sem mudanca de comportamento).
+
+### BLOQUEADOR descoberto (LGPD / exclusao de conta)
+
+- `useDeleteAccount` chamava a RPC `delete_user_account`, que **nao existe mais no banco** (project vrrcagukyfnlhxuvnssp) — perdida no cutover de baseline. A migration `20260604174400` a define, mas para um schema antigo e incompleto.
+- O schema atual tem ~30 tabelas com dados do usuario e varias FKs `NO ACTION` que bloqueariam `DELETE FROM auth.users`, alem de colunas de ator (removed_by, invited_by, etc.).
+- Recriar o expurgo fisico envolve **decisao de produto/LGPD** sobre dados compartilhados (viagens/transacoes/cartoes compartilhados de co-donos) e e destrutivo/irreversivel. Nao foi recriado autonomamente.
+- Stopgap aplicado: `useDeleteAccount` agora lanca erro explicito ("Exclusao definitiva temporariamente indisponivel...") em vez de falhar com "function not found". Ver item `[LGPD-DELETE]` no CHECKLIST.
+
+### Verificacao e publicacao
+
+- [x] `npx tsc --noEmit -p tsconfig.app.json` = 0 erros.
+- [x] `npm test -- --run` = 239 testes passam, 19 ignorados (integracao sem credenciais).
+- [x] `npm run build` ok; `npm run format:check` verde.
+- [x] ESLint 0 erros (warnings pre-existentes de `any`/unused mantidos).
+- [x] Commits `fix: zero global typecheck and enforce it in CI` e `style: ...` publicados na main.
+
+### Proximo passo
+
+- Decisao/execucao do `[LGPD-DELETE]`.
+- Itens de desempenho ainda abertos: paginacao cursor-based + remover `SELECT *`; reduzir chunk page-shared; PDF export via Web Worker. HIBP e billing do GitHub Actions dependem de acao do proprietario (plano/billing).
+
+---
+
 ## Handoff da sessao - 13/07/2026 - Segredos legados, etapa 11
 
 ### Objetivo

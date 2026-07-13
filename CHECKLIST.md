@@ -19,7 +19,8 @@
 - [x] **[BASELINE]** Snapshot de cutover reproduzivel: 36 tabelas, 164 funcoes, 10 views e ACLs explicitas.
 - [x] **[ERROR-LOG]** Schema reconciliado, senha historica removida e `updated_at`/RPCs corrigidos.
 - [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free.
-- [ ] **[TYPECHECK]** Zerar erros globais e remover `continue-on-error` do CI.
+- [x] **[TYPECHECK]** Zerados os 124 erros globais (tsconfig.app.json) e removido `continue-on-error`: typecheck agora e bloqueante no CI.
+- [ ] **[LGPD-DELETE]** Reintroduzir `delete_user_account` com cascata completa para o schema atual (perdida no cutover). Requer decisao de produto sobre dados compartilhados. `useDeleteAccount` falha de forma segura ate la.
 
 ---
 
