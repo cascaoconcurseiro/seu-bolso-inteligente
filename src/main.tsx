@@ -6,6 +6,21 @@ import { initGlobalErrorLogger } from "./services/errorLogger";
 
 initGlobalErrorLogger();
 
+// Recuperação automática de deploy: quando um chunk dinâmico falha ao carregar
+// (um novo deploy trocou os hashes e o index.html em memória aponta para assets
+// que não existem mais no servidor), a única cura é recarregar para buscar o
+// index.html atual. A guarda por sessão evita loop de reload em falha persistente
+// (ex.: offline real), recarregando no máximo uma vez a cada 10s.
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  const KEY = "chunk-reload-ts";
+  const last = Number(sessionStorage.getItem(KEY) || 0);
+  if (Date.now() - last > 10_000) {
+    sessionStorage.setItem(KEY, String(Date.now()));
+    window.location.reload();
+  }
+});
+
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 
 createRoot(document.getElementById("root")!).render(<App />);

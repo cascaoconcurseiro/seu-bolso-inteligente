@@ -1,11 +1,7 @@
 /// <reference lib="webworker" />
-import {
-  cleanupOutdatedCaches,
-  createHandlerBoundToURL,
-  precacheAndRoute,
-} from "workbox-precaching";
+import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { CacheFirst, StaleWhileRevalidate } from "workbox-strategies";
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
@@ -19,8 +15,27 @@ self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// SPA fallback
-registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
+// SPA fallback — navegação sempre tenta a rede primeiro para obter o index.html
+// do deploy atual (com os hashes de chunk vigentes). Servir o index.html
+// pré-cacheado após um novo deploy produziria referências de chunk mortas
+// (404 → fallback HTML → "Failed to load module script"). Offline, cai para a
+// última versão em cache e, em último caso, para o index.html do precache.
+const navigationStrategy = new NetworkFirst({
+  cacheName: "app-shell",
+  networkTimeoutSeconds: 3,
+  plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+});
+registerRoute(
+  new NavigationRoute(async (options) => {
+    try {
+      const response = await navigationStrategy.handle(options);
+      if (response) return response;
+    } catch {
+      // rede e cache de navegação indisponíveis — usa o precache abaixo
+    }
+    return (await matchPrecache("index.html")) ?? Response.error();
+  })
+);
 
 // Assets são armazenados somente quando usados. Assim a instalação da PWA
 // não disputa banda com a primeira tela em conexões móveis.
