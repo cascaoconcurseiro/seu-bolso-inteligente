@@ -1,6 +1,6 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-12
+> Última atualização: 2026-07-13
 
 ## Regras permanentes de continuidade
 
@@ -12,6 +12,60 @@
 - Não declarar revisão de um especialista que não tenha sido efetivamente realizada; registrar o critério técnico aplicado e suas evidências.
 
 Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
+
+---
+
+## Handoff da sessão - 13/07/2026 - RPCs privilegiadas, etapa 4
+
+### Objetivo
+
+Impedir falsificacao de identidade, acesso cruzado e estados financeiros orfaos na liquidacao ativa de despesas compartilhadas.
+
+### Diagnostico e causa raiz
+
+- O frontend atual usa `request_settlement` e `undo_settlement`; ambas confiavam em `p_user_id` mesmo sendo `SECURITY DEFINER`.
+- `request_settlement` nao validava ownership da conta, participacao do chamador nos splits nem IDs duplicados.
+- `undo_settlement` desfazia apenas um split, mas apagava a transacao de liquidacao compartilhada por todo o lote, deixando outros splits pagos sem referencia financeira.
+- Sete RPCs legadas de liquidacao continuavam executaveis por `authenticated`, embora nao fossem usadas pelo frontend de producao.
+
+### Decisoes e alteracoes
+
+- As assinaturas ativas foram preservadas para compatibilidade com Web/PWA.
+- `p_user_id` agora deve coincidir com `auth.uid()` e toda identidade efetiva vem do JWT.
+- A conta de liquidacao deve pertencer ao usuario autenticado.
+- Todos os splits sao bloqueados em ordem deterministica, devem existir e exigir participacao do chamador como devedor ou credor.
+- Arrays vazios, IDs duplicados e valores nao positivos sao rejeitados.
+- O desfazimento agora reverte atomicamente todos os splits vinculados a mesma transacao de liquidacao e retorna `reverted_count`.
+- `search_path` foi fixado como vazio e os objetos foram qualificados.
+- Execucao por `authenticated` foi removida de sete endpoints legados; `service_role` foi preservado.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260713092327_harden_active_settlement_rpcs.sql`.
+- `HANDOFF.md`.
+- Migracao aplicada no projeto de producao `vrrcagukyfnlhxuvnssp`.
+
+### Verificacao
+
+- [x] Falsificacao de `p_user_id` bloqueada com SQLSTATE `42501`.
+- [x] Conta pertencente a outro usuario bloqueada com SQLSTATE `42501`.
+- [x] Split sem participacao do chamador bloqueado com SQLSTATE `42501`.
+- [x] Endpoint legado `settle_split` bloqueado para `authenticated`.
+- [x] Ciclo real `request_settlement` + `undo_settlement` validado em transacao com `ROLLBACK`, sem persistir dados de teste.
+- [x] Desfazimento retornou `reverted_count = 1` no teste positivo.
+- [x] Grants conferidos: endpoints ativos somente para `authenticated` e `service_role`; legados somente para `service_role`.
+- [x] Testes focados: 2 arquivos e 35 testes aprovados.
+- [x] Advisors de seguranca executados apos a migracao.
+
+### Checklist pendente do P0 Supabase
+
+- [ ] Substituir o `update` direto de compensacao com saldo liquido zero por RPC atomica e autorizada.
+- [ ] Auditar `settle_partial_balance`, `reject_settlement_request`, `mark_as_paid_by_debtor` e `mark_as_received_by_creditor`.
+- [ ] Corrigir RPCs de leitura e relatorios que ainda aceitam `p_user_id`.
+- [ ] Auditar `calculate_single_account_balance` e `check_account_dependencies` por ID de conta.
+- [ ] Criar API v2 sem `p_user_id` para Web/PWA e futuro cliente Swift.
+- [ ] Criar testes automatizados de isolamento e grants no banco para CI.
+- [ ] Resolver `admin_users`, `pg_trgm`, protecao contra senhas vazadas e MFA.
 
 ---
 
