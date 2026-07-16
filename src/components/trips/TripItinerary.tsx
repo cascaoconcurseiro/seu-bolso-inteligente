@@ -23,9 +23,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, ExternalLink, MapPin, Pencil, Plus, Route, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { geocodeDestination } from "@/services/overpassService";
+import { Clock, ExternalLink, MapPin, Navigation, Pencil, Plus, Route, Search, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  geocodeDestination,
+  reverseGeocode,
+  searchPlaces,
+  type PlaceSearchResult,
+} from "@/services/overpassService";
 import { TripRouteMap } from "./TripRouteMap";
 import type { Trip } from "@/hooks/useTrips";
 import type { TripSuggestion } from "@/services/aiAdvisorService";
@@ -75,6 +80,14 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Coordenadas do destino da viagem — centro do mapa sem pins e viés da busca
+  const { data: destCoords } = useQuery({
+    queryKey: ["trip-dest-coords", trip.destination],
+    queryFn: () => geocodeDestination(trip.destination!),
+    enabled: !!trip.destination,
+    staleTime: Infinity,
+  });
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
@@ -155,6 +168,25 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
   });
 
+  // Move mutation (arrastar marcador no mapa — só atualiza coordenadas)
+  const moveItem = useMutation({
+    mutationFn: async ({ id, latitude, longitude }: { id: string; latitude: number; longitude: number }) => {
+      const { error } = await supabase
+        .from("trip_itinerary")
+        .update({ latitude, longitude })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Localização atualizada" });
+    },
+    onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: ["trip-itinerary", tripId] });
+      toast({ title: "Erro ao mover", description: error.message, variant: "destructive" });
+    },
+  });
+
   // Delete mutation
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
@@ -215,6 +247,44 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     } finally {
       setIsApplyingAI(false);
     }
+  };
+
+  // Toque no mapa → abre dialog de nova atividade com pin já posicionado
+  const handleMapPick = async (pick: { lat: number; lon: number }) => {
+    setEditingItem(null);
+    resetForm();
+    setDate(trip.start_date || dateFns.format(new Date(), "yyyy-MM-dd"));
+    setLatitude(pick.lat);
+    setLongitude(pick.lon);
+    setShowDialog(true);
+    // Descobre o nome do lugar em segundo plano
+    const place = await reverseGeocode(pick.lat, pick.lon);
+    if (place) {
+      setLocation(place.name);
+      setTitle((current) => current || place.name);
+    }
+  };
+
+  const handleMarkerMove = (id: string, lat: number, lon: number) => {
+    moveItem.mutate({ id, latitude: lat, longitude: lon });
+  };
+
+  // Rota do dia no Google Maps (multi-paradas) — é isso que "leva você"
+  const buildDayNavUrl = (dayItems: ItineraryItem[]): string | null => {
+    const points = dayItems
+      .filter((i) => i.latitude !== null && i.longitude !== null)
+      .map((i) => `${i.latitude},${i.longitude}`);
+    if (points.length < 2) return null;
+    const origin = points[0];
+    const destination = points[points.length - 1];
+    // Google aceita no máx. 9 waypoints intermediários
+    const waypoints = points.slice(1, -1).slice(0, 9).join("|");
+    const url = new URL("https://www.google.com/maps/dir/");
+    url.searchParams.set("api", "1");
+    url.searchParams.set("origin", origin);
+    url.searchParams.set("destination", destination);
+    if (waypoints) url.searchParams.set("waypoints", waypoints);
+    return url.toString();
   };
 
   const resetForm = () => {
@@ -319,6 +389,10 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           }
         />
 
+        {destCoords && (
+          <TripRouteMap items={[]} fallbackCenter={destCoords} onMapPick={handleMapPick} />
+        )}
+
         <ItineraryDialog
           open={showDialog}
           onOpenChange={setShowDialog}
@@ -338,6 +412,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           setEndTime={setEndTime}
           mapsUrl={mapsUrl}
           setMapsUrl={setMapsUrl}
+          hasCoords={latitude !== null && longitude !== null}
+          onCoordsChange={(c) => {
+            setLatitude(c?.lat ?? null);
+            setLongitude(c?.lon ?? null);
+          }}
+          searchNear={destCoords ?? null}
           onSubmit={handleSubmit}
         />
       </div>
@@ -364,17 +444,38 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         </div>
       </div>
 
-      {/* Lista agrupada por data */}
-      <TripRouteMap items={items} />
+      {/* Mapa interativo do roteiro */}
+      <TripRouteMap
+        items={items}
+        fallbackCenter={destCoords ?? null}
+        onMapPick={handleMapPick}
+        onMarkerMove={handleMarkerMove}
+      />
 
       <div className="space-y-6">
-        {Object.entries(groupedItems).map(([dateKey, dayItems]) => (
+        {Object.entries(groupedItems).map(([dateKey, dayItems]) => {
+          const dayNavUrl = buildDayNavUrl(dayItems);
+          return (
           <div key={dateKey} className="space-y-3">
-            <h3 className="text-sm font-semibold capitalize text-foreground">
-              {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
-                locale: ptBR,
-              })}
-            </h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold capitalize text-foreground">
+                {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
+                  locale: ptBR,
+                })}
+              </h3>
+              {dayNavUrl && (
+                <a
+                  href={dayNavUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                  title="Abrir a rota do dia no Google Maps"
+                >
+                  <Navigation className="h-3.5 w-3.5" />
+                  Navegar dia
+                </a>
+              )}
+            </div>
             <div className="space-y-2">
               {dayItems.map((item) => {
                 const meta = parseMeta(item.description);
@@ -464,7 +565,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Dialog */}
@@ -487,6 +589,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         setEndTime={setEndTime}
         mapsUrl={mapsUrl}
         setMapsUrl={setMapsUrl}
+        hasCoords={latitude !== null && longitude !== null}
+        onCoordsChange={(c) => {
+          setLatitude(c?.lat ?? null);
+          setLongitude(c?.lon ?? null);
+        }}
+        searchNear={destCoords ?? null}
         onSubmit={handleSubmit}
       />
 
@@ -535,6 +643,9 @@ function ItineraryDialog({
   setEndTime,
   mapsUrl,
   setMapsUrl,
+  hasCoords,
+  onCoordsChange,
+  searchNear,
   onSubmit,
 }: {
   open: boolean;
@@ -555,9 +666,44 @@ function ItineraryDialog({
   setEndTime: (v: string) => void;
   mapsUrl: string;
   setMapsUrl: (v: string) => void;
+  hasCoords: boolean;
+  onCoordsChange: (c: { lat: number; lon: number } | null) => void;
+  searchNear: { lat: number; lon: number } | null;
   onSubmit: () => void;
 }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  // Autocomplete de lugares (Photon/OSM) — só busca quando o usuário digita
+  const [placeQuery, setPlaceQuery] = useState("");
+  const [placeResults, setPlaceResults] = useState<PlaceSearchResult[]>([]);
+  const [isSearchingPlaces, setIsSearchingPlaces] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setPlaceQuery("");
+      setPlaceResults([]);
+      return;
+    }
+    const query = placeQuery.trim();
+    if (query.length < 3) {
+      setPlaceResults([]);
+      return;
+    }
+    setIsSearchingPlaces(true);
+    const timer = setTimeout(async () => {
+      const results = await searchPlaces(query, searchNear ?? undefined);
+      setPlaceResults(results);
+      setIsSearchingPlaces(false);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [placeQuery, open, searchNear]);
+
+  const handlePickPlace = (place: PlaceSearchResult) => {
+    setLocation(place.name);
+    onCoordsChange({ lat: place.lat, lon: place.lon });
+    setPlaceQuery("");
+    setPlaceResults([]);
+  };
 
   const openMapsSearch = () => {
     const query = encodeURIComponent(location || title);
@@ -629,28 +775,71 @@ function ItineraryDialog({
             </div>
           </div>
 
-          {/* Local + busca */}
+          {/* Local + busca com autocomplete */}
           <div className="space-y-2">
             <Label>Local</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ex: Museu do Louvre"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="h-11"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-11 w-11 shrink-0"
-                onClick={openMapsSearch}
-                disabled={!location && !title}
-                title="Buscar no Maps"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
+            <div className="relative">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ex: Museu do Louvre"
+                  value={location}
+                  onChange={(e) => {
+                    setLocation(e.target.value);
+                    setPlaceQuery(e.target.value);
+                    onCoordsChange(null);
+                  }}
+                  className="h-11"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 shrink-0"
+                  onClick={openMapsSearch}
+                  disabled={!location && !title}
+                  title="Buscar no Maps"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+              {(placeResults.length > 0 || isSearchingPlaces) && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg">
+                  {isSearchingPlaces && placeResults.length === 0 && (
+                    <p className="px-3 py-2.5 text-sm text-muted-foreground">Buscando lugares…</p>
+                  )}
+                  {placeResults.map((place, idx) => (
+                    <button
+                      key={`${place.lat}-${place.lon}-${idx}`}
+                      type="button"
+                      className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-accent/50 transition-colors"
+                      onClick={() => handlePickPlace(place)}
+                    >
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium leading-tight">
+                          {place.name}
+                        </span>
+                        {place.address && (
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {place.address}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {hasCoords ? (
+              <p className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                <MapPin className="h-3 w-3" />
+                Pin fixado no mapa
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">
+                Digite para buscar e fixar o lugar no mapa do roteiro.
+              </p>
+            )}
           </div>
 
           {/* Link do Maps */}

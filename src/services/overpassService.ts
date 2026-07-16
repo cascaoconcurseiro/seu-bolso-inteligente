@@ -107,6 +107,90 @@ export async function geocodeDestination(
   }
 }
 
+export interface PlaceSearchResult {
+  name: string;
+  address: string;
+  lat: number;
+  lon: number;
+}
+
+/**
+ * Search places by free text using Photon (komoot) — OSM-based geocoder
+ * designed for autocomplete. Free, no API key.
+ * `near` biases results toward the trip destination.
+ */
+export async function searchPlaces(
+  query: string,
+  near?: { lat: number; lon: number }
+): Promise<PlaceSearchResult[]> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const url = new URL("https://photon.komoot.io/api/");
+    url.searchParams.set("q", query);
+    url.searchParams.set("limit", "6");
+    if (near) {
+      url.searchParams.set("lat", String(near.lat));
+      url.searchParams.set("lon", String(near.lon));
+    }
+    const res = await fetch(url.toString(), { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const features: Array<{
+      properties?: Record<string, string>;
+      geometry?: { coordinates?: [number, number] };
+    }> = data.features || [];
+
+    const results: PlaceSearchResult[] = [];
+    const seen = new Set<string>();
+    for (const f of features) {
+      const p = f.properties || {};
+      const coords = f.geometry?.coordinates;
+      if (!p.name || !coords) continue;
+      const [lon, lat] = coords;
+      const address = [p.street, p.district, p.city, p.state, p.country]
+        .filter(Boolean)
+        .join(", ");
+      const key = `${p.name}|${address}`.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      results.push({ name: p.name, address, lat, lon });
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Reverse geocode a lat/lon into a place name/address using Nominatim.
+ * Used when the user drops a pin directly on the map.
+ */
+export async function reverseGeocode(
+  lat: number,
+  lon: number
+): Promise<{ name: string; address: string } | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=17`;
+    const res = await fetch(url, {
+      headers: { "Accept-Language": "pt-BR,pt;q=0.9", "User-Agent": "SeuBolsoInteligente/1.0" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || data.error) return null;
+    const name: string = data.name || (data.display_name || "").split(",")[0].trim();
+    if (!name) return null;
+    return { name, address: data.display_name || name };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch real POIs from Overpass API for a given lat/lon.
  * Returns up to `limit` diverse POIs sorted by tourist relevance.
