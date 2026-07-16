@@ -1,7 +1,17 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-15 — Auditoria completa ao vivo (banco + CI + código) e sincronização da documentação**
+> Última atualização: **2026-07-16 — Roteiro de viagem linkado com o mapa**
+
+---
+
+## Concluido - 16/07/2026 - Roteiro de viagem linkado com o mapa
+
+- [x] **[TRIP-MAP-LINK]** Link do Google Maps colado agora extrai lat/lon automaticamente (`parseGoogleMapsUrl`), sem depender de geocodificação externa.
+- [x] **[TRIP-MAP-CACHE]** `trips.latitude`/`longitude` (coluna nova) cacheiam a coordenada base da viagem — elimina re-geocodificação de `trip.destination` a cada carga.
+- [x] **[TRIP-MAP-CATEGORY]** `trip_itinerary.category` (coluna nova) + chips de categoria no formulário filtram a busca de lugares e coloram o pin por tipo.
+- [x] **[TRIP-MAP-SYNC]** Lista de atividades numerada igual aos pins do mapa; clicar num item foca/centraliza o pin correspondente.
+- [ ] **[TRIP-MAP-QA]** QA visual manual pendente — não verificado em navegador real nesta sessão (sem credencial de login). Testar: pin aparece ao colar link do Maps, chips de categoria filtram busca, numeração lista↔mapa bate, clique foca o pin certo.
 
 ---
 

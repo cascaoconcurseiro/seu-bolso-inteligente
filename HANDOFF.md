@@ -1,6 +1,6 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-15
+> Última atualização: 2026-07-16
 
 ## Regras permanentes de continuidade
 
@@ -12,6 +12,44 @@
 - Não declarar revisão de um especialista que não tenha sido efetivamente realizada; registrar o critério técnico aplicado e suas evidências.
 
 Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
+
+---
+
+## Handoff da sessão - 16/07/2026 - Roteiro de viagem linkado com o mapa
+
+### Objetivo
+
+Usuário reportou uso real do mapa de roteiro (feature `3cb451ba`): o mapa não refletia a viagem, pins de atração não apareciam, a busca de lugar não deixava escolher categoria, e lista/mapa pareciam duas coisas desconectadas em vez de um roteiro real.
+
+### Diagnóstico
+
+- O mapa centralizava geocodificando `trips.destination` (texto livre) a cada carga da tela, sem cache — qualquer falha/ambiguidade do Nominatim (grátis) fazia o mapa não bater com a viagem.
+- Pin só aparecia com `latitude`/`longitude` no registro; colar um link do Google Maps só guardava o link pra abrir depois, nunca extraía coordenadas dele.
+- Busca de lugares (Photon) era só texto livre, sem filtro de categoria — diferente da lógica de categorias que já existia (não reaproveitada) nas sugestões de IA (`overpassService.fetchOverpassPOIs`).
+- Numeração dos pins no mapa (1, 2, 3…) não tinha correspondência visível na lista de atividades; clicar num item não focava o pin.
+
+### Decisões e alterações
+
+- `parseGoogleMapsUrl()`: extrai lat/lon direto do link colado (`@lat,lon`, `?q=lat,lon`, `!3dlat!4dlon`) sem geocodificação externa — 100% confiável quando o link já traz coordenadas.
+- `trips.latitude`/`longitude` (coluna nova, nullable): coordenada base da viagem, geocodificada e persistida uma única vez (`TripItinerary` faz o cache silencioso no primeiro load sem coords); elimina a re-geocodificação a cada abertura da tela.
+- `trip_itinerary.category` (coluna nova, nullable, CHECK constraint com 5 valores): categoria do item (Atração/Restaurante/Hotel/Praia/Transporte), escolhida via chips no formulário — filtra a busca (`osm_tag` do Photon) e define a cor do pin no mapa (`getCategoryColor`).
+- Lista de atividades numerada com o mesmo índice do pin (`pinNumberByItemId`); clicar no número foca (`focusedItemId`) e o `TripRouteMap` centraliza/realça (`FocusMarker`, `map.flyTo`) o pin correspondente.
+
+### Arquivos e banco
+
+- `supabase/migrations/20260716000000_add_trip_base_coords_and_itinerary_category.sql` — aplicada em produção via MCP; `types.ts` regenerado.
+- `src/services/overpassService.ts`, `src/components/trips/TripItinerary.tsx`, `src/components/trips/TripRouteMap.tsx`, `src/hooks/useTrips.ts`.
+- Commit `f740266b`, pushado para `main`.
+
+### Verificação
+
+- [x] `tsc --noEmit`, `npm run lint` (0 erros), `npm run format:check`, `npm test -- --run` (239/239), `npm run build` — todos verdes.
+- [ ] **Não verificado em navegador real**: sem credencial de login disponível nesta sessão para abrir uma viagem de teste e conferir visualmente (chips de categoria, numeração sincronizada, parsing do link). Recomendo QA manual no próximo acesso — abrir uma viagem com destino definido, colar um link do Google Maps num item e conferir se o pin aparece, e testar os chips de categoria na busca.
+
+### Próximo passo
+
+- QA visual manual do fluxo (ver item acima).
+- Resolver o billing travado do GitHub Actions (ver sessão anterior) — só depois disso o CI vai validar este commit de verdade.
 
 ---
 
