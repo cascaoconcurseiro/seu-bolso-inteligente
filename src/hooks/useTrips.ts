@@ -22,6 +22,8 @@ export interface Trip {
   notes: string | null;
   is_archived: boolean | null;
   archived_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
   updated_at: string;
 }

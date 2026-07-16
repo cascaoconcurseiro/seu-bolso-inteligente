@@ -114,14 +114,31 @@ export interface PlaceSearchResult {
   lon: number;
 }
 
+/** Categorias de lugar do roteiro — usadas no filtro de busca e no ícone do pin no mapa. */
+export const PLACE_CATEGORIES = [
+  { id: "attraction", label: "Atração", osmTag: "tourism:attraction", color: "#7c3aed" },
+  { id: "restaurant", label: "Restaurante", osmTag: "amenity:restaurant", color: "#ea580c" },
+  { id: "hotel", label: "Hotel", osmTag: "tourism:hotel", color: "#0891b2" },
+  { id: "beach", label: "Praia", osmTag: "natural:beach", color: "#0d9488" },
+  { id: "transport", label: "Transporte", osmTag: "aeroway", color: "#4b5563" },
+] as const;
+
+export type PlaceCategory = (typeof PLACE_CATEGORIES)[number]["id"];
+
+export function getCategoryColor(category: string | null | undefined): string {
+  return PLACE_CATEGORIES.find((c) => c.id === category)?.color ?? "#111827";
+}
+
 /**
  * Search places by free text using Photon (komoot) — OSM-based geocoder
  * designed for autocomplete. Free, no API key.
  * `near` biases results toward the trip destination.
+ * `category` filtra por tipo de lugar via `osm_tag` do Photon.
  */
 export async function searchPlaces(
   query: string,
-  near?: { lat: number; lon: number }
+  near?: { lat: number; lon: number },
+  category?: PlaceCategory
 ): Promise<PlaceSearchResult[]> {
   try {
     const controller = new AbortController();
@@ -133,6 +150,8 @@ export async function searchPlaces(
       url.searchParams.set("lat", String(near.lat));
       url.searchParams.set("lon", String(near.lon));
     }
+    const osmTag = PLACE_CATEGORIES.find((c) => c.id === category)?.osmTag;
+    if (osmTag) url.searchParams.set("osm_tag", osmTag);
     const res = await fetch(url.toString(), { signal: controller.signal });
     clearTimeout(timeout);
     if (!res.ok) return [];
@@ -159,6 +178,39 @@ export async function searchPlaces(
   } catch {
     return [];
   }
+}
+
+/**
+ * Extrai lat/lon de um link do Google Maps colado pelo usuário, sem geocodificação
+ * externa (100% confiável quando o link já contém as coordenadas).
+ * Cobre os formatos mais comuns: .../@lat,lon,zoom, ?q=lat,lon e !3dlat!4dlon (place URLs).
+ */
+export function parseGoogleMapsUrl(url: string): { lat: number; lon: number } | null {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  const patterns = [
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/, // .../@-23.5505,-46.6333,15z
+    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/, // ?q=-23.5505,-46.6333
+    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/, // .../place/.../!3d-23.5505!4d-46.6333
+  ];
+
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lon = parseFloat(match[2]);
+      if (
+        Number.isFinite(lat) &&
+        Number.isFinite(lon) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lon) <= 180
+      ) {
+        return { lat, lon };
+      }
+    }
+  }
+  return null;
 }
 
 /**

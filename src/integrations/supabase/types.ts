@@ -707,13 +707,13 @@ export type Database = {
           file: string | null
           id: string
           line: number | null
-          message: string | null
+          message: string
           stack: string | null
-          status: string | null
+          status: string
+          updated_at: string
           url: string | null
           user_agent: string | null
           user_id: string | null
-          updated_at: string
         }
         Insert: {
           app_version?: string | null
@@ -724,13 +724,13 @@ export type Database = {
           file?: string | null
           id?: string
           line?: number | null
-          message?: string | null
+          message: string
           stack?: string | null
-          status?: string | null
+          status?: string
+          updated_at?: string
           url?: string | null
           user_agent?: string | null
           user_id?: string | null
-          updated_at?: string
         }
         Update: {
           app_version?: string | null
@@ -741,13 +741,13 @@ export type Database = {
           file?: string | null
           id?: string
           line?: number | null
-          message?: string | null
+          message?: string
           stack?: string | null
-          status?: string | null
+          status?: string
+          updated_at?: string
           url?: string | null
           user_agent?: string | null
           user_id?: string | null
-          updated_at?: string
         }
         Relationships: []
       }
@@ -1896,6 +1896,7 @@ export type Database = {
           domain: Database["public"]["Enums"]["transaction_domain"]
           enable_notification: boolean | null
           exchange_rate: number | null
+          external_id: string | null
           frequency: string | null
           goal_id: string | null
           id: string
@@ -1948,6 +1949,7 @@ export type Database = {
           domain?: Database["public"]["Enums"]["transaction_domain"]
           enable_notification?: boolean | null
           exchange_rate?: number | null
+          external_id?: string | null
           frequency?: string | null
           goal_id?: string | null
           id?: string
@@ -2000,6 +2002,7 @@ export type Database = {
           domain?: Database["public"]["Enums"]["transaction_domain"]
           enable_notification?: boolean | null
           exchange_rate?: number | null
+          external_id?: string | null
           frequency?: string | null
           goal_id?: string | null
           id?: string
@@ -2418,13 +2421,14 @@ export type Database = {
       }
       trip_itinerary: {
         Row: {
+          category: string | null
           created_at: string
           date: string
           description: string | null
           end_time: string | null
           id: string
-          location: string | null
           latitude: number | null
+          location: string | null
           longitude: number | null
           maps_url: string | null
           order_index: number
@@ -2433,13 +2437,14 @@ export type Database = {
           trip_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           date: string
           description?: string | null
           end_time?: string | null
           id?: string
-          location?: string | null
           latitude?: number | null
+          location?: string | null
           longitude?: number | null
           maps_url?: string | null
           order_index?: number
@@ -2448,13 +2453,14 @@ export type Database = {
           trip_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           date?: string
           description?: string | null
           end_time?: string | null
           id?: string
-          location?: string | null
           latitude?: number | null
+          location?: string | null
           longitude?: number | null
           maps_url?: string | null
           order_index?: number
@@ -2589,6 +2595,8 @@ export type Database = {
           exchange_entries: Json | null
           id: string
           is_archived: boolean | null
+          latitude: number | null
+          longitude: number | null
           name: string
           notes: string | null
           owner_id: string
@@ -2613,6 +2621,8 @@ export type Database = {
           exchange_entries?: Json | null
           id?: string
           is_archived?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
           notes?: string | null
           owner_id: string
@@ -2637,6 +2647,8 @@ export type Database = {
           exchange_entries?: Json | null
           id?: string
           is_archived?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           notes?: string | null
           owner_id?: string
@@ -4338,6 +4350,7 @@ export type Database = {
           domain: Database["public"]["Enums"]["transaction_domain"]
           enable_notification: boolean | null
           exchange_rate: number | null
+          external_id: string | null
           frequency: string | null
           goal_id: string | null
           id: string
@@ -4467,6 +4480,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_settlement_v2: {
+        Args: {
+          p_account_id: string
+          p_amount?: number
+          p_is_payment: boolean
+          p_split_ids: string[]
+        }
+        Returns: Json
+      }
       resolve_error_report: {
         Args: { p_report_id: string }
         Returns: undefined
@@ -4491,19 +4513,6 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      settle_compensated_splits: {
-        Args: { p_split_ids: string[] }
-        Returns: Json
-      }
-      request_settlement_v2: {
-        Args: {
-          p_account_id: string
-          p_amount?: number
-          p_is_payment: boolean
-          p_split_ids: string[]
-        }
-        Returns: Json
-      }
       set_pin: {
         Args: { p_pin: string; p_require_on_open?: boolean }
         Returns: boolean
@@ -4515,6 +4524,10 @@ export type Database = {
           p_user2_id: string
         }
         Returns: number
+      }
+      settle_compensated_splits: {
+        Args: { p_split_ids: string[] }
+        Returns: Json
       }
       settle_multiple_splits: {
         Args: { p_account_id: string; p_split_ids: string[]; p_user_id: string }
@@ -4543,18 +4556,14 @@ export type Database = {
         }
         Returns: Json
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_account: {
         Args: { p_account_id: string }
         Returns: undefined
       }
-      soft_delete_transaction:
-        | { Args: { p_transaction_id: string }; Returns: undefined }
-        | {
-            Args: { p_cascade?: string; p_transaction_id: string }
-            Returns: number
-          }
+      soft_delete_transaction: {
+        Args: { p_cascade?: string; p_transaction_id: string }
+        Returns: number
+      }
       submit_error_report: {
         Args: {
           p_context: string
@@ -4601,10 +4610,7 @@ export type Database = {
         Args: { p_split_id: string; p_user_id: string }
         Returns: Json
       }
-      undo_settlement_v2: {
-        Args: { p_split_id: string }
-        Returns: Json
-      }
+      undo_settlement_v2: { Args: { p_split_id: string }; Returns: Json }
       undo_shared_settlements: {
         Args: { p_split_ids: string[] }
         Returns: Json

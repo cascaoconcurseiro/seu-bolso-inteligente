@@ -12,6 +12,7 @@ import {
   useMap,
   useMapEvents,
 } from "react-leaflet";
+import { getCategoryColor } from "@/services/overpassService";
 
 export interface MappedItineraryItem {
   id: string;
@@ -21,6 +22,7 @@ export interface MappedItineraryItem {
   start_time: string | null;
   latitude: number | null;
   longitude: number | null;
+  category?: string | null;
 }
 
 interface TripRouteMapProps {
@@ -31,6 +33,17 @@ interface TripRouteMapProps {
   onMapPick?: (pick: { lat: number; lon: number }) => void;
   /** Arrastar um marcador existente → atualizar coordenadas */
   onMarkerMove?: (id: string, lat: number, lon: number) => void;
+  /** Item selecionado na lista — centraliza e realça o pin correspondente */
+  focusedId?: string | null;
+}
+
+function FocusMarker({ position, active }: { position: [number, number]; active: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    if (active) map.flyTo(position, Math.max(map.getZoom(), 15), { duration: 0.6 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, position[0], position[1]]);
+  return null;
 }
 
 function FitRoute({ positions }: { positions: [number, number][] }) {
@@ -95,6 +108,7 @@ export function TripRouteMap({
   fallbackCenter,
   onMapPick,
   onMarkerMove,
+  focusedId,
 }: TripRouteMapProps) {
   const mappedItems = useMemo(
     () => items.filter((item) => item.latitude !== null && item.longitude !== null),
@@ -105,6 +119,12 @@ export function TripRouteMap({
     [mappedItems]
   );
   const osrmRoute = useOsrmRoute(positions);
+  const focusedPosition = useMemo(() => {
+    const focused = mappedItems.find((item) => item.id === focusedId);
+    return focused
+      ? ([Number(focused.latitude), Number(focused.longitude)] as [number, number])
+      : null;
+  }, [mappedItems, focusedId]);
 
   if (mappedItems.length === 0 && !fallbackCenter) return null;
 
@@ -127,6 +147,7 @@ export function TripRouteMap({
         />
         {onMapPick && <MapClickHandler onPick={onMapPick} />}
         <FitRoute positions={positions} />
+        {focusedPosition && <FocusMarker position={focusedPosition} active />}
         {positions.length > 1 && (
           <Polyline
             positions={osrmRoute ?? positions}
@@ -137,34 +158,38 @@ export function TripRouteMap({
             }
           />
         )}
-        {mappedItems.map((item, index) => (
-          <Marker
-            key={item.id}
-            position={[Number(item.latitude), Number(item.longitude)]}
-            draggable={!!onMarkerMove}
-            eventHandlers={
-              onMarkerMove
-                ? {
-                    dragend: (e) => {
-                      const pos = (e.target as L.Marker).getLatLng();
-                      onMarkerMove(item.id, pos.lat, pos.lng);
-                    },
-                  }
-                : undefined
-            }
-            icon={L.divIcon({
-              className: "",
-              html: `<div style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#fff;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.28);font:700 12px system-ui">${index + 1}</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
-            })}
-          >
-            <Tooltip direction="top" offset={[0, -16]}>
-              <strong>{item.title}</strong>
-              {item.location && <span className="block">{item.location}</span>}
-            </Tooltip>
-          </Marker>
-        ))}
+        {mappedItems.map((item, index) => {
+          const isFocused = focusedId === item.id;
+          const position: [number, number] = [Number(item.latitude), Number(item.longitude)];
+          return (
+            <Marker
+              key={item.id}
+              position={position}
+              draggable={!!onMarkerMove}
+              eventHandlers={
+                onMarkerMove
+                  ? {
+                      dragend: (e) => {
+                        const pos = (e.target as L.Marker).getLatLng();
+                        onMarkerMove(item.id, pos.lat, pos.lng);
+                      },
+                    }
+                  : undefined
+              }
+              icon={L.divIcon({
+                className: "",
+                html: `<div style="width:${isFocused ? 38 : 30}px;height:${isFocused ? 38 : 30}px;border-radius:50%;display:grid;place-items:center;background:${isFocused ? "#2563eb" : getCategoryColor(item.category)};color:#fff;border:3px solid #fff;box-shadow:0 2px ${isFocused ? 14 : 8}px rgba(0,0,0,.32);font:700 ${isFocused ? 14 : 12}px system-ui;transition:all .2s">${index + 1}</div>`,
+                iconSize: [isFocused ? 38 : 30, isFocused ? 38 : 30],
+                iconAnchor: [isFocused ? 19 : 15, isFocused ? 19 : 15],
+              })}
+            >
+              <Tooltip direction="top" offset={[0, -16]}>
+                <strong>{item.title}</strong>
+                {item.location && <span className="block">{item.location}</span>}
+              </Tooltip>
+            </Marker>
+          );
+        })}
       </MapContainer>
       {onMapPick && (
         <div className="pointer-events-none absolute bottom-2 left-1/2 z-[1000] -translate-x-1/2">

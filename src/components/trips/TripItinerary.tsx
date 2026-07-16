@@ -37,8 +37,11 @@ import {
 import { useEffect, useState } from "react";
 import {
   geocodeDestination,
+  parseGoogleMapsUrl,
+  PLACE_CATEGORIES,
   reverseGeocode,
   searchPlaces,
+  type PlaceCategory,
   type PlaceSearchResult,
 } from "@/services/overpassService";
 import { TripRouteMap } from "./TripRouteMap";
@@ -60,6 +63,7 @@ interface ItineraryItem {
   maps_url: string | null;
   latitude: number | null;
   longitude: number | null;
+  category: string | null;
 }
 
 import { EmptyState } from "@/components/ui/empty-state";
@@ -87,17 +91,42 @@ export function TripItinerary({ trip }: TripItineraryProps) {
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
+  const [category, setCategory] = useState<PlaceCategory | null>(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Coordenadas do destino da viagem — centro do mapa sem pins e viés da busca
-  const { data: destCoords } = useQuery({
-    queryKey: ["trip-dest-coords", trip.destination],
-    queryFn: () => geocodeDestination(trip.destination!),
-    enabled: !!trip.destination,
-    staleTime: Infinity,
-  });
+  // Coordenada base da viagem — cacheada em trips.latitude/longitude para não
+  // re-geocodificar trip.destination toda vez que a tela abre. Se ainda não
+  // existir, geocodifica uma vez e persiste silenciosamente pra próxima carga.
+  const [localDestCoords, setLocalDestCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const destCoords =
+    trip.latitude !== null && trip.longitude !== null
+      ? { lat: trip.latitude, lon: trip.longitude }
+      : localDestCoords;
+
+  useEffect(() => {
+    if (destCoords || !trip.destination) return;
+    let cancelled = false;
+    geocodeDestination(trip.destination).then((coords) => {
+      if (!coords || cancelled) return;
+      setLocalDestCoords(coords);
+      supabase
+        .from("trips")
+        .update({ latitude: coords.lat, longitude: coords.lon })
+        .eq("id", trip.id)
+        .then(({ error }) => {
+          if (!error) {
+            queryClient.invalidateQueries({ queryKey: ["trips"] });
+            queryClient.invalidateQueries({ queryKey: ["trip", trip.id] });
+          }
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [destCoords, trip.destination, trip.id, queryClient]);
 
   // Helper: extrai metadados embedados no description (mapsUrl, rating)
   const parseMeta = (
@@ -234,6 +263,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           ? `${s.description}\n<!--meta:${metadata}-->`
           : `<!--meta:${metadata}-->`;
 
+        const matchedCategory = PLACE_CATEGORIES.find((c) => c.id === s.category)?.id ?? null;
+
         return supabase.from("trip_itinerary").insert({
           trip_id: tripId,
           date: startDate,
@@ -246,6 +277,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           maps_url: s.mapsUrl || null,
           latitude: s.lat ?? null,
           longitude: s.lon ?? null,
+          category: matchedCategory,
         });
       });
 
@@ -315,6 +347,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     setMapsUrl("");
     setLatitude(null);
     setLongitude(null);
+    setCategory(null);
   };
 
   const handleOpenDialog = (item?: ItineraryItem) => {
@@ -330,6 +363,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       setMapsUrl(item.maps_url || meta.mapsUrl || "");
       setLatitude(item.latitude);
       setLongitude(item.longitude);
+      setCategory((item.category as PlaceCategory) || null);
     } else {
       setEditingItem(null);
       resetForm();
@@ -364,6 +398,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
       maps_url: mapsUrl || null,
       latitude: resolvedLatitude,
       longitude: resolvedLongitude,
+      category,
     };
 
     if (editingItem) {
@@ -383,6 +418,12 @@ export function TripItinerary({ trip }: TripItineraryProps) {
     },
     {} as Record<string, ItineraryItem[]>
   );
+
+  // Numeração dos pins — mesma ordem/índice usado pelo TripRouteMap, pra lista e mapa combinarem
+  const pinNumberByItemId = new Map<string, number>();
+  items
+    .filter((item) => item.latitude !== null && item.longitude !== null)
+    .forEach((item, idx) => pinNumberByItemId.set(item.id, idx + 1));
 
   // Estado vazio
   if (!isLoading && items.length === 0) {
@@ -436,6 +477,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
             setLongitude(c?.lon ?? null);
           }}
           searchNear={destCoords ?? null}
+          category={category}
+          setCategory={setCategory}
           onSubmit={handleSubmit}
         />
       </div>
@@ -468,6 +511,7 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         fallbackCenter={destCoords ?? null}
         onMapPick={handleMapPick}
         onMarkerMove={handleMarkerMove}
+        focusedId={focusedItemId}
       />
 
       <div className="space-y-6">
@@ -497,13 +541,33 @@ export function TripItinerary({ trip }: TripItineraryProps) {
               <div className="space-y-2">
                 {dayItems.map((item) => {
                   const meta = parseMeta(item.description);
+                  const pinNumber = pinNumberByItemId.get(item.id);
+                  const isFocused = focusedItemId === item.id;
                   return (
                     <div
                       key={item.id}
-                      className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                      className={`flex items-start justify-between p-4 rounded-xl border transition-colors ${
+                        isFocused
+                          ? "border-blue-500 ring-1 ring-blue-500/40"
+                          : "border-border hover:border-foreground/20"
+                      }`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
+                          {pinNumber && (
+                            <button
+                              type="button"
+                              onClick={() => setFocusedItemId(isFocused ? null : item.id)}
+                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white transition-colors ${
+                                isFocused ? "bg-blue-600" : "bg-foreground/80 hover:bg-blue-600"
+                              }`}
+                              title="Localizar no mapa"
+                              aria-label={`Localizar atividade ${pinNumber} no mapa`}
+                              aria-pressed={isFocused}
+                            >
+                              {pinNumber}
+                            </button>
+                          )}
                           {item.start_time && (
                             <span className="text-sm text-muted-foreground flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -614,6 +678,8 @@ export function TripItinerary({ trip }: TripItineraryProps) {
           setLongitude(c?.lon ?? null);
         }}
         searchNear={destCoords ?? null}
+        category={category}
+        setCategory={setCategory}
         onSubmit={handleSubmit}
       />
 
@@ -665,6 +731,8 @@ function ItineraryDialog({
   hasCoords,
   onCoordsChange,
   searchNear,
+  category,
+  setCategory,
   onSubmit,
 }: {
   open: boolean;
@@ -688,6 +756,8 @@ function ItineraryDialog({
   hasCoords: boolean;
   onCoordsChange: (c: { lat: number; lon: number } | null) => void;
   searchNear: { lat: number; lon: number } | null;
+  category: PlaceCategory | null;
+  setCategory: (c: PlaceCategory | null) => void;
   onSubmit: () => void;
 }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -710,12 +780,12 @@ function ItineraryDialog({
     }
     setIsSearchingPlaces(true);
     const timer = setTimeout(async () => {
-      const results = await searchPlaces(query, searchNear ?? undefined);
+      const results = await searchPlaces(query, searchNear ?? undefined, category ?? undefined);
       setPlaceResults(results);
       setIsSearchingPlaces(false);
     }, 400);
     return () => clearTimeout(timer);
-  }, [placeQuery, open, searchNear]);
+  }, [placeQuery, open, searchNear, category]);
 
   const handlePickPlace = (place: PlaceSearchResult) => {
     setLocation(place.name);
@@ -797,6 +867,32 @@ function ItineraryDialog({
           {/* Local + busca com autocomplete */}
           <div className="space-y-2">
             <Label>Local</Label>
+
+            {/* Categoria — filtra a busca e define a cor do pin no mapa */}
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Categoria do lugar">
+              {PLACE_CATEGORIES.map((cat) => {
+                const isSelected = category === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategory(isSelected ? null : cat.id)}
+                    aria-pressed={isSelected}
+                    className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                      isSelected ? "text-white" : "border-border text-foreground hover:bg-accent/50"
+                    }`}
+                    style={
+                      isSelected
+                        ? { backgroundColor: cat.color, borderColor: cat.color }
+                        : undefined
+                    }
+                  >
+                    {cat.label}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="relative">
               <div className="flex gap-2">
                 <Input
@@ -871,7 +967,12 @@ function ItineraryDialog({
               <Input
                 placeholder="Cole o link copiado do Maps…"
                 value={mapsUrl}
-                onChange={(e) => setMapsUrl(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setMapsUrl(value);
+                  const coords = parseGoogleMapsUrl(value);
+                  if (coords) onCoordsChange(coords);
+                }}
                 className="h-11 text-sm"
               />
               {mapsUrl && (
@@ -886,7 +987,9 @@ function ItineraryDialog({
               )}
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Toque em 🔍 para buscar, copie o link no Maps e cole aqui.
+              {parseGoogleMapsUrl(mapsUrl)
+                ? "Coordenadas do link detectadas — o pin vai aparecer no mapa do roteiro."
+                : "Toque em 🔍 para buscar, copie o link no Maps e cole aqui."}
             </p>
           </div>
 
