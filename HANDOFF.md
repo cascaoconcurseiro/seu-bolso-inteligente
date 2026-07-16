@@ -34,14 +34,17 @@ Usuário pediu auditoria do que "realmente" ainda precisa ser feito (não confia
 
 ### Achado crítico: CI 100% vermelho desde 12/07 (não estava documentado)
 
-Via API pública do GitHub (repo é público, sem precisar de token): **todas as execuções do workflow `CI` em `main` desde a run #120 (12/07) até a #149 (16/07) falharam**, nos 6 jobs, incluindo nos commits que sessões anteriores relataram como "typecheck zerado"/"CI verde". A antiga suspeita de billing do GitHub Actions (`docs/CHECKLIST_HIG_PWA_IOS.md`) está desatualizada: o runner roda normalmente agora (minutos de execução, não os ~4s de antes); o problema é outro.
+Via API pública do GitHub (repo é público, sem precisar de token): **todas as execuções do workflow `CI` em `main` desde a run #120 (12/07) até a #149 (16/07) falharam**, nos 6 jobs, incluindo nos commits que sessões anteriores relataram como "typecheck zerado"/"CI verde".
 
 Diagnóstico rodando localmente cada step do `ci.yml`:
 - `npx tsc --noEmit` ✅, `npm run lint` ✅ (0 erros), `npm test -- --coverage` ✅ (239/239), `npm run build` ✅, `npm run test:secrets` ✅, `npm audit --omit=dev` ✅ (0 vulnerabilidades).
-- `npm run format:check` ❌ — 6 arquivos não formatados; 3 deles (`TripItinerary.tsx`, `TripRouteMap.tsx`, `overpassService.ts`) são da feature de mapa de viagens (`3cb451ba`), que nunca passou pelo Prettier. **Esta é a causa confirmada do job "Lint & Type Check" falhando.** Corrigido nesta sessão com `prettier --write`; reverificado tsc/lint/format:check limpos.
-- `database-security` (job): o `ci.yml` faz `exit 1` explícito se o secret `SUPABASE_DB_URL` não estiver configurado no repo GitHub. Suspeita forte, não confirmada — não tenho acesso de leitura aos Secrets do repo.
-- `e2e`: depende de `VITE_SUPABASE_URL` (var) e `VITE_SUPABASE_ANON_KEY` (secret) do repo. Mesma suspeita.
-- `test`, `build`, `audit`: passam localmente sem erro — a causa da falha específica em CI não foi confirmada porque a API do GitHub recusou o download do log do job (`403 Must have admin rights to Repository`) sem autenticação.
+- `npm run format:check` ❌ — 6 arquivos não formatados; 3 deles (`TripItinerary.tsx`, `TripRouteMap.tsx`, `overpassService.ts`) são da feature de mapa de viagens (`3cb451ba`), que nunca passou pelo Prettier. Corrigido nesta sessão com `prettier --write` e commitado/pushado (`b6abecb7`).
+
+**Causa raiz real, confirmada após o push do fix**: o run #150 (do próprio fix) falhou nos 6 jobs em ~5s, 0 steps executados. O usuário abriu a página do run no GitHub e confirmou o texto exato exibido: *"The job was not started because your account is locked due to a billing issue."* — bloqueio de nível de **conta pessoal** do GitHub (não é config do repositório: "Actions permissions" já estava em "Allow all actions and reusable workflows", a opção mais permissiva). Isso explica todo o histórico de falhas desde 12/07, independente de qualquer coisa no código. O fix de Prettier continua correto e necessário, só não vai aparecer verde em CI até o billing ser resolvido.
+
+Ação exclusiva do usuário (envolve pagamento/conta — fora do escopo do assistente por política de segurança): resolver a pendência em `github.com/settings/billing`, depois re-rodar o workflow (push novo ou "Re-run all jobs").
+
+Depois disso, ainda falta confirmar se os secrets `SUPABASE_DB_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` estão configurados em Settings → Secrets and variables → Actions — sem eles, `database-security` (faz `exit 1` explícito por design) e `e2e` vão falhar mesmo com o billing resolvido.
 
 ### Ação bloqueada por permissão
 
@@ -62,10 +65,13 @@ Tentei escolher um usuário real com dados ricos para rodar `scripts/verify-dele
 
 ### Próximo passo concreto
 
-1. Usuário decide: commit + push do fix de Prettier (desbloqueia 1 de 6 jobs).
-2. Usuário confirma em Settings → Secrets and variables → Actions do GitHub se `SUPABASE_DB_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` estão configurados.
-3. Usuário autoriza `gh auth login` (sessão interativa) ou cola o log de um job que falha, para eu diagnosticar `test`/`build`/`audit` em CI.
-4. Se quiser a prova transacional final do LGPD-DELETE, autorizar a consulta específica ou rodar `scripts/verify-delete-user-account.sql` manualmente.
+1. **Usuário resolve o billing bloqueado em `github.com/settings/billing`** — é o único bloqueador real de CI agora; nada de código resolve isso.
+2. Depois disso, re-rodar o workflow e confirmar se `SUPABASE_DB_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` estão configurados em Settings → Secrets and variables → Actions (senão `database-security` e `e2e` continuam falhando, agora por secret ausente em vez de billing).
+3. Se quiser a prova transacional final do LGPD-DELETE, autorizar a consulta específica ou rodar `scripts/verify-delete-user-account.sql` manualmente.
+
+### Commit desta sessão
+
+`b6abecb7` — fix(ci): aplica Prettier no mapa de viagens; audita e sincroniza documentacao. Pushado para `main`.
 
 ---
 
