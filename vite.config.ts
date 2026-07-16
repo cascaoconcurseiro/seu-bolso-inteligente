@@ -85,9 +85,20 @@ export default defineConfig(({ mode }) => {
         },
         injectManifest: {
           maximumFileSizeToCacheInBytes: 2097152, // 2MB
-          globPatterns: ["index.html", "manifest.webmanifest"],
-          // Splash screens iOS são buscadas pelo SO no launch — não precachear
-          globIgnores: ["splash/**"],
+          // Precache completo do app shell (JS/CSS/HTML/ícones do PWA):
+          // abertura instantânea do disco, como app nativo. Atualização
+          // atômica: o SW novo baixa tudo em background antes de ativar.
+          // Logos de banco/avatares/bandeiras ficam de fora (são centenas) —
+          // vão para cache runtime na primeira exibição (rota de imagem no sw).
+          globPatterns: [
+            "**/*.{js,css,html,ico,webmanifest}",
+            "manifest.json",
+            "icon-*.png",
+            "apple-touch-icon.png",
+          ],
+          // Splash screens iOS são buscadas pelo SO no launch — não precachear.
+          // version.json fica fora: precisa sempre vir fresco da rede.
+          globIgnores: ["splash/**", "**/*.map"],
         },
       }),
     ].filter(Boolean),

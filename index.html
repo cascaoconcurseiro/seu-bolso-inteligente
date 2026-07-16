@@ -166,6 +166,11 @@
         align-items: center;
         justify-content: center;
         z-index: 9999;
+        transition: opacity 0.25s ease-out;
+      }
+      #native-splash.hide {
+        opacity: 0;
+        pointer-events: none;
       }
       html.dark #native-splash {
         background-color: #09090b;
@@ -391,14 +396,15 @@
   </head>
 
   <body>
-    <div id="root">
-      <div id="native-splash">
-        <div class="logo">
-          <img src="/icon-512.png" alt="Logo Pé de Meia" />
-        </div>
-        <div class="text">pé de meia</div>
+    <!-- Splash fora do #root: sobrevive à montagem do React e só é removido
+         via hideNativeSplash() quando a primeira tela real está pronta. -->
+    <div id="native-splash">
+      <div class="logo">
+        <img src="/icon-512.png" alt="Logo Pé de Meia" />
       </div>
+      <div class="text">pé de meia</div>
     </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

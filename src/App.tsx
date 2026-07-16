@@ -7,7 +7,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { lazy, Suspense } from "react";
+import { hideNativeSplash } from "@/utils/splash";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Auth } from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -69,6 +70,15 @@ function DeferredPage({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<PageLoader />}>{children}</Suspense>;
 }
 
+// Páginas públicas não passam pelo ProtectedRoute, então removem o splash
+// nativo do index.html na própria montagem.
+function PublicPage({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    hideNativeSplash();
+  }, []);
+  return <>{children}</>;
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <ErrorBoundary>
@@ -80,9 +90,30 @@ const App = () => (
             <IOSInstallPrompt />
             <EdgeSwipeBack />
             <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacidade" element={<Privacidade />} />
+              <Route
+                path="/auth"
+                element={
+                  <PublicPage>
+                    <Auth />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <PublicPage>
+                    <ResetPassword />
+                  </PublicPage>
+                }
+              />
+              <Route
+                path="/privacidade"
+                element={
+                  <PublicPage>
+                    <Privacidade />
+                  </PublicPage>
+                }
+              />
 
               <Route
                 element={
@@ -205,7 +236,14 @@ const App = () => (
                 />
               </Route>
 
-              <Route path="*" element={<NotFound />} />
+              <Route
+                path="*"
+                element={
+                  <PublicPage>
+                    <NotFound />
+                  </PublicPage>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

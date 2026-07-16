@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Send, CheckCircle2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/utils/logger";
+import { hideNativeSplash } from "@/utils/splash";
 
 interface Props {
   children: ReactNode;
@@ -41,6 +42,8 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Erro durante o boot: sem isto o splash nativo cobriria a tela de erro.
+    hideNativeSplash();
     logger.error("❌ [ErrorBoundary] Erro capturado:", error);
     logger.error("❌ [ErrorBoundary] Stack:", errorInfo.componentStack);
     logger.error("❌ [ErrorBoundary] Error name:", error.name);

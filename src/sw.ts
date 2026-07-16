@@ -1,7 +1,11 @@
 /// <reference lib="webworker" />
-import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from "workbox-precaching";
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from "workbox-precaching";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { CacheFirst, NetworkFirst } from "workbox-strategies";
+import { CacheFirst } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
@@ -15,27 +19,13 @@ self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// SPA fallback — navegação sempre tenta a rede primeiro para obter o index.html
-// do deploy atual (com os hashes de chunk vigentes). Servir o index.html
-// pré-cacheado após um novo deploy produziria referências de chunk mortas
-// (404 → fallback HTML → "Failed to load module script"). Offline, cai para a
-// última versão em cache e, em último caso, para o index.html do precache.
-const navigationStrategy = new NetworkFirst({
-  cacheName: "app-shell",
-  networkTimeoutSeconds: 3,
-  plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
-});
-registerRoute(
-  new NavigationRoute(async (options) => {
-    try {
-      const response = await navigationStrategy.handle(options);
-      if (response) return response;
-    } catch {
-      // rede e cache de navegação indisponíveis — usa o precache abaixo
-    }
-    return (await matchPrecache("index.html")) ?? Response.error();
-  })
-);
+// App-shell: navegação servida direto do precache — abertura instantânea,
+// como app nativo, sem esperar rede. Não há risco de referência de chunk
+// morta: o index.html e TODOS os assets com hash entram no precache do mesmo
+// SW de forma atômica (o SW novo só ativa depois de baixar tudo), então o
+// index.html servido sempre aponta para chunks que já estão em cache.
+// Deploys novos chegam em background via atualização do SW (autoUpdate).
+registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
 
 // Nunca cachear (nem servir) uma resposta HTML para um request de script/style.
 // Durante uma corrida de deploy, um asset com hash antigo pode 404 e a Vercel
@@ -50,20 +40,31 @@ const denyHtmlForAssets = {
   },
 };
 
-// Scripts/styles: NetworkFirst para que, online, o navegador sempre receba o
-// asset do deploy vigente — auto-curando dispositivos com cache envenenado de
-// deploys anteriores. Offline, cai para o cache (que só contém JS/CSS válidos).
+// Scripts/styles fora do precache (caso raro — assets do build já estão todos
+// precacheados): CacheFirst, pois os nomes têm hash e o conteúdo é imutável.
 registerRoute(
   ({ request, url }) =>
     url.origin === self.location.origin &&
     (request.destination === "script" || request.destination === "style"),
-  new NetworkFirst({
+  new CacheFirst({
     cacheName: "app-assets",
-    networkTimeoutSeconds: 4,
     plugins: [
       denyHtmlForAssets,
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 }),
+    ],
+  })
+);
+
+// Imagens estáticas (logos de banco, avatares, bandeiras de cartão): imutáveis,
+// CacheFirst na primeira exibição — depois carregam do disco.
+registerRoute(
+  ({ request, url }) => url.origin === self.location.origin && request.destination === "image",
+  new CacheFirst({
+    cacheName: "app-images",
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({ maxEntries: 300, maxAgeSeconds: 60 * 24 * 60 * 60 }),
     ],
   })
 );

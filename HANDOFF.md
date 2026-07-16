@@ -2,6 +2,40 @@
 
 > Última atualização: 2026-07-16
 
+## Handoff da sessão - 16/07/2026 - Abertura instantânea (app shell precache) + splash único
+
+### Objetivo
+
+Usuário reportou que o app demora muito pra abrir no celular e no computador e que o logo aparece duas vezes antes de abrir. Pediu comportamento de app nativo.
+
+### Causas raiz encontradas
+
+1. **Logo duas vezes**: o `#native-splash` do `index.html` ficava DENTRO de `#root` — o React o destruía na primeira montagem, mostrava o skeleton do `PageLoader`, e aí o `ProtectedRoute` renderizava uma SEGUNDA tela de splash idêntica (mesmo logo + "pé de meia") enquanto `supabase.auth.getSession()` resolvia. Sequência real: logo → skeleton → logo → skeleton → app.
+2. **Lentidão**: o service worker só pré-cacheava `index.html` + manifest (7 entradas, 17 KB). Todo JS/CSS usava `NetworkFirst` com timeout de 3–4 s — toda abertura, mesmo do PWA instalado, esperava a rede baixar ~1 MB de JS do caminho crítico. App "nativo" era na verdade um site.
+
+### Decisões e alterações
+
+- **Splash único** (`index.html`): `#native-splash` movido para FORA de `#root` (sobrevive à montagem do React) com fade-out via classe `.hide`. Novo util `src/utils/splash.ts` (`hideNativeSplash()`), chamado por: `ProtectedRoute` quando a sessão resolve (e não renderiza mais o segundo splash — retorna `null`), wrapper `PublicPage` no `App.tsx` (rotas `/auth`, `/reset-password`, `/privacidade`, `*`) e `ErrorBoundary.componentDidCatch` (erro de boot não pode ficar escondido atrás do splash). O script de recuperação de chunk do `index.html` continua funcionando (anexa botão ao splash, que agora persiste até o app estar pronto).
+- **App shell precache** (`vite.config.ts` + `src/sw.ts`): precache completo de JS/CSS/HTML/ícones do PWA (143 entradas, ~4,1 MB; logos de banco/avatares/bandeiras ficam fora — são ~530 arquivos — e caem na nova rota runtime `CacheFirst` de imagens, cacheadas na primeira exibição). Navegação agora é `createHandlerBoundToURL("index.html")` direto do precache (era `NetworkFirst` 3 s). Scripts/styles fora do precache: `CacheFirst` (nomes com hash = imutáveis; guarda `denyHtmlForAssets` mantida). Sem risco de chunk morto: index.html e chunks entram no precache do MESMO SW de forma atômica — o SW novo só ativa depois de baixar tudo.
+- **Modelo de atualização**: deploys novos não chegam mais no mesmo load; chegam via atualização do SW em background (`autoUpdate` + `skipWaiting`) e via `VersionGuard` (poll de `version.json` a cada 5 min + toast "Atualizar Agora" — já existia e foi verificado compatível: o fetch dele não passa pelas rotas do SW). `version.json` deliberadamente fora do precache. Fallbacks de erro de chunk (`vite:preloadError` no `main.tsx` + recovery script no `index.html`) mantidos como rede de segurança.
+- `.claude/launch.json`: adicionada config `preview` (vite preview, porta 4173) para testar o build com SW real.
+
+### Verificação (build de produção servido via `vite preview`, browser real)
+
+- [x] `tsc --noEmit` 0 erros, `npm run lint` 0 erros, `npm test -- --run` 239/239, `npm run build` verde, `format:check` verde.
+- [x] SW ativo com 138+ entradas de precache populadas; rota runtime `app-images` cacheando logos.
+- [x] Recarga da página: `index.html` com `transferSize = 0` (servido pelo SW), 70/70 assets do cache, asset mais lento 13 ms, **DOMContentLoaded em 47 ms**.
+- [x] Splash removido do DOM após o boot; tela de login renderizada sem segundo logo; zero erros de console.
+- [ ] QA em dispositivo real (iPhone instalado como PWA): confirmar abertura instantânea na 2ª abertura em diante e splash único. A 1ª abertura após este deploy ainda baixa o precache em background.
+
+### Próximo passo
+
+- QA no celular após o deploy (ver item acima).
+- Opcional (primeira visita/instalação): o chunk principal tem 615 KB (182 KB gzip) — dá para dividir vendors com `manualChunks` se a primeira carga em 4G ainda incomodar. Aberturas repetidas já não dependem disso.
+- Pendências herdadas: QA visual do fix de toasts (sessão anterior), billing do GitHub Actions.
+
+---
+
 ## Handoff da sessão - 16/07/2026 - Faxina de código morto + fix do toast duplicado
 
 ### Objetivo
