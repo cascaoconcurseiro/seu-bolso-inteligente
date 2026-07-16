@@ -23,7 +23,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as dateFns from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, ExternalLink, MapPin, Navigation, Pencil, Plus, Route, Search, Trash2 } from "lucide-react";
+import {
+  Clock,
+  ExternalLink,
+  MapPin,
+  Navigation,
+  Pencil,
+  Plus,
+  Route,
+  Search,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   geocodeDestination,
@@ -170,7 +180,15 @@ export function TripItinerary({ trip }: TripItineraryProps) {
 
   // Move mutation (arrastar marcador no mapa — só atualiza coordenadas)
   const moveItem = useMutation({
-    mutationFn: async ({ id, latitude, longitude }: { id: string; latitude: number; longitude: number }) => {
+    mutationFn: async ({
+      id,
+      latitude,
+      longitude,
+    }: {
+      id: string;
+      latitude: number;
+      longitude: number;
+    }) => {
       const { error } = await supabase
         .from("trip_itinerary")
         .update({ latitude, longitude })
@@ -456,115 +474,116 @@ export function TripItinerary({ trip }: TripItineraryProps) {
         {Object.entries(groupedItems).map(([dateKey, dayItems]) => {
           const dayNavUrl = buildDayNavUrl(dayItems);
           return (
-          <div key={dateKey} className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold capitalize text-foreground">
-                {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
-                  locale: ptBR,
-                })}
-              </h3>
-              {dayNavUrl && (
-                <a
-                  href={dayNavUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
-                  title="Abrir a rota do dia no Google Maps"
-                >
-                  <Navigation className="h-3.5 w-3.5" />
-                  Navegar dia
-                </a>
-              )}
-            </div>
-            <div className="space-y-2">
-              {dayItems.map((item) => {
-                const meta = parseMeta(item.description);
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+            <div key={dateKey} className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold capitalize text-foreground">
+                  {dateFns.format(new Date(dateKey + "T12:00:00"), "EEEE, dd 'de' MMMM", {
+                    locale: ptBR,
+                  })}
+                </h3>
+                {dayNavUrl && (
+                  <a
+                    href={dayNavUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"
+                    title="Abrir a rota do dia no Google Maps"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        {item.start_time && (
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {item.start_time.slice(0, 5)}
-                            {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
-                          </span>
+                    <Navigation className="h-3.5 w-3.5" />
+                    Navegar dia
+                  </a>
+                )}
+              </div>
+              <div className="space-y-2">
+                {dayItems.map((item) => {
+                  const meta = parseMeta(item.description);
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between p-4 rounded-xl border border-border hover:border-foreground/20 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          {item.start_time && (
+                            <span className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {item.start_time.slice(0, 5)}
+                              {item.end_time && ` - ${item.end_time.slice(0, 5)}`}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-medium mt-1">{item.title}</p>
+                        {item.location && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                            <MapPin className="h-3 w-3" />
+                            {item.location}
+                          </p>
                         )}
+                        {meta.text && (
+                          <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
+                        )}
+                        <div className="flex gap-1 mt-2">
+                          <a
+                            href={(() => {
+                              if (item.maps_url || meta.mapsUrl)
+                                return item.maps_url || meta.mapsUrl;
+                              const query = encodeURIComponent(
+                                (item.location || item.title) +
+                                  (trip.destination ? ", " + trip.destination : "")
+                              );
+                              return `https://www.google.com/maps/search/?api=1&query=${query}`;
+                            })()}
+                            onClick={(e) => {
+                              const query = encodeURIComponent(
+                                (item.location || item.title) +
+                                  (trip.destination ? ", " + trip.destination : "")
+                              );
+                              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                              if (isIOS) {
+                                e.preventDefault();
+                                // Tenta abrir o app do Google Maps; fallback para web
+                                window.location.href = `comgooglemaps://?q=${query}`;
+                                setTimeout(() => {
+                                  window.open(
+                                    `https://www.google.com/maps/search/?api=1&query=${query}`,
+                                    "_blank"
+                                  );
+                                }, 500);
+                              }
+                            }}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
+                            title="Abrir no Google Maps"
+                          >
+                            <MapPin className="h-3 w-3" />
+                            Maps{item.maps_url || meta.mapsUrl ? " ✓" : ""}
+                          </a>
+                          {meta.rating && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
+                              ⭐ {meta.rating}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <p className="font-medium mt-1">{item.title}</p>
-                      {item.location && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3" />
-                          {item.location}
-                        </p>
-                      )}
-                      {meta.text && (
-                        <p className="text-sm text-muted-foreground mt-2">{meta.text}</p>
-                      )}
-                      <div className="flex gap-1 mt-2">
-                        <a
-                          href={(() => {
-                            if (item.maps_url || meta.mapsUrl) return item.maps_url || meta.mapsUrl;
-                            const query = encodeURIComponent(
-                              (item.location || item.title) +
-                                (trip.destination ? ", " + trip.destination : "")
-                            );
-                            return `https://www.google.com/maps/search/?api=1&query=${query}`;
-                          })()}
-                          onClick={(e) => {
-                            const query = encodeURIComponent(
-                              (item.location || item.title) +
-                                (trip.destination ? ", " + trip.destination : "")
-                            );
-                            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                            if (isIOS) {
-                              e.preventDefault();
-                              // Tenta abrir o app do Google Maps; fallback para web
-                              window.location.href = `comgooglemaps://?q=${query}`;
-                              setTimeout(() => {
-                                window.open(
-                                  `https://www.google.com/maps/search/?api=1&query=${query}`,
-                                  "_blank"
-                                );
-                              }, 500);
-                            }
-                          }}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-400 dark:hover:bg-blue-900 transition-colors"
-                          title="Abrir no Google Maps"
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeletingItem(item)}
+                          className="text-destructive hover:text-destructive"
                         >
-                          <MapPin className="h-3 w-3" />
-                          Maps{item.maps_url || meta.mapsUrl ? " ✓" : ""}
-                        </a>
-                        {meta.rating && (
-                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-1 rounded-md bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400">
-                            ⭐ {meta.rating}
-                          </span>
-                        )}
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeletingItem(item)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
           );
         })}
       </div>

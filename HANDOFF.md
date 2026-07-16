@@ -1,6 +1,6 @@
 # HANDOFF.md — Ponto de Continuidade
 
-> Última atualização: 2026-07-13
+> Última atualização: 2026-07-15
 
 ## Regras permanentes de continuidade
 
@@ -12,6 +12,60 @@
 - Não declarar revisão de um especialista que não tenha sido efetivamente realizada; registrar o critério técnico aplicado e suas evidências.
 
 Contrato detalhado: `docs/PRODUCT_OPERATING_MODEL.md`.
+
+---
+
+## Handoff da sessão - 15/07/2026 - Auditoria completa ao vivo + sincronização da documentação
+
+### Objetivo
+
+Usuário pediu auditoria do que "realmente" ainda precisa ser feito (não confiar no que os documentos afirmavam) e atualização de toda a documentação. Convocada análise multi-especialista (Supabase, Postgres Performance, Infraestrutura, Financeiro, Arquitetura pragmática) via skill `team-coordinator`.
+
+### Lacuna de documentação encontrada
+
+`HANDOFF.md` não tinha entrada para os últimos 5 commits antes desta sessão (`5a9a2752`, `09cf031a`, `bc0eb308` PWA/LGPD, `60b55184` baseline, `3ae672ee` idempotency+RPC v2, `3cb451ba` mapa de viagens) — violava a própria regra permanente deste arquivo. `MASTER_BLUEPRINT.md` estava parado em 25/06 com 3 afirmações desatualizadas (PIN plaintext, transação compartilhada sem atomicidade, leak no `rpcWithRetry`) que já tinham sido corrigidas em sessões posteriores sem o blueprint refletir.
+
+### Verificação ao vivo (banco de produção `vrrcagukyfnlhxuvnssp`, via Supabase MCP)
+
+- `list_migrations`: `20260713213214_reintroduce_delete_user_account_rpc` e `20260713212130_fix_idempotency_key_type_text` **confirmadas aplicadas** — o commit `3ae672ee` já tinha resolvido o bloqueador LGPD-DELETE que o CHECKLIST ainda marcava como pendente.
+- `get_advisors(security)`: `delete_user_account` presente com grants corretos; 50 funções com o WARN esperado de "SECURITY DEFINER executável por authenticated" (mesmas já revisadas nas etapas 1-13, nada novo); `auth_leaked_password_protection` continua WARN (Free plan, já documentado).
+- `get_advisors(performance)`: só itens INFO de índice não usado — mesmos já avaliados e decididos "não mexer" em 01/07. Nada novo.
+- Código: `grep` confirma que `FamilyBalancePanel.tsx` e `useTrips.ts` chamam as versões `_v2` das RPCs de saldo (não as legadas) — fix do `3ae672ee` real. `rpcWithRetry.ts` já usa `AbortController` real com `clearTimeout` em `finally` — o leak documentado no blueprint não existe mais.
+
+### Achado crítico: CI 100% vermelho desde 12/07 (não estava documentado)
+
+Via API pública do GitHub (repo é público, sem precisar de token): **todas as execuções do workflow `CI` em `main` desde a run #120 (12/07) até a #149 (16/07) falharam**, nos 6 jobs, incluindo nos commits que sessões anteriores relataram como "typecheck zerado"/"CI verde". A antiga suspeita de billing do GitHub Actions (`docs/CHECKLIST_HIG_PWA_IOS.md`) está desatualizada: o runner roda normalmente agora (minutos de execução, não os ~4s de antes); o problema é outro.
+
+Diagnóstico rodando localmente cada step do `ci.yml`:
+- `npx tsc --noEmit` ✅, `npm run lint` ✅ (0 erros), `npm test -- --coverage` ✅ (239/239), `npm run build` ✅, `npm run test:secrets` ✅, `npm audit --omit=dev` ✅ (0 vulnerabilidades).
+- `npm run format:check` ❌ — 6 arquivos não formatados; 3 deles (`TripItinerary.tsx`, `TripRouteMap.tsx`, `overpassService.ts`) são da feature de mapa de viagens (`3cb451ba`), que nunca passou pelo Prettier. **Esta é a causa confirmada do job "Lint & Type Check" falhando.** Corrigido nesta sessão com `prettier --write`; reverificado tsc/lint/format:check limpos.
+- `database-security` (job): o `ci.yml` faz `exit 1` explícito se o secret `SUPABASE_DB_URL` não estiver configurado no repo GitHub. Suspeita forte, não confirmada — não tenho acesso de leitura aos Secrets do repo.
+- `e2e`: depende de `VITE_SUPABASE_URL` (var) e `VITE_SUPABASE_ANON_KEY` (secret) do repo. Mesma suspeita.
+- `test`, `build`, `audit`: passam localmente sem erro — a causa da falha específica em CI não foi confirmada porque a API do GitHub recusou o download do log do job (`403 Must have admin rights to Repository`) sem autenticação.
+
+### Ação bloqueada por permissão
+
+Tentei escolher um usuário real com dados ricos para rodar `scripts/verify-delete-user-account.sql` (prova transacional do LGPD-DELETE) via `execute_sql`. O classificador de permissão automática recusou por juntar `auth.users` com dados financeiros identificáveis sem essa consulta específica ter sido nomeada em escopo pelo usuário. Não tentei contornar — ver `[LGPD-VERIFY]` no CHECKLIST.
+
+### Alterações nesta sessão
+
+- `src/components/trips/TripItinerary.tsx`, `TripRouteMap.tsx`, `src/services/overpassService.ts`: reformatados com Prettier (sem mudança de comportamento). **Ainda não commitado** — aguardando confirmação do usuário.
+- `MASTER_BLUEPRINT.md`, `CHECKLIST.md`, `docs/CHECKLIST_HIG_PWA_IOS.md`, `HANDOFF.md`: sincronizados com o estado real confirmado.
+
+### Verificação
+
+- [x] `tsc --noEmit`, `lint`, `format:check`, `test`, `build`, `test:secrets`, `npm audit` — todos verdes localmente após o fix de formatação.
+- [x] Migrations LGPD-DELETE e idempotency_key confirmadas aplicadas em produção via MCP.
+- [x] Advisors de segurança/performance revisados — nada novo além do já conhecido.
+- [ ] Prova transacional do LGPD-DELETE com usuário real — bloqueada por permissão, não executada.
+- [ ] Causa raiz de `test`/`build`/`audit`/`database-security`/`e2e` falhando em CI — não confirmada, falta acesso a logs/secrets.
+
+### Próximo passo concreto
+
+1. Usuário decide: commit + push do fix de Prettier (desbloqueia 1 de 6 jobs).
+2. Usuário confirma em Settings → Secrets and variables → Actions do GitHub se `SUPABASE_DB_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` estão configurados.
+3. Usuário autoriza `gh auth login` (sessão interativa) ou cola o log de um job que falha, para eu diagnosticar `test`/`build`/`audit` em CI.
+4. Se quiser a prova transacional final do LGPD-DELETE, autorizar a consulta específica ou rodar `scripts/verify-delete-user-account.sql` manualmente.
 
 ---
 

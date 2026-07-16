@@ -1,7 +1,20 @@
 # CHECKLIST.md — Sprint Kanban: Seu Bolso Inteligente
 
 > Kanban de tarefas em markdown. Atualizar a cada sessão.
-> Última atualização: **2026-07-03 — Smoke test de integração + 6 bug fixes** ✅
+> Última atualização: **2026-07-15 — Auditoria completa ao vivo (banco + CI + código) e sincronização da documentação**
+
+---
+
+## 🔴 CRÍTICO — Achado nesta auditoria (15/07/2026)
+
+- [x] **[CI-FORMAT]** `npm run format:check` falhava (3 arquivos da feature de mapa de viagens `3cb451ba` nunca passaram pelo Prettier: `TripItinerary.tsx`, `TripRouteMap.tsx`, `overpassService.ts`). Confirmado como causa raiz do job "Lint & Type Check" falhando 100% desde 12/07. **Corrigido nesta sessão** (`prettier --write`); `tsc`/`lint`/`format:check` verdes localmente. **Pendente:** commit + push (aguardando autorização).
+- [ ] **[CI-ALLRED]** CI (`ci.yml`) falhou em **todas as execuções em `main` desde 12/07** (runs #120–#149, confirmado via API pública do GitHub, sem exceção) — inclusive nos commits que sessões anteriores documentaram como "typecheck zerado"/"testes verdes"/"advisors zerados". Ou seja: nenhuma dessas alegações foi de fato confirmada por máquina desde então, só localmente. Causas identificadas até agora:
+  - `Lint & Type Check`: era o `format:check` (ver CI-FORMAT, corrigido).
+  - `Database Security Contract`: o workflow faz `exit 1` explícito se o secret `SUPABASE_DB_URL` não estiver configurado no repo GitHub — provável causa, não confirmada (sem acesso admin para ler Secrets).
+  - `E2E (Playwright)`: depende de `VITE_SUPABASE_URL` (var) e `VITE_SUPABASE_ANON_KEY` (secret) do repo — mesma suspeita.
+  - `Test (Vitest)`, `Build Check`, `Security Audit`: **passam localmente** (239/239 testes, build ok, `npm audit` 0 vulnerabilidades, `test:secrets` ok) — causa da falha em CI não confirmada, preciso de acesso aos logs do job (403 sem permissão de admin no repo) ou que o usuário rode `gh auth login` / cole o log.
+  - **Ação necessária do usuário:** (1) confirmar em Settings → Secrets and variables → Actions se `SUPABASE_DB_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` estão configurados; (2) autorizar acesso de leitura aos logs (gh auth ou colar o log) para eu diagnosticar test/build/audit.
+- [ ] **[LGPD-VERIFY]** `delete_user_account` **confirmado presente e com grants corretos em produção** (migration `20260713213214` aplicada, função `SECURITY DEFINER`, `search_path=''`, `authenticated`+`service_role`). O que falta é só a prova transacional final contra um usuário real (`scripts/verify-delete-user-account.sql`, BEGIN/ROLLBACK) — **não executada nesta sessão**: a query que eu montei para escolher um usuário de teste foi bloqueada pelo classificador de permissão automática por juntar `auth.users` com dados financeiros sem essa consulta ter sido nomeada explicitamente em escopo. Se quiser essa prova, autorize a consulta especificamente ou rode o script você mesmo via `psql`.
 
 ---
 
@@ -18,9 +31,11 @@
 - [x] **[AUTH-MFA]** MFA TOTP habilitado e versionado; advisor de opcoes insuficientes zerado.
 - [x] **[BASELINE]** Snapshot de cutover reproduzivel: 36 tabelas, 164 funcoes, 10 views e ACLs explicitas.
 - [x] **[ERROR-LOG]** Schema reconciliado, senha historica removida e `updated_at`/RPCs corrigidos.
-- [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free.
+- [ ] **[AUTH-HIBP-PLAN]** Habilitar leaked-password protection ao migrar o Supabase para Pro; indisponivel no plano Free. Confirmado ainda pendente via advisor (`auth_leaked_password_protection`, 15/07).
+- [x] **[IDEMPOTENCY-FIX]** `transactions.idempotency_key` corrigida de `uuid` para `text` (commit `3ae672ee`, migration `20260713212130`) — quebrava toda transacao compartilhada/parcelada com erro `42804`. Confirmado aplicado em producao via `list_migrations` (15/07).
+- [x] **[RPC-V2-CALLSITES]** Dois call-sites do frontend ainda chamavam RPCs legadas revogadas (`get_current_shared_debts`, `get_trip_participant_balances`) e recebiam 403 silencioso — migrados para `_v2` em `FamilyBalancePanel.tsx` e `useTrips.ts` (commit `3ae672ee`). Confirmado: grep no codigo so encontra as versoes `_v2` chamadas hoje.
 - [x] **[TYPECHECK]** Zerados os 124 erros globais (tsconfig.app.json) e removido `continue-on-error`: typecheck agora e bloqueante no CI.
-- [~] **[LGPD-DELETE]** RPC `delete_user_account` reescrita para o schema atual (migration `20260713140000`), tipos e hook restaurados; typecheck/format verdes. Decisao adotada: expurgo fisico + SET NULL onde o usuario e so ator/criador de registro alheio. **Pendente:** aplicar em producao e provar com `scripts/verify-delete-user-account.sql` (BEGIN/ROLLBACK) contra um usuario real; validar privilegio de DELETE em `auth.users` (senao mover o passo 3 para Edge Function com service_role).
+- [x] **[LGPD-DELETE]** RPC `delete_user_account` reescrita para o schema atual e **aplicada em producao** (migration `20260713213214_reintroduce_delete_user_account_rpc`, confirmada ao vivo em 15/07 — funcao existe, `SECURITY DEFINER`, grants `authenticated`+`service_role`). Decisao adotada: expurgo fisico + SET NULL onde o usuario e so ator/criador de registro alheio. Ver `[LGPD-VERIFY]` acima para a prova transacional final pendente.
 
 ---
 

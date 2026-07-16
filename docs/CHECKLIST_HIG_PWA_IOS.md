@@ -17,8 +17,18 @@
       A correção já está na branch `claude/team-project-evaluation-wsk16l`,
       junto com outros 19 ReferenceErrors do mesmo tipo. Enquanto não mergear,
       viagens continua quebrada em produção.
-- [ ] Resolver billing do GitHub Actions (Settings → Billing) — todo CI falha
-      em ~4s sem executar runner desde 02/07, inclusive no main.
+- [~] Billing do GitHub Actions **não é mais o problema**: confirmado em 15/07
+      via API pública do GitHub que o runner roda normalmente (jobs demoram
+      minutos, não os ~4s de antes). O problema atual é outro: **CI falha em
+      100% das execuções em `main` desde 12/07** (runs #120–#149), nos 6 jobs.
+      Causa parcial identificada e corrigida nesta sessão: `format:check`
+      quebrado por 3 arquivos não formatados da feature de mapa de viagens.
+      Restam sem causa confirmada: `Database Security Contract` (suspeita:
+      secret `SUPABASE_DB_URL` ausente no repo), `E2E` (suspeita: vars/secrets
+      `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`), e `Test`/`Build`/`Security
+      Audit` (passam localmente, causa em CI desconhecida — falta acesso aos
+      logs do job, que exige permissão de admin no repo). Ver `[CI-ALLRED]` em
+      `CHECKLIST.md`.
 
 ---
 

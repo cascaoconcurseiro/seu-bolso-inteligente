@@ -90,7 +90,12 @@ function useOsrmRoute(positions: [number, number][]): [number, number][] | null 
   return route;
 }
 
-export function TripRouteMap({ items, fallbackCenter, onMapPick, onMarkerMove }: TripRouteMapProps) {
+export function TripRouteMap({
+  items,
+  fallbackCenter,
+  onMapPick,
+  onMarkerMove,
+}: TripRouteMapProps) {
   const mappedItems = useMemo(
     () => items.filter((item) => item.latitude !== null && item.longitude !== null),
     [items]
@@ -103,8 +108,7 @@ export function TripRouteMap({ items, fallbackCenter, onMapPick, onMarkerMove }:
 
   if (mappedItems.length === 0 && !fallbackCenter) return null;
 
-  const center: [number, number] =
-    positions[0] ?? [fallbackCenter!.lat, fallbackCenter!.lon];
+  const center: [number, number] = positions[0] ?? [fallbackCenter!.lat, fallbackCenter!.lon];
 
   return (
     <section

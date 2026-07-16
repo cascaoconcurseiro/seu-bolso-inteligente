@@ -149,9 +149,7 @@ export async function searchPlaces(
       const coords = f.geometry?.coordinates;
       if (!p.name || !coords) continue;
       const [lon, lat] = coords;
-      const address = [p.street, p.district, p.city, p.state, p.country]
-        .filter(Boolean)
-        .join(", ");
+      const address = [p.street, p.district, p.city, p.state, p.country].filter(Boolean).join(", ");
       const key = `${p.name}|${address}`.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);

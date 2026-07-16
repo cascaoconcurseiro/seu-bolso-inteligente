@@ -1,7 +1,7 @@
 # MASTER_BLUEPRINT.md — Mapa do Projeto: Seu Bolso Inteligente
 
 > Este documento é a fonte única de verdade arquitetural do projeto. Leia antes de qualquer implementação.
-> Última atualização: 2026-06-25
+> Última atualização: 2026-07-15 (auditoria ao vivo — banco de produção via Supabase MCP + código + CI)
 
 ---
 
@@ -52,8 +52,8 @@
 
 ### 3.4 Segurança
 - RLS ativo em TODAS as tabelas. Nunca acesse dados sem `auth.uid()` no contexto.
-- RPCs críticas usam `SECURITY DEFINER` + verificação interna de `auth.uid()`.
-- PIN nunca armazenado em plaintext. (⚠️ vulnerabilidade pendente de fix — ver CHECKLIST.md)
+- RPCs críticas usam `SECURITY DEFINER` + verificação interna de `auth.uid()`, identidade derivada exclusivamente de `auth.uid()` (nunca `p_user_id` do cliente) — API v2 completa desde 13/07.
+- PIN nunca armazenado em plaintext — **confirmado resolvido**: `profiles.app_pin` foi dropada (`drop_plaintext_app_pin_column`), só existe `app_pin_hash` (bcrypt via `set_pin`/`verify_pin`/`clear_pin`).
 
 ---
 
@@ -61,7 +61,7 @@
 
 | Tabela | Descrição | Soft Delete |
 |---|---|---|
-| `profiles` | Dados do usuário, `app_pin` (⚠️ plaintext) | ❌ |
+| `profiles` | Dados do usuário, `app_pin_hash` (bcrypt) | ❌ |
 | `accounts` | Contas bancárias, saldo calculado via trigger | `deleted_at` |
 | `transactions` | Transações financeiras, coração do sistema | `deleted_at` |
 | `categories` | Categorias hierárquicas (pai/filho) | `deleted_at` |
@@ -99,7 +99,14 @@
 ### `rpcWithRetry(fn, params, options?)`
 - Wrapper frontend: 3 tentativas, backoff exponencial + 10% jitter, timeout 30s
 - Não retenta: 401, 403, 400
-- ⚠️ Promise.race leak (AbortController pendente)
+- **Confirmado resolvido**: usa `AbortController` real, wired via `.abortSignal()` no builder do Supabase, com `clearTimeout` em `finally` — sem leak de conexão zumbi (verificado em `src/utils/rpcWithRetry.ts`).
+
+### `delete_user_account()` — LGPD
+- Expurgo físico do usuário (`DELETE FROM auth.users`) + `SET NULL` em colunas onde o usuário é só ator/criador de registro alheio (família/viagem compartilhada).
+- Confirmado ao vivo: presente em produção, `SECURITY DEFINER`, grants `authenticated` + `service_role`, `search_path=''`.
+
+### RPCs `_v2` (API autenticada v2)
+- `create_transaction_with_splits_v2`, `create_installment_series_v2`, `get_current_shared_debts_v2`, `get_trip_participant_balances_v2` e mais uma dezena — todas escopadas por `auth.uid()`, sem `p_user_id` do cliente. Assinaturas legadas revogadas de `authenticated`.
 
 ---
 
@@ -108,8 +115,8 @@
 1. **Auth:** Supabase OAuth Google + Email/Password + PIN local (PinWrapper)
 2. **Dashboard:** React Query cache → Supabase, saldo via SSOT trigger
 3. **Transação simples:** Form → 12-layer Zod → insert → trigger atualiza saldo
-4. **Transação compartilhada:** Form → N inserts sequenciais ⚠️ SEM ATOMICIDADE
-5. **Parcelamento:** Form → N inserts sequenciais ⚠️ SEM ATOMICIDADE
+4. **Transação compartilhada:** Form → `create_transaction_with_splits_v2()` RPC ✅ atômico (confirmado resolvido; correção de tipo `idempotency_key` text aplicada em 13/07)
+5. **Parcelamento:** Form → `create_installment_series_v2()` RPC ✅ atômico (mesma correção)
 6. **Liquidar split:** Form → `settle_split()` RPC ✅ atômico
 7. **Reverter liquidação:** Form → `unsettle_with_reversal()` RPC ✅ atômico + audit
 8. **Fatura de cartão:** Agrupamento por `competence_date` YYYY-MM-01
